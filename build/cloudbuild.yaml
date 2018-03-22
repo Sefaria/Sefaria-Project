@@ -41,6 +41,9 @@ steps:
     args: ["push", "origin", "master"]
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ["apply", "-f", "k8s-admin/k8s/_build/latest/"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
 
 #  # Update k8s.
 #  - name: 'gcr.io/cloud-builders/kubectl'
