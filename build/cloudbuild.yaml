@@ -27,7 +27,9 @@ steps:
   - name: "gcr.io/cloud-builders/git"
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
   - name: 'debian'
-    args: ["cd k8s-admin", "&&", "./generate_release_configs.sh", "&&", "./apply_release_configs.sh"]
+    args: ["bash", "-c", "cd k8s-admin && ./generate_release_configs.sh && ./apply_release_configs.sh"]
+  - name: "gcr.io/cloud-builders/git"
+    args: ['commit", "-a", "-m", "Automatic update for $TAG_NAME"]
 
 
 #  # Update k8s.
