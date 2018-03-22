@@ -27,11 +27,13 @@ steps:
   - name: "gcr.io/cloud-builders/git"
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
   - name: 'debian'
-    args: ["bash", "-c", "cd k8s-admin && ./generate_release_configs.sh && ./apply_release_configs.sh"]
+    args: ["bash", "-c", "cd k8s-admin && ./generate_release_configs.sh $TAG_NAME"]
   - name: "gcr.io/cloud-builders/git"
     args: ['commit', "-a", "-m", "Automatic update for $TAG_NAME"]
   - name: "gcr.io/cloud-builders/git"
     args: ["push", "origin", "master"]
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ["apply", "-f", "k8s-admin/k8s/_build/latest"]
 
 #  # Update k8s.
 #  - name: 'gcr.io/cloud-builders/kubectl'
