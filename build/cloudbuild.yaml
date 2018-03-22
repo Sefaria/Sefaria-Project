@@ -29,7 +29,7 @@ steps:
   - name: 'debian'
     args: ["bash", "-c", "cd k8s-admin && ./generate_release_configs.sh $TAG_NAME"]
   - name: "gcr.io/cloud-builders/git"
-    args: ['commit', "-a", "-m", "Automatic update for $TAG_NAME"]
+    args: ['commit', "-a", "--author", "'Autobuild <dev@sefaria.org>'", "-m", "Automatic update for $TAG_NAME"]
   - name: "gcr.io/cloud-builders/git"
     args: ["push", "origin", "master"]
   - name: 'gcr.io/cloud-builders/kubectl'
