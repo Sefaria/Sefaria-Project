@@ -5,4 +5,5 @@
 --access-log-name /dev/stdout
 --application-type module
 --working-directory /app
+--threads 15
 sefaria.wsgi
