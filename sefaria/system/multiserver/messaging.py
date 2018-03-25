@@ -10,7 +10,7 @@ class MessagingNode(object):
     subscription_channels = []
 
     def __init__(self):
-        logger.info("Initializing {} with subscriptions: {}".format(self.__class__.__name__, self.subscription_channels))
+        logger.warning("Initializing {} with subscriptions: {}".format(self.__class__.__name__, self.subscription_channels))
         self.redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB)
         self.pubsub = self.redis_client.pubsub()
         if len(self.subscription_channels):
