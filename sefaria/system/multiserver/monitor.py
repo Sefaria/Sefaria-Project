@@ -11,7 +11,6 @@ logger.setLevel(logging.INFO)
 from messaging import MessagingNode
 from sefaria.system.sf_varnish import invalidate_title
 
-
 class MultiServerMonitor(MessagingNode):
     subscription_channels = [MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL]
 
@@ -56,7 +55,7 @@ class MultiServerMonitor(MessagingNode):
             "confirmations": [],
             "complete": False}
         self.event_order += [event_id]
-        logger.info("Received new event: {} - expecting {} confirmations".format(
+        logger.warning("Received new event: {} - expecting {} confirmations".format(
             self.event_description(data), expected))
 
     def _process_confirm(self, data):
@@ -70,12 +69,12 @@ class MultiServerMonitor(MessagingNode):
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]
-        logger.info("Received {} of {} confirmations for {}".format(
+        logger.warning("Received {} of {} confirmations for {}".format(
             event_record["confirmed"], event_record["expected"], data["event_id"]))
 
         if event_record["confirmed"] == event_record["expected"]:
             event_record["complete"] = True
-            logger.info("Received all {} responses for {}".format(
+            logger.warning("Received all {} responses for {}".format(
                 event_record["confirmed"], data["event_id"]))
             self._process_completion(event_record["data"])
 
@@ -93,12 +92,12 @@ class MultiServerMonitor(MessagingNode):
 
             if data["method"] == "refresh_index_record_in_cache":
                 title = data["args"][-1]  # Sometimes this is first arg, somethimes second.  Always last.
-                logger.info("Invalidating {} in Varnish".format(title))
+                logger.warning("Invalidating {} in Varnish".format(title))
                 invalidate_title(title)
 
             if data["method"] == "remove_index_record_from_cache":
                 title = data["args"][0]
-                logger.info("Invalidating {} in Varnish".format(title))
+                logger.warning("Invalidating {} in Varnish".format(title))
                 invalidate_title(title)
 
 

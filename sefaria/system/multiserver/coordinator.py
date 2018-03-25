@@ -13,6 +13,11 @@ logger = logging.getLogger("multiserver")
 
 
 class ServerCoordinator(MessagingNode):
+    """
+    Runs on each instance of the server.
+    publish_event() - Used for publishing events to other servers
+    sync() - used for listening for events. Invoked periodically from MultiServerEventListenerMiddleware
+    """
     subscription_channels = [MULTISERVER_REDIS_EVENT_CHANNEL]
 
     def publish_event(self, obj, method, args = None):
@@ -37,7 +42,7 @@ class ServerCoordinator(MessagingNode):
 
         import socket
         import os
-        logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
+        logger.warning("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
 
         self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
 
@@ -121,7 +126,7 @@ class ServerCoordinator(MessagingNode):
 
         # Send confirmation
         msg_data = json.dumps(confirm_msg)
-        logger.info("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
+        logger.warning("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
         self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
 
 
