@@ -16,12 +16,6 @@ class CategoryFilter(logging.Filter):
         if record:
             pass
 
-
-class RequireDebugTrue(logging.Filter):
-    def filter(self, record):
-        return settings.DEBUG
-
-
 class ErrorTypeFilter(logging.Filter):
     def __init__(self, error_types, exclude= True):
         self.error_types = error_types
