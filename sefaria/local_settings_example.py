@@ -213,7 +213,7 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'
         },
         'require_debug_true': {
-            '()': 'sefaria.utils.log.RequireDebugTrue'
+            '()': 'django.utils.log.RequireDebugTrue'
         }
     },
     'handlers': {
