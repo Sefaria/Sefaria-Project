@@ -26,6 +26,10 @@ class MultiServerMonitor(MessagingNode):
             self.process_messages()
 
     def process_messages(self):
+        """
+
+        :return:
+        """
         msg = self.pubsub.get_message()
         if not msg:
             return
@@ -46,6 +50,11 @@ class MultiServerMonitor(MessagingNode):
         self.process_messages()
 
     def _process_event(self, data):
+        """
+
+        :param data:
+        :return:
+        """
         event_id = data["id"]
         (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
         expected = int(subscribers - 2)  # No confirms from the publisher or the monitor => subscribers - 2
@@ -60,6 +69,11 @@ class MultiServerMonitor(MessagingNode):
             self.event_description(data), expected))
 
     def _process_confirm(self, data):
+        """
+
+        :param data:
+        :return:
+        """
 
         # todo: check status - success/error
         event_id = data["event_id"]

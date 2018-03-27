@@ -58,7 +58,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
+    from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 import logging
 logger = logging.getLogger(__name__)
