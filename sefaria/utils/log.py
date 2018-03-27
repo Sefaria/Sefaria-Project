@@ -16,6 +16,7 @@ class CategoryFilter(logging.Filter):
         if record:
             pass
 
+
 class ErrorTypeFilter(logging.Filter):
     def __init__(self, error_types, exclude= True):
         self.error_types = error_types
@@ -29,7 +30,7 @@ class ErrorTypeFilter(logging.Filter):
             retval = True if self.exclude else False
         else:
             if self.exclude:
-                retval =  all(record.exc_info[0].__name__ != err_type for err_type in self.error_types)
+                retval = all(record.exc_info[0].__name__ != err_type for err_type in self.error_types)
             else:
                 retval = any(record.exc_info[0].__name__ == err_type for err_type in self.error_types)
                 #get rid of the stack trace?

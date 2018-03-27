@@ -9,7 +9,7 @@ logger = logging.getLogger("multiserver")
 logger.setLevel(logging.INFO)
 
 from messaging import MessagingNode
-from sefaria.system.thin_varnish import invalidate_title
+from sefaria.system.varnish.thin_wrapper import invalidate_title
 
 
 class MultiServerMonitor(MessagingNode):
@@ -65,7 +65,7 @@ class MultiServerMonitor(MessagingNode):
             "confirmations": [],
             "complete": False}
         self.event_order += [event_id]
-        logger.warning("Received new event: {} - expecting {} confirmations".format(
+        logger.info("Received new event: {} - expecting {} confirmations".format(
             self.event_description(data), expected))
 
     def _process_confirm(self, data):
@@ -84,12 +84,12 @@ class MultiServerMonitor(MessagingNode):
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]
-        logger.warning("Received {} of {} confirmations for {}".format(
+        logger.info("Received {} of {} confirmations for {}".format(
             event_record["confirmed"], event_record["expected"], data["event_id"]))
 
         if event_record["confirmed"] == event_record["expected"]:
             event_record["complete"] = True
-            logger.warning("Received all {} responses for {}".format(
+            logger.info("Received all {} responses for {}".format(
                 event_record["confirmed"], data["event_id"]))
             self._process_completion(event_record["data"])
 
@@ -107,12 +107,12 @@ class MultiServerMonitor(MessagingNode):
 
             if data["method"] == "refresh_index_record_in_cache":
                 title = data["args"][-1]  # Sometimes this is first arg, somethimes second.  Always last.
-                logger.warning("Invalidating {} in Varnish".format(title))
+                logger.info("Invalidating {} in Varnish".format(title))
                 invalidate_title(title)
 
             if data["method"] == "remove_index_record_from_cache":
                 title = data["args"][0]
-                logger.warning("Invalidating {} in Varnish".format(title))
+                logger.info("Invalidating {} in Varnish".format(title))
                 invalidate_title(title)
 
 

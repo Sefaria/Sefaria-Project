@@ -2,7 +2,6 @@ import json
 import uuid
 
 from django.core.exceptions import MiddlewareNotUsed
-from django.utils.deprecation import MiddlewareMixin
 
 from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
@@ -42,7 +41,7 @@ class ServerCoordinator(MessagingNode):
 
         import socket
         import os
-        logger.warning("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
+        logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
 
         self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
 
@@ -104,7 +103,7 @@ class ServerCoordinator(MessagingNode):
 
         try:
             method(*data["args"])
-            logger.error("Processing succeeded for {} on {}:{}".format(self.event_description(data), host, pid))
+            logger.info("Processing succeeded for {} on {}:{}".format(self.event_description(data), host, pid))
 
             confirm_msg = {
                 'event_id': data["id"],
@@ -126,7 +125,7 @@ class ServerCoordinator(MessagingNode):
 
         # Send confirmation
         msg_data = json.dumps(confirm_msg)
-        logger.warning("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
+        logger.info("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
         self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
 
 
