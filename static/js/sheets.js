@@ -2434,6 +2434,11 @@ function readSheet() {
 	sheet.tags     = sjs.sheetTagger.tags();
 	sheet.summary  = $("#sheetSummaryInput").val();
 
+	sheet.includedRefs = [];
+	$('.sheetItem.source').map(function(){
+	  sheet.includedRefs.push($(this).attr('data-ref'));
+	});
+
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
 	}
