@@ -1,7 +1,7 @@
 """
 sitemap.py - generate sitemaps of all available texts for search engines.
 
-Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS.
+Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS by default, a custom directory can be supplied.
 """
 import os, errno
 from datetime import datetime
@@ -53,15 +53,14 @@ class SefariaSiteMapGenerator(object):
         "/william-davidson-talmud",
     ]
 
-    def __init__(self, hostSuffix='org'):
+    def __init__(self, hostSuffix='org', output_directory=STATICFILES_DIRS[0]):
         if hostSuffix in SefariaSiteMapGenerator.hostnames:
             self._interfaceLang = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("interfaceLang")
             self._hostname = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("hostname")
-            try:
-                os.makedirs(STATICFILES_DIRS[0] + "sitemaps/" + self._interfaceLang)
-            except OSError:
-                if not os.path.isdir(path):
-                    raise
+            self.output_directory = output_directory
+            path = self.output_directory + "sitemaps/" + self._interfaceLang
+            if not os.path.exists(path):
+                os.makedirs(path)
         else:
             raise KeyError("Illegal hostname for SiteMapGenerator")
 
@@ -132,7 +131,7 @@ class SefariaSiteMapGenerator(object):
         """
         Writes the list URLS, one per line, to filename.
         """
-        out = STATICFILES_DIRS[0] + "sitemaps/" + self._interfaceLang + "/" + filename
+        out = self.output_directory + "sitemaps/" + self._interfaceLang + "/" + filename
         f = open(out, 'w')
         for url in urls:
             f.write(url.encode('utf-8') + "\n")
@@ -156,7 +155,7 @@ class SefariaSiteMapGenerator(object):
             </sitemapindex>
             """ % xml
 
-        out = STATICFILES_DIRS[0] + "sitemaps/" + self._interfaceLang + "/sitemapindex.xml"
+        out = self.output_directory + "sitemaps/" + self._interfaceLang + "/sitemapindex.xml"
         f = open(out, 'w')
         f.write(sitemapindex)
         f.close()
