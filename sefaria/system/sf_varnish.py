@@ -1,19 +1,16 @@
+# Varnish wrapper used by web server.
+# There is also a parallel file thin_varnish.py, which does not rely on core code - used for the multiserver monitor.
+
 import re
-from varnish import VarnishManager
+import urllib
+
+from varnish_util import manager, secret, purge_url, FRONT_END_URL
 from sefaria.model import *
-from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
 from sefaria.system.exceptions import InputError
 
-from urlparse import urlparse
-from httplib import HTTPConnection
-import urllib
 
 import logging
 logger = logging.getLogger(__name__)
-
-with open (VARNISH_SECRET, "r") as sfile:
-    secret=sfile.read().replace('\n', '')
-manager = VarnishManager([VARNISH_ADM_ADDR])
 
 
 def invalidate_ref(oref, lang=None, version=None, purge=False):
@@ -110,26 +107,6 @@ def invalidate_title(title):
     manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(title), secret=secret)
     manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(title), secret=secret)
 
-
-# PyPi version of python-varnish has broken purge function.  We use this instead.
-# Derived from https://github.com/justquick/python-varnish/blob/master/varnish.py
-def purge_url(url):
-    """
-    Do an HTTP PURGE of the given asset.
-    The URL is run through urlparse and must point to the varnish instance not the varnishadm
-    """
-    url = urlparse(url)
-    connection = HTTPConnection(url.hostname, VARNISH_FRNT_PORT)
-    path = url.path or '/'
-    connection.request('PURGE', '%s?%s' % (path, url.query) if url.query else path, '',
-                       {'Host': url.hostname})
-    response = connection.getresponse()
-    if response.status != 200:
-        logger.error(u'Purge of {}{} on host {} failed with status: {}'.format(path,
-                                                                                  u"?" + url.query if url.query else u'',
-                                                                                  url.hostname,
-                                                                                  response.status))
-    return response
 
 
 def url_regex(ref):
