@@ -427,15 +427,11 @@ def get_sheets_for_ref(tref, uid=None):
 	else:
 		query["status"] = "public"
 	sheets = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "sources.ref": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
 	
 	results = []
 	for sheet in sheets:
-		matched_refs = []
-		for source in sheet.get("sources", []):
-			if "ref" in source:
-				matched_refs.append(source["ref"])
-		for match in matched_refs:
+		for match in sheet["includedRefs"]:
 			try:
 				match = model.Ref(match)
 				if not oref.overlaps(match):
