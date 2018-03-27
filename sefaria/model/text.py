@@ -4761,7 +4761,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
     elif USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_title
+        from sefaria.system.varnish.wrapper import invalidate_title
         invalidate_title(old_title)
 
 
@@ -4778,7 +4778,7 @@ def process_index_change_in_core_cache(indx, **kwargs):
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
         elif USE_VARNISH:
-            from sefaria.system.sf_varnish import invalidate_title
+            from sefaria.system.varnish.wrapper import invalidate_title
             invalidate_title(indx.title)
 
 
@@ -4803,7 +4803,7 @@ def process_index_delete_in_core_cache(indx, **kwargs):
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
     elif USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_title
+        from sefaria.system.varnish.wrapper import invalidate_title
         invalidate_title(indx.title)
 
 

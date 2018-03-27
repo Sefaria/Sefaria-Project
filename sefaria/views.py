@@ -51,7 +51,7 @@ from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
+    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
 import logging
 logger = logging.getLogger(__name__)

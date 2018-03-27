@@ -1,10 +1,10 @@
 # Varnish wrapper used by web server.
-# There is also a parallel file thin_varnish.py, which does not rely on core code - used for the multiserver monitor.
+# There is also a parallel file thin_wrapper.py, which does not rely on core code - used for the multiserver monitor.
 
 import re
 import urllib
 
-from varnish_util import manager, secret, purge_url, FRONT_END_URL
+from common import manager, secret, purge_url, FRONT_END_URL
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
