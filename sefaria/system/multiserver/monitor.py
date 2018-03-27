@@ -9,7 +9,8 @@ logger = logging.getLogger("multiserver")
 logger.setLevel(logging.INFO)
 
 from messaging import MessagingNode
-from sefaria.system.sf_varnish import invalidate_title
+from sefaria.system.thin_varnish import invalidate_title
+
 
 class MultiServerMonitor(MessagingNode):
     subscription_channels = [MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL]
