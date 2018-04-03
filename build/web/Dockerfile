@@ -3,7 +3,6 @@ FROM gcr.io/production-deployment/wsgi-re2
 RUN rm -rf /app
 COPY . /app/
 WORKDIR /app/
-# rm -rf /app/.git
 
 RUN mkdir /app/log \
  && chmod 777 /app/log \
@@ -15,7 +14,7 @@ ENV DJANGO_SETTINGS_MODULE sefaria.settings
 
 COPY build/web/wsgi.whiskey /app/.whiskey
 
-# requirements are installed on wsgi-re2, this covers the case where requirements differ in this commit.
+# requirements are installed on wsgi-re2, this tries to cover the case where requirements differ in this commit.
+# In practice, differing requirements don't install cleanly
 RUN pip install -r requirements.txt \
-  # && cp -R ./locale/en/LC_MESSAGES/ /usr/local/python/lib/python2.7/site-packages/django/conf/locale/en \
   && chown -R whiskey /app
