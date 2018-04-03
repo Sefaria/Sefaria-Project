@@ -2,7 +2,6 @@ FROM node:latest
 
 COPY . /app/
 WORKDIR /app/
-# rm -rf /app/.git
 
 RUN npm install forever -g \
  && mkdir /app/log \
