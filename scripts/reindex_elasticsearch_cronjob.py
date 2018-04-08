@@ -6,6 +6,8 @@ from sefaria.search import index_all, init_pagesheetrank_dicts
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import calculate_pagerank, calculate_sheetrank
 
+# Source sheets added after this time will be missing from the index process. We want to manually index all source
+# sheets created after this. When this script is run on the cloud the timestamp might need to be calculated differently.
 last_dump = datetime.fromtimestamp(os.path.getmtime("/var/data/sefaria_public/dump/sefaria")).isoformat()
 calculate_pagerank()
 calculate_sheetrank()
