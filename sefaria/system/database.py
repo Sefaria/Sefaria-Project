@@ -12,29 +12,33 @@ if hasattr(sys, '_doc_build'):
     db = ""
 else:
     TEST_DB = SEFARIA_DB + "_test"
-    connection = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+    client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
 
     if not hasattr(sys, '_called_from_test'):
-        db = connection[SEFARIA_DB]
+        db = client[SEFARIA_DB]
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
-        if TEST_DB not in connection.database_names():
-            connection.copy_database(SEFARIA_DB, TEST_DB)
-        db = connection[TEST_DB]
+        if TEST_DB not in client.database_names():
+            client.admin.command('copydb',
+                                 fromdb=SEFARIA_DB,
+                                 todb=TEST_DB)
+        db = client[TEST_DB]
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 def drop_test():
-    global connection
-    connection.drop_database(TEST_DB)
+    global client
+    client.drop_database(TEST_DB)
 
 
 def refresh_test():
-    global connection
+    global client
     drop_test()
-    connection.copy_database(SEFARIA_DB, TEST_DB)
+    client.admin.command('copydb',
+                         fromdb=SEFARIA_DB,
+                         todb=TEST_DB)
 
 
 def ensure_indices():
