@@ -107,22 +107,6 @@ MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
 
-""" to use logging, in any module:
-# import the logging library
-import logging
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
-
-#log stuff
-logger.critical()
-logger.error()
-logger.warning()
-logger.info()
-logger.debug()
-
-if you are logging to a file, make sure the directory exists and is writeable by the server.
-"""
 
 LOGGING = {
     'version': 1,
@@ -143,9 +127,6 @@ LOGGING = {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         },
-        'require_debug_true': {
-            '()': 'sefaria.utils.log.RequireDebugTrue'
-        }
     },
     'handlers': {
         'default': {
@@ -163,13 +144,13 @@ LOGGING = {
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'verbose',
-            'filters': ['require_debug_true'],
+            'filters': [],
         },
         'console':{
             'level':'INFO',
             'class':'logging.StreamHandler',
             'formatter': 'simple',
-            'filters': ['require_debug_true'],
+            'filters': [],
         },
 
         'null': {
