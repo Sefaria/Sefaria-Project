@@ -136,3 +136,10 @@ def get_all_calendar_items(datetime_obj, diaspora=True):
 
 def get_todays_calendar_items(diaspora=True):
     return get_all_calendar_items(datetime.datetime.now(), diaspora=diaspora)
+
+def get_keyed_calendar_items(diaspora=True):
+    cal_items = get_todays_calendar_items(diaspora=diaspora)
+    cal_dict = {}
+    for cal_item in cal_items:
+        cal_dict[cal_item["title"]["en"]] = cal_item
+    return cal_dict
