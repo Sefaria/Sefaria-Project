@@ -2448,15 +2448,15 @@ a.readerNavCategory {
 .interface-english .readerPanel.hebrew .tocContent{
   direction: rtl;
 }
-.basetext .text, .sheetContent.text {
+.basetext .text, .sheetContent .text {
   padding: 0 44px;
   margin: 30px 0;
   background-color: inherit;
 }
-.narrowColumn .basetext .text, .narrowColumn .sheetContent.text {
+.narrowColumn .basetext .text, .narrowColumn .sheetContent .text {
   padding: 0 26px;
 }
-.singlePanel .basetext .text, .singlePanel .sheetContent.text  {
+.singlePanel .basetext .text, .singlePanel .sheetContent .text  {
   padding: 0 34px;
 }
 .parashahHeader {
@@ -2601,7 +2601,7 @@ a.readerNavCategory {
   line-height: 1.4;
   font-size: 1.6em;
 }
-.textRange .textInner {
+.textRange .textInner, .sheetContent .textInner  {
   position: relative;
 }
 .textRange.lowlight .text {
@@ -4827,6 +4827,8 @@ span.purim-emoji img{
   overflow: scroll;
   height: 100%;
   padding: 0 15px;
+  box-sizing: border-box;
+  position: relative;
 }
 .sheetContent {
   width: 100%;

@@ -23,6 +23,8 @@ class Sheet extends Component {
   }
 
   componentDidMount() {
+    this.$container = $(ReactDOM.findDOMNode(this));
+    this.setPaddingForScrollbar();
     this.ensureData();
 
   }
@@ -63,24 +65,27 @@ class Sheet extends Component {
     }
   }
 
+  setPaddingForScrollbar() {
+    // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
+    // compared to the header. This functions sets appropriate padding to compensate.
+    var width = Sefaria.util.getScrollbarWidth();
+    if (this.props.interfaceLang == "hebrew") {
+      this.$container.css({paddingRight: width, paddingLeft: 0});
+    } else {
+      this.$container.css({paddingRight: 0, paddingLeft: width});
+    }
+  }
 
   render() {
     var sheet = this.getSheetFromCache();
     var classes = classNames({sheetsInPanel: 1});
-
+    console.log(this.$container)
+      var content;
     if (!sheet) {
-      return (<LoadingMessage />);
+      content = (<LoadingMessage />);
     }
     else {
-      return (
-        <div className={classes} onWheel={ event => {
-   if (event.nativeEvent.wheelDelta > 0) {
-     this.setState({scrollDir: "up"});
-
-   } else {
-     this.setState({scrollDir: "down"});
-   }
- }}>
+      content = (
           <SheetContent
             sources={sheet.sources}
             title={sheet.title}
@@ -89,9 +94,20 @@ class Sheet extends Component {
             highlightedNodes={this.props.highlightedNodes}
             scrollDir = {this.state.scrollDir}
           />
-        </div>
       )
     }
+
+    return (
+        <div className={classes} onWheel={ event => {
+           if (event.nativeEvent.wheelDelta > 0) {
+             this.setState({scrollDir: "up"});
+           } else {
+             this.setState({scrollDir: "down"});
+           }
+        }}>
+            {content}
+        </div>
+    )
   }
 }
 
