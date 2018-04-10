@@ -79,8 +79,7 @@ class Sheet extends Component {
   render() {
     var sheet = this.getSheetFromCache();
     var classes = classNames({sheetsInPanel: 1});
-    console.log(this.$container)
-      var content;
+    var content;
     if (!sheet) {
       content = (<LoadingMessage />);
     }

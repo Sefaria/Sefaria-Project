@@ -2703,12 +2703,15 @@ a.readerNavCategory {
 .readerPanel.bilingual .segment .segmentNumber {
   right: -46px;
 }
-.readerPanel.english .segment .linkCount {
-  right: -46px;
-}
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
   left: -48px;
+}
+.readerPanel.english .segment .linkCount,
+.readerPanel.bilingual .sheetItem.segment .linkCount
+{
+  right: -46px;
+  left:auto;
 }
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
@@ -4875,14 +4878,6 @@ span.purim-emoji img{
   display: block;
 }
 
-.readerPanel.english .sheetItem.segment .segmentNumber, .readerPanel.bilingual .sheetItem.segment .segmentNumber {
-  left: 10px;
-}
-
-.readerPanel.hebrew .sheetItem.segment .segmentNumber {
-  right: 10px;
-}
-
 .sheetsInPanel .title {
   padding: 0 28px;
   margin: 24px 0;
@@ -4905,19 +4900,16 @@ span.purim-emoji img{
   position: relative;
 }
 
+.readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  left: -50px;
-  top: 32px;
-}
-.readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  left: -50px;
-  top: 27px;
-  text-align: left;
+  left: -48px;
+  top: 23px;
+  text-align: center;
 
 }
 
 .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  right: -50px;
+  right: -48px;
   top: 32px;
-  text-align: right;
+  text-align: center;
 }
