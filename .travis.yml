@@ -69,7 +69,7 @@ before_script:
   - ./run rebuild_toc.py 
 
   # run the django server, redirecting output to log files
-  - python manage.py runserver --insecure 2> server.error.log > server.log &
+  - python manage.py runserver --insecure # 2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
 
   # Wait for server to come up
