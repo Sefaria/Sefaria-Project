@@ -49,8 +49,7 @@ from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
-from sefaria.utils.calendars import get_todays_calendar_items
-import sefaria.utils.calendars
+from sefaria.utils.calendars import get_todays_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
@@ -1179,7 +1178,7 @@ def old_text_versions_api_redirect(request, tref, lang, version):
 @catch_error_as_json
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
-    p = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    p = this_weeks_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
     #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
@@ -2700,8 +2699,9 @@ def home(request):
         return mobile_home(request)
 
     today     = date.today()
-    daf_today = sefaria.utils.calendars.daf_yomi(today)
-    parasha   = sefaria.utils.calendars.this_weeks_parasha(datetime.now())
+    calendar_items = get_keyed_calendar_items(request.diaspora)
+    daf_today = calendar_items["Daf Yomi"]
+    parasha   = calendar_items["Parashat Hashavua"]
     metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
     return render(request,'static/home.html',

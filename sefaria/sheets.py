@@ -22,6 +22,12 @@ from sefaria.system.cache import django_cache_decorator
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
+import sys
+import hashlib
+import urllib
+if not hasattr(sys, '_doc_build'):
+	from django.contrib.auth.models import User
+
 
 
 # Simple cache of the last updated time for sheets
@@ -420,7 +426,7 @@ def get_sheets_for_ref(tref, uid=None):
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
 	regex_list = oref.context_ref().regex(as_list=True)
-	ref_clauses = [{"sources.ref": {"$regex": r}} for r in regex_list]
+	ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
 	query = {"$or": ref_clauses }
 	if uid:
 		query["owner"] = uid
@@ -428,35 +434,48 @@ def get_sheets_for_ref(tref, uid=None):
 		query["status"] = "public"
 	sheets = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
-	
+
+	user_ids = list(db.sheets.find(query,{"owner": 1}).distinct("owner"))
+	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
+	user_profiles = {item['id']: item for item in django_user_profiles}
+	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1}))
+	mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
+
+
+	for profile in user_profiles:
+		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
+
+
+
+
+	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
 	for sheet in sheets:
-		for match in sheet["includedRefs"]:
+		matched_refs = [r for r in sheet["includedRefs"] if regex.match(ref_re, r)]
+		for match in matched_refs:
 			try:
 				match = model.Ref(match)
-				if not oref.overlaps(match):
-					continue
 			except InputError:
 				continue
-			ownerData = public_user_data(sheet["owner"])
+			ownerData = user_profiles[sheet["owner"]]
+			default_image = "https://www.sefaria.org/static/img/profile-default.png"
+			gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
+			gravatar_url_small = gravatar_base + urllib.urlencode({'d': default_image, 's': str(80)})
+
 			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
 				"anchorRef":       match.normal(),
 				"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
 				"public":          sheet["status"] == "public",
-				"text":            "<a class='sheetLink' href='/sheets/%d'>%s</a>" % (sheet["id"], strip_tags(sheet["title"])), # legacy, used in S1
 				"title":           strip_tags(sheet["title"]),
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
-				"ownerName":       ownerData["name"],
-				"ownerProfileUrl": ownerData["profileUrl"],
-				"ownerImageUrl":   ownerData["imageUrl"],
+				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"ownerProfileUrl": "/profile/" + ownerData["slug"],
+				"ownerImageUrl":   gravatar_url_small,
 				"status":          sheet["status"],
 				"views":           sheet["views"],
 				"tags":            sheet.get("tags", []),
-				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
-				"category":        "Sheets", # ditto
-				"type":            "sheet", # ditto
 			}
 
 			results.append(sheet_data)
