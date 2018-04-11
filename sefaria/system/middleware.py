@@ -13,7 +13,7 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
 from django.utils.deprecation import MiddlewareMixin
 
-class LocationSettingsMiddleware(object):
+class LocationSettingsMiddleware(MiddlewareMixin):
     """
         Determines if the user should see diaspora content or Israeli.
     """

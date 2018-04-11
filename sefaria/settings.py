@@ -118,6 +118,7 @@ MIDDLEWARE = [
     'django_user_agents.middleware.UserAgentMiddleware',
     #'django_mobile.middleware.MobileDetectionMiddleware',
     #'django_mobile.middleware.SetFlavourMiddleware',
+    'sefaria.system.middleware.LocationSettingsMiddleware',
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
