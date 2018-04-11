@@ -13,6 +13,19 @@ from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
 from django.utils.deprecation import MiddlewareMixin
 
+class LocationSettingsMiddleware(object):
+    """
+        Determines if the user should see diaspora content or Israeli.
+    """
+    def process_request(self, request):
+        loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
+        if not loc:
+            try:
+                from sefaria.settings import PINNED_IPCOUNTRY
+                loc = PINNED_IPCOUNTRY
+            except:
+                loc = "us"
+        request.diaspora = False if loc in ("il", "IL", "Il") else True
 
 class LanguageSettingsMiddleware(MiddlewareMixin):
     """
