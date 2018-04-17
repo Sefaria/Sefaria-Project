@@ -12,12 +12,13 @@ from models import (CredentialsModel,
                     FlowModel)
 from sefaria import settings
 
+
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
 # on the API Access tab on the Google APIs
 # Console <http://code.google.com/apis/console>
-CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
-
+# CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
+from sefaria.local_settings import GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH as CLIENT_SECRETS
 
 @login_required
 def index(request):
