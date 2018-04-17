@@ -175,6 +175,8 @@ MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
+# This is the field that is actually used
+GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
 """ to use logging, in any module:
 # import the logging library
