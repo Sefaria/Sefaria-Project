@@ -68,6 +68,8 @@ logger.warn("Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
+if server_coordinator:
+    server_coordinator.connect()
 #    #    #
 
 @ensure_csrf_cookie
