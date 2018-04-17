@@ -11,7 +11,7 @@ steps:
   - name: 'gcr.io/cloud-builders/npm'
     args: ['install']
   - name: 'gcr.io/cloud-builders/npm'
-    args: ['run', 'build']
+    args: ['run', 'build-prod']
 
   # Build web and node images.
   - name: "gcr.io/cloud-builders/docker"
