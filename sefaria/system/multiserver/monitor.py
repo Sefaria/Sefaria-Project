@@ -17,6 +17,7 @@ class MultiServerMonitor(MessagingNode):
 
     def __init__(self):
         super(MultiServerMonitor, self).__init__()
+        self.connect()
         self.events = {}
         self.event_order = []
 
