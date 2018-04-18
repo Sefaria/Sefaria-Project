@@ -3054,6 +3054,12 @@ class Ref(object):
         if level == 0:
             return self
 
+        if not self.sections and self.index_node.has_children():
+            if self.index_node.has_default_child():
+                return self.default_child_ref()
+            return self
+
+
         if self._context is None:
             self._context = {}
 
