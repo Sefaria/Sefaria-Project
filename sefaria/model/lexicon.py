@@ -99,12 +99,15 @@ class StrongsDictionaryEntry(DictionaryEntry):
 class RashiDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "orig_word", "orig_ref", "catane_number"]
 
+class JastrowDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["rid"]
 
 
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
         'BDB Augmented Strong' : StrongsDictionaryEntry,
-        'Rashi Foreign Lexicon' : RashiDictionaryEntry
+        'Rashi Foreign Lexicon' : RashiDictionaryEntry,
+        'Jastrow Dictionary': JastrowDictionaryEntry,
     }
 
     @classmethod
