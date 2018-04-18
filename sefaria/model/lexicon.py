@@ -81,7 +81,16 @@ class DictionaryEntry(LexiconEntry):
         "pronunciation",
         "morphology",
         "language_code",
-        'refs',
+        "refs",
+        "related_words",
+        "number",
+        "language_reference", 
+        "number",
+        "content",
+        "citations",
+        "plural_form",
+        "binyan_form",
+        "alt_headwords",
     ]
 
 class StrongsDictionaryEntry(DictionaryEntry):
