@@ -45,6 +45,11 @@ steps:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
 
+    # Flush cache
+  - name: 'debian'
+    dir: "k8s-admin"
+    args: ["bash", "-c", "./refresh_cache.sh"]
+
 
 images:
   - "gcr.io/production-deployment/multi_monitor:$TAG_NAME"
