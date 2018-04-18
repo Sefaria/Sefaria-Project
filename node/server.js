@@ -38,6 +38,7 @@ var renderReaderApp = function(props, data, timer) {
 
   var html  = ReactDOMServer.renderToString(ReaderApp(props));
   log("Time to render: %dms", timer.elapsed());
+  console.log("%s %dms", data.initialPath,  timer.elapsed());
 
   return html;
 };
@@ -66,7 +67,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
       res.end(html);
       log("Time to complete: %dms", timer.elapsed());
     } else {
-      log(error);
+      console.error("ERROR: %s", error);
       res.end("There was an error accessing /data.js.");
     }
   });
