@@ -62,7 +62,6 @@ class LexiconEntry(abst.AbstractMongoRecord):
     required_attrs = [
         "headword",
         "parent_lexicon",
-        "content"
     ]
 
     def factory(self, lexicon_name):
@@ -86,10 +85,10 @@ class DictionaryEntry(LexiconEntry):
     ]
 
 class StrongsDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["strong_number"]
+    required_attrs = DictionaryEntry.required_attrs + ["content", "strong_number"]
 
 class RashiDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["orig_word", "orig_ref", "catane_number"]
+    required_attrs = DictionaryEntry.required_attrs + ["content", "orig_word", "orig_ref", "catane_number"]
 
 
 
