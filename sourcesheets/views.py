@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import httplib2
 from urllib3.exceptions import NewConnectionError
@@ -8,9 +9,8 @@ from StringIO import StringIO
 import logging
 logger = logging.getLogger(__name__)
 
-from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render, redirect
 from django.http import Http404
 
 # noinspection PyUnresolvedReferences
@@ -77,14 +77,13 @@ def new_sheet(request):
 	hide_video    = db.sheets.find(query).count() > 2
 
 
-	return render_to_response('sheets.html', {"can_edit": True,
+	return render(request,'sheets.html', {"can_edit": True,
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
 												"owner_groups": owner_groups,
 												"current_url": request.get_full_path,
-												},
-												RequestContext(request))
+												})
 
 
 def can_edit(user, sheet):
@@ -112,7 +111,7 @@ def can_add(user, sheet):
 	Returns True if user has adding persmission on sheet.
 	Returns False if user has the higher permission "can_edit"
 	"""
-	if not user.is_authenticated():
+	if not user.is_authenticated:
 		return False
 	if can_edit(user, sheet):
 		return False
@@ -155,9 +154,9 @@ def get_user_groups(uid):
 	groups = GroupSet().for_user(uid)
 	groups = [ {
 					"name": group.name,
-					"headerUrl": getattr(group, "headerUrl", ""), 
+					"headerUrl": getattr(group, "headerUrl", ""),
 					"canPublish": group.can_publish(uid),
-				} 
+				}
 				for group in groups]
 	return groups
 
@@ -209,7 +208,7 @@ def view_sheet(request, sheet_id):
 	embed_flag       = "embed" in request.GET
 	likes            = sheet.get("likes", [])
 	like_count       = len(likes)
-	if request.user.is_authenticated():
+	if request.user.is_authenticated:
 		can_edit_flag    = can_edit(request.user, sheet)
 		can_add_flag     = can_add(request.user, sheet)
 		can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
@@ -222,7 +221,7 @@ def view_sheet(request, sheet_id):
 
 	canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"sheet_class": sheet_class,
 												"can_edit": can_edit_flag,
@@ -239,7 +238,7 @@ def view_sheet(request, sheet_id):
 												"current_url": request.get_full_path,
 												"canonical_url": canonical_url,
 											  	"assignments_from_sheet":assignments_from_sheet(sheet_id),
-											}, RequestContext(request))
+											})
 
 def assignments_from_sheet(sheet_id):
 	try:
@@ -280,7 +279,7 @@ def view_visual_sheet(request, sheet_id):
 	viewer_is_liker = request.user.id in likes
 
 
-	return render_to_response('sheets_visual.html',{"sheetJSON": json.dumps(sheet),
+	return render(request,'sheets_visual.html',{"sheetJSON": json.dumps(sheet),
 													"sheet": sheet,
 													"sheet_class": sheet_class,
 													"can_edit": can_edit_flag,
@@ -294,7 +293,7 @@ def view_visual_sheet(request, sheet_id):
 													"like_count": like_count,
 													"viewer_is_liker": viewer_is_liker,
 													"current_url": request.get_full_path,
-											}, RequestContext(request))
+											})
 
 
 @ensure_csrf_cookie
@@ -326,7 +325,7 @@ def assigned_sheet(request, assignment_id):
 	like_count      = len(likes)
 	viewer_is_liker = request.user.id in likes
 
-	return render_to_response('sheets.html', {"sheetJSON": json.dumps(sheet),
+	return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
 												"sheet": sheet,
 												"assignment_id": assignment_id,
 												"assigner_id": assigner_id,
@@ -342,7 +341,7 @@ def assigned_sheet(request, assignment_id):
 												"like_count": like_count,
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
-											}, RequestContext(request))
+											})
 
 def delete_sheet_api(request, sheet_id):
 	"""
@@ -375,11 +374,11 @@ def groups_api(request, group=None):
 			return jsonResponse({
 				"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
 				"public": [g.listing_contents() for g in GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
-			})	
+			})
 		group = Group().load({"name": group})
 		if not group:
 			return jsonResponse({"error": "No group named '%s'" % group})
-		is_member = request.user.is_authenticated() and group.is_member(request.user.id)
+		is_member = request.user.is_authenticated and group.is_member(request.user.id)
 		group_content = group.contents(with_content=True, authenticated=is_member)
 		return jsonResponse(group_content)
 	else:
@@ -402,7 +401,7 @@ def groups_post_api(request, group_name=None):
 			# check poster is a group admin
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
-			
+
 			from pprint import pprint
 			pprint(group)
 			existing.load_from_dict(group)
@@ -476,7 +475,7 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 		return jsonResponse({"error": "No group named %s." % group_name})
 	if request.user.id not in group.admins:
 		return jsonResponse({"error": "You must be a group admin to invite new members."})
-	
+
 	user = UserProfile(email=uid_or_email)
 	if not user.exists():
 		if uninvite:
@@ -502,7 +501,7 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 	return jsonResponse({"group": group_content, "message": message})
 
 
-@login_required 
+@login_required
 def groups_pin_sheet_api(request, group_name, sheet_id):
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -532,7 +531,7 @@ def save_sheet_api(request):
 
 	# Save a sheet
 	if request.method == "POST":
-		if not request.user.is_authenticated():
+		if not request.user.is_authenticated:
 			key = request.POST.get("apikey")
 			if not key:
 				return jsonResponse({"error": "You must be logged in or use an API key to save."})
@@ -562,7 +561,7 @@ def save_sheet_api(request):
 				not can_publish(request.user, existing):
 
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
-		else: 
+		else:
 			existing = None
 
 		if sheet.get("group", None):
@@ -574,7 +573,7 @@ def save_sheet_api(request):
 			if not can_publish(user, sheet):
 				if not existing:
 					sheet["status"] = "unlisted"
-				else: 
+				else:
 					if existing.get("group", None) != sheet["group"]:
 						# Don't allow non Group publishers to add a new public sheet
 						sheet["status"] = "unlisted"
@@ -613,7 +612,7 @@ def private_sheet_list_api(request, group):
 	group   = Group().load({"name": group})
 	if not group:
 		raise Http404
-	if request.user.is_authenticated() and group.is_member(request.user.id):
+	if request.user.is_authenticated and group.is_member(request.user.id):
 		return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
 	else:
 		return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
@@ -708,7 +707,7 @@ def add_source_to_sheet_api(request, sheet_id):
 			source["text"] = text
 
 
-	note = request.POST.get("note", None) 
+	note = request.POST.get("note", None)
 	response = add_source_to_sheet(int(sheet_id), source, note=note)
 
 	return jsonResponse(response)
@@ -748,7 +747,7 @@ def visual_sheet_api(request, sheet_id):
 	"""
 	API for visual source sheet layout
 	"""
-	if not request.user.is_authenticated():
+	if not request.user.is_authenticated:
 		return {"error": "You must be logged in to save a sheet layout."}
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -763,7 +762,7 @@ def like_sheet_api(request, sheet_id):
 	"""
 	API to like sheet_id.
 	"""
-	if not request.user.is_authenticated():
+	if not request.user.is_authenticated:
 		return {"error": "You must be logged in to like sheets."}
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -776,7 +775,7 @@ def unlike_sheet_api(request, sheet_id):
 	"""
 	API to unlike sheet_id.
 	"""
-	if not request.user.is_authenticated():
+	if not request.user.is_authenticated:
 		return jsonResponse({"error": "You must be logged in to like sheets."})
 	if request.method != "POST":
 		return jsonResponse({"error": "Unsupported HTTP method."})
@@ -880,7 +879,7 @@ def make_sheet_from_text_api(request, ref, sources=None):
 	sources = sources.replace("_", " ").split("+") if sources else None
 	sheet = make_sheet_from_text(ref, sources=sources, uid=request.user.id, generatedBy=None, title=None)
 	return redirect("/sheets/%d" % sheet["id"])
-	
+
 
 def sheet_to_html_string(sheet):
 	"""
@@ -933,6 +932,7 @@ def resolve_options_of_sources(sheet):
 			source['options']['sourceLangLayout'] = sheet['options'].get(
 				'langLayout', 'heRight')
 	return sheet
+
 
 
 @gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)

@@ -94,7 +94,7 @@ def user_and_notifications(request):
     /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         import urlparse
         recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
         recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies
@@ -176,25 +176,5 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
-    if not loc:
-        try:
-            from sefaria.settings import PINNED_IPCOUNTRY
-            loc = PINNED_IPCOUNTRY
-        except:
-            loc = "us"
-    diaspora = False if loc in ("il", "IL", "Il") else True
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=diaspora))}
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora))}
 
-    """
-    return {
-                "parasha_link":  parasha_link, 
-                "haftara_link":  haftara_link,
-                "daf_yomi_link": daf_yomi_link,
-                "parasha_ref":   parasha["ref"],
-                "parasha_name":  parasha["parasha"],
-                "he_parasha_name":hebrew_parasha_name(parasha["parasha"]),
-                "haftara_ref":   parasha["haftara"][0],
-                "daf_yomi_ref":  daf["url"]
-            }
-    """

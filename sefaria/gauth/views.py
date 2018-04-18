@@ -5,19 +5,20 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from oauth2client.contrib import xsrfutil
-from oauth2client.contrib.django_orm import Storage
+from oauth2client.contrib.django_util.storage import DjangoORMStorage
 from oauth2client.client import flow_from_clientsecrets
 
 from models import (CredentialsModel,
                     FlowModel)
 from sefaria import settings
 
+
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
 # on the API Access tab on the Google APIs
 # Console <http://code.google.com/apis/console>
-CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
-
+# CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
+from sefaria.local_settings import GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH as CLIENT_SECRETS
 
 @login_required
 def index(request):
@@ -37,7 +38,7 @@ def index(request):
                                                    request.user)
 
     authorize_url = FLOW.step1_get_authorize_url()
-    flow_storage = Storage(FlowModel, 'id', request.user, 'flow')
+    flow_storage = DjangoORMStorage(FlowModel, 'id', request.user, 'flow')
     flow_storage.put(FLOW)
 
     # Don't worry if a next parameter is not set. `auth_return` will use the
@@ -55,20 +56,20 @@ def auth_return(request):
     """
     Step 2 of Google OAuth 2.0 flow.
     """
-    if 'state' not in request.REQUEST:
+    if 'state' not in request.GET:
         return redirect('gauth_index')
 
     if not xsrfutil.validate_token(settings.SECRET_KEY,
-                                   str(request.REQUEST['state']),
+                                   str(request.GET['state']),
                                    request.user):
         return HttpResponseBadRequest()
 
-    FLOW = Storage(FlowModel, 'id', request.user, 'flow').get()
+    FLOW = DjangoORMStorage(FlowModel, 'id', request.user, 'flow').get()
     if FLOW is None:
         return redirect('gauth_index')
 
-    credential = FLOW.step2_exchange(request.REQUEST)
-    cred_storage = Storage(CredentialsModel, 'id', request.user, 'credential')
+    credential = FLOW.step2_exchange(request.GET)
+    cred_storage = DjangoORMStorage(CredentialsModel, 'id', request.user, 'credential')
     cred_storage.put(credential)
 
     return redirect(request.session.get('next_view', '/'))

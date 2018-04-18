@@ -11,7 +11,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref
+    from sefaria.system.varnish.wrapper import invalidate_ref
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 
