@@ -3,8 +3,8 @@ FROM gcr.io/production-deployment/python-re2
 COPY . /app/
 WORKDIR /app/
 
-RUN mkdir /app/log \
- && chmod 777 /app/log \
+RUN mkdir /log \
+ && chmod 777 /log \
  && ln -s /settings/local_settings.py /app/sefaria/local_settings.py
 
 ENV PYTHONUNBUFFERED 1

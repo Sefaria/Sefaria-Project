@@ -18,7 +18,6 @@ from sefaria import settings
 # on the API Access tab on the Google APIs
 # Console <http://code.google.com/apis/console>
 # CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
-from sefaria.local_settings import GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH as CLIENT_SECRETS
 
 @login_required
 def index(request):
@@ -27,7 +26,7 @@ def index(request):
     """
     # Create and store the per-user flow object
     FLOW = flow_from_clientsecrets(
-        CLIENT_SECRETS,
+        settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
         scope=request.session.get('gauth_scope', ''),
         redirect_uri=request.build_absolute_uri(reverse('gauth_callback')))
 
