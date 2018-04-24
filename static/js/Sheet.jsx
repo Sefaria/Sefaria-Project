@@ -56,7 +56,6 @@ class Sheet extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-      console.log(this.props.contentLang)
   }
 
 

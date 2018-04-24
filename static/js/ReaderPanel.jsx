@@ -131,7 +131,6 @@ class ReaderPanel extends Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    console.log(this.props.masterPanelLanguage)
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }

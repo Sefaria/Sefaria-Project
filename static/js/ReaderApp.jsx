@@ -604,7 +604,7 @@ class ReaderApp extends Component {
         hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.mode     = "SheetAndConnections";
       }
-      if (state.mode !== "Header" && !hist.lang) {
+      if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);
       }
       histories.push(hist);
@@ -672,6 +672,8 @@ class ReaderApp extends Component {
         hist.title += Sefaria._(" & ") + histories[i].title;
       }
       if(histories[i].lang) {
+        console.log(hist.url)
+          console.log(histories[i].lang)
         hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
       }
       if("aliyot" in histories[i]) {
@@ -1505,13 +1507,6 @@ class ReaderApp extends Component {
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
       var key   = i + title;
-      console.log(panel)
-        console.log(panel.settings.language)
-/*
-      if (panel.mode === "Sheet") {
-        panel.settings.language = panel.sheet.options.language
-      }
-*/
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
