@@ -280,8 +280,14 @@ class SheetSource extends Component {
       var style = {opacity: linkScore};
 
 
-      var heSourceClasses = classNames({he: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
-      var enSourceClasses = classNames({en: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
+      if (this.props.source.options) {
+        var heSourceClasses = classNames({he: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
+        var enSourceClasses = classNames({en: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
+      }
+      else {
+          var heSourceClasses = classNames({he:1})
+          var enSourceClasses = classNames({en:1})
+      }
 
       linkCountElement = (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>

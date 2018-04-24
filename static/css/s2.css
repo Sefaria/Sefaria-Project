@@ -4901,16 +4901,29 @@ span.purim-emoji img{
 }
 
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
-.readerPanel.bilingual .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+.readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber
+
+
+{
   left: -48px;
-  top: 23px;
+  top: 28px;
   text-align: center;
 
 }
 
+.readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
+.readerPanel.bilingual.heRight .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  left: 0;
+  margin: auto;
+  top: 23px;
+  text-align: center;
+}
+
+
 .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  right: -48px;
-  top: 32px;
+  margin-left: auto;
+  right: -32px;
+  top: 26px;
   text-align: center;
 }
 

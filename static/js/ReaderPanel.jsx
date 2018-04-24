@@ -1020,8 +1020,14 @@ class ReaderControls extends Component {
     var heTitle, categoryAttribution;
 
     if (title) {
-      var oref    = Sefaria.ref(title);
-      heTitle = oref ? oref.heTitle : "";
+      if (this.props.sheet) {
+        heTitle = "נוצר ב" + this.props.sheet.ownerName;
+      }
+      else {
+        var oref    = Sefaria.ref(title);
+        heTitle = oref ? oref.heTitle : "";
+      }
+
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
                                   <CategoryAttribution categories={oref.categories} linked={false} /> : null;
     } else {
