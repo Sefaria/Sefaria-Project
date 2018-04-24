@@ -823,17 +823,19 @@ class ReaderApp extends Component {
   handleSegmentClick(n, ref, sheetNode) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
+    var refs = typeof ref == "string" ? [ref] : ref;
+
     if (sheetNode) {
       this.setSheetHighlight(n, sheetNode);
     }
     else {
-      this.setTextListHighlight(n, [ref]);
+      this.setTextListHighlight(n, refs);
     }
 
 
     if (this.currentlyConnecting()) { return }
 
-    this.openTextListAt(n+1, [ref], sheetNode);
+    this.openTextListAt(n+1, refs, sheetNode);
     if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();

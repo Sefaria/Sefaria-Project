@@ -196,7 +196,7 @@ class ReaderPanel extends Component {
     else if (this.state.mode === "Sheet") {
       if (this.props.multiPanel) {
         if (source.ref) {
-          this.props.onSegmentClick(source.ref, source.node);
+          this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
         }
         else {
           this.props.onSegmentClick("sheetRef", source.node)
