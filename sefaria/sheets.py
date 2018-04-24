@@ -608,7 +608,7 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 		n.save()
 
 
-def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None):
+def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):
 	"""
 	Creates a source sheet owned by 'uid' that includes all of 'text'.
 	'sources' is a list of strings naming commentators or texts to include.
@@ -629,7 +629,11 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 		refs = []
 		if leaf.first_section_ref() != leaf.last_section_ref():
 			leaf_spanning_ref = leaf.first_section_ref().to(leaf.last_section_ref())
-			refs += [ref for ref in leaf_spanning_ref.split_spanning_ref() if oref.contains(ref)]
+			assert isinstance(leaf_spanning_ref, model.Ref)
+			if segment_level:
+				refs += [ref for ref in leaf_spanning_ref.all_segment_refs() if oref.contains(ref)]
+			else:  # section level
+				refs += [ref for ref in leaf_spanning_ref.split_spanning_ref() if oref.contains(ref)]
 		else:
 			refs.append(leaf.ref())
 
