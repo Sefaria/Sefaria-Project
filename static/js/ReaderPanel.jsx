@@ -1021,7 +1021,7 @@ class ReaderControls extends Component {
 
     if (title) {
       if (this.props.sheet) {
-        heTitle = "נוצר ב" + this.props.sheet.ownerName;
+        heTitle = "דף מקורות מאת " + this.props.sheet.ownerName;
       }
       else {
         var oref    = Sefaria.ref(title);
