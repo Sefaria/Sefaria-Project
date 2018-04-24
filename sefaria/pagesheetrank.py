@@ -160,7 +160,6 @@ def init_pagerank_graph():
 
             put_link_in_graph(older_ref, newer_ref)
 
-
         except InputError:
             pass
         except TypeError:
