@@ -604,7 +604,7 @@ class ReaderApp extends Component {
         hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.mode     = "SheetAndConnections";
       }
-      if (state.mode !== "Header") {
+      if (state.mode !== "Header" && !hist.lang) {
         hist.lang =  state.settings.language.substring(0,2);
       }
       histories.push(hist);
@@ -1165,6 +1165,7 @@ class ReaderApp extends Component {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
   openTextListAt(n, refs) {
+    console.log(this.state)
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
@@ -1193,6 +1194,7 @@ class ReaderApp extends Component {
       panel.currVersions = parentPanel.currVersions;
     }
     newPanels[n] = this.makePanelState(panel);
+    console.log(newPanels)
     this.setState({panels: newPanels});
   }
   setTextListHighlight(n, refs) {
@@ -1503,6 +1505,13 @@ class ReaderApp extends Component {
       // Keys must be constant as text scrolls, but changing as new panels open in new positions
       // Use a combination of the panel number and text title
       var key   = i + title;
+      console.log(panel)
+        console.log(panel.settings.language)
+/*
+      if (panel.mode === "Sheet") {
+        panel.settings.language = panel.sheet.options.language
+      }
+*/
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel

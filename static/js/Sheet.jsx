@@ -56,6 +56,7 @@ class Sheet extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+      console.log(this.props.contentLang)
   }
 
 
@@ -272,15 +273,17 @@ class SheetSource extends Component {
   sheetSourceClick(event) {
     this.props.onSegmentClick(this.props.source);
   }
-
-
-
   render() {
     var linkCountElement;
       var linkCount = this.props.linkCount;
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
+
+
+      var heSourceClasses = classNames({he: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
+      var enSourceClasses = classNames({en: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
+
       linkCountElement = (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
@@ -302,7 +305,7 @@ class SheetSource extends Component {
 
 
         {this.props.source.text ?
-          <div className="en">
+          <div className={enSourceClasses}>
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
@@ -310,7 +313,7 @@ class SheetSource extends Component {
           </div> : null }
 
         {this.props.source.text ?
-          <div className="he">
+          <div className={heSourceClasses}>
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>

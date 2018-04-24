@@ -131,6 +131,7 @@ class ReaderPanel extends Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
+    console.log(this.props.masterPanelLanguage)
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
@@ -244,7 +245,9 @@ class ReaderPanel extends Component {
   }
   handleSheetClick(e,sheet) {
     e.preventDefault();
-    this.conditionalSetState({ mode: "Sheet", sheet: sheet});
+    var newSettings = this.state.settings
+    newSettings["language"] = sheet.options.language
+    this.conditionalSetState({ mode: "Sheet", sheet: sheet, settings: newSettings});
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
@@ -555,6 +558,7 @@ class ReaderPanel extends Component {
           key={"sheet-"+this.state.sheet.id}
           highlightedNodes={this.state.highlightedNodes}
           onRefClick={this.handleSheetCitationClick}
+          contentLang={this.state.settings.language}
           onSegmentClick={this.handleSheetSegmentClick}
       />);
     }

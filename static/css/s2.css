@@ -4913,3 +4913,15 @@ span.purim-emoji img{
   top: 32px;
   text-align: center;
 }
+
+.he.forceDisplayOverrideHe,
+.en.forceDisplayOverrideEn,
+.he.forceDisplayOverrideBi,
+.en.forceDisplayOverrideBi
+{
+  display: block !important;
+}
+.en.forceDisplayOverrideHe,
+.he.forceDisplayOverrideEn {
+  display: none !important;
+}

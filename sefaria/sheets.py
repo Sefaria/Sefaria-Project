@@ -131,6 +131,7 @@ def sheet_to_dict(sheet):
 		"views": sheet["views"],
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"tags": sheet["tags"] if "tags" in sheet else [],
+		"options": sheet["options"],
 	}
 	return sheet_dict
 
@@ -444,7 +445,7 @@ def get_sheets_for_ref(tref, uid=None):
 	else:
 		query["status"] = "public"
 	sheets = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
 
 	user_ids = list(db.sheets.find(query,{"owner": 1}).distinct("owner"))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -482,6 +483,7 @@ def get_sheets_for_ref(tref, uid=None):
 				"public":          sheet["status"] == "public",
 				"title":           strip_tags(sheet["title"]),
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
+				"options": 		   sheet["options"],
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"ownerProfileUrl": "/profile/" + ownerData["slug"],
 				"ownerImageUrl":   gravatar_url_small,
