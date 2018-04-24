@@ -132,7 +132,8 @@ def init_pagerank_graph():
     all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
     len_all_links = all_links.count()
     all_ref_strs = set()
-    for i, link in enumerate(all_links):
+    for i, raw_link in enumerate(all_links.raw_records):  # raw records avoids caching the entire LinkSet into memory
+        link = Link(raw_link)
         if i % 1000 == 0:
             print "{}/{}".format(i,len_all_links)
 
