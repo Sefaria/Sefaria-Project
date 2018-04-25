@@ -422,8 +422,6 @@ def get_top_sheets(limit=3):
 
 
 def get_sheets_for_ref(tref, uid=None):
-	logging.info("-------------------")
-	start_time = time.time()
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
@@ -440,9 +438,7 @@ def get_sheets_for_ref(tref, uid=None):
 		query["status"] = "public"
 	sheets = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
-	logging.info("--- %s seconds - Sheets DB Query ---" % (time.time() - start_time))
 
-	start_time = time.time()
 
 	user_ids = list(db.sheets.find(query,{"owner": 1}).distinct("owner"))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -454,9 +450,6 @@ def get_sheets_for_ref(tref, uid=None):
 	for profile in user_profiles:
 		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
 
-	logging.info("--- %s seconds - User DB Querys ---" % (time.time() - start_time))
-
-	start_time = time.time()
 
 	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
@@ -492,7 +485,6 @@ def get_sheets_for_ref(tref, uid=None):
 
 			results.append(sheet_data)
 
-	logging.info("--- %s seconds - Process Sheets ---" % (time.time() - start_time))
 
 	return results
 
