@@ -131,7 +131,7 @@ def sheet_to_dict(sheet):
 		"views": sheet["views"],
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"tags": sheet["tags"] if "tags" in sheet else [],
-		"options": sheet["options"],
+		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
 
