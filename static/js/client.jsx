@@ -34,6 +34,7 @@ $(function() {
       layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
       layoutTanakh:  $.cookie("layoutTanakh")  || "segmented",
       color:         $.cookie("color")         || "light",
+      biLayout:      $.cookie("biLayout")      || "stacked",
       fontSize:      $.cookie("fontSize")      || 62.5
     };
     var multiPanel = $(window).width() > 600;
