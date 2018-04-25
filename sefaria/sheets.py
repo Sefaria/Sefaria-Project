@@ -25,6 +25,10 @@ import search
 import sys
 import hashlib
 import urllib
+
+import logging
+import time
+
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
 
@@ -435,6 +439,7 @@ def get_sheets_for_ref(tref, uid=None):
 	sheets = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
 
+
 	user_ids = list(db.sheets.find(query,{"owner": 1}).distinct("owner"))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
 	user_profiles = {item['id']: item for item in django_user_profiles}
@@ -446,12 +451,12 @@ def get_sheets_for_ref(tref, uid=None):
 		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
 
 
-
-
 	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
 	for sheet in sheets:
-		matched_refs = [r for r in sheet["includedRefs"] if regex.match(ref_re, r)]
+		potential_matches = [r for r in sheet["includedRefs"] if r.startswith(oref.index.title)]
+		matched_refs = [r for r in potential_matches if regex.match(ref_re, r)]
+
 		for match in matched_refs:
 			try:
 				match = model.Ref(match)
@@ -479,6 +484,7 @@ def get_sheets_for_ref(tref, uid=None):
 			}
 
 			results.append(sheet_data)
+
 
 	return results
 
