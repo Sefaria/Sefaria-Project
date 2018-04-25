@@ -819,7 +819,7 @@ $(function() {
 		});
 	}
 
-	function saveCkEditorContnuous(editor) {
+	function saveCkEditorContinuous(editor) {
 		// Start a timer to poll server for changes to this sheet
 		stopCkEditorContinuous();
 		var ckeSaveChain = function() {
