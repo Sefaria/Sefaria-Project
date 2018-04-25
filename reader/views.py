@@ -18,7 +18,6 @@ import socket
 import bleach
 
 from django.views.decorators.cache import cache_page
-from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
@@ -3345,7 +3344,6 @@ def custom_server_error(request, template_name='500.html'):
     500 error handler.
 
     Templates: `500.html`
-    Context: RequestContext
     """
     t = get_template(template_name) # You need to create a 500.html template.
     return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
