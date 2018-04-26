@@ -390,8 +390,9 @@ urlpatterns += [
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
-    url(r'^admin/?', include(admin.site.urls)),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
+    url(r'^admin/?', include(admin.site.urls)),
+
 ]
 
 # Stats API - return CSV
