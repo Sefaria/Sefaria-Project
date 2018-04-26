@@ -1,7 +1,7 @@
 from varnish import VarnishManager
 from urlparse import urlparse
 from httplib import HTTPConnection
-from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
+from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
 
 import logging
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ def purge_url(url):
     The URL is run through urlparse and must point to the varnish instance not the varnishadm
     """
     url = urlparse(url)
-    connection = HTTPConnection(url.hostname, VARNISH_FRNT_PORT)
+    connection = HTTPConnection(VARNISH_HOST, VARNISH_FRNT_PORT)
     path = url.path or '/'
     connection.request('PURGE', '%s?%s' % (path, url.query) if url.query else path, '',
                        {'Host': url.hostname})

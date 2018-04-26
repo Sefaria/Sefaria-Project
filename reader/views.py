@@ -299,11 +299,11 @@ def base_props(request):
     """
     Returns a dictionary of props that all App pages get based on the request.
     """
-    request_context = RequestContext(request)
+    from sefaria.system.context_processors import user_and_notifications
     return {
         "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "recentlyViewed": request_context.get("recentlyViewed"),
+        "recentlyViewed": user_and_notifications(request).get("recentlyViewed"),
         "loggedIn": True if request.user.is_authenticated else False, # Django 1.10 changed this to a CallableBool, so it doesnt have a direct value of True/False,
         "_uid": request.user.id,
         "interfaceLang": request.interfaceLang,

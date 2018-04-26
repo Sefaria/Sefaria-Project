@@ -1,5 +1,14 @@
---url-alias /robots.txt static/robots.txt
---url-alias /favicon.ico static/favicon.ico
+--url-alias /robots.txt static/root/robots.txt
+--url-alias /android-chrome-192x192.png static/root/android-chrome-192x192.png
+--url-alias /android-chrome-256x256.png static/root/android-chrome-256x256.png
+--url-alias /apple-touch-icon.png static/root/apple-touch-icon.png
+--url-alias /browserconfig.xml static/root/browserconfig.xml
+--url-alias /favicon.ico static/root/favicon.ico
+--url-alias /favicon-16x16.png static/root/favicon-16x16.png
+--url-alias /favicon-32x32.png static/root/favicon-32x32.png
+--url-alias /manifest.json static/root/manifest.json
+--url-alias /mstile-150x150.png static/root/mstile-150x150.png
+--url-alias /safari-pinned-tab.svg static/root/safari-pinned-tab.svg
 --url-alias /static/ static/
 --access-log
 --access-log-name /dev/stdout
