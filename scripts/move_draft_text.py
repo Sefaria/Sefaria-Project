@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import django
+django.setup()
 import argparse
 import os
 import json
