@@ -147,6 +147,7 @@ class SheetContent extends Component {
 
 
   cleanHTML(html) {
+    html = html.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ');
     var clean = sanitizeHtml(html, {
             allowedTags: [ 'blockquote', 'p', 'a', 'ul', 'ol',
               'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',

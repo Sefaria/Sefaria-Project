@@ -35,6 +35,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
+from reader.views import catchall
+
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
@@ -186,6 +188,12 @@ def view_sheet(request, sheet_id):
 	"""
 	View the sheet with sheet_id.
 	"""
+	panel = request.GET.get('panel', '0')
+
+
+	if panel == '1':
+		return catchall(request, sheet_id, True)
+
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
