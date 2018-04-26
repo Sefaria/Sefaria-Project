@@ -656,7 +656,7 @@ def group_page(request, group):
     else:
         return get_group_page(request, group.name, False)
 
-
+@login_required()
 def edit_group_page(request, group=None):
     if group:
         group = group.replace("-", " ").replace("_", " ")
