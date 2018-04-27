@@ -14,15 +14,15 @@ $(function() {
     // Rendering a full ReaderApp experience
     Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
-    ReactDOM.render(component, container);
+    ReactDOM.hydrate(component, container);
   
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
     // Rendering just a specifc component to a container
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
-    ReactDOM.render(component, container);
+    ReactDOM.hydrate(component, container);
     if (footerContainer){
-      ReactDOM.render(React.createElement(SefariaReact.Footer), footerContainer);
+      ReactDOM.hydrate(React.createElement(SefariaReact.Footer), footerContainer);
     }
 
   
@@ -50,9 +50,9 @@ $(function() {
       initialPanels: [],
       interfaceLang: DJANGO_VARS.interfaceLang
     });
-    ReactDOM.render(component, container);
+    ReactDOM.hydrate(component, container);
     if (footerContainer){
-      ReactDOM.render(React.createElement(SefariaReact.Footer), footerContainer);
+      ReactDOM.hydrate(React.createElement(SefariaReact.Footer), footerContainer);
     }
   }
 });
