@@ -72,6 +72,7 @@ def ensure_indices():
     db.place.ensure_index([("point", pymongo.GEOSPHERE)])
     db.place.ensure_index([("area", pymongo.GEOSPHERE)])
     db.profiles.ensure_index("slug")
+    db.profiles.ensure_index("id")
     db.sheets.ensure_index("id")
     db.sheets.ensure_index("dateModified")
     db.sheets.ensure_index("sources.ref")
