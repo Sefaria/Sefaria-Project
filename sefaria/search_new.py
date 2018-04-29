@@ -445,7 +445,7 @@ def create_index(index_name, type):
     print 'CReating index {}'.format(index_name)
     index_client.create(index=index_name, body=settings)
 
-    if type == 'text':
+    if type == 'text' or type == 'merged':
         put_text_mapping(index_name)
     elif type == 'sheet':
         put_sheet_mapping()
@@ -733,13 +733,11 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):
     start = datetime.now()
 
-    new_index_name = '{}-c'.format(SEARCH_INDEX_NAME if not merged else 'merged')
+    new_index_name = '{}-c'.format(SEARCH_INDEX_NAME_MERGED)
 
     if skip == 0:
-        create_index(new_index_name, 'text')
+        create_index(new_index_name, 'merged')
     index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
-    if not merged:
-        index_public_sheets(new_index_name)
 
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
