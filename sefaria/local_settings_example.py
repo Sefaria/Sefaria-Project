@@ -53,7 +53,7 @@ CACHES = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0" 
+        "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             #"PASSWORD": "secretpassword", # Optional
@@ -82,7 +82,7 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
     "repetition": 1,
-    "condition":  {"returning_only": True} 
+    "condition":  {"returning_only": True}
 }
 """
 
@@ -115,7 +115,9 @@ SEFARIA_DB_PASSWORD = ''
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_MERGED = 'merged'
 
 # Node Server
 USE_NODE = False
@@ -126,7 +128,7 @@ NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
-# Map domain to an interface language that the domain should be pinned to. 
+# Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
 DOMAIN_LANGUAGES = {
     "http://hebrew.example.org": "hebrew",
