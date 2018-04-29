@@ -20,8 +20,8 @@ import collections
 from logging import NullHandler
 logger = logging.getLogger(__name__)
 
-from elasticsearch import Elasticsearch
-from elasticsearch.client import IndicesClient
+from pyelasticsearch import ElasticSearch
+from pyelasticsearch import ElasticHttpNotFoundError, ElasticHttpError
 
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
@@ -29,7 +29,7 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
@@ -48,9 +48,7 @@ init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
 davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
-es_client = Elasticsearch(SEARCH_ADMIN)
-index_client = IndicesClient(es_client)
-
+es = ElasticSearch(SEARCH_ADMIN)
 tracer = logging.getLogger('elasticsearch.trace')
 tracer.setLevel(logging.INFO)
 #tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
@@ -137,7 +135,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
 
             if doc_count % 5000 == 0:
                 logger.info(u"[{}] Indexing {} / {} / {}".format(doc_count, oref.normal(), version, lang))
-            es_client.create(index=index_name, doc_type='text', id=make_text_doc_id(oref.normal(), version, lang), body=doc)
+            es.index(index_name, 'text', doc, make_text_doc_id(oref.normal(), version, lang))
             doc_count += 1
         except Exception, e:
             logger.error(u"ERROR indexing {} / {} / {} : {}".format(oref.normal(), version, lang, e))
@@ -145,13 +143,13 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
 
 def delete_text(oref, version, lang):
     try:
-        not_merged_name = get_new_and_current_index_names('text')['current']
-        merged_name = get_new_and_current_index_names('merged')['current']
+        not_merged_name = get_new_and_current_index_names(False)['current']
+        merged_name = get_new_and_current_index_names(True)['current']
 
         id = make_text_doc_id(oref.normal(), version, lang)
-        es_client.delete(index=not_merged_name, doc_type='text', id=id)
+        es.delete(not_merged_name, 'text', id)
         id = make_text_doc_id(oref.normal(), None, lang)
-        es_connection.delete(index=merged_name, doc_type='text', id=id)
+        es.delete(merged_name, 'text', id)
     except Exception, e:
         logger.error(u"ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
@@ -178,7 +176,7 @@ def index_full_version(index_name, index, version, lang):
 
 def delete_sheet(index_name, id):
     try:
-        es_client.delete(index=index_name, doc_type='sheet', id=id)
+        es.delete(index_name, "sheet", id)
     except Exception, e:
         logger.error(u"ERROR deleting sheet {}".format(id))
 
@@ -357,7 +355,7 @@ def index_sheet(index_name, id):
         "sheetId": id,
     }
     try:
-        es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
+        es.index(index_name, 'sheet', doc, id)
         global doc_count
         doc_count += 1
         return True
@@ -409,7 +407,7 @@ def source_text(source):
     return text
 
 
-def create_index(index_name, type):
+def create_index(index_name, merged=False):
     """
     Clears the "sefaria" and "merged" indexes and creates it fresh with the below settings.
     """
@@ -443,11 +441,10 @@ def create_index(index_name, type):
         }
     }
     print 'CReating index {}'.format(index_name)
-    index_client.create(index=index_name, body=settings)
+    es.create_index(index_name, settings)
 
-    if type == 'text':
-        put_text_mapping(index_name)
-    elif type == 'sheet':
+    put_text_mapping(index_name)
+    if not merged:
         put_sheet_mapping()
 
 
@@ -456,68 +453,70 @@ def put_text_mapping(index_name):
     Settings mapping for the text document type.
     """
     text_mapping = {
-        'properties' : {
-            'categories': {
-                'type': 'string',
-                'index': 'not_analyzed',
-            },
-            "category": {
-                'type': 'string',
-                'index': 'not_analyzed',
-            },
-            "he_category": {
-                'type': 'string',
-                'index': 'not_analyzed',
-            },
-            "index_title": {
-                'type': 'string',
-                'index': 'not_analyzed',
-            },
-            "path": {
-                'type': 'string',
-                'index': 'not_analyzed',
-            },
-            "he_index_title": {
-                'type': 'string',
-                'index': 'not_analyzed',
-            },
-            "he_path": {
-                'type': 'string',
-                'index': 'not_analyzed',
-            },
-            "order": {
-                'type': 'string',
-                'index': 'not_analyzed'
-            },
-            "pagesheetrank": {
-                'type': 'double',
-                'index': 'not_analyzed'
-            },
-            "comp_date": {
-                'type': 'integer',
-                'index': 'not_analyzed'
-            },
-            "version_priority": {
-                'type': 'integer',
-                'index': 'not_analyzed'
-            },
-            #"hebmorph_semi_exact": {
-            #    'type': 'string',
-            #    'analyzer': 'hebrew',
-            #    'search_analyzer': 'sefaria-semi-exact'
-            #},
-            "exact": {
-                'type': 'string',
-                'analyzer': 'my_standard'
-            },
-            "naive_lemmatizer": {
-                'type': 'string',
-                'analyzer': 'sefaria-naive-lemmatizer',
-                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes'
+        'text' : {
+            'properties' : {
+                'categories': {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_category": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "path": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_index_title": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "he_path": {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                },
+                "order": {
+                    'type': 'string',
+                    'index': 'not_analyzed'
+                },
+                "pagesheetrank": {
+                    'type': 'double',
+                    'index': 'not_analyzed'
+                },
+                "comp_date": {
+                    'type': 'integer',
+                    'index': 'not_analyzed'
+                },
+                "version_priority": {
+                    'type': 'integer',
+                    'index': 'not_analyzed'
+                },
+                #"hebmorph_semi_exact": {
+                #    'type': 'string',
+                #    'analyzer': 'hebrew',
+                #    'search_analyzer': 'sefaria-semi-exact'
+                #},
+                "exact": {
+                    'type': 'string',
+                    'analyzer': 'my_standard'
+                },
+                "naive_lemmatizer": {
+                    'type': 'string',
+                    'analyzer': 'sefaria-naive-lemmatizer',
+                    'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes'
+                }
             }
         }
     }
-    index_client.put_mapping(doc_type='text', body=text_mapping, index=index_name)
+    es.put_mapping(index_name, "text", text_mapping)
 
 
 def put_sheet_mapping():
@@ -565,7 +564,7 @@ def index_sheets_by_timestamp(timestamp):
     :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
     """
 
-    name_dict = get_new_and_current_index_names('sheet', debug=False)
+    name_dict = get_new_and_current_index_names(merged=False, debug=False)
     curr_index_name = name_dict['current']
     try:
         ids = db.sheets.find({"status": "public", "dateModified": {"$gt": timestamp}}).distinct("id")
@@ -608,7 +607,7 @@ def clear_index(index_name):
     Delete the search index.
     """
     try:
-        index_client.delete(index=index_name)
+        es.delete_index(index_name)
     except Exception, e:
         print "Error deleting Elasticsearch Index named %s" % index_name
         print e
@@ -633,8 +632,8 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
-    index_name = get_new_and_current_index_names('text')['current']
-    index_name_merged = get_new_and_current_index_names('merged')['current']
+    index_name = get_new_and_current_index_names()['current']
+    index_name_merged = get_new_and_current_index_names(merged=True)['current']
     queue = db.index_queue.find()
     for item in queue:
         try:
@@ -665,17 +664,12 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
-def get_new_and_current_index_names(type, debug=False):
-    base_index_name_dict = {
-        'text': SEARCH_INDEX_NAME_TEXT,
-        'sheet': SEARCH_INDEX_NAME_SHEET,
-        'merged': SEARCH_INDEX_NAME_MERGED
-    }
-    index_name_a = "{}-a{}".format(base_index_name_dict[type], '-debug' if debug else '')
-    index_name_b = "{}-b{}".format(base_index_name_dict[type], '-debug' if debug else '')
-    alias_name = "{}{}".format(base_index_name_dict[type], '-debug' if debug else '')
+def get_new_and_current_index_names(merged=False, debug=False):
+    index_name_a = "{}-a{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
+    index_name_b = "{}-b{}".format(SEARCH_INDEX_NAME if not merged else "merged", '-debug' if debug else '')
+    alias_name = "{}{}".format(SEARCH_INDEX_NAME if not merged else "merged",'-debug' if debug else '')
 
-    aliases = index_client.get_aliases()
+    aliases = es.aliases()
     try:
         a_alias = aliases[index_name_a]['aliases']
         choose_a = alias_name not in a_alias
@@ -696,36 +690,49 @@ def index_all(skip=0, merged=False, debug=False):
     Fully create the search index from scratch.
     """
     start = datetime.now()
-    if merged:
-        index_all_of_type('merged', skip=skip, merged=merged, debug=debug)
-    else:
-        index_all_of_type('text', skip=skip, merged=merged, debug=debug)
-        index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
 
+    name_dict = get_new_and_current_index_names(merged=merged, debug=debug)
+    new_index_name = name_dict['new']
+    curr_index_name = name_dict['current']
+    alias_name = name_dict['alias']
 
-def index_all_of_type(type, skip=0, merged=False, debug=False):
-    index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
     import time as pytime
-    print 'CREATING / DELETING {}'.format(index_names_dict['new'])
-    print 'CURRENT {}'.format(index_names_dict['current'])
+    print 'CREATING / DELETING {}'.format(new_index_name)
+    print 'CURRENT {}'.format(curr_index_name)
     for i in range(10):
         print 'STARTING IN T-MINUS {}'.format(10 - i)
         pytime.sleep(1)
 
     if skip == 0:
-        create_index(index_names_dict['new'], type)
-    index_all_sections(index_names_dict['new'], skip=skip, merged=merged, debug=debug)
+        create_index(new_index_name, merged=merged)
+    index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
     if not merged:
-        index_public_sheets(index_names_dict['new'])
+        index_public_sheets(new_index_name)
 
-    index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
+    alias_actions = [
+        {
+            "remove": {
+                "alias": alias_name,
+                "index": curr_index_name
+            }
+        }
+    ]
+    try:
+        es.update_aliases(alias_actions)
+    except ElasticHttpNotFoundError:
+        pass
 
     clear_index(alias_name) # make sure there are no indexes with the alias_name
+    alias_actions = [ {
+        "add": {
+            "alias": alias_name,
+            "index": new_index_name
+        }
+    }]
+    es.update_aliases(alias_actions)
 
-    index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
-
-    if index_names_dict['new'] != index_names_dict['current']:
-        clear_index(index_names_dict['current'])
+    if new_index_name != curr_index_name:
+        clear_index(curr_index_name)
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
 
@@ -733,13 +740,63 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):
     start = datetime.now()
 
-    new_index_name = '{}-c'.format(SEARCH_INDEX_NAME if not merged else 'merged')
+    new_index_name = '{}-b'.format(SEARCH_INDEX_NAME if not merged else 'merged')
 
     if skip == 0:
-        create_index(new_index_name, 'text')
+        create_index(new_index_name, merged=merged)
     index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
     if not merged:
         index_public_sheets(new_index_name)
 
     end = datetime.now()
     print "Elapsed time: %s" % str(end-start)
+
+def index_all_noah_beta(skip=0, merged=False, debug=False):
+    start = datetime.now()
+
+    new_index_name = '{}-d'.format(SEARCH_INDEX_NAME if not merged else 'merged')
+
+    if skip == 0:
+        create_index(new_index_name, merged=merged)
+    index_all_sections(new_index_name, skip=skip, merged=merged, debug=debug)
+    if not merged:
+        index_public_sheets(new_index_name)
+
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
+
+# adapted to python from library.js:sjs.search.get_query_object()
+def query(q, override=False):
+
+    full_query = {
+        "query": {
+            "query_string":  {
+              "query": re.sub('(\S)"(\S)', '\1\u05f4\2', q), #Replace internal quotes with gershaim.
+              "default_operator": "AND",
+              "fields": ["content"]
+            }
+        },
+        "sort": [{
+          "order": {}                 # the sort field name is "order"
+        }],
+        "highlight": {
+          "pre_tags": ["<b>"],
+          "post_tags": ["</b>"],
+          "fields": {
+              "content": {"fragment_size": 200}
+          }
+        }
+    }
+
+    full_query["size"] = 0
+    res = es.search(full_query, index=SEARCH_INDEX_NAME, doc_type="text")
+    size = res['hits']['total']
+    if size > 4000 and not override:
+        raise Exception("Size of query is {}.  Call again with override to proceed.".format(size))
+    full_query["size"] = size
+    res = es.search(full_query, index=SEARCH_INDEX_NAME, doc_type="text")
+    return res
+
+    #print("Got %d Hits:" % res['hits']['total'])
+    #for hit in res['hits']['hits']:
+        #print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
