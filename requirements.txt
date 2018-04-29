@@ -8,7 +8,7 @@ dateutils
 BeautifulSoup
 bleach==1.4.2
 rauth
-pyelasticsearch
+elasticsearch
 regex
 pytest
 mailchimp
