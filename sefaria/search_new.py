@@ -29,7 +29,7 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
+from settings import SEARCH_ADMIN_K8S, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
@@ -48,7 +48,7 @@ init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
 davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
-es_client = Elasticsearch(SEARCH_ADMIN)
+es_client = Elasticsearch(SEARCH_ADMIN_K8S)
 index_client = IndicesClient(es_client)
 
 tracer = logging.getLogger('elasticsearch.trace')
@@ -424,10 +424,12 @@ def create_index(index_name, type):
                 "analyzer" : {
                     "my_standard" : {
                         "tokenizer": "standard",
+                        "char_filter": [
+                            "icu_normalizer"
+                        ],
                         "filter": [
                                 "standard",
                                 "lowercase",
-                                "icu_normalizer",
                                 "icu_folding",
                                 "my_snow"
                                 ]
