@@ -675,7 +675,7 @@ def get_new_and_current_index_names(type, debug=False):
     index_name_b = "{}-b{}".format(base_index_name_dict[type], '-debug' if debug else '')
     alias_name = "{}{}".format(base_index_name_dict[type], '-debug' if debug else '')
 
-    aliases = index_client.get_aliases()
+    aliases = index_client.get_alias()
     try:
         a_alias = aliases[index_name_a]['aliases']
         choose_a = alias_name not in a_alias
