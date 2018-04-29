@@ -152,6 +152,7 @@ NATIONBUILDER_CLIENT_SECRET = ""
 USE_VARNISH = False
 FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
 VARNISH_ADM_ADDR = "localhost:6082" # And this one doesn't
+VARNISH_HOST = "localhost"
 VARNISH_FRNT_PORT = 8040
 VARNISH_SECRET = "/etc/varnish/secret"
 # Use ESI for user box in header.
