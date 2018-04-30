@@ -460,48 +460,40 @@ def put_text_mapping(index_name):
     text_mapping = {
         'properties' : {
             'categories': {
-                'type': 'string',
-                'index': 'not_analyzed',
+                'type': 'keyword',
             },
             "category": {
-                'type': 'string',
-                'index': 'not_analyzed',
+                'type': 'keyword',
             },
             "he_category": {
-                'type': 'string',
-                'index': 'not_analyzed',
+                'type': 'keyword',
             },
             "index_title": {
-                'type': 'string',
-                'index': 'not_analyzed',
+                'type': 'keyword',
             },
             "path": {
-                'type': 'string',
-                'index': 'not_analyzed',
+                'type': 'keyword',
             },
             "he_index_title": {
-                'type': 'string',
-                'index': 'not_analyzed',
+                'type': 'keyword',
             },
             "he_path": {
-                'type': 'string',
-                'index': 'not_analyzed',
+                'type': 'keyword',
             },
             "order": {
-                'type': 'string',
-                'index': 'not_analyzed'
+                'type': 'keyword',
             },
             "pagesheetrank": {
                 'type': 'double',
-                'index': 'not_analyzed'
+                'index': False
             },
             "comp_date": {
                 'type': 'integer',
-                'index': 'not_analyzed'
+                'index': False
             },
             "version_priority": {
                 'type': 'integer',
-                'index': 'not_analyzed'
+                'index': False
             },
             #"hebmorph_semi_exact": {
             #    'type': 'string',
@@ -509,11 +501,11 @@ def put_text_mapping(index_name):
             #    'search_analyzer': 'sefaria-semi-exact'
             #},
             "exact": {
-                'type': 'string',
+                'type': 'text',
                 'analyzer': 'my_standard'
             },
             "naive_lemmatizer": {
-                'type': 'string',
+                'type': 'text',
                 'analyzer': 'sefaria-naive-lemmatizer',
                 'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes'
             }
