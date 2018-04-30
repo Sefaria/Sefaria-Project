@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% load sefaria_tags %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Visualizing Torah Connections through Rashi's Commentary" %}{% endblock %}
 
 {% block description %}{% trans "Explore how Rashi connects verses of Torah to one another when he quotes one verse in his commentary on another." %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="/static/img/links-through-rashi.png"/>{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{% static 'img/links-through-rashi.png' %}"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
     <script src="https://use.typekit.net/aeg8div.js"></script>

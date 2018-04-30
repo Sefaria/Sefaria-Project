@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% load i18n cache humanize sefaria_tags %}
+{% load i18n cache humanize sefaria_tags static %}
+
 
 {% block title %}
 	{% if single %}
@@ -101,7 +102,7 @@
 			});
 		</script>
 	{% endif %}
-	<script src="/static/js/lib/jquery.raty.js"></script>
+	<script src="{% static 'js/lib/jquery.raty.js' %}"></script>
 	<script>
 	    var ratySettings = { // for text review ratings
 	        path: "/static/img/raty/",

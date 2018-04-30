@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="UTF-8">
@@ -123,6 +124,6 @@
       var JSON_PROPS = {{ JSON_PROPS }}
     {% endautoescape %}
     </script>
-    <script src="/static/bundles/diffPage/diffPage.js"></script>
+    <script src="{% static 'bundles/diffPage/diffPage.js' %}"></script>
 </body>
 </html>
