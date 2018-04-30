@@ -51,8 +51,8 @@ davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 es_client = Elasticsearch(SEARCH_ADMIN_K8S)
 index_client = IndicesClient(es_client)
 
-tracer = logging.getLogger('elasticsearch.trace')
-tracer.setLevel(logging.INFO)
+tracer = logging.getLogger('elasticsearch')
+tracer.setLevel(logging.CRITICAL)
 #tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
 tracer.addHandler(NullHandler())
 
