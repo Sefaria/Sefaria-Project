@@ -132,10 +132,10 @@ def init_pagerank_graph():
     all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
     len_all_links = all_links.count()
     all_ref_strs = set()
-    current_link, page, link_limit = 0, 0, 1000
+    current_link, page, link_limit = 0, 0, 100000
     all_links = LinkSet(limit=link_limit, page=page)
 
-    while len(all_links.array()) > 0 and current_link < 1000:
+    while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
             if current_link % 1000 == 0:
                 print "{}/{}".format(current_link,len_all_links)
