@@ -1,7 +1,7 @@
+from django.conf.urls import url
+from django.http import HttpResponseRedirect
 import reader.views as reader_views
 
-
-site_urlpatterns = []
 
 static_pages = [
     "about",
@@ -23,7 +23,7 @@ static_pages = [
     "ios",
     "mobile",
     "sefaria-edition",
-    "sefaria-community-translation",k
+    "sefaria-community-translation",
     "contributed-to-sefaria",
     "translation-guidelines",
     "transliteration-guidelines",
@@ -35,7 +35,7 @@ static_pages = [
 ]
 
 # Semi Static Content
-urlpatterns += [
+site_urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),

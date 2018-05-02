@@ -7,7 +7,7 @@ Writes to MongoDB Collection: summaries
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from model import *
-from model.category import ORDER, TOP_CATEGORIES, REVERSE_ORDER
+from model.category import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
 import logging
 logger = logging.getLogger(__name__)
 
@@ -132,15 +132,15 @@ def node_sort_key(a):
     """
     if "category" in a:
         try:
-            return ORDER.index(a["category"])
+            return CATEGORY_ORDER.index(a["category"])
         except ValueError:
             temp_cat_name = a["category"].replace(" Commentaries", "")
             if temp_cat_name in TOP_CATEGORIES:
-                return ORDER.index(temp_cat_name) + 0.5
+                return CATEGORY_ORDER.index(temp_cat_name) + 0.5
             return 'zz' + a["category"]
     elif "title" in a:
         try:
-            return ORDER.index(a["title"])
+            return CATEGORY_ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
                 return a["order"]
