@@ -29,7 +29,7 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS, SEARCH_ADMIN_USER, SEARCH_ADMIN_PW
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS, SEARCH_ADMIN_USER, SEARCH_ADMIN_PW, TORAH_SPECIFIC
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
@@ -45,8 +45,10 @@ def init_pagesheetrank_dicts():
         sheetrank_dict = {}
 
 init_pagesheetrank_dicts()
-all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
+
+if TORAH_SPECIFIC:
+    all_gemara_indexes = library.get_indexes_in_category("Bavli")
+    davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es = ElasticSearch(SEARCH_ADMIN, username=SEARCH_ADMIN_USER, password=SEARCH_ADMIN_PW)
 tracer = logging.getLogger('elasticsearch.trace')
@@ -90,22 +92,24 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     # Index each segment of this document individually
     padded_oref = oref.padded_ref()
 
-    if bavli_amud and padded_oref.is_bavli() and padded_oref.index.title not in davidson_indexes:  # Index bavli by amud. and commentaries by line
-        pass
-    elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
-        t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
+    if TORAH_SPECIFIC:
+        if bavli_amud and padded_oref.is_bavli() and padded_oref.index.title not in davidson_indexes:  # Index bavli by amud. and commentaries by line
+            pass
+        elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
+            t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
 
-        for iref, ref in enumerate(oref.subrefs(len(t.text))):
-            if padded_oref.index.title in davidson_indexes:
-                if iref == len(t.text) - 1 and ref != ref.last_segment_ref():
-                    # if it's a talmud ref and it's the last ref on daf, but not the last ref in the mesechta, skip it.
-                    # we'll combine it with the first ref of the next daf. This is dealing with the issue of sentences
-                    # that get cut-off due to daf breaks
-                    continue
-                elif iref == 0 and ref.prev_segment_ref() is not None:
-                    ref = ref.prev_segment_ref().to(ref)
-            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged, version_priority=version_priority)
-        return  # Returning at this level prevents indexing of full chapters
+            for iref, ref in enumerate(oref.subrefs(len(t.text))):
+                if padded_oref.index.title in davidson_indexes:
+                    if iref == len(t.text) - 1 and ref != ref.last_segment_ref():
+                        # if it's a talmud ref and it's the last ref on daf, but not the last ref in the mesechta, skip it.
+                        # we'll combine it with the first ref of the next daf. This is dealing with the issue of sentences
+                        # that get cut-off due to daf breaks
+                        continue
+                    elif iref == 0 and ref.prev_segment_ref() is not None:
+                        ref = ref.prev_segment_ref().to(ref)
+                index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged, version_priority=version_priority)
+
+            return  # Returning at this level prevents indexing of full chapters
 
     '''   Can't get here after the return above
     # Don't try to index docs with depth 3
@@ -159,7 +163,7 @@ def delete_version(index, version, lang):
 
     refs = []
 
-    if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
+    if TORAH_SPECIFIC and Ref(index.title).is_bavli() and index.title not in davidson_indexes:
         refs += index.all_section_refs()
     refs += index.all_segment_refs()
 
@@ -214,7 +218,7 @@ def make_text_index_document(tref, version, lang, version_priority):
     if re.match(ur'^\s*[\(\[].+[\)\]]\s*$',content):
         return False #don't bother indexing. this segment is surrounded by parens
 
-    if oref.is_talmud() and oref.index.title not in davidson_indexes:
+    if TORAH_SPECIFIC and oref.is_talmud() and oref.index.title not in davidson_indexes:
         title = text["book"] + " Daf " + text["sections"][0]
     else:
         title = text["book"] + " " + " ".join([u"{} {}".format(p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])

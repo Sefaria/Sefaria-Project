@@ -255,7 +255,7 @@ class TocTree(object):
         return self._root
 
     def get_serialized_toc(self):
-        return self._root.serialize()["contents"]
+        return self._root.serialize().get("contents", [])
 
     def flatten(self):
         """
