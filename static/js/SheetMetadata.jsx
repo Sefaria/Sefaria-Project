@@ -124,11 +124,22 @@ class SheetMetadata extends Component {
 
                     <div className="sheetTags">
                       {this.props.sheet.tags.map(function(tag, i) {
-                        return (<a href={"/sheets/tags/" + tag}
+                        return (
+                            <span>
+                            <a href={"/sheets/tags/" + tag}
                                     target="_blank"
-                                    className="sheetTag button"
+                                    className="int-en sheetTag button"
                                     key={tag}
-                                    >{tag}</a>)
+                                    >{tag}</a>
+
+                            <a href={"/sheets/tags/" + tag}
+                                    target="_blank"
+                                    className="int-he sheetTag button"
+                                    key={tag}
+                                    >{Sefaria.hebrewTerm(tag)}</a>
+                            </span>
+
+                        )
                       }.bind(this))}
                     </div>
 
