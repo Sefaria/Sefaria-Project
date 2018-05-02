@@ -56,6 +56,7 @@ class ServerCoordinator(MessagingNode):
             popped_msg = self.pubsub.get_message()
 
     def sync(self):
+        self._check_initialization()
         msg = self.pubsub.get_message()
         if not msg or msg["type"] == "subscribe":
             return
