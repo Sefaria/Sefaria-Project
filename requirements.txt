@@ -8,6 +8,7 @@ dateutils
 BeautifulSoup
 bleach==1.4.2
 rauth
+elasticsearch
 pyelasticsearch
 regex
 pytest

@@ -781,7 +781,7 @@ $(function() {
 
 			if (!$(this).hasClass('contentToAdd')) {
 
-				saveCkEditorContinuous(ed);
+				//saveCkEditorContinuous(ed);
 				$(this).on('keydown', function (e) {
 					$("#lastSaved").find(".saving").show().siblings().hide();
 				});

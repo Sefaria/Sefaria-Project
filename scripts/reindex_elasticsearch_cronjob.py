@@ -4,7 +4,7 @@ import os
 import django
 django.setup()
 from sefaria.model import *
-from sefaria.search import index_all, init_pagesheetrank_dicts
+from sefaria.search_new import index_all, init_pagesheetrank_dicts
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import calculate_pagerank, calculate_sheetrank
 
@@ -23,7 +23,7 @@ calculate_sheetrank()
 init_pagesheetrank_dicts()
 index_all(merged=False)
 index_all(merged=True)
-r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
 if "error" in r.text:
     raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
 else:
