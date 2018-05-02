@@ -126,7 +126,7 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
                     version_priority = priority
                     break
         doc = make_text_index_document(oref.normal(), version, lang, version_priority)
-        print doc
+        # print doc
     except Exception as e:
         logger.error(u"Error making index document {} / {} / {} : {}".format(oref.normal(), version, lang, e.message))
         return
@@ -274,7 +274,7 @@ def make_text_index_document(tref, version, lang, version_priority):
         "heRef": oref.he_normal(),
         "version": version,
         "lang": lang,
-        "version_priority": version_priority if version_priority else 1000,
+        "version_priority": version_priority if version_priority is not None else 1000,
         "titleVariants": text["titleVariants"],
         "categories": categories,
         "order": oref.order_id(),
@@ -708,8 +708,9 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 
     if skip == 0:
         create_index(index_names_dict['new'], type)
-    index_all_sections(index_names_dict['new'], skip=skip, merged=merged, debug=debug)
-    if not merged:
+    if type == 'text' or type == 'merged':
+        index_all_sections(index_names_dict['new'], skip=skip, merged=merged, debug=debug)
+    elif type == 'sheet':
         index_public_sheets(index_names_dict['new'])
 
     index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
