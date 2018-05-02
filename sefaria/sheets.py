@@ -449,8 +449,6 @@ def get_sheets_for_ref(tref, uid=None):
 		query["status"] = "public"
 	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
-
-
 	sheets = list((s for s in sheetsObj))
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
