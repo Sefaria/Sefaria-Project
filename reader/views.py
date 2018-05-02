@@ -252,7 +252,6 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         sheet_id = sheet_id.split(".")[0]
 
     sheet = get_sheet_for_panel(int(sheet_id))
-
     panel = {
         "sheetID": sheet_id,
         "mode": "Sheet",
