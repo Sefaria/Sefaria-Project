@@ -25,6 +25,7 @@ import search
 import sys
 import hashlib
 import urllib
+
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
@@ -446,26 +447,25 @@ def get_sheets_for_ref(tref, uid=None):
 		query["owner"] = uid
 	else:
 		query["status"] = "public"
-	sheets = db.sheets.find(query,
+	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
 
-	user_ids = list(db.sheets.find(query,{"owner": 1}).distinct("owner"))
+
+	sheets = list((s for s in sheetsObj))
+	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
 	user_profiles = {item['id']: item for item in django_user_profiles}
 	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1}))
 	mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
-
-
 	for profile in user_profiles:
 		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
-
-
-
 
 	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
 	for sheet in sheets:
-		matched_refs = [r for r in sheet["includedRefs"] if regex.match(ref_re, r)]
+		potential_matches = [r for r in sheet["includedRefs"] if r.startswith(oref.index.title)]
+		matched_refs = [r for r in potential_matches if regex.match(ref_re, r)]
+
 		for match in matched_refs:
 			try:
 				match = model.Ref(match)
@@ -502,6 +502,7 @@ def get_sheets_for_ref(tref, uid=None):
 			}
 
 			results.append(sheet_data)
+
 
 	return results
 
@@ -631,7 +632,7 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 		n.save()
 
 
-def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None):
+def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):
 	"""
 	Creates a source sheet owned by 'uid' that includes all of 'text'.
 	'sources' is a list of strings naming commentators or texts to include.
@@ -652,7 +653,11 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 		refs = []
 		if leaf.first_section_ref() != leaf.last_section_ref():
 			leaf_spanning_ref = leaf.first_section_ref().to(leaf.last_section_ref())
-			refs += [ref for ref in leaf_spanning_ref.split_spanning_ref() if oref.contains(ref)]
+			assert isinstance(leaf_spanning_ref, model.Ref)
+			if segment_level:
+				refs += [ref for ref in leaf_spanning_ref.all_segment_refs() if oref.contains(ref)]
+			else:  # section level
+				refs += [ref for ref in leaf_spanning_ref.split_spanning_ref() if oref.contains(ref)]
 		else:
 			refs.append(leaf.ref())
 

@@ -73,6 +73,7 @@ CACHES = {
 
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
 DEBUG = True
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -116,6 +117,8 @@ SEFARIA_DB_PASSWORD = ''
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
+SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
+SEARCH_ADMIN_PW = None
 SEARCH_ADMIN_K8S = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME = 'sefaria'

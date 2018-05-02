@@ -711,7 +711,7 @@ def group_page(request, group):
     else:
         return get_group_page(request, group.name, False)
 
-
+@login_required()
 def edit_group_page(request, group=None):
     if group:
         group = group.replace("-", " ").replace("_", " ")
@@ -3399,7 +3399,6 @@ def custom_server_error(request, template_name='500.html'):
     500 error handler.
 
     Templates: `500.html`
-    Context: RequestContext
     """
     t = get_template(template_name) # You need to create a 500.html template.
     return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
