@@ -51,7 +51,6 @@ class SheetMetadata extends Component {
     }
   }
   render() {
-    console.log(this.props.sheet);
     var title = this.props.sheet.title;
     var authorStatement;
 
@@ -103,14 +102,36 @@ class SheetMetadata extends Component {
                       <span className="en">Sheet</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
-                    <div className="tocTitle" role="heading" aria-level="1" dangerouslySetInnerHTML={ {__html: title} }>
+                    <div className="tocTitle" role="heading" aria-level="1">
+                      <span>{title.stripHtml()}</span>
                     </div>
-                    <div className="tocDetail" dangerouslySetInnerHTML={ {__html: authorStatement} }>
+                    <div className="tocDetail authorStatement" dangerouslySetInnerHTML={ {__html: authorStatement} }></div>
+                    <div className="sheetMeta">
+                      <div className="int-en">
+                          Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
+                      </div>
+                      <div className="int-he">
+                       -נוצר ב  {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} צפיות · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
+                      </div>
                     </div>
-                    <div className="tocDetail">
-                      Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
+
+                    <div>
+                        <a href="#" className="button white">Like</a> <a href="#" className="button white">Copy</a>
                     </div>
-                    {details ? <div className="tocDetail description"><em>{details}</em></div> : null}
+                    <div className="tocDetails">
+                      {details ? <div className="tocDetail sheetSummary"><em>{details}</em></div> : null}
+                    </div>
+
+                    <div className="sheetTags">
+                      {this.props.sheet.tags.map(function(tag, i) {
+                        return (<a href={"/sheets/tags/" + tag}
+                                    target="_blank"
+                                    className="sheetTag button"
+                                    key={tag}
+                                    >{tag}</a>)
+                      }.bind(this))}
+                    </div>
+
                   </div>
                 </div>
               </div>

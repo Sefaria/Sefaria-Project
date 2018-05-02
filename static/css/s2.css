@@ -1144,15 +1144,26 @@ a.readerNavCategory {
   font-size: 28px;
   line-height: 1.3;
 }
-.readerTextTableOfContents .currentSection {
+.readerTextTableOfContents .currentSection,
+.readerTextTableOfContents .authorStatement {
   font-size: 17px;
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .currentSection .he {
+.readerTextTableOfContents .currentSection .he,
+.readerTextTableOfContents .authorStatement .he,
+.readerTextTableOfContents .sheetMeta .he {
   font-family: "Heebo", sans-serif;
+}
+.readerTextTableOfContents .sheetMeta {
+  font-size: 14px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
 }
 .readerTextTableOfContents .tocDetails {
   margin-top: 30px;
@@ -1193,6 +1204,14 @@ a.readerNavCategory {
   color: #666;
   margin: 0 5px;
 }
+.readerTextTableOfContents .tocDetails .sheetSummary {
+  margin: 6px 0 16px;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1.4;
+  text-align: left;
+}
+
 .readerTextTableOfContents .currentVersionBox {
   margin-bottom: 18px;
 }
@@ -1294,6 +1313,9 @@ a.readerNavCategory {
   box-sizing: border-box;
   text-align: center;
   height: 100%;
+}
+.readerTextTableOfContents .content .sheetTags {
+  text-align: left;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -3244,6 +3266,13 @@ a.readerNavCategory {
   display: inline-block;
   margin-right: 8px;
 }
+.sheetTag.button {
+    background-color: #eee;
+    border-color: #ccc;
+    color: #999;
+    font-size: 14px;
+    margin: 4px;
+}
 .textList .sheetList {
   padding-top: 40px;
 }
@@ -4938,3 +4967,4 @@ span.purim-emoji img{
 .he.forceDisplayOverrideEn {
   display: none !important;
 }
+
