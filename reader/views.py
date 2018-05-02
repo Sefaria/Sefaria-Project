@@ -55,7 +55,6 @@ import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
 from sefaria.system.multiserver.coordinator import server_coordinator
-from django.contrib.humanize.templatetags.humanize import naturaltime
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -253,7 +252,6 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         sheet_id = sheet_id.split(".")[0]
 
     sheet = get_sheet_for_panel(int(sheet_id))
-    sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
     panel = {
         "sheetID": sheet_id,
         "mode": "Sheet",
