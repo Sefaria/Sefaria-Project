@@ -1314,8 +1314,11 @@ a.readerNavCategory {
   text-align: center;
   height: 100%;
 }
-.readerTextTableOfContents .content .sheetTags {
+.readerTextTableOfContents .content .sheetTags.int-en {
   text-align: left;
+}
+.readerTextTableOfContents .content .sheetTags.int-he {
+  text-align: right;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;

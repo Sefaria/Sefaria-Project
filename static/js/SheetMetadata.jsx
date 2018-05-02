@@ -5,6 +5,7 @@ const {
   CategoryColorLine,
   LoadingMessage,
   TwoBox,
+  LoginPrompt,
 }                = require('./Misc');
 const React      = require('react');
 const ReactDOM   = require('react-dom');
@@ -50,6 +51,72 @@ class SheetMetadata extends Component {
       e.preventDefault();
     }
   }
+
+  toggleLike() {
+
+  }
+
+  copySheet() {
+    if (!Sefaria._uid) {
+      this.setState({showLogin: true});
+    } else {
+      var sheet = this.props.sheet;
+      sheet.status = "unlisted";
+      sheet.title = sheet.title + " (Copy)";
+
+      if (Sefaria._uid != this.props.sheet.owner) {
+          sheet.via = this.props.sheet.id;
+          sheet.viaOwner = this.props.sheet.owner;
+          sheet.owner = Sefaria._uid
+      }
+      delete sheet.group;
+      delete sheet.id;
+      delete sheet.ownerName;
+      delete sheet.views;
+      delete sheet.dateCreated;
+      delete sheet.dateModified;
+      delete sheet.likes;
+      delete sheet.naturalDateCreated;
+      delete sheet.promptedToPublish;
+      delete sheet._id;
+
+      var postJSON = JSON.stringify(sheet);
+      $.post("/api/sheets/", {"json": postJSON}, function(data) {
+          if (data.id) {
+              console.log('Source Sheet copied: '+data.id)
+
+          } else if ("error" in data) {
+              sjs.alert.message(data.error);
+          }
+      })
+
+
+
+
+    }
+  }
+
+  generateSheetMetaDataButtons() {
+    if (this.state.showLogin == true) {
+      return (<LoginPrompt fullPanel={true} />)
+    }
+    else {
+      return (
+         <div>
+                <div className="int-en">
+                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>Like</a> <a href="#" className="button white" onClick={this.copySheet}>Copy</a>
+                </div>
+                <div className="int-he">
+                    <a href="#" className="button white" onClick={this.toggleLike}>אהבתי</a> <a href="#" className="button white" onClick={this.copySheet}>העתקה</a>
+                </div>
+         </div>
+      )
+    }
+
+
+  }
+
+
   render() {
     var title = this.props.sheet.title;
     var authorStatement;
@@ -111,37 +178,41 @@ class SheetMetadata extends Component {
                           Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
                       </div>
                       <div className="int-he">
-                       -נוצר ב  {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} צפיות · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
+                          <span>נוצר ב{this.props.sheet.naturalDateCreated} · </span>
+                          <span>{this.props.sheet.views} צפיות · </span>
+                          <span>קיבלת {this.props.sheet.likes ? this.props.sheet.likes.length : 0} לייקים </span>
                       </div>
                     </div>
 
-                    <div>
-                        <a href="#" className="button white">Like</a> <a href="#" className="button white">Copy</a>
-                    </div>
+                      {this.generateSheetMetaDataButtons()}
+
                     <div className="tocDetails">
                       {details ? <div className="tocDetail sheetSummary"><em>{details}</em></div> : null}
                     </div>
 
-                    <div className="sheetTags">
+                    <div className="sheetTags int-en">
                       {this.props.sheet.tags.map(function(tag, i) {
                         return (
-                            <span>
                             <a href={"/sheets/tags/" + tag}
                                     target="_blank"
-                                    className="int-en sheetTag button"
+                                    className="sheetTag button"
                                     key={tag}
                                     >{tag}</a>
-
+                        )
+                      }.bind(this))}
+                    </div>
+                    <div className="sheetTags int-he">
+                      {this.props.sheet.tags.map(function(tag, i) {
+                        return (
                             <a href={"/sheets/tags/" + tag}
                                     target="_blank"
                                     className="int-he sheetTag button"
                                     key={tag}
                                     >{Sefaria.hebrewTerm(tag)}</a>
-                            </span>
-
                         )
                       }.bind(this))}
                     </div>
+
 
                   </div>
                 </div>
