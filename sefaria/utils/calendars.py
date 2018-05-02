@@ -9,6 +9,7 @@ from sefaria.system.database import db
 import p929
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 import datetime
+from sefaria.settings import TORAH_SPECIFIC
 
 """
 Calendar items:
@@ -124,6 +125,8 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
 
 
 def get_all_calendar_items(datetime_obj, diaspora=True):
+    if not TORAH_SPECIFIC:
+        return []
     cal_items  = []
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora)
     cal_items += [daf_yomi(datetime_obj)]
