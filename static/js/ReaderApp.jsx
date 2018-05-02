@@ -672,8 +672,6 @@ class ReaderApp extends Component {
         hist.title += Sefaria._(" & ") + histories[i].title;
       }
       if(histories[i].lang) {
-        console.log(hist.url)
-          console.log(histories[i].lang)
         hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
       }
       if("aliyot" in histories[i]) {
@@ -1167,7 +1165,6 @@ class ReaderApp extends Component {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
   openTextListAt(n, refs) {
-    console.log(this.state)
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
@@ -1196,7 +1193,6 @@ class ReaderApp extends Component {
       panel.currVersions = parentPanel.currVersions;
     }
     newPanels[n] = this.makePanelState(panel);
-    console.log(newPanels)
     this.setState({panels: newPanels});
   }
   setTextListHighlight(n, refs) {

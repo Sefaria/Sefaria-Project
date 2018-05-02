@@ -108,7 +108,7 @@ class SheetMetadata extends Component {
                     <div className="tocDetail" dangerouslySetInnerHTML={ {__html: authorStatement} }>
                     </div>
                     <div className="tocDetail">
-                      Created {this.props.sheet.dateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
+                      Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
                     </div>
                     {details ? <div className="tocDetail description"><em>{details}</em></div> : null}
                   </div>
