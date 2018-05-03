@@ -9,7 +9,7 @@ from sefaria.system.database import db
 import p929
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 import datetime
-from sefaria.settings import TORAH_SPECIFIC
+from sefaria.site.site_settings import TORAH_SPECIFIC
 
 """
 Calendar items:

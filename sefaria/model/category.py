@@ -9,7 +9,7 @@ from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import link as link
-from sites.categories import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
+from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
     collection = 'category'

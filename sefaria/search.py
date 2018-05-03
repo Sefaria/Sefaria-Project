@@ -29,9 +29,10 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS, SEARCH_ADMIN_USER, SEARCH_ADMIN_PW, TORAH_SPECIFIC
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS, SEARCH_ADMIN_USER, SEARCH_ADMIN_PW
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
+from sefaria.site.site_settings import TORAH_SPECIFIC
 
 def init_pagesheetrank_dicts():
     global pagerank_dict, sheetrank_dict

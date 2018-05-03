@@ -14,7 +14,7 @@ import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 
-from sites.urls import site_urlpatterns
+from sefaria.site.urls import site_urlpatterns
 
 
 admin.autodiscover()
