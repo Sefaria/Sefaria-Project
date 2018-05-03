@@ -63,7 +63,7 @@ class AbstractIndex(object):
 
     def set_title(self, title, lang="en"):
         if lang == "en":
-            self._title = title  # we need to store the title attr in a physical storage, not that .title is a virtual property
+            self._title = title  # we need to store the title attr in a physical storage, note that .title is a virtual property
         if getattr(self, 'nodes', None):
             self.nodes.key = title
 
