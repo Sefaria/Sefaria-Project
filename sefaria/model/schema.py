@@ -1321,8 +1321,8 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
-        super(JaggedArrayNode, self).__init__(serial, **kwargs)
-        self._init_address_classes()
+        SchemaNode.__init__(self, serial, **kwargs)
+        NumberedTitledTreeNode.__init__(self, serial, **kwargs)
 
     def validate(self):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
