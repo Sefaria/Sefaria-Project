@@ -23,17 +23,10 @@ class SheetMetadata extends Component {
     super(props);
 
     this.state = {
-      versions: [],
-      versionsLoaded: false,
-      currentVersion: null,
-      showAllVersions: false,
-      dlVersionTitle: null,
-      dlVersionLanguage: null,
-      dlVersionFormat: null,
-      dlReady: false,
       showLogin: false,
       sheetCopyStatus: "Copy",
       copiedSheetId: null,
+      viewerLikedSheet: this.props.sheet.likes.indexOf(Sefaria._uid) != -1 ? true : false,
     };
   }
   componentDidUpdate(prevProps, prevState) {
@@ -56,7 +49,13 @@ class SheetMetadata extends Component {
   }
 
   toggleLike() {
-
+    if (!Sefaria._uid) {
+        this.setState({showLogin: true});
+    } else if (!this.state.viewerLikedSheet) {
+        console.log('liked')
+    } else {
+        console.log('unliked')
+    }
   }
 
   getSheetFromCache() {
@@ -151,14 +150,14 @@ class SheetMetadata extends Component {
             <div className="int-en">
                 {Sefaria._uid == this.props.sheet.owner ?
                     <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">Edit</a> :
-                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>Like</a>
+                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? "Unlike" : "Like"}</a>
                 }
                     <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
             </div>
             <div className="int-he">
                 {Sefaria._uid == this.props.sheet.owner ?
                     <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">ערוך</a> :
-                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>אהבתי</a>
+                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? Sefaria._("Unlike") : Sefaria._("Like")}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
             </div>
@@ -183,7 +182,7 @@ class SheetMetadata extends Component {
       authorStatement = "Assigned by "+ this.props.sheet.assignerName +" Completed by " + this.props.sheet.ownerName;
     }
     else if (this.props.sheet.viaOwnerName) {
-      authorStatement = "by "+ this.props.sheet.ownerName +" based on a sheet by  " + this.props.sheet.viaOwnerName;
+      authorStatement = "by "+ this.props.sheet.ownerName +" based on a <a href='/sheets/"+this.props.sheet.via+"?panel=1'>sheet</a> by  " + this.props.sheet.viaOwnerName;
     }
     else {
       authorStatement = "by " + this.props.sheet.ownerName;
