@@ -448,7 +448,7 @@ def get_sheets_for_ref(tref, uid=None):
 	else:
 		query["status"] = "public"
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -470,9 +470,17 @@ def get_sheets_for_ref(tref, uid=None):
 			except InputError:
 				continue
 			ownerData = user_profiles[sheet["owner"]]
+
 			default_image = "https://www.sefaria.org/static/img/profile-default.png"
 			gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
 			gravatar_url_small = gravatar_base + urllib.urlencode({'d': default_image, 's': str(80)})
+
+			if "assigner_id" in sheet:
+				asignerData = public_user_data(sheet["assigner_id"])
+				sheet["assignerName"] = asignerData["name"]
+			if "viaOwner" in sheet:
+				viaOwnerData = public_user_data(sheet["viaOwner"])
+				sheet["viaOwnerName"] = viaOwnerData["name"]
 
 			sheet_data = {
 				"owner":           sheet["owner"],
@@ -486,6 +494,8 @@ def get_sheets_for_ref(tref, uid=None):
 				"options": 		   sheet["options"],
 				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"viaOwnerName":	   sheet.get("viaOwnerName", None),
+				"assignerName":	   sheet.get("assignerName", None),
 				"ownerProfileUrl": "/profile/" + ownerData["slug"],
 				"ownerImageUrl":   gravatar_url_small,
 				"status":          sheet["status"],

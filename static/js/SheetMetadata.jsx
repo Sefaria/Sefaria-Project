@@ -30,7 +30,10 @@ class SheetMetadata extends Component {
       dlVersionTitle: null,
       dlVersionLanguage: null,
       dlVersionFormat: null,
-      dlReady: false
+      dlReady: false,
+      showLogin: false,
+      sheetCopyStatus: "Copy",
+      copiedSheetId: null,
     };
   }
   componentDidUpdate(prevProps, prevState) {
@@ -59,38 +62,44 @@ class SheetMetadata extends Component {
   copySheet() {
     if (!Sefaria._uid) {
       this.setState({showLogin: true});
-    } else {
-      var sheet = this.props.sheet;
-      sheet.status = "unlisted";
-      sheet.title = sheet.title + " (Copy)";
+    } else if (this.state.sheetCopyStatus == "Copy") {
+        this.setState({sheetCopyStatus: "Copying..."});
+        var newSheet = Object.assign({}, this.props.sheet);
 
-      if (Sefaria._uid != this.props.sheet.owner) {
-          sheet.via = this.props.sheet.id;
-          sheet.viaOwner = this.props.sheet.owner;
-          sheet.owner = Sefaria._uid
-      }
-      delete sheet.group;
-      delete sheet.id;
-      delete sheet.ownerName;
-      delete sheet.views;
-      delete sheet.dateCreated;
-      delete sheet.dateModified;
-      delete sheet.likes;
-      delete sheet.naturalDateCreated;
-      delete sheet.promptedToPublish;
-      delete sheet._id;
+        newSheet.status = "unlisted";
+        newSheet.title = newSheet.title + " (Copy)";
 
-      var postJSON = JSON.stringify(sheet);
-      $.post("/api/sheets/", {"json": postJSON}, function(data) {
-          if (data.id) {
+        if (Sefaria._uid != this.props.sheet.owner) {
+            newSheet.via = this.props.sheet.id;
+            newSheet.viaOwner = this.props.sheet.owner;
+            newSheet.owner = Sefaria._uid
+        }
+        delete newSheet.group;
+        delete newSheet.id;
+        delete newSheet.ownerName;
+        delete newSheet.views;
+        delete newSheet.dateCreated;
+        delete newSheet.dateModified;
+        delete newSheet.likes;
+        delete newSheet.naturalDateCreated;
+        delete newSheet.promptedToPublish;
+        delete newSheet._id;
+
+        var postJSON = JSON.stringify(newSheet);
+        $.post("/api/sheets/", {"json": postJSON}, (data) => {
+            if (data.id)  {
               console.log('Source Sheet copied: '+data.id)
+              console.log(this.props.sheet)
+              this.setState({
+                  sheetCopyStatus: "Copied",
+                  copiedSheetId: data.id
+              });
+              console.log(this.props.sheet)
 
-          } else if ("error" in data) {
-              sjs.alert.message(data.error);
-          }
-      })
-
-
+            } else if ("error" in data) {
+                console.log(data.error);
+            }
+        })
 
 
     }
@@ -103,12 +112,14 @@ class SheetMetadata extends Component {
     else {
       return (
          <div>
-                <div className="int-en">
-                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>Like</a> <a href="#" className="button white" onClick={this.copySheet}>Copy</a>
-                </div>
-                <div className="int-he">
-                    <a href="#" className="button white" onClick={this.toggleLike}>אהבתי</a> <a href="#" className="button white" onClick={this.copySheet}>העתקה</a>
-                </div>
+            <div className="int-en">
+                <a href="#" className="button white" role="button" onClick={this.toggleLike}>Like</a> <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+            </div>
+            <div className="int-he">
+                <a href="#" className="button white" onClick={this.toggleLike}>אהבתי</a> <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
+            </div>
+
+            {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span class="int-en">View copy &raquo;</span><span class="int-he">צפה בהעתק &raquo;</span> </a> : null}
          </div>
       )
     }
@@ -127,8 +138,8 @@ class SheetMetadata extends Component {
     else if (this.props.sheet.assignerName) {
       authorStatement = "Assigned by "+ this.props.sheet.assignerName +" Completed by " + this.props.sheet.ownerName;
     }
-    else if (this.props.sheet.viaOwner) {
-      authorStatement = "by "+ this.props.sheet.assignerName +" based on a sheet by  " + this.props.sheet.ownerName;
+    else if (this.props.sheet.viaOwnerName) {
+      authorStatement = "by "+ this.props.sheet.ownerName +" based on a sheet by  " + this.props.sheet.viaOwnerName;
     }
     else {
       authorStatement = "by " + this.props.sheet.ownerName;
