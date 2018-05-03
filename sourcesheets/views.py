@@ -191,6 +191,7 @@ def view_sheet(request, sheet_id):
 	panel = request.GET.get('panel', '0')
 
 
+
 	if panel == '1':
 		return catchall(request, sheet_id, True)
 

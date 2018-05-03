@@ -59,49 +59,85 @@ class SheetMetadata extends Component {
 
   }
 
+  getSheetFromCache() {
+    return Sefaria.sheets.loadSheetByID(this.props.id);
+  }
+
+  getSheetFromAPI() {
+    Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
+  }
+
+  onDataLoad(data) {
+
+    this.forceUpdate();
+
+    for (var i = 0; i < data.sources.length; i++) {
+      if ("ref" in data.sources[i]) {
+        Sefaria.ref(data.sources[i].ref, function(ref) {
+           {
+               Sefaria.links(ref.sectionRef, function(){
+                    this.forceUpdate();
+               }.bind(this))
+
+               }
+        }.bind(this));
+      }
+    }
+  }
+
+  ensureSheetData() {
+      if (Sefaria.sheets.loadSheetByID(this.props.sheet.id)) {
+          var data = Sefaria.sheets.loadSheetByID(this.props.sheet.id)
+          this.filterAndSaveCopiedSheetData(data)
+      }
+      else {
+        Sefaria.sheets.loadSheetByID(this.props.sheet.id, (data) => {
+            this.filterAndSaveCopiedSheetData(data)
+        });
+      }
+  }
+
+  filterAndSaveCopiedSheetData(data) {
+    var newSheet = data;
+    newSheet.status = "unlisted";
+    newSheet.title = newSheet.title + " (Copy)";
+
+    if (Sefaria._uid != this.props.sheet.owner) {
+        newSheet.via = this.props.sheet.id;
+        newSheet.viaOwner = this.props.sheet.owner;
+        newSheet.owner = Sefaria._uid
+    }
+    delete newSheet.group;
+    delete newSheet.id;
+    delete newSheet.ownerName;
+    delete newSheet.views;
+    delete newSheet.dateCreated;
+    delete newSheet.dateModified;
+    delete newSheet.likes;
+    delete newSheet.naturalDateCreated;
+    delete newSheet.promptedToPublish;
+    delete newSheet._id;
+
+    var postJSON = JSON.stringify(newSheet);
+    $.post("/api/sheets/", {"json": postJSON}, (data) => {
+        if (data.id)  {
+          this.setState({
+              sheetCopyStatus: "Copied",
+              copiedSheetId: data.id
+          });
+
+        } else if ("error" in data) {
+            console.log(data.error);
+        }
+    })
+  }
+
   copySheet() {
     if (!Sefaria._uid) {
       this.setState({showLogin: true});
     } else if (this.state.sheetCopyStatus == "Copy") {
         this.setState({sheetCopyStatus: "Copying..."});
-        var newSheet = Object.assign({}, this.props.sheet);
-
-        newSheet.status = "unlisted";
-        newSheet.title = newSheet.title + " (Copy)";
-
-        if (Sefaria._uid != this.props.sheet.owner) {
-            newSheet.via = this.props.sheet.id;
-            newSheet.viaOwner = this.props.sheet.owner;
-            newSheet.owner = Sefaria._uid
-        }
-        delete newSheet.group;
-        delete newSheet.id;
-        delete newSheet.ownerName;
-        delete newSheet.views;
-        delete newSheet.dateCreated;
-        delete newSheet.dateModified;
-        delete newSheet.likes;
-        delete newSheet.naturalDateCreated;
-        delete newSheet.promptedToPublish;
-        delete newSheet._id;
-
-        var postJSON = JSON.stringify(newSheet);
-        $.post("/api/sheets/", {"json": postJSON}, (data) => {
-            if (data.id)  {
-              console.log('Source Sheet copied: '+data.id)
-              console.log(this.props.sheet)
-              this.setState({
-                  sheetCopyStatus: "Copied",
-                  copiedSheetId: data.id
-              });
-              console.log(this.props.sheet)
-
-            } else if ("error" in data) {
-                console.log(data.error);
-            }
-        })
-
-
+        this.ensureSheetData();
     }
   }
 
@@ -113,13 +149,21 @@ class SheetMetadata extends Component {
       return (
          <div>
             <div className="int-en">
-                <a href="#" className="button white" role="button" onClick={this.toggleLike}>Like</a> <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+                {Sefaria._uid == this.props.sheet.owner ?
+                    <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">Edit</a> :
+                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>Like</a>
+                }
+                    <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
             </div>
             <div className="int-he">
-                <a href="#" className="button white" onClick={this.toggleLike}>אהבתי</a> <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
+                {Sefaria._uid == this.props.sheet.owner ?
+                    <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">ערוך</a> :
+                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>אהבתי</a>
+                }
+                <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
             </div>
 
-            {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span class="int-en">View copy &raquo;</span><span class="int-he">צפה בהעתק &raquo;</span> </a> : null}
+            {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId+"?panel=1"}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}
          </div>
       )
     }
