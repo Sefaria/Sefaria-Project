@@ -27,6 +27,7 @@ class SheetMetadata extends Component {
       sheetCopyStatus: "Copy",
       copiedSheetId: null,
       viewerLikedSheet: this.props.sheet.likes.indexOf(Sefaria._uid) != -1 ? true : false,
+      sheetLikeAdjustment: 0,
     };
   }
   componentDidUpdate(prevProps, prevState) {
@@ -52,9 +53,18 @@ class SheetMetadata extends Component {
     if (!Sefaria._uid) {
         this.setState({showLogin: true});
     } else if (!this.state.viewerLikedSheet) {
-        console.log('liked')
+          this.setState({
+              viewerLikedSheet: true,
+              sheetLikeAdjustment: this.state.sheetLikeAdjustment+1,
+          });
+          $.post("/api/sheets/" + this.props.sheet.id + "/like");
+
     } else {
-        console.log('unliked')
+          this.setState({
+              viewerLikedSheet: false,
+              sheetLikeAdjustment:  this.state.sheetLikeAdjustment-1,
+          });
+          $.post("/api/sheets/" + this.props.sheet.id + "/unlike");
     }
   }
 
@@ -229,12 +239,12 @@ class SheetMetadata extends Component {
                     <div className="tocDetail authorStatement" dangerouslySetInnerHTML={ {__html: authorStatement} }></div>
                     <div className="sheetMeta">
                       <div className="int-en">
-                          Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length : 0} Likes
+                          Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length + this.state.sheetLikeAdjustment : 0 +this.state.sheetLikeAdjustment} Likes
                       </div>
                       <div className="int-he">
                           <span>נוצר ב{this.props.sheet.naturalDateCreated} · </span>
                           <span>{this.props.sheet.views} צפיות · </span>
-                          <span>קיבלת {this.props.sheet.likes ? this.props.sheet.likes.length : 0} לייקים </span>
+                          <span>קיבלת {this.props.sheet.likes ? this.props.sheet.likes.length + this.state.sheetLikeAdjustment : 0 + this.state.sheetLikeAdjustment } לייקים </span>
                       </div>
                     </div>
 
