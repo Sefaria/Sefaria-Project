@@ -55,6 +55,7 @@ import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
 from sefaria.system.multiserver.coordinator import server_coordinator
+from django.utils.html import strip_tags
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -464,9 +465,10 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     else:
-        title = "Sheet" + str(ref)
-        breadcrumb = "/sheet/"+str(ref)
-        desc = "source sheet"
+        sheet = panels[0].get("sheet",{})
+        title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
+        breadcrumb = "/sheets/"+str(sheet["id"])+"?panel=1"
+        desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
 
 
     propsJSON = json.dumps(props)
