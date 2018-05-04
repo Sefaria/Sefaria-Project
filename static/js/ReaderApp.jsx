@@ -46,6 +46,10 @@ class ReaderApp extends Component {
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
 
         panels[0] = {
+          highlightedNodes: initialPanel.highlightedNodes,
+          naturalDateCreated: initialPanel.sheet.naturalDateCreated,
+          sheetID: initialPanel.sheetID,
+          sheet: initialPanel.sheet,
           refs: props.initialRefs,
           mode: mode,
           menuOpen: props.initialMenu,
