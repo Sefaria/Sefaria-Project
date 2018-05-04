@@ -444,6 +444,12 @@ class ReaderApp extends Component {
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
             break;
+          case "sheet meta":
+            var sheetTitle = state.sheet.title.stripHtml();
+            hist.title = Sefaria._("Sefaria Source Sheets")+": " + sheetTitle;
+            hist.url = i == 0 ? "sheets/"+ state.sheet.id : "sheet&s="+ state.sheet.id;
+            hist.mode = "sheet meta";
+            break;
           case "extended notes":
             var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
             hist.currVersions = state.currVersions;
