@@ -2762,6 +2762,15 @@ a.readerNavCategory {
 .singlePanel .readerPanel.bilingual .segment .linkCount {
   left: -20px;
 }
+.singlePanel .readerPanel.english .sheetItem.segment .linkCount,
+.singlePanel .readerPanel.bilingual .sheetItem.segment .linkCount {
+  left: auto;
+  right: -46px;
+}
+.singlePanel .readerPanel.hebrew .sheetItem.segment .linkCount {
+  left: -48px;
+  right: auto;
+}
 .segment .refLink {
   font-size: .8em;
   font-weight: bold;
