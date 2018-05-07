@@ -124,7 +124,7 @@ class SheetContent extends Component {
   }
 
   handleScroll(event) {
-    var segment = $('.sheetContent').find('.segment.highlight');
+    var segment = $(event.target).closest(".readerPanel").find('.segment.highlight');
 
     if (segment.length == 0) {
         return
