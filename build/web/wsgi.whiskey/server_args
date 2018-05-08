@@ -15,4 +15,5 @@
 --application-type module
 --working-directory /app
 --threads 15
+--limit-request-body 24000000
 sefaria.wsgi
