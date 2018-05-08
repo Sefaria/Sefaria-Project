@@ -26,7 +26,7 @@ class SheetMetadata extends Component {
       showLogin: false,
       sheetCopyStatus: "Copy",
       copiedSheetId: null,
-      viewerLikedSheet: this.props.sheet.likes.indexOf(Sefaria._uid) != -1 ? true : false,
+      viewerLikedSheet: this.props.sheet.likes ? this.props.sheet.likes.indexOf(Sefaria._uid) != -1 ? true : false : false,
       sheetLikeAdjustment: 0,
     };
   }

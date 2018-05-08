@@ -159,18 +159,13 @@ class SheetContent extends Component {
               span: ['style'],
               div: ['style'],
               td: ['colspan'],
-              table: ['style']
             },
             allowedStyles: {
               '*': {
                 'color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
-                    'background-color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb(?!\(\s*255\s*,\s*255\s*,\s*255\s*\))\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
+                'background-color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb(?!\(\s*255\s*,\s*255\s*,\s*255\s*\))\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
                 'text-align': [/^left$/, /^right$/, /^center$/],
               },
-              'table': {
-                'width': [/^\d+em$/,/^\d+px$/,/^\d+\%$/]
-              }
-
             },
             exclusiveFilter: function(frame) {
                 return frame.tag === 'p' && !frame.text.trim();
@@ -342,7 +337,7 @@ class SheetComment extends Component {
   }
 
   render() {
-    var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml()) ? "he" : "en";
+    var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
     return (
       <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
         <div className="segmentNumber sheetSegmentNumber sans">
@@ -363,9 +358,8 @@ class SheetOutsideText extends Component {
   sheetSourceClick(event) {
     this.props.onSegmentClick(this.props.source);
   }
-
   render() {
-    var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml()) ? "he" : "en";
+    var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
     return (
       <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
         <div className="segmentNumber sheetSegmentNumber sans">

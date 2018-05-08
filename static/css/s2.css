@@ -4904,7 +4904,32 @@ span.purim-emoji img{
 .sheetContent table {
   margin: auto;
   max-width: 100%;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed
 }
+.sheetContent table th,
+.sheetContent table td {
+  padding: 10px;
+  border-top: 1px solid #E6E5E6;
+  vertical-align: top;
+}
+.sheetContent table thead th {
+  vertical-align: bottom;
+  border-bottom: 2px solid #E6E5E6;
+  border-top: none;
+}
+
+.sheetContent table th:first-of-type,
+.sheetContent table tr td:first-of-type {
+  padding-left: 0;
+}
+.sheetContent table th:last-of-type,
+.sheetContent table tr td:last-of-type {
+  padding-right: 0;
+}
+
+
 .sheetContent tbody {
   width: 100%;
 }
@@ -4942,10 +4967,7 @@ span.purim-emoji img{
 }
 
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
-.readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber
-
-
-{
+.readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: -48px;
   top: 28px;
   text-align: center;
