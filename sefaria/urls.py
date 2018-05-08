@@ -311,6 +311,7 @@ static_pages = [
     "educators",
     "the-sefaria-story",
     "aramaic-translation-contest",
+    "newsletter",
 ]
 
 # Static and Semi Static Content
