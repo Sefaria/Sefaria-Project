@@ -27,9 +27,9 @@ class MessagingNode(object):
             logger.error("Expecting subscribe message, found: {}".format(m))
 
     def _check_initialization(self):
-        if not self.redis_client or not self.pubsub:
+        if not getattr(self, "redis_client", None) or not getattr(self, "pubsub", None):
             self.connect()
 
     @staticmethod
     def event_description(data):
-        return "{}.{}({}) [{}]".format(data["obj"], data["method"], ", ".join(data["args"]), data["id"])
+        return "{}.{}({}) [{}]".format(data["obj"], data["method"], str(data["args"]), data["id"])
