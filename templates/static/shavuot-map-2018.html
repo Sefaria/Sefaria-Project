@@ -18,23 +18,23 @@
     #homePage #homeCover > h1 {
         color: black;
         font-weight: normal;
-        font-size: 49px;
-        min-height: 70px;
-        min-height: 70px;
+        font-size: 26px;
         height: inherit;
         margin-bottom: 30px;
     }
 
     #map {
-        height: 600px;
-        margin: 0 100px 0 100px;
+        height: 500px;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto 100px auto;
         border: solid 1px #ccc;
     }
     .content {
         color: black;
         margin-bottom: 10px;
     }
-    .content a {
+    #homePage #homeCover .content a {
         color: #999;
         font-size: 12px;
     }
@@ -49,6 +49,13 @@
         var bounds = new google.maps.LatLngBounds();
         var map = new google.maps.Map(document.getElementById('map'), {
             zoom: 2,
+            mapTypeControlOptions: {
+                mapTypeIds: [google.maps.MapTypeId.ROADMAP]
+            }, // here´s the array of controls
+            disableDefaultUI: true, // a way to quickly hide all controls
+            mapTypeControl: true,
+            scaleControl: true,
+            zoomControl: true,
             styles: [
   {
     "elementType": "geometry",
@@ -392,6 +399,7 @@
             var marker = new google.maps.Marker({
                 map: map,
                 position: form_item.location, // {lat: X, lng: X}
+                icon: '/static/img/pin.png'
             });
             var contentString = '<div class="content">' +
                     '<h4>' + form_item.city + ', ' + form_item.country + '</h4>' +
