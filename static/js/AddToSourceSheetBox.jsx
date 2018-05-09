@@ -69,6 +69,19 @@ class AddToSourceSheetBox extends Component {
   selectSheet(sheet) {
     this.setState({selectedSheet: sheet, sheetListOpen: false});
   }
+  copyNodeToSourceSheet() {
+    if (!Sefaria._uid) { this.setState({showLogin: true}); }
+    if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
+    if (this.props.addToSourceSheet) {
+      this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
+    } else {
+      var url     = "/api/sheets/" + this.state.selectedSheet.id + "/copy_source";
+      $.post(url, {
+          sheetID: this.props.nodeRef.split(".")[0],
+          nodeID:this.props.nodeRef.split(".")[1]
+      }, this.confirmAdd);
+    }
+  }
   addToSourceSheet() {
     if (!Sefaria._uid) { this.setState({showLogin: true}); }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
@@ -155,7 +168,7 @@ class AddToSourceSheetBox extends Component {
           </div>
           : null}
         </div>
-        <div className="button noselect fillWidth" onClick={this.addToSourceSheet}>
+        <div className="button noselect fillWidth" onClick={this.props.nodeRef ? this.copyNodeToSourceSheet : this.addToSourceSheet}>
           <span className="int-en noselect">Add to Sheet</span>
           <span className="int-he noselect">הוסף לדף המקורות</span>
         </div>

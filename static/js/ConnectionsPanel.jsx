@@ -169,6 +169,7 @@ class ConnectionsPanel extends Component {
   }
 
   render() {
+      console.log(this.props)
     var content = null;
     var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
     if (!loaded) {
@@ -179,6 +180,8 @@ class ConnectionsPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     openComparePanel={this.props.openComparePanel}
+                    srefs={this.props.srefs}
+                    nodeRef = {this.props.nodeRef}
                     />
                  </div>);
     } else if (this.props.mode == "Resources") {
@@ -446,9 +449,16 @@ ResourcesList.propTypes = {
 
 
 class SheetNodeConnectionTools extends Component {
-  // A list of Resources in addtion to connections
+  // A list of Resources in addition to connections
   render() {
     return (<div className="resourcesList">
+                  <AddToSourceSheetBox
+                    srefs={this.props.srefs}
+                    fullPanel={this.props.fullPanel}
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    nodeRef={this.props.nodeRef}
+                    addToSourceSheet={this.props.addToSourceSheet} />
+
               {this.props.multiPanel ?
                 <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
               : null }

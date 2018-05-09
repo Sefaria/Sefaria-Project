@@ -621,6 +621,7 @@ class ReaderPanel extends Component {
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
           sheetMetaData={this.state.sheet}
+          nodeRef={this.state.nodeRef}
           closeConectionsInPanel={this.closeConnectionsInPanel}
           handleSheetClick={this.handleSheetClick}
           openNav={this.openMenu.bind(null, "navigation")}

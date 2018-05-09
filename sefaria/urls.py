@@ -150,6 +150,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  sheets_views.visual_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     sheets_views.unlike_sheet_api),

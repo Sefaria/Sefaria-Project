@@ -754,6 +754,8 @@ class ReaderApp extends Component {
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
       sheet:                   state.sheet                   || null,
+      sheetNodes:              state.sheetNodes              || null,
+      nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
@@ -842,10 +844,11 @@ class ReaderApp extends Component {
       this.setTextListHighlight(n, refs);
     }
 
+    var nodeRef= this.state.panels[n].sheet.id + "." + sheetNode;
 
     if (this.currentlyConnecting()) { return }
 
-    this.openTextListAt(n+1, refs, sheetNode);
+    this.openTextListAt(n+1, refs, nodeRef);
     if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
@@ -1174,7 +1177,7 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  openTextListAt(n, refs) {
+  openTextListAt(n, refs, sheetNodes) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
@@ -1190,6 +1193,8 @@ class ReaderApp extends Component {
       panel.versionFilter = [];
     }
     panel.refs              = refs;
+    panel.sheetNodes        = sheetNodes.split(".")[1];
+    panel.nodeRef           = sheetNodes;
     panel.menuOpen          = null;
     panel.mode              = panel.mode || "Connections";
     panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
