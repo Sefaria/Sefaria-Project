@@ -740,7 +740,6 @@ def copy_source_to_sheet_api(request, sheet_id):
 
 	source = get_sheet_node(int(copy_sheet), int(copy_source))
 	del source["node"]
-	del source["options"]
 	response = add_source_to_sheet(int(sheet_id), source)
 
 	return jsonResponse(response)
