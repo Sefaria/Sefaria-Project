@@ -411,9 +411,17 @@
             map.fitBounds(bounds);
         }
     }
-    {% endautoescape %}
+    function loadScript(url) {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = url;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    }
+    const url = "https://maps.googleapis.com/maps/api/js?key=" + '{{ GOOGLE_MAPS_API_KEY }}' + "&callback=initMap";
+    console.log(url);
+    loadScript(url);
+{% endautoescape %}
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0mK15L2zxlpKhVNjvqTBZyx4HfJeh1IY&callback=initMap" async defer></script>
 
 <div id="homePage" class="static biReady">
     <div id="homeCover">
