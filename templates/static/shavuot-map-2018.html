@@ -12,10 +12,11 @@
     #homePage #homeCover {
         height: auto;
         padding: 100px 0 0 0;
+        background-color: #eee;
     }
 
-    #homePage #homeCover h1 {
-        color: white;
+    #homePage #homeCover > h1 {
+        color: black;
         font-weight: normal;
         font-size: 49px;
         min-height: 70px;
@@ -23,12 +24,24 @@
         height: inherit;
         margin-bottom: 30px;
     }
+
     #map {
         height: 600px;
+        margin: 0 100px 0 100px;
+        border: solid 1px #ccc;
+    }
+    .content {
+        color: black;
+        margin-bottom: 10px;
+    }
+    .content a {
+        color: #999;
+        font-size: 12px;
     }
 {% endblock %}
 
 {% block content %}
+<script>{% include "js/shavuot_map_2018_form_array.js" %}</script>
 <script>
     {% autoescape off %}
     var map;
@@ -338,36 +351,69 @@
   }
 ]
         });
-        var placesService = new google.maps.places.PlacesService(map);
-        var locations = ["austin, texas", "colombo, sri lanka"];
-        for (var i = 0; i < locations.length; i++) {
-            queryLocation(locations[i]);
-        }
-        function queryLocation(query) {
-            placesService.textSearch({query: query, type: "locality"}, function(results, status) {
-                if (status == google.maps.places.PlacesServiceStatus.OK) {
-                    if (results.length === 0) {
-                        console.log("Query failed", query);
-                        return;
-                    }
-                    createMarker(results[0]);
+        // form_array is loaded from "shavuot_map_2018_form_array.js"
+        var by_loc = {};
+        for (var i = 0; i < form_array.length; i++) {
+            const temp_entry = form_array[i];
+            if (!temp_entry["location"]) { continue; }
+            const key = "" + Math.round(temp_entry["location"].lat * 10000) + Math.round(temp_entry["location"].lng*10000);
+            if (!by_loc[key]) {
+                by_loc[key] = {
+                    "teaching": [],
+                    "studying": [],
+                    "institutions": [],
+                    "source_sheets": [],
+                    "location": temp_entry["location"],
+                    "city": temp_entry["Town or city where you will be on Shavuot:"],
+                    "country": temp_entry["Country:"]
                 }
-            });
+            }
+            if (temp_entry["I will be using Sefaria to prepare:"].indexOf("to teach on Shavuot") !== -1) {
+                by_loc[key].teaching.push(temp_entry);
+            }
+            if (temp_entry["I will be using Sefaria to prepare:"].indexOf("to study on Shavuot") !== -1) {
+                by_loc[key].studying.push(temp_entry);
+            }
+            if (temp_entry["Name of Institution (optional):"]) {
+                by_loc[key].institutions.push(temp_entry["Name of Institution (optional):"]);
+            }
+            if (temp_entry["Sheet URL (optional):"] && temp_entry["Sheet URL (optional):"].indexOf("sefaria.org") !== -1) {
+                by_loc[key].source_sheets.push(temp_entry["Sheet URL (optional):"]);
+            }
         }
-        function createMarker(place) {
+        for (var key in by_loc) {
+            if (by_loc.hasOwnProperty(key)) {
+                createMarker(by_loc[key])
+            }
+        }
+
+
+        function createMarker(form_item) {
             var marker = new google.maps.Marker({
                 map: map,
-                title: place.name,
-                position: place.geometry.location // {lat: X, lng: X}
+                position: form_item.location, // {lat: X, lng: X}
             });
-            console.log(place.geometry.location.lat());
-            bounds.extend(place.geometry.location);
+            var contentString = '<div class="content">' +
+                    '<h4>' + form_item.city + ', ' + form_item.country + '</h4>' +
+                    (form_item.studying.length ? form_item.studying.length + ' studying ' : '') +
+                    (form_item.teaching.length ? form_item.teaching.length + ' teaching ' : '') +
+                    'on Shavuot' +
+                    (form_item.institutions.length ? '<h4>Institutions</h4>' + form_item.institutions.join('<br/>') : '') +
+                    (form_item.source_sheets.length ? '<h4>Source Sheets</h4><a>' + form_item.source_sheets.join('</a><br/><a>') + '</a>' : '') +
+                    '</div>';
+            var infowindow = new google.maps.InfoWindow({
+                content: contentString
+            });
+            marker.addListener('click', function() {
+                infowindow.open(map, marker);
+            });
+            bounds.extend(form_item.location);
             map.fitBounds(bounds);
         }
     }
     {% endautoescape %}
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0mK15L2zxlpKhVNjvqTBZyx4HfJeh1IY&libraries=places&callback=initMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0mK15L2zxlpKhVNjvqTBZyx4HfJeh1IY&callback=initMap" async defer></script>
 
 <div id="homePage" class="static biReady">
     <div id="homeCover">
