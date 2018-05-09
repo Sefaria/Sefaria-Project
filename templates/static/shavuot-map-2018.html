@@ -418,7 +418,6 @@
         document.getElementsByTagName("head")[0].appendChild(script);
     }
     const url = "https://maps.googleapis.com/maps/api/js?key=" + '{{ GOOGLE_MAPS_API_KEY }}' + "&callback=initMap";
-    console.log(url);
     loadScript(url);
 {% endautoescape %}
 </script>
