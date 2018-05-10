@@ -295,7 +295,7 @@ ReaderNavigationMenuMenuButton.propTypes = {
   onClick: PropTypes.func,
   compare: PropTypes.bool,
   interfaceLang: PropTypes.string
-}
+};
 
 
 class ReaderNavigationMenuCloseButton extends Component {
@@ -329,14 +329,14 @@ class ReaderNavigationMenuDisplaySettingsButton extends Component {
               style={style}
               onClick={this.props.onClick}
               onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-                <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} />
+                <img src="/static/img/stacked.png" alt="Toggle Reader Menu Display Settings" style={style} />
             </div>);
   }
 }
 ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
-}
+};
 
 
 class CategoryColorLine extends Component {
@@ -375,6 +375,7 @@ class Note extends Component {
               </div>);
   }
 }
+
 Note.propTypes = {
   text:            PropTypes.string.isRequired,
   ownerName:       PropTypes.string,

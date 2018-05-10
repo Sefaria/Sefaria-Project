@@ -1038,12 +1038,19 @@ class ReaderDisplayOptionsMenu extends Component {
     }
   }
   render() {
+
+    /* 4x language Hack */
+    var hasHebrew = !!this.props.currentData().he.length;
+    var hasEnglish = !!this.props.currentData().text.length;
+    var singleLanguage = !(hasHebrew && hasEnglish);
+    /*   */
+
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
       {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
       {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
-    var languageToggle = (
+    var languageToggle = singleLanguage?"":(
         <ToggleSet
           role="radiogroup"
           ariaLabel="Language toggle"
@@ -1178,6 +1185,7 @@ ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
   currentBook:   PropTypes.func,
+  currentData:   PropTypes.func,
   menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,
