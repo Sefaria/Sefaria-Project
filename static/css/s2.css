@@ -2433,7 +2433,8 @@ a.readerNavCategory {
   position: relative;
   padding: 0 30px;
 }
-.singlePanel .textRange.basetext {
+.singlePanel .textRange.basetext,
+.singlePanel .sheetContent {
   padding: 0;
 }
 .narrowColumn .textRange.basetext {
@@ -2765,7 +2766,7 @@ a.readerNavCategory {
 .singlePanel .readerPanel.english .sheetItem.segment .linkCount,
 .singlePanel .readerPanel.bilingual .sheetItem.segment .linkCount {
   left: auto;
-  right: -46px;
+  right: -30px;
 }
 .singlePanel .readerPanel.hebrew .sheetItem.segment .linkCount {
   left: -48px;
@@ -4971,7 +4972,10 @@ span.purim-emoji img{
   left: -48px;
   top: 28px;
   text-align: center;
-
+}
+.singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
+.singlePanel .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  left: -32px;
 }
 
 .readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
@@ -4989,6 +4993,9 @@ span.purim-emoji img{
   top: 26px;
   text-align: center;
 }
+.singlePanel .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  right: -18px;
+}
 
 .he.forceDisplayOverrideHe,
 .en.forceDisplayOverrideEn,
@@ -5002,3 +5009,12 @@ span.purim-emoji img{
   display: none !important;
 }
 
+.sheetTocIcon {
+  color: #ccc;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.2;
+  margin: 0 6px;
+  vertical-align: middle;
+}

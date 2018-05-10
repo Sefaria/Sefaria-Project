@@ -844,7 +844,7 @@ class ReaderApp extends Component {
       this.setTextListHighlight(n, refs);
     }
 
-    var nodeRef= this.state.panels[n].sheet.id + "." + sheetNode;
+    var nodeRef = sheetNode ? this.state.panels[n].sheet.id + "." + sheetNode : null;
 
     if (this.currentlyConnecting()) { return }
 
@@ -1193,7 +1193,7 @@ class ReaderApp extends Component {
       panel.versionFilter = [];
     }
     panel.refs              = refs;
-    panel.sheetNodes        = sheetNodes.split(".")[1];
+    panel.sheetNodes        = sheetNodes ? sheetNodes.split(".")[1] : null;
     panel.nodeRef           = sheetNodes;
     panel.menuOpen          = null;
     panel.mode              = panel.mode || "Connections";

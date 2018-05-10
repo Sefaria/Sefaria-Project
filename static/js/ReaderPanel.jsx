@@ -1017,12 +1017,12 @@ class ReaderControls extends Component {
     }
   }
   render() {
-    var title  = this.props.sheet ? "Source Sheet by "+ this.props.sheet.ownerName : this.props.currentRef;
+    var title  = this.props.sheet ? this.props.sheet.title.stripHtml() : this.props.currentRef;
     var heTitle, categoryAttribution;
 
     if (title) {
       if (this.props.sheet) {
-        heTitle = "דף מקורות מאת " + this.props.sheet.ownerName;
+        heTitle = title;
       }
       else {
         var oref    = Sefaria.ref(title);
@@ -1059,6 +1059,7 @@ class ReaderControls extends Component {
         <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null }
             <span className="en">{title}</span>
             <span className="he">{heTitle}</span>
             { title ? (<i className="fa fa-caret-down"></i>) : null }
