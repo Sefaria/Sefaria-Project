@@ -1,5 +1,7 @@
 # encoding=utf-8
 
+import django
+django.setup()
 from sefaria.model import *
 from bs4 import BeautifulSoup
 
