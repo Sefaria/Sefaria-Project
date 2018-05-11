@@ -34,7 +34,7 @@ from django import http
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
@@ -253,6 +253,17 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         sheet_id = sheet_id.split(".")[0]
 
     sheet = get_sheet_for_panel(int(sheet_id))
+    sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
+
+    if "assigner_id" in sheet:
+        asignerData = public_user_data(sheet["assigner_id"])
+        sheet["assignerName"] = asignerData["name"]
+        sheet["assignerProfileUrl"] = asignerData["profileUrl"]
+    if "viaOwner" in sheet:
+        viaOwnerData = public_user_data(sheet["viaOwner"])
+        sheet["viaOwnerName"] = viaOwnerData["name"]
+        sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
+
     panel = {
         "sheetID": sheet_id,
         "mode": "Sheet",

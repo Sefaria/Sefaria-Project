@@ -448,7 +448,7 @@ def get_sheets_for_ref(tref, uid=None):
 	else:
 		query["status"] = "public"
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -478,9 +478,11 @@ def get_sheets_for_ref(tref, uid=None):
 			if "assigner_id" in sheet:
 				asignerData = public_user_data(sheet["assigner_id"])
 				sheet["assignerName"] = asignerData["name"]
+				sheet["assignerProfileUrl"] = asignerData["profileUrl"]
 			if "viaOwner" in sheet:
 				viaOwnerData = public_user_data(sheet["viaOwner"])
 				sheet["viaOwnerName"] = viaOwnerData["name"]
+				sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
 			sheet_data = {
 				"owner":           sheet["owner"],
@@ -494,8 +496,11 @@ def get_sheets_for_ref(tref, uid=None):
 				"options": 		   sheet["options"],
 				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
 				"assignerName":	   sheet.get("assignerName", None),
+				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
+				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
 				"ownerProfileUrl": "/profile/" + ownerData["slug"],
 				"ownerImageUrl":   gravatar_url_small,
 				"status":          sheet["status"],
@@ -504,7 +509,6 @@ def get_sheets_for_ref(tref, uid=None):
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),
-				"commentator":     user_link(sheet["owner"]), # legacy, used in S1
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
 			}

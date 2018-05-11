@@ -159,7 +159,7 @@ class SheetMetadata extends Component {
          <div>
             <div className="int-en">
                 {Sefaria._uid == this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">Edit</a> :
+                    <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">Edit Sheet</a> :
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? "Unlike" : "Like"}</a>
                 }
                     <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
@@ -185,17 +185,19 @@ class SheetMetadata extends Component {
     var title = this.props.sheet.title;
     var authorStatement;
 
+    console.log(this.props)
+
     if (this.props.sheet.attribution) {
       authorStatement = this.props.sheet.attribution;
     }
     else if (this.props.sheet.assignerName) {
-      authorStatement = "Assigned by "+ this.props.sheet.assignerName +" Completed by " + this.props.sheet.ownerName;
+      authorStatement = "Assigned by <a href='"+this.props.sheet.assignerOwnerProfileUrl + "'>" + this.props.sheet.assignerName +" Completed by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a>";
     }
     else if (this.props.sheet.viaOwnerName) {
-      authorStatement = "by "+ this.props.sheet.ownerName +" based on a <a href='/sheets/"+this.props.sheet.via+"?panel=1'>sheet</a> by  " + this.props.sheet.viaOwnerName;
+      authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a> based on a <a href='/sheets/"+this.props.sheet.via+"?panel=1'>sheet</a> by <a href='"+ this.props.sheet.viaOwnerProfileUrl + "'>" + this.props.sheet.viaOwnerName+"</a>";
     }
     else {
-      authorStatement = "by " + this.props.sheet.ownerName;
+      authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a>";
     }
 
 
@@ -253,28 +255,31 @@ class SheetMetadata extends Component {
                     <div className="tocDetails">
                       {details ? <div className="tocDetail sheetSummary"><em>{details}</em></div> : null}
                     </div>
-
-                    <div className="sheetTags int-en">
-                      {this.props.sheet.tags.map(function(tag, i) {
-                        return (
-                            <a href={"/sheets/tags/" + tag}
-                                    target="_blank"
-                                    className="sheetTag button"
-                                    key={tag}
-                                    >{tag}</a>
-                        )
-                      }.bind(this))}
-                    </div>
-                    <div className="sheetTags int-he">
-                      {this.props.sheet.tags.map(function(tag, i) {
-                        return (
-                            <a href={"/sheets/tags/" + tag}
-                                    target="_blank"
-                                    className="int-he sheetTag button"
-                                    key={tag}
-                                    >{Sefaria.hebrewTerm(tag)}</a>
-                        )
-                      }.bind(this))}
+                    <div className="tagsSection">
+                        {this.props.sheet.tags.length > 0 ? <h2 className="tagsTitle int-en">Tags</h2> : null }
+                        <div className="sheetTags int-en">
+                          {this.props.sheet.tags.map(function(tag, i) {
+                            return (
+                                <a href={"/sheets/tags/" + tag}
+                                        target="_blank"
+                                        className="sheetTag button"
+                                        key={tag}
+                                        >{tag}</a>
+                            )
+                          }.bind(this))}
+                        </div>
+                       <h2 className="tagsTitle int-he">תוית</h2>
+                       <div className="sheetTags int-he">
+                          {this.props.sheet.tags.map(function(tag, i) {
+                            return (
+                                <a href={"/sheets/tags/" + tag}
+                                        target="_blank"
+                                        className="int-he sheetTag button"
+                                        key={tag}
+                                        >{Sefaria.hebrewTerm(tag)}</a>
+                            )
+                          }.bind(this))}
+                        </div>
                     </div>
 
 

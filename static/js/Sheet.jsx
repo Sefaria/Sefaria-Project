@@ -302,7 +302,7 @@ class SheetSource extends Component {
         </div>
 
           {linkCountElement}
-
+    
 
           {this.props.source.title ? <h3 dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.title))} }></h3> : null}
 

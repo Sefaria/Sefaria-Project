@@ -1157,6 +1157,11 @@ a.readerNavCategory {
 .readerTextTableOfContents .sheetMeta .he {
   font-family: "Heebo", sans-serif;
 }
+
+.readerTextTableOfContents .authorStatement a {
+ color: #333;
+}
+
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
   color: #999;
@@ -1209,7 +1214,7 @@ a.readerNavCategory {
   font-style: normal;
   font-size: 22px;
   line-height: 1.4;
-  text-align: left;
+  text-align: center;
 }
 
 .readerTextTableOfContents .currentVersionBox {
@@ -1313,6 +1318,11 @@ a.readerNavCategory {
   box-sizing: border-box;
   text-align: center;
   height: 100%;
+}
+.readerTextTableOfContents .content .sheetTags.int-en {
+  clear: both;
+  padding-top: 30px;
+  border-top: 1px solid #ccc;
 }
 .readerTextTableOfContents .content .sheetTags.int-en {
   text-align: left;
@@ -2606,9 +2616,17 @@ a.readerNavCategory {
   background-color: #444;
 }
 .basetext .segment.highlight,
-.sheetContent .segment.highlight {
+.sheetContent .segment.highlight .en,
+.sheetContent .segment.highlight .he {
   background-color: #E9E9E7;
 }
+.sheetContent .segment.highlight .linkCount .en,
+.sheetContent .segment.highlight .linkCount .he,
+.sheetContent .segment.highlight .segmentNumber .en,
+.sheetContent .segment.highlight .segmentNumber .he {
+  background-color: transparent;
+}
+
 .basetext .segment.highlight .segmentNumber,
 .basetext .segment.highlight .linkCount,
 .sheetContent .segment.highlight .linkCount,
@@ -3279,12 +3297,17 @@ a.readerNavCategory {
   display: inline-block;
   margin-right: 8px;
 }
-.sheetTag.button {
-    background-color: #eee;
-    border-color: #ccc;
-    color: #999;
-    font-size: 14px;
-    margin: 4px;
+.sheetTag.button,
+.sheetTag.button:hover,
+.sheetTag.button:active {
+  background-color: #eee;
+  border-color: #ccc;
+  color: #999;
+  font-size: 14px;
+  margin: 4px;
+}
+.readerTextTableOfContents .sheetTag.button {
+  padding: 10px 16px
 }
 .textList .sheetList {
   padding-top: 40px;
@@ -5017,4 +5040,9 @@ span.purim-emoji img{
   opacity: 0.2;
   margin: 0 6px;
   vertical-align: middle;
+}
+
+.tagsTitle {
+  text-align: center;
+
 }
