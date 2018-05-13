@@ -14,7 +14,7 @@
                 <span class="int-en">You are already logged in as </span>
                 <span class="int-he">הנך מחובר כבר בתור</span>
                 {{ user.email }}.
-                <a href="{% url logout %}">
+                <a href="{% url "logout" %}">
                     <span class="int-en">Logout.</span>
                     <span class="int-he">התנתק.</span>
                 </a>
@@ -38,7 +38,7 @@
             </p>
             {% endif %}
 
-            <form id="login-form" method="post" action="{% url login %}">
+            <form id="login-form" method="post" action="{% url "login" %}">
                 {% csrf_token %}
 
                 <p>
@@ -54,13 +54,13 @@
                     <span class="int-en">Login</span>
                     <span class="int-he">התחבר</span>
                 </button>
-                <a class="registration-links control-elem" href="{% url password_reset %}" id="resetLink">
+                <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
                     <span class="int-en">Forgot your password?</span>
                     <span class="int-he">שכחתי את הסיסמא שלי</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
-            <a class="registration-links control-elem" href="{% url register %}{% if next %}?next={{ next }}{% endif %}">
+            <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
                 <span class="int-en">Create a new account</span>
                 <span class="int-he">חדש? צור חשבון משתמש חדש</span>
 

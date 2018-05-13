@@ -254,10 +254,10 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
             invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
         # Select version and format
-        s1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        s1.select_by_value("Wikisource Talmud Bavli/he")
-        s2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        s2.select_by_value("csv")
+        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
+        select1.select_by_value("Wikisource Talmud Bavli/he")
+        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
+        select2.select_by_value("csv")
 
         # Check that DL button is clickable
         WebDriverWait(self.driver, TEMPER).until(
@@ -289,10 +289,10 @@ class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
         # Select version and format
-        s1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
-        s1.select_by_value("Wikisource Talmud Bavli/he")
-        s2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
-        s2.select_by_value("csv")
+        select1 = Select(self.driver.find_element_by_css_selector('.dlVersionTitleSelect'))
+        select1.select_by_value("Wikisource Talmud Bavli/he")
+        select2 = Select(self.driver.find_element_by_css_selector('.dlVersionFormatSelect'))
+        select2.select_by_value("csv")
 
         # Check that DL button is clickable
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
@@ -396,7 +396,6 @@ class LoginOnMobile(AtomicTest):
     multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
 
     def body(self):
-        self.s2()
         self.login_user()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountLinks .account")))
 

@@ -1,0 +1,59 @@
+steps:
+  # Monitor doesn't need node.  Build and push that first.
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/multi_monitor:$TAG_NAME", "-f", "build/monitor/Dockerfile", "."]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["push", "gcr.io/production-deployment/multi_monitor:$TAG_NAME"]
+
+  # Install npm dependencies, and build bundles.
+  - name: 'debian'
+    args: ['cp', 'build/node/local_settings.json', 'node/local_settings.json']
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['install']
+  - name: 'gcr.io/cloud-builders/npm'
+    args: ['run', 'build-prod']
+
+  # Build web and node images.
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/multi_web:$TAG_NAME", "-f", "build/web/Dockerfile", "."]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["push", "gcr.io/production-deployment/multi_web:$TAG_NAME"]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/multi_node:$TAG_NAME", "-f", "build/node/Dockerfile", "."]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["push", "gcr.io/production-deployment/multi_node:$TAG_NAME"]
+
+  # Update configs, and push to k8s
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
+  - name: 'debian'
+    dir: "k8s-admin/scripts"
+    args: ["bash", "-c", "./generate_release_configs.sh $TAG_NAME"]
+  - name: "gcr.io/cloud-builders/git"
+    args: ["config", "--global", "user.email", "dev@sefaria.org"]
+  - name: "gcr.io/cloud-builders/git"
+    args: ["config", "--global", "user.name", "Automated Build"]
+  - name: "gcr.io/cloud-builders/git"
+    dir: "k8s-admin"
+    args: ['commit', "-a", "-m", "Automatic update for $TAG_NAME"]
+  - name: "gcr.io/cloud-builders/git"
+    dir: "k8s-admin"
+    args: ["push", "origin", "master"]
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ["apply", "-f", "k8s-admin/deployments/_build/"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ["apply", "-f", "k8s-admin/cronjobs/_build/"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  - name: 'debian'
+    dir: "k8s-admin/scripts"
+    args: ["bash", "-c", "./notify_on_slack.sh $TAG_NAME"]
+
+images:
+  - "gcr.io/production-deployment/multi_monitor:$TAG_NAME"
+  - "gcr.io/production-deployment/multi_node:$TAG_NAME"
+  - "gcr.io/production-deployment/multi_web:$TAG_NAME"

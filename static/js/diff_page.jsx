@@ -310,7 +310,7 @@ class DiffTable extends Component {
         v1Length: props.lang === 'he' ? data['he'].length : data.text.length
       }));
 
-    enVersion = null, heVersion = null;
+    enVersion = null; heVersion = null;
     if (props.lang === "en") { enVersion = props.v2; }
     else                     { heVersion = props.v2; }
     Sefaria.text(props.secRef,

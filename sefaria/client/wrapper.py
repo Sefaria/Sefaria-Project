@@ -211,4 +211,5 @@ def get_links(tref, with_text=True):
             base_links = filter(lambda x: x["sourceRef"] != x["anchorRef"], base_links)
             links += base_links
 
+    links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
     return links

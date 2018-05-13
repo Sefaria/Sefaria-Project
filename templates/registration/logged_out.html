@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Logged Out" %} | {% Sefaria %}{% endblock %}
+{% block title %}{% trans "Logged Out | Sefaria" %}{% endblock %}
 
 {% block content %}
 
@@ -10,7 +10,7 @@
 <div id="loggedOut" >
 
 	<p id="message">
-		You are now logged out.  <a href="{% url login %}">Log back in</a>.
+		You are now logged out.  <a href="{% url "login" %}">Log back in</a>.
 	</p>
 	
 </div>

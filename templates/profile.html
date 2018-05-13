@@ -142,176 +142,101 @@
 {% endblock %}
 
 {% block js %}
-	{% if S2 %}
-		<script>
-		$(function(){
+<script>
+$(function(){
 
-			/*$("#followMe").on("mouseenter", function(){
-				if ($(this).hasClass("following")) {
-					$(this).text("Unfollow");
-				}
-			}).on("mouseleave", function() {
-				if ($(this).hasClass("following")) {
-					$(this).text("Following");
-				} else {
-					$(this).text("Follow");
-				}
-			});*/
+	/*$("#followMe").on("mouseenter", function(){
+		if ($(this).hasClass("following")) {
+			$(this).text("Unfollow");
+		}
+	}).on("mouseleave", function() {
+		if ($(this).hasClass("following")) {
+			$(this).text("Following");
+		} else {
+			$(this).text("Follow");
+		}
+	});*/
 
-			$("#followMe").click(function(){
-				{% if request.user.is_authenticated %}
-					if ($(this).hasClass("following")) {
-						var action = "unfollow";
-						$(this).removeClass("following").addClass('follow');
-					} else {
-						var action = "follow";
-						$(this).removeClass('follow').addClass("following");
-					}
-					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-						Sefaria.track.event("Following", "New Follow", "");
-					});
-				{% else %}
-					window.location = "/register?next=" + window.location.pathname;
-				{% endif %}
-			});
-
-			// Messages carried over from S1
-			var sjs = {};
-	    	sjs.composeMessage = function(recipient, name) {
-	    		$("#viewMessage").remove();
-	    		var composerHTML = "<div id='messageComposer' class='modal'>" +
-										"<div id='messageHeader'>{% trans 'Send a message to ' %}" + name + "</div>" +
-										"<textarea id='messageTextarea'></textarea>" +
-										"<div class='sendMessage button'>{% trans 'Send' %}</div>" +
-										"<div class='cancel button white'>{% trans 'Cancel' %}</div>" +
-									"</div>";
-
-				$(composerHTML).appendTo("body").show()
-					.position({of: window})
-					.draggable({cancel: "textarea"});
-				$("#overlay").show();
-				$("#messageTextarea").focus();
-				$(".sendMessage").click(function(e){
-					sjs.postMessage(recipient, $("#messageTextarea").val());
-				});
-				$("#messageComposer .cancel, #overlay").click(function(e){
-					$("#messageComposer").remove();
-					$("#overlay").hide();
-				});
-			};
-			sjs.postMessage = function(recipient, message) {
-				if (!message) { return; }
-				var postJSON = JSON.stringify({
-					recipient: recipient,
-					message: message.escapeHtml()
-				});
-				$.post("/api/messages", {json: postJSON}, function(data) {
-					$("#messageComposer").remove();
-					alert("Message Sent");
-					$("#overlay").hide();
-					Sefaria.track.event("Messages", "Message Sent", "");
-				});
-			};
-			sjs.viewMessage = function(sender, name, message) {
-				var messageHtml = "<div id='viewMessage' class='modal'>" +
-										"<div id='messageHeader'>Message from " + name + "</div>" +
-										"<div id='messageText'>" + message + "</div>" +
-										"<div class='messageReply button' data-recipient='" + sender +"'>Reply</div>" +
-										"<div class='cancel button white'>Close</div>" +
-									"</div>";
-				$(messageHtml).appendTo("body").show()
-					.position({of: window})
-					.draggable({cancel: "#messageText"});
-				$("#overlay").show();
-				$("#viewMessage .cancel").click(function(e){
-					$("#viewMessage").remove();
-					$("#overlay").hide();
-				});
-			};
-			$("#messageMe").click(function() {
-				{% if request.user.is_authenticated %}
-				sjs.composeMessage({{ profile.id }}, "{{ profile.first_name }} {{profile.last_name }}");
-				{% else %}
-				window.location = "/register?next=" + window.location.pathname;
-				{% endif %}
-			});
-			var params = Sefaria.util.getUrlVars();
-			if ("message" in params) {
-				$("#messageMe").trigger("click");
+	$("#followMe").click(function(){
+		{% if request.user.is_authenticated %}
+			if ($(this).hasClass("following")) {
+				var action = "unfollow";
+				$(this).removeClass("following").addClass('follow');
+			} else {
+				var action = "follow";
+				$(this).removeClass('follow').addClass("following");
 			}
-		});
-		</script>
-	{% else %}
-		<link rel="stylesheet" href="/static/owl-carousel/owl.carousel.css">
-		<link rel="stylesheet" href="/static/owl-carousel/owl.theme.css">
-		<script src="/static/owl-carousel/owl.carousel.js"></script>
-		<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
-		<script src="/static/js/lib/jquery.autosize.js"></script>
-		<script>
-			$(function(){
-
-				$("#followMe").click(function(){
-					{% if request.user.is_authenticated %}
-						var $fc = $("#followersCount .number");
-						var count = parseInt($fc.text());
-						if ($(this).hasClass("following")) {
-							var action = "unfollow";
-							$(this).removeClass("following");
-							$fc.text(count-1);
-						} else {
-							var action = "follow";
-							$(this).addClass("following");
-							$fc.text(count+1).parent().show();
-						}
-						$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-							sjs.track.event("Following", "New Follow", "");
-						});
-					{% else %}
-						sjs.loginPrompt();
-					{% endif %}
-				});
-				$("#followersCount").click(function(){
-					$.get("/api/followers/{{ profile.id }}", function(data){
-						console.log(data);
-						sjs.peopleList(data, "Followers");
-					});
-				});
-				$("#followeesCount").click(function(){
-					$.get("/api/followees/{{ profile.id }}", function(data){
-						console.log(data);
-						sjs.peopleList(data, "Following");
-					});
-				});
-
-				{% if profile.youtube %}
-				$.ajax({
-		        	type: "POST",
-			        url: "https://gdata.youtube.com/feeds/api/users/{{ profile.youtube }}/uploads?v=2&alt=jsonc&max-results=12",
-			        data: "{}",
-			        contentType: "application/json; charset=utf-8",
-			        dataType: "jsonp",
-			        success: function(result) {
-			            if (result.error) {
-			            	$("#youtube").html("Couldn't load YouTube Channel: {{ profile.youtube }}").show();
-			            	return;
-			            }
-			            var data = result.data;
-			            var html = ""
-			            for (var i = 0; i < data.items.length; i++) {
-			            	html += "<div class='video'>" +
-			            				"<a href='" + data.items[i].player.default +"' target='_blank'>" +
-			            					"<img src='" + data.items[i].thumbnail.hqDefault +"' />" +
-			            					"<div class='videoTitle'>" + data.items[i].title + "</div>" +
-			            				"</a>" +
-			            			"</div>";
-			            }
-			            html += "<div class='video'><br><br>See more videos on " +
-			            	"<a href='https://www.youtube.com/user/{{ profile.youtube }}' target='_blank'>YouTube &raquo;</a>.";
-			            $("#youtube").html(html).owlCarousel({items: 3});
-					}
-				});
-				{% endif %}
+			$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
+				Sefaria.track.event("Following", "New Follow", "");
 			});
-		</script>
-	{% endif %}
+		{% else %}
+			window.location = "/register?next=" + window.location.pathname;
+		{% endif %}
+	});
+
+	var sjs = {};
+	sjs.composeMessage = function(recipient, name) {
+		$("#viewMessage").remove();
+		var composerHTML = "<div id='messageComposer' class='modal'>" +
+								"<div id='messageHeader'>{% trans 'Send a message to ' %}" + name + "</div>" +
+								"<textarea id='messageTextarea'></textarea>" +
+								"<div class='sendMessage button'>{% trans 'Send' %}</div>" +
+								"<div class='cancel button white'>{% trans 'Cancel' %}</div>" +
+							"</div>";
+
+		$(composerHTML).appendTo("body").show()
+			.position({of: window})
+			.draggable({cancel: "textarea"});
+		$("#overlay").show();
+		$("#messageTextarea").focus();
+		$(".sendMessage").click(function(e){
+			sjs.postMessage(recipient, $("#messageTextarea").val());
+		});
+		$("#messageComposer .cancel, #overlay").click(function(e){
+			$("#messageComposer").remove();
+			$("#overlay").hide();
+		});
+	};
+	sjs.postMessage = function(recipient, message) {
+		if (!message) { return; }
+		var postJSON = JSON.stringify({
+			recipient: recipient,
+			message: message.escapeHtml()
+		});
+		$.post("/api/messages", {json: postJSON}, function(data) {
+			$("#messageComposer").remove();
+			alert("Message Sent");
+			$("#overlay").hide();
+			Sefaria.track.event("Messages", "Message Sent", "");
+		});
+	};
+	sjs.viewMessage = function(sender, name, message) {
+		var messageHtml = "<div id='viewMessage' class='modal'>" +
+								"<div id='messageHeader'>Message from " + name + "</div>" +
+								"<div id='messageText'>" + message + "</div>" +
+								"<div class='messageReply button' data-recipient='" + sender +"'>Reply</div>" +
+								"<div class='cancel button white'>Close</div>" +
+							"</div>";
+		$(messageHtml).appendTo("body").show()
+			.position({of: window})
+			.draggable({cancel: "#messageText"});
+		$("#overlay").show();
+		$("#viewMessage .cancel").click(function(e){
+			$("#viewMessage").remove();
+			$("#overlay").hide();
+		});
+	};
+	$("#messageMe").click(function() {
+		{% if request.user.is_authenticated %}
+		sjs.composeMessage({{ profile.id }}, "{{ profile.first_name }} {{profile.last_name }}");
+		{% else %}
+		window.location = "/register?next=" + window.location.pathname;
+		{% endif %}
+	});
+	var params = Sefaria.util.getUrlVars();
+	if ("message" in params) {
+		$("#messageMe").trigger("click");
+	}
+});
+</script>
 {% endblock %}

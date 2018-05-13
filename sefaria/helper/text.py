@@ -32,7 +32,6 @@ def add_spelling(category, old, new, lang="en"):
                 i.save()
 
 
-
 def rename_category(old, new):
     """
     Walk through all index records, replacing every category instance
@@ -46,6 +45,7 @@ def rename_category(old, new):
         i.categories = [new if cat == old else cat for cat in i.categories]
         i.save()
 
+    # Not multiserver aware
     library.rebuild_toc()
 
 

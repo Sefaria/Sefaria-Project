@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 def data_only(view):
     """
     Marks processors only need when setting the data JS.
-    S1 inserted this data on every page, so it is currently still passed in Source Sheets which rely on S1 JS.
+    Passed in Source Sheets which rely on S1 JS.
     """
     @wraps(view)
     def wrapper(request):
@@ -60,7 +60,7 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
-        "S2":                     not request.COOKIES.get('s1', False),
+        "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY
         #"USE_VARNISH":            USE_VARNISH,
         #"VARNISH_ADDR":           VARNISH_ADDR,
         #"USE_VARNISH_ESI":        USE_VARNISH_ESI
@@ -95,7 +95,7 @@ def user_and_notifications(request):
     /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         import urlparse
         recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
         recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies
@@ -146,8 +146,8 @@ def header_html(request):
         lang = request.interfaceLang
         LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
         LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
-        LOGGED_OUT_HEADER = "" if "s2Loading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
-        LOGGED_IN_HEADER = "" if "s2Loading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
+        LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
+        LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
         HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
         HEADER['logged_in'][lang] = LOGGED_IN_HEADER
     else:
@@ -167,7 +167,7 @@ def footer_html(request):
     global FOOTER
     if USE_NODE:
         FOOTER = FOOTER or render_react_component("Footer", {})
-        FOOTER = "" if "s2Loading" in FOOTER else FOOTER
+        FOOTER = "" if "appLoading" in FOOTER else FOOTER
     else:
         FOOTER = ""
     return {
@@ -177,25 +177,5 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
-    if not loc:
-        try:
-            from sefaria.settings import PINNED_IPCOUNTRY
-            loc = PINNED_IPCOUNTRY
-        except:
-            loc = "us"
-    diaspora = False if loc in ("il", "IL", "Il") else True
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=diaspora))}
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora))}
 
-    """
-    return {
-                "parasha_link":  parasha_link, 
-                "haftara_link":  haftara_link,
-                "daf_yomi_link": daf_yomi_link,
-                "parasha_ref":   parasha["ref"],
-                "parasha_name":  parasha["parasha"],
-                "he_parasha_name":hebrew_parasha_name(parasha["parasha"]),
-                "haftara_ref":   parasha["haftara"][0],
-                "daf_yomi_ref":  daf["url"]
-            }
-    """

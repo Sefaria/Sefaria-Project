@@ -34,7 +34,15 @@ class ReaderApp extends Component {
             //mode: "Text",
             bookRef:  props.initialPanels[0].bookRef
         };
-      } else {
+      } else if (props.initialPanels && props.initialPanels.length > 0 && props.initialPanels[0].menuOpen === "extended notes"){
+         panels[0] = {
+            settings:      Sefaria.util.clone(defaultPanelSettings),
+            menuOpen:      "extended notes",
+            currVersions:  props.initialPanels[0].currVersions,
+            bookRef:       props.initialPanels[0].bookRef
+        };
+      }
+      else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
 
@@ -147,10 +155,6 @@ class ReaderApp extends Component {
     }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveRecentlyViewed);
-
-    // Set S2 cookie, putting user into S2 mode site wide
-
-    $.cookie("s2", true, {path: "/"});
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -323,7 +327,9 @@ class ReaderApp extends Component {
           (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
           (prev.searchField !== next.searchField) ||
           (prev.searchSortType !== next.searchSortType) ||
-          (prev.settings.language != next.settings.language))
+          (prev.settings.language != next.settings.language) ||
+          (prev.settings.aliyotTorah != next.settings.aliyotTorah))
+
           {
          return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -407,6 +413,12 @@ class ReaderApp extends Component {
             hist.title = Sefaria._v(bookTitle) + " | " + Sefaria._("Sefaria");
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
+            break;
+          case "extended notes":
+            var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
+            hist.currVersions = state.currVersions;
+            hist.url = `${bookTitle}&notes${i>1 ? i : ''}=1`.replace(/ /g, "_");
+            hist.mode = "extended notes";
             break;
           case "search":
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
@@ -507,11 +519,13 @@ class ReaderApp extends Component {
         hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
         hist.mode         = "Text"
-
+        if(Sefaria.titleIsTorah(htitle)){
+          hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
+        }
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1, "extended notes" : 1,} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -523,7 +537,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1, "extended notes": 1,} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -532,6 +546,9 @@ class ReaderApp extends Component {
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.currVersions = state.currVersions;
         hist.mode     = "TextAndConnections";
+        if(Sefaria.titleIsTorah(ref)){
+          hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
+        }
       } else if (state.mode === "Header") {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
@@ -558,6 +575,9 @@ class ReaderApp extends Component {
     if(histories[0].lang) {
         url += "&lang=" + histories[0].lang;
     }
+    if("aliyot" in histories[0]) {
+        url += "&aliyot=" + histories[0].aliyot;
+    }
     hist = (headerPanel)
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
@@ -569,6 +589,9 @@ class ReaderApp extends Component {
           hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
+          }
+          if("aliyot" in histories[0]) {
+              url += "&aliyot=" + histories[0].aliyot;
           }
           if(histories[1].versionFilter) {
             hist.url += "&vside=" + histories[1].versionFilter.replace(/\s/g, '_');
@@ -583,6 +606,9 @@ class ReaderApp extends Component {
           hist.url += this._getUrlVersionsParams(histories[i-1].currVersions, i);
           if(histories[i-1].lang) {
             hist.url += "&lang" + (i) + "=" + histories[i-1].lang;
+          }
+          if("aliyot" in histories[i-1]) {
+            hist.url += "&aliyot" + (i) + "=" + histories[i-1].aliyot;
           }
           if(histories[i].versionFilter) {
             hist.url += "&vside" + (i) + "=" + histories[i].versionFilter.replace(/\s/g, '_');
@@ -599,6 +625,9 @@ class ReaderApp extends Component {
       }
       if(histories[i].lang) {
         hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
+      }
+      if("aliyot" in histories[i]) {
+            hist.url += "&aliyot" + (i+1) + "=" + histories[i].aliyot;
       }
     }
     // Replace the first only & with a ?
@@ -707,6 +736,8 @@ class ReaderApp extends Component {
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
+        aliyotTorah:   "aliyotOff",
+        vowels:        "all",
         biLayout:      "stacked",
         color:         "light",
         fontSize:      62.5
@@ -714,7 +745,7 @@ class ReaderApp extends Component {
     }
   }
   setContainerMode() {
-    // Applies CSS classes to the React container so that S2 can function as a header only on top of another page.
+    // Applies CSS classes to the React container so that the App can function as a header only on top of another page.
     // todo: because headerMode CSS was messing stuff up, header links are reloads in headerMode.  So - not sure if this method is still needed.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
@@ -993,6 +1024,26 @@ class ReaderApp extends Component {
         masterPanel.settings.language = panelLang;
       }
     }
+    this.setState({panels: this.state.panels});
+  }
+  viewExtendedNotes(n, method, title, versionLanguage, versionName) {
+    var panel = this.state.panels[n];
+    panel.bookRef = title;
+    panel.currVersions = {'en': null, 'he': null}; // ensure only 1 version is set
+    panel.currVersions[versionLanguage] = versionName;
+    if (method === "toc") {
+      panel.menuOpen = "extended notes";
+    }
+    else if (method === "Connections") {
+      panel.connectionsMode = "extended notes";
+    }
+    this.setState({panels: this.state.panels});
+  }
+  backFromExtendedNotes(n, bookRef, currVersions){
+    var panel = this.state.panels[n];
+    panel.menuOpen = panel.currentlyVisibleRef ? "text toc" : "book toc";
+    panel.bookRef = bookRef;
+    panel.currVersions = currVersions;
     this.setState({panels: this.state.panels});
   }
   // this.state.defaultVersion is a depth 2 dictionary - keyed: bookname, language
@@ -1365,6 +1416,8 @@ class ReaderApp extends Component {
       var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
       var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
+      var viewExtendedNotes              = this.viewExtendedNotes.bind(this, i);
+      var backFromExtendedNotes          = this.backFromExtendedNotes.bind(this, i);
 
       var ref   = panel.refs && panel.refs.length ? panel.refs[0] : null;
       var oref  = ref ? Sefaria.parseRef(ref) : null;
@@ -1393,6 +1446,8 @@ class ReaderApp extends Component {
                       setVersionFilter={setVersionFilter}
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
+                      viewExtendedNotes={viewExtendedNotes}
+                      backFromExtendedNotes={backFromExtendedNotes}
                       setDefaultOption={this.setDefaultOption}
                       onQueryChange={updateQueryInPanel}
                       updateSearchFilter={updateSearchFilterInPanel}
@@ -1440,7 +1495,7 @@ class ReaderApp extends Component {
 }
 ReaderApp.propTypes = {
   multiPanel:                  PropTypes.bool,
-  headerMode:                  PropTypes.bool,  // is S2 serving only as a header on top of another page?
+  headerMode:                  PropTypes.bool,  // is the App serving only as a header on top of another page?
   loggedIn:                    PropTypes.bool,
   interfaceLang:               PropTypes.string,
   initialRefs:                 PropTypes.array,
@@ -1462,7 +1517,7 @@ ReaderApp.propTypes = {
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
-  headerMode:                  false,  // is S2 serving only as a header on top of another page?
+  headerMode:                  false,  // is the App serving only as a header on top of another page?
   interfaceLang:               "english",
   initialRefs:                 [],
   initialFilter:               null,

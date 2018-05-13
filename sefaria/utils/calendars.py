@@ -101,18 +101,19 @@ def this_weeks_parasha(datetime_obj, diaspora=True):
 def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
     parasha_items = []
     db_parasha = this_weeks_parasha(datetime_obj, diaspora=diaspora)
+    rf = model.Ref(db_parasha["ref"])
     parasha = {
         'title': {'en': 'Parashat Hashavua', 'he': u'פרשת השבוע'},
         'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
-        'url': db_parasha["ref"],
+        'url': rf.url(),
         'order': 1,
-        'category': model.Ref(db_parasha["ref"]).index.get_primary_category()
+        'category': rf.index.get_primary_category()
     }
     parasha_items.append(parasha)
     for h in db_parasha["haftara"]:
         rf = model.Ref(h)
         haftara = {
-            'title': {'en': 'Haftara', 'he': u'הפטרה'},
+            'title': {'en': 'Haftarah', 'he': u'הפטרה'},
             'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
             'url': rf.url(),
             'order': 2,
@@ -135,3 +136,10 @@ def get_all_calendar_items(datetime_obj, diaspora=True):
 
 def get_todays_calendar_items(diaspora=True):
     return get_all_calendar_items(datetime.datetime.now(), diaspora=diaspora)
+
+def get_keyed_calendar_items(diaspora=True):
+    cal_items = get_todays_calendar_items(diaspora=diaspora)
+    cal_dict = {}
+    for cal_item in cal_items:
+        cal_dict[cal_item["title"]["en"]] = cal_item
+    return cal_dict

@@ -920,7 +920,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
             #TODO However, most false positives will be filtered out in library._get_ref_from_match()
 
-            reg += ur"(?:\s*[-\u2013]\s*"  # maybe there's a dash (either n or m dash) and a range
+            reg += ur"(?:\s*[-\u2013\u2011]\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += ur"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
@@ -953,7 +953,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         self.depth = len(section_names)
         self.sectionNames = section_names
         if address_types is None:
-            self.addressTypes = ['Integer'] * len(section_names)
+            self.addressTypes = [sec if globals().get("Address{}".format(sec), None) else 'Integer' for sec in section_names]
         else:
             self.addressTypes = address_types
 
@@ -1280,6 +1280,29 @@ class SchemaNode(TitledTreeNode):
         index_list, ref_list, _ = traverse(self, callback)
         return index_list, ref_list
 
+    def nodes_missing_content(self):
+        """
+        Used to identify nodes in the tree that have no content
+        :return: (bool-> True if node is missing content, list)
+        The list is a list of nodes that represent the root of an "empty" tree. If a SchemaNode has three children where
+        all three are missing content, only the parent SchemaNode will be in the list.
+        """
+        if self.is_leaf():
+            if self.ref().text('en').is_empty() and self.ref().text('he').is_empty():
+                return True, [self]
+            else:
+                return False, []
+
+        children_results = [child.nodes_missing_content() for child in self.children]
+
+        # If all my children are empty nodes, I am an empty node. Since I am the root of an empty tree, I add myself
+        # to the list of empty nodes instead of my children
+        if all([result[0] for result in children_results]):
+            return True, [self]
+        else:
+            return False, reduce(lambda x, y: x+y, [result[1] for result in children_results])
+
+
     def __eq__(self, other):
         return self.address() == other.address()
 
@@ -1298,8 +1321,8 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
-        super(JaggedArrayNode, self).__init__(serial, **kwargs)
-        self._init_address_classes()
+        SchemaNode.__init__(self, serial, **kwargs)
+        NumberedTitledTreeNode.__init__(self, serial, **kwargs)
 
     def validate(self):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
@@ -1434,6 +1457,19 @@ class AddressType(object):
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
             return encode_hebrew_numeral(i, punctuation=punctuation)
+
+    @staticmethod
+    def toStrByAddressType(atype, lang, i):
+        """
+        Return string verion of `i` given `atype`
+        :param str atype: name of address type
+        :param str lang: "en" or "he"
+        """
+        try:
+            klass = globals()["Address" + atype]
+        except KeyError:
+            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+        return klass(0).toStr(lang, i)
 
     def storage_offset(self):
         return 0
@@ -1580,10 +1616,10 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
-            \u05e4(?:"|\u05f4|'')?                  # Peh (for 'perek') maybe followed by a quote of some sort
-            |\u05e4\u05e8\u05e7\s*                  # or 'perek' spelled out, followed by space
+            \u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
+            |\u05e4\u05e8\u05e7(?:\u05d9\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
 
@@ -1631,8 +1667,8 @@ class AddressHalakhah(AddressInteger):
     section_patterns = {
         "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
-            (?:\u05d4\u05dc\u05db\u05d4\s+)			# Halakhah spelled out, with a space after
-            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+            (?:\u05d4\u05dc\u05db(?:\u05d4|\u05d5\u05ea)\s+)			# Halakhah spelled out, with a space after
+            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\u05db|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
 
