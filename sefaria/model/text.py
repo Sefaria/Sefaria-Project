@@ -437,8 +437,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 if years[0] == "" and len(years) == 3:  #Fix for first value being negative
                     years[0] = -int(years[1])
                     years[1] = int(years[2])
-                start = int(years[0]) - errorMargin
-                end = int(years[1]) + errorMargin
+                try:
+                    start = int(years[0]) - errorMargin
+                    end = int(years[1]) + errorMargin
+                except UnicodeEncodeError as e:
+                    pass
 
         elif author and author.mostAccurateTimePeriod():
             tp = author.mostAccurateTimePeriod()
