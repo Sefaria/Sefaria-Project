@@ -4654,7 +4654,7 @@ class Library(object):
                 toSections.append(sections[len(sections) - len(toSections) - 1])
             toSections.reverse()
 
-        return Ref(_obj=_obj)
+        return Ref(ref_match.group())
 
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
