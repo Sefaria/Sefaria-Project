@@ -379,6 +379,16 @@ class TextIndexer(object):
                     vpriorities[lang] += 1
 
         traverse(toc)
+        
+    @classmethod
+    def get_all_versions(tries=0):
+        try:
+            return VersionSet().array()
+        except pymongo.errors.AutoReconnect as e:
+            if tries < 20:
+                return get_all_versions(tries+1)
+            else:
+                raise e
 
     @classmethod
     def index_all(cls, index_name, merged=False, debug=False):
@@ -387,7 +397,8 @@ class TextIndexer(object):
         cls.create_version_priority_map()
         cls.create_terms_dict()
         cls.doc_count = 0
-        versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, VersionSet().array()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+
+        versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, cls.get_all_versions()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
         versions_by_index = {}
         # organizing by index for the merged case
         for v in versions:
@@ -512,9 +523,6 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
     """
     global doc_count
     doc_count = 0
-
-    refs = library.ref_list()
-    versions = VersionSet()
     if debug:
         refs = refs[:10]
     print "Beginning index of %d refs." % len(refs)
