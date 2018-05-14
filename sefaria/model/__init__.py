@@ -10,6 +10,8 @@ symbols are then accessed directly as, e.g.:
 """
 
 import abstract
+import django
+django.setup()
 
 # not sure why we have to do this now - it wasn't previously required
 import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, \
@@ -32,7 +34,7 @@ from user_profile import UserProfile, annotate_user_list
 from group import Group, GroupSet
 from version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 from time import TimePeriod, TimePeriodSet
-from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, JastrowDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
+from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, JastrowDictionaryEntry, KleinDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
 from place import Place, PlaceSet
 from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
