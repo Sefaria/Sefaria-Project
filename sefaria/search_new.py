@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
+from elasticsearch.exceptions import NotFoundError
 
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
@@ -378,6 +379,16 @@ class TextIndexer(object):
                     vpriorities[lang] += 1
 
         traverse(toc)
+        
+    @classmethod
+    def get_all_versions(tries=0):
+        try:
+            return VersionSet().array()
+        except pymongo.errors.AutoReconnect as e:
+            if tries < 20:
+                return get_all_versions(tries+1)
+            else:
+                raise e
 
     @classmethod
     def index_all(cls, index_name, merged=False, debug=False):
@@ -386,7 +397,8 @@ class TextIndexer(object):
         cls.create_version_priority_map()
         cls.create_terms_dict()
         cls.doc_count = 0
-        versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, VersionSet().array()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+
+        versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, cls.get_all_versions()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
         versions_by_index = {}
         # organizing by index for the merged case
         for v in versions:
@@ -511,9 +523,6 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
     """
     global doc_count
     doc_count = 0
-
-    refs = library.ref_list()
-    versions = VersionSet()
     if debug:
         refs = refs[:10]
     print "Beginning index of %d refs." % len(refs)
@@ -684,9 +693,11 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
     elif type == 'sheet':
         index_public_sheets(index_names_dict['new'])
 
-    index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
-
-    clear_index(alias_name) # make sure there are no indexes with the alias_name
+    try:
+        index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
+    except NotFoundError:
+        print "Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
+    clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
 
     index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
 

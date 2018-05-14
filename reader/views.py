@@ -492,7 +492,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "ldBreadcrumbs":  breadcrumb
     }, RequestContext(request))
 
-
 def _reduce_ranged_ref_text_to_first_section(text_list):
     """
     given jagged-array-like list, return only first section
@@ -504,7 +503,6 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
     while not isinstance(text_list[0], basestring):
         text_list = text_list[0]
     return text_list
-
 
 def texts_category_list(request, cats):
     """

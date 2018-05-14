@@ -312,6 +312,8 @@ static_pages = [
     "educators",
     "the-sefaria-story",
     "aramaic-translation-contest",
+    "newsletter",
+    "shavuot-map-2018",
 ]
 
 # Static and Semi Static Content
@@ -412,7 +414,6 @@ urlpatterns += [
 urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
-
 
 # Catch all to send to Reader
 urlpatterns += [

@@ -524,6 +524,11 @@ class ReaderApp extends Component {
             hist.url = "groups";
             hist.mode = "publicGroups";
             break;
+          case "publicGroups":
+            hist.title = Sefaria._("Sefaria Groups");
+            hist.url = "groups";
+            hist.mode = "publicGroups";
+            break;
           case "myGroups":
             hist.title = Sefaria._("Sefaria Groups");
             hist.url = "my/groups";
@@ -548,8 +553,8 @@ class ReaderApp extends Component {
       } else if (state.mode === "Text") {
         var highlighted = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : null;
 
-        if (highlighted && 
-            (Sefaria.refContains(highlighted, state.currentlyVisibleRef) 
+        if (highlighted &&
+            (Sefaria.refContains(highlighted, state.currentlyVisibleRef)
              || Sefaria.refContains(state.currentlyVisibleRef, highlighted))) {
           var htitle = highlighted;
         } else {
