@@ -689,7 +689,7 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
         index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
     except NotFoundError:
         print "Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
-    clear_index(alias_name) # make sure there are no indexes with the alias_name
+    clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
 
     index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
 
