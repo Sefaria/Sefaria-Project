@@ -1,4 +1,6 @@
 #encoding=utf-8
+import django
+django.setup()
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.helper.schema import refresh_version_state
@@ -28,10 +30,14 @@ def change_node_titles(title):
     for node in index.nodes.children:
         new_title = ""
         old_title = node.get_titles('en')[0]
+
         if "Mitzvot Ase" in old_title:
             new_title = old_title.replace("Mitzvot Ase", "Positive Commandments")
         elif "Mitzvot Lo Taase" in old_title:
             new_title = old_title.replace("Mitzvot Lo Taase", "Negative Commandments")
+        if new_title == "Summary Positive Commandments":
+            new_title = "Conclusion for Positive Commandments"
+
         #elif "Mitzvot" in old_title:
         #    new_title = old_title.replace("Mitzvot", "commandments")
         if new_title:
@@ -135,11 +141,10 @@ if __name__ == "__main__":
     refresh_version_state("Sefer HaMitzvot")
     library.rebuild_toc()
 
-    c = Category().load({"lastPath": "Hasagot HaRamban al Sefer HaMitzvot"})
-    c.delete()
+    # need to run afterward --
+    # c = Category().load({"lastPath": "Hasagot HaRamban al Sefer HaMitzvot"})
+    # c.delete()
 
-    library.rebuild_toc()
-    library.rebuild()
 
 
 
