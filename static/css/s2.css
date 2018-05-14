@@ -4966,6 +4966,11 @@ span.purim-emoji img{
   width: 100%;
 }
 
+.readerPanel .sheetContent h3 {
+  margin-bottom: 0;
+}
+
+
 
 
 .readerPanel.hebrew .sheetItem .he {
@@ -5052,5 +5057,9 @@ span.purim-emoji img{
 
 .tagsTitle {
   text-align: center;
+
+}
+
+.customSourceTitle {
 
 }
