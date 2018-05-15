@@ -103,9 +103,10 @@
 		</script>
 	{% endif %}
 	<script src="{% static 'js/lib/jquery.raty.js' %}"></script>
+    {% static "img/raty/" as path %}
 	<script>
 	    var ratySettings = { // for text review ratings
-	        path: "/static/img/raty/",
+	        path: {{path}},
 	        hints: ["Major problems", "Some problems", "Seems good", "Good", "Definately good"]
 	    };
 	    $(".raty").each(function() {

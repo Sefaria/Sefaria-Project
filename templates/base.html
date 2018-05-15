@@ -135,7 +135,7 @@
         interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp: {% if html %}true{% else %}false{% endif %}, 
         ga: ga,
-        static_root: {{ STATIC_PREFIX }}
+        static_url: {{ STATIC_PREFIX }}
       };
       {% endautoescape %}
     </script>

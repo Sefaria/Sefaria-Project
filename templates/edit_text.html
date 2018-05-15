@@ -1,6 +1,7 @@
 {% load render_bundle from webpack_loader %}
 {% load sefaria_tags %}
 {% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
 <html>
@@ -214,7 +215,8 @@
     contentLang: "{{ contentLang }}",
     interfaceLang: "{{ interfaceLang }}",
     inReaderApp: false,
-    ga: ga
+    ga: ga,
+    static_url: {{ STATIC_PREFIX }}
   };
   {% endautoescape %}
 </script>
