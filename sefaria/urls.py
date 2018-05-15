@@ -83,6 +83,9 @@ urlpatterns += [
 urlpatterns += [
     url(r'^topics$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^advanced-topics$', reader_views.advanced_topics_list),
+    url(r'^advanced-topics/(?P<topic>.+)$', reader_views.advanced_topic_page),
+
 ]
 
 # Texts Add / Edit / Translate

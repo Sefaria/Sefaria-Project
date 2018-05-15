@@ -732,6 +732,70 @@ def topic_page(request, topic):
         "html":           html,
     })
 
+def advanced_topics_list(request):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    import codecs
+    with codecs.open('data/tmp/my_topics.json', 'rb+', encoding='utf-8') as topicsfile:
+        topics = json.load(topicsfile, encoding='utf-8').keys()
+
+    """props = base_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": topic,
+        "topicData": topics.get(topic).contents(),
+    })"""
+
+    title = u"Topics | Sefaria"
+    desc  = u'Explore topics on Sefaria, drawing from our library of Jewish texts.'
+
+    #propsJSON = json.dumps(props)
+    # html = render_react_component("ReaderApp", propsJSON)
+    return render(request,'static/advanced-topics.html', {
+        "topics":      topics,
+        "title":          title,
+        "desc":           desc,
+    })
+
+def advanced_topic_page(request, topic):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    import codecs
+    with codecs.open('data/tmp/my_topics.json', 'rb+', encoding='utf-8') as topicsfile:
+        topics = json.load(topicsfile, encoding='utf-8')
+        topicData = topics[topic][0:20]
+
+    for elem in topicData:
+        try:
+            tc = TextChunk(Ref(elem["ref"]), lang="he").text
+            if isinstance(tc, list):
+                tc = u" ".join(tc)
+            elem["text"] = tc
+        except InputError:
+            pass
+    """props = base_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": topic,
+        "topicData": topics.get(topic).contents(),
+    })"""
+
+    title = u"%(topic)s | Sefaria" % {"topic": topic}
+    desc  = u'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
+
+    #propsJSON = json.dumps(props)
+    # html = render_react_component("ReaderApp", propsJSON)
+    return render(request,'static/advanced-topic.html', {
+        "topicData":      topicData,
+        "topic":          topic,
+        "title":          title,
+        "desc":           desc,
+    })
+
 
 def menu_page(request, props, page, title="", desc=""):
     """

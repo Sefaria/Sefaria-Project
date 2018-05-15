@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+    .contentInner{
+        max-width:660px
+        margin: 0 auto;
+    }
+    .advTopicList{
+        display:flex;
+        flex-flow: row wrap;
+        justify-content: space-between;
+    }
+    .advTopicList a{
+        flex-basis: 33%;
+        margin-top: 3px;
+    }
+    .navButton{
+        background-color: #f3f3f3;
+        display: block;
+        margin: 0;
+        padding: 10px 8px;
+        box-sizing: border-box;
+        color: #333;
+        font-size: 16px;
+        font-weight: 400;
+        background-color: #fff;
+        cursor: pointer;
+        vertical-align: middle;
+        text-align: center;
+        unicode-bidi: plaintext;
+    }
+{% endblock %}
+
+{% block content %}
+<div id="advancedTopicsPage" class="biReady container static">
+    <div class="inner">
+        <h1>
+                <span className="int-en">Topics</span>
+                <span className="int-he">נושאים</span>
+        </h1>
+        <div class="contentInner">
+            <div class="advTopicList">
+                {% for o in topics %}
+                    <a class="navButton sheetButton" href="/advanced-topics/{{o}}" title="Explore sources related to 'Torah'">
+                        <span class="int-en">{{o}}</span>
+                        <span class="int-he">{{o}}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

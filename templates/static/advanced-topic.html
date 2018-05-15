@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+    .contentInner{
+        max-width:660px
+        margin: 0 auto;
+    }
+    .advTopicList{
+        display:flex;
+        flex-flow: row wrap;
+        justify-content: space-between;
+    }
+    .advTopicList a{
+        flex-basis: 33%;
+        margin-top: 3px;
+    }
+    .navButton{
+        background-color: #f3f3f3;
+        display: block;
+        margin: 0;
+        padding: 10px 8px;
+        box-sizing: border-box;
+        color: #333;
+        font-size: 16px;
+        font-weight: 400;
+        background-color: #fff;
+        cursor: pointer;
+        vertical-align: middle;
+        text-align: center;
+        unicode-bidi: plaintext;
+    }
+    .int-en, .en{
+        display:none;
+    }
+    .textRange .he{
+        font-family: frank ruehl libre,taamey frank,times new roman,serif;
+        font-size:120%;
+    }
+{% endblock %}
+
+{% block content %}
+<div id="advancedTopicsPage" class="biReady container static">
+    <div class="inner">
+        <h1>
+                  <span class="int-en">{{ topic }}</span>
+                  <span class="int-he">{{ topic }}</span>
+        </h1>
+        <div class="contentInner">
+           <div class="sourceList">
+                {% for o in topicData %}
+                    <div class="topicSource">
+                        <div class="textRange" data-ref="{{o.ref}}">
+                            <div class="title">
+                                <div class="titleBox" role="heading" aria-level="2">
+                                    <span class="en">{{o.ref}}</span>
+                                    <span class="he">{{o.ref}}</span>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <div class="textInner">
+                                    <span>
+                                        <div tabindex="0" class="segment" data-ref="{{o.ref}}" aria-controls="panel-NaN" aria-label="Click to see links to {{o.ref}}">
+                                            <p class="he">{{o.text}}
+ </p>
+                                            <p class="en">{{ o.text }}</p>
+                                            <div class="clearFix"></div>
+                                        </div>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
