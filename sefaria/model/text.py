@@ -3014,7 +3014,7 @@ class Ref(object):
             l.append(self.subref(i + 1))
         return l
 
-    def all_subrefs(self, lang='all'):
+    def all_subrefs(self, lang='all', only_refs_with_text=False):
         """
         Return a list of all the valid :class:`Ref` objects one level deeper than this :class:`Ref`.
 
@@ -3032,10 +3032,25 @@ class Ref(object):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
-        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        ja = self.get_state_ja(lang)
+        size = ja.sub_array_length([i - 1 for i in self.sections])
         if size is None:
             size = 0
-        return self.subrefs(size)
+
+        poss_subrefs = self.subrefs(size)  # here poss_subrefs is assigned a list of both existent and non-existent subrefs.  below we filter out the non-existent subrefs.
+
+        if not only_refs_with_text:
+            return poss_subrefs
+
+        sections = getattr(self, "sections", [])
+        sections = [section - 1 for section in sections]
+        actual_subrefs = ja.subarray(sections).array()  # here we get the part of the JaggedArray that corresponds to this Ref. it represents which subrefs exist and which aren't
+
+        # next we take poss_subrefs and filter out the non-existent refs
+        poss_and_actual_subrefs = zip(poss_subrefs, actual_subrefs)
+        subrefs = [poss_subref for poss_subref, actual_subref in poss_and_actual_subrefs if actual_subref != 0 and actual_subref != []]
+        return subrefs
+
 
     def context_ref(self, level=1):
         """
