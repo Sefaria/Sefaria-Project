@@ -379,7 +379,7 @@ class TextIndexer(object):
                     vpriorities[lang] += 1
 
         traverse(toc)
-        
+
     @classmethod
     def get_all_versions(tries=0):
         try:
@@ -675,7 +675,8 @@ def index_all(skip=0, merged=False, debug=False):
     else:
         index_all_of_type('text', skip=skip, merged=merged, debug=debug)
         index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
-
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
 
 def index_all_of_type(type, skip=0, merged=False, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
@@ -703,8 +704,7 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
-    end = datetime.now()
-    print "Elapsed time: %s" % str(end-start)
+
 
 
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):
