@@ -95,7 +95,7 @@ If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/i
 
 #### Put some texts in your database:
 
-We make a MongoDB dump of our database is available download. The complete dump is available at http://dev.sefaria.org/static/dump.tar.gz . The complete dump includes a `history` collections which includes a complete revision history of every text our library. For many applications this data is not relevant. A small dump which exclude `history` is available at: http://dev.sefaria.org/static/dump_small.tar.gz . We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria. 
+We make a MongoDB dump of our database is available download. The complete dump is available at https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz . The complete dump includes a `history` collections which includes a complete revision history of every text our library. For many applications this data is not relevant. A small dump which exclude `history` is available at: https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz . We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria. 
 
 Once you've download and unzipped this content, from the parent directory which contains `dump` run:
 
