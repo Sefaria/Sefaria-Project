@@ -84,6 +84,7 @@ class Sheet extends Component {
       content = (<LoadingMessage />);
     }
     else {
+
       content = (
           <SheetContent
             sources={sheet.sources}
@@ -92,6 +93,7 @@ class Sheet extends Component {
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
             scrollDir = {this.state.scrollDir}
+            authorStatement = {sheet.ownerName}
           />
       )
     }
@@ -255,7 +257,12 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-        <div className="title"><div className="titleBox" role="heading" aria-level="2"><span className="en">{this.props.title.stripHtml()}</span><span className="he">{this.props.title.stripHtml()}</span></div></div>
+        <div className="sheetMetaDataBox">
+            <div className="title" role="heading" aria-level="1"><span className="en">{this.props.title.stripHtml()}</span><span className="he">{this.props.title.stripHtml()}</span></div>
+
+            <div className="authorStatement">{this.props.authorStatement}</div>
+
+        </div>
         <div className="text">
             <div className="textInner">{sources}</div>
         </div>
@@ -274,7 +281,6 @@ class SheetSource extends Component {
       var minOpacity = 20, maxOpacity = 70;
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
-
 
       if (this.props.source.options) {
         var heSourceClasses = classNames({he: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
@@ -295,7 +301,7 @@ class SheetSource extends Component {
 
 
       <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
-          {this.props.source.title ? <h3 className="customSourceTitle">{this.props.source.title.stripHtml()}</h3> : null}
+          {this.props.source.title ? <h3 className="customSourceTitle"><div class="titleBox">{this.props.source.title.stripHtml()}</div></h3> : null}
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span

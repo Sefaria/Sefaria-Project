@@ -1449,7 +1449,7 @@ Sefaria = extend(Sefaria, {
       if (sheet) {
         if (callback) { callback(sheet); }
       } else {
-        var url = "/api/sheets/" + id;
+        var url = "/api/sheets/" + id +"?more_data=1";
          $.getJSON(url, function(data) {
             this._loadSheetByID[id] = data;
             if (callback) { callback(data); }

@@ -632,7 +632,11 @@ def sheet_api(request, sheet_id):
 	API for accessing and individual sheet.
 	"""
 	if request.method == "GET":
-		sheet = get_sheet(int(sheet_id))
+		more_data = request.GET.get('more_data', '0')
+		if more_data == '1':
+			sheet = get_sheet_for_panel(int(sheet_id))
+		else:
+			sheet = get_sheet(int(sheet_id))
 		return jsonResponse(sheet, callback=request.GET.get("callback", None))
 
 	if request.method == "POST":

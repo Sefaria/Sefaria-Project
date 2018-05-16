@@ -185,8 +185,6 @@ class SheetMetadata extends Component {
     var title = this.props.sheet.title;
     var authorStatement;
 
-    console.log(this.props)
-
     if (this.props.sheet.attribution) {
       authorStatement = this.props.sheet.attribution;
     }
