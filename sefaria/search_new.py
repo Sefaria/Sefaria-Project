@@ -158,18 +158,18 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
-    doc = {
-        "title": strip_tags(sheet["title"]),
-        "content": make_sheet_text(sheet, pud),
-        "owner_id": sheet["owner"],
-        "owner_name": pud["name"],
-        "owner_image": pud["imageUrl"],
-        "profile_url": pud["profileUrl"],
-        "version": "Source Sheet by " + user_link(sheet["owner"]),
-        "tags": ",".join(sheet.get("tags",[])),
-        "sheetId": id,
-    }
     try:
+        doc = {
+            "title": strip_tags(sheet["title"]),
+            "content": make_sheet_text(sheet, pud),
+            "owner_id": sheet["owner"],
+            "owner_name": pud["name"],
+            "owner_image": pud["imageUrl"],
+            "profile_url": pud["profileUrl"],
+            "version": "Source Sheet by " + user_link(sheet["owner"]),
+            "tags": ",".join(sheet.get("tags",[])),
+            "sheetId": id,
+        }
         es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
         global doc_count
         doc_count += 1
