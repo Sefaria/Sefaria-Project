@@ -9,7 +9,7 @@ from pprint import pprint
 from datetime import datetime, timedelta
 import re
 import bleach
-
+import pymongo
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
@@ -477,9 +477,9 @@ class TextIndexer(object):
 
         content = bleach.clean(content, strip=True, tags=())
         content_wo_cant = strip_cantillation(content, strip_vowels=True)
-
-        if re.match(ur'^\s*[\(\[].+[\)\]]\s*$',content):
-            return False #don't bother indexing. this segment is surrounded by parens
+        content_wo_cant = re.sub(ur'\([^)]+\)', u'', content_wo_cant.strip())  # remove all parens
+        if len(content_wo_cant) == 0:
+            return False
 
         if "Commentary" in categories:  # uch, special casing
             temp_categories = categories[:]
