@@ -2567,6 +2567,11 @@ a.readerNavCategory {
   margin-top: 6px;
   text-align: left;
 }
+
+.stacked.bilingual .sheetContent .segment > .en {
+  margin-top: 0;
+}
+
 .stacked.bilingual .basetext .segment > .en {
   margin: 10px 0 20px;
   color: #666;
@@ -5042,10 +5047,10 @@ span.purim-emoji img{
 .sheetTocIcon {
   color: #ccc;
   font-size: 16px;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   opacity: 0.2;
-  margin: 0 6px;
+  margin: 0 8px;
   vertical-align: middle;
 }
 

@@ -174,7 +174,7 @@ class ConnectionsPanel extends Component {
     var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
     if (!loaded) {
       content = <LoadingMessage />;
-    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share") {
+    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Sheets") {
       content = (<div>
                     <SheetNodeConnectionTools
                     multiPanel={this.props.multiPanel}
@@ -243,6 +243,7 @@ class ConnectionsPanel extends Component {
       content = (<div>
                   <AddToSourceSheetBox
                     srefs={this.props.srefs}
+                    nodeRef = {this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     addToSourceSheet={this.props.addToSourceSheet} />
@@ -252,16 +253,20 @@ class ConnectionsPanel extends Component {
                     <span className="int-he">דפי המקורות שלי</span>
                   </a>
                   : null }
+                  { this.props.srefs[0] != "sheetRef" ?
                   <MySheetsList
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
-                  />
+                  /> : null }
+
+                  { this.props.srefs[0] != "sheetRef" ?
                   <PublicSheetsList
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
-                  />
+                  /> : null }
+
                 </div>);
 
     } else if (this.props.mode === "Notes") {
@@ -452,16 +457,11 @@ class SheetNodeConnectionTools extends Component {
   // A list of Resources in addition to connections
   render() {
     return (<div className="resourcesList">
-                  <AddToSourceSheetBox
-                    srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel}
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    nodeRef={this.props.nodeRef}
-                    addToSourceSheet={this.props.addToSourceSheet} />
-
               {this.props.multiPanel ?
                 <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
               : null }
+                <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+
                 <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
             </div>);
   }

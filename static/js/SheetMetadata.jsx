@@ -251,7 +251,7 @@ class SheetMetadata extends Component {
                       {this.generateSheetMetaDataButtons()}
 
                     <div className="tocDetails">
-                      {details ? <div className="tocDetail sheetSummary"><em>{details}</em></div> : null}
+                      {details ? <div className="description">{details}</div> : null}
                     </div>
                     {this.props.sheet.tags.length > 0 ?
                     <div className="tagsSection">

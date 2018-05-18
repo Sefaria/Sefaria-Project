@@ -31,7 +31,7 @@ class AddToSourceSheetBox extends Component {
     this.loadSheets();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (!prevProps.srefs.compare(this.props.srefs)) {
+    if (!prevProps.srefs.compare(this.props.srefs) || prevProps.nodeRef !=this.props.nodeRef) {
       this.setState({showConfirm: false});
     }
   }
@@ -72,7 +72,7 @@ class AddToSourceSheetBox extends Component {
   copyNodeToSourceSheet() {
     if (!Sefaria._uid) { this.setState({showLogin: true}); }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
-    if (this.props.addToSourceSheet) {
+    if (!this.props.nodeRef) {
       this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
     } else {
       var url     = "/api/sheets/" + this.state.selectedSheet.id + "/copy_source";
