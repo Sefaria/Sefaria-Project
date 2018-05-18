@@ -2632,7 +2632,7 @@ a.readerNavCategory {
 }
 
 
-.readerPanel.bilingual.stacked .sheetContent .segment.highlight .en {
+.readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
 }
 
@@ -5049,12 +5049,26 @@ span.purim-emoji img{
   vertical-align: middle;
 }
 
-.tagsTitle {
+.readerTextTableOfContents .content h2.tagsTitle {
   text-align: center;
+  color:black;
+  font-size: 13px;
+  margin-bottom: 0;
+  padding-bottom: 8px;
 
 }
 
 .sheetMetaDataBox {
   margin: 40px auto;
   text-align: center;
+}
+
+.sheetContent .sheetItem > .he > span {
+  /* some sheet content comes over in a `span` instead of `p` -- this helps to display appropriately. */
+  margin-bottom: 18px;
+  display: inline-block;
+}
+
+.sheetContent .sheetItem > .he > span > p:last-child {
+  margin-bottom: 0;
 }

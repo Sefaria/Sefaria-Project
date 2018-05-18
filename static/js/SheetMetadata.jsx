@@ -253,8 +253,9 @@ class SheetMetadata extends Component {
                     <div className="tocDetails">
                       {details ? <div className="tocDetail sheetSummary"><em>{details}</em></div> : null}
                     </div>
+                    {this.props.sheet.tags.length > 0 ?
                     <div className="tagsSection">
-                        {this.props.sheet.tags.length > 0 ? <h2 className="tagsTitle int-en">Tags</h2> : null }
+                        <h2 className="tagsTitle int-en">Tags</h2>
                         <div className="sheetTags int-en">
                           {this.props.sheet.tags.map(function(tag, i) {
                             return (
@@ -278,7 +279,7 @@ class SheetMetadata extends Component {
                             )
                           }.bind(this))}
                         </div>
-                    </div>
+                    </div> : null }
 
 
                   </div>

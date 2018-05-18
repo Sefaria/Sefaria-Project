@@ -311,6 +311,13 @@ class SheetSource extends Component {
           {linkCountElement}
 
 
+        {this.props.source.text ?
+          <div className={heSourceClasses}>
+            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+              this.props.handleClick(this.props.source.ref, e)
+            } }>{this.props.source.heRef}</a></div>
+            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></span>
+          </div> : null }
 
 
         {this.props.source.text ?
@@ -321,13 +328,6 @@ class SheetSource extends Component {
             <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></span>
           </div> : null }
 
-        {this.props.source.text ?
-          <div className={heSourceClasses}>
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
-              this.props.handleClick(this.props.source.ref, e)
-            } }>{this.props.source.heRef}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></span>
-          </div> : null }
 
 
         <div className="clearFix"></div>
@@ -398,8 +398,8 @@ class SheetOutsideBiText extends Component {
             className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
         </div>
 
-        <div className="en" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
         <div className="he" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
+        <div className="en" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
         <div className="clearFix"></div>
 
       </div>
