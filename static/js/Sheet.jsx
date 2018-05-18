@@ -301,7 +301,7 @@ class SheetSource extends Component {
 
 
       <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
-          {this.props.source.title ? <h3 className="customSourceTitle"><div class="titleBox">{this.props.source.title.stripHtml()}</div></h3> : null}
+          {this.props.source.title ? <h3 className="customSourceTitle"><div className="titleBox">{this.props.source.title.stripHtml()}</div></h3> : null}
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span

@@ -912,6 +912,7 @@ class ReaderPanel extends Component {
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
+                                              parentPanel={this.props.initialState.mode}
                                               currentLayout={this.currentLayout}
                                               currentBook={this.currentBook}
                                               currentData={this.currentData}
@@ -1172,6 +1173,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ?
+      this.props.parentPanel == "Sheet" ? null :
       (<ToggleSet
           role="radiogroup"
           ariaLabel="text layout toggle"
@@ -1228,6 +1230,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "aliyotOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
     ];
     var aliyahToggle = this.renderAliyotToggle() ? (
+      this.props.parentPanel == "Sheet" ? null :
         <ToggleSet
           role="radiogroup"
           ariaLabel="Toggle Aliyot"
