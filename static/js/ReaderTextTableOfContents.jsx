@@ -809,14 +809,15 @@ class JaggedArrayNodeSection extends Component {
       for (var i = 0; i < this.props.contentCounts.length; i++) {
         if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
         if (this.props.addressTypes[0] === "Talmud") {
-          var section = Sefaria.hebrew.intToDaf(i);
+          var enSection = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else if (this.props.schema.addressTypes[0] === "Year") {
-          var section = i + 1241;
+        } else if (this.props.addressTypes[0] === "Year") {
+          var enSection = i + 1241;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
         }
         else {
-          var section = i+1;
+          var enSection = i+1;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
         content.push(
@@ -842,9 +843,10 @@ class JaggedArrayNodeSection extends Component {
       if (this.props.addressTypes[0] === "Talmud") {
           var section = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else if (this.props.schema.addressTypes[0] === "Year") {
+        } else if (this.props.addressTypes[0] === "Year") {
           var section = i + 1241;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
         }
         else {
           var section = i+1;
@@ -890,6 +892,7 @@ class ArrayMapNode extends Component {
         } else if (this.props.schema.addressTypes[0] === "Year") {
           var section = i + 1241;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
         }
         else {
           var section = i+1;
