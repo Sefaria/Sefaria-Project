@@ -15,8 +15,8 @@ BS_CAPS = [
     {'browser': 'Chrome', 'browser_version': '49.0', 'os': 'Windows', 'os_version': '8', 'resolution': '1920x1080',
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Chr/Win8'},
 
-    {'browser': 'IE', 'browser_version': '11.0', 'os': 'Windows', 'os_version': '10', 'resolution': '1024x768',
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/Win10'},
+    # {'browser': 'IE', 'browser_version': '11.0', 'os': 'Windows', 'os_version': '10', 'resolution': '1024x768',
+    #     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/Win10'},
 
     {'browser': 'Firefox', 'browser_version': '45.0', 'os': 'OS X', 'os_version': 'Yosemite', 'resolution': '1920x1080',
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/OSX'},
@@ -41,15 +41,15 @@ SAUCE_CORE_CAPS = [
     {'browserName': "safari", 'platform': "OS X 10.11", 'version': "9.0",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
 
-    {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
+    # {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
+    #     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
 
-    {'browserName': "chrome", 'platform': "Windows 10", 'version': "57.0",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
+    # {'browserName': "chrome", 'platform': "Windows 10", 'version': "57.0",
+    #  'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
-    {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '6.0',
-     'browserName': 'Chrome', 'appiumVersion': '1.6.3', 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'},
+    # {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '6.0',
+    #  'browserName': 'Chrome', 'appiumVersion': '1.6.3', 'deviceOrientation': "portrait",
+    #  'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'},
 
     {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 6s Simulator",
     'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
@@ -62,8 +62,8 @@ SAUCE_CORE_CAPS = [
 
 
 SAUCE_EXTENDED_CAPS = [  # Needs Review!
-    {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
+    # {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
+    #  'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
 
     {'browserName': "iPhone", 'platform': "OS X 10.10", 'version': "9.2", 'deviceName': "iPad Air",
      'deviceOrientation': "portrait",

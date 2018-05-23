@@ -10,6 +10,7 @@ if not hasattr(sys, '_doc_build'):
 	from django.template.loader import render_to_string
 	from django.core.validators import URLValidator, EmailValidator
 	from django.core.exceptions import ValidationError
+	from anymail.exceptions import AnymailRecipientsRefused
 
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
@@ -306,8 +307,11 @@ def email_unread_notifications(timeframe):
 		msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
 		msg.content_subtype = "html"  # Main content is now text/html
 		#msg.attach_alternative(message_text, "text/plain")
-		msg.send()
-		notifications.mark_read(via="email")
+		try:
+			msg.send()
+			notifications.mark_read(via="email")
+		except AnymailRecipientsRefused:
+			print u'bad email address: {}'.format(to)
 
 		if "interface_language" in profile.settings:
 			translation.deactivate()

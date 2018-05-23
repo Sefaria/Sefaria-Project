@@ -1,4 +1,6 @@
 {% load render_bundle from webpack_loader %}
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
 <html>
@@ -6,24 +8,29 @@
     <title>{% block title %}{{ title }}{% endblock %}</title>
     <meta name="description" property="og:description" content="{% block description %}{{ desc }}{% endblock %}">
     
-    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="/static/files/opensearch.xml" />
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
 
-    {% block ogtype %}<meta property="og:type" content="website"/>{% endblock %}
-    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png" />{% endblock %}
+    {% block ogtype %}
+        <meta property="og:type" content="website"/>
+    {% endblock %}
+
+    {% block ogimage %}
+        <meta property="og:image" content="{{ STATIC_PREFIX }}img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png" />
+    {% endblock %}
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 
     <!-- https://realfavicongenerator.net -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=xQzLlLp7oR">
-    <link rel="manifest" href="/manifest.json?v=xQzLlLp7oR">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=xQzLlLp7oR" color="#273557">
-    <link rel="shortcut icon" href="/favicon.ico?v=xQzLlLp7oR">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32x32.png' %}?v=xQzLlLp7oR">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-16x16.png' %}?v=xQzLlLp7oR">
+    <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR">
+    <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
+    <link rel="shortcut icon" href="{% static 'icons/favicon.ico'%}?v=xQzLlLp7oR">
     <meta name="theme-color" content="#273557">
 
 
@@ -33,15 +40,15 @@
 
     {% block head %}{% endblock %}
 
-    <link rel="stylesheet" href="/static/css/common.css">
-    <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
-    <link rel="stylesheet" href="/static/css/s2.css">
-    <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
+    <link rel="stylesheet" href="{% static "css/common.css" %}">
+    <link rel="stylesheet" href="{%  static "font-awesome/css/font-awesome.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "css/keyboard.css" %}">
+    <link rel="stylesheet" href="{%  static "css/s2.css" %}">
+    <link rel="stylesheet" href="{%  static "css/s2-print.css" %}" media="print" />
 
     {% block static_css %}
     {% if not html %}
-    <link rel="stylesheet" href="/static/css/static.css">
+    <link rel="stylesheet" href="{%  static "css/static.css" %}">
     {% endif %}
     {% endblock %}
 
@@ -117,7 +124,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
-    <script src="/static/js/lib/keyboard.js"></script>
+    <script src="{% static "js/lib/keyboard.js" %}"></script>
     <script src="/data.js"></script>
 
     <script>
@@ -127,7 +134,8 @@
         contentLang: "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp: {% if html %}true{% else %}false{% endif %}, 
-        ga: ga
+        ga: ga,
+        static_url: {{ STATIC_PREFIX }}
       };
       {% endautoescape %}
     </script>

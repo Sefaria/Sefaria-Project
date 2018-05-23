@@ -181,7 +181,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         self.save()
 
         if USE_VARNISH:
-            from sefaria.system.sf_varnish import invalidate_counts
+            from sefaria.system.varnish.wrapper import invalidate_counts
             invalidate_counts(self.index)
 
     def get_flag(self, flag):

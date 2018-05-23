@@ -24,7 +24,7 @@ class AboutBox extends Component {
     let detailSection = null;
     if (d) {
       let authorsEn, authorsHe;
-      if (d.authors) {
+      if (d.authors && d.authors.length) {
         const authorArrayEn = d.authors.filter((elem) => !!elem.en);
         const authorArrayHe = d.authors.filter((elem) => !!elem.he);
         authorsEn = authorArrayEn.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> );
@@ -72,7 +72,7 @@ class AboutBox extends Component {
             <span className="en">{d.title}</span>
             <span className="he">{d.heTitle}</span>
           </div>
-          { authorsEn.length ?
+          { authorsEn && authorsEn.length ?
             <div className="aboutSubtitle">
               <span className="en">Author: {authorsEn}</span>
               <span className="he">מחבר: {authorsHe}</span>

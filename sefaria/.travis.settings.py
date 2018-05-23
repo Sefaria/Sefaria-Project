@@ -4,8 +4,8 @@ import os.path
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -47,25 +47,13 @@ CACHES = {
 
 SECRET_KEY = 'insert your long random secret key here !'
 
-STATICFILES_DIRS = (
-    '{}/static/'.format(HOME_DIR),
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-TEMPLATE_DIRS = (
-    '{}/templates/'.format(HOME_DIR),
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 MONGO_HOST = "localhost"
+MONGO_PORT = 27017
 # Name of the MongoDB database to use.
 SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
@@ -108,23 +96,18 @@ DISABLE_INDEX_SAVE = False
 RECAPTCHA_PUBLIC_KEY = "Dummy"
 RECAPTCHA_PRIVATE_KEY = "Dummy"
 
+# Multiserver
+MULTISERVER_ENABLED = True
+MULTISERVER_REDIS_SERVER = "127.0.0.1"
+MULTISERVER_REDIS_PORT = 6379
+MULTISERVER_REDIS_DB = 0
+MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
+MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 
-""" to use logging, in any module:
-# import the logging library
-import logging
+# OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
+GOOGLE_OAUTH2_CLIENT_ID = ""
+GOOGLE_OAUTH2_CLIENT_SECRET = ""
 
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
-
-#log stuff
-logger.critical()
-logger.error()
-logger.warning()
-logger.info()
-logger.debug()
-
-if you are logging to a file, make sure the directory exists and is writeable by the server.
-"""
 
 LOGGING = {
     'version': 1,
@@ -145,9 +128,6 @@ LOGGING = {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
         },
-        'require_debug_true': {
-            '()': 'sefaria.utils.log.RequireDebugTrue'
-        }
     },
     'handlers': {
         'default': {
@@ -165,18 +145,18 @@ LOGGING = {
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'verbose',
-            'filters': ['require_debug_true'],
+            'filters': [],
         },
         'console':{
             'level':'INFO',
             'class':'logging.StreamHandler',
             'formatter': 'simple',
-            'filters': ['require_debug_true'],
+            'filters': [],
         },
 
         'null': {
             'level':'INFO',
-            'class':'django.utils.log.NullHandler',
+            'class':'logging.NullHandler',
         },
 
         'mail_admins': {

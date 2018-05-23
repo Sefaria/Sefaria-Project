@@ -27,12 +27,12 @@ def add_inline_ref(link, itag):
 
 def fix_links(commentator):
     collective_title = library.get_index(commentator).collective_title
-    orach_ref = Ref("Shulchan Arukh, Orach Chayim")
+    orach_ref = Ref("Shulchan Arukh, Even HaEzer").default_child_ref()
 
     for r in orach_ref.all_segment_refs():
         if r.sections[0] % 20 == 1 and r.sections[1] == 1:
             print r.sections[0],
-        t = r.text('he', u'Maginei Eretz: Shulchan Aruch Orach Chaim, Lemberg, 1893')
+        t = r.text('he', u'Apei Ravrevei: Shulchan Aruch Even HaEzer, Lemberg, 1886')
         total_links = [l[0] for l in LinkSet(r).refs_from(Ref(commentator), as_link=True)]
         soup = BeautifulSoup(u'<root>{}</root>'.format(t.text), 'xml')
         total_itags = soup.find_all(itag_finder(collective_title))
@@ -48,5 +48,6 @@ def fix_links(commentator):
             print "\nOut of order at {}".format(r.normal())
 
 
-fix_links("Ba'er Hetev on Shulchan Arukh, Orach Chayim")
-fix_links("Magen Avraham")
+fix_links("Ba'er Hetev on Shulchan Arukh, Even HaEzer")
+fix_links("Beit Shmuel")
+fix_links("Chelkat Mechokek")
