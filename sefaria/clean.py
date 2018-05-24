@@ -61,6 +61,7 @@ def broken_links(tref=None, auto_links = False, manual_links = False, delete_lin
             print broken_links_list[-1]
             if delete_links:
                 link.delete()
+    return broken_links_list
 
 
 
