@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Technology for Jewish Educators | Sefaria" %}{% endblock %}
 
@@ -50,7 +50,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
-                        <img src="/static/img/network-icon.svg" alt=""/>
+                        <img src="{% static 'img/network-icon.svg' %}" alt=""/>
                         <span class="int-en">Partnership Initiative</span>
                         <span class="int-he">מיזם שיתופי הפעולה של ספריא</span>                        
                     </h2>
@@ -66,7 +66,7 @@
                         </div>
                     </a>
 
-                    <a href="/static/files/Sefaria_Partnership_Initiative_2017.pdf">
+                    <a href="{% static 'files/Sefaria_Partnership_Initiative_2017.pdf' %}">
                         <div class="button white control-elem">
                             <span class="int-en">Past Cohorts &rsaquo;</span>
                             <span class="int-he">משתפי פעולה קודמים &rsaquo;</span>
@@ -75,7 +75,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="/static/img/partnership-initiative-image.png" alt="Image of teachers at a Sefaria educator partnership initative presentation" />
+                    <img src="{% static 'img/partnership-initiative-image.png' %}" alt="Image of teachers at a Sefaria educator partnership initative presentation" />
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
-                        <img src="/static/img/newspaper-icon.svg" alt=""/>
+                        <img src="{% static 'img/newspaper-icon.svg' %}" alt=""/>
                         <span class="int-en">Educator News</span>
                         <span class="int-he">חדשות למחנך ולמחנכת</span>
                     </h2>
@@ -110,7 +110,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="/static/img/ed-news.png" alt="Closeup Image of Sefaria on an iPad"/>
+                    <img src="{% static 'img/ed-news.png' %}" alt="Closeup Image of Sefaria on an iPad"/>
                 </div>
             </div>
         </div>
@@ -119,7 +119,7 @@
         <div id="edRequestTraining" class="section center">
             <div class="sectionInner">
                     <h2>
-                        <img src="/static/img/book-icon.svg" alt=""/>
+                        <img src="{% static 'img/book-icon.svg' %}" alt=""/>
                         <span class="int-en">Request a training</span>
                         <span class="int-he">בקש הדרכה</span>
                     </h2>
@@ -141,7 +141,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
-                        <img src="/static/img/file-icon.svg" alt=""/>
+                        <img src="{% static 'img/file-icon.svg' %}" alt=""/>
                         <span class="int-en">Sheets</span>
                         <span class="int-he">דפי מקורות</span>
                     </h2>
@@ -196,7 +196,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
-                        <img src="/static/img/book-icon.svg" alt=""/>
+                        <img src="{% static 'img/book-icon.svg' %}" alt=""/>
                         <span class="int-en">Library</span>
                         <span class="int-he">ספריה</span>
                     </h2>
@@ -232,7 +232,7 @@
         <div id="edRequestTranslation" class="section center">
             <div class="sectionInner">
                     <h2>
-                        <img src="/static/img/book-icon.svg" alt=""/>
+                        <img src="{% static 'img/book-icon.svg' %}" alt=""/>
                         <span class="int-en">Request a text or translation</span>
                         <span class="int-he">בקש טקסט או תרגום</span>
                     </h2>
@@ -255,7 +255,7 @@
             <div class="sectionInner">
                 <div class="textBox">
                     <h2>
-                        <img src="/static/img/share-icon.svg" alt=""/>
+                        <img src="{% static 'img/share-icon.svg' %}" alt=""/>
                         <span class="int-en">Groups</span>
                         <span class="int-he">קבוצות</span>
                     </h2>
@@ -277,7 +277,7 @@
                     </a>
                 </div>
                 <div class="imageBox">
-                    <img src="static/img/ed-groups.png" alt="Image of teacher withe students using Sefaria"/>
+                    <img src="{% static 'img/ed-groups.png' %}" alt="Image of teacher withe students using Sefaria"/>
                 </div>
             </div>
         </div>

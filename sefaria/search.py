@@ -29,7 +29,7 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS
+from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS, SEARCH_ADMIN_USER, SEARCH_ADMIN_PW
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
 
@@ -48,7 +48,7 @@ init_pagesheetrank_dicts()
 all_gemara_indexes = library.get_indexes_in_category("Bavli")
 davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
-es = ElasticSearch(SEARCH_ADMIN)
+es = ElasticSearch(SEARCH_ADMIN, username=SEARCH_ADMIN_USER, password=SEARCH_ADMIN_PW)
 tracer = logging.getLogger('elasticsearch.trace')
 tracer.setLevel(logging.INFO)
 #tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
