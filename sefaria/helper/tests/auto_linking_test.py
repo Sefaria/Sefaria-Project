@@ -10,7 +10,7 @@ class Test_AutoLinker(object):
     kos_eliyahu_links = link_set_lambda("Kos Shel Eliyahu on Pesach Haggadah")
     desired_link_counts = {
         'Rashi on Genesis' : rashi_on_genesis_links.count(),
-        'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count()-6
+        'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count()
     }
     pass
 
