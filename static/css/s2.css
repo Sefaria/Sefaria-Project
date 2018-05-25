@@ -4914,7 +4914,7 @@ span.purim-emoji img{
 /* Sheets */
 
 .sheetsInPanel {
-  overflow: scroll;
+  overflow-y: scroll;
   height: 100%;
   padding: 0 15px;
   box-sizing: border-box;
@@ -4998,28 +4998,28 @@ span.purim-emoji img{
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-
 .sheetsInPanel p {
   margin: 0 0 1em 0;
 }
-
-
 .segmentNumber.sheetSegmentNumber {
   display: block;
   position: relative;
 }
-
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: -48px;
   top: 28px;
   text-align: center;
 }
+.interface-hebrew .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  float: left;
+  left: -60px;
+  top: 0;
+}
 .singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .singlePanel .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: -32px;
 }
-
 .readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: 0;
