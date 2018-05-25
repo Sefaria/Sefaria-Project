@@ -1,3 +1,5 @@
+import django
+django.setup()
 from sefaria.model import *
 from sefaria.system.database import db
 import csv
