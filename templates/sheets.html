@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block exclude_block_on_source_sheets %}{% endblock %}
+{% block static_css %}{% endblock %}
 {% load i18n cache humanize sefaria_tags%}
+{% load static %}
 
 {% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
 {% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" type="text/css" href="/static/css/tooltipster.css" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
     {% if not is_public %}
         <meta name="robots" content="noindex">
     {% endif %}
@@ -26,8 +27,8 @@
 
 {% block content %}
 <!-- CSS placed here so it has precedence over other sheets in base.html -->
-<link rel="stylesheet" href="/static/css/sheets.css">
-<link rel="stylesheet" href="/static/css/sheets-print.css" media="print" />
+<link rel="stylesheet" href="{% static 'css/sheets.css' %}">
+<link rel="stylesheet" href="{% static 'css/sheets-print.css' %}" media="print" />
 <div id="sheetsContent" data-interface-lang="{{ request.interfaceLang }}">
 
     <div class="sheetsEditNavTop">
@@ -41,7 +42,7 @@
                         {% if not new_sheet %}
                             {% if user.email %}
                             <div class="optionItem" id="copySheet" role="menuitem" tabindex="0">
-                                <img src="/static/img/copy.png" alt="Copy Sheet Icon">
+                                <img src="{% static 'img/copy.png' %}" alt="Copy Sheet Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Copy Sheet</span>
                                     <span class="int-he">שכפול דף מקורות</span>
@@ -58,7 +59,7 @@
                             </div>
                             {% endif %}
                             <div class="optionItem" id="embedSheet" role="menuitem" tabindex="0">
-                                <img src="/static/img/embed.png" alt="Embed Sheet Icon">
+                                <img src="{% static 'img/embed.png' %}" alt="Embed Sheet Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Embed Sheet</span>
                                     <span class="int-he">הטמעת דף מקורות</span>
@@ -67,7 +68,7 @@
                             </div>
                             {% if is_owner %}
                             <div class="optionItem" id="deleteSheet" role="menuitem" tabindex="0">
-                                <img src="/static/img/delete.png" alt="Delete Sheet Icon">
+                                <img src="{% static 'img/delete.png' %}" alt="Delete Sheet Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Delete Sheet</span>
                                     <span class="int-he">מחיקת דף מקורות</span>
@@ -79,7 +80,7 @@
                             {% if user.email %}
                             <div class="line"></div>
                             <div class="optionItem" id="editTags" role="menuitem" tabindex="0">
-                                <img src="/static/img/edittags.png" alt="Edit Sheet Tags Icon">
+                                <img src="{% static 'img/edittags.png' %}" alt="Edit Sheet Tags Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Tags</span>
                                     <span class="int-he">תיוגים</span>
@@ -92,7 +93,7 @@
 
                             <div class="optionGroup">
                                 <div class="optionTitle" id="assignmentsModalTrigger">
-                                    <img src="/static/img/assignment.png" alt="Assignment Icon">
+                                    <img src="{% static 'img/assignment.png' %}" alt="Assignment Icon">
                                     <span class="optionItemText">
                                         <span class="int-en">Assignments</span>
                                         <span class="int-he">מטלות</span>
@@ -107,7 +108,7 @@
                         <div class="line"></div>
 
                         <div class="optionItem" id="print" role="menuitem" tabindex="0">
-                            <img src="/static/img/print.png" alt="Print Icon">
+                            <img src="{% static 'img/print.png' %}" alt="Print Icon">
                             <span class="optionItemText">
                                 <span class="int-en">Print</span>
                                 <span class="int-he">הדפסה</span>
@@ -145,7 +146,7 @@
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         <div class="optionGroup">
                             <div class="optionTitle menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">
-                                <img src="/static/img/divine.png" alt="Divine Names Icon">
+                                <img src="{% static 'img/divine.png' %}" alt="Divine Names Icon">
                                 <span class="optionItemText">
                                     <span class="int-en">Divine Names</span>
                                     <span class="int-he">שמות קודש</span>
@@ -196,7 +197,7 @@
                     {% if can_edit or can_add %}
 
                         <div class="optionItem" id="resetText" role="menuitem" tabindex="0">
-                            <img src="/static/img/reset%20text.png" alt="Reset Source Text Icon">
+                            <img src="{% static 'img/reset%20text.png' %}" alt="Reset Source Text Icon">
                             <span class="optionItemText">
                                 <span class="int-en">Reset Source Text</span>
                                 <span class="int-he">איפוס שינויים למקורות</span>
@@ -429,7 +430,7 @@
                     <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">הכנסה</span>
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
-                            <img src="/static/img/source.png" alt="Add Source Icon">
+                            <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
                             <span class="optionItemText">
                                 <span class="int-en">Source</span>
                                 <span class="int-he">מקור</span>
@@ -437,7 +438,7 @@
                         </div>
                         {% if is_owner %}
                         <div class="optionItem" id="addParashaToSheetModalTrigger" role="menuitem" tabindex="0">
-                            <img src="/static/img/parasha.png" alt="Add Parasha Icon">
+                            <img src="{% static 'img/parasha.png' %}" alt="Add Parasha Icon">
                             <span class="optionItemText">
                                 <span class="int-en">Parasha</span>
                                 <span class="int-he">פרשה</span>
@@ -445,21 +446,21 @@
                         </div>
                         {% endif %}
                         <div class="optionItem" id="addCustomMenu" role="menuitem" tabindex="0">
-                            <img src="/static/img/custom%20text.png" alt="Add outside text icon">
+                            <img src="{% static 'img/custom%20text.png' %}" alt="Add outside text icon">
                             <span class="optionItemText">
                                 <span class="int-en">Text</span>
                                 <span class="int-he">טקסט</span>
                             </span>
                         </div>
                         <div class="optionItem" id="addCommentMenu" role="menuitem" tabindex="0">
-                            <img src="/static/img/comment.png" alt="Add Comment Icon">
+                            <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
                             <span class="optionItemText">
                                 <span class="int-en">Comment</span>
                                 <span class="int-he">הערה</span>
                             </span>
                         </div>
                         <div class="optionItem" id="addMediaMenu" role="menuitem" tabindex="0">
-                            <img src="/static/img/media.png" alt="Add Media Icon">
+                            <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
                             <span class="optionItemText">
                                 <span class="int-en">Media</span>
                                 <span class="int-he">מדיה</span>
@@ -551,7 +552,7 @@
                 </a>
                 {% elif is_owner or can_publish %}
                 <a id="share" class="button" role="button" tabIndex="0">
-                    <img src="/static/img/share.png" alt="Share Icon">
+                    <img src="{% static 'img/share.png' %}" alt="Share Icon">
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
                 </a>
@@ -684,7 +685,7 @@
 
             {% endif %}
 
-            <div id="sheetSummary">{{ sheet.summary }}</div>
+            <div id="sheetSummary">{{ sheet.summary|linebreaks }}</div>
 
             <div id="sheetTags">
                 {% for tag in sheet.tags %}
@@ -707,27 +708,27 @@
     {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img src="/static/img/source.png" alt="Add Source Icon">
+            <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img src="{% static 'img/source.png' %}" alt="Add Source Icon">
                 <span class="int-en">Source</span>
                 <span class="int-he">מקור</span>
             </div><!--
          --><div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
-                <img src="/static/img/connection.png" alt="Add Connections Icon">
+                <img src="{% static 'img/connection.png' %}" alt="Add Connections Icon">
                 <span class="int-en">Connection</span>
                 <span class="int-he">קישור</span>
             </div><!--
          --><div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
-                <img src="/static/img/custom%20text.png" alt="Add Outside Text Icon">
+                <img src="{% static 'img/custom%20text.png' %}" alt="Add Outside Text Icon">
                 <span class="int-en">Text</span>
                 <span class="int-he">טקסט</span>
             </div><!--
          --><div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
-                <img src="/static/img/media.png" alt="Add Media Icon">
+                <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
                 <span class="int-en">Media</span>
                 <span class="int-he">מדיה</span>
             </div><!--
          --><div class="addInterfaceButton" id="commentButton" tabindex="0" role="button">
-                <img src="/static/img/comment.png" alt="Add Comment Icon">
+                <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
                 <span class="int-en">Comment</span>
                 <span class="int-he">הערה</span>
             </div>
@@ -785,13 +786,13 @@
                 </div>
                 <div id="customTextLanguageToggle" class="toggle">
                     <span id="englishCustomText" class="toggleOption">
-                        <img src="/static/img/english.png" alt="English Language Toggle">
+                        <img src="{% static 'img/english.png' %}" alt="English Language Toggle">
                     </span>
                     <span id="bilingualCustomText" class="toggleOption active">
-                        <img src="/static/img/bilingual.png" alt="Bilingual Language Toggle">
+                        <img src="{% static 'img/bilingual.png' %}" alt="Bilingual Language Toggle">
                     </span>
                     <span id="hebrewCustomText" class="toggleOption">
-                        <img src="/static/img/hebrew.png" alt="Hebrew Language Toggle">
+                        <img src="{% static 'img/hebrew.png' %}" alt="Hebrew Language Toggle">
                     </span>
                 </div>
                 <div id="customTextContainer" class="flexContainer">
@@ -908,7 +909,7 @@
 	{% endif %}
 
 	<div id="printFooter">
-		<img src="/static/img/samekh.png">
+		<img src="{% static 'img/samekh.png' %}">
 		<div>
             {% trans "Made with the Sefaria Source Sheet Builder"  %}
 			<br/>
@@ -1363,11 +1364,11 @@
 <div id="overrideLayoutModal" class="modal s2Modal">
 	<div class="header">Change this source's layout:</div>
 
-		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="/static/img/backs.png"></span><span id="hebRightSource" class="toggleOption"><img src="/static/img/faces.png"></span></span>
+		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="{% static 'img/backs.png' %}"></span><span id="hebRightSource" class="toggleOption"><img src="{% static 'img/faces.png' %}"></span></span>
 
-		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="/static/img/sideBySide.png"></span><span id="stackedSource" class="toggleOption"><img src="/static/img/stacked.png"></span></span>
+		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="{% static 'img/sideBySide.png' %}"></span><span id="stackedSource" class="toggleOption"><img src="{% static 'img/stacked.png' %}"></span></span>
 
-		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualSource" class="toggleOption"><img src="/static/img/bilingual.png"></span><span id="hebrewSource" class="toggleOption"><img src="/static/img/hebrew.png"></span></span>
+		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="{% static 'img/english.png' %}"></span><span id="bilingualSource" class="toggleOption"><img src="{% static 'img/bilingual.png' %}"></span><span id="hebrewSource" class="toggleOption"><img src="{% static 'img/hebrew.png' %}"></span></span>
 	<br/>
 
 	<div class="button ok">OK</div>
@@ -1451,11 +1452,13 @@
 {% endblock %}
 
 {% block js  %}
-<script type="text/javascript" src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
-<script type="text/javascript" src="/static/js/lib/jquery.easing.1.3.js"></script>
-<script src="/static/js/lib/jquery.tooltipster.min.js"></script>
-<script src="/static/js/lib/jquery.tag-it.min.js"></script>
-<script src="/static/js/s1/util.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+<script>{% include "js/django-csrf.js" %}</script>
+<script type="text/javascript" src="{% static 'js/lib/jquery.easing.1.3.js' %}"></script>
+<script src="{% static 'js/lib/jquery.tooltipster.min.js' %}"></script>
+<script src="{% static 'js/lib/jquery.tag-it.min.js' %}"></script>
+<script src="{% static 'js/s1/util.js' %}"></script>
 
 {% include "js/headers.js" %}
 
@@ -1485,10 +1488,10 @@
 {% endautoescape %}
 </script>
 {% if can_edit or can_add %}
-<script src="/static/ckeditor/ckeditor.js"></script>
-<script src="/static/ckeditor/adapters/jquery.js"></script>
+<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
+<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
 {% endif %}
-<script src="/static/js/sheets.js"></script>
+<script src="{% static 'js/sheets.js' %}"></script>
 
 {% endblock %}
 

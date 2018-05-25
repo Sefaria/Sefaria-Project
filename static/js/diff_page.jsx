@@ -310,7 +310,7 @@ class DiffTable extends Component {
         v1Length: props.lang === 'he' ? data['he'].length : data.text.length
       }));
 
-    enVersion = null, heVersion = null;
+    enVersion = null; heVersion = null;
     if (props.lang === "en") { enVersion = props.v2; }
     else                     { heVersion = props.v2; }
     Sefaria.text(props.secRef,
@@ -447,18 +447,22 @@ class DiffRow extends Component {
   }
 
   componentDidUpdate() {
-    // This may be necessary once we start pushing to server, but should remain
-    // inactive for now.
-    if (this.state.v1 != null & this.state.v2 != null) {
+    let enVersion1 = null, heVersion1 = null, enVersion2 = null, heVersion2 = null;
+    if (this.props.lang === "en")
+      {enVersion1 = this.props.v1; enVersion2 = this.props.v2;}
+    else
+      {heVersion1 = this.props.v1; heVersion2 = this.props.v2;}
+
+    if (this.state.v1 !== null && this.state.v2 !== null) {
       if (this.state.v1.diffList === null || this.state.v2.diffList === null) {
       this.generateDiff(this.state.v1, this.state.v2);
       }
     }
-    if (this.state.v1 === null) {
-      Sefaria.text(this.props.segRef, {'wrapLinks': 0}, this.LoadV1);
+    else if (this.state.v1 === null) {
+      Sefaria.text(this.props.segRef, {enVersion: enVersion1, heVersion: heVersion1, 'wrapLinks': 0}, this.LoadV1);
     }
-    if (this.state.v2 === null) {
-      Sefaria.text(this.props.segRef, {'wrapLinks': 0}, this.LoadV2);
+    else if (this.state.v2 === null) {
+      Sefaria.text(this.props.segRef, {enVersion: enVersion2, heVersion: heVersion2, 'wrapLinks': 0}, this.LoadV2);
     }
   }
 

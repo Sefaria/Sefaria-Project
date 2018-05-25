@@ -31,8 +31,8 @@ from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH
-
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.system.multiserver.coordinator import server_coordinator
 
 """
                 ----------------------------------
@@ -63,7 +63,7 @@ class AbstractIndex(object):
 
     def set_title(self, title, lang="en"):
         if lang == "en":
-            self._title = title  # we need to store the title attr in a physical storage, not that .title is a virtual property
+            self._title = title  # we need to store the title attr in a physical storage, note that .title is a virtual property
         if getattr(self, 'nodes', None):
             self.nodes.key = title
 
@@ -979,6 +979,8 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         "versionUrl",  # bad data?
         "versionTitleInHebrew",  # stores the Hebrew translation of the versionTitle
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
+        "extendedNotes",
+        "extendedNotesHebrew",
     ]
 
     def __unicode__(self):
@@ -1589,6 +1591,14 @@ class TextFamily(object):
             "en": "versionNotes",
             "he": "heVersionNotes"
         },
+        "extendedNotes": {
+            "en": "extendedNotes",
+            "he": "heExtendedNotes"
+        },
+        "extendedNotesHebrew": {
+            "en": "extendedNotesHebrew",
+            "he": "heExtendedNotesHebrew"
+        },
         "versionNotesInHebrew": {
             "en": "versionNotesInHebrew",
             "he": "heVersionNotesInHebrew",
@@ -1889,9 +1899,7 @@ class RefCacheType(type):
 
         if tref:
             if tref in cls.__tref_oref_map:
-                ref = cls.__tref_oref_map[tref]
-                ref.tref = tref
-                return ref
+                return cls.__tref_oref_map[tref]
             else:
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
@@ -1946,6 +1954,14 @@ class Ref(object):
     """
     __metaclass__ = RefCacheType
 
+
+    __slots__ = (
+        'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
+        '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
+        '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
+        '_range_depth', '_range_index',
+    )
+
     def __init__(self, tref=None, _obj=None):
         """
         Object is generally initialized with a textual reference - ``tref``
@@ -1982,10 +1998,10 @@ class Ref(object):
         self._next = None
         self._prev = None
         self._padded = None
-        self._context = {}
+        self._context = None
         self._first_spanned_ref = None
-        self._spanned_refs = []
-        self._ranged_refs = []
+        self._spanned_refs = None
+        self._ranged_refs = None
         self._range_depth = None
         self._range_index = None
 
@@ -2012,7 +2028,7 @@ class Ref(object):
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
-        self.tref = self.tref.strip().replace(u"–", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
+        self.tref = self.tref.strip().replace(u"–", "-").replace(u"\u2011", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
         if self._lang == "he":
             return
 
@@ -2060,7 +2076,7 @@ class Ref(object):
 
             if self.index_node:
                 title = base[0:l]
-                if base[l - 1] == ".":   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
+                if base[l - 1] == "." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
                     title = base[0:l - 1]
                 break
             if new_tref:
@@ -3038,6 +3054,15 @@ class Ref(object):
         if level == 0:
             return self
 
+        if not self.sections and self.index_node.has_children():
+            if self.index_node.has_default_child():
+                return self.default_child_ref()
+            return self
+
+
+        if self._context is None:
+            self._context = {}
+
         if not self._context.get(level) or not self._context[level]:
             if len(self.sections) <= self.index_node.depth - level:
                 return self
@@ -3222,10 +3247,10 @@ class Ref(object):
         """
         :return: list of :class:`Ref` objects corresponding to each point in the range of this :class:`Ref`
         """
-        if not self._ranged_refs:
-            results = []
+        if self._ranged_refs is None:
             if not self.is_range():
                 return [self]
+            results = []
             if self.is_spanning():
                 for oref in self.split_spanning_ref():
                     results += oref.range_list() if oref.is_range() else [oref] if oref.is_segment_level() else oref.all_subrefs()
@@ -3591,7 +3616,8 @@ class Ref(object):
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew"]
+                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
+                  "extendedNotesHebrew"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -3614,6 +3640,7 @@ class Ref(object):
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return self.__class__.__name__ + "('" + str(self.uid()) + "')"
 
+    '''
     def old_dict_format(self):
         """
         Outputs the ref in the old format, for code that relies heavily on that format
@@ -3629,6 +3656,7 @@ class Ref(object):
         d.update(self.index.contents())
         del d["title"]
         return d
+    '''
 
     def he_book(self):
         return self.index_node.full_title("he")
@@ -3877,7 +3905,7 @@ class Library(object):
         self._full_term_mapping = {}
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self._build_term_mappings()
+            self.build_term_mappings()
 
     def _build_index_maps(self):
         # Build index and title node dicts in an efficient way
@@ -3908,7 +3936,7 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self._build_term_mappings()
+        self.build_term_mappings()
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
@@ -3934,8 +3962,13 @@ class Library(object):
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
+
+        """
+        # These seem needless, and counterproductive (certainly in the rebuild(include_toc=True) case)
+
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
+        """
 
     def get_toc(self, rebuild=False):
         """
@@ -4023,6 +4056,10 @@ class Library(object):
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
+        # This is used in the case of a remotely triggered multiserver update
+        if isinstance(indx, basestring):
+            indx = Index().load({"title": indx})
+
         self.get_toc_tree().update_title(indx, recount=True)
 
         from sefaria.summaries import update_title_in_toc
@@ -4030,9 +4067,16 @@ class Library(object):
 
         self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
 
+    def delete_index_from_toc(self, indx, categories = None):
+        """
+        :param indx: The Index object.  When called remotely, in multiserver mode, the string title of the index
+        :param categories: Only explicitly passed when called remotely, in multiserver mode
+        :return:
+        """
+        cats = categories or indx.categories
+        title = indx.title if isinstance(indx, Index) else indx
 
-    def delete_index_from_toc(self, indx):
-        toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
+        toc_node = self.get_toc_tree().lookup(cats, title)
         if toc_node:
             self.get_toc_tree().remove_index(toc_node)
 
@@ -4043,10 +4087,15 @@ class Library(object):
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
-        :param indx:
+        :param indx: The Index object.  When called remotely, in multiserver mode, the string title of the index
         :param old_ref:
         :return:
         """
+
+        # This is used in the case of a remotely triggered multiserver update
+        if isinstance(indx, basestring):
+            indx = Index().load({"title": indx})
+
         self.get_toc_tree().update_title(indx, old_ref=old_ref, recount=False)
 
         from sefaria.summaries import update_title_in_toc
@@ -4091,6 +4140,11 @@ class Library(object):
         :return:
         """
         assert index_object, "Library.add_index_record_to_cache called without index"
+
+        # This is used in the case of a remotely triggered multiserver update
+        if isinstance(index_object, basestring):
+            index_object = Index().load({"title": index_object})
+
         self._index_map[index_object.title] = index_object
         try:
             for lang in self.langs:
@@ -4106,30 +4160,30 @@ class Library(object):
     def remove_index_record_from_cache(self, index_object=None, old_title=None, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
-        :param index_object:
+        :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
         :param old_title: In the case of a title change - the old title of the Index record
         :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
         """
 
-        index_title = old_title or index_object.title
-        Ref.remove_index_from_cache(index_title)
+        index_object_title = index_object.title if isinstance(index_object, Index) else index_object
+        Ref.remove_index_from_cache(index_object_title)
 
         for lang in self.langs:
-            simple_titles = self._index_title_maps[lang].get(index_title)
+            simple_titles = self._index_title_maps[lang].get(index_object_title)
             if simple_titles:
                 for key in simple_titles:
                     try:
                         del self._title_node_maps[lang][key]
                     except KeyError:
-                        logger.warning(u"Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_title))
+                        logger.warning(u"Tried to delete non-existent title '{}' of index record '{}' from title-node map".format(key, index_object_title))
                     try:
                         del self._index_map[key]
                     except KeyError:
                         pass
-                del self._index_title_maps[lang][index_title]
+                del self._index_title_maps[lang][index_object_title]
             else:
-                logger.warning(u"Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_title, lang))
+                logger.warning(u"Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_object_title, lang))
                 return
 
         if rebuild:
@@ -4138,13 +4192,14 @@ class Library(object):
     def refresh_index_record_in_cache(self, index_object, old_title = None):
         """
         Update library title dictionaries and caches for provided index
-        :param title: primary title of index
+        :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
+        :param old_title: In the case of a title change - the old title of the Index record
         :return:
         """
-
+        index_object_title = index_object.title if isinstance(index_object, Index) else index_object
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
-        new_index = Index().load({"title": index_object.title})
-        assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object.title)
+        new_index = Index().load({"title": index_object_title})
+        assert new_index, u"No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
         self.add_index_record_to_cache(new_index, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
@@ -4260,12 +4315,14 @@ class Library(object):
         # term_dict = self.local_cache.get(key)
         term_dict = self._term_ref_maps.get(lang)
         if not term_dict:
-            self._build_term_mappings()
+            self.build_term_mappings()
             term_dict = self._term_ref_maps.get(lang)
 
         return term_dict
 
-    def _build_term_mappings(self):
+    def build_term_mappings(self):
+        self._simple_term_mapping = {}
+        self._full_term_mapping = {}
         for term in TermSet():
             self._full_term_mapping[term.name] = term
             self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
@@ -4277,30 +4334,14 @@ class Library(object):
 
     def get_simple_term_mapping(self):
         if not self._simple_term_mapping:
-            self._build_term_mappings()
+            self.build_term_mappings()
         return self._simple_term_mapping
 
     def get_term(self, term_name):
         if not self._full_term_mapping:
-            self._build_term_mappings()
+            self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
 
-    def reset_term_mappings(self):
-        self._simple_term_mapping = {}
-        self._full_term_mapping = {}
-
-    #todo: no usages
-    '''
-    def get_content_nodes(self):
-        """
-        :return: list of all content nodes in the library
-        """
-        nodes = []
-        forest = self.get_index_forest()
-        for tree in forest:
-            nodes += tree.get_leaf_nodes()
-        return nodes
-    '''
     
     #todo: only used in bio scripts
     def get_index_forest(self):
@@ -4713,53 +4754,74 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.base_text_titles.insert(pos, kwargs["new"])
         didx.save()
 
+
 def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
 
+
 def process_index_title_change_in_core_cache(indx, **kwargs):
     old_title = kwargs["old"]
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_title
-        invalidate_title(old_title)
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(old_title))
+
     library.refresh_index_record_in_cache(indx, old_title=old_title)
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
+    elif USE_VARNISH:
+        from sefaria.system.varnish.wrapper import invalidate_title
+        invalidate_title(old_title)
 
 
 def process_index_change_in_core_cache(indx, **kwargs):
     if kwargs.get("is_new"):
         library.add_index_record_to_cache(indx)
+
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
+
     else:
-        scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
         library.refresh_index_record_in_cache(indx)
-        if USE_VARNISH:
-            from sefaria.system.sf_varnish import invalidate_index
-            invalidate_index(indx.title)
+
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
+        elif USE_VARNISH:
+            from sefaria.system.varnish.wrapper import invalidate_title
+            invalidate_title(indx.title)
 
 
 def process_index_change_in_toc(indx, **kwargs):
-    library.update_index_in_toc(indx, old_ref=kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None)
+    old_ref = kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None
+    library.update_index_in_toc(indx, old_ref=old_ref)
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "update_index_in_toc", [indx.title, old_ref])
 
 
 def process_index_delete_in_toc(indx, **kwargs):
     library.delete_index_from_toc(indx)
 
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "delete_index_from_toc", [indx.title, indx.categories])
+
 
 def process_index_delete_in_core_cache(indx, **kwargs):
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(indx.title))
     library.remove_index_record_from_cache(indx)
-    if USE_VARNISH:
-        from sefaria.system.sf_varnish import invalidate_index, invalidate_counts
-        invalidate_index(indx.title)
-        invalidate_counts(indx.title)
 
-
-def process_version_save_in_cache(ver, **kwargs):
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
-
-
-def process_version_delete_in_cache(ver, **kwargs):
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(ver.title))
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
+    elif USE_VARNISH:
+        from sefaria.system.varnish.wrapper import invalidate_title
+        invalidate_title(indx.title)
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.reset_term_mappings()
+    library.build_term_mappings()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "build_term_mappings")
+
+
+def rebuild_library_after_category_change(*args, **kwargs):
+    library.rebuild(include_toc=True)
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild", [True])

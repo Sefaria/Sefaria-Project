@@ -14,8 +14,7 @@ from webpack_loader import utils as webpack_utils
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -23,7 +22,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib.sites.models import get_current_site
+from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
@@ -33,8 +32,8 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH
-from sefaria.model.user_profile import UserProfile, user_links
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
@@ -49,19 +48,20 @@ from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_l
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
+from sefaria.system.multiserver.coordinator import server_coordinator
 
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
+    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
 import logging
 logger = logging.getLogger(__name__)
 
 
 def register(request):
-    if request.user.is_authenticated():
-        return HttpResponseRedirect("/login")
+    if request.user.is_authenticated:
+        return redirect("login")
 
-    next = request.REQUEST.get('next', '')
+    next = request.GET.get('next', '')
 
     if request.method == 'POST':
         form = NewUserForm(request.POST)
@@ -84,105 +84,25 @@ def register(request):
                 next = request.POST.get("next", "/") + "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
-        if request.REQUEST.get('educator', ''):
+        if request.GET.get('educator', ''):
             form = NewUserForm(initial={'subscribe_educator': True})
         else:
             form = NewUserForm()
 
-    return render_to_response("registration/register.html",
-                                {'form' : form, 'next': next},
-                                RequestContext(request))
-
-
-@sensitive_post_parameters()
-@csrf_protect
-@never_cache
-def login(request, template_name='registration/login.html',
-          redirect_field_name=REDIRECT_FIELD_NAME,
-          authentication_form=AuthenticationForm,
-          current_app=None, extra_context=None):
-    """
-    Displays the login form and handles the login action.
-    """
-    redirect_to = request.REQUEST.get(redirect_field_name, '')
-
-    if request.method == "POST":
-        form = authentication_form(data=request.POST)
-        if form.is_valid():
-            # Ensure the user-originating redirection url is safe.
-            if not is_safe_url(url=redirect_to, host=request.get_host()):
-                redirect_to = settings.LOGIN_REDIRECT_URL
-
-            # Okay, security check complete. Log the user in.
-            auth_login(request, form.get_user())
-
-            if request.session.test_cookie_worked():
-                request.session.delete_test_cookie()
-
-            return HttpResponseRedirect(redirect_to)
-    else:
-        form = authentication_form(request)
-
-    request.session.set_test_cookie()
-
-    current_site = get_current_site(request)
-
-    context = {
-        'form': form,
-        redirect_field_name: redirect_to,
-        'site': current_site,
-        'site_name': current_site.name,
-    }
-    if extra_context is not None:
-        context.update(extra_context)
-    return TemplateResponse(request, template_name, context,
-                            current_app=current_app)
-
-
-def logout(request, next_page=None,
-           template_name='registration/logged_out.html',
-           redirect_field_name='next',
-           current_app=None, extra_context=None):
-    """
-    Logs out the user and displays 'You are logged out' message.
-    """
-    auth_logout(request)
-    redirect_to = request.REQUEST.get(redirect_field_name, '')
-    if redirect_to:
-        netloc = urlparse(redirect_to)[1]
-        # Security check -- don't allow redirection to a different host.
-        if not (netloc and netloc != request.get_host()):
-            return HttpResponseRedirect(redirect_to)
-
-    if next_page is None:
-        current_site = get_current_site(request)
-        context = {
-            'site': current_site,
-            'site_name': current_site.name,
-            'title': _('Logged out')
-        }
-        if extra_context is not None:
-            context.update(extra_context)
-        return TemplateResponse(request, template_name, context,
-                                current_app=current_app)
-    else:
-        # Redirect to this page until the session has been cleared.
-        return HttpResponseRedirect(next_page or request.path)
+    return render(request, "registration/register.html", {'form': form, 'next': next})
 
 
 def maintenance_message(request):
-    resp = render_to_response("static/maintenance.html",
-                                {"message": MAINTENANCE_MESSAGE},
-                                RequestContext(request))
+    resp = render(request,"static/maintenance.html",
+                                {"message": MAINTENANCE_MESSAGE})
     resp.status_code = 503
     return resp
 
 
 def accounts(request):
-    return render_to_response("registration/accounts.html",
+    return render(request,"registration/accounts.html",
                                 {"createForm": UserCreationForm(),
-                                "loginForm": AuthenticationForm() },
-                                RequestContext(request))
+                                "loginForm": AuthenticationForm()})
 
 
 def subscribe(request, email):
@@ -205,14 +125,14 @@ def data_js(request):
     """
     Javascript populating dynamic data like book lists, toc.
     """
-    return render_to_response("js/data.js", {}, RequestContext(request), mimetype= "text/javascript")
+    return render(request, "js/data.js", content_type="text/javascript")
 
 
 def sefaria_js(request):
     """
     Packaged Sefaria.js.
     """
-    data_js = render_to_string("js/data.js", {}, RequestContext(request))
+    data_js = render_to_string("js/data.js",context={}, request=request)
     webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
     bundle_path = webpack_files[0]["path"]
     with open(bundle_path, 'r') as file:
@@ -222,7 +142,7 @@ def sefaria_js(request):
         "sefaria_js": sefaria_js,
     }
 
-    return render_to_response("js/sefaria.js", attrs, RequestContext(request), mimetype= "text/javascript")
+    return render(request,"js/sefaria.js", attrs, content_type= "text/javascript")
 
 
 def linker_js(request):
@@ -233,7 +153,7 @@ def linker_js(request):
         "book_titles": json.dumps(model.library.full_title_list("en")
                       + model.library.full_title_list("he"))
     }
-    return render_to_response("js/linker.js", attrs, mimetype= "text/javascript")
+    return render(request,"js/linker.js", attrs, content_type= "text/javascript")
 
 
 def title_regex_api(request, titles):
@@ -327,18 +247,24 @@ def file_upload(request, resize_image=True):
 @staff_member_required
 def reset_cache(request):
     model.library.rebuild()
-    global user_links
-    user_links = {}
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild")
+
     return HttpResponseRedirect("/?m=Cache-Reset")
 
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
+
     index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
-    scache.delete_cache_elem(scache.generate_text_toc_cache_key(title))
-    if USE_VARNISH:
-        invalidate_title(title)
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
+    elif USE_VARNISH:
+        invalidate_title(index.title)
+
     return HttpResponseRedirect("/%s?m=Cache-Reset" % model.Ref(title).url())
 
 
@@ -363,9 +289,14 @@ def reset_counts(request, title=None):
             return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)
         vs.refresh()
+
         return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
     else:
         model.refresh_all_states()
+
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "rebuild_toc")
+
         return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
 
@@ -373,40 +304,51 @@ def reset_counts(request, title=None):
 def delete_orphaned_counts(request):
     remove_old_counts()
     scache.delete_template_cache("texts_dashboard")
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("scache", "delete_template_cache", ["texts_dashboard"])
+
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
 
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild_toc")
+
     return HttpResponseRedirect("/?m=TOC-Rebuilt")
 
-    """
-    from sefaria.settings import DEBUG
-    if DEBUG:
-        model.library.rebuild_toc()
-        return HttpResponseRedirect("/?m=TOC-Rebuilt")
-    else:
-        return HttpResponseRedirect("/?m=TOC-Rebuild-Not-Allowed")
-    """
 
 @staff_member_required
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
     library.build_ref_auto_completer()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "build_full_auto_completer")
+        server_coordinator.publish_event("library", "build_ref_auto_completer")
+
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
+'''
+# No usages found
 @staff_member_required
 def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
-
+'''
 
 @staff_member_required
 def rebuild_topics(request):
     from sefaria.model.topic import update_topics
     update_topics()
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("topic", "update_topics")
+
     return HttpResponseRedirect("/topics?m=topics-rebuilt")
 
 
@@ -435,15 +377,19 @@ def reset_ref(request, tref):
         vs = model.VersionState(index=oref.index)
         vs.refresh()
         model.library.update_index_in_toc(oref.index)
-        scache.delete_cache_elem(scache.generate_text_toc_cache_key(oref.index.title))
-        if USE_VARNISH:
-            invalidate_index(oref.index)
-            invalidate_counts(oref.index)
-            invalidate_ref(oref)
+
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
+            server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
+        elif USE_VARNISH:
+            invalidate_title(oref.index.title)
+
         return HttpResponseRedirect("/{}?m=Reset-Index".format(oref.url()))
+
     elif USE_VARNISH:
         invalidate_ref(oref)
         return HttpResponseRedirect("/{}?m=Reset-Ref".format(oref.url()))
+
     else:
         return HttpResponseRedirect("/?m=Nothing-to-Reset")
 
@@ -474,14 +420,14 @@ def cache_stats(request):
     import resource
     from sefaria.utils.util import get_size
     from sefaria.model.user_profile import public_user_data_cache
-    from sefaria.sheets import last_updated
+    # from sefaria.sheets import last_updated
     resp = {
         'ref_cache_size': model.Ref.cache_size(),
         # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
         'public_user_data_size': len(public_user_data_cache),
         'public_user_data_bytes': get_size(public_user_data_cache),
-        'sheets_last_updated_size': len(last_updated),
-        'sheets_last_updated_bytes': get_size(last_updated),
+        # 'sheets_last_updated_size': len(last_updated),
+        # 'sheets_last_updated_bytes': get_size(last_updated),
         'memory usage': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     }
     return jsonResponse(resp)
@@ -514,7 +460,7 @@ def cause_error(request):
     try:
         erorr = excepting
     except Exception as e:
-        logger.exception('An Exception has occured in thre code')
+        logger.exception('An Exception has ocurred in the code')
     erorr = error
     return jsonResponse(resp)
 
@@ -796,7 +742,7 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if v2:
         v2 = v2.replace(u"_", u" ")
 
-    return render_to_response('compare.html', {"JSON_PROPS": json.dumps({
+    return render(request,'compare.html', {"JSON_PROPS": json.dumps({
         'secRef': secRef,
         'v1': v1, 'v2': v2,
         'lang': lang,})})

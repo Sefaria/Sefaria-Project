@@ -1,6 +1,6 @@
 {% load sefaria_tags %}
 
-<script src="/static/js/lib/keyboard.js"></script>
+<script src="{% static 'js/lib/keyboard.js' %}"></script>
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
@@ -274,9 +274,9 @@
 						"<i id='navTocPreviewToggle' class='fa fa-eye' title='Text preview on/off'></i>" +
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
-							"<img src='/static/img/english.png' /></div>" +
+							"<img src='{% static 'img/english.png' %}' /></div>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" +
-							"<img src='/static/img/hebrew.png' /></div>" +
+							"<img src='{% static 'img/hebrew.png' %}' /></div>" +
 						"</div></div>";
 
             // Structure selector

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% get_static_prefix as STATIC_PREFIX %}
 
 {% load sefaria_tags %}
 
@@ -30,7 +31,8 @@ body {
         },
         containerId: 'editGroupPageContainerInner',
         reactComponentName: 'EditGroupPage',
-        ga: ga
+        ga: ga,
+        static_url: {{ STATIC_PREFIX }}
     };
     {% endautoescape %}
 

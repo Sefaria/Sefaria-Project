@@ -10,12 +10,12 @@ if not hasattr(sys, '_doc_build'):
 	from django.template.loader import render_to_string
 	from django.core.validators import URLValidator, EmailValidator
 	from django.core.exceptions import ValidationError
+	from anymail.exceptions import AnymailRecipientsRefused
 
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 from django.utils import translation
-
 
 
 class UserProfile(object):
@@ -71,7 +71,6 @@ class UserProfile(object):
 		}
 
 		self._name_updated      = False
-		self._slug_updated      = False
 
 		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
@@ -96,9 +95,6 @@ class UserProfile(object):
 		if "first_name" in obj or "last_name" in obj:
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
-
-		if "slug" in obj and obj["slug"] != self.slug:
-			self._slug_updated = True
 
 	def update(self, obj):
 		"""
@@ -127,13 +123,6 @@ class UserProfile(object):
 		if self._id:
 			d["_id"] = self._id
 		db.profiles.save(d)
-
-		# invalidate user links cache if needed
-		if self._name_updated or self._slug_updated:
-			global user_links
-			if self.id in user_links:
-				del user_links[self.id]
-			self._slug_updated = False
 
 		# store name changes on Django User object
 		if self._name_updated:
@@ -317,8 +306,11 @@ def email_unread_notifications(timeframe):
 		msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
 		msg.content_subtype = "html"  # Main content is now text/html
 		#msg.attach_alternative(message_text, "text/plain")
-		msg.send()
-		notifications.mark_read(via="email")
+		try:
+			msg.send()
+			notifications.mark_read(via="email")
+		except AnymailRecipientsRefused:
+			print u'bad email address: {}'.format(to)
 
 		if "interface_language" in profile.settings:
 			translation.deactivate()
@@ -361,16 +353,10 @@ def user_name(uid):
 	return data["name"]
 
 
-# Simple Cache for user links
-user_links = {}
 def user_link(uid):
 	"""Returns a string with an <a> tag linking to a users profile"""
-	if uid in user_links:
-		return user_links[uid]
-
 	data = public_user_data(uid)
 	link = "<a href='" + data["profileUrl"] + "' class='userLink'>" + data["name"] + "</a>"
-	user_links[uid] = link
 	return link
 
 

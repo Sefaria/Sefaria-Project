@@ -17,9 +17,9 @@ def parse_daily_mishnah(filename):
         for row in rambams:
             if not len(row):
                 continue
-            rf = model.Ref(row[1])
+            rf = model.Ref("Mishneh Torah, {}".format(row[2]))
             rambam = {
-                "date": datetime.strptime(row[0], "%m/%d/%Y"),
+                "date": datetime.strptime(row[1], "%m/%d/%Y"),
                 "ref": rf.normal(),
             }
             db.daily_rambam.save(rambam)

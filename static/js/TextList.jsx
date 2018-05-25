@@ -82,7 +82,10 @@ class TextList extends Component {
     var commentator       = filter[0];
     var basetext          = this.getSectionRef();
     var commentarySection = Sefaria.commentarySectionRef(commentator, basetext);
-    if (!commentarySection) { return; }
+    if (!commentarySection) {
+      this.setState({waitForText: false});
+      return;
+    }
 
     this.setState({waitForText: true});
     Sefaria.text(commentarySection, {}, function() {

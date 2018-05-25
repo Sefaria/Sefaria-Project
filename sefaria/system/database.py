@@ -5,34 +5,40 @@ The system attribute _called_from_test is set in the py.test conftest.py file
 import sys
 from sefaria.settings import *
 import pymongo
+from pymongo import MongoClient
+
 
 if hasattr(sys, '_doc_build'):
     db = ""
 else:
     TEST_DB = SEFARIA_DB + "_test"
-    connection = pymongo.Connection(MONGO_HOST)
+    client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
 
     if not hasattr(sys, '_called_from_test'):
-        db = connection[SEFARIA_DB]
+        db = client[SEFARIA_DB]
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
-        if TEST_DB not in connection.database_names():
-            connection.copy_database(SEFARIA_DB, TEST_DB)
-        db = connection[TEST_DB]
+        if TEST_DB not in client.database_names():
+            client.admin.command('copydb',
+                                 fromdb=SEFARIA_DB,
+                                 todb=TEST_DB)
+        db = client[TEST_DB]
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 def drop_test():
-    global connection
-    connection.drop_database(TEST_DB)
+    global client
+    client.drop_database(TEST_DB)
 
 
 def refresh_test():
-    global connection
+    global client
     drop_test()
-    connection.copy_database(SEFARIA_DB, TEST_DB)
+    client.admin.command('copydb',
+                         fromdb=SEFARIA_DB,
+                         todb=TEST_DB)
 
 
 def ensure_indices():
@@ -66,6 +72,7 @@ def ensure_indices():
     db.place.ensure_index([("point", pymongo.GEOSPHERE)])
     db.place.ensure_index([("area", pymongo.GEOSPHERE)])
     db.profiles.ensure_index("slug")
+    db.profiles.ensure_index("id")
     db.sheets.ensure_index("id")
     db.sheets.ensure_index("dateModified")
     db.sheets.ensure_index("sources.ref")

@@ -558,7 +558,7 @@ input.noselect {
   line-height: 32px;
 }
 .languageToggle img {
-  opacity: 0.2;
+  opacity: 0.4;
   height: 18px;
 }
 .systemPanel.english .content .he {
@@ -690,7 +690,7 @@ input.noselect {
 .readerNavTop .readerOptions {
   text-align: left;
   box-sizing: border-box;
-  color: #BFBFBF;
+  color: #999;
   float: left;
   font-size: 20px;
   cursor: pointer;
@@ -1654,7 +1654,7 @@ a.readerNavCategory {
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: #999;
+  color: #666;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -1682,7 +1682,7 @@ a.readerNavCategory {
   padding-top: 5px;
 }
 .searchContent .searchFilterToggle {
-  color: #999;
+  color: #666;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -2116,6 +2116,9 @@ a.readerNavCategory {
 .connectionsHeaderTitle .fa-chevron-right {
   margin-left: 10px;
 }
+.connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
+  color: #999;
+}
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
@@ -2145,7 +2148,7 @@ a.readerNavCategory {
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
-  color: #999;
+  color: #666;
   width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
@@ -2185,7 +2188,7 @@ a.readerNavCategory {
   width: 40px;
   height: 48px;
   line-height: 48px;
-  color: #CCC;
+  color: #999;
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
@@ -2239,7 +2242,7 @@ a.readerNavCategory {
   unicode-bidi: bidi-override;
 }
 .readerControls .readerTextToc .fa-caret-down {
-  color: #ccc;
+  color: #999;
   margin: 0 7px;
   vertical-align: 0px;
 }
@@ -2268,14 +2271,32 @@ a.readerNavCategory {
   z-index: 103;
 }
 .readerOptionsPanelInner {
-  max-width: 660px;
+  max-width: 530px;
   margin: 0 auto;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  color: #999;
 }
 .toggleSet {
   display: inline-block;
-  width: 100%;
-  margin: 7px 0;
-  margin-left: 1px;
+  width: 48%;
+  margin: 2px auto 20px auto;
+  /*margin-left: 1px;*/
+}
+.interface-hebrew .toggleSet.aliyotTorah, .interface-hebrew .toggleSet .toggle-set-label{
+  font-family: "Heebo", sans-serif;
+}
+.interface-english .toggleSet.aliyotTorah, .interface-english .toggleSet .toggle-set-label{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+}
+.toggleSet .toggle-set-label{
+  font-size: 13px;
+  display: block;
+  text-align: center;
+  margin: 10px;
+  letter-spacing: 1.5px;
 }
 .toggleOption {
   box-sizing: border-box;
@@ -2285,8 +2306,22 @@ a.readerNavCategory {
   padding: 4px;
   height: 42px;
   line-height: 34px;
-  background-color: white;
+  background-color: #f9f9f7;
   vertical-align: middle;
+}
+.toggleSet.aliyotTorah .toggleOption{
+  font-size: 14px;
+}
+.toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
+  /*line-height: 29px;*/
+  position: relative;
+  top: -3px;
+}
+.toggleSet.fontSize .toggleOption{
+  color: black;
+}
+.toggleSet.biLayout .toggleOption img, .toggleSet.layout .toggleOption img{
+  opacity: 0.5;
 }
 .toggleOption:first-child {
     border-top-left-radius: 4px;
@@ -2298,7 +2333,11 @@ a.readerNavCategory {
     border-right: 1px solid #999;
 }
 .toggleOption.on, .toggleOption:hover {
-  background-color: #eee;
+  background-color: white;
+  color: black;
+}
+.toggleSet.biLayout .toggleOption.on img, .toggleSet.layout .toggleOption:hover img{
+  opacity: 1;
 }
 .toggleSet.separated .toggleOption {
   margin-right: 3%;
@@ -2430,6 +2469,14 @@ a.readerNavCategory {
   font-size: 18px;
   letter-spacing: 1px;
 }
+.parashahHeader.aliyah{
+  color: #bebebe;
+}
+.parashahHeader.aliyah span{
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
 .parashahHeader .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
@@ -2438,6 +2485,12 @@ a.readerNavCategory {
 }
 .bilingual .parashahHeader .en {
   display: none;
+}
+.title + .text .parashahHeader {
+    margin-top: -5px;
+}
+.title + .text {
+    margin-top: 0;
 }
 .segment {
   cursor: pointer;
@@ -2775,7 +2828,7 @@ a.readerNavCategory {
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
 .readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img{
-  opacity: 0.2;
+  opacity: 0.4;
   height: 20px;
   width: 20px;
   vertical-align: middle;
@@ -2966,6 +3019,8 @@ a.readerNavCategory {
   cursor: pointer;
   line-height: 18px;
   color: #333;
+  -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
+
 }
 .textFilter {
   padding: 12px 34px;
@@ -3545,23 +3600,23 @@ a.readerNavCategory {
   text-transform: uppercase;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#s2Loading {
+#appLoading {
   text-align: center;
   background-color: #F9F9F7;
   height: 100%;
   color: #666;
 }
-#s2Loading .sefariaLogo {
+#appLoading .sefariaLogo {
   margin-top: 18px;
   margin-bottom: 2px;
 }
-#s2Loading .loadingMessage {
+#appLoading .loadingMessage {
   position: absolute;
   width: 100%;
   top: 32%;
   font-size: 18px;
 }
-#s2Loading img {
+#appLoading img {
   width: 150px;
   height: 42px;
 }
@@ -4390,6 +4445,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editGroupPage .helperText {
   color: #999;
   font-size: 13px;
+  width: 500px;
 }
 #editGroupPage .groupHeaderBox {
   width: 100%;
@@ -4748,4 +4804,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .aboutBox .versionBlock .versionTitle:hover {
   text-decoration: none;
+}
+span.purim-emoji img{
+  height: 25px;
+  width: 25px;
 }
