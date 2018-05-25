@@ -1,8 +1,6 @@
 """
 Small utilities for fixing problems that occur in the DB.
 """
-import django
-django.setup()
 from copy import deepcopy
 
 import sefaria.model as model
