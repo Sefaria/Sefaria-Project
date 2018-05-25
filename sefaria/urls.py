@@ -313,6 +313,7 @@ static_pages = [
     "aramaic-translation-contest",
     "newsletter",
     "shavuot-map-2018",
+    "testimonials"
 ]
 
 # Static and Semi Static Content
