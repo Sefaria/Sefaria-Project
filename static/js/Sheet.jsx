@@ -258,7 +258,7 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="sheetMetaDataBox">
-            <div className="title" role="heading" aria-level="1"><span className="en">{this.props.title.stripHtml()}</span><span className="he">{this.props.title.stripHtml()}</span></div>
+            <div className="title" role="heading" aria-level="1">{this.props.title.stripHtml()}</div>
 
             <div className="authorStatement">{this.props.authorStatement}</div>
 
@@ -421,7 +421,7 @@ class SheetMedia extends Component {
     }
 
     else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
-      mediaLink = '<iframe width="560" height="315" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe>'
+      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>'
     }
 
     else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {

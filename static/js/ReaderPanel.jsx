@@ -1060,9 +1060,9 @@ class ReaderControls extends Component {
         <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-            { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null }
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
+            { this.props.sheet? <div><img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /><span>{title}</span></div> :
+            <div><span className="en">{title}</span>
+            <span className="he">{heTitle}</span></div> }
             { title ? (<i className="fa fa-caret-down"></i>) : null }
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
@@ -1249,6 +1249,7 @@ class ReaderDisplayOptionsMenu extends Component {
       let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
       vowelsOptions = vowelsOptions.slice(vowelOptionsSlice);
       var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
+        this.props.parentPanel == "Sheet" ? null :
         (<ToggleSet
             role="radiogroup"
             ariaLabel="vowels and cantillation toggle"

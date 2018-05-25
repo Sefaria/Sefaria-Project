@@ -2772,6 +2772,13 @@ a.readerNavCategory {
   right: -46px;
   left:auto;
 }
+.readerApp.interface-hebrew .readerPanel.bilingual.stacked .sheetItem.segment .linkCount {
+  left: -46px;
+  right: auto;
+}
+
+
+
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
   left: 50%;
@@ -5076,4 +5083,19 @@ span.purim-emoji img{
 
 .sheetContent .sheetItem > .he > span > p:last-child {
   margin-bottom: 0;
+}
+
+.youTubeContainer {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  padding-top: 25px;
+  height: 0;
+}
+
+.youTubeContainer iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
