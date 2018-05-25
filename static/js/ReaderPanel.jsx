@@ -558,6 +558,7 @@ class ReaderPanel extends Component {
           highlightedNodes={this.state.highlightedNodes}
           onRefClick={this.handleSheetCitationClick}
           contentLang={this.state.settings.language}
+          interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
       />);
     }

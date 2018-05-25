@@ -5013,7 +5013,8 @@ span.purim-emoji img{
 }
 .interface-hebrew .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   float: left;
-  left: -60px;
+  left: -48px;
+  margin-right: -30px;
   top: 0;
 }
 .singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
