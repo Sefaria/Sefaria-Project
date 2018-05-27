@@ -1,4 +1,4 @@
-{% load sefaria_tags %}
+{% load sefaria_tags static%}
 
 <script src="{% static 'js/lib/keyboard.js' %}"></script>
 <script type="text/javascript">
