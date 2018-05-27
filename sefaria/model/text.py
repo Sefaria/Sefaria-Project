@@ -3032,10 +3032,17 @@ class Ref(object):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
-        size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
+        ja = self.get_state_ja(lang)
+        size = ja.sub_array_length([i - 1 for i in self.sections])
         if size is None:
             size = 0
-        return self.subrefs(size)
+        subrefs = self.subrefs(size)
+
+        # at this point, subrefs can include non-existent refs, so now filter those out using ja.array()
+        subrefs = [poss_subref for poss_subref, actual_subref in zip(subrefs, ja.array()) if actual_subref != []]
+
+        return subrefs
+
 
     def context_ref(self, level=1):
         """
