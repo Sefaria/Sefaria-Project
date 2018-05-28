@@ -502,3 +502,21 @@ def test_version_word_count():
 
     #sets
     assert model.VersionSet({"title": {"$regex": "Haggadah"}}).word_count() > 200000
+
+
+def test_version_walk_thru_contents():
+    def action(segment_str, tref, heTref, version):
+        r = model.Ref(tref)
+        tc = model.TextChunk(r, lang=version.language, vtitle=version.versionTitle)
+        assert tc.text == segment_str
+        assert tref == r.normal()
+        assert heTref == r.he_normal()
+
+    test_index_titles = ["Genesis", "Rashi on Shabbat", "Pesach Haggadah", "Orot", "Ramban on Deuteronomy"]
+    for t in test_index_titles:
+        ind = model.library.get_index(t)
+        vs = ind.versionSet()
+        for v in vs:
+            v.walk_thru_contents(action)
+
+

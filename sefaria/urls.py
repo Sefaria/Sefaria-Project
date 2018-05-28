@@ -15,6 +15,13 @@ import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
 
+import reader.views as reader_views
+import sefaria.views as sefaria_views
+import sourcesheets.views as sheets_views
+import sefaria.gauth.views as gauth_views
+import django.contrib.auth.views as django_auth_views
+
+
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
 
@@ -311,6 +318,9 @@ static_pages = [
     "educators",
     "the-sefaria-story",
     "aramaic-translation-contest",
+    "newsletter",
+    "shavuot-map-2018",
+    "testimonials"
 ]
 
 # Static and Semi Static Content
@@ -332,6 +342,7 @@ urlpatterns += [
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
+url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 ]
 

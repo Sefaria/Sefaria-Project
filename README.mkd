@@ -61,7 +61,7 @@ On Windows systems, use instructions [here](http://www.tylerbutler.com/2012/05/h
 
 #### Install gettext
 
-`gettext` is a GNU utility that Django uses to manage localizations. 
+`gettext` is a GNU utility that Django uses to manage localizations.
 
 On Mac:
 
@@ -79,7 +79,7 @@ On Debian systems
     cp local_settings_example.py local_settings.py
     vim local_settings.py
     
-Replace the placeholder values with values with those matching your environment. For the most part, you should only have to specify values in the top part of the file where it directs you to change the given values. 
+Replace the placeholder values with values with those matching your environment. For the most part, you should only have to specify values in the top part of the file where it directs you to change the given values.
 
 You can name your local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on Mongo.
 
@@ -95,7 +95,7 @@ If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/i
 
 #### Put some texts in your database:
 
-We make a MongoDB dump of our database is available download. The complete dump is available at http://dev.sefaria.org/static/dump.tar.gz . The complete dump includes a `history` collections which includes a complete revision history of every text our library. For many applications this data is not relevant. A small dump which exclude `history` is available at: http://dev.sefaria.org/static/dump_small.tar.gz . We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria. 
+We make a MongoDB dump of our database is available download. The complete dump is available at https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz . The complete dump includes a `history` collections which includes a complete revision history of every text our library. For many applications this data is not relevant. A small dump which exclude `history` is available at: https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz . We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria.
 
 Once you've download and unzipped this content, from the parent directory which contains `dump` run:
 
@@ -108,9 +108,9 @@ If you have used `dump_small.tar.gz`, use the mongo client shell, or a GUI you h
 #### Set up Django's local server
 `manage.py` is used to run and to manage the local server.  It is located in the root directory of the `Sefaria-Project` code base. 
 
-Django auth features run on a separate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run (from the project root): 
+Django auth features run on a separate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run (from the project root):
 
-    python manage.py syncdb
+    python manage.py migrate
     
 #### Run the development server:
 
