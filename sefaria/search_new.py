@@ -233,9 +233,6 @@ def create_index(index_name, type):
 
     settings = {
         "index" : {
-            "blocks": {
-                "read_only_allow_delete": "false"
-            },
             "analysis" : {
                 "analyzer" : {
                     "my_standard" : {
