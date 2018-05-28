@@ -60,7 +60,6 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
-        "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY
         #"USE_VARNISH":            USE_VARNISH,
         #"VARNISH_ADDR":           VARNISH_ADDR,
         #"USE_VARNISH_ESI":        USE_VARNISH_ESI

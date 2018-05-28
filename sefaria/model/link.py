@@ -245,10 +245,7 @@ class LinkSet(abst.AbstractMongoSet):
 
 def process_index_title_change_in_links(indx, **kwargs):
     print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
-
-    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from text import re as reg_reg
-    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+    patterns = [pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
                 for pattern in text.Ref(indx.title).regex(as_list=True)]
     queries = [{'refs': {'$regex': pattern}} for pattern in patterns]
     links = LinkSet({"$or": queries})
