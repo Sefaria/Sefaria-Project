@@ -27,7 +27,7 @@ steps:
   - name: "gcr.io/cloud-builders/git"
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
   - name: 'debian'
-    dir: "k8s-admin"
+    dir: "k8s-admin/scripts"
     args: ["bash", "-c", "./generate_release_configs.sh $TAG_NAME"]
   - name: "gcr.io/cloud-builders/git"
     args: ["config", "--global", "user.email", "dev@sefaria.org"]
@@ -40,16 +40,18 @@ steps:
     dir: "k8s-admin"
     args: ["push", "origin", "master"]
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["apply", "-f", "k8s-admin/k8s/_build/latest/"]
+    args: ["apply", "-f", "k8s-admin/deployments/_build/"]
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["apply", "-f", "k8s-admin/cronjobs/_build/latest/"]
+    args: ["apply", "-f", "k8s-admin/cronjobs/_build/"]
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-
+  #- name: 'debian'
+  #  dir: "k8s-admin/scripts"
+  #  args: ["bash", "-c", "./notify_on_slack.sh $TAG_NAME"]
 
 images:
   - "gcr.io/production-deployment/multi_monitor:$TAG_NAME"

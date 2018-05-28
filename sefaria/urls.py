@@ -13,8 +13,12 @@ import reader.views as reader_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
+<<<<<<< HEAD
 
 from sefaria.site.urls import site_urlpatterns
+=======
+import django.contrib.auth.views as django_auth_views
+>>>>>>> origin/master
 
 
 admin.autodiscover()
