@@ -110,7 +110,7 @@ If you have used `dump_small.tar.gz`, use the mongo client shell, or a GUI you h
 
 Django auth features run on a separate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run (from the project root):
 
-    python manage.py migrate
+    python manage.py syncdb
     
 #### Run the development server:
 

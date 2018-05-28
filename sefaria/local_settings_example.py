@@ -141,7 +141,6 @@ DOMAIN_LANGUAGES = {
 }
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
-GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'
 
 AWS_ACCESS_KEY = None
