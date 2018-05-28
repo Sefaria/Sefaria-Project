@@ -1363,11 +1363,11 @@
 <div id="overrideLayoutModal" class="modal s2Modal">
 	<div class="header">Change this source's layout:</div>
 
-		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="{% static 'img/backs.png' %}"></span><span id="hebRightSource" class="toggleOption"><img src="{% static 'img/faces.png' %}"></span></span>
+		<span id="biLayoutToggleSource" class="toggle"><span id="hebLeftSource" class="toggleOption"><img src="/static/img/backs.png"></span><span id="hebRightSource" class="toggleOption"><img src="/static/img/faces.png"></span></span>
 
-		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="{% static 'img/sideBySide.png' %}"></span><span id="stackedSource" class="toggleOption"><img src="{% static 'img/stacked.png' %}"></span></span>
+		<span id="sheetLayoutToggleSource" class="toggle"><span id="sideBySideSource" class="toggleOption"><img src="/static/img/sideBySide.png"></span><span id="stackedSource" class="toggleOption"><img src="/static/img/stacked.png"></span></span>
 
-		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="{% static 'img/english.png' %}"></span><span id="bilingualSource" class="toggleOption"><img src="{% static 'img/bilingual.png' %}"></span><span id="hebrewSource" class="toggleOption"><img src="{% static 'img/hebrew.png' %}"></span></span>
+		<span id="languageToggleSource" class="toggle"><span id="englishSource" class="toggleOption"><img src="/static/img/english.png"></span><span id="bilingualSource" class="toggleOption"><img src="/static/img/bilingual.png"></span><span id="hebrewSource" class="toggleOption"><img src="/static/img/hebrew.png"></span></span>
 	<br/>
 
 	<div class="button ok">OK</div>
@@ -1487,8 +1487,8 @@
 {% endautoescape %}
 </script>
 {% if can_edit or can_add %}
-<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
-<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
+<script src="/static/ckeditor/ckeditor.js"></script>
+<script src="/static/ckeditor/adapters/jquery.js"></script>
 {% endif %}
 <script src="/static/js/sheets.js"></script>
 
