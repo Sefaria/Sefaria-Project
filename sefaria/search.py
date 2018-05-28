@@ -32,6 +32,7 @@ from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME, STATICFILES_DIRS, SEARCH_ADMIN_USER, SEARCH_ADMIN_PW
 from sefaria.utils.hebrew import hebrew_term
 import sefaria.model.queue as qu
+from sefaria.site.site_settings import TORAH_SPECIFIC
 
 def init_pagesheetrank_dicts():
     global pagerank_dict, sheetrank_dict
@@ -45,8 +46,9 @@ def init_pagesheetrank_dicts():
         sheetrank_dict = {}
 
 init_pagesheetrank_dicts()
-all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
+if TORAH_SPECIFIC:
+    all_gemara_indexes = library.get_indexes_in_category("Bavli")
+    davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es = ElasticSearch(SEARCH_ADMIN, username=SEARCH_ADMIN_USER, password=SEARCH_ADMIN_PW)
 tracer = logging.getLogger('elasticsearch.trace')
@@ -90,22 +92,24 @@ def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merge
     # Index each segment of this document individually
     padded_oref = oref.padded_ref()
 
-    if bavli_amud and padded_oref.is_bavli() and padded_oref.index.title not in davidson_indexes:  # Index bavli by amud. and commentaries by line
-        pass
-    elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
-        t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
+    if TORAH_SPECIFIC:
+        if bavli_amud and padded_oref.is_bavli() and padded_oref.index.title not in davidson_indexes:  # Index bavli by amud. and commentaries by line
+            pass
+        elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
+            t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
 
-        for iref, ref in enumerate(oref.subrefs(len(t.text))):
-            if padded_oref.index.title in davidson_indexes:
-                if iref == len(t.text) - 1 and ref != ref.last_segment_ref():
-                    # if it's a talmud ref and it's the last ref on daf, but not the last ref in the mesechta, skip it.
-                    # we'll combine it with the first ref of the next daf. This is dealing with the issue of sentences
-                    # that get cut-off due to daf breaks
-                    continue
-                elif iref == 0 and ref.prev_segment_ref() is not None:
-                    ref = ref.prev_segment_ref().to(ref)
-            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged, version_priority=version_priority)
-        return  # Returning at this level prevents indexing of full chapters
+            for iref, ref in enumerate(oref.subrefs(len(t.text))):
+                if padded_oref.index.title in davidson_indexes:
+                    if iref == len(t.text) - 1 and ref != ref.last_segment_ref():
+                        # if it's a talmud ref and it's the last ref on daf, but not the last ref in the mesechta, skip it.
+                        # we'll combine it with the first ref of the next daf. This is dealing with the issue of sentences
+                        # that get cut-off due to daf breaks
+                        continue
+                    elif iref == 0 and ref.prev_segment_ref() is not None:
+                        ref = ref.prev_segment_ref().to(ref)
+                index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged, version_priority=version_priority)
+
+            return  # Returning at this level prevents indexing of full chapters
 
     '''   Can't get here after the return above
     # Don't try to index docs with depth 3

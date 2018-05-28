@@ -125,6 +125,8 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True):
 
 
 def get_all_calendar_items(datetime_obj, diaspora=True):
+    if not TORAH_SPECIFIC:
+        return []
     cal_items  = []
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora)
     cal_items += [daf_yomi(datetime_obj)]
