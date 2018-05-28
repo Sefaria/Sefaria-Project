@@ -28,6 +28,15 @@
 	<link rel="shortcut icon" href="/favicon.ico?v=xQzLlLp7oR">
 	<meta name="theme-color" content="#273557">
 
+	<!-- https://realfavicongenerator.net -->
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=xQzLlLp7oR">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=xQzLlLp7oR">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=xQzLlLp7oR">
+	<link rel="manifest" href="/manifest.json?v=xQzLlLp7oR">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg?v=xQzLlLp7oR" color="#273557">
+	<link rel="shortcut icon" href="/favicon.ico?v=xQzLlLp7oR">
+	<meta name="theme-color" content="#273557">
+
     <style>
       body {
         overflow: visible;
@@ -215,8 +224,7 @@
     contentLang: "{{ contentLang }}",
     interfaceLang: "{{ interfaceLang }}",
     inReaderApp: false,
-    ga: ga,
-    static_url: {{ STATIC_PREFIX }}
+    ga: ga
   };
   {% endautoescape %}
 </script>
@@ -224,16 +232,16 @@
 
 {% include "js/jquery.html" %} <!-- this older version of jQuery replaces the one exposed by the app bundle TODO: duplicates abobe? -->
 
-<script src="{% static 'js/lib/keyboard.js' %}"></script>
-<script src="{% static 'js/lib/jquery.scrollTo-1.4.2-min.js' %}"></script>
-<script src="{% static 'js/lib/jquery.history.js' %}"></script>
-<script src="{% static 'js/lib/jquery.easing.1.3.js' %}"></script>
-<script src="{% static 'js/lib/jquery.caret.1.02.js' %}"></script>
-<script src="{% static 'js/lib/jquery.textchange.js' %}"></script>
-<script src="{% static 'js/lib/jquery.autosize.js' %}"></script>
-<script src="{% static 'js/lib/jquery.tag-it.min.js' %}"></script>
-<script src="{% static 'js/lib/jquery.raty.js' %}"></script>
-<script src="{% static 'js/lib/jquery.tooltipster.min.js' %}"></script>
+<script src="/static/js/lib/keyboard.js"></script>
+<script src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script src="/static/js/lib/jquery.history.js"></script>
+<script src="/static/js/lib/jquery.easing.1.3.js"></script>
+<script src="/static/js/lib/jquery.caret.1.02.js"></script>
+<script src="/static/js/lib/jquery.textchange.js"></script>
+<script src="/static/js/lib/jquery.autosize.js"></script>
+<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+<script src="/static/js/lib/jquery.raty.js"></script>
+<script src="/static/js/lib/jquery.tooltipster.min.js"></script>
 
 {% include "js/headers.js" %} <!-- TODO: not sure this is needed anymore -->
 <script>
@@ -252,8 +260,8 @@
 
 {% endautoescape %}
 </script>
-<script type="text/javascript" src="{% static 'js/s1/util.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/s1/editor.js' %}"></script>
+<script type="text/javascript" src="/static/js/s1/util.js"></script>
+<script type="text/javascript" src="/static/js/s1/editor.js"></script>
 
 </body>
 </html>

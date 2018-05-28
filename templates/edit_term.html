@@ -2,7 +2,6 @@
 
 {% load sefaria_tags %}
 {% load humanize %}
-{% load static %}
 
 {% block title %}Edit Term: {{ term.name }}{% endblock %}
 
@@ -44,7 +43,7 @@
 
 
 {% block js %}
-  <script src="{% static 'bundles/jsonEditor/jsonEditor.js' %}"></script>
+  <script src="/static/bundles/jsonEditor/jsonEditor.js"></script>
   <script>
     {% autoescape off %}
     var data = {{ dataJSON }};
