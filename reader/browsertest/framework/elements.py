@@ -220,6 +220,471 @@ class AbstractTest(object):
         recent.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
+    def click_source_title(self):
+        title_selector = '#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.readerTextToc > div > a > span.en'
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, title_selector))
+        )
+        ttl = self.driver.find_element_by_css_selector(title_selector)
+        ttl.click()
+
+    def click_chapter(self, cptr):
+        chapter_selector = '#panel-0 > div > div.content > div > div:nth-child(3) > div > div.tocLevel > div > div > div > a:nth-child('+ cptr + ')'
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
+        )
+        ttl = self.driver.find_element_by_css_selector(chapter_selector)
+        ttl.click()
+
+    def click_sefaria(self):
+        sefaria_img_selector = '#s2 > div > div.header > div > div.headerHomeSection > a > img'
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, sefaria_img_selector))
+        )
+        sefaria_img = self.driver.find_element_by_css_selector(sefaria_img_selector)
+        sefaria_img.click()
+
+    def click_get_started(self):
+        btn_selector = '#homeCover > a > div > span.int-en'
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, btn_selector))
+        )
+        btn = self.driver.find_element_by_css_selector(btn_selector)
+        btn.click()
+
+    def click_explore_lib(self):
+        explore_lib_selector = '#homeLearn > div > div.textBox > a > div > span.int-en'
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, explore_lib_selector))
+        )
+        explore_lib = self.driver.find_element_by_css_selector(explore_lib_selector)
+        explore_lib.click()
+
+    def click_start_learning_nth_btn(self, btn):
+        nth_btn_selector = '#homeLearn > div > div.imageBox > a:nth-child(' + btn + ') > span.int-en'
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, nth_btn_selector))
+        )
+        nth_btn = self.driver.find_element_by_css_selector(nth_btn_selector)
+        nth_btn.click()
+
+    def click_parasha(self):
+        self.click_start_learning_nth_btn('1')
+
+    def click_daf_yomi(self):
+        self.click_start_learning_nth_btn('2')
+
+    def click_haggadah(self):
+        self.click_start_learning_nth_btn('3')
+
+    def click_pirkei_avot(self):
+        self.click_start_learning_nth_btn('4')
+
+    def click_midrash_rabbah(self):
+        self.click_start_learning_nth_btn('5')
+
+    def click_shulchan_arukh(self):
+        self.click_start_learning_nth_btn('6')
+
+    def click_start_a_sheet(self):
+        self.click_object_by_css_selector('#homeSheets > div > div.textBox > a:nth-child(3) > div > span.int-en')
+
+
+
+    def click_commentary_on_sidebar(self):
+        self.click_sidebar_entry('Commentary')
+
+    def click_tanakh_on_sidebar(self):
+        self.click_sidebar_entry('Tanakh')
+
+    def click_targum_on_sidebar(self):
+        self.click_sidebar_entry('Targum')
+
+    def click_mishnah_on_sidebar(self):
+        self.click_sidebar_entry('Mishnah')
+
+    def click_talmud_on_sidebar(self):
+        self.click_sidebar_entry('Talmud')
+
+    def click_midrash_on_sidebar(self):
+        self.click_sidebar_entry('Midrash')
+
+    def click_halakhah_on_sidebar(self):
+        self.click_sidebar_entry('Halakhah')
+
+    def click_kabbalah_on_sidebar(self):
+        self.click_sidebar_entry('Kabbalah')
+
+    def click_philosophy_on_sidebar(self):
+        self.click_sidebar_entry('Philosophy')
+
+    def click_chasidut_on_sidebar(self):
+        self.click_sidebar_entry('Chasidut')
+
+    def click_musar_on_sidebar(self):
+        self.click_sidebar_entry('Musar')
+
+    def click_other_on_sidebar(self):
+        self.click_sidebar_entry('Other')
+
+    def click_grammar_on_sidebar(self):
+        self.click_sidebar_entry('Grammar')
+
+    def click_resources(self):
+        self.click_object_by_css_selector('#panel-1 > div:nth-child(1) > div > div > div > div > a > div')
+
+    def click_other_text_on_sidebar(self):
+        self.click_object_by_link_text('Other Text')
+
+    def click_sheets_on_sidebar(self):
+        self.click_object_by_link_text('Sheets')
+
+    def click_notes_on_sidebar(self):
+        self.click_object_by_link_text('Notes')
+
+    def click_about_on_sidebar(self):
+        self.click_object_by_link_text('About')
+
+    def click_versions_on_sidebar(self):
+        self.click_object_by_link_text('Versions')
+
+    def click_tools_on_sidebar(self):
+        self.click_object_by_link_text('Tools')
+
+    def click_share_on_sidebar(self):
+        self.click_object_by_link_text('Share')
+
+    def click_add_translation_on_sidebar(self):
+        self.click_object_by_link_text('Add Translation')
+
+    def click_add_connection_on_sidebar(self):
+        self.click_object_by_link_text('Add Connection')
+
+    def close_popup_with_accept(self):
+        alert = self.driver.switch_to.alert
+        alert.accept()
+
+    def click_explore_sheets(self):
+        self.click_object_by_css_selector('#homeSheets > div > div.textBox > a.inAppLink > div > span.int-en')
+
+    def click_source_sheet_img(self):
+        self.click_object_by_css_selector('#homeSheets > div > div.imageBox.bordered > a > img')
+
+    def click_link_explorer_img(self):
+        self.click_object_by_css_selector('#homeExplore > div > div.imageBox.bordered > a > img')
+
+    def click_explore_connections(self):
+        self.click_object_by_css_selector('#homeExplore > div > div.textBox > a > div > span.int-en')
+
+    def click_learn_more_for_educators(self):
+        self.click_object_by_css_selector('#homeEducators > div > div.textBox > a > div > span.int-en')
+
+    def click_educators_img(self):
+        self.click_object_by_css_selector('#homeEducators > div > div.imageBox.bordered > a > img')
+
+    def click_more_metrics(self):
+        self.click_object_by_css_selector('#moreMetrics > div > span.int-en')
+
+    def click_make_a_donation(self):
+        self.click_object_by_css_selector('#homeHelp > div > a > div > span.int-en')
+
+    def click_subscribe(self):
+        self.click_object_by_css_selector('#subscribe > span.int-en')
+
+    def get_subscribe_msg(self):
+        msg = self.get_object_txt_by_id('subscribeMsg')
+        return msg
+
+    def type_in_mailing_list_email(self, str):
+        self.type_in_text_box_by_id('mailingListEmail', str)
+
+    def click_footer_link_by_id(self, link_id):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.ID, link_id))
+        )
+        link = self.driver.find_element_by_id(link_id)
+        link.click()
+
+    def type_in_text_box_by_id(self, obj_id, txt_to_type):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.ID, obj_id))
+        )
+        txt_box = self.driver.find_element_by_id(obj_id)
+        txt_box.clear()
+        txt_box.send_keys(txt_to_type)
+
+    def click_what_in_sefaria_link(self):
+        self.click_object_by_link_text('What is Sefaria?')
+
+    def click_help_link(self):
+        self.click_object_by_link_text('Help')
+
+    def click_FAQ_link(self):
+        self.click_object_by_link_text('FAQ')
+
+    def click_Team_link(self):
+        self.click_object_by_link_text('Team')
+
+    def click_terams_of_use_link(self):
+        self.click_object_by_link_text('Terms of Use')
+
+    def click_privacy_policy_link(self):
+        self.click_object_by_link_text('Privacy Policy')
+
+    def click_teach_with_sefaria_link(self):
+        self.click_object_by_link_text('Teach with Sefaria')
+
+    def click_source_sheets_link(self):
+        self.click_object_by_link_text('Source Sheets')
+
+    def click_visualizations_link(self):
+        self.click_object_by_link_text('Visualizations')
+
+    def click_authors_link(self):
+        self.click_object_by_link_text('Authors')
+
+    def click_new_additions_link(self):
+        self.click_object_by_link_text('New Additions')
+
+    def click_get_involved_link(self):
+        self.click_object_by_link_text('Get Involved')
+
+    def click_API_docs_link(self):
+        self.click_object_by_link_text('API Docs')
+
+    def click_fork_us_on_GitHub_link(self):
+        self.click_object_by_link_text('Fork us on GitHub')
+
+    def click_download_our_data_link(self):
+        self.click_object_by_link_text('Download our Data')
+
+    def click_donate_link(self):
+        self.click_object_by_link_text('Donate')
+
+    def click_supporters_link(self):
+        self.click_object_by_link_text('Supporters')
+
+    def click_contribute_link(self):
+        self.click_object_by_link_text('Contribute')
+
+    def click_jobs_link(self):
+        self.click_object_by_link_text('Jobs')
+
+    def click_facebook_link(self):
+        self.click_object_by_link_text('Facebook')
+
+    def click_twitter_link(self):
+        self.click_object_by_link_text('Twitter')
+
+    def click_youtube_link(self):
+        self.click_object_by_link_text('YouTube')
+
+    def click_blog_link(self):
+        self.click_object_by_link_text('Blog')
+
+    def click_forum_link(self):
+        self.click_object_by_link_text('Forum')
+
+    def click_email_link(self):
+        self.click_object_by_link_text('Email')
+
+    def click_ivrit_link(self):
+        self.click_object_by_link_text('עברית')
+
+    def click_english_link(self):
+        self.click_object_by_link_text('English')
+
+
+    def toggle_on_text_settings(self):
+        self.click_object_by_css_selector('#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.rightButtons > div > img')
+
+    def toggle_off_text_settings(self):
+        self.click_object_by_css_selector("#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.leftButtons > a")
+
+    def toggle_language_english(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.language > div > div.toggleOption.english')
+
+    def toggle_language_bilingual(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.language > div > div.toggleOption.bilingual')
+
+    def toggle_language_hebrew(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.language > div > div.toggleOption.hebrew')
+
+    def toggle_bilingual_layout_stacked(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.biLayout > div > div.toggleOption.stacked')
+
+    def toggle_bilingual_layout_heLeft(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.biLayout > div > div.toggleOption.heLeft')
+
+    def toggle_bilingual_layout_heRight(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.biLayout > div > div.toggleOption.heRight')
+
+    def toggle_fontSize_smaller(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.fontSize > div > div.toggleOption.smaller')
+
+    def toggle_fontSize_larger(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.fontSize > div > div.toggleOption.larger')
+
+    def toggle_aliyotTorah_aliyotOn(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.aliyotTorah > div > div.toggleOption.aliyotOn')
+
+    def toggle_aliyotTorah_aliyotOff(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.aliyotTorah > div > div.toggleOption.aliyotOff')
+
+    def toggle_vowels_none(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.vowels > div > div.toggleOption.none')
+
+    def toggle_vowels_partial(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.vowels > div > div.toggleOption.partial')
+
+    def toggle_vowels_all(self):
+        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.vowels > div > div.toggleOption.all')
+
+
+    def get_nth_section_english(self, n):
+        selector = '#panel-0 > div.readerContent > div > div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.en'
+        return self.get_nth_section(selector)
+
+    def get_nth_section_hebrew(self, n):
+        selector = '#panel-0 > div.readerContent > div > div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.he'
+        return self.get_nth_section(selector)
+
+    def get_content_layout_direction(self):
+        panel = self.get_content_panel()
+        panel_class = panel.get_attribute('class')
+        if 'Right' in panel_class:
+            return 'right'
+        elif 'Left' in panel_class:
+            return 'left'
+        elif 'stacked' in panel_class:
+            return 'stacked'
+
+    def get_content_language(self):
+        content_lang = self.get_content_panel()
+        content_lang_class = content_lang.get_attribute('class')
+        if 'bilingual' in content_lang_class:
+            return 'bilingual'
+        elif 'hebrew' in content_lang_class:
+            return 'hebrew'
+        elif 'english' in content_lang_class:
+            return 'english'
+
+    def get_font_size(self):
+        size = self.get_nth_section_hebrew(1).value_of_css_property("font-size")
+        return float(size.replace('px',''))
+
+    def is_aliyot_displayed(self):
+        return self.is_object_displayed("#panel-0 > div.readerContent > div > div:nth-child(3) > div.text > div > span:nth-child(4) > div.parashahHeader.aliyah")
+
+    def is_aliyot_toggleSet_displayed(self):
+        return self.is_object_displayed("div[class='toggleSet aliyotTorah']")
+
+    def is_vocalization_toggleSet_displayed(self):
+        return self.is_object_displayed("div[class='toggleSet vowels']")
+
+    def is_object_displayed(self, css_selector):
+        try:
+            aliyot = self.driver.find_element_by_css_selector(css_selector)
+            return True # would through an exception otherwise, handled below
+        except NoSuchElementException:
+            return False
+
+
+
+    def get_content_panel(self):
+        selector = '#panel-0'
+        WebDriverWait(self.driver, TEMPER).until(
+            presence_of_element_located((By.CSS_SELECTOR, selector))
+        )
+        elm = self.driver.find_element_by_css_selector(selector)
+        return elm
+
+    def get_nth_section(self, selector):
+        WebDriverWait(self.driver, TEMPER).until(
+            presence_of_element_located((By.CSS_SELECTOR, selector))
+        )
+        section = self.driver.find_element_by_css_selector(selector)
+        return section
+
+    def click_object_by_css_selector(self, selector):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, selector))
+        )
+        btn = self.driver.find_element_by_css_selector(selector)
+        btn.click()
+
+    def click_object_by_id(self, id):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.ID, id))
+        )
+        obj_to_click = self.driver.find_element_by_id(id)
+        obj_to_click.click()
+
+    def get_object_txt_by_id(self, id):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.ID, id))
+        )
+        obj = self.driver.find_element_by_id(id)
+        return obj.text
+
+    def click_object_by_link_text(self, link_txt):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.LINK_TEXT, link_txt))
+        )
+        obj_to_click = self.driver.find_element_by_link_text(link_txt)
+        obj_to_click.click()
+
+    def click_sidebar_entry(self, data_name):
+        selector = "div[class='categoryFilter'][data-name='" + data_name + "']"
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, selector))
+        )
+        sidebar_entry = self.driver.find_element_by_css_selector(selector)
+        sidebar_entry.click()
+
+    def click_android_app(self):
+        self.click_object_by_css_selector('#homeMobile > div > div.textBox > a:nth-child(3) > div > span.int-en')
+
+    def click_ios_app(self):
+        self.click_object_by_css_selector('#iOSButton > div > span.int-en')
+
+    def close_tab_and_return_to_prev_tab(self):
+        self.driver.switch_to_window(self.driver.window_handles[1])
+        self.driver.close()
+        self.driver.switch_to_window(self.driver.window_handles[0])
+
+    def get_newly_opened_tab_url(self):
+        self.driver.switch_to_window(self.driver.window_handles[1])
+        new_url = self.driver.current_url
+        self.driver.switch_to_window(self.driver.window_handles[0])
+        return new_url
+
+    def get_section_txt(self, vrs):
+        verse_selector = '#panel-0 > div.readerContent > div > div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div > p.he'
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, verse_selector))
+        )
+        verse = self.driver.find_element_by_css_selector(verse_selector)
+        verse_txt = verse.get_attribute('innerHTML')
+        return verse_txt
+
+    def click_masechet_and_chapter(self, masechet, cptr):
+        #The Masechtot and Chapters 1 based index
+        masechet_selector = '#panel-0 > div > div.content > div > div:nth-child(3) > div > div.tocLevel > div:nth-child(' + masechet + ') > span > span.en > i'
+        chapter_selector = '#panel-0 > div > div.content > div > div:nth-child(3) > div > div.tocLevel > div:nth-child(' + masechet + ') > div > div > a:nth-child(' + cptr + ')'
+
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, masechet_selector))
+        )
+        masechet_arrow = self.driver.find_element_by_css_selector(masechet_selector)
+        masechet_arrow.click()
+
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
+        )
+        chapter = self.driver.find_element_by_css_selector(chapter_selector)
+        chapter.click()
+
     # Text Panel
     def click_toc_from_text_panel(self):
         self.driver.find_element_by_css_selector(".readerTextTocBox a").click()

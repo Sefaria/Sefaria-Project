@@ -2,6 +2,7 @@
 #from __future__ import absolute_import
 
 from framework import AtomicTest, TestSuite
+from sefaria.utils.hebrew import has_cantillation
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
@@ -78,6 +79,389 @@ class PagesLoad(AtomicTest):
         self.load_account()
         self.load_private_sheets()
         self.load_private_groups()
+
+class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_toc()
+        self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
+        self.click_source_title()
+        self.click_masechet_and_chapter('2','3')
+        section = self.get_section_txt('1')
+        assert section.startswith(u'(דף מא) רבי זירא הוה משתמיט')
+
+class SectionContentAsExpectedChapter(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_toc()
+        self.click_toc_category("Midrash").click_toc_text("Seder Olam Rabbah")
+        self.click_source_title()
+        self.click_chapter('4')
+        section = self.get_section_txt('1')
+        assert u'פרק ד ' == section
+
+class GoThroughHomeLinksAndButtons(AtomicTest):
+    #Makes sure links are there and not broken. Will fall on a line of a broken or unexisting link/button.
+    #When openning new tabs, checks URLs
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_home()
+        self.login_user()
+        self.click_get_started()
+        self.click_sefaria()
+        self.click_explore_lib()
+        self.click_sefaria()
+        self.click_parasha()
+        self.click_sefaria()
+        self.click_daf_yomi()
+        self.click_sefaria()
+        self.click_haggadah()
+        self.click_sefaria()
+        self.click_pirkei_avot()
+        self.click_sefaria()
+        self.click_midrash_rabbah()
+        self.click_sefaria()
+        self.click_shulchan_arukh()
+        self.click_sefaria()
+        self.click_ios_app()
+        tab_url = self.get_newly_opened_tab_url()
+        assert 'itunes.apple.com/us/app/sefaria' in tab_url
+        self.close_tab_and_return_to_prev_tab()
+        self.click_android_app()
+        tab_url = self.get_newly_opened_tab_url()
+        assert 'play.google.com/store/apps' in tab_url
+        assert 'org.sefaria.sefaria' in tab_url
+        self.close_tab_and_return_to_prev_tab()
+        self.click_start_a_sheet()
+        self.click_sefaria()
+        self.close_popup_with_accept()
+        self.click_explore_sheets()
+        self.click_sefaria()
+        self.click_source_sheet_img()
+        self.click_sefaria()
+        self.click_link_explorer_img()
+        self.click_sefaria()
+        self.click_explore_connections()
+        self.click_sefaria()
+        self.click_learn_more_for_educators()
+        self.click_sefaria()
+        self.click_educators_img()
+        self.click_sefaria()
+        self.click_more_metrics()
+        self.click_sefaria()
+        self.click_subscribe()
+        str = self.get_subscribe_msg()
+        assert str == u'Please enter a valid email address.'
+        self.type_in_mailing_list_email('moses.ben.maimon@gmail.com')
+        self.click_subscribe()
+        str = self.get_subscribe_msg()
+        assert str == 'Subscribed! Welcome to our list.'
+
+
+class GoThroughFooterObjectss(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_home()
+        self.click_what_in_sefaria_link()
+        self.click_sefaria()
+        self.click_help_link()
+        self.click_sefaria()
+        self.click_FAQ_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_Team_link()
+        self.click_sefaria()
+        self.click_terams_of_use_link()
+        self.click_sefaria()
+        self.click_privacy_policy_link()
+
+        self.click_sefaria()
+        self.click_teach_with_sefaria_link()
+        self.click_sefaria()
+        self.click_source_sheets_link()
+        self.click_sefaria()
+        self.click_visualizations_link()
+        self.click_sefaria()
+        self.click_authors_link()
+        self.click_sefaria()
+        self.click_new_additions_link()
+
+        self.click_sefaria()
+        self.click_get_involved_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_API_docs_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_fork_us_on_GitHub_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_download_our_data_link()
+        self.close_tab_and_return_to_prev_tab()
+
+        self.click_sefaria()
+        self.click_donate_link()
+        self.click_sefaria()
+        self.click_supporters_link()
+        self.click_sefaria()
+        self.click_contribute_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_jobs_link()
+
+        self.click_sefaria()
+        self.click_facebook_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_twitter_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_youtube_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_blog_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        self.click_forum_link()
+        self.close_tab_and_return_to_prev_tab()
+        self.click_sefaria()
+        # self.click_email_link()//needs to be able to get rid of the specifically configured email client
+        # self.click_sefaria()
+
+        self.click_ivrit_link()
+        self.click_english_link()
+
+class ChangeLanguage(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_home()
+        self.click_get_started()
+        expected_heb = u'בראשית ברא אלהים את השמים ואת הארץ'
+        expected_eng = u'In the beginning God created the heaven and the earth.'
+        sgmnt_eng = self.get_nth_section_english(1)
+        sgmnt_heb = self.get_nth_section_hebrew(1)
+        str_eng = sgmnt_eng.text
+        str_heb = sgmnt_heb.text
+        assert expected_heb == str_heb
+        assert expected_eng == str_eng
+        self.toggle_on_text_settings()
+        self.toggle_language_hebrew()
+        assert 'hebrew' in self.get_content_language()
+        assert 'english' not in self.get_content_language()
+        assert 'bilingual' not in self.get_content_language()
+        assert sgmnt_heb.is_displayed() == True
+        assert sgmnt_eng.is_displayed() == False
+        self.toggle_on_text_settings()
+        self.toggle_language_english()
+        assert 'hebrew' not in self.get_content_language()
+        assert 'english' in self.get_content_language()
+        assert 'bilingual' not in self.get_content_language()
+        assert sgmnt_heb.is_displayed() == False
+        assert sgmnt_eng.is_displayed() == True
+        self.toggle_on_text_settings()
+        self.toggle_language_bilingual()
+        assert 'hebrew' not in self.get_content_language()
+        assert 'english' not in self.get_content_language()
+        assert 'bilingual' in self.get_content_language()
+        assert sgmnt_heb.is_displayed() == True
+        assert sgmnt_eng.is_displayed() == True
+        self.get_content_language()
+
+class TextSettings(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+
+        larger = 21.6
+        smaller = 18.7826
+        just_text = u'בראשית ברא אלהים את השמים ואת הארץ'
+        text_with_vowels = u'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
+        text_with_cantillation = u'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
+        self.load_home()
+        self.click_get_started()
+        # 1] Language: heb/eng/bilingual
+        self.toggle_on_text_settings()
+        self.toggle_language_english()
+        assert not self.get_nth_section_hebrew(1).is_displayed()
+        assert self.get_nth_section_english(1).is_displayed()
+
+        self.toggle_on_text_settings()
+        self.toggle_language_hebrew()
+        assert self.get_nth_section_hebrew(1).is_displayed()
+        assert not self.get_nth_section_english(1).is_displayed()
+
+        self.toggle_on_text_settings()
+        self.toggle_language_bilingual()
+        assert self.get_nth_section_hebrew(1).is_displayed()
+        assert self.get_nth_section_english(1).is_displayed()
+        # 2] Layout: left/right/stacked
+        self.toggle_on_text_settings()
+        self.toggle_bilingual_layout_heLeft()
+        assert self.get_content_layout_direction() == 'left'
+
+        self.toggle_on_text_settings()
+        self.toggle_bilingual_layout_heRight()
+        assert self.get_content_layout_direction() == 'right'
+
+        self.toggle_on_text_settings()
+        self.toggle_bilingual_layout_stacked()
+        assert self.get_content_layout_direction() == 'stacked'
+
+        # 3] Font size: small/large
+        self.toggle_on_text_settings()
+        self.toggle_fontSize_smaller()
+        font_size = self.get_font_size()
+        assert font_size == smaller
+
+        # self.toggle_text_settings()
+        self.toggle_fontSize_larger()
+        font_size = self.get_font_size()
+        assert font_size == larger
+
+        # 4] Aliyot: on off
+        # self.toggle_text_settings()
+        self.toggle_aliyotTorah_aliyotOn()
+        self.scroll_reader_panel_to_bottom()
+        assert self.is_aliyot_displayed()
+
+        self.toggle_on_text_settings()
+        self.toggle_aliyotTorah_aliyotOff()
+        self.scroll_reader_panel_to_bottom()
+        assert not self.is_aliyot_displayed()
+
+        # 5] Vocalization: vowels and cantillation
+        self.toggle_on_text_settings()
+        self.toggle_vowels_partial()
+        assert self.get_nth_section_hebrew(1).text == text_with_vowels
+
+        self.toggle_on_text_settings()
+        self.toggle_vowels_all()
+        assert self.get_nth_section_hebrew(1).text == text_with_cantillation
+
+        self.toggle_on_text_settings()
+        self.toggle_vowels_none()
+        assert self.get_nth_section_hebrew(1).text == just_text
+
+class TanakhCantillationAndVowels(AtomicTest):
+    suite_class = ReaderSuite
+    every_build = True
+
+    def body(self):
+        self.load_home()
+        self.click_get_started()
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text)
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
+        self.toggle_on_text_settings()
+        self.toggle_vowels_partial()
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
+        assert has_cantillation(self.get_nth_section_hebrew(1).text, True)
+
+        self.toggle_on_text_settings()
+        self.toggle_vowels_all()
+        assert has_cantillation(self.get_nth_section_hebrew(1).text, False)
+        assert has_cantillation(self.get_nth_section_hebrew(1).text, True)
+
+        self.toggle_on_text_settings()
+        self.toggle_vowels_none()
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text)
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
+        # Make sure switching to a differernt book doesn't change the cantillation/vowels settings
+        self.nav_to_text_toc(["Tanakh"], "Joshua")
+        self.load_ref("Joshua 1")
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text)
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
+
+class TalmudHasNoCantillation(AtomicTest):
+    suite_class = ReaderSuite
+    every_build = True
+
+    def body(self):
+        self.load_ref("Shabbat 2")
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text)
+        assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
+        self.toggle_on_text_settings()
+        assert not self.is_aliyot_toggleSet_displayed()
+        assert not self.is_vocalization_toggleSet_displayed()
+        self.toggle_bilingual_layout_stacked()
+        self.load_ref("Joshua 2")
+        self.toggle_on_text_settings()
+        assert not self.is_aliyot_toggleSet_displayed()
+        assert self.is_vocalization_toggleSet_displayed()
+        self.toggle_bilingual_layout_stacked()
+        self.load_ref("Genesis 1")
+        self.toggle_on_text_settings()
+        assert self.is_aliyot_toggleSet_displayed()
+        assert self.is_vocalization_toggleSet_displayed()
+        self.toggle_bilingual_layout_stacked()
+
+class SideBarEntries(AtomicTest):
+    suite_class = ReaderSuite
+    every_build = True
+
+    def body(self):
+        self.load_ref("Genesis 1").click_segment("Genesis 1:1")
+        self.click_commentary_on_sidebar()
+        self.click_resources()
+        self.click_tanakh_on_sidebar()
+        self.click_resources()
+        self.click_targum_on_sidebar()
+        self.click_resources()
+        self.click_mishnah_on_sidebar()
+        self.click_resources()
+        self.click_talmud_on_sidebar()
+        self.click_resources()
+        self.click_midrash_on_sidebar()
+        self.click_resources()
+        self.click_halakhah_on_sidebar()
+        self.click_resources()
+        self.click_kabbalah_on_sidebar()
+        self.click_resources()
+        self.click_philosophy_on_sidebar()
+        self.click_resources()
+        self.click_chasidut_on_sidebar()
+        self.click_resources()
+        self.click_musar_on_sidebar()
+        self.click_resources()
+        self.click_other_on_sidebar()
+        self.click_resources()
+        self.click_grammar_on_sidebar()
+        self.click_resources()
+        self.click_other_text_on_sidebar()
+        self.back()
+        # self.click_sheets_on_sidebar()    #commented as sheets is being worked on
+        # self.back()
+        self.click_notes_on_sidebar()
+        msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > div > div > div > div > span.int-en').text
+        assert msg == u'Please log in to use this feature.'
+        self.back()
+        self.click_about_on_sidebar()
+        msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').text
+        assert msg == u'About This Text'
+        self.back()
+        self.click_versions_on_sidebar()
+        self.back()
+        self.click_tools_on_sidebar()
+        self.click_share_on_sidebar()
+        self.click_resources()
+        # self.click_tools_on_sidebar()
+        # self.click_add_translation_on_sidebar()   # Time out. A bug?
+        # self.back()
+        self.click_tools_on_sidebar()
+        self.click_add_connection_on_sidebar()
+        self.back()
+
+        print('Done')
 
 
 class RecentInToc(AtomicTest):
