@@ -2153,6 +2153,9 @@ a.readerNavCategory {
 .connectionsHeaderTitle .fa-chevron-right {
   margin-left: 10px;
 }
+.connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
+  color: #999;
+}
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
@@ -2182,7 +2185,7 @@ a.readerNavCategory {
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
-  color: #999;
+  color: #666;
   width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
@@ -2222,7 +2225,7 @@ a.readerNavCategory {
   width: 40px;
   height: 48px;
   line-height: 48px;
-  color: #CCC;
+  color: #999;
   font-size: 20px;
   display: inline-block;
   cursor: pointer;

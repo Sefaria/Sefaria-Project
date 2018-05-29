@@ -4389,9 +4389,7 @@ class Library(object):
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
-
-
-    #todo: only used in bio scripts
+    #todo: onlyused in  bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.

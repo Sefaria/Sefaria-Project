@@ -997,7 +997,28 @@ class ReaderApp extends Component {
       this.saveRecentlyViewed(state);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
-    this.setState({panels: this.state.panels});
+    var new_state = {panels: this.state.panels};
+    if(this.didDefaultPanelSettingsChange(state)){
+      new_state["defaultPanelSettings"] = Sefaria.util.clone(state.settings);
+    }
+    this.setState(new_state);
+  }
+  didDefaultPanelSettingsChange(state){
+    if ("settings" in state){
+      let defaultSettings = this.getDefaultPanelSettings();
+      let defaultKeys = Object.keys(defaultSettings);
+      for (let i of defaultKeys) {
+        console.log(i); // logs 3, 5, 7
+        if (state.settings[i] != defaultSettings[i]){
+          return true;
+        }
+
+      }
+    }else{
+      return false;
+    }
+
+
   }
   didPanelRefChange(prevPanel, nextPanel) {
     // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.

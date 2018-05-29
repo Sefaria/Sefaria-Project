@@ -1,3 +1,5 @@
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="UTF-8">
@@ -114,7 +116,8 @@
     <div id="DiffTable"/>
     <script>
         var DJANGO_VARS = {
-            ga: function () {}
+            ga: function () {},
+            static_url: {{ STATIC_PREFIX }}
         };
     </script>
     <script src="/data.js"></script>
@@ -123,6 +126,6 @@
       var JSON_PROPS = {{ JSON_PROPS }}
     {% endautoescape %}
     </script>
-    <script src="/static/bundles/diffPage/diffPage.js"></script>
+    <script src="{% static 'bundles/diffPage/diffPage.js' %}"></script>
 </body>
 </html>

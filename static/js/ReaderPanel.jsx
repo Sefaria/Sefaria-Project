@@ -1138,13 +1138,13 @@ class ReaderDisplayOptionsMenu extends Component {
     var vowels_re = /[\u05b0-\u05c3\u05c7]/g;
     var cantillation_re = /[\u0591-\u05af]/g;
     if(cantillation_re.test(sample)){
-      console.log("all");
+      //console.log("all");
       return 0;
     }else if(vowels_re.test(sample)){
-      console.log("partial");
+      //console.log("partial");
       return 1;
     }else{
-      console.log("none");
+      //console.log("none");
       return 2;
     }
   }

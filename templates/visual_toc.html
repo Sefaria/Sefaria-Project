@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% load sefaria_tags %}
+{% load sefaria_tags static %}
 
 {% block title %}Visualizing the Sefaria Table of Contents{% if lang %} ({{ lang }}){% endif %}{% endblock %}
-{% block ogimage %}<meta property="og:image" content="/static/img/sunburst.png"/>{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{% static 'img/sunburst.png' %}"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
     <script src="https://use.typekit.net/aeg8div.js"></script>
