@@ -9,7 +9,7 @@ from pprint import pprint
 from datetime import datetime, timedelta
 import re
 import bleach
-
+import pymongo
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
@@ -158,18 +158,18 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
-    doc = {
-        "title": strip_tags(sheet["title"]),
-        "content": make_sheet_text(sheet, pud),
-        "owner_id": sheet["owner"],
-        "owner_name": pud["name"],
-        "owner_image": pud["imageUrl"],
-        "profile_url": pud["profileUrl"],
-        "version": "Source Sheet by " + user_link(sheet["owner"]),
-        "tags": ",".join(sheet.get("tags",[])),
-        "sheetId": id,
-    }
     try:
+        doc = {
+            "title": strip_tags(sheet["title"]),
+            "content": make_sheet_text(sheet, pud),
+            "owner_id": sheet["owner"],
+            "owner_name": pud["name"],
+            "owner_image": pud["imageUrl"],
+            "profile_url": pud["profileUrl"],
+            "version": "Source Sheet by " + user_link(sheet["owner"]),
+            "tags": ",".join(sheet.get("tags",[])),
+            "sheetId": id,
+        }
         es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
         global doc_count
         doc_count += 1
@@ -379,7 +379,7 @@ class TextIndexer(object):
                     vpriorities[lang] += 1
 
         traverse(toc)
-        
+
     @classmethod
     def get_all_versions(tries=0):
         try:
@@ -477,9 +477,9 @@ class TextIndexer(object):
 
         content = bleach.clean(content, strip=True, tags=())
         content_wo_cant = strip_cantillation(content, strip_vowels=True)
-
-        if re.match(ur'^\s*[\(\[].+[\)\]]\s*$',content):
-            return False #don't bother indexing. this segment is surrounded by parens
+        content_wo_cant = re.sub(ur'\([^)]+\)', u'', content_wo_cant.strip())  # remove all parens
+        if len(content_wo_cant) == 0:
+            return False
 
         if "Commentary" in categories:  # uch, special casing
             temp_categories = categories[:]
@@ -675,7 +675,8 @@ def index_all(skip=0, merged=False, debug=False):
     else:
         index_all_of_type('text', skip=skip, merged=merged, debug=debug)
         index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
-
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
 
 def index_all_of_type(type, skip=0, merged=False, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
@@ -703,8 +704,7 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
-    end = datetime.now()
-    print "Elapsed time: %s" % str(end-start)
+
 
 
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):

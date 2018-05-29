@@ -36,7 +36,10 @@
         padding-bottom: 30px;
     }
     .mapButtons .type-button {
-        padding: 10px 15px;
+      padding: 10px 15px;
+    }
+    .static .mapButtons .type-button .int-en {
+        font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
     }
 
 {% endblock %}
@@ -51,7 +54,8 @@
     function initMap() {
         bounds = new google.maps.LatLngBounds();
         map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 3,
+            zoom: 2,
+            minZoom: 2,
             mapTypeControlOptions: {
                 mapTypeIds: [google.maps.MapTypeId.ROADMAP]
             }, // here´s the array of controls
