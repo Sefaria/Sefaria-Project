@@ -25,7 +25,6 @@ from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
-
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
 from sefaria.model.user_profile import user_link, public_user_data
