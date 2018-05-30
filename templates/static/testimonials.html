@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Sefaria Testimonials" %}{% endblock %}
+
+{% block description %}{% trans "Sefaria’s Impact – Reflections and Insights from Users" %}{% endblock %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+    #testimonialsPage:lang(en){
+         quotes: '\201C' '\201D' '\2018' '\2019';
+    }
+    .testimonial p:first-of-type::before{
+        content: open-quote;
+    }
+    .testimonial p:first-of-type::after{
+        content: close-quote;
+    }
+    .testimonial-attribution:before{
+        content: ' - ';
+    }
+    .testimonial-attribution{
+        color: #666;
+    }
+    /*.testimonial.highlighted{
+       text-align: center;
+       border-bottom: 1px solid #ddd;
+       padding-bottom: 16px;
+       border-top: 1px solid #ddd;
+       padding-top: 16px;
+       width: 75%;
+       margin-left: auto;
+       margin-right: auto;
+       margin-top: 50px;
+       margin-bottom: 50px;
+   }*/
+    /*.testimonial.highlighted p:first-child{
+        font-size: 1.5em;
+        font-style: italic;
+    }*/
+    .testimonial.image{
+       text-align: center;
+       margin-left: auto;
+       margin-right: auto;
+       /*padding-top: 50px;*/
+       /*padding-bottom: 50px;*/
+       margin-bottom:50px;
+       margin-top:50px;
+   }
+    .testimonial.image img{
+        width:100%;
+    }
+    .testimonial.image .testimonial-photo-attribution{
+        font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+        color: #666;
+        display:block;
+    }
+    .testimonial.image .testimonial-photo-caption{
+        color: #666;
+        font-style: italic;
+        display:block;
+    }
+    .testimonial-video{
+        text-align: center;
+        margin:auto;
+        margin-bottom:50px;
+    }
+    .interface-hebrew #testimonialsPage{
+        direction:ltr;
+    }
+
+
+{% endblock %}
+
+{% block content %}
+<div id="testimonialsPage" class="biReady container static">
+    <div class="inner">
+        <h1>
+            <span class="">Sefaria’s Impact – Reflections and Insights from Users</span>
+        </h1>
+        <div class="testimonial section">
+            <p>
+                <span class="">When I saw your email I had to tell you how you have impacted me and the small town I live in! I am 15 and I live in Northern California. The Jewish population is super small here and, with no other option, I go to a public high school. But, I started a Jewish club with about 6 Jewish students. I always read your resources and I share the source sheets with the Jewish Club because they are so perfect! Often when I need to be strong in school, I think about the wisdom you share and it makes me prouder and stronger as a Jew. Thank you so much for creating such a beautiful website and for adding so much light into my world and the entire world!
+With deep appreciation.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Moriah Rosenthal
+            </p>
+        </div>
+        <div class="testimonial highlighted section">
+            <p>
+                <span class="">
+                    I would not be able to run my class without Sefaria
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Danny Weininger, Adas Israel
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    The accessibility of primary Jewish texts like the Talmud in an excellent digital format helps spread the words of our Sages across time and space so that they can live more profoundly and more closely within us. Sefaria has done so much to help Jewish texts travel and have meaningful impact. As an educator and a lifelong student, I am most grateful.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Dr. Erica Brown
+            </p>
+        </div>
+        
+        <div class="testimonial image section">
+            <img src="{% static "img/testimonials/Isabella Kestenbaum and Midreshet Lindenbaum_c.PNG" %}">
+            <span class="testimonial-photo-attribution">Photo courtesy of Isabella Kestenbaum</span>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Without Sefaria I would be stuck as I literally cannot afford many sefarim and do not live close to a Beit Midrash I can easily access as a woman. It is brilliant and more translations and more texts are always welcomed by those of us who do not have top notch Hebrew and Aramaic.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Sophia Chidgey-Hallan
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Five stars. I'm not one to give five stars, but this is worthy of it. Thank you for making so much available and downloadable to be read at offline mode, I will never be bored in my life as long as I have battery on the phone haha
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Anonymous Google User (Android App Review)
+            </p>
+        </div>
+
+        <div class="testimonial highlighted section">
+            <p>
+                <span class="">
+                    27 open tabs on my web browser. 23 have the Sefaria icon. <span class="hashtag">#WhatTheInternetWasMadeFor</span>
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Micha Berger
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Last week I was working with a congregant, a woman in her 70s, and I realized it would be helpful to pull up a text to show her, so I opened Sefaria and showed her the text. She had no idea what Sefaria was or how I could find a text so easily online... and as I showed her around the website, tears came into her eyes. She was astounded that someone like her could have such easy access to the Jewish textual library. She doesn't read Hebrew, but just what is available in English opens worlds for her.  Thanks for making this available, for her as a student relatively new to Torah study, and for me as a teacher whose life is so much easier when I can find and use your source material.
+                </span>
+                <span class="int-he">
+
+                </span>
+            </p>
+            <p class="testimonial-attribution">
+                Rabbi Shahar Colt, Congregation Dorshei Tzedek, Newton, MA
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    When Brooklyn Beit Midrash first started two years ago, we immediately began relying on Sefaria for all of our source sheet needs. Two years and about 50 source sheets later, we've helped fill our borough with meaningful grassroots Torah!
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Jeremy Borovitz, Brooklyn Beit Midrash
+            </p>
+            <div class="testimonial image section">
+                <img src="{% static "img/testimonials/Jeremy Borovitz.JPG" %}">
+                <span class="testimonial-photo-caption">A night of learning at the Brooklyn Beit Midrash
+</span>
+                <span class="testimonial-photo-attribution">Photo courtesy of Jeremy Borovitz</span>
+            </div>
+        </div>
+
+
+        <div class="testimonial highlighted section">
+            <p>
+                <span class="">
+                    Thank you, you have made long distant Chavruta possible.
+                </span>
+                <span class="int-he">
+
+                </span>
+            </p>
+            <p class="testimonial-attribution">
+                Hindy Finman
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Thank you so much for developing Sefaria. I do not attend a Jewish college, and for the first time in my life I am without formalized Jewish education. Sefaria has played a huge role in my continued effort to devote non-school time to serious Torash study. It is helpful, accessible, and truly impactful.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Tamar Yastrab
+
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Sefaria is making a major contribution to Jewish learning by placing the Jewish bookshelf freely online in an open source format. Thanks to Sefaria, students of all kinds and all levels, Jews and non-Jews, wherever they happen to live, can explore the richness of the Jewish textual tradition. Unlike other endeavors of this kind, Sefaria is free of all restrictions and fees and is also multi-lingual. It embodies the democratic spirit of the internet and will hopefully have the same transformative impact.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Jonathan D. Sarna, Joseph H. & Belle R. Braun Professor of American Jewish History, Brandeis University
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    I teach middle school, and I use Sefaria nearly every day. The connections feature is wonderful, and my colleagues make fun of me for my constant refrain: “Well, let’s check Sefaria!
+                </span>
+                <span class="int-he">
+
+                </span>
+            </p>
+            <p class="testimonial-attribution">
+                Saul Zebovitz
+            </p>
+        </div>
+
+        <div class="testimonial highlighted section">
+            <p>
+                <span class="">
+                    Sefaria did not only expand my knowledge and passion for Torah, but also gave me the confidence to prepare and teach Torah to others.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Shoshana Lehman, student at The Frisch School, Paramus, New Jersey
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <div class="testimonial-video">
+                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/3JNf0yHA60U?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+            <p>
+                <span class="">
+                    Throughout the centuries, Jews have always been the people of the book. With the wonderful development of the new National Library in Jerusalem, our people has a physical home for the book. The Sefaria project has the potential to become the digital home of the book for the people of the book. The digitalisation of our books, manuscripts and journals, is not just creating a vital online resource, but is opening up our ancient heritage to a new generation on a global scale in a digital age. I commend all those involved in this initiative and wish it every blessing and success.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Rabbi Lord Jonathan Sacks
+            </p>
+        </div>
+
+        <div class="testimonial image section">
+                <img src="{% static "img/testimonials/learning-sefaria.JPG" %}">
+                <span class="testimonial-photo-caption">Two nine year olds navigate Sefaria for their nightly pre-bed Mishnah chavrutah with Mom
+</span>
+                <span class="testimonial-photo-attribution">Photo Courtesy of Sara Wolkenfeld</span>
+        </div>
+
+        <div class="testimonial highlighted section">
+            <p>
+                <span class="">
+                    A Beit Midrash in your pocket! This is an amazing resource.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Geoffrey Stern
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    I was leading a Masa for Ramah in the Rockies summer 2017, which was a backpacking trip in Northern Colorado, in Rocky Mountain National Park. I forgot the source sheets at camp, and only realized when we stopped for our first snack break on the trail. Luckily, I had my Sefaria app and found the pesukim I needed. I took a screenshot, and promptly turned my phone off. When we came to the big river crossing, we learned Parshanut from Shirat HaYam. It was this beautiful fusion of technology making this remote experiential education accessible...and Sefaria made it happen
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Dave Yedid, JTS Rabbinical Student
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    About three years ago I began podcasting Mishnayot, Monday through Friday. Every morning those signed up receive an audio file and a Sefaria link to a page with the day’s Mishnayot in Hebrew and English. Our subscribers literally span the globe. Most are from New York and New Jersey but we have had hits from Europe and Asia as well.The podcasts and links have been used over breakfast tables in Long Branch, New Jersey, in cars and trains on the way to work and at work. They have been used on vacation and work trips throughout the world. I have had people come back from Cancun, Aruba, China, and so many other places saying – I took you with me on vacation. The ability to simply send a Sefaria link has enabled learning day in and day out in multiple environments throughout the world.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Nasanayl Braun
+            </p>
+        </div>
+
+
+        <div class="testimonial image section">
+                <img src="{% static "img/testimonials/sefaria-for-eichah.PNG" %}">
+                <span class="testimonial-photo-caption">The Arbit family using Sefaria to access Megillat Eicha on a trip to Alaska</span>
+                <span class="testimonial-photo-attribution">Photo Courtesy of Josh Arbit</span>
+        </div>
+
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Thank you for such a wonderful resource! It would be very hard to do my job as a teaching assistant without Sefaria.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Dina Kritz
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    I don't yet have my own books to study from so the ability to look at the text and ALL of the commentary side by side as needed has been invaluable. It's a very clean, organized site with no distractions which is exactly what I need during study. Thank you so much!
+                </span>
+                <span class="int-he">
+
+                </span>
+            </p>
+            <p class="testimonial-attribution">
+                Danella Georgiev
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Love your website and app. Your content is awesome and revolutionary. I learn daf yomi with a split screen: Gemara (English and Hebrew) at the top, and Steinsaltz at the bottom. As I move down to the next passage in the text, Steinsaltz commentary refreshes to match. What a graceful and brilliant way to study. Thank you!
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Shaul Lilove
+            </p>
+        </div>
+
+        <div class="testimonial highlighted section">
+            <p>
+                <span class="">
+                    Thank God I go to rabbinical school in the age of Sefaria! I don't know how I would get on without it with the amount of sources I see every day.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Kayley Romick
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    I LOVE Sefaria.org. It allows me to engage with the text online beyond anything I have been able to do in the past. When our tradition says the Torah belongs to each generation, Sefaria.org makes that wisdom tangible. Searching for word frequency, connections, and commentary all allow me to fully analyze text in a way I only thought possible after years of rabbinic or yeshiva training.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Neil Green
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    I’m already using Sefaria in the classroom - not only do I use it to create sheets but my  (mostly not Jewish, mostly not reading Hebrew) undergraduate and graduate students are using Sefaria for their own research.  It has made teaching Jewish texts to non-experts infinitely easier and has made researching those texts accessible in a meaningful way for the first time for those students who study Jewish topics as beginners.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Dr. Deidre Butler. Director, Zelikovitz Centre for Jewish Studies Associate Professor, Religion program; College of Humanities, Carleton University
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    My wife and I, in retirement, have become passionate about Talmud Torah and your site is becoming more and more useful as we expand our sources.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Anonymous
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Thank you for everything you do! A few years ago, on the night before the funeral of my father ע"ה, I found myself in a hotel lobby without access to my books and trying to prepare a fitting הספד. Sefaria was a Godsend! It was very comforting to me to find a puzzling midrash from that week's Parasha and spend several hours engaged with it, looking up sources, asking questions, and gaining insights. I ended up sharing the first part of what I figured out at his funeral, and I wrote up the rest as a supplement to my remarks. To this day, when I think about the experience of his funeral, I am moved by that Midrash and the way my pshat brings me closer to my father's memory. Thank you for enabling that memory and for increasing our Torah knowledge!
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                David Bar-Shain
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    The great task of Jewish educators in our generation is to help people enter the richly layered textual tradition that is our legacy as contemporary Jews, to welcome people into the complexity, beauty, and depth of a conversation that has been carried on for millennia – not simply as passive observers, but as active and creative participants.  The significance of Sefaria’s contribution to this effort – by making Jewish texts widely available in responsible and accessible translations – cannot be overstated.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Sharon Cohen Anisfeld, President of Hebrew College
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    I’ve been using Sefaria for about a year. It’s so helpful for me because I don’t own/have access to a lot of sefarim and none really with translations.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Sarit Charli Shull
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    As an educator, I have come to appreciate Sefaria more and more. I now make sure to expose all of my students to what Sefaria has to offer. I show them how to use Sefaria to make sourcesheets. I love hearing their excitement as they realize how easy it is to make a sheet on Sefaria and how organized their final products look. They also are impressed at how Sefaria helps them do research by finding sources that connect to their topic. I am grateful that Sefaria is there to provide Torah resources to my students after they complete their formal Jewish education.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                 Sarit Anstandig
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    We made a grade-wide Siyum <a href="https://twitter.com/frischschool">@frischschool</a> on all of Sedar Nezikin on the shloshim for the father of one of our students. In 40 minutes the entire grade finished the Sedar of Mishna, learning in groups using <a href="https://twitter.com/SefariaProject">@SefariaProject</a> sheets. It was very meaningful & touching.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                Rabbi Tzvi Pittinsky, the Frisch School, via Twitter
+            </p>
+            <div class="testimonial image section">
+                <img src="{% static "img/testimonials/Pininsky siyum.jpg" %}">
+                <span class="testimonial-photo-attribution">Photo Courtesy of  Rabbi Tzvi Pittinsky</span>
+        </div>
+        </div>
+
+        <div class="testimonial highlighted section">
+            <p>
+                <span class="">
+                    Amazing. Thousands of dollars of authoritative classical​ Jewish texts. Well organized, and improving all the time. The donors and workers behind this effort absolutely deserve the highest praise. They have my enduring gratitude.
+                </span>
+                
+            </p>
+            <p class="testimonial-attribution">
+                Mike Perkins
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
