@@ -111,7 +111,7 @@ def old_versions_redirect(request, tref, lang, version):
     return response
 
 
-def render_react_component(component, props):
+def render_react_component(request, component, props):
     """
     Asks the Node Server to render `component` with `props`.
     `props` may either be JSON (to save reencoding) or a dictionary.
@@ -121,13 +121,15 @@ def render_react_component(component, props):
         return render_to_string("elements/loading.html")
 
     from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
-
+    data = data_props(request)
     propsJSON = json.dumps(props) if isinstance(props, dict) else props
+    dataJSON = json.dumps(data) if isinstance(data, dict) else data
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
     encoded_args = urllib.urlencode({
         "propsJSON": propsJSON,
+        "dataJSON": dataJSON
     })
     try:
         response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
@@ -285,6 +287,44 @@ def base_props(request):
         },
     }
 
+def data_props(request):
+    """
+    These are the variables that got used in data.js, they are collected here to be passed to Node server rendering so Node has access to the user data.
+    :param request:
+    :return:
+    """
+    from sefaria.settings import SEARCH_HOST, SEARCH_INDEX_NAME, GLOBAL_WARNING, GLOBAL_WARNING_MESSAGE
+    from sefaria.system.context_processors import user_and_notifications
+    from reader.templatetags.sefaria_tags import escape_quotes, has_group, jsonify
+    from sefaria.utils import calendars
+
+    user_and_notifications_dict = user_and_notifications(request)
+    # returns some data usually in context processors for Node to be able to render properly.
+    return {
+          "_dataLoaded":         True,
+          "toc":                 library.get_toc_json(),
+          "search_toc":          library.get_search_filter_toc_json(),
+          "terms":               json.dumps(library.get_simple_term_mapping()),
+          "books":               library.get_text_titles_json(),
+          "calendars":           json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora)),
+          "searchBaseUrl":       SEARCH_HOST if SEARCH_HOST else "http://localhost:9200",
+          "searchIndex":         SEARCH_INDEX_NAME,
+          "loggedIn":            True if request.user.is_authenticated else False,
+          "is_moderator":        True if request.user.is_staff else False,
+          "is_editor":           True if has_group(request.user,"Editors") else False,
+          "notificationCount":   user_and_notifications_dict.get("notifications_count", 0),
+          "notifications":       user_and_notifications_dict.get("notifications_json", []),
+          "notificationsHtml":   escape_quotes(user_and_notifications_dict.get("notifications_html", "")),
+          "recentlyViewed":      jsonify(user_and_notifications_dict.get("recentlyViewed")),
+          "interfaceLang":       request.interfaceLang,
+          "globalWarningMessage": GLOBAL_WARNING if GLOBAL_WARNING_MESSAGE else None,
+          "interruptingMessage": user_and_notifications_dict.get("interrupting_message_json", None),
+          "_email":              getattr(request.user,"email", ""),
+          "_uid":                getattr(request.user,"id", None),
+          "_partner_group":      user_and_notifications_dict.get("partner_group", None),
+          "_partner_role":       user_and_notifications_dict.get("partner_role", None),
+    }
+
 
 def text_panels(request, ref, version=None, lang=None):
     """
@@ -415,7 +455,7 @@ def text_panels(request, ref, version=None, lang=None):
             desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "html":           html,
@@ -466,7 +506,7 @@ def texts_category_list(request, cats):
         "initialNavigationCategories": cats,
     })
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":        propsJSON,
         "html":             html,
@@ -495,7 +535,7 @@ def search(request):
         "initialSearchSortType": sort,
     })
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON": propsJSON,
         "html":      html,
@@ -519,7 +559,7 @@ def sheets(request):
     title = _("Sefaria Source Sheets")
     desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
@@ -541,7 +581,7 @@ def get_group_page(request, group, authenticated):
     props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
 
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON": propsJSON,
         "html": html,
@@ -604,7 +644,7 @@ def sheets_by_tag(request, tag):
         desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
 
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
@@ -695,7 +735,7 @@ def topics_page(request):
     })
 
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "title":          _("Topics") + " | " + _("Sefaria"),
@@ -724,7 +764,7 @@ def topic_page(request, topic):
     desc  = u'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
 
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
@@ -741,7 +781,7 @@ def menu_page(request, props, page, title="", desc=""):
         "initialMenu": page,
     })
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,

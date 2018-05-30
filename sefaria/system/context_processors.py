@@ -144,8 +144,8 @@ def header_html(request):
     global HEADER
     if USE_NODE:
         lang = request.interfaceLang
-        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
-        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
+        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component(request, "ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
+        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component(request, "ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
         LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
         LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
         HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
@@ -166,7 +166,7 @@ def footer_html(request):
         return {}
     global FOOTER
     if USE_NODE:
-        FOOTER = FOOTER or render_react_component("Footer", {})
+        FOOTER = FOOTER or render_react_component(request, "Footer", {})
         FOOTER = "" if "appLoading" in FOOTER else FOOTER
     else:
         FOOTER = ""
