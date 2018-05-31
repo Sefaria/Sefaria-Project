@@ -5103,3 +5103,10 @@ span.purim-emoji img{
   width: 100%;
   height: 100%;
 }
+
+.oldSheetNotice,
+.oldSheetNotice a {
+  font-size: 12px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+}

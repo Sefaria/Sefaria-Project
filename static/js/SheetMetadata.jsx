@@ -162,7 +162,8 @@ class SheetMetadata extends Component {
                     <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">Edit Sheet</a> :
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? "Unlike" : "Like"}</a>
                 }
-                    <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+                <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+                <p className="oldSheetNotice"><a href={"/sheets/"+this.props.sheet.id+"?panel=0"}>View this in our old source sheet mode</a></p>
             </div>
             <div className="int-he">
                 {Sefaria._uid == this.props.sheet.owner ?
@@ -170,6 +171,7 @@ class SheetMetadata extends Component {
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? Sefaria._("Unlike") : Sefaria._("Like")}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
+                <p className="oldSheetNotice"><a href={"/sheets/"+this.props.sheet.id+"?panel=0"}>לצפייה בדף המקורות הנוכחי בפורמט הישן</a></p>
             </div>
 
             {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId+"?panel=1"}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}

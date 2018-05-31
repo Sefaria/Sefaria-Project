@@ -469,7 +469,7 @@ def get_sheets_for_ref(tref, uid=None):
 				match = model.Ref(match)
 			except InputError:
 				continue
-			ownerData = user_profiles[sheet["owner"]]
+			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None})
 
 			default_image = "https://www.sefaria.org/static/img/profile-default.png"
 			gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
