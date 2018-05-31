@@ -75,7 +75,7 @@ if server_coordinator:
 def catchall(request, tref):
     """
     Handle any URL not explicitly covers in urls.py.
-    Catches text refs for text content and text titles for text table of contents. 
+    Catches text refs for text content and text titles for text table of contents.
     """
     def reader_redirect(uref):
         # Redirect to standard URLs
@@ -288,7 +288,7 @@ def base_props(request):
 
 def text_panels(request, ref, version=None, lang=None):
     """
-    Handles views of ReaderApp that involve texts, connections, and text table of contents in panels. 
+    Handles views of ReaderApp that involve texts, connections, and text table of contents in panels.
     """
     try:
         primary_ref = oref = Ref(ref)
@@ -445,7 +445,7 @@ def texts_category_list(request, cats):
     if "Tanach" in cats:
         cats = cats.replace("Tanach", "Tanakh")
         return redirect("/texts/%s" % cats)
-  
+
     props = base_props(request)
     cats  = cats.split("/")
     if cats != ["recent"]:
@@ -1743,6 +1743,9 @@ def visualize_links_through_rashi(request):
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
     return render(request,'visualize_links_through_rashi.html', {"json_file": json_file})
 
+def talmudic_relationships(request):
+    json_file = "../static/files/talmudic_relationships_data.json"
+    return render(request,'talmudic_relationships.html', {"json_file": json_file})
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -3189,7 +3192,7 @@ def explore(request, book1, book2, lang=None):
 
 
 def person_page(request, name):
-    person = Person().load({"key": name})
+    person = Person().load({"key": name}) # called a model record
 
     if not person:
         raise Http404
