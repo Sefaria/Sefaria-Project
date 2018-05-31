@@ -330,7 +330,7 @@ class AbstractTest(object):
     def click_grammar_on_sidebar(self):
         self.click_sidebar_entry('Grammar')
 
-    def click_resources(self):
+    def click_resources_on_sidebar(self):
         self.click_object_by_css_selector('#panel-1 > div:nth-child(1) > div > div > div > div > a > div')
 
     def click_other_text_on_sidebar(self):
@@ -394,6 +394,22 @@ class AbstractTest(object):
     def get_subscribe_msg(self):
         msg = self.get_object_txt_by_id('subscribeMsg')
         return msg
+
+    def click_sidebar_nth_version_button(self, n):
+        self.get_sidebar_nth_version_button(n).click()
+
+    def get_sidebar_nth_version_button_text(self, n):
+        return self.get_sidebar_nth_version_button(n).text
+
+    def get_sidebar_nth_version_button(self, n):
+        slctr = "#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) > div:nth-child(" + str(n+1) + ") > div.versionDetails > a.selectButton"
+        return self.get_object_by_css_selector(slctr)
+
+    def get_object_by_css_selector(self, selector):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, selector))
+        )
+        return self.driver.find_element_by_css_selector(selector)
 
     def type_in_mailing_list_email(self, str):
         self.type_in_text_box_by_id('mailingListEmail', str)
@@ -573,6 +589,12 @@ class AbstractTest(object):
         size = self.get_nth_section_hebrew(1).value_of_css_property("font-size")
         return float(size.replace('px',''))
 
+    def get_current_url(self):
+        return self.driver.current_url
+
+    def get_current_content_title(self):
+        return self.get_object_by_css_selector('#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.readerTextToc > div > a').text
+
     def is_aliyot_displayed(self):
         return self.is_object_displayed("#panel-0 > div.readerContent > div > div:nth-child(3) > div.text > div > span:nth-child(4) > div.parashahHeader.aliyah")
 
@@ -581,6 +603,15 @@ class AbstractTest(object):
 
     def is_vocalization_toggleSet_displayed(self):
         return self.is_object_displayed("div[class='toggleSet vowels']")
+
+    def is_sidebar_recent_title_displayed(self):
+        return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(1) > h2 > span.int-en')
+
+    def is_sidebar_browse_title_displayed(self):
+        return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(2) > h2 > span.int-en')
+
+    def is_sidebar_calendar_title_displayed(self):
+        return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(3) > h2 > span.int-en')
 
     def is_object_displayed(self, css_selector):
         try:

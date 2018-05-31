@@ -412,34 +412,37 @@ class SideBarEntries(AtomicTest):
     def body(self):
         self.load_ref("Genesis 1").click_segment("Genesis 1:1")
         self.click_commentary_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_tanakh_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_targum_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_mishnah_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_talmud_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_midrash_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_halakhah_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_kabbalah_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_philosophy_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_chasidut_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_musar_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_other_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_grammar_on_sidebar()
-        self.click_resources()
+        self.click_resources_on_sidebar()
         self.click_other_text_on_sidebar()
+        assert self.is_sidebar_recent_title_displayed()
+        assert self.is_sidebar_browse_title_displayed()
+        assert self.is_sidebar_calendar_title_displayed()
         self.back()
-        # self.click_sheets_on_sidebar()    #commented as sheets is being worked on
+        # self.click_sheets_on_sidebar()    #commented out as sheets is being worked on
         # self.back()
         self.click_notes_on_sidebar()
         msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > div > div > div > div > span.int-en').text
@@ -448,18 +451,50 @@ class SideBarEntries(AtomicTest):
         self.click_about_on_sidebar()
         msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').text
         assert msg == u'About This Text'
-        self.back()
+        self.click_resources_on_sidebar()
+        # self.back()
         self.click_versions_on_sidebar()
-        self.back()
+        url1 = self.get_current_url()
+        title1 = self.get_current_content_title()
+        assert self.get_sidebar_nth_version_button(1).text == u'CURRENT'
+        assert self.get_sidebar_nth_version_button(2).text == u'SELECT'
+        self.click_sidebar_nth_version_button(2)
+        url2 = self.get_current_url()
+        title2 = self.get_current_content_title()
+        assert not url1 == url2
+        assert not title1 == title2
+        assert self.get_sidebar_nth_version_button(1).text == u'SELECT'
+        assert self.get_sidebar_nth_version_button(2).text == u'CURRENT'
+        self.click_resources_on_sidebar()
         self.click_tools_on_sidebar()
         self.click_share_on_sidebar()
-        self.click_resources()
+        self.click_facebook_link()
+        url1 = self.get_newly_opened_tab_url()
+        assert 'facebook.com' in url1
+        self.close_tab_and_return_to_prev_tab()
+        self.click_resources_on_sidebar()
+        self.click_tools_on_sidebar()
+        self.click_share_on_sidebar()
+        self.click_twitter_link()
+        url1 = self.get_newly_opened_tab_url()
+        assert 'twitter.com' in url1
+        self.close_tab_and_return_to_prev_tab()
+        self.click_resources_on_sidebar()
+            # self.click_tools_on_sidebar()     #NOT checking the email option, not to open an email client. Leaving here thoupgh, just in case.
+            # self.click_share_on_sidebar()
+            # self.click_email_link()
+            # self.click_resources_on_sidebar()
         # self.click_tools_on_sidebar()
-        # self.click_add_translation_on_sidebar()   # Time out. A bug?
+        # self.click_add_translation_on_sidebar()   # Time out. Is this a bug?
         # self.back()
         self.click_tools_on_sidebar()
         self.click_add_connection_on_sidebar()
+        assert self.is_sidebar_recent_title_displayed()
+        assert self.is_sidebar_browse_title_displayed()
+        assert self.is_sidebar_calendar_title_displayed()
+
         self.back()
+        self.click_sefaria()
 
         print('Done')
 
