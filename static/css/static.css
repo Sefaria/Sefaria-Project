@@ -1,18 +1,13 @@
-/** font-family: "Open Sans Hebrew", sans-serif; => font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;***/
+/** font-family: "Heebo", sans-serif; => font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;***/
 .wrapper{
   background-color: #F9F9F7;
 }
 .container{
   width: 100%;
 }
-/* always wait for fonts to load before show text, applies to Google Web Fonts. What about Adobe? */
-.static .wf-loading {
-  display: none;
-}
-.interface-hebrew .static.biReady{
+.interface-hebrew .static {
   direction:rtl;
 }
-
 .static {
   color: #333333;
   font-size: 15px;
@@ -25,23 +20,26 @@
   margin: 0 auto;
   padding: 124px 0 100px;
 }
+#register.static .inner {
+  width: 302px;
+}
 .static .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static .int-he {
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif;
 }
 .static .control-elem, .static .control-elem .int-en{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static .control-elem .int-he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .static .sans .int-en, .static.sans .int-en, .static .sans {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static .sans .int-he, .static.sans .int-he  {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .interface-english .static .int-he {
   display: none;
@@ -49,11 +47,25 @@
 .interface-hebrew .static .int-en {
   display: none;
 }
-.static h1, .static h2, .static h3, .static h4, .static h1 .int-en, .static h2 .int-en, .static h3 .int-en, .static h4 .int-en{
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+.static h1,
+.static h2,
+.static h3,
+.static h4,
+.static h1 .int-en,
+.static h2 .int-en,
+.static h3 .int-en,
+.static h4 .int-en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.static h1 .int-he, .static h2 .int-he, .static h3 .int-he, .static h4 .int-he{
-    font-family: "Open Sans Hebrew", sans-serif;
+.interface-hebrew h1,
+.interface-hebrew h2,
+.interface-hebrew h3,
+.interface-hebrew h4,
+.static h1 .int-he,
+.static h2 .int-he, 
+.static h3 .int-he, 
+.static h4 .int-he {
+  font-family: "Heebo", sans-serif;
 }
 .static h1 {
   color: #333;
@@ -125,12 +137,12 @@
   color: #666;
 }
 .static label {
-   color: #999;
-   letter-spacing: 1px;
-   font-size: 16px;
-   height: 18px;
-   margin-bottom: 10px;
-   position: relative;
+  color: #999;
+  letter-spacing: 1px;
+  font-size: 16px;
+  height: 18px;
+  margin-bottom: 10px;
+  position: relative;
 }
 .static label .sub {
   font-size: 12px;
@@ -147,6 +159,9 @@
 .static .page-title{
   margin-bottom: 50px;
 }
+.static label.button {
+  height: auto;
+}
 .static .row{
 
 }
@@ -157,7 +172,6 @@
   margin: auto;
 }
 .static .inner .button {
-  /*all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   border-radius: 4px;
   padding: 16px 24px;
   cursor: pointer;
@@ -188,24 +202,11 @@
   margin: 0;
   text-align: justify
 }
-
 #homePage {
   overflow: hidden;
   color: #333;
   background-color: transparent;
 }
-/*#homePage .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;  
-}
-#homePage .int-he {
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}*/
-/*#homePage .button .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}*/
-/*#homePage .button .int-he {
-  font-family: "Open Sans Hebrew", sans-serif;
-}*/
 #homePage .section {
   margin-bottom: 0;
 }
@@ -254,7 +255,6 @@
   text-transform: uppercase;
   padding: 16px 34px;
 }
-
 #homePage .section {
   overflow: hidden;
   padding: 100px 0;
@@ -322,10 +322,6 @@
 #homePage .section .button .fa {
   color: #ccc;
   font-size: 25px;
-  /*margin: 0 3px;
-  position: absolute;
-  left: 11px;
-  top: 10px;*/
 }
 #homePage .section.center {
   text-align: center;
@@ -334,10 +330,10 @@
   margin: 0 auto;
 }
 #homePage h1 .int-en, #homePage h2 .int-en{
-    font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage h1 .int-he, #homePage h2 .int-he{
-    font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #homePage h2 {
   margin: 0 0 12px 0;
@@ -580,51 +576,49 @@
 #profilePage .sheet a {
   color: #333;
 }
-#activityList{
+#activityList {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
   padding: 0;
+}
+.interface-hebrew #activityList {
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #profileActivity a {
   color: #333;
   font-weight: normal;
 }
-/*#profilePage #moreActivity {
-  display: block;
-  margin-top: 30px;
-  font-size: 15px;
-}*/
-#profilePage  #followMe span{
+#profilePage  #followMe span {
   font-size: inherit;
 }
-#profilePage  .button span.int-en{
+#profilePage  .button span.int-en {
 }
-#profilePage  .button span.int-he{
+#profilePage  .button span.int-he {
   font-size: inherit;
 }
-#profilePage #followMe.follow span.following{
+#profilePage #followMe.follow span.following {
   display: none;
 }
-#profilePage #followMe.following span.follow{
+#profilePage #followMe.following span.follow {
   display: none;
 }
-#profilePage #followMe span.unfollow{
+#profilePage #followMe span.unfollow {
   display:none;
 }
-#profilePage #followMe.following:hover span.unfollow{
+#profilePage #followMe.following:hover span.unfollow {
   display:inherit;
 }
-#profilePage #followMe.following:hover span.following{
+#profilePage #followMe.following:hover span.following {
   display:none;
 }
 #activityList .topline {
   font-weight: normal;
 }
-#activityList .text.int-en, #activityList .text{
+#activityList .text.int-en, #activityList .text {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-#activityList .text.int-he{
-  font-family: "Taamey Frank", "Times New Roman", serif;
+#activityList .text.int-he {
+  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
 }
 #activityList .time {
   color: #ccc;
@@ -642,18 +636,15 @@
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
 }
-
 .registrationContent {
-  text-align: center;
   margin: 1% auto 0;
   width: 320px;
 }
-
 .registrationContent h1 .int-en{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .registrationContent h1 .int-he{
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .registrationContent label {
   display: none;
@@ -668,8 +659,14 @@
   border: 1px solid #bbb;
   width: 100%;
   box-sizing: border-box;
-  color: #999;
+  color: #333;
   font-size: 14px;
+}
+.registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
+  width: auto;
+}
+.registrationContent .helptext {
+  font-size: 16px;
 }
 .registrationContent ::placeholder {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
@@ -703,6 +700,13 @@
 .registrationContent input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px white inset;
 }
+.interface-hebrew input#id_email::-webkit-input-placeholder {
+  text-align: right;
+}
+input#id_email{
+  text-align: left;
+  direction: ltr;
+}
 .registrationContent button {
   all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
   display: block;
@@ -733,79 +737,70 @@
 .registrationContent a.registration-links{
   margin-top: 20px;
 }
-.registrationContent a .int-en, .registrationContent button .int-en{
-}
-.registrationContent a .int-he, .registrationContent button .int-he{
-}
-/*#login.registrationContent #resetLink{
-  margin: 20px 0;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
-}*/
 #visualizationsPage {
   text-align: left;
+}
+.interface-hebrew #visualizationsPage {
+  text-align: right;
 }
 #visualLibraryPage {
   padding-top: 70px;
 }
-.static div.single-button{
+.static div.single-button {
   margin: 5% 0;
 }
-.static div.single-button.center{
+.static div.single-button.center {
   text-align: center;
 }
 #donatePage #donateOptions .donateOption {
-    margin-bottom: 35px;
+  margin-bottom: 35px;
 }
-#donatePage .faq p.question{
+#donatePage .faq p.question {
   font-weight: bold;
 }
-#donatePage .faq p.answer{
+#donatePage .faq p.answer {
   margin-left: 40px;
   text-indent: -20px;
 }
-#donatePage .faq p.question:before{
+#donatePage .faq p.question:before {
   content: "Q)";
 }
-#donatePage .faq p.answer:before{
+#donatePage .faq p.answer:before {
   content: "A)";
 }
 .interface-hebrew #donatePage .faq p.answer{
   margin-right: 40px;
   text-indent: -20px;
 }
-.interface-hebrew #donatePage .faq p.question:before{
+.interface-hebrew #donatePage .faq p.question:before {
   content: "ש)";
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
-.interface-hebrew #donatePage .faq p.answer:before{
+.interface-hebrew #donatePage .faq p.answer:before {
   content: "ת)";
-  font-family: "Alef", "Helvetica Neue", Helvetica, Ariel, san-serif;
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
-
-
 #supportersPage{
   text-align: center;
 }
-#supportersPage .leading-supporters p.tagline:first-child{
+#supportersPage .leading-supporters p.tagline:first-child {
   text-align: center;
   max-width: 500px;
   margin: auto;
 }
-#supportersPage .leading-supporters p.tagline:last-child{
+#supportersPage .leading-supporters p.tagline:last-child {
   margin-top: 20px;
 }
-#supportersPage .supporters p.tagline:first-child{
+#supportersPage .supporters p.tagline:first-child {
   margin-bottom: 20px;
 }
-#supportersPage h2{
+#supportersPage h2 {
     margin-top: 25px;
 }
-#supportersPage h2 span{
+#supportersPage h2 span {
   font-size: 1.3em;
 }
-#supportersPage .donate-link{
+#supportersPage .donate-link {
   margin-top:20px;
 }
 #aboutPage {
@@ -876,38 +871,38 @@
   display: flex;
   display: -webkit-flex
 }
-#teamPage .teamBoardMember{
+#teamPage .teamBoardMember {
   border-bottom: none;
   margin-bottom: 10px;
 }
-#teamPage .teamMember .teamMemberImage{
+#teamPage .teamMember .teamMemberImage {
   display: inline-block;
   /*float: left;*/
 }
-#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails{
+#teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
   display: inline-block;
   white-space:nowrap;
   max-width: 65%;
   margin: 0 20px;
 }
-#teamPage .teamBoardMember .teamMemberDetails{
+#teamPage .teamBoardMember .teamMemberDetails {
   margin: 0;
 }
-#teamPage .teamMember .teamMemberImage img{
+#teamPage .teamMember .teamMemberImage img {
   border: 1px solid #E6E5E6;
   width: 170px;
   height: 170px;
   vertical-align:middle;
 }
-#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName{
+#teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
   margin-bottom: 20px;
   font-size: 25px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle{
+#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle {
 
 }
-#teamPage .teamMember .teamEmail{
+#teamPage .teamMember .teamEmail {
   color: #999;
 }
 #teamPage .teamMember .teamBio {
@@ -932,7 +927,6 @@
 #editProfilePage #contactBox,
 #editProfilePage #sheetsBox,
 #editProfilePage #aboutBox {
-  /*text-align: left;*/
   margin-bottom: 60px;
   display: flex;
   display: -webkit-flex;
@@ -948,18 +942,6 @@
   border: 1px solid #bbb;
 }
 
-/*.editProfileContentLeft {
-  width: 48%;
-  min-width: 300px;
-  margin: 0 auto 0 0;
-
-}
-.editProfileContentRight {
-  width: 48%;
-  min-width: 300px;
-  margin: 0 0 0 auto;
-}*/
-
 #editProfilePage h2 {
   text-align: center;
 }
@@ -970,9 +952,6 @@
 #editProfilePage input {
   padding: 15px 12px;
   border: none;
-}
-#editProfilePage #profilePictureBox {
-  /*width: 100%;*/
 }
 #editProfilePage #profilePictureBox img {
   vertical-align: top;
@@ -1108,6 +1087,7 @@
 .static .toggleOption {
   background-color: white;
   color: #666;
+  outline: none;
 }
 .static .toggleOption.active {
   color: #666;
@@ -1199,7 +1179,7 @@
     border-radius: 8px;
     pointer-events: none;
 }
-#activityPage h2{
+#activityPage h2 {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 25px;
   font-style: italic;
@@ -1207,6 +1187,9 @@
   text-align: center;
   border: none;
   text-transform: none;
+}
+.interface-hebrew #activityPage h2 {
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #activityPage #activityFeed {
   color: #666;
@@ -1227,7 +1210,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityPage #activityFeed .text.ver-he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
 }
 #activityPage #activityList .time {
   color: #ccc;
@@ -1236,9 +1219,8 @@
   text-align: center;
   margin: 30px 0;
   padding-bottom: 30px;
-
 }
-#activityPage select{
+#activityPage select {
   min-width: 165px;
   background-color: #ffffff;
   height: 3em;
@@ -1247,12 +1229,6 @@
   border-radius: 3px;
   border-color: #ccc;
   font-size: 14px;
-  /*-webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;*/
 }
 #iosPage p {
   margin-bottom: 30px;
@@ -1280,17 +1256,18 @@
   font-size: 16px;
   font-weight: lighter;
 }
+#jobsPage p {
+  margin: 20px 0;
+}
 #jobsPage li {
   margin: 14px 0;
 }
-
 #helpPage .section {
   margin-bottom: 60px;
 }
 #translationRequestsPage .translationRequest{
   background-color: inherit;
   text-align: justify;
-  /*display: block;*/
   border-bottom: 1px solid #eee;
   padding: 20px 0 20px 0;
   margin: 0;
@@ -1398,43 +1375,231 @@
   background-color: white;
 }
 
+#edPage {
+  overflow: hidden;
+  color: #333;
+  background-color: transparent;
+}
+
+#edPage .section {
+  margin-bottom: 0;
+}
+#edPage #edCover {
+  color: white;
+  height: 660px;
+  padding: 225px 0;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  background-image: url(/static/img/edheader.jpg);
+  background-size: cover;
+  background-color: #ADA99B;
+  background-position: center;
+}
+#edPage #edCover h1 {
+  color: white;
+  font-weight: normal;
+  font-size: 49px;
+  height: 70px;
+  margin-bottom: 30px;
+}
+#edPage #edCover .sub {
+  font-size: 22px;
+  font-style: italic;
+  margin: 0;
+  position: relative;
+}
+#edPage #edCover a {
+  color: white;
+  font-style: normal;
+  font-size: 21px;
+  position: relative;
+}
+#edPage #edCover .button {
+  margin-top: 80px;
+  padding: 16px 34px;
+  outline: none;
+}
+
+#edPage .section {
+  overflow: hidden;
+  padding: 100px 0;
+}
+#edPage .sectionInner {
+  width: 720px;
+  max-width: 94%;
+  margin: auto;
+}
+#edPage .section:nth-child(odd) {
+  background-color: #F9F9F7;
+}
+#edPage .section:nth-child(even) {
+  background-color: white;
+}
+#edPage .textBox {
+  display: inline-block;
+  width: 350px;
+}
+#edPage .imageBox {
+  display: inline-block;
+  width: 300px;
+  text-align: center;
+}
+#edPage .imageBox img {
+  max-width: 100%;
+}
+#edPage .imageBox a .button.fullWidth {
+  width: 300px;
+}
+@media screen and (max-width: 700px) {
+  #edPage .sectionInner {
+    width: 350px;
+  }
+  #edPage .textBox, #edPage .imageBox {
+    max-width: 100%;
+    margin: 0 auto;
+    float: none !important;
+  }
+  #edPage .imageBox {
+    margin-top: 20px;
+  }
+}
+#edPage .imageBox.bordered {
+  border: 1px solid #ccc;
+}
+#edPage .imageBox.bordered img {
+  display: block;
+}
+#edPage .textLeft .textBox {
+  float: left;
+}
+#edPage .textLeft .imageBox {
+  float: right;
+}
+#edPage .textRight .textBox {
+  float: right;
+}
+#edPage .textRight .imageBox {
+  float: left;
+}
+#edPage .section a .button {
+  display: block;
+  width: 242px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+#edPage .section.center {
+  text-align: center;
+}
+#edPage .section.center .button {
+  margin-left: auto;
+  margin-right: auto;
+}
+#edPage h1, #edPage h2 {
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#edPage h2 {
+  margin: 0 0 12px 0;
+  padding: 0;
+  font-style: italic;
+  font-size: 28px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: none;
+  border: none;
+  color:  #666;
+}
+#edPage h2 img {
+  top: 2px;
+  position: relative;
+}
+#edPage .description {
+  margin: 26px 0 34px 0;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#edPage .dedication {
+  margin: -12px 0 34px;
+  color: #999;
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.2;
+}
+#edPage .section .button {
+  margin: 0;
+  position: relative;
+}
+#edPage a {
+  color: #999;
+  font-size: 16px;
+}
+#edPage a.refLink {
+  color: #333;
+  font-size: 16px;
+  padding: 12px 0px 15px;
+}
+#edHelp .description {
+  margin: 30px 0 40px;
+}
+#edConnect h2 {
+  margin-bottom: 30px;
+}
+#edConnect #mailingListTitle {
+  margin-bottom: 40px;
+  color: #999;
+  font-size: 14px;
+}
+#edConnect #mailingListEmail {
+  padding: 14px 24px;
+  margin: -4px 8px 0 0;
+  width: 240px;
+  font-size: 16px;
+}
+#edConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+#edConnect #subscribeMsg {
+  margin-top: 40px;
+  font-size: 20px;
+  display: none;
+}
+
 #groupsPage {
     margin: 70px auto;
     text-align: center;
 }
-
 #groupsPage #groups {
     margin-top: 40px;
 }
-
 #groupsPage .group {
-    width: 220px;
-    height: 220px;
     margin: 10px;
-    border: 1px solid #ddd;
-    display: inline-block;
-    position: relative;
-    text-align: center;
-    line-height: 200px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: block;
+    text-align: left;
     overflow: hidden;
 }
-
 #groupsPage .group:hover {
     border: 1px solid #08c;
 }
-
-
 #groupsPage .groupName {
-    position: absolute;
-    width: 220px;
-    bottom: 10px;
-    font-size: 14px;
-    line-height: 14px;
+    font-size: 18px;
+    line-height: 22px;
     color: #555;
-    text-align: center;
     display: block;
 }
-
 #groupsPage .groupSettings {
     display: none;
     cursor: pointer;
@@ -1446,58 +1611,15 @@
     font-size: 18px;
     color: black;
 }
-
-#groupsPage .group:hover .groupSettings {
-    display: block;
-}
-
-#groupsPage .groupSettings:hover {
-    color: #08c;
-}
-
 #groupsPage .group img.groupCover {
 }
-
 #groupsPage .group img.groupHeader {
     display: none;
 }
-
 #groupsPage .group img {
-    width: 92%;
-}
-
-#editGroupModal {
-    max-height: 70%;
-    min-width: 400px;
-    max-width: 100%;
-    overflow-y: scroll;
-    text-align: left;
-}
-
-#editGroupModal h1 {
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-#editGroupModal .imageBox {
-    margin-bottom: 30px;
-}
-
-#editGroupModal .left {
-    display: block;
-}
-
-#editGroupModal input {
-    width: 92%;
-}
-
-#editGroupModal img {
-    vertical-align: top;
-    max-width: 600px;
-}
-
-#editGroupModal #saveGroup {
-    display: none;
+    width: 48px;
+    height: 48px;
+    float: left;
 }
 
 #visualGardenPage .control-results-containe{
@@ -1507,7 +1629,7 @@
   -webkit-align-items: flex-start;
 }
 #visualGardenPage #results-container .int-he {
-  font-family: 'Taamey Frank', 'Times New Roman', serif;
+  font-family: "Frank Ruehl Libre","Times New Roman",serif;
 }
 #visualGardenPage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -1526,7 +1648,6 @@
   float: left;
   direction: ltr;
 }
-
 #visualGardenPage #top-controls {
   display: flex;
 }
@@ -1539,7 +1660,6 @@
   text-align: center;
   margin: 0 0 30px 0;
 }
-
 body.interface-hebrew #visualGardenPage .reset {
   direction: rtl;
   float: right;
@@ -1548,8 +1668,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   float: none;
   direction: ltr;
 }
-/* ^^ */
-
 #visualGardenPage #sort-label {
   display: inline-block;
   vertical-align: top;
@@ -1593,7 +1711,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
    direction: rtl;
 }
 #visualGardenPage #results .result-text span.he {
- font-family: "Taamey Frank","Times New Roman",serif;
+ font-family: "Frank Ruehl Libre","Times New Roman",serif;
 }
 #visualGardenPage #results:after { /* Clearfix, for footer */
 	visibility: hidden;
@@ -1603,29 +1721,23 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 	clear: both;
 	height: 0;
 }
-
 #visualGardenPage #sort-container {
   float: none;
   padding: 25px 0 5px;
 }
-
 #visualGardenPage .filter-title {
   margin-left: 10px;
 }
-
 #visualGardenPage .filter-title .filter-title-en {
   font-weight: bold;
 }
-
 #visualGardenPage .tags-list.dc-chart g.row text {
   fill: black;
 }
-
 #visualGardenPage .tags-list.dc-chart .axis path,
 #visualGardenPage .tags-list.dc-chart .axis line {
   stroke: none
 }
-
 #visualGardenPage #results-table .dc-table-column ._0 {
   width: 220px;
 }
@@ -1634,16 +1746,13 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #results-table .dc-table-column._3 {
   width: 170px;
 }
-
 #visualGardenPage #results-table .dc-table-column._4 {
   width: 30px;
 }
-
 #visualGardenPage #map-chart {
-    margin-left: 10px;
-    margin-bottom: 25px;
+  margin-left: 10px;
+  margin-bottom: 25px;
 }
-
 #visualGardenPage #map-chart path {
   stroke-width: 1;
   stroke: black;
@@ -1651,17 +1760,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage #map-chart .selected path {
   stroke-width: 1;
   stroke: white;
-}
-
-#visualGardenPage .sourceSheetPanelBox {
-    position: fixed;
-    display: block;
-    left: 40%;
-    top: 90px;
-    width: 330px;
-    padding: 20px;
-    background: white;
-    border: #ccc 2px solid;
 }
 #visualGardenPage .sourceSheetPanelBox .contentInner {
   margin: 0 auto;
@@ -1673,12 +1771,40 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #visualGardenPage .sourceSheetPanelBox .textList {
   position: static;
 }
-
 #visualGardenPage .sourceSheetPanelBox .sourceSheetSelector {
   margin: 0;
 }
-
 #visualGardenPage .sourceSheetBoxTitle i {
   padding: 0 10px 10px 0;
   cursor: pointer;
+}
+#dashboardContent {
+  padding-bottom: 100px;
+}
+#dashboardContent #moderatorMsg {
+  text-align: center;
+  font-size: 24px;
+  margin: 30px auto;
+}
+#dashboardContent #moderatorMsg .actions {
+  margin: 30px auto;
+}
+#dashboardContent #dashboard_filter {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  text-align: left;
+  margin: 10px -12px;
+  font-size: 24px;
+}
+#dashboardContent #dashboard_wrapper input {
+  font-size: 24px;
+  padding: 10px 20px;
+  width: 270px;
+  max-width: 60%;
+}
+#dashboardContent #loggedOutMsg {
+  text-align: center;
+  font-size: 24px;
+  margin: 60px;
 }

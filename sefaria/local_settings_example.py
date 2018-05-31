@@ -1,24 +1,12 @@
-# An example of settings needed in a local_settings.py file which is ignored by git.
+# An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 import os.path
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
-OFFLINE = False
-DOWN_FOR_MAINTENANCE = False
-MAINTENANCE_MESSAGE = ""
-GLOBAL_WARNING = False
-GLOBAL_WARNING_MESSAGE = ""
+# These are things you need to change!
 
-
-ADMINS = (
-     ('Your Name', 'you@example.com'),
-)
-
-MANAGERS = ADMINS
-
+################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE ########################################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -30,47 +18,111 @@ DATABASES = {
     }
 }
 
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'name of db table here',
+        'USER': 'name of db user here',
+        'PASSWORD': 'password here',
+        'HOST': '127.0.0.1',
+        'PORT': '',
+    }
+}"""
+
+
+################ These are things you can change! ###########################################################################
+ADMINS = (
+     ('Your Name', 'you@example.com'),
+)
+PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
+
 CACHES = {
     'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+""" These are some other examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
+"""CACHES = {
+    'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/path/to/your/django_cache/',  # can be any accessible path, not necessarily a path inside sefaria eg. /home/user/data/django_cache.
+        'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            #"PASSWORD": "secretpassword", # Optional
+        },
+        "TIMEOUT": 60 * 60 * 24 * 30,
+    }
+}"""
+
+
+
+
+
+
+
+
+################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
+DEBUG = True
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+OFFLINE = False
+DOWN_FOR_MAINTENANCE = False
+MAINTENANCE_MESSAGE = ""
+GLOBAL_WARNING = False
+GLOBAL_WARNING_MESSAGE = ""
+
+GLOBAL_INTERRUPTING_MESSAGE = None
+"""
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name":       "messageName",
+    "repetition": 1,
+    "condition":  {"returning_only": True}
+}
+"""
+
+
+MANAGERS = ADMINS
+
 SECRET_KEY = 'insert your long random secret key here !'
 
-STATICFILES_DIRS = (
-    '/path/to/your/sefaria/static/',
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-TEMPLATE_DIRS = (
-    '/path/to/your/sefaria/templates/',
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-DJANGO_HOST  = "http://localhost:8000" # Where is Django running
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Example using anymail, replaces block above
+# EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
+# DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
+# ANYMAIL = {
+#    "MANDRILL_API_KEY": "your api key",
+# }
+
 MONGO_HOST = "localhost"
+MONGO_PORT = 27017
 # Name of the MongoDB database to use.
 SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_USER = 'sefaria'
-SEFARIA_DB_PASSWORD = 'your mongo password'
+SEFARIA_DB_USER = ''
+SEFARIA_DB_PASSWORD = ''
 
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
 SEARCH_ADMIN = "http://localhost:9200"
-SEARCH_INDEX_ON_SAVE = True  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
+SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
+SEARCH_ADMIN_PW = None
+SEARCH_ADMIN_K8S = "http://localhost:9200"
+SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_INDEX_NAME = 'sefaria'
+SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_MERGED = 'merged'
 
 # Node Server
 USE_NODE = False
@@ -81,8 +133,20 @@ NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
+# Map domain to an interface language that the domain should be pinned to.
+# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
+DOMAIN_LANGUAGES = {
+    "http://hebrew.example.org": "hebrew",
+    "http://english.example.org": "english",
+}
+
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
+GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'
+
+AWS_ACCESS_KEY = None
+AWS_SECRET_KEY = None
+S3_BUCKET = "bucket-name"
 
 # Integration with a NationBuilder list
 NATIONBUILDER = False
@@ -95,6 +159,7 @@ NATIONBUILDER_CLIENT_SECRET = ""
 USE_VARNISH = False
 FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
 VARNISH_ADM_ADDR = "localhost:6082" # And this one doesn't
+VARNISH_HOST = "localhost"
 VARNISH_FRNT_PORT = 8040
 VARNISH_SECRET = "/etc/varnish/secret"
 # Use ESI for user box in header.
@@ -107,6 +172,20 @@ DISABLE_INDEX_SAVE = False
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
+
+# Multiserver
+MULTISERVER_ENABLED = False
+MULTISERVER_REDIS_SERVER = "127.0.0.1"
+MULTISERVER_REDIS_PORT = 6379
+MULTISERVER_REDIS_DB = 0
+MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
+MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
+
+# OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
+GOOGLE_OAUTH2_CLIENT_ID = ""
+GOOGLE_OAUTH2_CLIENT_SECRET = ""
+# This is the field that is actually used
+GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
 """ to use logging, in any module:
 # import the logging library
@@ -145,7 +224,7 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'
         },
         'require_debug_true': {
-            '()': 'sefaria.utils.log.RequireDebugTrue'
+            '()': 'django.utils.log.RequireDebugTrue'
         }
     },
     'handlers': {
@@ -175,7 +254,7 @@ LOGGING = {
 
         'null': {
             'level':'INFO',
-            'class':'django.utils.log.NullHandler',
+            'class':'logging.NullHandler',
         },
 
         'mail_admins': {

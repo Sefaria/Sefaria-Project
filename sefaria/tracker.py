@@ -13,7 +13,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
+    from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
@@ -111,6 +111,8 @@ def delete(user, klass, _id, **kwargs):
     :return:
     """
     obj = klass().load_by_id(_id)
+    if obj is None:
+        return {'error': 'item with id: {} not found'.format(_id)}
     if kwargs.get("callback"):
         kwargs.get("callback")(obj)
         del kwargs["callback"]

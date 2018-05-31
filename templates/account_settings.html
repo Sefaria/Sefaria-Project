@@ -2,7 +2,6 @@
 
 {% block content %}
 
-{% if S2 %}
 <div id="accountSettingsPage" class="static biReady">
 	<div class="inner">
 	<h1>
@@ -15,7 +14,7 @@
 			<span class="int-en">Cancel</span>
 			<span class="int-he">בטל</span>
 		</a>
-		<div id="saveAccountSettings" class="button control-elem">
+		<div id="saveAccountSettings" class="button control-elem" tabindex="0" role="button" >
 			<span class="int-en">Save</span>
 			<span class="int-he">שמור</span>
 		</div>
@@ -25,16 +24,16 @@
             <span class="int-en">Email Frequency (Maximum)</span>
 			<span class="int-he">תדירות שליחת אימייל (מקסימלית)</span>
         </label>
-		<div class="toggleSet tripleOption control-elem">
-			<div data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}">
+		<div class="toggleSet tripleOption control-elem" role="radiogroup">
+			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Daily</span>
 			    <span class="int-he">יומית</span>
             </div><!--
-			--><div data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}">
+			--><div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Weekly</span>
 			    <span class="int-he">שבועית</span>
             </div><!--
-			--><div data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}">
+			--><div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Never</span>
 			    <span class="int-he">לעולם לא</span>
             </div>
@@ -45,38 +44,35 @@
             <span class="int-en">Site Language</span>
 			<span class="int-he">שפת ממשק</span>
         </label>
-		<div class="toggleSet doubleOption control-elem">
-			<div data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}">English</div><!--
-			--><div data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}">עברית</div>
+		<div class="toggleSet doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">English</div><!--
+			--><div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">עברית</div>
 		</div>
 	</div>
 	</div>
 </div>
 
-{% else %}
-<div id="accountSettingsContent">
-	<h1>Account Settings</h1>
-	<br>
-	<div id="emailNotifications" class="well">
-		<h3>Send summary emails for unread notifications at most:</h3>
-		<input type="radio" name="email_notifications" value="daily" {% if profile.settings.email_notifications == "daily" %}checked="checked"{% endif %}> Daily<br>
-		<input type="radio" name="email_notifications" value="weekly" {% if profile.settings.email_notifications == "weekly" %}checked="checked"{% endif %}> Weekly<br>
-		<input type="radio" name="email_notifications" value="never" {% if profile.settings.email_notifications == "never" %}checked="checked"{% endif %}> Never
-	</div>
-	<div id="saveAccountSettings" class="btn btn-primary">Save</div>
-</div>
-{% endif %}
 {% endblock %}
 
 {% block js %}
 	<script>
 		$(function(){
+		    var $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 			$(".toggleOption").click(function() {
-				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active");
-				$(this).addClass("active");
+				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
+				$(this).addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
 			});
 
-			{% if S2 %}
+            $(".toggleOption").keyup(function(e){
+                if (e.keyCode === 39) { //39 is right arrow
+                    $(this).next(".toggleOption").focus().trigger("click");
+                }
+                else if (e.keyCode === 37) { //37 is left arrow
+                    $(this).prev(".toggleOption").focus().trigger("click");
+                }
+            });
+
+
 			$("#saveAccountSettings").click(function(){
 				var profile = {
 						settings: {
@@ -90,29 +86,21 @@
 						alert(data.error);
 					} else {
 						alert("Settings Saved.");
-						Sefaria.site.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
+						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
+						var $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+						if($newLang != $curLang){
+						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
+                        }
 						window.location = "/account";
 					}
 				});
 			});
-			{% else %}
-			$("#saveAccountSettings").click(function(){
-				var profile = {
-						settings: {
-							email_notifications: $("#emailNotifications input:checked").val()
-						}
-				};
+            $("#saveAccountSettings").keyup(function(e){
+                if (e.keyCode === 13) {
+                    $("#saveAccountSettings").trigger("click");
+                }
+            });
 
-				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
-					if ("error" in data) {
-						sjs.alert.message(data.error);
-					} else {
-						sjs.alert.message("Settings Saved.");
-						sjs.track.event("Settings", "Email Notifications Change", $("#emailNotifications input:checked").val());
-					}
-				});
-			});
-			{% endif %}
 		});
 	</script>
 {% endblock %}

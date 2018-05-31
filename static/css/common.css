@@ -1,10 +1,5 @@
 /* CSS common to Reader, Sheets and all static pages */
 
-/* Improves touch reactiveness on iOS devices */
-.categoryFilter {
-    -webkit-tap-hightlight-color: rgba(0,0,0,0);
-}
-
 @font-face {
   font-family: 'Rashi Script';
   src: url('/static/fonts/Mekorot-Rashi.ttf');
@@ -33,12 +28,11 @@
 
 /* Avoid Flash of Unstyled Text with Google Web Font Loader */
 .wf-loading {
-    visibility: hidden;
+  visibility: hidden;
 }
 .wf-active {
-    visibility: visible;
+  visibility: visible;
 }
-
 .modal {
   display: none;
   position: absolute;
@@ -55,7 +49,6 @@
   line-height: 1.2;
   border-radius: 0;
 }
-
 #overlay {
   display: none;
   position: fixed;
@@ -67,626 +60,32 @@
   top: 0px;
   left: 0px;
 }
-
-#top {
-  z-index: 100;
-  position: fixed;
-  top: 0%;
-  left: 0%;
-  width: 100%;
-  padding: 0;
-  background-color: white;
-  border-bottom: 1px solid #ddd;
-  vertical-align: middle;
-  -moz-user-select: none; 
-  -khtml-user-select: none; 
-  -webkit-user-select: none; 
-  -o-user-select: none; 
-}
-
-body.embeded #top {
-  display: none;
-}
-
-#left {
-  float: left;
-  margin-right: 4px;
-  font-family: Georgia, serif;
-}
-
-#sefaria {
-    cursor: pointer;
-    padding: 3px 3px;
-    display: inline-block;
-    height: 100%;
-    line-height: 40px;
-}
-
-#sefaria svg {
-  margin-left: 8px;
-  vertical-align: middle;
-  width: 100px;
-  position: relative;
-  top: -2px;
-}
-
-#sefaria {
-  font-size: 20px;
-	vertical-align: top;
-  padding-left: 2px;
-}
-
-#sefaria .fa {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 2px;
-  padding-right: 4px;
-  font-size: 16px;
-}
-
-#left:hover {
-  background-color: #555;
-  color: white;
-}
-
-#left:hover svg {
-  -webkit-filter: invert(100%);
-  filter: invert(100%);
-}
-
-#navPanel {
-  position: fixed;
-  z-index: 99;
-  height: 100%;
-  box-sizing: border-box;
-  overflow-y: visible;
-  overflow-x: scroll;
-  top: 0;
-  left: -410px;
-  width: 400px;
-  max-width: 86%;
-  background: white;
-  box-shadow: 1px 1px 4px #555;
-  padding: 60px 0 10px;
-  font-size: 16px;
-  font-family: Georgia, serif;
-  -webkit-transition: all 0.15s ease;
-  -moz-transition: all 0.15s ease;
-  -o-transition: all 0.15s ease;
-  transition: all 0.15s ease;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-#navPanel.navPanelOpen {
-  left: 0;
-}
-
-#navPanel a {
-  color: black;
-}
-
-#navPanel .tocCat,
-#navPanel a {
-  display: block;
-  padding: 5px 40px;
-  cursor: pointer;
-}
-
-#navPanel .tocCat:hover,
-#navPanel a:hover {
-  text-decoration: none;
-  background-color: #eee;
-}
-
-#navPanel .tocCatCaret {
-  float: right;
-  margin: 0 0 0 8px;
-  font-size: 16px;
-  padding: 2px 0;
-}
-
-#navPanel .textTocLink,
-#navToc .tocCatCaret {
-  float: right;
-  font-size: 16px;
-  margin: 0 10px 0 0;
-  padding: 2px 0; 
-  color: inherit;
-}
-
-#navToc .textTocLink {
-  font-size: 12px;
-  line-height: 17px;
-}
-
-#navToc.hebrew .tocCatCaret,
-#navToc.hebrew .textTocLink {
-  float: left;
-}
-
-#navPanel .navLine {
-  margin: 8px 40px;
-  border-top: 1px solid #ddd;
-}
-
-#navPanelCalendar {
-  padding: 0 40px;
-}
-
-#navPanelCalendar table {
-  max-width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0;
-  background-color: transparent;  
-}
-
-#navPanelCalendar td {
-  vertical-align: top;
-  line-height: 16px;
-  max-width: 50%;
-}
-
-#navPanelCalendar .calendarLabel {
-  width: 150px;
-  font-size: 15px;
-  white-space: nowrap;
-  max-width: 50%;
-  font-variant: small-caps;
-  color: #999;
-}
-
-#navPanelCalendar a {
-  font-size: 12px;
-  width: 160px;
-  padding: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#navPanelTexts {
-  position: relative;
-  max-height: 240px;
-  overflow: hidden;
-}
-
-#navPanelTexts.expand {
-  max-height: 99999px;
-  padding-bottom: 18px;
-}
-
-#navToc {
-  overflow: visible;
-}
-
-#tocTopMatter {
-    display: block;
-    width: 92%;
-}
-
-#navToc #tocCatHeaders {
-  text-align: center;
-  padding: 5px 40px;
-  clear: both;
-}
-
-#navToc .tocCatHeader {
-  display: inline;
-  font-weight: bold;
-  font-size: 13px;
-  padding: 0;
-  white-space: nowrap;
-}
-
-#navToc .sectionName {
-    text-align: center;
-    font-style: italic;
-    font-size: 13px;
-    margin-bottom: 4px;
-}
-
-#navToc .inline-default-node .sectionName {
-    text-align: start;
-    padding: 8px 40px 3px;
-    margin: 0px;
-}
-
-#navToc .tocCat {
-  line-height: 18px;
-}
-
-#navToc .previewLink { 
-  height: 26px;
-}
-
-#navToc a.numLink {
-  display: inline-block;
-  min-width: 40px;
-  height: 50px;
-  margin: 0;
-  padding: 0 5px;
-  line-height: 50px;
-  text-align: center;
-}
-
-#navToc #numLinkBox {
-  padding: 0 40px;
-  text-align: center;
-}
-
-#navToc .numLink .he {
-  text-align: center;
-}
-
-#navToc.hebrew #numLinkBox {
-  direction: rtl;
-}
-
-#navToc .previewLink .tocCatCaret {
-  padding: 5px 0;
-}
-
-#navTocLangToggleBox {
-    float: right;
-}
-
-#navPanel .tocCat.backLink {
-    float: left;
-    padding: 4px 0 0 40px;
-}
-
-#navTocPreviewToggle {
-  color: #aaa;
-  cursor: pointer;
-  position: relative;
-  top: 5px;
-  margin-right: 3px;
-}
-
-#navToc.showPreviews #navTocPreviewToggle {
-  color: black;
-}
-
-#navTocLangToggle {
-  text-align: center;
-}
-
-#navToc .langToggle {
-  height: 16px;
-  line-height: 16px;
-  padding: 0 4px;
-}
-
-#navToc .langToggle img {
-  width: 12px;
-  height: 12px;
-}
-
-#navToc .previewLink {
-  font-size: 13px;
-}
-
-#navToc .previewLink .en,
-#navToc .previewLink .he {
-  display: block;
-  height: 24px;
-  line-height: 24px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-right: 12px;
-  position: relative;
-}
-
-#navToc .he { 
-  font-size: 140%;
-  font-family: "Times New Roman", serif;
-  direction: rtl;
-  text-align: right;
-}
-
-#navToc.english .he {
-  display: none;
-}
-#navToc.hebrew .he {
-  display: block;
-}
-#navToc.hebrew .en {
-  display: none;
-}
-#navToc.english .previewLink.heOnly .he,
-#navToc.hebrew .previewLink.enOnly .en {
-  display: block;
-}
-#navToc.english .previewLink.heOnly .en,
-#navToc.hebrew .previewLink.enOnly .he {
-  display: none;
-}
-
-#navToc .previewLink .segmentNumber {
-  font-size: 14px;
-  margin-right: 6px;
-  display: inline-block;
-  float: left;
-  direction: ltr;
-}
-
-#navToc .previewLink .he .segmentNumber {
-  float: right;
-  margin: 0 0 0 6px;
-  direction: rtl;
-}
-
-#navToc #structureDropdown {
-    color: #999;
-    font-style: italic;
-    font-size: 10px;
-    display: block;
-    float: right;
-    padding: 6px 14px 0 0;
-}
-
-#navToc #structureDropdown select {
-    font-size: 10px;
-    height: 18px;
-    line-height: 18px;
-    margin: 0;
-    width: 110px;
-    padding: 0;
-}
-
-.sparse1 {
-    color: #bbb;
-}
-.sparse2 {
-    color: #999;
-}
-.sparse3 {
-    color: #777;
-}
-.sparse4 {
-    color: #000;
-}
-
-#navPanelTextsMore {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 0 40px;
-  box-sizing: border-box;
-  background: white;
-  font-size: 13px;
-  font-weight: bold;
-  cursor: pointer;
-  font-variant: small-caps;
-}
-
-#navPanelTextsMore #tocLink {
-  float: right;
-  padding: 0;
-}
-
-#navPanelTextsMore .fa {
-  vertical-align: middle;
-}
-
-#navPanelTexts.expand #moreLink {
-  display: none;
-}
-
-#navPanelTexts #lessLink {
-  display: none;
-}
-
-#navPanelTexts.expand #lessLink {
-  display: inline;
-}
-
-#navPanel .navLinkIcon {
-  width: 22px;
-}
-
-#navPanel #donateLink {
-  color: #08a756;
-}
-
-#navPanelAboutLinks {
-  display: none;
-}
-
-#navPanel .backLink {
-  color: #aaa;
-  font-variant: small-caps;
-}
-
-#navPanelFooter {
-  margin-top: 30px;
-  padding: 0 40px;
-}
-
-#navPanelFooter a {
-  display: inline-block;
-  padding: 0 2px;
-  font-size: 13px;
-  letter-spacing: 0;
-}
-
-#navPanelFooter .navLine {
-  margin: 10px 0px;
-}
-
-#navPanelFooter .legalLink {
-  font-size: 12px;
-}
-
-#accountBox {
-  float: right;
-}
-
 #alertMessage {
-position:fixed;
-width:100%;
-display:none;
-z-index:101;
-text-align:center;
-background-color: #f2dede;
-border-color: #eed3d7;
-color: #b94a48;
-border: 1px solid #fbeed5;
-margin-bottom: 18px;
-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-
-}
-
-#top .topButton .ui-icon {
-  display: inline-block;
-  vertical-align: -25%;
-}
-
-#top .menu {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: 100%;
-  width: auto;
-  padding: 6px 0px 10px;
-  font-size: 14px;
-  line-height: 15px;
-  background: white;
-  text-align: left;
-  border: 1px solid #aaa;
-  box-shadow: 1px 1px 8px #777;
-}
-
-#top #accountMenu,
-#top #notificationsMenu {
-  left: auto;
-  right: 0;
-}
-
-#top .menu a {
-  display: block;
-  padding: 4px 14px;
-  white-space: nowrap;
-}
-
-#top .menu a:hover {
-  background: #08c;
-  color: white;
-  text-decoration: none;
-}
-
-#top .menu .lineBelow {
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-}
-
-#top #accountButton:hover #accountMenu,
-#top #notificationsButton:hover #notificationsMenu {
-  display: block;
-}
-
-#top #accountButton,
-#top #notificationsButton {
-  position:relative;
-}
-
-#right {
-  height: 32px;
-  margin: 4px 10px 0 0;
-  padding-top: 4px;
-  width: 420px;
-  text-align: right;
-  float: right;
-  z-index: 1;
-}
-
-#top #notificationsButton {
-
-}
-
-#notificationsButton .fa,
-#accountButton .fa {
-  font-size: 18px;
-  color: #222;
-}
-
-#newNotificationsCount {
-  position: absolute;
-  opacity: 0.9;
-  top: -3px;
-  right: -3px;
-  z-index: 100;
-  color: white;
-  background: #d9534f;
-  display: inline-block;
-  padding: 1px 4px;
-  font-size: 13px;
-  border-radius: 6px;
-  margin-left: 2px;
-  box-shadow: 1px 1px 1px #eee;
-  height: 16px;
-  line-height: 15px;
-}
-
-#notifications {
-  max-height: 420px;
-  overflow-y: scroll;
-  border-top: 1px solid #999;
-  border-bottom: 1px solid #999;
-}
-
-#notificationsEmpty {
-  padding: 40px;
-  width: 160px;
-  text-align: center;
-  line-height: 1.3;
-}
-
-.notification {
-  padding: 16px;
-  width: 350px;
-  -webkit-user-select: auto;
-}
-
-.notification.unread {background-color: #eee;}
-
-.notification+.notification  {
-  border-top: 1px solid #999;
-}
-
-.notification .date {
-  color: #777;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-#top #notifications .notification a {
-  display: inline;
-  padding: 0;
-  white-space: normal;
-}
-
-.notification .messageReply, .notification .messageView {
-  float: right;
+  position:fixed;
+  width:100%;
+  display:none;
+  z-index:101;
+  text-align:center;
+  background-color: #f2dede;
+  border-color: #eed3d7;
+  color: #b94a48;
+  border: 1px solid #fbeed5;
+  margin-bottom: 18px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 #messageComposer {
   max-width: 100%;
+  border-radius: 6px;
 }
-
+#messageTextarea {
+  margin-bottom: 20px;
+}
 #messageHeader {
   font-weight: bold;
   font-size: 14px;
   margin-bottom: 4px;
 }
-
 #messageComposer #messageTextarea {
   display: block;
   max-width: 100%;
@@ -694,11 +93,9 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   width: 480px;
   box-sizing: border-box;
 }
-
 .messageText {
   display: none;
 }
-
 #viewMessage #messageText {
   background: white;
   border-radius: 5px;
@@ -711,7 +108,6 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   overflow-y: scroll;
   text-align: left;
   font-size: 16px;
-
 }
 
 #peopleListModal {
@@ -825,84 +221,6 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   display: none;
 }
 
-#showOptions {
-  display: none;
-  font-size: 36px;
-  line-height: 25px;
-  padding: 0 4px;
-  cursor: pointer;
-}
-
-@media screen and (max-width: 800px) {
-
-  /* Put search results on new line */
-  #searchContent {
-      clear: both;
-  }
-
-  /* Get rid of whitespace on search page */
-  #searchHeaderContainer {
-    display: none;
-  }
-
-  #showOptions {
-    display: inline-block;
-  }
-
-  #top #right {
-    width: 36px;
-    margin-top: 6px;
-  }
-
-  #top #right #showOptions {
-    font-family: "Times New Roman";
-  }
-
-
-  #rightButtons {
-    display: none;
-    position: fixed;
-    top: 48px;
-    right: 0;
-    width: 98%;
-    padding: 10px 1%;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-right: none;
-    z-index: 1;
-  }
-
-  #top #rightButtons > div {
-    display: inline-block;
-    vertical-align: middle;
-    margin-bottom: 4px;
-  }
-
-  #rightButtons #accountBox {
-    float: none;
-  }
-
-  #rightButtons #gotoBox {
-    width: 98%;
-  }
-
-  #rightButtons #gotoBox #goto {
-    width: 96%;
-  }
-
-
-}
-
-#searchInsteadOfNavPrompt {
-  position: fixed;
-  top: 39px;
-  left: 140px;
-  background: #eee;
-  padding: 8px 16px;
-  border-radius: 3px;
-  z-index: 100;
-}
-
 #globalWarning {
   position: fixed;
   z-index: 99;
@@ -928,608 +246,12 @@ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   cursor: pointer;
 }
 
-.enNone.heNone {
-  color: #ccc;
-}
-
-.enNone.heSome {
-  color: #C09853;
-}
-
-.enNone.heAll {
-  color: #468847;
-}
-
-.enSome.heNone {
-  color: #C09853;
-}
-
-.enSome.heSome {
-  color: #C09853;
-}
-
-.enSome.heAll {
-  color: #CA54DA;
-}
-
-.enAll.heNone {
-  color: #1E347B
-}
-
-.enAll.heSome {
-  color: #C09853;
-}
-
-.enAll.heAll {
-  color: #08c;  
-}
-
-/****   Person    ****/
-/*
-
-#personPage #periodNameLine {
-  text-align: center;
-}
-
-#personPage #yearLine {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-#personPage #bio {
-  margin-bottom: 10px;
-}
-
-#personPage #place-map {
-  padding-bottom: 20px;
-}
-
-.hebrew #personPage {
-  direction: rtl;
-}
-
-div.person_tooltip {
-    position: absolute;
-    text-align: center;
-    padding: 6px;
-    font: 12px sans-serif;
-    background: lightsteelblue;
-    border: 0px;
-    border-radius: 8px;
-    pointer-events: none;
-}
-
-#personPage #relationships a,
-#personPage #indexes a,
-#peoplePage a,
-#talmudicPeoplePage a {
-  display: block;
-}
-
-#personPage #external_links .fa-external-link {
-  font-size: .5em;
-  margin: auto 5px;
-  vertical-align: middle;
-}
-#personPage #indexes {
-  padding-bottom: 15px;
-}
-
-#talmudicPeoplePage .talmudic-generation {
-  margin-bottom: 20px;
-}
-
-#peoplePage .subtitle {
-  font-size: 70%;
-  font-weight: normal;
-}
-
-.english #personPage #indexes {
-  padding-left: 40px;
-}
-.english #personPage #indexes span.en,
-.english #personPage #indexes h3 {
-  text-indent: 40px;
-  margin-left: -40px;
-}
-.hebrew #personPage #indexes {
-  padding-right: 40px;
-}
-.hebrew #personPage #indexes span.he,
-.hebrew #personPage #indexes h3 {
-  text-indent: 40px;
-  margin-right: -40px;
-}
-
-.hebrew #talmudicPeoplePage .talmudic-generation,
-.hebrew #peoplePage .author {
-  float: right;
-}
-
-.english #personPage #person-text-column,
-.hebrew #personPage #person-graphic-column {
-  float: left;
-  margin-right: auto;
-  margin-left: 180px;
-}
-
-.english #personPage #person-graphic-column,
-.hebrew #personPage #person-text-column {
-  float: right;
-  margin-right: 160px;
-  margin-left: auto;
-}
-
-@media (min-width: 1200px) {
-  .english #personPage #person-text-column,
-  .hebrew #personPage #person-graphic-column {
-    margin-left: 230px;
-  }
-
-  .english #personPage #person-graphic-column,
-  .hebrew #personPage #person-text-column {
-    margin-right: 200px;
-  }
-}
-
-
-@media (max-width: 979px) and (min-width: 768px) {
-  body.english #content #personPage #person-graphic-column,
-  body.english #content #personPage #person-text-column {
-    float: left;
-    margin-right: auto;
-    margin-left: 145px;
-    clear: both;
-  }
-
-  body.hebrew #content #personPage #person-graphic-column,
-  body.hebrew #content #personPage #person-text-column {
-    float: right;
-    margin-right: 125px;
-    margin-left: auto;
-    clear: both;
-  }
-}
-@media (max-width: 767px) {
-  body.english #content #personPage #person-graphic-column,
-  body.english #content #personPage #person-text-column {
-    float: left;
-    margin-right: auto;
-    margin-left: auto;
-    clear: both;
-  }
-  body.hebrew #content #personPage #person-graphic-column,
-  body.hebrew #content #personPage #person-text-column {
-    float: right;
-    margin-right: auto;
-    margin-left: auto;
-    clear: both;
-  }
-
-}*/
-/****        Search         ****/
-
-#gotoBox {
-  float: left;
-  position: relative;
-  margin-top: 4px;
-}
-
-.searchInput {
-  display: inline-block;
-  vertical-align: middle;
-  border-radius: 4px;
-  border: none;
-  background-color: #eee;
-}
-
-#goto {
-  width: 240px;
-  margin: 7px 0 6px 12px;
-}
-
-@media screen and (max-width: 930px) {
-  #goto {
-    width: 120px;
-  }
-}
-
-@media screen and (max-width: 500px) {
-  #gotoBox {
-    width: 90%;
-    display: none;
-    float: none;
-  }
-  #goto {
-    width: 100%;
-  }
-}
-
-#lowerSearchBox {
-    position: relative;
-    padding-top: 35px;
-    width:70%
-}
-
-#lowerSearchBoxWrapper {
-    padding-bottom: 15px;
-}
-
-#lowerSearch {
-    width: 100%;
-    font-size: 20px;
-    padding: 8px 10px;
-    height: 24px;
-}
-
-#lowerSearchBox .searchButton,
-#lowerSearchBox .keyboardInputInitiator {
-    top: 45px;
-}
-
-.english #lowerSearchBox .searchButton {
-    right: -5px;
-}
-
-.hebrew #lowerSearchBox .searchButton {
-    right: auto;
-    left: -5px;
-}
-.hebrew #lowerSearchBox .keyboardInputInitiator {
-    right: auto;
-    left: 15px;
-}
-
-
-.searchBox .keyboardInputInitiator {
-  opacity: 0;
-  width: 13px;
-  height: 13px;
-  padding: 2px;
-  background-color: #eee;
-  border-radius: 3px;
-  border: 1px solid #aaa;
-  position: absolute;
-  right: 21px;
-  top: 10px;
-}
-
-.searchBox .keyboardInputInitiator:hover {
- background: #d8d8d8;
-}
-
-body #keyboardInputMaster {
-  opacity: 1;
-  top: 37px !important;
-}
-
-body.searchPage #keyboardInputMaster {
-    top: 115px !important;
-}
-
-body #keyboardInputMaster thead tr th div {
-  display: none;
-}
-
-#textTocLink {
-  color: black;
-  display: inline-block;
-  font-family: Georiga, Serif;
-  font-size: 15px;
-  position: absolute;
-  top: 60px;
-  left: 12px;
-  z-index: 1;
-}
-#textTocLink.white {
-  color: white;
-}
-
 body.hebrew #personPage #textTocLink,
 body.hebrew #talmudicPeoplePage #textTocLink {
   right: 12px;
   left: auto;
   font-size: 12px;
 }
-
-.searchButton {
-  position: absolute;
-  right: 6px;
-  top: 12px;
-  opacity: .6;
-  cursor: pointer;
-}
-
-.searchButton:hover {
-  opacity: 1;
-}
-
-#accountBox .ui-icon {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-#accountBox .fa {
-  display: inline-block;
-  height: 28px;
-  width: 18px;
-  line-height: 30px;
-}
-
-#accountButton #accountMenu,
-#notificationsButton #notificationsMenu {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 100%;
-  padding: 0px 0px 12px 0px;
-  background: white;
-  border: 1px solid #aaa;
-  text-shadow: none;
-}
-
-#accountMenuName {
-  text-align: center;
-  padding: 12px 8px;
-  border-bottom: 1px solid #ddd;
-}
-
-#accountLinks {
-  padding-top: 12px;
-}
-
-#accountMenu .accountLink {
-  text-align: right;
-}
-
-#topLeftLinks > a,
-#topLeftLinks > span {
-  margin-right: 12px;
-  font-family: Georgia, serif;
-  font-size: 14px;
-} 
-
-#topLeftLinks #shareLink {
-  display: none; 
-  cursor: pointer;
-}
-
-#topLeftLinks #shareLink:hover {
-  text-decoration: underline;
-}
-
-#topLeftLinks #shareLink .fa {
-  font-size: 12px;
-  color: #555;
-}
-
-#shareModal h3 {
-  margin: 8px 0;
-}
-
-#shareModalInput {
-  float: left;
-  width: 300px;
-  height: 24px;
-  line-height: 32px;
-  font-size: 16px;
-}
-
-#helpModal {
-  position: absolute;
-  width: 580px;
-  max-width: 90%;
-  text-align: left;
-  padding: 25px 10px 0px;
-}
-
-#helpVideo {
-  width: 100%;
-  height: 348px;
-}
-
-#helpVideoButtons h3 {
-  margin: 2px;
-}
-
-#helpVideoButtons {
-  line-height: 1.3;
-  padding: 10px;
-}
-
-#helpClose {
-  position: absolute;
-  top: 3px;
-  right: 5px;
-  cursor: pointer;
-}
-
-#helpClose:hover {
-  box-shadow: 0 0 8px #08c;
-  border-radius: 5px;
-}
-
-#helpMore {
-  margin-top: 15px;
-  text-align: center;
-}
-
-#helpMore a {
-  display: inline-block;
-  margin: 2px 8px;
-}
-
-#searchPanel {
-  display: none;
-  position: fixed;
-  z-index: 99;
-  top: 35px;
-  left: 0;
-  width: 100%;
-  background-color: white;
-  box-shadow: 2px 2px 10px #555;
-}
-
-.hebrew #search-instructions .en {
-    display: none;
-}
-
-.english #search-instructions .he {
-    display: none;
-}
-
-#searchControlsBox {
-    min-height: 3px;
-}
-
-.hebrew #searchControlsBox,
-.hebrew #searchContent {
-    float: right;
-}
-
-.hebrew #lowerSearchBox {
-    float: right;
-}
-.hebrew #description {
-    float: right;
-    clear: both;
-}
-
-#searchContent {
-  font-size: 16px;
-}
-
-#searchHeader {
-    padding-top: 35px;
-    font-size: 20px;
-    min-height: 50px;
-}
-
-.hebrew #searchHeader,
-.hebrew #searchHeaderContainer {
-    float: right;
-}
-
-
-.hebrew #lowerSearchBox,
-.hebrew #lowerSearchBoxWrapper {
-  direction: rtl;
-  float: right;
-}
-
-
-#searchFilters {
-    display: none;
-    padding-bottom: 10px;
-}
-
-/* the checkbox itself */
-#searchFilters .filter {
-    margin-left: 3px;
-    margin-right: 3px;
-}
-
-
-.hebrew #searchFilters { float:right;   direction: rtl;}
-.hebrew #searchFilters  .en {  display: none;  }
-
-.english #searchFilters { float:left; }
-.english #searchFilters  .he {  display: none;  }
-
-
-#tree-controls {
-    margin: 10px 10px 0;
-    font-size: 10px;
-}
-
-#tree-controls span {
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-
-#searchFilters li {
-    list-style-type: none;
-    font-size: 15px;
-    line-height: 26px;
-}
-
-.hebrew #searchFilters ul {
-    margin: 0 16px 0 0;
-}
-.english #searchFilters ul {
-    margin: 0 0 0 16px;
-}
-
-#searchResults {
-    padding-bottom: 80px;
-}
-
-.hebrew #searchResults {
-    direction: rtl;
-}
-
-#searchResults .result {
-  margin-bottom: 24px;
-  line-height: 1.2;
-}
-
-.hebrew #searchResults .result .en,
-.hebrew .similar-box .en {
-    display: none;
-}
-.english #searchResults .result .he,
-.english .similar-box .he {
-    display: none;
-}
-
-#searchResults .result a {
-  font-weight: bold;
-}
-
-#searchResults .result .version {
-    font-size: 12px;
-    color: #777;
-    margin-top: 3px;
-    display: inline-block;
-    direction: ltr;
-}
-
-#searchResults .similar-trigger-box {
-    display: inline-block;
-    margin-left: 5px;
-    margin-right: 5px;
-}
-
-#searchResults .similar-box {
-    padding: 0 40px 0 40px;
-    margin-bottom: 10px;
-}
-#searchResults .similar-title {
-    font-size: 10px;
-    text-decoration: underline;
-    cursor: pointer;
-}
-#searchResults .similar-results {
-    margin-top: -12px;
-    display: none;
-}
-
-.hebrew .moreResults .en,
-.english .moreResults .he {
-    display: none;
-}
-#searchResults .moreResults {
-  color: #08c;
-  cursor: pointer;
-}
-
-#searchResults .moreResults:hover {
-  text-decoration: underline;
-}
-
-/****                       ****/
-
 
 .textSyncBox {
   position: relative;
@@ -1694,138 +416,6 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   font-size: 14px;
 }
 
-.sheetTable {
-  width: 100%;
-  font-size: 13px;
-  font-family: Georgia, serif;
-  border-collapse: collapse;
-  color: #888;
-  padding: 5px 0px;
-  margin-bottom: 5px;
-  position: relative;
-}
-
-.sheetTable thead {
-  background-color: #EFF1F1;
-  color: #555;
-  font-weight: bold;
-  padding: 6px;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-}
-
-.sheetTable thead td {
-  cursor: pointer;
-  padding: 8px 0;
-}
-
-.sheetTable thead td:first-child {
-  padding-left: 10px;
-}
-
-.sheetTable thead td:hover {
-  text-decoration: underline;
-}
-
-.sheetTable .sheetRow {
-  line-height: 1.3;
-  border-bottom: 1px solid #ddd;
-  background-color: white;
-}
-
-.sheetTable .sheetRow td {
-  padding-right: 4px;
-}
-
-.sheetTable.private .author {
-  display: none;
-}
-
-.sheetTable .sheetRow .author a {
-  color: inherit;
-}
-
-.sheetTable .sheetRow td.title {
-  width: 60%;
-  padding: 14px 10px;
-  color: black;
-  font-size: 20px;
-  background: white;
-}
-
-.sheetTable.private .sheetRow td.title {
-  width: 79%;
-}
-
-.sheetTable .sheetRow td.title.ui-draggable-dragging {
-  width: 400px;
-}
-
-.sheetTable .sheetRow td.title a {
-  color: black;
-}
-
-.sheetTable .sheetRow .title .tag {
-  display: inline-block;
-  margin: 0 1px;
-  padding: 3px 5px;
-  font-size: 12px;
-  border-radius: 4px;
-  background-color: #d9edf7;
-  color: #468A99;
-  font-family: Helvetica, Arial, sans-serif;
-}
-
-.sheetTable .sheetRow .title .tag.public {
-  color: #3c763d;
-  background-color: #dff0d8;
-  opacity: 0.7;
-}
-
-.sheetTable.collapsed tr:nth-child(n+4){
-  display: none;
-}
-
-.sheetTable.collapsed tr.moreSheets {
-  display: block;
-  cursor: pointer;
-  position: absolute;
-  bottom: -32px;
-  left: 0;
-  color: #08c;
-}
-
-.sheetTable.collapsed .moreSheets:hover {
-  text-decoration: underline;
-}
-
-
-@media screen and (max-width: 500px) {
-
-
-  /* Force table to not be like tables anymore */
-  .sheetTable, .sheetTable thead, .sheetTable tbody,
-  .sheetTable th, .sheetTable td, .sheetTable tr { 
-    display: block; 
-  }
-  
-  /* Hide table headers (but not display: none;, for accessibility) */
-  .sheetTable thead tr { 
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-  
-  .sheetTable .sheetRow td.title { 
-    width: 100%; 
-    box-sizing: border-box;
-  }
-  .sheetTable td:nth-of-type(2) { padding: 0px 5px 5px; }
-  .sheetTable td:nth-of-type(3) { display: none; }
-  .sheetTable td:nth-of-type(4) { display: none; }
-  .sheetTable td:nth-of-type(5) { display: none; }
-}
-
 #textBrowser {
   padding: 0;
   background: white;
@@ -1835,14 +425,15 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   -khtml-user-select: none; 
   -webkit-user-select: none; 
   -o-user-select: none; 
-
 }
-
+.interface-hebrew #textBrowser {
+  text-align: right;
+  direction: rtl;
+}
 #textBrowser.absolute {
   position: absolute;
   z-index: 20;
 }
-
 #browserPath {
   clear: both;
   background-color: #eee;
@@ -1853,21 +444,17 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   font-size: 16px;
   font-weight: bold;
 }
-
 #textBrowser.absolute #browserPath { 
   width: 550px;
 }
-
 .browserPathItem {
   cursor: pointer;
   white-space: nowrap;
   margin: 0 3px;
 }
-
 .browserPathItem:hover {
   text-decoration: underline;
 }
-
 #browserNav {
   position: absolute;
   top: 0;
@@ -1878,90 +465,84 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   border-right: 1px solid #aaa;
   font-size: 16px;
 }
-
+.interface-hebrew #browserNav {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid #aaa;
+}
 .browserNavItem {
   padding: 8px 4px 8px 10px;
   cursor: pointer;
   -webkit-transform: translateZ(0);
 }
-
 .browserNavItem .ui-icon {
   float: right;
 }
-
 .browserNavItem:hover {
   text-decoration: underline;
 }
-
 .browserNavItem {
   border-bottom: 1px solid #ddd;
 }
-
 #browserPreview {
   position: relative;
   padding: 0px;
   overflow-y: auto;
   font-size: 17px;
 }
-
 #browserPreviewContent {
   height: 290px;
   overflow: auto;
   padding: 20px 10px 0px 200px;
 }
-
+.interface-hebrew #browserPreviewContent {
+  padding: 20px 200px 0px 10px;
+}
 #textBrowser.absolute #browserPreviewContent {
   width: 360px;
 }
-
 #browserPreview .segment {
   padding: 0 10px 12px;
   cursor: pointer;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
 }
-
 #browserPreview .segment:hover {
     background-color: #EDF4FA;
 }
-
 #browserPreview .segment.selected {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   background-color: #CFE5F8;
 }
-
 #browserPreview .segment.selected:hover {
   background-color: #CFE5F8;
 }
-
-#browserPreview .segmentNumber {
+#browserPreview .number {
   font-size: 13px;
   font-weight: bold;
 }
-
 #browserPreview .segment .he,
 #browserPreview .segment .en {
   display: block;
   margin-bottom: 6px;
 }
-
 #browserPreview .segment .en {
-  font-family: "Georgia", serif;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  text-align: left;
+  direction: ltr;
 }
-
 #browserPreview .segment .he {
   font-size: 130%;
-  font-family: "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre","Times New Roman",serif;
   text-align: right;
   direction: rtl;
 }
-
 #browserPreview .empty {
   text-align: center;
   color: #777;
 }
-
 #browserActions {
   text-align: center;
   background-color: #eee;
@@ -1973,7 +554,6 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   -webkit-user-select: none; 
   -o-user-select: none; 
 }
-
 #browserMessage {
   display: inline-block;
   font-weight: bold;
@@ -1981,9 +561,94 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   margin: 4px 0;
   font-size: 20px;
 }
-
 #browserOK.inactive {
   color: #ddd;
+}
+
+.onoffswitch {
+  position: relative;
+  width: 70px;
+  display: inline-block;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select: none;
+  top: 8px;
+}
+#content .onoffswitch-checkbox {
+  display: none;
+}
+#content .onoffswitch-label {
+  display: block;
+  height: auto;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 20px;
+}
+.onoffswitch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+.interface-hebrew .onoffswitch-inner {
+  margin-right: -100%;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+  display: block;
+  float: left;
+  width: 50%;
+  height: 36px;
+  padding: 0;
+  line-height: 36px;
+  font-size: 14px;
+  color: white;
+  box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+  content: "Yes";
+  padding-left: 10px;
+  background-color: #212D4F;
+  color: #FFFFFF;
+}
+.interface-hebrew .onoffswitch-inner:before{
+  content: "לא";
+  padding-right: 10px;
+}
+.onoffswitch-inner:after {
+  content: "No";
+  padding-right: 10px;
+  background-color: #212D4F;
+  color: #fff;
+  text-align: right;
+}
+.interface-hebrew .onoffswitch-inner:after {
+  text-align: left;
+  padding-left: 10px;
+}
+.interface-hebrew .onoffswitch-inner:after{
+    content: "כן";
+}
+.onoffswitch-switch {
+  display: block;
+  width: 31px;
+  margin: 1px;
+  background: #FFFFFF;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 36px;
+  border: 1px solid #999999;
+  border-radius: 26px;
+  transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0;
+}
+.interface-hebrew .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-right: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0px;
 }
 
 ul.tagit {
@@ -1997,19 +662,19 @@ ul.tagit li {
     float: left;
     margin: 2px 5px 2px 0;
 }
-ul.tagit li.tagit-choice {    
+ul.tagit li.tagit-choice {
     position: relative;
     line-height: inherit;
     color: #08c;
 }
 
-ul.tagit li.tagit-choice-read-only { 
-    padding: .2em .5em .2em .5em; 
-} 
+ul.tagit li.tagit-choice-read-only {
+    padding: .2em .5em .2em .5em;
+}
 
-ul.tagit li.tagit-choice-editable { 
-    padding: .2em 18px .2em .5em; 
-} 
+ul.tagit li.tagit-choice-editable {
+    padding: .2em 18px .2em .5em;
+}
 
 ul.tagit li.tagit-new {
     padding: .25em 4px .25em 0;
@@ -2040,7 +705,7 @@ ul.tagit li.tagit-choice input {
     margin: 2px 5px 2px 0;
 }
 
-ul.tagit input[type="text"] {
+ul.tagit input[type="text"], #sheetsContent ul.tagit input[type="text"] {
     -moz-box-sizing:    border-box;
     -webkit-box-sizing: border-box;
     box-sizing:         border-box;
@@ -2050,32 +715,11 @@ ul.tagit input[type="text"] {
     box-shadow: none;
 
     border: none;
-    margin: 0;
+    margin: -7px 0 0 0;
     padding: 0;
     width: inherit;
     background-color: inherit;
     outline: none;
-}
-
-#textVersions .textVersion {
-  margin-bottom: 12px;
-}
-
-.textVersion .versionSource {
-  font-size: 12px;
-  color: #999;
-  margin-left: 4px
-}
-
-.textVersion .sub {
-  padding-left: 30px;
-  font-size: 13px;
-  color: #555;
-  margin: 0;
-}
-
-.textVersion .sub .badge {
-  opacity: 0.8;
 }
 
 a {
@@ -2406,7 +1050,7 @@ line-height: 14px;
 .btn.lightblue {
   background-color: #4CC2DD;
   color: white;
-  border: 1px solid: #4CC2DD;
+  border: 1px solid #4CC2DD;
 }
 .btn.lightblue:hover {
   background-color: white;
@@ -2473,45 +1117,4 @@ line-height: 14px;
 
 .clearFix {
   clear: both;
-}
-
-@media screen and (max-width: 400px) {
-  .hideForSmallScreens {
-    display: none;
-  }
-
-  #navPanelCalendar {
-    padding: 0px 20px;
-  }
-
-  #navPanel #navPanelCalendar a {
-    padding: 0;
-  }
-
-  #navPanel .navLine {
-    margin: 18px 20px;
-  }
-
-  #navPanel #navTocLangToggleBox {
-    right: 12px;
-  }
-
-  #navPanel #navToc > .tocCat, #navPanel a {
-    padding: 5px 20px;
-  }
-
-  #navToc #numLinkBox {
-    padding: 0px 20px;
-  }
-
-  #navPanelFooter {
-    padding: 0 20px;
-  }
-
-  #navToc #structureDropdown {
-    float: none;
-    clear: both;
-    text-align: center;
-    padding: 5px 40px;
-  }
 }

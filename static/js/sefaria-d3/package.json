@@ -1,0 +1,15 @@
+{
+  "name": "sefaria-d3",
+  "version": "0.1.0",
+  "description": "Sefaria Visualization Library",
+  "main": "sefaria-d3.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Sefaria",
+    "D3"
+  ],
+  "author": "Lev Israel / Noah Santacruz",
+  "license": "GPL-3.0"
+}

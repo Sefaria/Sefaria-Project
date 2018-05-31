@@ -10,14 +10,12 @@ from sefaria.utils.util import list_depth
 import re
 
 """
-Experimental
-These utilities have been used a few times, but are still rough.
 
 To get the existing schema nodes to pass into these functions, easiest is likely:
 Ref("...").index_node
 
 
-Todo:
+Todo: (still?)
     Clean system from old refs:
         links to commentary
         transx reqs
@@ -180,6 +178,47 @@ def merge_default_into_parent(parent_node):
     handle_dependant_indices(index.title)
 
 
+# todo: Can we share code with this method and the next?
+def convert_jagged_array_to_schema_with_default(ja_node):
+    from sefaria.model.schema import TitleGroup
+
+    assert isinstance(ja_node, JaggedArrayNode)
+    assert len(ja_node.children) == 0
+    parent = ja_node.parent
+    assert parent, "Use convert_simple_index_to_complex instead."
+    assert isinstance(parent, SchemaNode)
+    index = ja_node.index
+
+    vs = [v for v in index.versionSet()]
+    for v in vs:
+        assert isinstance(v, Version)
+        old_parent_content = v.content_node(parent)
+        content = old_parent_content.pop(ja_node.key) # Pop old JA content off
+        old_parent_content[ja_node.key] = {"default": content} # Re-add it as a default node
+        v.save(override_dependencies=True)
+
+    # Find place of ja_node in parent's children
+    index_of_ja_node = parent.children.index(ja_node)
+
+    # Build new schema
+    new_parent = SchemaNode()
+    new_parent.title_group = ja_node.title_group
+    new_parent.key = ja_node.key
+    ja_node.title_group = TitleGroup()
+    ja_node.key = "default"
+    ja_node.default = True
+
+    # Rework the family tree
+    new_parent.append(ja_node)
+    parent.children[index_of_ja_node] = new_parent
+    new_parent.parent = parent
+
+    index.save(override_dependencies=True)
+    library.rebuild()
+    refresh_version_state(index.title)
+    handle_dependant_indices(index.title)
+
+
 def convert_simple_index_to_complex(index):
     """
     The target complex text will have a 'default' node.
@@ -237,7 +276,7 @@ def change_parent(node, new_parent, place=0):
     linkset = [l for l in node.ref().linkset()]
 
     vs = [v for v in index.versionSet()]
-    for v in vs + vsc:
+    for v in vs:
         assert isinstance(v, Version)
         old_parent_content = v.content_node(old_parent)
         content = old_parent_content.pop(node.key)
@@ -297,7 +336,7 @@ def change_node_title(snode, old_title, lang, new_title):
     def needs_rewrite(string, *args):
         return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
 
-    if old_title == snode.primary_title():
+    if old_title == snode.primary_title(lang=lang):
         snode.add_title(new_title, lang, replace_primary=True, primary=True)
         snode.index.save()
         library.refresh_index_record_in_cache(snode.index)
@@ -326,7 +365,7 @@ def change_char_node_titles(index_title, bad_char, good_char, lang):
 
 
     def callback(node, **kwargs):
-        titles = node.get_titles()
+        titles = node.get_titles_object()
         for each_title in titles:
             if each_title['lang'] == lang and 'primary' in each_title and each_title['primary']:
                 title = each_title['text']
@@ -635,7 +674,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         generic_rewrite(HistorySet(construct_query('old.refs', identifier), sort=[('old.refs', 1)]), attr_name='old', sub_attr_name='refs')
 
 
-def generate_segment_mapping(title, mapping, output_file=None):
+def generate_segment_mapping(title, mapping, output_file=None, mapped_title=lambda x: "Complex {}".format(x)):
     '''
     :param title: title of Index record
     :param mapping: mapping is a dict where each key is a reference in the original simple Index and each value is a reference in the new complex Index
@@ -676,7 +715,7 @@ def generate_segment_mapping(title, mapping, output_file=None):
                 refs = top_level_refs + section_refs + segment_refs
         else:
             refs = orig_ref.all_subrefs()
-            if not refs[0].is_segment_level():
+            if len(refs) > 0 and not refs[0].is_segment_level():
                 len_refs = len(refs)
                 segment_refs = []
                 for i in range(len_refs):
@@ -686,7 +725,7 @@ def generate_segment_mapping(title, mapping, output_file=None):
             refs += [orig_ref]
 
         #segment_value is the value of the mapping that the user inputted
-        segment_value = "Complex {}".format(mapping[orig_ref_str])
+        segment_value = mapped_title(mapping[orig_ref_str])
 
         #now iterate over the refs and create the key/value pairs to put into segment_map
         for each_ref in refs:
@@ -716,7 +755,6 @@ def generate_segment_mapping(title, mapping, output_file=None):
             output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
         output_file.close()
     return segment_map
-
 
 
 def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False):
@@ -768,6 +806,12 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
         "categories": old_index.categories,
         "schema": schema
     }
+    for attr in Index.optional_attrs:
+        if attr == 'schema':
+            continue
+        elif hasattr(old_index, attr):
+            new_index_contents[attr] = getattr(old_index, attr)
+
     #TODO: these are ugly hacks to create a temp index
     temp_index = Index(new_index_contents)
     en_title = temp_index.get_title('en')
@@ -779,7 +823,12 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
 
     #create versions for the main text
     versions = VersionSet({'title': title})
-    migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+    try:
+        migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
+    except InputError as e:
+        temp_index.delete()
+        print e.message
+        raise e
 
     #are there commentaries? Need to move the text for them to conform to the new structure
     #basically a repeat process of the above, sans creating the index record
@@ -802,6 +851,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
     i.set_title(title)
     i.set_title(he_title, lang="he")
     i.save()
+
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):
@@ -849,3 +899,47 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             new_tc.text = ref_text
             new_tc.save()
             VersionState(dRef.index.title).refresh()
+
+
+def toc_opml():
+    """Prints a simple representation of the TOC in OPML"""
+    toc  = library.get_toc()
+
+    def opml_node(node):
+        if "category" in node:
+            opml = '<outline text="%s">\n' % node["category"]
+            for node in node["contents"]:
+                opml += "    " + opml_node(node) + "\n"
+            opml += '</outline>'
+        else:
+            opml = '<outline text="%s"></outline>\n' % node["title"]
+        return opml
+
+    opml = """
+            <?xml version="1.0"?>
+            <opml version="2.0">
+              <body>
+              %s
+              </body>
+            </opml>
+            """ % "\n".join([opml_node(node) for node in toc])
+
+    print opml
+
+
+def toc_plaintext():
+    """Prints a simple representation of the TOC in indented plaintext"""
+    toc  = library.get_toc()
+
+    def text_node(node, depth):
+        if "category" in node:
+            text = ("    " * depth) + node["category"] + "\n"
+            for node in node["contents"]:
+                text += text_node(node, depth+1)
+        else:
+            text = ("    " * depth) + node["title"] + "\n"
+        return text
+
+    text = "".join([text_node(node, 0) for node in toc])
+
+    print text

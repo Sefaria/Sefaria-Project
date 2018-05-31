@@ -7,7 +7,7 @@ from sefaria.system.exceptions import InputError
 class Test_Terms_Validation(object):
     @classmethod
     def setup_class(cls):
-        pass
+        TermSet({"scheme": "testing_terms"}).delete()
 
     @classmethod
     def teardown_class(cls):
@@ -18,6 +18,38 @@ class Test_Terms_Validation(object):
         Term().load({"name": 'Rashi'}).title_group.validate()
         Term().load({"name": 'Torah'}).title_group.validate()
         Term().load({"name": 'Verse'}).title_group.validate()
+
+    def test_load_by_non_primary_title(self):
+        assert Term().load_by_title('Nachmanides') is not None
+        assert Term().load_by_title(u'פרשת לך לך') is not None
+
+    def test_add_duplicate_primary(self):
+        with pytest.raises(InputError):
+            term = Term({
+                "name": "Test Dup Primary",
+                "scheme": "testing_terms",
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": "Test Dup Primary",
+                        "primary": True
+                    },
+                    {
+                        "lang": "he",
+                        "text": u"ראשי כפול",
+                        "primary": True
+                    },
+                    {
+                        "lang": "en",
+                        "text": "Test Dup Primary",
+                    },
+                    {
+                        "lang": "he",
+                        "text": u"ראשי כפול",
+                    }
+                ]
+            })
+            term.save()
 
     def test_add_new_term(self):
         term = Term({
@@ -50,12 +82,77 @@ class Test_Terms_Validation(object):
                 },
                 {
                     "lang": "he",
-                    "text": u"גלדכחשדף",
+                    "text": u"גלדכחשדף ב",
                     "primary": True,
                     "presentation": "alone"
                 }
             ]
         }).save()
+
+    def test_duplicate_terms(self):
+        with pytest.raises(InputError):
+            Term({
+                "scheme": "commentary_works",
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": "Ramban",
+                        "primary": True
+                    },
+                    {
+                        "lang": "he",
+                        "text": "רמב\"ן",
+                        "primary": True
+                    },
+                ],
+                "name": "Ramban"
+            }).save()
+
+        with pytest.raises(InputError):
+            Term({
+                "scheme": "commentary_works",
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": "New Ramban",
+                        "primary": True
+                    },
+                    {
+                        "lang": "en",
+                        "text": "Ramban",
+                    },
+                    {
+                        "lang": "he",
+                        "text": "רמב\"ן חדש",
+                        "primary": True
+                    },
+                ],
+                "name": "New Ramban"
+            }).save()
+
+        with pytest.raises(InputError):
+            Term({"name" : "Parashat Nitzavim",
+                "titles" : [
+                    {
+                        "lang" : "en",
+                        "text" : "Parashat Nitzavim",
+                        "primary" : True
+                    },
+                    {
+                        "lang" : "he",
+                        "text" : "נצבים",
+                        "primary" : True
+                    },
+                    {
+                        "lang" : "en",
+                        "text" : "Nitzavim"
+                    },
+                    {
+                        "lang" : "he",
+                        "text" : "פרשת נצבים"
+                    }
+                ],
+                "scheme" : "Parasha"}).save()
 
     def test_add_invalid_terms(self):
         with pytest.raises(InputError): # no heb title at all

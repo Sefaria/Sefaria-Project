@@ -1,3 +1,4 @@
+{% load render_bundle from webpack_loader %}
 {% load sefaria_tags %}
 
 <!DOCTYPE html>
@@ -5,16 +6,25 @@
 
 <head>
 
-	<title>{{ page_title }} | Sefaria.org</title>
+	<title>{{ page_title }} | Sefaria</title>
 	<meta name="description" content="{{ description_text }}... [{{ page_title }} {{ title_variants }}]">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
+	<link rel="stylesheet" href="/static/js/lib/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
 	<link rel="stylesheet" href="/static/css/reader.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
 	<link rel="stylesheet" href="/static/css/common.css">
 	<link rel="stylesheet" href="/static/css/reader-print.css" media="print" />
     <link rel="stylesheet" href="/static/css/s2.css">
+
+	<!-- https://realfavicongenerator.net -->
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=xQzLlLp7oR">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=xQzLlLp7oR">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=xQzLlLp7oR">
+	<link rel="manifest" href="/manifest.json?v=xQzLlLp7oR">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg?v=xQzLlLp7oR" color="#273557">
+	<link rel="shortcut icon" href="/favicon.ico?v=xQzLlLp7oR">
+	<meta name="theme-color" content="#273557">
 
     <style>
       body {
@@ -22,7 +32,6 @@
       }
     </style>
 
-	<script>{% include "js/analytics.js" %}</script>
 
 </head>
 
@@ -32,77 +41,12 @@
 		{% if "book" in text %}
 		<a id="exittextTocLink" href="/{{ text.indexTitle }}">&laquo; {{ text.indexTitle }}</a>
 		{% endif %}
-		{% include "elements/share_link.html" %}
 	</div>
 
 	<div class="screen-container" style="left:-5000%">
 		<div class="screen" style="left:5000%">
-			<div class="basetext {{ layout }} {{ lines }} {{ contentLang }} {% if not hasSidebar %}noCommentary{% endif %}">
-				<div class="sectionTitle">
-					<span class="int-en">{{ text.ref }}</span>
-					<span class="int-he">{{ text.heTitle|default:"" }}</span>
-				</div>
-				<span class="spacer"></span>
-				{% autoescape off %}
-				{% for line in zipped_text %}
-					<span class="verse">
-						<span class="int-en">{{ line.0 }}</span>
-						<span class="int-he">{{ line.1 }}</span>
-						<span class="clear"></span>
-					</span>
-				{% endfor %}
-				{% endautoescape %}
-			</div>
-			<div class="aboutBar">
-				<div class="aboutBarBox">
-					 <div class="btn aboutText">About Text</div>
-				</div>
-			</div>
-			<div class="commentaryBox">
-				<div class="hideCommentary"><div class="hideTab gradient">▸</div></div>
-				<div class="commentaryViewPort"></div>
-				<div class="sourcesBox">
-					<div class="sourcesHeader">
-						<span class="showSources btn active sourcesCount sidebarMode" data-sidebar="commentary"> Sources</span><!--
-						--><span class="btn showNotes sidebarMode" data-sidebar="notes">
-							<span class='notesCount'></span> Notes
-						</span><!--
-						--><span class="btn sidebarButton">
-							<i class="fa fa-bars"></i>
-						</span>
-						<div class="clear"></div>
-					</div>
-				</div>
-			</div>
-			<div class="sourcesList sidePanel">
-				<div class="sourcesWrapper"></div>
-			</div>
 		</div>
 	</div>
-
-	<div id="about" class="modal" style="display:none;">
-		<div id='hideAbout'><i class="fa fa-times"></i></div>
-		<div id='aboutMenu'>
-			<div id="aboutVersions"></div>
-			<div id="aboutButtonBox">
-				<div class="clear"></div>
-			</div>
-			<div id="aboutText">
-				<span id="aboutTextTitle"></span>
-				<span id="aboutTextSections"></span><br>
-				<div id='addTranslation' class='action btn btn-success'><i class="fa fa-plus"></i>  Add Translation</div>
-				<span id='addVersion' class="action btn btn-success"><i class="fa fa-plus"></i>  Add Version</span>
-				<span id='editTextInfo' class='action btn btn-info'><i class="fa fa-info-circle"></i>  Edit Text Info</span>
-				{% if request.user.is_staff and text and "book" in text %}
-				<span id='deleteText' class='action btn btn-warning' data-title='{{ text.commentator|default:text.book }}' {% if text.commentator %}data-is-commentator='1' data-commentary-text='{{ text.book }}'{% endif %}><i class="fa fa-trash-o"></i> Delete Text</span>
-				{% endif %}
-			</div>
-
-			<div class="clear"></div>
-		</div>
-	</div>
-
-    {% include "header.html" %}
 
 	<div id="newTextModal" class="modal">
 		<div class="header">Add a New Text</div>
@@ -115,31 +59,6 @@
 		</span>
 	</div>
 
-	<div id="verseSelectModal" class="modal">
-		<div id="selectInstructions">
-			<div>Click a <span class="smallSectionName"></span> to add a <span class="sourceOrNote">Source</span>.</div>
-			<span class="btn cancel">Cancel</span>
-		</div>
-		<div id="selectConfirm">
-			<div>Add a <span class="sourceOrNote">Source</span> to:</div>
-			<div id="selectedVerse"></div>
-			<div id="selectedControls">
-				<span id="selectOk" class="btn">OK</span>
-				<span id="selectReset" class="btn">Choose again</span>
-				<span class="cancel btn">Cancel</span>
-			</div>
-		</div>
-	</div>
-
-	<div id="addToSheetModal" class="modal">
-		<div class="header">Add <span class="sourceName"></span> to a Source Sheet</div>
-		<ul id="sheets">
-		</ul>
-		<div class="controls">
-			<div class="btn ok">Add</div>
-			<div class="btn cancel">Cancel</div>
-		</div>
-	</div>
 
 	<div id="reviewsModal" class="modal">
 		<div id="reviewsWrapper">
@@ -174,7 +93,7 @@
 			</div>
 			{% endif %}
 	</div>
-		<div id="reviewHelp">
+	<div id="reviewHelp">
 			<h3>Writing Helpful Reviews</h3>
 			<p><b>For primary texts and historical translations:</b> Indicate what outside source (book, web page) was used to compare the text, or make clear that your review is only looking at the text present.</p>
 			<div class="reviewExamples">
@@ -271,36 +190,51 @@
 
 	</div>
 
-	{% include "elements/contribute_prompt.html" %}
-
-	{% include "elements/edit_video.html" %}
-
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
 
 
-	<div id="unsupported">
-		Sefaria does not currently run on Internet Explorer.
-		<br><br>
-		Please try using Chrome, Firefox or Safari.
-		<br><br>
-		Sorry, there's just too much to do!
-	</div>
+<footer id="footer" class="interface-{{ interfaceLang }}" style="display:none"></footer>
 
-
-{% include "js/jquery.html" %}
-<script src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
-<script src="/static/js/jquery.history.js"></script>
-<script src="/static/js/jquery.easing.1.3.js"></script>
-<script src="/static/js/jquery.caret.1.02.js"></script>
-<script src="/static/js/jquery.textchange.js"></script>
-<script src="/static/js/jquery.autosize.js"></script>
-<script src="/static/js/jquery.slimscroll.min.js"></script>
-<script src="/static/js/jquery.tag-it.min.js"></script>
-<script src="/static/js/jquery.raty.js"></script>
-<script src="/static/js/jquery.tooltipster.min.js"></script>
-
-{% include "js/headers.js" %}
+{% autoescape off %}
+	{% if request.user.is_authenticated %}
+	<div id="s2" class="headerOnly">{{ logged_in_header }}</div>
+	{% else %}
+	<div id="s2" class="headerOnly">{{ logged_out_header }}</div>
+	{% endif %}
+{% endautoescape %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script> <!-- NOTE version; jQuery 2 is currently breaking here in combination with jQuery Autosize and jQuery Raty -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+<script src="/data.js"></script>
 <script>
+  {% autoescape off %}
+  var DJANGO_VARS = {
+    contentLang: "{{ contentLang }}",
+    interfaceLang: "{{ interfaceLang }}",
+    inReaderApp: false,
+    ga: ga
+  };
+  {% endautoescape %}
+</script>
+{% render_bundle 'main' %}
+
+{% include "js/jquery.html" %} <!-- this older version of jQuery replaces the one exposed by the app bundle TODO: duplicates abobe? -->
+
+<script src="/static/js/lib/keyboard.js"></script>
+<script src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script src="/static/js/lib/jquery.history.js"></script>
+<script src="/static/js/lib/jquery.easing.1.3.js"></script>
+<script src="/static/js/lib/jquery.caret.1.02.js"></script>
+<script src="/static/js/lib/jquery.textchange.js"></script>
+<script src="/static/js/lib/jquery.autosize.js"></script>
+<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+<script src="/static/js/lib/jquery.raty.js"></script>
+<script src="/static/js/lib/jquery.tooltipster.min.js"></script>
+
+{% include "js/headers.js" %} <!-- TODO: not sure this is needed anymore -->
+<script>
+
 {% autoescape off %}
 	{% include "js/django-csrf.js" %}
 	var sjs = sjs || {};
@@ -310,20 +244,13 @@
 		langMode: "{{ contentLang }}".substring(0,2)
 	});
     if("edit_lang" in sjs.current){
-        /*console.log("langMode: ", sjs.langMode);
-        console.log("edit_lang: ", sjs.current["edit_lang"].substring(0,2));*/
         sjs.langMode = sjs.current["edit_lang"].substring(0,2);
     }
 
 {% endautoescape %}
 </script>
-<script type="text/javascript" src="/static/js/util.js"></script>
-<script type="text/javascript" src="/static/js/reader.js"></script>
-{% if not OFFLINE %}
-<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-4f0b68586603bc9f"></script>
-{% endif %}
-{% if S2 or request.flavour == "mobile" %}
-    {% include "react_header_activate.html" %}
-{%  endif %}
+<script type="text/javascript" src="/static/js/s1/util.js"></script>
+<script type="text/javascript" src="/static/js/s1/editor.js"></script>
+
 </body>
 </html>

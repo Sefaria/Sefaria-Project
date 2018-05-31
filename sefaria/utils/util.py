@@ -22,6 +22,49 @@ def list_depth(x, deep=False):
     else:
         return 1
 
+
+"""
+# Create a list that from the results of the function chunks:
+    names = ['Genesis', 'Exodus', 'Leviticus', 'Numbers','Deuteronomy','Joshua', 'Judges', 'Samuel', 'Kings','Isaiah', 'Jeremiah', 'Ezekiel','Hosea']
+    list(list_chunks(names, 5))
+    >>>[['Genesis', 'Exodus', 'Leviticus', 'Numbers','Deuteronomy'],
+       ['Joshua', 'Judges', 'Samuel', 'Kings','Isaiah'],
+       ['Jeremiah', 'Ezekiel','Hosea']]
+       credit: https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
+"""
+
+def list_chunks(l, n):
+    # For item i in a range that is a length of l,
+    for i in range(0, len(l), n):
+        # Create an index range for l of n items:
+        yield l[i:i+n]
+
+#checks if a file is in directory
+def in_directory(file, directory):
+    import os.path
+    # make both absolute
+    directory = os.path.join(os.path.realpath(directory), '')
+    file = os.path.realpath(file)
+    if not os.path.exists(directory) or not os.path.isdir(directory):
+        return False
+    if not os.path.exists(file):
+        return False
+    # return true, if the common prefix of both is equal to directory
+    # e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
+    return os.path.commonprefix([file, directory]) == directory
+
+
+def get_directory_content(dirname, modified_after=False):
+    import os
+    import os.path
+    filenames = []
+    for path, subdirs, files in os.walk(dirname):
+        for name in files:
+            filepath = os.path.join(path, name)
+            if modified_after is False or os.path.getmtime(filepath) > modified_after:
+                filenames.append(filepath)
+    return filenames
+
 # Moving to JaggedArray.flattenToArray()
 def flatten_jagged_array(jagged):
     """
@@ -231,6 +274,7 @@ def count_by_regex(some_file, regex):
                 result[item] += 1
     return result
 
+
 def titlecase(text):
     """
     This function is based on some Perl code by: John Gruber http://daringfireball.net/ 10 May 2008
@@ -326,6 +370,7 @@ def titlecase(text):
 
     return "\n".join(processed)
 
+
 def short_to_long_lang_code(code):
     if code in ("bi", "he-en", "en-he"):
         code = "bilingual"
@@ -347,6 +392,7 @@ def get_all_subclasses(cls):
                 work.append(child)
     return subclasses
 
+
 def get_all_subclass_attribute(cls, attr):
     subclasses = get_all_subclasses(cls)
     attr_vals = []
@@ -355,3 +401,31 @@ def get_all_subclass_attribute(cls, attr):
         if attr_val:
             attr_vals.append(attr_val)
     return attr_vals
+
+
+def get_size(obj, seen=None):
+    """Recursively finds size of objects in bytes"""
+    import sys
+    import inspect
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if hasattr(obj, '__dict__'):
+        for cls in obj.__class__.__mro__:
+            if '__dict__' in cls.__dict__:
+                d = cls.__dict__['__dict__']
+                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
+                    size += get_size(obj.__dict__, seen)
+                break
+    if isinstance(obj, dict):
+        size += sum((get_size(v, seen) for v in obj.values()))
+        size += sum((get_size(k, seen) for k in obj.keys()))
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum((get_size(i, seen) for i in obj))
+    return size

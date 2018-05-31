@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "The Sefaria Story" %}{% endblock %}
+
+{% block description %}{% trans "Watch a video about the story of Sefaria." %}{% endblock %}
+
+{% block css %}
+.static h1 {
+    margin-bottom: 40px;
+}
+.videoWrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    padding-top: 25px;
+    height: 0;
+}
+.videoWrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.static .inner {
+    width: 800px;
+    max-width: 96%;
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="biReady container static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">The Sefaria Story</span>
+            <span class="int-he">סיפור ספריא</span>
+        </h1>
+       
+        <div class="videoWrapper">
+            <iframe src="https://www.youtube.com/embed/3JNf0yHA60U" frameborder="0" allowfullscreen></iframe>
+        </div>
+
+
+        <div class="single-button center">
+            <a class="button big blue control-elem" href="http://sefaria.nationbuilder.com" target="_blank">
+                <span class="int-en">Donate Now</span>
+                <span class="int-he">לתרומה</span>
+            </a>
+        </div>
+        
+        <p>
+            <span class="int-en">
+                With your help, Sefaria will be the digital home of the Jewish canon and the platform for the future of Jewish learning.
+                Sefaria is a 501(c)(3) charitable organization; donations are tax-deductible as allowed by law. Thank you for supporting Sefaria.
+            </span>
+            <span class="int-he">
+                בעזרתכם, ספריא תהפוך לבית הדיגיטלי של הקאנון היהודי, ולפלטפורמת העתיד של לימוד יהודי. התרומה לספריא פטורה ממס כפי שמעוגן בחוק. תודה על תמיכתכם בספריא.
+            </span>
+        </p>
+
+    </div>
+</div>
+{% endblock %}

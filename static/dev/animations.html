@@ -2,11 +2,11 @@
 <html>
 
 <head>
-	
+
 	<title>Sefaria</title>
 
-	<link rel="stylesheet" href="/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
-	
+	<link rel="stylesheet" href="/lib/jquery-ui/css/black-tie/jquery-ui-1.8.7.custom.css">
+
 	<style>
 		body {
 			height: 100%;
@@ -14,12 +14,12 @@
 			font-family: serif;
 			background: white;
 		}
-		
+
 		.gradient {
 			background: -moz-linear-gradient(top,  #fefefe,  #e9e9e9);
 			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fefefe), to(#e9e9e9));
 		}
-		
+
 		#top {
 			position: fixed;
 			top: 0%;
@@ -31,13 +31,13 @@
 			-webkit-box-shadow: 2px 2px 6px #333333;
 			-moz-box-shadow: 2px 2px 6px #333333;
 		}
-		
+
 		#header {
 			font-size: 27px;
 			font-weight: bold;
 			margin: 0px 15px;
 		}
-		
+
 		#gotoBox {
 			position: absolute;
 			z-index: 10;
@@ -50,26 +50,26 @@
 			-moz-box-shadow: 2px 2px 12px #333333;
 			border-radius: 5px;
 			vertical-align: middle;
-			
+
 		}
-		
+
 		.dialogTitle {
 			font-size: 18px;
 			margin: 10px 0px;
 		}
-		
+
 		#openEg {
 			font-style: italic;
 			font-size: 14px;
 			margin: 5px 8px 8px 8px;
 		}
-		
+
 		#goto {
 			font-size: 17px;
 			width: 265px;
-			
+
 		}
-		
+
 		#closeGoto {
 			float: right;
 			font-size: 17px;
@@ -78,18 +78,18 @@
 			font-family: sans-serif;
 			cursor: pointer;
 		}
-		
-		
+
+
 		#topLine {
 			height: 1px;
 			background: black;
 		}
-		
+
 		#topButtons {
 			float: right;
 			margin: 5px 20px;
 		}
-		
+
 		.button {
 			font-weight: bold;
 			font-size: 16px;
@@ -105,21 +105,21 @@
 			-webkit-box-shadow: 2px 2px 3px #333333;
 			-moz-box-shadow: 2px 2px 3px #333333;
 		}
-	
-		
+
+
 		.button:hover {
 			background: black;
 			color: white;
 			cursor: pointer;
 		}
-		
+
 		#loadingImg {
 			margin-left: 16px;
 			height: 20px;
 			position: relative;
 			top: 2px;
 		}
-		
+
 		#basetext {
 			position: absolute;
 			width: 56%;
@@ -133,55 +133,55 @@
 			background: inherit;
 			font-family: serif;
 		}
-		
+
 		#basetext.noCommentary {
 			width: 600px;
 			left: 50%;
 			margin-left: -300px;
 		}
-		
+
 		#basetext > .verse:first-child > .verseNum {
 			display: none;
 		}
-		
+
 		.verse {
 			cursor: pointer;
 			margin-right: 7px;
 		}
-	
-		
+
+
 		.verse:hover {
 			background: #ddd;
 		}
-		
+
 		.verse .lfc {
 			font-size: 35px;
 			font-variant: small-caps;
 			margin: 0px 5px 0px 50px;
 		}
-		
+
 		.verse.block {
 			display: block;
 			margin-bottom: 24px;
 			line-height: 1.2;
 		}
-		
+
 		.verseNum {
 			font-size: 18px;
 			width: 20px;
 			text-transform: smallcaps;
 			text-align: center;
 			margin-right: 4px;
-			padding-top: 7px;	
+			padding-top: 7px;
 			position: absolute;
 			left: -38px;
 		}
-		
+
 		.verse:hover > .verseNum {
 			font-weight: bold;
 			background: #eee;
 		}
-		
+
 		#next {
 			text-align: center;
 			font-size: 20px;
@@ -190,11 +190,11 @@
 			font-weight: bold;
 			text-decoration: underline;
 		}
-		
+
 		#next:hover {
 			text-decoration: underline;
 		}
-		
+
 		#commentaryBox {
 		display: none;
 			position: fixed;
@@ -211,9 +211,9 @@
 			line-height: 1.1;
 			background: inherit;
 			z-index: 1;
-			
+
 		}
-		
+
 
 		#commentaryHeader {
 			position: fixed;
@@ -229,22 +229,22 @@
 			-moz-box-shadow: 2px 2px 3px #333333;
 
 		}
-		
+
 		#sourcesLink {
 			font-size: 14px;
 			float: right;
 			cursor:pointer;
 			margin-right: 3px;
 		}
-		
+
 		#sourcesLink img {
 			height: 14px;
 			position: relative;
 			top: 2px;
 			margin-left: 2px;
 		}
-		
-		
+
+
 		#sourcesBox {
 			display: none;
 			position: fixed;
@@ -256,11 +256,11 @@
 			border-top-left-radius: 5px;
 			padding: 7px 0px;
 			-webkit-box-shadow: 2px 2px 10px #555;
-			-moz-box-shadow: 2px 2px 10px #555;	
+			-moz-box-shadow: 2px 2px 10px #555;
 			background: -moz-linear-gradient(top,  #f2f2f2,  #ddd);
 			background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f2f2f2), to(#ddd));
 			}
-			
+
 		#sourcesBox.noCommentary {
 			width: 23%;
 		}
@@ -269,16 +269,16 @@
 		#sourcesHeader {
 			font-size: 15px;
 			margin-bottom: 3px;
-			padding: 0px 7px 3px 7px; 
+			padding: 0px 7px 3px 7px;
 			border-bottom: 1px solid #999;
 		}
-		
+
 		#sourcesBox.noCommentary #sourcesHeader {
 			margin-bottom: 0px;
-			padding: 0px 7px 0px 7px; 
+			padding: 0px 7px 0px 7px;
 			border-bottom: none;
 		}
-		
+
 		#sourcesHeader #sourcesRange {
 			font-size: 14px;
 			font-style: italic;
@@ -291,7 +291,7 @@
 			cursor: pointer;
 			margin: -3px 1px 0px 0px;
 		}
-		
+
 		#sourcesHeader #addSource .textIcon {
 			font-weight: bold;
 			font-size: 17px;
@@ -301,31 +301,31 @@
 		#sourcesList {
 			padding: 0px 9px;
 		}
-		
+
 		#sourcesList input {
-			margin-left: 4px;	
+			margin-left: 4px;
 		}
-		
-		
+
+
 		.source {
 			font-size: 13px;
-			padding: 2px 11px 2px 2px; 
-			max-width: 120px; 
+			padding: 2px 11px 2px 2px;
+			max-width: 120px;
 			float: left;
 			cursor: pointer;
 		}
-		
+
 		.source .count {
 			margin-left: 5px;
 		}
-		
+
 		.source:hover {
 			background: #f3f3f3;
 		}
 
 
-		.commentary {	
-			font-family: serif;		
+		.commentary {
+			font-family: serif;
 			display: block;
 			background: #eee;
 			font-size: 15px;
@@ -336,41 +336,41 @@
 			cursor: pointer;
 			border-radius: 3px;
 		}
-		
+
 		.commentaryNum {
 			position: absolute;
 			left: -10px;
 			display: none;
 		}
-		
+
 		.commentary + .commentary {
 			margin-top: 15px;
 		}
-		
+
 		.highlight {
 			background: #e6e6e6;
 		}
-		
+
 		.lowlight {
 			opacity: 0.2;
 		}
-		
+
 		.verse.lowlight:hover {
 			background: #bbb;
 		}
-		
+
 		.commentator {
 			font-weight: bold;
 			font-size: 17px;
 			margin-right: 4px;
 		}
-		
+
 		.anchorText {
 			font-weight: bold;
 			font-style: italic;
 			margin-right: 7px;
 		}
-		
+
 
 		.open {
 		   	position: absolute;
@@ -386,16 +386,16 @@
 			line-height: 1.2;
 			-webkit-box-shadow: 2px 2px 12px #333333;
 			-moz-box-shadow: 2px 2px 12px #333333;
-			
+
 		}
-		
+
 		.open .refLink {
 			cursor: pointer;
 			font-weight: bold;
 			text-decoration: underline;
 			font-size: 14px;
 		}
-		
+
 		.openVerseTitle {
 			font-weight: bold;
 			margin-bottom: 4px;
@@ -403,14 +403,14 @@
 			display: inline;
 
 		}
-		
+
 		.openVerse {
 			margin: 0px 0px 23px 0px;
 			text-align: left;
 			line-height: 1;
 			font-style: italic;
 		}
-		
+
 		.scrollCtl {
 			background: white;
 			z-index: 5;
@@ -418,31 +418,31 @@
 			top: 86%;
 			left: 31%;
 		}
-		
+
 		.scrollCtl img {
 			height: 22.5px;
 			width: 27px;
 			cursor: pointer;
 		}
-		
-		.scrollCtl .up { 
+
+		.scrollCtl .up {
 		}
-		.scrollCtl .down { 
+		.scrollCtl .down {
 			position: relative;
 			top: -2px;
 			left: 20px;
 		}
-		
+
 		.openScrollCtl {
 			position: absolute;
-			background: white;			
+			background: white;
 			height: 40px;
 			bottom: 0px;
 			text-align: center;
 			width: 92%;
 			vertical-align: bottom;
 		}
-		
+
 		.openScrollCtl img {
 			height: 26px;
 			width: 30px;
@@ -450,32 +450,32 @@
 			cursor: pointer;
 			position: relative;
 			top: 8px;
-			
+
 		}
-		
+
 		#cScrollCtl {
 			display: none;
 			position: absolute;
 			right: 19%;
 			top: 84%;
 		}
-		
+
 		#cScrollCtl img {
 			height: 16px;
 			width: 19px;
 			cursor: pointer;
 		}
-		
+
 		#cScrollCtl .down {
 			position: relative;
 			top: -2px;
 			left: 14px;
 		}
-		
+
 		.openBottom {
 			overflow: hidden;
 		}
-		
+
 		#verseSelectModal {
 			display: none;
 		   	position: fixed;
@@ -492,30 +492,30 @@
 			line-height: 1.2;
 			-webkit-box-shadow: 2px 2px 12px #333333;
 			-moz-box-shadow: 2px 2px 12px #333333;
-			
+
 		}
-		
-		
+
+
 		#selectedControls {
-			margin-top: 20px; 
+			margin-top: 20px;
 			font-size: 16px;
 		}
-		
+
 		#selectedControls span {
 			margin: 0px 8px;
-			cursor: pointer;			
+			cursor: pointer;
 
 		}
 
-		
+
 		#selectedControls span:hover{
 			text-decoration: underline;
 		}
-		
+
 		#selectOk, #selectReset {
 			display: none;
 		}
-		
+
 		#addModal {
 			display: none;
 		   	position: fixed;
@@ -531,20 +531,20 @@
 			line-height: 1.2;
 			-webkit-box-shadow: 2px 2px 12px #333333;
 			-moz-box-shadow: 2px 2px 12px #333333;
-			
-		}
-		
 
-		
+		}
+
+
+
 		#closeAdd {
 			position: absolute;
-			top: 8px; 
+			top: 8px;
 			right: 8px;
 			font-size: 18px;
 			font-family: sans-serif;
 			cursor: pointer;
 		}
-		
+
 		#addModal .header {
 			font-size: 24px;
 			font-weight: bold;
@@ -564,7 +564,7 @@
 			margin: 0px 14px 0px 0px;
 			font-size: 17px;
 		}
-		
+
 		#addModal .button {
 			display: inline;
 			padding: 3px 12px;
@@ -578,14 +578,14 @@
 		#addModal input {
 			width: 60%
 		}
-		
+
 		#addModal textarea {
 			width: 100%;
 			height: 210px;
 			font-size: 18px;
 		}
-		
-		
+
+
 		#overlay {
 			display: none;
 			position: fixed;
@@ -597,27 +597,27 @@
 			top: 0px;
 			left: 0px;
 		}
-		
+
 		.preShadow {
 			width: 1px;
 			clear: both;
 		}
-		
+
 		.shadow {
 			clear: both;
 		}
-		
+
 		.clear {
 			clear: both;
 		}
-		
+
 	</style>
 </head>
 
 <body>
 			<div id="overlay"></div>
 
-	<div data-role="page">	
+	<div data-role="page">
 		<div data-role="header" data-position="fixed" id="top" class='gradient'>
 			<div id="topButtons">
 				<span id="open" class="button gradient" >Open</span><span id="block" class="button gradient">=</span><span id="inline" class="button gradient">+</span>
@@ -636,17 +636,17 @@
 		<div data-role="content">
 			<div id="basetext" class="caster"></div>
 			<div data-position="fixed" id="commentaryBox"></div>
-			
+
 			<div id="sourcesBox">
 				<div id="sourcesHeader">
 					<b><span id="sourceCount"></span> Sources</b> for: <span id="sourcesRange"></span>
 					<span id="addSource">Add source <span class="textIcon">+</span></span>
 					<div class="clear"></div>
-				</div>	
+				</div>
 				<div id="sourcesList" class="gradient"></div>
 			</div>
 			<div id="verseSelectModal" class="gradient">
-			
+
 			<div id="selectedVerse">Click a verse to select</div>
 			<div id="selectedControls">
 				<span id="selectOk">OK</span>
@@ -656,9 +656,9 @@
 			</div>
 			</div>
 			<div id="addModal" class="gradient">
-				<div id="closeAdd">X</div>		
+				<div id="closeAdd">X</div>
 				<div class="header">Add a Commentary or Related Text:</div>
-				
+
 				<div class="formRow">
 					<div class="label">Type:</div>
 					<span><span class="button">Commentary</span>
@@ -666,7 +666,7 @@
 					<span class="button">Primary Text</span>
 				</div>
 
-				
+
 				<div class="formRow">
 					<div class="label">Referencing: </div>
 					<span id="selectVerse" class="button">Select the text this source references</span>
@@ -674,23 +674,23 @@
 
 
 
-				<div class="formRow">					
+				<div class="formRow">
 					<div class="label">Text:</div>
 					<textarea id="addText"></textarea>
-				</div>	
-				<div class="formRow">					
+				</div>
+				<div class="formRow">
 					<div class="label">Source:</div>
 					<input>
-				</div>		
+				</div>
 			</div>
 		</div>
 	</div>
-<script type="text/javascript" src="/js/jquery.js"></script>
-<script type="text/javascript" src="/js/jquery-ui-1.8.1.custom.min.js"></script>
+<script type="text/javascript" src="/js/lib/jquery.js"></script>
+<script type="text/javascript" src="/js/lib/jquery-ui-1.8.1.custom.min.js"></script>
 
-<script type="text/javascript" src="/js/jquery.scrollTo-1.4.2-min.js"></script>
-<script type="text/javascript" src="/js/jquery.easing.1.3.js"></script>
-<script type="text/javascript" src="/js/jquery.ba-hashchange.js"></script>
+<script type="text/javascript" src="/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+<script type="text/javascript" src="/js/lib/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="/js/lib/jquery.ba-hashchange.js"></script>
 
 <script type="text/javascript">
 
@@ -707,12 +707,12 @@
 		books = ["Amos", "Chronicles 1", "Chronicles 2", "Daniel", "Deuteronomy", "Ecclesiastes", "Esther", "Exodus", "Ezekiel", "Ezra Nehemiah", "Genesis", "Habakkuk", "Haggai", "Hosea", "Isaiah", "Jeremiah", "Job", "Joel", "Jonah", "Joshua", "Judges", "Kings 1", "Kings 2", "Lamentations", "Leviticus", "Malachi", "Nahum", "Numbers", "Obadiah", "Proverbs", "Psalms", "Ruth", "Samuel 1", "Samuel 2", "Song of Songs", "Zechariah", "Zephaniah"]
 
 		palette = ["#790619", "#00681C", "#5B1094", "#C88900", "#CC0060", "#008391", "#009486"];
-	
+
 	// --------------- Track First and Last Visible Verses
-	
+
 		firstVisible = new Object();
 		lastVisible = new Object();
-		
+
 		book = "Genesis"
 		chapter = "1"
 
@@ -722,26 +722,26 @@
 		lastVisible.verse = 1;
 
 	$(function() {
-	
-	
+
+
 	// ------------iPad Fixes ---------------------
-	
+
 	if (isTouchDevice()) {
 		//$("#commentaryBox").css("height", "auto");
 	}
-		
-	// -------------- Window Resize Handlers -------------- 
-		
+
+	// -------------- Window Resize Handlers --------------
+
 		$(window).resize(function() {
 			lowlightOff();
 			updateVisible();
 		})
-		
+
 		$(window).scroll(function() {
 			//lowlightOff();
 			updateVisible();
 		})
-	
+
 	// ---------------- Handle Hash Change ----------------
 		$(window).hashchange( function(){
 			if (location.hash == "") {
@@ -751,8 +751,8 @@
 				get(parseQuery(location.hash.substr(2)))
 			}
 		})
-	
-	
+
+
 	// ------------- Hide Modals on outside Click -----------
 		$(window).click(function() {
 			$("#gotoBox").hide()
@@ -761,23 +761,23 @@
 			$("#overlay").hide()
 			lowlightOff();
 		})
-	
+
 	// ------------- Top Button Handlers -------------
-	
+
 		$("#open").live("click", function() {
 			$("#gotoBox").show()
 			$("#goto").focus();
 			return false
 		})
-		
+
 		$("#gotoBox").click(function() {
 			return false;
 		})
-		
+
 		$("#closeGoto").live("click", function(){$("#gotoBox").hide()})
-		
+
 	// ---------------- Sources List ---------------
-	
+
 		$("#sourcesLink").live("click", function(){
 			if ($("#sourcesList").css("display") == "block") {
 				$("#sourcesList").hide()
@@ -786,16 +786,16 @@
 			}
 			return false
  		})
-		
+
 		$(".source").live("click", function() {
 			var c = $(".cName", this).text()
-			
+
 			if (!$(".source.lowlight").length){
 				$(".source").addClass("lowlight")
 				$(".commentary").hide()
-			
+
 			}
-			
+
 			if ($(this).hasClass("lowlight")) {
 				$(this).removeClass("lowlight")
 				$(".commentator:contains('" + c + "')").parent().show()
@@ -805,44 +805,44 @@
 			}
 			return false
 		})
-		
+
 	// --------------- Ref Links in Sources Text -------------------
 		$(".open .refLink").live("click", function() {
 			var ref = $(this).attr("data-ref");
 			location.hash = refHash(parseQuery(ref));
 		})
-	
+
 	// ------------- Next Link Url -----------------
-	
+
 		$(document).on("click", "#next", function() {
 			var ref = $(this).attr("data-ref");
 			location.hash = refHash(parseQuery(ref));
 		})
-	
-	
+
+
 	// ---------------- Layout Options ------------------
-		
+
 		$("#block").live("click", function(){
 			$(".verse").addClass("block")
 		})
-		
+
 		$("#inline").live("click", function(){
 			$(".verse").removeClass("block")
 		})
-	
-	
-	
+
+
+
 	// ---------------------- Commentary Modal --------------------------
-		
+
 		$(".commentary").live("click", function(e){
 			$(".open").remove()
 			var $c = $(e.currentTarget);
 			$c.clone().hide().appendTo("body")
 				.removeClass("commentary").addClass("open")
-			
+
 			var $o	= $(".open");
 			var v = parseInt($o.attr("data-ref"))
-			
+
 			var verse = $(".verse").eq(v-1).text();
 			var trim = isInt(verse[1]) ? 2 : 1;
 			verse = verse.substr(trim)
@@ -852,7 +852,7 @@
 			title = title[0] + ":" + v
 			$(".open").prepend("<div class='openVerseTitle'>"+title+"</div>");
 
-			
+
 			var h = $o.height();
 			var w = $o.width();
 			var mh = parseInt($o.css("max-height"));
@@ -869,17 +869,17 @@
 					<img src="/img/down.png" class="down"/> \
 				</div>');
 			} else {
-				
+
 			}
-			
+
 			$o.css("top", $(window).scrollTop() + (wh - (h+(2*p))) / 2.2 + "px");
 			$o.css("left", (ww - (w+(2*pl))) / 2 + "px");
-					
+
 			$o.show();
 			$("#overlay").show()
 			return false
 		});
-		
+
 	// ------------------- Commentary Model Hide ----------------------
 
 		$(".open").live("click", function(e){
@@ -887,23 +887,23 @@
 			//$("#overlay").hide()
 			return false
 		})
-		
+
 	// -------------------- Update Commentary --------------------
-		
+
 		function updateCommentary() {
-						
+
 			for ( var i = firstVisible.verse; i <= lastVisible.verse; i++ ) {
 				$(".commentary[data-ref=1:" + (i+1) + "]").each(function(i) {
 					$(this).appendTo("#commentaryBox");
 				});
 			}
-			
+
 			$("#commentaryBox").fadeIn(1200);
-			
+
 			if (overflows($("#commentaryBox"))) {
 				$("#cScrollCtl").fadeIn(100);
 			}
-			
+
 			function hideCommentary() {
 				$("#commentaryBox").fadeOut(100, function() {
 					$("#commentaryBox .commentary").appendTo("#commentaryBuffer");
@@ -911,9 +911,9 @@
 				$("#cScrollCtl").fadeOut(100);
 
 			}
-			
+
 		}
-	
+
 
 
 	// -------------------- Open Text Scrolling --------------------
@@ -935,7 +935,7 @@
 			return false;
 		});
 
-	// -------------- Commentary Scrolling -------------- 
+	// -------------- Commentary Scrolling --------------
 		function cbScroll(d) {
 			$cb = $("#commentaryBox")
 			var h = $cb.height();
@@ -946,34 +946,34 @@
 		$("#cScrollCtl .up").click(function(){
 			cbScroll(-1);
 		})
-	
+
 		$("#cScrollCtl .down").click(function() {
 			cbScroll(1);
 		})
 
-	// -------------- Highlight Verse on Commentary Hover -------------- 
-	
+	// -------------- Highlight Verse on Commentary Hover --------------
+
 
 	/*$(".commentary").live("mouseenter", function (e) {
-		
+
 		if(typeof(offTimeout) != "undefined") clearTimeout(offTimeout)
 		$c = $(e.currentTarget);
 		var ref = $c.attr("data-ref");
 		var verse = parseInt(ref) - 1;
-		
+
 		onTimeout = setTimeout("lowlightOn(" + verse + ")", 300)
-	
+
 	})
 	$(".commentary").live("mouseleave", function (e) {
 		if(typeof(onTimeout) != "undefined") clearTimeout(onTimeout)
 		offTimeout = setTimeout("lowlightOff()", 300)
 	})
 */
-	// -------------- Highlight Commentary on Verse Click -------------- 
+	// -------------- Highlight Commentary on Verse Click --------------
 
 	$(".verse").live("click", function (e) {
 		lowlightOff();
-		var v = $(this).index() ;		
+		var v = $(this).index() ;
 		lowlightOn(v)
 
 		if (sjs.flags.verseSelecting) {
@@ -985,17 +985,17 @@
 
 		var $comments = $("#commentaryBox .commentary[data-ref=" + (v+1) + "]")
 		var $fc = $comments.eq(0);
-		
+
 		if ($fc.length == 1) {
 			$("#commentaryBox").clearQueue();
 			$("#commentaryBox").scrollTo($fc, 600, {easing: "easeOutExpo"});
 		}
 		return false;
 	})
-	
-	
+
+
 	// --------------- Add ------------------------
-	
+
 	$("#addSource").click(function(){
 		$("#addModal").show()
 		$("#overlay").show()
@@ -1004,24 +1004,24 @@
 	$("#closeAdd").click(function() {
 		$("#addModal").hide()
 		$("#overlay").hide()
-		
+
 	})
-	
+
 	$("#addModal").click(function() {
 		return false;
 	})
-	
+
 	// --------------- Verse Select ----------------
-	
+
 	$("#selectVerse").click(function() {
 		$("#addModal, #overlay").hide()
 		$("#commentaryBox").hide()
 		$("#sourcesBox").hide()
 		$("#verseSelectModal").show()
 		sjs.flags.verseSelecting = true
-		
+
 	})
-	
+
 	$("#verseSelectModal").click(function() {
 		$("#addModal, #overlay").show()
 		$("#commentaryBox").show()
@@ -1029,13 +1029,13 @@
 		$("#verseSelectModal").hide()
 		sjs.flags.verseSelecting = false
 		return false
-		
+
 	})
 
 	// ------------- Nav Queries -----------------
 
-	
-			
+
+
 	$("#goto").keypress(function(e) {
 			if (e.keyCode == 13) {
 				q = parseQuery($("#goto").val());
@@ -1049,10 +1049,10 @@
 				location.hash = ref;
 			}
 		})
-		
+
 	$("input#goto").autocomplete({ source: books });
-		
-		
+
+
 });
 
 	function get(q) {
@@ -1077,7 +1077,7 @@
 			if (q.toVerse) {
 				getStr += "&toVerse=" + q.toVerse
 			}
-			
+
 			$("#commentaryBox").empty().hide()
 			$("#gotoBox").hide()
 			$("#goto").val("")
@@ -1087,15 +1087,15 @@
 			$("#overlay").hide()
 			$("#basetext").removeClass("noCommentary").html("")
 			$("#sourcesBox").removeClass("noCommentary")
-						
+
 			var ref = makeRef(q)
 			if (ref in sjs.cache) {
 				buildView(sjs.cache[ref])
 			} else {
-				$.getJSON(getStr, buildView)	
+				$.getJSON(getStr, buildView)
 
 			}
-			
+
 	}
 
 
@@ -1105,58 +1105,58 @@
 				$("#header").html(data.error);
 				return;
 			}
-			
+
 			sjs.cache[data.ref] = data
 			sjs.current = data
-			
+
 			book = data.book;
 			chapter = data.chapter;
 			$("#header").html(data.title)
 			for (var i = 0; i < data.text.length; i++) {
 				$("#basetext").append("<span class='verse'>" + data.text[i] + "</span>")
 			}
-			
+
 			if (data.next) {
-				$("#basetext").append("<div id='next' data-ref='" + 
-										data.next + "'>" + 
-										data.book + " " + 
+				$("#basetext").append("<div id='next' data-ref='" +
+										data.next + "'>" +
+										data.book + " " +
 										(data.chapter +1) + "</div>")
 			}
-			
-			makeLargeFirstChar() 
-			
+
+			makeLargeFirstChar()
+
 			$(".verse").each(function(){
 				var n = $(this).index() + 1;
 				$(this).prepend("<div class='verseNum'>" + n + "</div>")
 				//$(".verseNum").last().css("top", $(this).position().top-3)
 			})
-			
+
 			if (data.verse > 1) {
 					$(window).scrollTop($(".verse").eq(data.verse - 1).position().top - 200);
 					lowlightOn(data.verse - 1, data.toVerse - 1);
 			}
-		
+
 			// Parse Commentary into CommentaryBox
 			if (data.commentary) {
 				$("commentaryBox").hide()
 				$("#sourcesList").empty()
 				var colorAssignments = {}
-				sourceCounts = {}	
+				sourceCounts = {}
 
 				var n = 0;
 				for (var i = 0; i < data.commentary.length; i++) {
 					c = data.commentary[i]
 					if (typeof(c.anchorText) == "undefined") {c.anchorText = ""}
-				
+
 					refReStr = "(" + books.join("|") + ") (\\d+):(\\d+)"
 					refRe = new RegExp(refReStr, "g")
-					var text = String(c.text)						
+					var text = String(c.text)
 					c.text = text.replace(refRe, "<span class='refLink' data-ref='$1.$2.$3'>$1 $2:$3</span>")
-					
-					$("#commentaryBox").append("<span class='commentary' data-ref='" + c.refVerse + 
-					"'><span class='commentator'>" + c.commentator + ":</span><span class='anchorText'>" + c.anchorText + 
+
+					$("#commentaryBox").append("<span class='commentary' data-ref='" + c.refVerse +
+					"'><span class='commentator'>" + c.commentator + ":</span><span class='anchorText'>" + c.anchorText +
 					"</span>" + c.text + "</span>")
-					
+
 					// Give each Commentator a Color
 					var color;
 					if (!(c.commentator in colorAssignments)) {
@@ -1168,23 +1168,23 @@
 					}
 					color = palette[colorAssignments[c.commentator]];
 					$(".commentator").last().css("color", color)
-				
+
 					sourceCounts[c.commentator]++
-					
+
 					//Commentary verse numbering
 					//$(".commentary").last().prepend("<span class='commentaryNum'>" + c.refVerse + "</span>")
-				
+
 				}
-				
+
 				var sourceTotal = 0
 				for (commentator in sourceCounts) {
 					$(".count", '.source[data-commentator="'+commentator+'"]').text("("+sourceCounts[commentator]+")")
 					sourceTotal += sourceCounts[commentator]
-				
+
 				}
-				
+
 				$("#sourceCount").text(sourceTotal)
-				
+
 				// Sort by data-ref
 				var $cb = $('#commentaryBox');
 				var $comments = $cb.children(".commentary").get();
@@ -1195,23 +1195,23 @@
 				   return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
 				})
 				$.each($comments, function(idx, itm) { $cb.append(itm); });
-				$("#commentaryBox").show();										
+				$("#commentaryBox").show();
 			} else {
 				$("#sourceCount").text("0")
 				$("#basetext, #sourcesBox").addClass("noCommentary")
 			}
 			$("#sourcesRange").html($("#header").text().split(":")[0])
-			$("#sourcesBox").show()	
+			$("#sourcesBox").show()
 			updateVisible();
 		}
-	
+
 		//  -------------------- Update Visible Verse --------------------------
-	
+
 		function updateVisible() {
-			var $v = $(".verse"); 
+			var $v = $(".verse");
 			var $w = $(window);
 			var l = $v.length;
-			
+
 			for (var i = 0; i < l; i++) {
 				var top = parseInt($v.eq(i).offset().top);
 				var wtop = parseInt($w.scrollTop());
@@ -1230,23 +1230,23 @@
 
 			for (i = i; i < l; i++) {
 				var bottom = $v.eq(i).offset().top + $v.eq(i).outerHeight();
-				var wbottom = $w.height() + $w.scrollTop(); 
+				var wbottom = $w.height() + $w.scrollTop();
 				if (bottom > wbottom) {
 					if (lastVisible.verse != i) {
-						lastVisible.verse = i + 1;					
+						lastVisible.verse = i + 1;
 					}
-					break;	
+					break;
 
 				}
 			}
-			
+
 			$("#header").html(book + " " + chapter + ":" + firstVisible.verse + "-" + lastVisible.verse)
 
-		
+
 		}
-	
+
 		// ---------------- Large First Character ------------
-	
+
 	function makeLargeFirstChar() {
 		var $fv = $(".verse:first")
 		var text = $fv.text();
@@ -1256,15 +1256,15 @@
 		words.shift()
 		words.shift()
 		words.shift()
-		
+
 		var rest = " " + words.join(" ")
 		$fv.append("<span>" + rest + "</span>")
 	}
-	
-	
+
+
 		function parseQuery(q) {
 		var response = {book: false, chapter: false, verse: false, to: false, toChapter: false, toVerse: false}
-		
+
 		var q = q.replace(/[.:]/g, " ")
 		var toSplit = q.split("-")
 		var p = toSplit[0].split(" ")
@@ -1278,10 +1278,10 @@
 		} else {
 			response.book = p[0][0].toUpperCase() + p[0].substr(1)
 		}
-		
+
 		if (typeof(p[1+offset] != "undefined")) response.chapter = p[1+offset]
 		if (typeof(p[2+offset] != "undefined")) response.verse = p[2+offset]
-		
+
 		if (toSplit.length == 2) {
 			var cv = toSplit[1].split(" ")
 			if (cv.length == 2) {
@@ -1292,10 +1292,10 @@
 				response.toChaptere = response.chapter
 			}
 		}
-		
+
 		return response;
 	}
-	
+
 	function makeRef(q) {
 		var ref = q.book;
 		if (q.chapter) {
@@ -1309,10 +1309,10 @@
 		} else if (q.toVerse) {
 			ref += "-" + q.toVerse
 		}
-		
+
 		return ref
 	}
-	
+
 	function refHash(q) {
 		return "/" + makeRef(q);
 	}
@@ -1339,24 +1339,24 @@
 		var t = $div.offset().top
 		var h = $div.parent().outerHeight();
 		var pt = $div.parent().offset().top;
-		
+
 		if (t < pt) return false;
 		if (t > pt + h) return false;
-		
-		return true;	
+
+		return true;
 	}
 
-	
+
 	function mirror($el) {
-		
+
 		$el.before("<span id='posTest'></span>")
 		var left = $el.offset().left
 		var indent = $("#posTest").offset().left - left
-		
-		$("#posTest").remove()		
-				
+
+		$("#posTest").remove()
+
 		$mirror = $el.clone()
-		
+
 		$mirror.css({"position": "absolute",
 					"display": block,
 					"width": $el.width(),
@@ -1368,15 +1368,15 @@
 					"letter-spacing": $el.css("letter-spacing"),
 					"text-align": $el.css("text-align"),
 					"text-indent": indent})
-		
+
 		$mirror.addClass("mirror").appendTo("body")
-		
+
 	}
-	
+
 	function lowlightOn(n, m) {
-		
+
 		m = m || n
-		
+
 		$c = $("#commentaryBox .commentary[data-ref="+ (n+1) + "]")
 		$(".commentary").addClass("lowlight")
 		$c.removeClass("lowlight")
@@ -1388,7 +1388,7 @@
 			}
 		});
 	}
-	
+
 
 	function lowlightOff() {
 	console.log("off")
@@ -1396,13 +1396,13 @@
 		$(".verse").removeClass("lowlight")
 	}
 
-	function isTouchDevice() {  
-	  try {  
-	    document.createEvent("TouchEvent");  
-	    return true;  
-	  } catch (e) {  
-	    return false;  
-	  }  
+	function isTouchDevice() {
+	  try {
+	    document.createEvent("TouchEvent");
+	    return true;
+	  } catch (e) {
+	    return false;
+	  }
 	}
 
 	function isInt(x) {
@@ -1413,6 +1413,6 @@
 
 	</script>
 	<script src="https://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
-	
+
 </body>
 </html>

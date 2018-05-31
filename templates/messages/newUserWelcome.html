@@ -1,5 +1,6 @@
 <style>
     #newUserWelcome {
+        width: 550px;
         font-family: "adobe-garamond-pro", Georgia, serif;
     }
     #newUserWelcome p {
@@ -21,20 +22,58 @@
         text-align: left;
         margin: 30px;
     }
+    .interface-hebrew #newUserWelcome .iconic {
+        text-align: right;
+        margin: 30px;
+    }
     #newUserWelcome .icon {
         float: left;
         margin-right: 20px;
+    }
+    .interface-hebrew #newUserWelcome .icon {
+        float: right;
+        margin-left: 20px;
+        padding-top: 5px;
     }
     #newUserWelcome .button {
         margin-top: 20px;
     }
 </style>
 <div id="newUserWelcome">
-    <h1>Welcome to Sefaria</h1>
+    <h1>
+        <span class="int-en">
+            Welcome to Sefaria
+        </span>
+        <span class="int-he">
+            ברוכים הבאים לספריא
+        </span>
+    </h1>
 
-    <p class="iconic"><i class="fa fa-bars icon"></i> In the library menu (top left), you can explore Sefaria’s library, including community source sheets and other learning resources.</p>
+    <p class="iconic">
+        <i class="fa fa-bars icon"></i>
+        <span class="int-en">
+            In the library menu (top left), you can explore Sefaria’s library, including community source sheets and other learning resources.
+        </span>
+        <span class="int-he">
+            בתוכן העניינים של ספריא (בסמל בפינה הימנית העליונה) תוכלו לסייר בין כל הספרים הנמצאים בספריא ובנוסף גם לראות דפי מקורות וכלי לימוד אחרים.
+        </span>
+    </p>
+    <p class="iconic">
+        <img class="icon" src="/static/img/user-64.png" alt="User Icon">
+        <span class="int-en">
+            In your account (top right), you can access your source sheets, notes, update your profile and more.
+        </span>
+        <span class="int-he">
+            בתפריט החשבון שלכם (בפינה השמאלית העליונה) תוכלו לגשת לדפי המקורות שלכם, לרשומות שלכם, לעדכן את פרופיל המשתמש שלכם ועוד.
+        </span>
+    </p>
 
-    <p class="iconic"><img class="icon" src="/static/img/user-64.png">In your account (top right), you can access your source sheets, notes, update your profile and more.</p>
-
-    <div class="button white">Let's Go!</div>
+    <div class="button white">
+        <span class="int-en">
+            Let's Go!
+        </span>
+        <span class="int-he">
+            נצא לדרך!
+        </span>
+    </div>
 </div>

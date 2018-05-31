@@ -112,9 +112,10 @@ def execute():
     for count, line in enumerate(lines):
         line = line.decode('utf-8')
         other_ref, vtitle = info[count]
-        modify_text(15399, Ref(other_ref), vtitle, 'en', line)
-
-
+        # modify_text(15399, Ref(other_ref), vtitle, 'en', line.strip())
+        tc = TextChunk(Ref(other_ref), vtitle=vtitle, lang="en")
+        tc.text = tc.text.strip()
+        tc.save()
 
 def write():
     mappings = get_mappings("data/tanchuma_map.csv")

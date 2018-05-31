@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% load sefaria_tags %}
+{% load i18n %}
 
-{% block title %}Visualizing the Parshiot{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block title %}{% trans "Visualizing the Parshiot" %}{% endblock %}
 {% block ogimage %}<meta property="og:image" content="/static/img/sunburst.png"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Sefaria Mobile Apps{% endblock %}
+{% block title %}{% trans "Sefaria Mobile Apps" %}{% endblock %}
+
+{% block description %}{% trans "Downland the free Sefaria Apps for iOS and Android." %}{% endblock %}
 
 {% block css %}
     html, body {
@@ -21,15 +24,15 @@
             <div class="textBox">
                 <h2>
                     <span class="int-en">Sefaria Mobile</span>
-                    <span class="int-he">ספאריה בנייד</span>
+                    <span class="int-he">ספריא בנייד</span>
                 </h2>
                 <div class="description">
                     <span class="int-en">
                             Enjoy Sefaria's entire library of Jewish texts &mdash; Tanakh, Talmud, Kabbalah and more &mdash; and all of its links and interconnections on-the-go. Sefaria’s apps for Android and iOS available to download for free.
                         </span>
                         <span class="int-he">
-                            הספריה המלאה של ספאריה, הכוללת את כל הלינקים והקשרים, זמינה גם בנייד.
-                            האפליקציות של ספאריה לאנדרואיד ולאייפון זמינות עכשיו להורדה בחינם.
+                            הספריה המלאה של ספריא, הכוללת את כל הלינקים והקשרים, זמינה גם בנייד.
+                            האפליקציות של ספריא לאנדרואיד ולאייפון זמינות עכשיו להורדה בחינם.
                         </span>
                 </div>
                 <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank">
@@ -48,7 +51,7 @@
                 </a>
             </div>
             <div class="imageBox">
-                <img src="/static/img/home-mobile.png" />
+                <img src="/static/img/home-mobile.png" alt="Image of Sefaria on mobile phones" />
             </div>
         </div>
     </div>    

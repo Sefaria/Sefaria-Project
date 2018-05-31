@@ -11,7 +11,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref
+    from sefaria.system.varnish.wrapper import invalidate_ref
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 
@@ -73,12 +73,13 @@ class AbstractAutoLinker(object):
 
     def _load_links(self):
         if not self._links:
-            ref_regex = self._requested_oref.regex()
-            self._links = LinkSet({"refs": {"$regex": ref_regex},
+            ref_regex_list = self._requested_oref.regex(as_list=True)
+            queries = [{"refs": {"$regex": ref_regex},
                                    "generated_by": self._generated_by_string,
-                                   "auto" : self._auto,
-                                   "type" : self._link_type
-                                   })
+                                   "auto": self._auto,
+                                   "type": self._link_type
+                                   } for ref_regex in ref_regex_list]
+            self._links = LinkSet({"$or": queries})
         return self._links
 
     def linkset(self):
@@ -437,7 +438,7 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
             if all([any([r.startswith(name) for r in ref_strings]) for pair in exception_pairs for name in pair]):
                 continue
             # If this link matches an exception range, skip it.
-            if refs[i].section_ref() is refs[j].section_ref():
+            if refs[i].section_ref() == refs[j].section_ref():
                 continue
 
             d = {

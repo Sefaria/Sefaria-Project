@@ -170,7 +170,7 @@ class Notification(abst.AbstractMongoRecord):
         "uid",
         "content",
         "read",
-        "is_global"
+        "is_global",
     ]
     optional_attrs = [
         "read_via",
@@ -266,7 +266,7 @@ class Notification(abst.AbstractMongoRecord):
 
     def to_HTML(self):
         html = render_to_string("elements/notification.html", {"notification": self}).strip()
-        html = re.sub("\n", "", html)
+        html = re.sub("[\n\r]", "", html)
         return html
 
     @property
@@ -340,12 +340,14 @@ class NotificationSet(abst.AbstractMongoSet):
         return len([n for n in self if not n.read])
 
     def actors_list(self):
-        """Returns a unique list of user ids who acted in this notification set"""
-        return list(set([n.actor_id for n in self]))
+        """Returns a unique list of user ids who acted in this notification set excluding likes"""
+        return list(set([n.actor_id for n in self if not n.type == "sheet like"]))
 
     def actors_string(self):
         """
         Returns a nicely formatted string listing the people who acted in this notifcation set
+        Likes are not included in this list (so that like only notifcations can generate a different email subject)
+        Returns None if all actions are likes.
         """
         actors = [user_profile.user_name(id) for id in self.actors_list()]
         top, more = actors[:3], actors[3:]
@@ -356,6 +358,10 @@ class NotificationSet(abst.AbstractMongoSet):
         if len(top) > 1:
             top[-1] = "and " + top[-1]
         return ", ".join(top).replace(", and ", " and ")
+
+    def like_count(self):
+        """Returns the number of likes in this NotificationSet"""
+        return len([n for n in self if n.type == "sheet like"])
 
     def to_JSON(self):
         return "[%s]" % ", ".join([n.to_JSON() for n in self])

@@ -1,39 +1,31 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Internal Server Error{% endblock %}
+{% block title %}{% trans "Internal Server Error" %}{% endblock %}
 
 {% block content %}
-{% if S2 %}
-    <div id="errorPage" class="biReady container error static">
-        <div class="inner">
-            <h1>
-                <span class="int-en">Internal Server Error</span>
-                <span class="int-he">שגיאה במערכת</span>
-            </h1>
-            <div class="section">
-                <p>
-                    <span class="int-en">
-                        Unfortunately, we've encountered an error.
-                        An email has been sent automatically to our developers.
-                        If you have any questions about the problem,
-                        or think you can help us figure out what went wrong,
-                        please email our <a href="mailto:dev@sefaria.org" target="_blank">development team</a>.
-                    </span>
-                    <span class="int-he">
-                        לצערנו ארעה תקלה במערכת. מייל בעניין כבר נשלח אל המפתחים שלנו.
-                        אם יש לכם שאלות נוספות לגבי התקלה,
-                        או שביכלתכם להבין את התקלה ולעזור לאתר אותה, נשמח לשמוע <a href="mailto:dev@sefaria.org" target="_blank">במייל אל צוות המפתחים</a>.
-                    </span>
-                </p>
-            </div>
+<div id="errorPage" class="biReady container error static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">Internal Server Error</span>
+            <span class="int-he">שגיאה במערכת</span>
+        </h1>
+        <div class="section">
+            <p>
+                <span class="int-en">
+                    Unfortunately, we've encountered an error.
+                    An email has been sent automatically to our developers.
+                    If you have any questions about the problem,
+                    or think you can help us figure out what went wrong,
+                    please email our <a href="mailto:dev@sefaria.org" target="_blank">development team</a>.
+                </span>
+                <span class="int-he">
+                    לצערנו ארעה תקלה במערכת. מייל בעניין כבר נשלח אל המפתחים שלנו.
+                    אם יש לכם שאלות נוספות לגבי התקלה,
+                    או שביכלתכם להבין את התקלה ולעזור לאתר אותה, נשמח לשמוע <a href="mailto:dev@sefaria.org" target="_blank">במייל אל צוות המפתחים</a>.
+                </span>
+            </p>
         </div>
     </div>
-{% else %}
-<div class="container error">
-
-<h1>Internal Server Error</h1>
-<p>Unfortunately, we've encountered an error. An email has been sent automatically to our developers. If you have any questions about the problem, or think you can help us figure out what went wrong, please email our <a href="mailto:dev@sefaria.org" target="_blank">development team</a>.</p>  
-
-</div> 
-{% endif %}
+</div>
 {% endblock %}

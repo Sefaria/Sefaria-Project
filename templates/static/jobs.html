@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Jobs at Sefaria{% endblock %}
+{% block title %}{% trans "Jobs at Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Job openings at Sefaria, a non-profit technology organization dedicated to building the Jewish future." %}{% endblock %}
 
 {% block content %}
 
@@ -8,109 +11,66 @@
     <div class="inner">
         <h1>
             <span class="int-en">Jobs at Sefaria</span>
-            <span class="int-he">משרות פנויות בספאריה</span>
+            <span class="int-he">משרות פנויות בספריא</span>
         </h1>
 
+        <a name="israel-operations"></a>
         <div class="section" style="direction: rtl">
-            <h2 id="israel-director-he" class="anchorable">מנהל/ת (ישראל)</h2>
-            <h4>המודעה מנוסחת בלשון זכר מטעמי נוחות בלבד, אך פונה לנשים וגברים כאחד</h4>
-            <p>ספאריה מחפשת מועמד מקצועי ובעל יוזמה, עם יחסים בין אישיים מצוינים ואהבה לטכנולוגיה, חינוך ויהדות, בכדי להוביל את מהלך ההתפתחות שלה לתוך השוק הישראלי. משרת המנהל היא תפקיד רב-גוני הכולל פיתוח אסטרטגי, עסקי ומחקרי וכן אחריות בתחום השיווק.</p>
+            <h2 id="textworker-he" class="anchorable">רכז/ת הטמעת ספריא בבתי ספר בשנת הלימודים תשע"ט</h2>
+            <div>
+                <p><b>משך המשרה</b> - שנה אחת מה 1 ליולי 2018 עד 30 ליוני 2019</p>
+                <p><b>היקף משרה</b> - משרה חלקית</p>
+                <p><b>כפיפות ארגונית</b> - מנהל פעילות ספריא ישראל</p>
+            </div>
+
             <br/>
-            <p><b>תחומי אחריות:</b></p>
+
+            <p><b>אחריות התפקיד-</b></p>
             <ul>
                 <li>
-                    <p><b>פיתוח קהל משתמשים</b></p>
-                    <ul>
-                        <li>בחינת הזדמנויות (וחסמים) להתרחבות השימוש של ספאריה בישראל.</li>
-                        <li>פיקוח על פיתוח קהל המשתמשים ואסטרטגיות שיווק בישראל.</li>
-                        <li>זיהוי קבוצות ואנשים המוכנים לאימוץ מקדים.</li>
-                    </ul>
+ניהול הטמעת השימוש בספריא ב 10 בתי ספר נבחרים ברחבי הארץ.
                 </li>
                 <li>
-                    <p><b>קשרי חוץ וחינוך</b></p>
-                    <ul>
-                        <li>בחינת האופק הקיים לטכנולוגיה חינוכית, זיהוי ארגונים, מו"לים ופרויקטים רלוונטיים בעלי פוטנציאל לשיתוף פעולה.</li>
-                        <li>עידוד השימוש בספאריה ככלי למידה ולימוד.</li>
-                        <li>הובלת הדגמות והכשרות של שימוש בספאריה.</li>
-                        <li>איסוף משוב בנוגע לשיפור והוספת אפשרויות וטקסטים חדשים לתוכנה, או מוצרים חדשים שישרתו את צרכי קהל המחנכים והמוסדות הישראלי.</li>
-                    </ul>
+עבודה עם מורות/ים במקצועות היהדות להתאמת מערכי השיעור הקיימים שלהם לשימוש בספריא.
                 </li>
                 <li>
-                    <p><b>ניהול</b></p>
-                    <ul>
-                        <li>פיקוח על התשתית של צוות הארגון הנמצא בישראל.</li>
-                        <li>ניהול קשרים עם שותפים וספקי שירותים.</li>
-                    </ul>
+ליווי ותמיכה פרטנית למורות/ים ב 10 בתי הספר השונים.
+                </li>
+                <li>
+ביצוע תוכנית הכשרה למורות/ים.
+                </li>
+                <li>
+ניהול מעקב אחרי השימוש בספריא בקרב המורות/ים ב 10 בתי הספר השונים.
+                </li>
+                <li>
+כתיבת דו"ח מסכם על הפילוט עד סוף מאי 2019.
                 </li>
             </ul>
-            <br/>
-            <p><b>כישורים נדרשים וניסיון:</b></p>
-            <ul>
-                <li>כישורים בין-אישיים יוצאים מן הכלל</li>
-                <li>עברית שפת אם; אנגלית ברמת שפת אם</li>
-                <li>יכולת לעבוד בצורה טובה בסביבת סטארט-אפ דינמית</li>
-                <li> תואר אקדמי</li>
-                <li>לפחות 5 שנות נסיון רלוונטיות לתחום</li>
-                <li>כישורי כתיבה ועריכה מצוינים</li>
-                <li>מיומנות תקשורת גבוהות בכתב ובעל פה, יכולת שיפוט והכרעה</li>
-                <li>נקיטת יוזמה ועבודה עצמאית</li>
-                <li>יכולת איתור וטיפול בבעיות</li>
-            </ul>
-            <br/>
-            <p><b>נסיעה:</b> נסיעות מזדמנות ושעות עבודה בלתי שגרתיות לעיתים</p>
-            <br/>
-            <p><b>פיקוח:</b> בעל התפקיד מדווח למנכ"ל הנמצא בניו-יורק</p>
-            <br/>
-            <p><b>שכר בהתאם להתאמה וניסיון</b></p>
-            <br/>
-            <p><b>בכדי להגיש מועמדות:</b> אנא שלחו מכתב מקדים קצר ואת קורות החיים ל-<a href="mailto:jobs@sefaria.org">jobs@sefaria.org</a>.</p>
-            <br/>
-            <p><b>הערה:</b> ניתן לשלוח קורות חיים באנגלית ובעברית. עדיפות לקו"ח דו-לשוניים.</p>
-            <br/>
-            <p><b>אודות ספאריה:</b> ספאריה הוא מלכ"ר השואף לעיצוב עתיד הלימוד היהודי כך שיהא פתוח ושיתופי. אנו בונים ספריה חיה הפתוחה לציבור הרחב, של טקסטים יהודיים, בעברית ובתרגומים שונים. באמצעות אותם טקסטים דיגיטליים, נוכל ליצור ממשקים חדשים ואינטראקטיביים למחשב, לטאבלט ולמכשיר סלולרי, ולהנגיש את האוצרות הטקסטואליים של היהדות לאוכלוסייה רחבה יותר.</p>
-        </div>
 
-        <div class="section">
-            <h2 id="development-intern" class="anchorable">Development Intern</h2>
-            <p><b>New York Office</b></p>
-            <p>Dates: January (flexible starting time) to April 7 with option to extend</p>
-            <p>Pay: $16/hr</p>
-            <br>
-            <p><b>Responsibilities:</b> Support the CEO and Development and Communications Associate with development projects including, but not limited to:</p>
-            <ul>
-                <li>Assisting with the organization and upkeep of donor files</li>
-                <li>Processing thank you notes</li>
-                <li>Conducting research on foundation and individual donor prospects</li>
-                <li>Helping write/draft grant proposals and funding reports</li>
-                <li>Supporting the production of Sefaria’s inaugural gala (March 6th)</li>
-                <li>General office support</li>
-            </ul>
-            <br>
+            <br/>
 
-            <p><b>Qualifications:</b></p>
+            <p><b>דרישות התפקיד-</b></p>
             <ul>
-                <li>Student in undergraduate (Junior or Senior) or graduate degree program</li>
-                <li>Volunteer/community service experience</li>
-                <li>Previous internship experience is a plus</li>
-                <li>Ability to multi-task</li>
-                <li>Research and analytical skills</li>
-                <li>Quick learner, demonstrates initiative, team player</li>
-                <li>Interested in Sefaria’s mission</li>
-                <li>Available to work approximately 2 days/week; 8 hours/day</li>
+                <li>היכרות ושימושיות בכלים טכנולוגיים.</li>
+                <li>ניסיון בהוראה כמורה במקצועות היהדות במערכות החינוך.</li>
+                <li>היכרות עם מערכות החינוך הממלכתית והממלכתית דתית.</li>
+                <li>יכולת הנעת אנשים ותהליכים.</li>
+                <li>יכולת עבודה עצמאית.</li>
+                <li>גמישות וניידות.</li>
             </ul>
-            <br>
 
-            <p><b>To apply:</b> Send a brief cover letter and your resume to <a href="mailto:jobs@sefaria.org">jobs@sefaria.org</a> with the subject line, Development Intern.</p>
-            <br>
-            <p><b>About Sefaria:</b> Sefaria is a non-profit organization dedicated to building the future of Jewish learning in an open and participatory way. We are assembling a free living library of Jewish texts and their interconnections, in Hebrew and in translation. With these digital texts, we can create new, interactive interfaces for Web, tablet and mobile, allowing more people to engage with sefariathe textual treasures of our tradition.</p>
+            <p><b>בכדי להגיש מועמדות:</b></p>
+            <p>נא לשלוח קורות חיים למייל  <a href="mailto:israel@sefaria.org">israel@sefaria.org</a>   עד יום ה 7.6.2018</p>
+            <br/>
+            <p>ראיונות יתקיימו במהלך השבועיים האחרונים  של יוני 2018 .</p>
         </div>
 
         <a name="textworker"></a>
         <div class="section" style="direction: rtl">
-            <h2 id="israel-director-he" class="anchorable">רכז תוכן ועימוד דיגיטלי</h2>
+            <h2 id="textworker-he" class="anchorable">רכז תוכן ועימוד דיגיטלי</h2>
             <p><b>המודעה מנוסחת בלשון זכר מטעמי נוחות בלבד, אך פונה לנשים וגברים כאחד</b></p>
             <br/>
-            <p>ספאריה-ישראל מחפשת מועמד פרילנסר בעל רקע וניסיון בתחום עיבוד תמלילים ועימוד לדפוס, בעל אוריינטציה טכנולוגית חזקה, והיכרות מעמיקה עם תחום הספרות הרבנית לענפיה.</p>
+            <p>ספריא-ישראל מחפשת מועמד פרילנסר בעל רקע וניסיון בתחום עיבוד תמלילים ועימוד לדפוס, בעל אוריינטציה טכנולוגית חזקה, והיכרות מעמיקה עם תחום הספרות הרבנית לענפיה.</p>
             <br/>
             <p><b>תחומי אחריות:</b></p>
             <ul>
@@ -150,8 +110,7 @@
             <br/>
             <p><b>בכדי להגיש מועמדות:</b></p>
             <p> אנא שלחו מכתב מקדים קצר קורות החיים ל-<a href="mailto:content-jobs@sefaria.org">content-jobs@sefaria.org</a>.</p>
-            <br/>
-            <p><b>אודות ספאריה:</b> ספאריה הוא מלכ"ר השואף לעיצוב עתיד הלימוד היהודי כך שיהא פתוח ושיתופי. אנו בונים ספריה חיה הפתוחה לציבור הרחב, של טקסטים יהודיים, בעברית ובתרגומים שונים. באמצעות אותם טקסטים דיגיטליים, נוכל ליצור ממשקים חדשים ואינטראקטיביים למחשב, לטאבלט ולמכשיר סלולרי, ולהנגיש את האוצרות הטקסטואליים של היהדות לאוכלוסייה רחבה יותר.</p>
+            <p><b>אודות ספריא:</b> ספריא הוא מלכ"ר השואף לעיצוב עתיד הלימוד היהודי כך שיהא פתוח ושיתופי. אנו בונים ספריה חיה הפתוחה לציבור הרחב, של טקסטים יהודיים, בעברית ובתרגומים שונים. באמצעות אותם טקסטים דיגיטליים, נוכל ליצור ממשקים חדשים ואינטראקטיביים למחשב, לטאבלט ולמכשיר סלולרי, ולהנגיש את האוצרות הטקסטואליים של היהדות לאוכלוסייה רחבה יותר.</p>
         </div>
 
         <!--
@@ -163,7 +122,7 @@
                     to hear about our next openings.
                 </span>
                 <span class="int-he">
-                    ספאריה איננה מחפשת כעת עובדים חדשים.
+                    ספריא איננה מחפשת כעת עובדים חדשים.
                     עקבו אחרינו ב<a _target="blank" href="http://www.facebook.com/sefaria.org" >פייסבוק</a>
                     כדי להשאר מעודכנים במשרות עתידיות.
                 </span>

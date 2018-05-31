@@ -2125,7 +2125,7 @@ a {
 
 				{% if "text" in source %}
 					<li class="source sheetItem {{ source.options.indented }}">
-						<div class="customTitle">{{ source.customTitle }}</div>
+						<div class="customTitle">{{ source.title }}</div>
 
 						{% if source.options.sourceLanguage == "hebrew" %}
 							{% include "gdocs_text_source.html" with lang="he" source=source boxed=sheet.options.boxed %}
@@ -2253,10 +2253,10 @@ a {
 	-->
 
 	<!--
-	<script type="text/javascript" src="/static/js/jquery.scrollTo-1.4.2-min.js"></script>
-	<script type="text/javascript" src="/static/js/jquery.easing.1.3.js"></script>
-	<script type="text/javascript" src="/static/js/jquery-tooltip/jquery.tooltip.js"></script>
-	<script src="/static/js/jquery.tag-it.min.js"></script>
+	<script type="text/javascript" src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
+	<script type="text/javascript" src="/static/js/lib/jquery.easing.1.3.js"></script>
+	<script type="text/javascript" src="/static/js/lib/jquery-tooltip/jquery.tooltip.js"></script>
+	<script src="/static/js/lib/jquery.tag-it.min.js"></script>
 
 
 	{% include "js/headers.js" %}
@@ -2289,14 +2289,6 @@ a {
 	<script src="/static/ckeditor/adapters/jquery.js"></script>
 	{% endif %}
 	<script src="/static/js/sheets.js"></script>
-
-	    <script>
-	    var backToS1 = function() {
-	      $.cookie("s2", "", {path: "/"});
-	      window.location = "/";
-	    }
-	    $("#backToOldSefaria").click(backToS1);
-	    </script>
 	-->
 </body>
 </html>

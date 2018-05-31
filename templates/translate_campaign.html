@@ -11,14 +11,14 @@
 {% block content %}
 
 <div id="translateCampaign" class="container">
-	
+
 	<div class="row">
 		<div class="span10 offset1">
 			<div id="about">
 
 				{% if not thanks %}
 					<h1>{{ title }}</h1>
-					<p>You don't have to be an expert to help, this is just a first draft. Your contribution will be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p> 
+					<p>You don't have to be an expert to help, this is just a first draft. Your contribution will be reviewed and edited by the Sefaria community. This text will be licensed under a <a href="http://creativecommons.org/publicdomain/zero/1.0/" target="_blank">Creative Commons Zero</a> license - free for anyone to use or reuse.</p>
 					<p id="askAFriendBox">
 						<b>Can't translate Hebrew?</b>&nbsp;&nbsp;
 						<span id="askSomeone">Ask a friend to help.</span>
@@ -33,7 +33,7 @@
 								<a class="addthis_button_email"></a>
 								<input value="{{ request.build_absolute_uri }}">
 							</div>
-							<!-- AddThis Button END -->	
+							<!-- AddThis Button END -->
 						</div>
 					</p>
 				{% else %}
@@ -49,7 +49,7 @@
 						<a class="addthis_button_email"></a>
 						<input value="{{ request.build_absolute_uri }}">
 					</div>
-					<!-- AddThis Button END -->	
+					<!-- AddThis Button END -->
 				{% endif %}
 
 				<div class="graph text">
@@ -150,7 +150,7 @@
 					<label for="id_subscribe_announce">Receive important announcements (no more than once a month):</label>
 					<input checked="checked" type="checkbox" name="subscribe_announce" id="id_subscribe_announce">
 				</p>
-			    <input type="hidden" name="noredirect" value="true" />	   	
+			    <input type="hidden" name="noredirect" value="true" />
 			    <button id="submitRegister" type="submit" class="btn btn-primary btn-large">
 			    	Create Account
 			    </button>
@@ -165,7 +165,7 @@
 			<div class="clear"></div>
 		</div>
 		<div class="btn">Continue Working</div>
-	</div> 
+	</div>
 
 	<div id="overlay"></div>
 </div>
@@ -174,10 +174,10 @@
 {% block js %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.22/jquery-ui.min.js"></script>
-<script src="/static/js/jquery.autosize.js"></script>
-<script src="/static/js/util.js"></script>
-<link rel="stylesheet" type="text/css" href="/static/css/jquery.countdown.css"> 
-<script type="text/javascript" src="/static/js/jquery.countdown.js"></script>
+<script src="/static/js/lib/jquery.autosize.js"></script>
+<script src="/static/js/s1/util.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/css/jquery.countdown.css">
+<script type="text/javascript" src="/static/js/lib/jquery.countdown.js"></script>
 
 <script>
 {% autoescape off %}
@@ -345,7 +345,7 @@ var renewLock = function() {
 };
 
 
-var releaseLock = function() { 
+var releaseLock = function() {
 	var postUrl = "/api/locks/release/{{ assigned_ref_url }}/en/Sefaria_Community_Translation";
 	$.ajax({
 	    type: 'POST',

@@ -15,27 +15,30 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     """
     :param link: Link object
     :param ref: Ref object of the source of the link
-    :param pos: Optional position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
+    :param pos: Position of the Ref in the Link.  If not passed, it will be derived from the first two arguments.
     :return: Dict
     """
     com = {}
 
     # The text we're asked to get links to
-    anchorRef = Ref(link.refs[pos])
+    anchorTref = link.refs[pos]
+    anchorRef = Ref(anchorTref)
 
     # The link we found to anchorRef
-    linkRef = Ref(link.refs[(pos + 1) % 2])
+    linkTref = link.refs[(pos + 1) % 2]
+    linkRef = Ref(linkTref)
 
     com["_id"]           = str(link._id)
     com['index_title']   = linkRef.index.title
     com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
     com["type"]          = link.type
-    com["ref"]           = linkRef.tref
-    com["anchorRef"]     = anchorRef.normal()
-    com["sourceRef"]     = linkRef.normal()
+    com["ref"]           = linkTref
+    com["anchorRef"]     = anchorTref
+    com["sourceRef"]     = linkTref
     com["sourceHeRef"]   = linkRef.he_normal()
     com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
     com["anchorText"]    = getattr(link, "anchorText", "")
+    com["inline_reference"] = getattr(link, "inline_reference", None)
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
     lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
@@ -60,7 +63,14 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     if com["type"] != "commentary" and com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
-            #add a fix here for quoting commentary appearing together with commentary in s2 panels
+
+    if com["category"] == "Modern Works" and getattr(linkRef.index, "dependence", None) == "Commentary":
+        # print "Transforming " + linkRef.normal()
+        com["category"] = "Modern Commentary"
+        com["collectiveTitle"] = {
+            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
+            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
+        }
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
@@ -106,7 +116,7 @@ def format_note_object_for_client(note):
         "public":          getattr(note, "public", False),
         "commentator":     user_link(note.owner),
         "text":            note.text,
-        "title":           note.title,
+        "title":           getattr(note, "title", ""),
         "ownerName":       ownerData["name"],
         "ownerProfileUrl": ownerData["profileUrl"],
         "ownerImageUrl":   ownerData["imageUrl"],
@@ -114,18 +124,12 @@ def format_note_object_for_client(note):
     return com
 
 
-#this previously had signature: get_notes(tref, public=True, uid=None, pad=True, context=0)
-#but all usages used: get_notes(tref, uid=request.user.id, context=1)
 def get_notes(oref, public=True, uid=None, context=1):
     """
     Returns a list of notes related to ref.
     If public, include any public note.
     If uid is set, return private notes of uid.
     """
-    if public:
-        # S2 sets pulblic=False for fetching private notes.
-        # Only maintain legacy behavior of return for context in old case
-        oref = oref.padded_ref().context_ref()
     noteset = oref.noteset(public, uid)
     notes = [format_object_for_client(n) for n in noteset]
 
@@ -174,42 +178,38 @@ def get_links(tref, with_text=True):
                 com_orefs = original_com_oref.split_spanning_ref()
                 for com_oref in com_orefs:
                     top_oref = com_oref.top_section_ref()
-
                     # Lookup and save top level text, only if we haven't already
                     top_nref = top_oref.normal()
                     if top_nref not in texts:
-                        texts[top_nref] = TextFamily(top_oref, context=0, commentary=False, pad=False).contents()
-                        for t in ["text", "he"]:
-                            texts[top_nref][t] = JaggedTextArray(texts[top_nref][t])
-                    sections, toSections = com_oref.sections[1:], com_oref.toSections[1:]
-                    for t in ["text", "he"]:
-                        res = texts[top_nref][t].subarray(
-                            [i - 1 for i in sections],
-                            [i - 1 for i in toSections]
-                        ).array()
-                        if t not in com:
-                            com[t] = res
+                        texts[top_nref] = {lang: TextChunk(top_oref, lang).ja() for lang in ["he", "en"]}
+                    sections = [i - 1 for i in com_oref.sections[1:]]
+                    toSections = [i - 1 for i in com_oref.toSections[1:]]
+                    for lang, attr in [("he", "he"), ("en", "text")]:
+                        res = texts[top_nref][lang].subarray(sections, toSections).array()
+                        if attr not in com:
+                            com[attr] = res
                         else:
-                            if isinstance(com[t], basestring):
-                                com[t] = [com[t]]
-                            com[t] += res
-                        '''
-                        next_section = grab_section_from_text(sections, texts[top_nref][t], toSections)
-                        if t not in com:
-                            com[t] = next_section
-                        elif isinstance(com[t], list):
-                            if isinstance(next_section, list):
-                                com[t] += next_section
-                            else:
-                                com[t] += [next_section]
-                        else: #com[t] is string
-                            if isinstance(next_section, list):
-                                com[t] = [com[t]] + next_section
-                            else:
-                                com[t] += u" " + next_section
-                        '''
+                            if isinstance(com[attr], basestring):
+                                com[attr] = [com[attr]]
+                            com[attr] += res
             links.append(com)
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
+
+    # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
+    # E.g., when requesting "Steinsaltz on X" also include links "X" as though they were connected directly to Steinsaltz.
+    bound_texts = ("Steinsaltz on ",)
+    for prefix in bound_texts:
+        if nRef.startswith(prefix):
+            base_ref = nRef[len(prefix):]
+            base_links = get_links(base_ref)
+            def add_prefix(link):
+                link["anchorRef"] = prefix + link["anchorRef"]
+                return link
+            base_links = [add_prefix(link) for link in base_links]
+            base_links = filter(lambda x: x["sourceRef"] != x["anchorRef"], base_links)
+            links += base_links
+
+    links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
     return links

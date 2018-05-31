@@ -1,56 +1,75 @@
+{% load render_bundle from webpack_loader %}
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
+    <title>{% block title %}{{ title }}{% endblock %}</title>
+    <meta name="description" property="og:description" content="{% block description %}{{ desc }}{% endblock %}">
+    
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="/static/files/opensearch.xml" />
+    <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
+    <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
+
+    {% block ogtype %}<meta property="og:type" content="website"/>{% endblock %}
+    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png" />{% endblock %}
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    {% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/fb-og-image.png"/>{% endblock %}
-    <title>{% block title %}{% endblock %}</title>
-    {% block head %}{% endblock %}    
-    {% if not S2 %}
-    <link rel="stylesheet" href="/static/js/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css">
-    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
-    <link rel="stylesheet" href="/static/css/base.css">
-    {% endif %}
+
+    <!-- https://realfavicongenerator.net -->
+
+
+
+    {% if ldBreadcrumbs %}{% autoescape off %}
+    <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
+    {% endautoescape %}{% endif %}
+
+    {% block head %}{% endblock %}
 
     <link rel="stylesheet" href="/static/css/common.css">
     <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
     <link rel="stylesheet" type="text/css" href="/static/css/keyboard.css">
+    <link rel="stylesheet" href="/static/css/s2.css">
+    <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
 
+    {% block static_css %}
+    {% if not html %}
+    <link rel="stylesheet" href="/static/css/static.css">
+    {% endif %}
+    {% endblock %}
 
-
-    {% if S2 or request.flavour == "mobile" %}
-        <link rel="stylesheet" href="/static/css/s2.css">
-        <link rel="stylesheet" href="/static/css/s2-print.css" media="print" />
-
-        {% block exclude_block_on_source_sheets %}
-            <link rel="stylesheet" href="/static/css/static.css">
-        {% endblock %}
-
-    {%  endif %}
     <style>
         {% block css %}{% endblock %}
     </style>
-    {% if S2 or request.flavour == "mobile" %}
-    <style>
-      body {
-        overflow: visible;
-      }
-    </style>
-    {%  endif %}
 
-	<script>
-        {% include "js/analytics.js" %}
+    <script>
+        {% if GOOGLE_ANALYTICS_CODE %}
+            // GOOGLE ANALYTICS
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+            ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
+
+            window.onerror = function(msg, url, lineNumber) {
+                ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
+            };
+        {% else  %}
+            var ga = function(){};
+            ga._mock = true;
+        {% endif %}
+        window.ga = ga;
     </script>
 
-    {% if not OFFLINE %}
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
-      {% if S2 %}
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
-            text: 'ḥḤ'
+            text: 'ḥḤżŻ'
           },
           typekit: {
             id: 'aeg8div'
@@ -58,54 +77,63 @@
         });
         WebFont.load({
           google: {
-            families: ['Alef:400,700:hebrew', 'Open Sans Hebrew:400,700:hebrew'] // The dotted h causes Alef not to load.
+            families: ['Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
           }});
-      {% else %}
-        WebFont.load({
-          google: {
-            families: ['Montserrat:400,700', 'Alef:400,700:latin,hebrew' ]
-          },
-          typekit: {
-            id: 'aeg8div'
-          }
-        });
-      {% endif %}
     </script>
-    {% endif %}
 </head>
 
-<body>
-    {% if S2 or request.flavor == "mobile "%}
-        {% include "header.html" %}
+<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
+    
+    {% autoescape off %}
+    {% if html %}
+    <!-- React will complain about whitespace -->
+    <div id="s2">{{ html }}</div>
+    {% else %}
+    <div id="s2" class="headerOnly">{% if request.user.is_authenticated %}{{ logged_in_header }}{% else %}{{ logged_out_header }}{% endif %}</div>
     {% endif %}
+    {% endautoescape %}
+
+    {% if not html %}
     <div class="wrapper">
-        <div id="content" {% if S2 or request.flavor == "mobile "%}class="interface-{{ interfaceLang }}" {% else %} class="{{ interfaceLang }}" {% endif %}>
-            {% if not S2 and not request.flavour == "mobile" %}
-                {% include "header.html" %}
-                {% include "elements/login_prompt.html" with msg="Please log in to edit." %}
-            {% endif %}
-
+        <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
-
         </div>
     </div>
-
-    {% if not request.flavour == "mobile" %}
-        {% block footer %}
-            {% include "elements/footer.html" with class=contentLang %}
-        {% endblock %}
+    
+    {% block footer %} <!-- todo: sheets is overwriting this, why? -->
+        {% include "elements/footer.html" with class=contentLang %}
+    {% endblock %}
     {% endif %}
 
+    <div id="overlay"></div>
+
+    <script src="https://unpkg.com/react@16/umd/react.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.{% if DEBUG %}development{% else %}production.min{% endif %}.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+
+    <script src="/static/js/lib/keyboard.js"></script>
+    <script src="/data.js"></script>
+
+    <script>
+      {% autoescape off %}
+      var DJANGO_VARS = {
+        props: {{ propsJSON|default:"null" }},
+        contentLang: "{{ request.contentLang }}",
+        interfaceLang: "{{ request.interfaceLang }}",
+        inReaderApp: {% if html %}true{% else %}false{% endif %}, 
+        ga: ga
+      };
+      {% endautoescape %}
+    </script>
+
+    {% render_bundle 'main' %}
+
+    <!-- Don't think these are needed....
     {% include "js/jquery.html" %}
-    <script src="/static/js/jquery.tooltipster.min.js"></script>
     <script>{% include "js/django-csrf.js" %}</script>
-    {% if not S2 and not request.flavour == "mobile" %}
-         <script src="/static/js/util.js"></script>
-        {% include "js/headers.js" %}
-    {%  endif %}
-    {% if S2 or request.flavour == "mobile" %}
-        {% include "react_header_activate.html" %}
-    {%  endif %}
+    -->
+
     {% block js %}{% endblock %}
 </body>
 </html>

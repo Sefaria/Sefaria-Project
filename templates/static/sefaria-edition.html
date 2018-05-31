@@ -1,17 +1,22 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}About Sefaria Editions{% endblock %}
+{% block title %}{% trans "About Sefaria Editions" %}{% endblock %}
+
+{% block description %}{% trans "The Sefaria Edition is a Sefaria commissioned translation created by professional translators." %}{% endblock %}
 
 {% block content %}
 
 <div id="sefariaEdition" class="container static">
     <div class="inner">
-        <h1>Sefaria Edition</h1>
+        <h1>
+            <span class="int-en">Sefaria Edition</span>
+            <span class="int-he">מהדורת ספריא</span>
+        </h1>
         <div class="section">
             <p>
-               The Sefaria Edition is a Sefaria commissioned translation created by professional translators.
-                Like everything else Sefaria does,
-                Sefaria releases its editions under open licenses so others can benefit from our work.
+                <span class="int-en">The Sefaria Edition is a Sefaria commissioned translation created by professional translators. Like everything else Sefaria does, Sefaria releases its editions under open licenses so others can benefit from our work.</span>
+                <span class="int-he">מהדורת ספריא היא מיזם עבודות תרגום בהוצאת ספריא, מלאכת ידם של מתרגמים מקצועיים. כבשאר המיזמים של ספריא, גם מהדורת ספריא מופצת ברשיון פתוח ובחינם בכדי שכולם יוכלו להינות מתוצרינו!</span>
             </p>
         </div>
     </div>

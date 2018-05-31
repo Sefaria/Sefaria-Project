@@ -102,8 +102,8 @@ class Person(abst.AbstractMongoRecord):
 
     def get_indexes(self):
         from . import text
-        return text.IndexSet({"authors": self.key})
-
+        ins = text.IndexSet({"authors": self.key})
+        return sorted(ins, key=lambda i: text.Ref(i.title).order_id())
 
     def get_era(self):
         if getattr(self, "era", False):
@@ -205,6 +205,7 @@ class PersonRelationship(abst.AbstractMongoRecord):
         return PersonRelationshipType().load({"key": self.type})
 
     #todo: handle reversable functions (what is that called again?) like 'opposed'
+
 
 class PersonRelationshipSet(abst.AbstractMongoSet):
     recordClass = PersonRelationship

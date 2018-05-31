@@ -15,8 +15,25 @@ launchOffset = 50;
 if (sjs.current.zoom) zoomScale = parseFloat(sjs.current.zoom);
 else zoomScale = 1;
 
+visibleSources = sjs.current.sources;
+for( i=visibleSources.length-1; i>=0; i--) {
+    if( visibleSources[i].node == null) visibleSources.splice(i,1);
+}
 
 resizeZoomContainer();
+
+$(".outside, .comment").each(function(){
+    if(isHebrew($(this).text().trim())){
+       $(this).addClass('he');
+    }
+});
+
+if (sjs.current.options.language == "hebrew") {
+    $(".en").hide();
+}
+else if (sjs.current.options.language == "english") {
+    $(".he").hide();
+} 
 
 
 
@@ -172,7 +189,7 @@ $(".sheetItem").resizable({
     }
 
     if ($(this).hasClass("mediaWrapper")) {
-        var mediaSource = sjs.current.sources[($(this).prevAll(".sheetItem").length)+($(this).prevAll(".outsideBiWrapper").length)].media;
+        var mediaSource = visibleSources[($(this).prevAll(".sheetItem").length)+($(this).prevAll(".outsideBiWrapper").length)].media;
         var mediaLink;
 
         if (mediaSource.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
@@ -247,6 +264,7 @@ function updateSheet() {
         $(".sheetItem").each(function() {
 
             var x = (parseFloat($(this).css('left')));
+            if (x == -1000) {x=0}; //fix for sticky notes for whatever reason don't animate out and get 'stuck' at the original unanimated position. TODO: figure out why they get stuck in first place.
             var y = (parseFloat($(this).css('top')));
             var width = $(this).width();
             var length = $(this).height();

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>Compare</title>
+<head>
+{#    <script#}
+{#  src="https://code.jquery.com/jquery-3.2.1.min.js"#}
+{#  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="#}
+{#  crossorigin="anonymous"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+  <script>
+    {% if GOOGLE_ANALYTICS_CODE %}
+        // GOOGLE ANALYTICS
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
+
+        window.onerror = function(msg, url, lineNumber) {
+            ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
+        };
+    {% else  %}
+        var ga = function(){};
+        ga._mock = true;
+    {% endif %}
+    window.ga = ga;
+  </script>
+<style>
+    th, td {
+        padding: 8px;
+        border: 1px solid #ddd;
+    }
+
+    td:hover {
+    background-color: #ccffff;
+    }
+
+    td.he{
+        direction: rtl;
+        text-align: right;
+    }
+
+    td.en{
+      direction: ltr;
+      text-align: left;
+    }
+
+    span.ins{
+        background: #5CEE5C;
+    }
+
+    span.del{
+        background: rgba(193, 66, 66, 0.5);
+    }
+
+    span.filtered{
+        background: none;
+    }
+
+    span.change {
+        position: absolute;
+        z-index: 1;
+        background-color: #555;
+        color: #fff;
+        padding: 10px;
+        border: 2px solid lightblue;
+        direction: ltr;
+        text-align: left;
+    }
+
+    div.changeDialog {
+        display: inline-block;
+        position: absolute;
+        z-index: 1;
+        background-color: #ccc;
+        color: #000;
+        padding: 10px;
+        border: 2px solid lightblue;
+        direction: ltr;
+        text-align: left;
+    }
+
+</style></head>
+<body>
+    <script>
+        // Instead of querying on checked only, should query on everything, then set a flag to toggle 'filter' on or off
+        var add_filter = function() {$(':checkbox').each(function() {
+            var val = $(this).val();
+            var checked = $(this).prop('checked');
+
+            // define this function outside. It should take two variables: value to search on and bool (to decide if should add or remove filter)
+            $('span.ins, span.del').filter(function (index, elem) {
+                return $(elem).text() == val;
+            }).toggleClass('filtered', checked);
+        })};
+    </script>
+    <div id="filters" style="direction: rtl">
+        <label><input id="yud" type="checkbox" value="י">י</label>
+        <label><input id="vav" type="checkbox" value="ו">ו</label>
+        <label><input type="checkbox" value='"'>"</label>
+        <label><input type="checkbox" value=':'>:</label>
+        <label><input type="checkbox" value="'">'</label>
+        <label><input type="checkbox" value='('>(</label>
+        <label><input type="checkbox" value=')'>)</label>
+    </div>
+    <div style="direction: rtl">
+        <input id="filter" type="button" onclick="add_filter()" value="Update">
+    </div>
+    <div id="DiffTable"/>
+    <script>
+        var DJANGO_VARS = {
+            ga: function () {}
+        };
+    </script>
+    <script src="/data.js"></script>
+    <script type="text/javascript">
+    {% autoescape off %}
+      var JSON_PROPS = {{ JSON_PROPS }}
+    {% endautoescape %}
+    </script>
+    <script src="/static/bundles/diffPage/diffPage.js"></script>
+</body>
+</html>

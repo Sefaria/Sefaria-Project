@@ -1,27 +1,25 @@
 {% extends "base.html" %}
+{% load i18n humanize sefaria_tags %}
 
-{% load sefaria_tags %}
-{% load humanize %}
+{% block title %}{{ profile.full_name }} {% trans "on Sefaria" %}{% endblock %}
 
-{% block title %}{{ profile.first_name }} {{ profile.last_name }} on Sefaria.org{% endblock %}
+{% block description %}{{ profile.full_name }} {% trans "is on Sefaria. Follow to view their public source sheets, notes and translations." %}{% endblock %}
 
 {% block content %}
 
-{% if S2 %}
 <div id="profilePage" class="static">
 	<div class="inner">
 		<div id="profileTop">
-			<img id="profileImage" src="{{ profile.gravatar_url }}" />
-			
+			<img id="profileImage" src="{{ profile.gravatar_url }}" alt="User Profile Picture"/>
+
 			<h1 id="profileName" class="sans">{{ profile.first_name }} {{ profile.last_name }}</h1>
 
 			{% if profile.position or profile.organization %}
 			<div id="profileTagline">
 				<span id="position">{{ profile.position }}</span>
-				<span id="at">{% if profile.organization and profile.position %}at{% endif %}</span>
-				<span id="organization">{{ profile.organization}}</span>
+				<span id="at">{% if profile.organization and profile.position %}{% trans "at " %}{% endif %}</span><span id="organization">{{ profile.organization}}</span>
 			</div>
-			{% endif %}	
+			{% endif %}
 
 			<div id="profileSnippets" class="sans">
 
@@ -89,7 +87,8 @@
 					</div>
 				{% endif %}
 				{% if profile.id == request.user.id %}
-					<a id="editProfile" href="/settings/profile" class="button">Edit Profile</a>
+					<a id="editProfile" href="/settings/profile" class="button int-en">Edit Profile</a>
+					<a id="editProfile" href="/settings/profile" class="button int-he">עריכת פרופיל</a>
 				{% endif %}
 			</div>
 		</div>
@@ -104,8 +103,8 @@
 
 		{% if sheets.count %}
 		<div id="profileSheets" class="section">
-			<h2>Source Sheets | {{ sheets.count }}</h2>
-			
+			<h2>{% trans "Source Sheets" %} - {{ sheets.count }}</h2>
+
 			<ul id="pinnedSheets" class="sheetsBox">
 				{% for id in profile.pinned_sheets %}
 				<li class="sheet">{{ id|sheet_link }}</li>
@@ -124,434 +123,120 @@
 
 		{% if notes|length %}
 		<div id="profileNotes" class="section">
-			<h2>Notes - {{ notes|length }}</h2>
+			<h2>{% trans "Notes" %} - {{ notes|length }}</h2>
 			{% include "elements/activity_feed.html" with activity=notes single=1 %}
 		</div>
 		{% endif %}
 
 		{% if activity|length %}
 		<div id="profileActivity" class="section">
-			<h2>Activity</h2>
+			<h2>{% trans "Activity" %}</h2>
 			{% include "elements/activity_feed.html" with activity=activity|slice:":3" single=1 hide_more_link=1 %}
-			<a id="moreActivity" class="page-link" href="/activity/{{ profile.slug }}/">More Activity &rsaquo;</a>
+			<a id="moreActivity" class="page-link" href="/activity/{{ profile.slug }}/">{% trans "More Activity" %} &rsaquo;</a>
 		</div>
 		{% endif %}
+		<div id="overlay"></div>
 	</div>
 </div>
-
-
-{% else %}
-<div id="profile" class="container">
-	<div class="row">
-	<div id="profileLeft" class="span4">
-		
-		<div id="profileLeftBox">
-		<img id="profileImage" src="{{ profile.gravatar_url }}" />
-		<span id="profileName">{{ profile.first_name }} {{ profile.last_name }}</span>
-
-		{% if profile.position or profile.organization %}
-		<div id="tagline">
-			<span id="position">{{ profile.position }}</span>
-			<span id="at">{% if profile.organization and profile.position %}at{% endif %}</span>
-			<span id="organization">{{ profile.organization}}</span>
-		</div>
-		{% endif %}
-
-		{% if profile.website %}
-		<div id="profileWebsite">
-			<i class="fa fa-globe"></i>
-			<a href="{{ profile.website|normalize_url }}" target="_blank">{{ profile.website|prettify_url }}</a>
-		</div>
-		{% endif %}
-		{% if profile.location %}
-		<div id="profileLocation">
-			<i class="fa fa-map-marker"></i>
-			{{ profile.location }}
-		</div>
-		{% endif %}
-
-		<div id="buttons">
-			{% if profile.id != request.user.id %}
-				<div id="messageMe" class="btn bt-mini btn-primary">Message</div>
-				<div id="followMe" class="{% if following %}following{% endif %} btn bt-mini btn-success"><span></span></div>
-			{% endif %}
-			{% if profile.id == request.user.id %}
-				<a id="editProfile" href="/settings/profile" class="btn btn-primary">Edit Profile</a>
-			{% endif %}
-		</div>
-
-		{% if profile.jewish_education|length %}
-		<div id="profileJewishEducation" class="profileLeftSection">
-			<h4>Jewish Education</h4>
-			<ul>
-				{% for line in profile.jewish_education %}
-				<li>{{ line }}</li>
-				{% endfor %}
-			</ul>
-		</div>
-		{% endif %}
-
-
-			<div id="scoresBox" class="profileLeftSection">	
-				<span {% if not score %}style="display:none"{% endif %} id="pointsCount" class="score">
-					<span class="number">{{ score|abbreviate_number }}</span>
-					<span class="unit">Points</span>
-				</span>
-
-				<span {% if not scores.translateCount %}style="display:none"{% endif %} class="score">
-					<a href="?type=translate">
-					<span class="number">{{ scores.translateCount|abbreviate_number  }}</span>
-					<span class="unit">Translated</span>
-					</a>
-				</span>
-
-				<span {% if not scores.addCount %}style="display:none"{% endif %}  class="score">
-					<a href="?type=add_text">
-					<span class="number">{{ scores.addCount|abbreviate_number   }}</span>
-					<span class="unit">Added</span>
-					</a>
-				</span>
-
-				<span {% if not scores.linkCount %}style="display:none"{% endif %}  class="score">
-					<a href="?type=add_link">
-					<span class="number">{{ scores.linkCount|abbreviate_number  }}</span>
-					<span class="unit">Links</span>
-					</a>
-				</span>
-
-				<span {% if not scores.sheetCount %}style="display:none"{% endif %}  class="score">
-					<a href="?type=publish_sheet">
-					<span class="number">{{ scores.sheetCount|abbreviate_number  }}</span>
-					<span class="unit">Sheets</span>
-					</a>
-				</span>
-
-				<span {% if not scores.noteCount %}style="display:none"{% endif %}  class="score">
-					<a href="?type=add_note">
-					<span class="number">{{ scores.noteCount|abbreviate_number  }}</span>
-					<span class="unit">Notes</span>
-					</a>
-				</span>
-
-				<span {% if not scores.reviewCount %}style="display:none"{% endif %}  class="score">
-					<a href="?type=review">
-					<span class="number">{{ scores.reviewCount|abbreviate_number  }}</span>
-					<span class="unit">Reviews</span>
-					</a>
-				</span>
-
-				<span {% if not profile.followers.count %}style="display:none"{% endif %}  id="followersCount" class="score">
-					<span class="number">{{ profile.followers.count }}</span>
-					<span class="unit">Followers</span>
-				</span>
-
-				<span {% if not profile.followees.count %}style="display:none"{% endif %}  id="followeesCount" class="score">
-					<span class="number">{{ profile.followees.count }}</span>
-					<span class="unit">Following</span>
-				</span>
-			</div>
-			
-
-			<div id="profileContact" class="profileLeftSection">
-				<div id="profileJoined">
-					<i class="fa fa-clock-o"></i>
-					Joined {{ joined|naturaltime }}
-				</div>
-				{% if contributed %}
-				<div id="profileLastContributed">
-					<i class="fa fa-lightbulb-o"></i>
-					Last contributed {{ contributed|naturaltime }}
-				</div>
-				{% endif %}
-				{% if profile.public_email %}
-				<div id="profileEmail">
-					<i class="fa fa-send"></i>
-					<a href="mailto:{{ profile.public_email|urlencode }}" target="_blank">{{ profile.public_email }}</a>
-				</div>
-				{% endif %}
-				{% if profile.facebook %}
-				<div id="profileFacebook">
-					<i class="fa fa-facebook-square"></i>
-					<a href="{{ profile.facebook|normalize_url }}" target="_blank">Facebook</a>
-				</div>
-				{% endif %}
-				{% if profile.twitter %}
-				<div id="profileTwittr">
-					<i class="fa fa-twitter"></i>
-					<a href="http://www.twitter.com/{{ profile.twitter }}" target="_blank">Twitter</a>
-				</div>
-				{% endif %}
-				{% if profile.linkedin %}
-				<div id="profileLinkedIn">
-					<i class="fa fa-linkedin"></i>
-					<a href="{{ profile.linkedin|normalize_url }}" target="_blank">LinkedIn</a>
-				</div>
-				{% endif %}
-			</div>
-
-
-			{% if user_texts|length %}
-			<div id="userTextsBox">
-				<h4>Contributed to:</h4>
-				{% for text in user_texts %}
-				 	<span class="userText">{{ text|ref_link }}</span>
-				{% endfor %}
-			</div>
-			<br>
-			{% endif %}
-
-		</div>
-	</div>
-
-	<div id="profileRight" class="span7">
-
-		{% if profile.bio %}
-		<h3>About {{ profile.first_name }}</h3>
-		<div id="bio">
-			{% autoescape off %}
-			{{ profile.bio }}
-			{% endautoescape %}
-		</div>
-		<div class="line"></div>
-
-		{% endif %}
-
-		<div id="profileSheets">
-			<h3>Public Source Sheets - {{ sheets.count }}</h3>
-			
-
-			<ul id="pinnedSheets" class="sheetsBox">
-				{% for id in profile.pinned_sheets %}
-				<li class="sheet">{{ id|sheet_link }}</li>
-				{% endfor %}
-			</ul>
-
-			<ul class="sheetsBox">
-				{% for sheet in sheets %}
-					{% if sheet.id not in profile.pinned_sheets %}
-						<li class="sheet">{{ sheet.id|sheet_link }}</li>
-					{% endif %}
-
-				{% empty  %}
-					<i>{{ profile.first_name }} hasn't created any public source sheets yet.</i>
-				{% endfor %}
-			</ul>
-
-		</div>
-		<div class="line"></div>
-
-
-		{% if profile.youtube %}
-		<div id="profileVideos">
-			<h3>Public Videos</h3>
-			<div id="youtube" class="owl-carousel"></div>
-		</div>
-		<div class="line"></div>
-
-		{% endif %}
-
-		<div id="profileNotes">
-			<h3>Public Notes - {{ notes|length|default:"0" }}</h3>
-			{% with profile.first_name|add:" hasn't written any public notes yet." as empty_message%}
-				{% include "elements/activity_feed.html" with activity=notes single=1 empty_message=empty_message  %}
-			{% endwith %}
-			<div class="line"></div>
-		</div>
-
-		<div id="activity">
-			<h3>Public Activity - {{ score|intcomma }}</h3>
-			{% include "elements/activity_filter.html" %}		
-			{% include "elements/activity_feed.html" %}
-		</div>
-	</div>
-	</div>
-</div>
-
-{% include "elements/login_prompt.html" with msg="To send a message or follow, please log in." %}
-
-{% endif %}
 
 {% endblock %}
 
 {% block js %}
-	{% if S2 %}
-		<script>
-		$(function(){
+<script>
+$(function(){
 
-			/*$("#followMe").on("mouseenter", function(){
-				if ($(this).hasClass("following")) {
-					$(this).text("Unfollow");
-				}
-			}).on("mouseleave", function() {
-				if ($(this).hasClass("following")) {
-					$(this).text("Following");
-				} else {
-					$(this).text("Follow");
-				}
-			});*/
+	/*$("#followMe").on("mouseenter", function(){
+		if ($(this).hasClass("following")) {
+			$(this).text("Unfollow");
+		}
+	}).on("mouseleave", function() {
+		if ($(this).hasClass("following")) {
+			$(this).text("Following");
+		} else {
+			$(this).text("Follow");
+		}
+	});*/
 
-			$("#followMe").click(function(){
-				{% if request.user.is_authenticated %}		
-					if ($(this).hasClass("following")) {
-						var action = "unfollow";
-						$(this).removeClass("following").addClass('follow');
-					} else {
-						var action = "follow";
-						$(this).removeClass('follow').addClass("following");
-					}  
-					$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-						Sefaria.site.track.event("Following", "New Follow", "");
-					});
-				{% else %}
-					window.location = "/register?next=" + window.location.pathname;
-				{% endif %}
+	$("#followMe").click(function(){
+		{% if request.user.is_authenticated %}
+			if ($(this).hasClass("following")) {
+				var action = "unfollow";
+				$(this).removeClass("following").addClass('follow');
+			} else {
+				var action = "follow";
+				$(this).removeClass('follow').addClass("following");
+			}
+			$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
+				Sefaria.track.event("Following", "New Follow", "");
 			});
+		{% else %}
+			window.location = "/register?next=" + window.location.pathname;
+		{% endif %}
+	});
 
-			// Messages carried o
-			var sjs = {};
-	    	sjs.composeMessage = function(recipient, name) {
-	    		$("#viewMessage").remove();
-	    		var composerHTML = "<div id='messageComposer' class='modal'>" +
-										"<div id='messageHeader'>Send a message to " + name + "</div>" +
-										"<textarea id='messageTextarea'></textarea>" +
-										"<div class='sendMessage button'>Send</div>" +
-										"<div class='cancel button white'>Cancel</div>" +
-									"</div>";
+	var sjs = {};
+	sjs.composeMessage = function(recipient, name) {
+		$("#viewMessage").remove();
+		var composerHTML = "<div id='messageComposer' class='modal'>" +
+								"<div id='messageHeader'>{% trans 'Send a message to ' %}" + name + "</div>" +
+								"<textarea id='messageTextarea'></textarea>" +
+								"<div class='sendMessage button'>{% trans 'Send' %}</div>" +
+								"<div class='cancel button white'>{% trans 'Cancel' %}</div>" +
+							"</div>";
 
-				$(composerHTML).appendTo("body").show()
-					.position({of: window})
-					.draggable({cancel: "textarea"});
-				$("#overlay").show();
-				$("#messageTextarea").focus();
-				$(".sendMessage").click(function(e){
-					sjs.postMessage(recipient, $("#messageTextarea").val());
-				});
-				$("#messageComposer .cancel").click(function(e){
-					$("#messageComposer").remove();
-					$("#overlay").hide();
-				});
-			};
-			sjs.postMessage = function(recipient, message) {
-				if (!message) { return; }
-				var postJSON = JSON.stringify({ 
-					recipient: recipient,
-					message: message.escapeHtml()
-				});
-				$.post("/api/messages", {json: postJSON}, function(data) {
-					$("#messageComposer").remove();
-					alert("Message Sent");
-					Sefaria.site.track.event("Messages", "Message Sent", "");
-				});
-			};
-			sjs.viewMessage = function(sender, name, message) {
-				var messageHtml = "<div id='viewMessage' class='modal'>" +
-										"<div id='messageHeader'>Message from " + name + "</div>" +
-										"<div id='messageText'>" + message + "</div>" +
-										"<div class='messageReply button' data-recipient='" + sender +"'>Reply</div>" +
-										"<div class='cancel button white'>Close</div>" +
-									"</div>";				
-				$(messageHtml).appendTo("body").show()
-					.position({of: window})
-					.draggable({cancel: "#messageText"});
-				$("#overlay").show();
-				$("#viewMessage .cancel").click(function(e){
-					$("#viewMessage").remove();
-					$("#overlay").hide();
-				});
-
-			};
-			$("#messageMe").click(function() {
-				{% if request.user.is_authenticated %}
-				sjs.composeMessage({{ profile.id }}, "{{ profile.first_name }} {{profile.last_name }}");
-				{% else %}
-				window.location = "/register?next=" + window.location.pathname;
-				{% endif %}
-			});
-			$("body, #notifications").on("click", ".messageReply", function() {
-				var recipient = parseInt($(this).attr("data-recipient"));
-				var name      = $(this).parent().find("a.userLink")[0].outerHTML;;
-				sjs.composeMessage(recipient, name);
-			});
-			$("#notifications").on("click", ".messageView", function() {
-				var recipient = parseInt($(this).attr("data-recipient"));
-				var name      = $(this).parent().find("a.userLink")[0].outerHTML;
-				var message   = $(this).parent().find(".messageText").html();
-				sjs.viewMessage(recipient, name, message);			
-			});
-
+		$(composerHTML).appendTo("body").show()
+			.position({of: window})
+			.draggable({cancel: "textarea"});
+		$("#overlay").show();
+		$("#messageTextarea").focus();
+		$(".sendMessage").click(function(e){
+			sjs.postMessage(recipient, $("#messageTextarea").val());
 		});
-		</script>
-	{% else %}
-		<link rel="stylesheet" href="/static/owl-carousel/owl.carousel.css">
-		<link rel="stylesheet" href="/static/owl-carousel/owl.theme.css">
-		<script src="/static/owl-carousel/owl.carousel.js"></script>
-		<link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
-		<script src="/static/js/jquery.autosize.js"></script>
-		<script>
-			$(function(){
-
-				$("#followMe").click(function(){
-					{% if request.user.is_authenticated %}		
-						var $fc = $("#followersCount .number");
-						var count = parseInt($fc.text());
-						if ($(this).hasClass("following")) {
-							var action = "unfollow";
-							$(this).removeClass("following");
-							$fc.text(count-1);
-						} else {
-							var action = "follow";
-							$(this).addClass("following");
-							$fc.text(count+1).parent().show();
-						}  
-						$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-							sjs.track.event("Following", "New Follow", "");
-						});
-					{% else %}
-						sjs.loginPrompt();
-					{% endif %}
-				});
-				$("#followersCount").click(function(){
-					$.get("/api/followers/{{ profile.id }}", function(data){
-						console.log(data);
-						sjs.peopleList(data, "Followers");
-					});
-				});
-				$("#followeesCount").click(function(){
-					$.get("/api/followees/{{ profile.id }}", function(data){
-						console.log(data);
-						sjs.peopleList(data, "Following");
-					});
-				});
-
-				{% if profile.youtube %}
-				$.ajax({
-		        	type: "POST",
-			        url: "https://gdata.youtube.com/feeds/api/users/{{ profile.youtube }}/uploads?v=2&alt=jsonc&max-results=12",
-			        data: "{}",
-			        contentType: "application/json; charset=utf-8",
-			        dataType: "jsonp",
-			        success: function(result) {        
-			            if (result.error) {
-			            	$("#youtube").html("Couldn't load YouTube Channel: {{ profile.youtube }}").show();
-			            	return;
-			            }
-			            var data = result.data;
-			            var html = ""
-			            for (var i = 0; i < data.items.length; i++) {
-			            	html += "<div class='video'>" +
-			            				"<a href='" + data.items[i].player.default +"' target='_blank'>" +
-			            					"<img src='" + data.items[i].thumbnail.hqDefault +"' />" +
-			            					"<div class='videoTitle'>" + data.items[i].title + "</div>" +
-			            				"</a>" +
-			            			"</div>";
-			            }
-			            html += "<div class='video'><br><br>See more videos on " +
-			            	"<a href='https://www.youtube.com/user/{{ profile.youtube }}' target='_blank'>YouTube &raquo;</a>.";
-			            $("#youtube").html(html).owlCarousel({items: 3});
-					}
-				});
-				{% endif %}
-			});
-		</script>
-	{% endif %}
+		$("#messageComposer .cancel, #overlay").click(function(e){
+			$("#messageComposer").remove();
+			$("#overlay").hide();
+		});
+	};
+	sjs.postMessage = function(recipient, message) {
+		if (!message) { return; }
+		var postJSON = JSON.stringify({
+			recipient: recipient,
+			message: message.escapeHtml()
+		});
+		$.post("/api/messages", {json: postJSON}, function(data) {
+			$("#messageComposer").remove();
+			alert("Message Sent");
+			$("#overlay").hide();
+			Sefaria.track.event("Messages", "Message Sent", "");
+		});
+	};
+	sjs.viewMessage = function(sender, name, message) {
+		var messageHtml = "<div id='viewMessage' class='modal'>" +
+								"<div id='messageHeader'>Message from " + name + "</div>" +
+								"<div id='messageText'>" + message + "</div>" +
+								"<div class='messageReply button' data-recipient='" + sender +"'>Reply</div>" +
+								"<div class='cancel button white'>Close</div>" +
+							"</div>";
+		$(messageHtml).appendTo("body").show()
+			.position({of: window})
+			.draggable({cancel: "#messageText"});
+		$("#overlay").show();
+		$("#viewMessage .cancel").click(function(e){
+			$("#viewMessage").remove();
+			$("#overlay").hide();
+		});
+	};
+	$("#messageMe").click(function() {
+		{% if request.user.is_authenticated %}
+		sjs.composeMessage({{ profile.id }}, "{{ profile.first_name }} {{profile.last_name }}");
+		{% else %}
+		window.location = "/register?next=" + window.location.pathname;
+		{% endif %}
+	});
+	var params = Sefaria.util.getUrlVars();
+	if ("message" in params) {
+		$("#messageMe").trigger("click");
+	}
+});
+</script>
 {% endblock %}

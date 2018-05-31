@@ -28,6 +28,7 @@
     var enTitle;
     var heElems;
     var enElems;
+    var triggerLink;
 
     var setupPopup = function(styles, mode) {
         popUpElem = document.createElement("div");
@@ -49,6 +50,7 @@
             '}' +
             '#sefaria-title {' +
                 'font-weight: bold;' +
+                'font-size: 16px;'+
                 'text-align: center;' +
                 'text-decoration: underline;' +
             '}';
@@ -75,19 +77,19 @@
             html += '</style>'
         }
 
-        html += '<div id="sefaria-title"><div class="he" dir="rtl"></div><div class="en"></div></div>' +
+        html += '<h1 id="sefaria-title"><span class="he" dir="rtl"></span><span class="en"></span></h1>' +
             '<div class="sefaria-text he" dir="rtl"></div>' +
             '<div class="sefaria-text en"></div>' +
             '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">';
 
         if (mode == "popup-click") {
             html += '<div class="en">Text from Sefaria.org.  <a class = "sefaria-popup-ref" href = "">Click here</a> for full context and commentary.</div>' +
-            '<div class="he" dir="rtl">תוכן מספאריה. ' +
+            '<div class="he" dir="rtl">תוכן מספריא. ' +
                 ' <a class = "sefaria-popup-ref" href = "">' + 'ליחצו' + '</a> ' + 'לראות הקשר ופרושים' +
             '</div>';
         } else {
             html += '<div class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</div>' +
-            '<div class="he" dir="rtl">תוכן מספאריה. תלחץ לראות הקשר ופרושים</div>';
+            '<div class="he" dir="rtl">תוכן מספריא. תלחץ לראות הקשר ופרושים</div>';
         }
 
         html += '</div>';
@@ -108,6 +110,11 @@
         popUpElem.style.display = "none";
         popUpElem.style.zIndex = 1000;
 
+        // Accessibility Whatnot
+        popUpElem.setAttribute('role', 'dialog');
+        popUpElem.tabIndex = "0";
+        popUpElem.style.outline = "none";
+
         popUpElem = document.body.appendChild(popUpElem);
 
         heBox = popUpElem.querySelector(".sefaria-text.he");
@@ -120,11 +127,21 @@
 
         if (mode == "popup-click") {
             popUpElem.querySelector('#sefaria-close').addEventListener('click', hidePopup, false);
+            popUpElem.addEventListener('keydown', function (e) {
+                var key = e.which || e.keyCode;
+                console.log (key);
+                if (key === 27) { // 27 is escape
+                  hidePopup();
+                }
+                else if (key === 9) { // 9 is tab
+                  e.preventDefault(); // this traps user in the dialog via tab
+                }
+            });
         }
     };
 
     var showPopup = function(e, mode) {
-
+        triggerLink = e;
         var source = ns.sources[e.getAttribute('data-ref')];
         if (source.lang == "en") {
             // [].forEach.call(heElems, function(e) {e.style.display = "None"});
@@ -179,6 +196,9 @@
         }
     };
     var hidePopup = function() {
+        if (popUpElem.style.display == "block") {
+                triggerLink.focus();
+        }
         popUpElem.style.display = "none";
     };
 
@@ -240,6 +260,7 @@
                                 node.className = "sefaria-ref";
                                 node.href = base_url + matched_ref;
                                 node.setAttribute('data-ref', matched_ref);
+                                node.setAttribute('aria-controls', 'sefaria-popup');
                                 node.textContent = portion.text;
 
                                 return node;
@@ -282,6 +303,7 @@
                                     showPopup(this, mode);
                                     event.preventDefault();
                                     event.stopPropagation();
+                                    document.getElementById("sefaria-popup").focus();
                                 }, false);
                             }
                         });

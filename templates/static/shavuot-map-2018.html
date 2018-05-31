@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+{% load i18n cache humanize sefaria_tags %}
+
+{% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
+
+{% block description %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block css %}
+    #map {
+        height: 500px;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto 100px auto;
+        border: solid 1px #ccc;
+    }
+    p#mapDesc {
+        margin-bottom: 40px;
+    }
+    .content {
+        color: black;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .interface-english .content {
+      margin-left: 20px;
+    }
+    .interface-hebrew .content {
+      margin-right: 20px;
+    }
+    .mapButtons {
+        display: flex;
+        justify-content: center;
+        padding-bottom: 30px;
+    }
+    .mapButtons .type-button {
+      padding: 10px 15px;
+    }
+    .static .mapButtons .type-button .int-en {
+        font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    }
+
+{% endblock %}
+
+{% block content %}
+<script>{% include "js/shavuot_map_2018_form_array.js" %}</script>
+<script>
+    {% autoescape off %}
+    var map;
+    var bounds;
+    var markersArray = [];
+    function initMap() {
+        bounds = new google.maps.LatLngBounds();
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 2,
+            minZoom: 2,
+            mapTypeControlOptions: {
+                mapTypeIds: [google.maps.MapTypeId.ROADMAP]
+            }, // here´s the array of controls
+            disableDefaultUI: true, // a way to quickly hide all controls
+            mapTypeControl: true,
+            scaleControl: true,
+            zoomControl: true,
+            styles: [
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#f5f5f5"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#f5f5f5"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#bdbdbd"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.neighborhood",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "landscape",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#ffffff"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#eeeeee"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#e5e5e5"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#ffffff"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#dadada"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.line",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#e5e5e5"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.station",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#eeeeee"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#c9c9c9"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#e4f0fd"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      },
+      {
+        "visibility": "on"
+      }
+    ]
+  }
+]
+        });
+
+        createFilteredMarkers("all");
+    }
+
+
+    function clearOverlays() {
+        for (var i = 0; i < markersArray.length; i++ ) {
+            markersArray[i].setMap(null);
+        }
+        markersArray.length = 0;
+    }
+
+    function createFilteredMarkers(filter) {
+        clearOverlays();
+        const buttonIds = ["map-all", "map-studying", "map-teaching"];
+        for (var j = 0; j < buttonIds.length; j++) {
+            const b = document.getElementById(buttonIds[j]);
+            const tempFilterId = "map-" + filter;
+            if (tempFilterId === buttonIds[j]) {
+                b.classList.add("active");
+            } else {
+                b.classList.remove("active");
+            }
+
+        }
+        // filter = "studying", "teaching", "all"
+        // form_array is loaded from "shavuot_map_2018_form_array.js"
+        var by_loc = {};
+        for (var i = 0; i < form_array.length; i++) {
+            const temp_entry = form_array[i];
+            if (!temp_entry["location"]) {
+                continue;
+            }
+            const isTeaching = temp_entry["I will be using Sefaria to prepare:"].indexOf("to teach on Shavuot") !== -1;
+            const isStudying = temp_entry["I will be using Sefaria to prepare:"].indexOf("to study on Shavuot") !== -1;
+            if (filter === "studying" && !isStudying) {
+                continue;
+            }
+            if (filter === "teaching" && !isTeaching) {
+                continue;
+            }
+            const key = "" + Math.round(temp_entry["location"].lat * 10000) + Math.round(temp_entry["location"].lng * 10000);
+            if (!by_loc[key]) {
+                by_loc[key] = {
+                    "teaching": [],
+                    "studying": [],
+                    "institutions": [],
+                    "source_sheets": [],
+                    "location": temp_entry["location"],
+                    "city": temp_entry["Town or city where you will be on Shavuot:"],
+                    "country": temp_entry["Country:"]
+                }
+            }
+            if (isTeaching) {
+                by_loc[key].teaching.push(temp_entry);
+            }
+            if (isStudying) {
+                by_loc[key].studying.push(temp_entry);
+            }
+            if (temp_entry["Name of Institution (optional):"]) {
+                by_loc[key].institutions.push(temp_entry["Name of Institution (optional):"]);
+            }
+            if (temp_entry["Sheet URL (optional):"] && temp_entry["Sheet URL (optional):"].indexOf("sefaria.org") !== -1) {
+                by_loc[key].source_sheets.push(temp_entry["Sheet URL (optional):"]);
+            }
+        }
+        for (var key in by_loc) {
+            if (by_loc.hasOwnProperty(key)) {
+                createMarker(by_loc[key])
+            }
+        }
+    }
+
+
+
+    function createMarker(form_item) {
+        var marker = new google.maps.Marker({
+            map: map,
+            position: form_item.location, // {lat: X, lng: X}
+            icon: '/static/img/pin.png'
+        });
+        var contentStringEn = '<span class="int-en">' +
+                '<h4>' + form_item.city + ', ' + form_item.country + '</h4>' +
+                (form_item.studying.length ? form_item.studying.length + ' studying' : '') +
+                (form_item.studying.length && form_item.teaching.length ? ', ' : ' ') +
+                (form_item.teaching.length ? form_item.teaching.length + ' teaching ' : '') +
+                'with Sefaria for Shavuot' +
+                (form_item.institutions.length ? '<h4>Institutions</h4>' + form_item.institutions.join('<br/>') : '') +
+                (form_item.source_sheets.length ? '<h4>Source Sheets</h4><a>' + form_item.source_sheets.join('</a><br/><a>') + '</a>' : '') +
+                '</span>';
+        var contentStringHe = '<span class="int-he">' +
+                '<h4>' + form_item.city + ', ' + form_item.country + '</h4>' +
+                (form_item.studying.length ? form_item.studying.length + (form_item.studying.length === 1 ? ' לומד' : ' לומדים') : '') +
+                (form_item.studying.length && form_item.teaching.length ? ', ' : ' ') +
+                (form_item.teaching.length ? form_item.teaching.length + (form_item.teaching.length === 1 ? ' מלמד ' : ' מלמדים ') : '') +
+                'עם ספריא בשביל חג השבועות' +
+                (form_item.institutions.length ? '<h4>ארגונים</h4>' + form_item.institutions.join('<br/>') : '') +
+                (form_item.source_sheets.length ? '<h4>דפי מקורות</h4><a>' + form_item.source_sheets.join('</a><br/><a>') + '</a>' : '') +
+                '</span>';
+        var infowindow = new google.maps.InfoWindow({
+            content: '<div class="content">' + contentStringEn + contentStringHe + '</div>'
+        });
+        marker.addListener('click', function() {
+            infowindow.open(map, marker);
+        });
+        bounds.extend(form_item.location);
+        map.fitBounds(bounds);
+        markersArray.push(marker);
+    }
+
+    function loadScript(url) {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = url;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    }
+    const url = "https://maps.googleapis.com/maps/api/js?key=" + '{{ GOOGLE_MAPS_API_KEY }}' + "&callback=initMap";
+    loadScript(url);
+{% endautoescape %}
+</script>
+
+<div id="digitizedBySefaria" class="container doc static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">Shavuot Map</span>
+            <span class="int-he">מפה של שבועות</span>
+        </h1>
+        <p id="mapDesc">
+            <span class="int-en">Take a look at this map to see where hundreds of students and educators worldwide will be learning and teaching with Sefaria this Shavuot. Zoom in to your region to find which institutions will be teaching with Sefaria near you. Planning on using Sefaria source sheets in your area this Shavuot? Let us know <a href="https://docs.google.com/forms/d/e/1FAIpQLSd0WW1ZtlahvkE75TiOzhqxVzD1ByjPk-6WcBZsXMoq7_hnhA/viewform">here</a> to be added to the map!</span>
+            <span class="int-he">תסתכל על המפה הזאת כדי לראות היכן מאות תלמידים ומחנכים ברחבי העולם ילמדו וילמדו בעזרת ספריא בחג השבועות הקרוב . התקרב לאזור שלך כדי למצוא אילו מוסדות וארגונים ילמדו בעזרת ספריא לידך. אם אתם מתכננים להשתמש בדפי המקורות של ספריה באזור שלכם בחג השבועות? ספר לנו <a href="https://goo.gl/forms/mvQwfgrJJtWQo5l92">כאן</a> ואנחנו נוסיף למפה האינטרקטיבית שיצרנו</span>
+        </p>
+        <div class="searchContent mapButtons">
+            <div id="map-all" class="type-button" onclick="createFilteredMarkers('all')">
+                <span class="int-en">All</span>
+                <span class="int-he">הכל</span>
+            </div>
+            <div id="map-studying" class="type-button" onclick="createFilteredMarkers('studying')">
+                <span class="int-en">Studying</span>
+                <span class="int-he">לומדים</span>
+            </div>
+            <div id="map-teaching" class="type-button" onclick="createFilteredMarkers('teaching')">
+                <span class="int-en">Teaching</span>
+                <span class="int-he">מלמדים</span>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+</div>
+{% endblock %}

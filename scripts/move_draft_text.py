@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import django
+django.setup()
 import argparse
 import os
 import json
 import urllib
 import urllib2
+import requests
 
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -13,6 +16,7 @@ try:
     from sefaria.local_settings import SEFARIA_BOT_API_KEY
 except ImportError:
     SEFARIA_BOT_API_KEY = None
+
 
 class ServerTextCopier(object):
 
@@ -23,6 +27,31 @@ class ServerTextCopier(object):
         self._versions_to_retrieve = versions
         self._post_index = post_index
         self._post_links = post_links
+
+    def post_terms_from_schema(self):
+
+        def retrieve_terms(node, previous_terms=None):
+            if previous_terms is None:
+                previous_terms = []
+
+            if node.sharedTitle:
+                previous_terms.append(node.sharedTitle)
+            for child in node.children:
+                retrieve_terms(child, previous_terms)
+            return set(previous_terms)
+
+        possible_terms = retrieve_terms(self._index_obj.nodes)
+        possible_terms.update(self._index_obj.categories)
+        if hasattr(self._index_obj, u'collective_title'):
+            possible_terms.add(self._index_obj.collective_title)
+        necessary_terms = []
+        for t in possible_terms:
+            response = requests.get(u'{}/api/terms/{}'.format(self._dest_server, t))
+            if response.json().get('error', '') == "Term does not exist.":
+                necessary_terms.append(t)
+        for t in necessary_terms:
+            self._upload_term(t)
+
 
     def load_objects(self):
         self._index_obj = library.get_index(self._title_to_retrieve)
@@ -44,7 +73,7 @@ class ServerTextCopier(object):
             if self._post_links == 1: # only manual
                 query = {"$and" : [{ "refs": {"$regex": Ref(self._index_obj.title).regex()}}, { "$or" : [ { "auto" : False }, { "auto" : 0 }, {"auto" :{ "$exists": False}} ] } ]}
             else:
-                query = { "refs": {"$regex": Ref(self._index_obj.title).regex()}}
+                query = {"refs": {"$regex": Ref(self._index_obj.title).regex()}}
 
             self._linkset = LinkSet(query).array()
 
@@ -53,6 +82,8 @@ class ServerTextCopier(object):
         if self._post_index:
             idx_contents = self._index_obj.contents(raw=True)
             idx_title = self._index_obj.title
+            self.post_terms_from_schema()
+            self._handle_categories()
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:
@@ -97,6 +128,37 @@ class ServerTextCopier(object):
         if self._post_links:
             links = [l.contents() for l in self._linkset if not getattr(l, 'source_text_oid', None)]
             self._make_post_request_to_server(self._prepare_links_api_call(), links)
+
+    def _handle_categories(self):
+        if getattr(self, '_index_obj') is None:
+            return
+        categories = self._index_obj.categories
+        try:
+            dest_category = requests.get(u'{}/api/category/{}'.format(self._dest_server, u'/'.join(categories))).json()
+        except ValueError:
+            return
+
+        if dest_category.get('error') == u'Category not found':
+            if dest_category.get('closest_parent'):
+                cat_index = len(dest_category['closest_parent']['path'])
+            else:
+                cat_index = 0
+
+            # upload necessary category items
+            for i in range(cat_index+1, len(categories)+1):
+                c = Category().load({'path': categories[:i]})
+                if c is None:
+                    raise IndexError("Necessary category for this index is missing. "
+                                     "Path {} was not found".format(categories[:i]))
+                if getattr(c, 'sharedTitle', None) is not None:
+                    self._upload_term(c.sharedTitle)
+                self._make_post_request_to_server("api/category", c.contents())
+
+    def _upload_term(self, name):
+        t = Term().load({'name': name})
+        if t is None:
+            raise AttributeError("Necessary Term {} not Present on this Environment".format(name))
+        self._make_post_request_to_server('api/terms/{}'.format(urllib.quote(name)), t.contents())
 
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))

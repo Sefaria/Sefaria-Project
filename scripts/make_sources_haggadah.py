@@ -19,4 +19,4 @@ for c in categories:
     titles += library.get_indexes_in_category(c)
 
 db.sheets.remove({"generatedBy": "Roots Haggadah Maker"})
-make_sheet_from_text("Pesach Haggadah", sources = titles, uid=28, generatedBy="Rooots Haggadah Maker", title="Haggadah with Roots")
+make_sheet_from_text("Pesach Haggadah", sources = titles, uid=28, generatedBy="Roots Haggadah Maker", title="Haggadah with Roots")

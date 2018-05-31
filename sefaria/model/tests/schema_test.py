@@ -3,7 +3,8 @@
 import pytest
 from sefaria.model import *
 import re
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, BookNameError
+
 
 
 def setup_module(module):
@@ -221,3 +222,53 @@ def test_non_ascii():
     node.add_structure(['Something'])
     with pytest.raises(InputError):
         node.validate()
+
+
+@pytest.mark.deep
+def test_nodes_missing_content():
+    # check a known simple text and complex text
+    assert library.get_index("Job").nodes.nodes_missing_content() == (False, [])
+    assert library.get_index("Pesach Haggadah").nodes.nodes_missing_content() == (False, [])
+
+    # construct a more complex schema. First, ensure that the index does not exist in the system
+    try:
+        test_index = library.get_index("test text")
+        test_index.delete()
+    except BookNameError:
+        pass
+
+    root_node = SchemaNode()
+    root_node.add_primary_titles('test text', u'מבחן')
+    middle1 = SchemaNode()
+    middle1.add_primary_titles('mid1', u'אמצע1')
+    for i in range(1, 4):
+        leaf = JaggedArrayNode()
+        leaf.add_primary_titles(u'leaf{}'.format(i), u'קצה{}'.format(i))
+        leaf.add_structure(["Verse"])
+        middle1.append(leaf)
+    root_node.append(middle1)
+    middle2 = SchemaNode()
+    middle2.add_primary_titles('mid2', u'אמצע2')
+    for i in range(4, 6):
+        leaf = JaggedArrayNode()
+        leaf.add_primary_titles(u'leaf{}'.format(i), u'קצה{}'.format(i))
+        leaf.add_structure(["Verse"])
+        middle2.append(leaf)
+    root_node.append(middle2)
+    root_node.validate()
+    test_index = Index({
+        'title': 'test text',
+        'categories': ['Other'],
+        'schema': root_node.serialize()
+    })
+    test_index.save()
+
+    # add text
+    chunk = Ref('test text, mid1, leaf1').text('en', 'test version')
+    chunk.text = ['Lorem ipsum']
+    chunk.save()
+
+    result = test_index.nodes.nodes_missing_content()
+    assert result[0] is False
+    assert len(result[1]) == 3
+    test_index.delete()

@@ -9,7 +9,7 @@ body {
   /* font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif; */
 }
 body .he {
-  /* font-family: "Open Sans Hebrew", sans-serif; */
+  /* font-family: "Heebo", sans-serif; */
 }
 *::selection {
   background-color: #D2DCFF;
@@ -18,13 +18,21 @@ body.sepia {
   background-color: #F9F9F7;
 }
 body.dark {
-  background-color: #333331; 
+  background-color: #333331;
 }
-.sans .en, #s2 .sans .en {
+body:not(.user-is-tabbing) *:focus {
+  outline: none;
+}
+.sans,
+.sans .en,
+#s2 .sans .en,
+.sans .int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.sans .he, #s2 .sans .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+.sans .he,
+#s2 .sans .he,
+.sans .int-he {
+  font-family: "Heebo", sans-serif;
 }
 #s2 {
   position: fixed;
@@ -42,6 +50,9 @@ body.dark {
   width: 100%;
   height: 100%;
   top: 0;
+}
+.readerApp.interface-hebrew{
+  direction: rtl;
 }
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
@@ -80,25 +91,42 @@ input.noselect {
   left: 0;
   width: 100%;
   height: 54px;
-  line-height: 54px;
   background: white;
   z-index: 1001;
-  border-bottom: 1px solid #ccc;
   box-sizing: border-box;
   padding: 0px 30px;
-  text-align: center;
   overflow: hidden;
-  white-space: nowrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.header .left {
-  float: left;
-  text-align: left;
-  height: 54px;
-  overflow: hidden;
+.headerOnly .headerInner {
+  border-bottom: 1px solid #ccc;
 }
-.header .right {
-  float: right;
-  text-align: right;
+.interface-hebrew .headerInner{
+  direction: rtl;
+}
+
+.headerInner .headerNavSection{
+  display: flex;
+  justify-content: flex-start;
+}
+.headerInner .headerHomeSection{
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  margin-left: -51px;
+}
+.headerInner .headerLinksSection{
+  display: flex;
+  justify-content: flex-end;
+  min-width: 40%;
+}
+.header .header-nav{
+  margin-top: 1px;
+}
+.header .header-links{
+  margin-top: 1px;
 }
 .header .library, .header .home, .header .account, .header .notifications, .header .readerNavMenuSearchButton {
   cursor: pointer;
@@ -109,12 +137,14 @@ input.noselect {
 }
 .header .searchBox {
   overflow: hidden;
-  display: block;
+  display: inline-block;
   padding: 0;
-  text-align: left;
+  text-align: inherit;
+  margin: 0px 17px 0 17px;
 }
 .header .searchBox input{
   background-color: transparent; /*for firefox */
+  margin-top: 1px;
 }
 .header .search {
   outline: none;
@@ -131,10 +161,13 @@ input.noselect {
   padding-top: 5px;
 }
 .header .home {
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  margin-left: -51px;
+  margin-top: 1px;
+}
+.header .login:first-child{
+  margin: auto 30px;
+}
+.header .account:first-child{
+  margin: auto 17px;
 }
 @media (max-width: 540px) {
   .header .home {
@@ -142,6 +175,19 @@ input.noselect {
   }
   .header .accountLinks .login {
     margin-left: 16px;
+  }
+
+  .header .searchBox input{
+    width: 45%;
+  }
+  .header .login:first-child {
+    margin: auto 20px;
+  }
+  .headerInner .headerNavSection{
+    width: 48%;
+  }
+  img.keyboardInputInitiator{
+    display: none;
   }
 }
 .header .home img {
@@ -152,14 +198,17 @@ input.noselect {
 .header .accountLinks {
   display: inline-block;
   font-size: 15px;
+  margin-top: 2px;
 }
 .header .account, .header .notifications {
   display: inline-block;
   vertical-align: middle;
 }
 .header .library, .header .account {
-  margin: 0px 17px 0 0;
   font-size: 24px;
+  line-height: 24px;
+}
+.header .library{
 }
 .header .notifications {
   display: inline-block;
@@ -172,14 +221,13 @@ input.noselect {
   background-color: #aaa;
   color: white;
   font-size: 16px;
-  margin-top: -5px;
+  margin-top: -1px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
 }
 .header .login {
   color: #999;
-  margin: 0 0 0 30px;
   display: inline-block;
   line-height: 1;
 }
@@ -187,7 +235,7 @@ input.noselect {
   font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
 }
 .header .login .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .header .testWarning {
   display: inline-block;
@@ -228,34 +276,55 @@ input.noselect {
   position: fixed;
   z-index: 1001;
 }
+#interruptingMessageBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  opacity: 1;
+  transition: opacity .3s ease-in;
+}
+#interruptingMessageBox.hidden {
+  opacity: 0;
+}
+#interruptingMessageOverlay {
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  opacity: 0.7;
+  position: fixed;
+}
 #interruptingMessage {
-  width: 600px;
   max-width: 90%;
-  padding: 40px;
   box-sizing: border-box;
   position: fixed;
-  top: 15%;
-  left: 50%;
-  margin-left: -300px;
+  padding: 18px 15px;
   z-index: 1001;
-  border: 1px solid #ccc;
-  background: white;
+  border: 1px solid #E6E6E6;
+  background-color: #F9F9F7;
   text-align: center;
   color: #666;
 }
-@media (max-width: 540px) {
-  #interruptingMessage {
-    margin: 0 auto;
-    left: 5%;
-  }
+#interruptingMessageContentBox {
+  position: relative;
+  border: 1px solid #CCC;
+  background-color: white;
 }
 #interruptingMessageClose {
   position: absolute;
-  top: 12px;
-  right: 20px;
-  color: #666;
-  font-size: 24px;
+  top: 2px;
+  right: 12px;
+  color: #AAA;
+  font-size: 32px;
   cursor: pointer;
+}
+#interruptingMessageContent {
+  padding: 32px 32px 16px 32px;
 }
 #interruptingMessage h1 {
   font-style: italic;
@@ -265,6 +334,9 @@ input.noselect {
   text-align: center;
   margin: 0 0 30px;
   color: #333;
+}
+.interface-hebrew #interruptingMessage h1{
+  font-style: normal;
 }
 .testMessage {
   position: fixed;
@@ -291,13 +363,16 @@ input.noselect {
   height: 24px;
   width: 24px;
   opacity: 0.4;
-  vertical-align: -1px;
+  margin-top: 2px
 }
 .header .readerNavMenuSearchButton,
 .header .readerNavMenuMenuButton {
   margin: 0 8px 0 6px;
   font-size: 17px;
-  position: relative;
+}
+
+.header .readerNavMenuSearchButton{
+  position:relative;
   top: -1px;
 }
 
@@ -375,7 +450,7 @@ input.noselect {
 }
 .readerContent {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 58px);
   background-color: inherit;
 }
 .dark .readerContent {
@@ -395,20 +470,9 @@ input.noselect {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
-  padding: 0px 0 40%;
   box-sizing: border-box;
   background-color: inherit;
 }
-/* Adjusting for 17px scrollbars, to keep content centered
-   Only done in multiPanel mode now as a proxy for whether scrollbars take up width (on desktop they do, not on mobile) 
-  Remove 12/16 -- seems to be causing problems now.
-.multiPanel.interface-english .textColumn {
-  padding-left: 17px;
-}
-.multiPanel.interface-hebrew .textColumn {
-  padding-right: 17px;
-}
-*/
 .textColumn .loadingMessage.base {
   margin: 30px 0;
   color: #999;
@@ -426,17 +490,21 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
+  height: 50%;
 }
 .textColumn .loadingMessage.base.next.final {
 }
-.he, .int-he {
+.he {
   font-size: 120%;
+}
+.int-he {
+  font-size: 110%;
 }
 .int-he .int-he {
   font-size: inherit;
 }
 .readerPanel .he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   direction: rtl;
   text-align: right;
 }
@@ -444,21 +512,26 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
-.readerPanel.hebrew .readerNavSection, 
+#s2.interface-hebrew .readerPanel .readerNavMenu .gridBox,
+.readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
- .readerPanel.english .readerNavMenu .gridBox{
+.readerPanel.english .readerNavMenu .gridBox{
   direction: ltr;
 }
 .readerPanel.bilingual .readerNavSection,
- .readerPanel.bilingual .readerNavMenu .gridBox{
+.readerPanel.bilingual .readerNavMenu .gridBox {
   direction: ltr;
 }
 .readerPanel.english .he {
   display: none;
+}
+.readerPanel.english .he.heOnly{
+  display: inline;
+  text-align: right;
 }
 .readerPanel.english .en {
   display: inline;
@@ -485,7 +558,7 @@ input.noselect {
   line-height: 32px;
 }
 .languageToggle img {
-  opacity: 0.2;
+  opacity: 0.4;
   height: 18px;
 }
 .systemPanel.english .content .he {
@@ -500,7 +573,7 @@ input.noselect {
 }
 .interface-hebrew .systemPanel .content .int-he {
   display: inline;
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .loadingMessage {
   font-size: 14px;
@@ -508,23 +581,6 @@ input.noselect {
 }
 .bilingual .loadingMessage .he {
   display: none;
-}
-.headroom {
-  transition: transform 200ms linear;
-  -webkit-transition: 200ms linear;
-  transition-property: transform;
-}
-.headroom--pinned {
-  transform: translateY(0%);
-  -webkit-transform: translateY(0%);
-}
-.headroom--unpinned {
-  transform: translateY(-100%);
-  -webkit-transform: translateY(-100%);
-}
-.headroomOff.headroom--unpinned {
-  transform: translateY(0%);
-  -webkit-transform: translateY(0%);
 }
 .readerPanel.light {
   background-color: white;
@@ -537,6 +593,8 @@ input.noselect {
 }
 .readerNavMenu {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   top: 0;
   left: 0;
   width: 100%;
@@ -545,25 +603,23 @@ input.noselect {
   z-index: 101;
   background-color: #F9F9F7;
 }
+.headerNavContent .readerNavMenu.noHeader {
+  border-top: 1px solid #ccc;
+}
 .readerNavMenu .content {
   position: relative;
   box-sizing: border-box;
   padding: 30px 10px 10px;
-  height: 100%;
+  flex: 1;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
-}
-.singlePanel .readerNavMenu .content {
-  top: 58px;
-  height: calc(100% - 58px);
-  padding-top: 40px;
 }
 .interface-hebrew.multiPanel .readerNavMenu .content {
   padding-right: 40px;
 }
 .multiPanel .readerNavMenu .content {
-  padding: 80px 30px 70px 30px;
+  padding: 30px 30px 70px 30px;
 }
 .multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0px 0px 0px;
@@ -571,7 +627,7 @@ input.noselect {
 .multiPanel .readerNavMenu.noHeader .content {
   padding-top: 70px;
 }
-.multiPanel .readerNavMenu.noHeader.compare .content {
+.multiPanel .readerNavMenu.compare .content {
   padding-top: 80px;
 }
 .readerNavMenu .content .contentInner {
@@ -579,17 +635,25 @@ input.noselect {
   margin: 0 auto;
 }
 .readerNavTop {
-  position: absolute;
+  /*position: absolute;*/
   width: 100%;
   background-color: #F9F9F7;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   height: 58px;
-  direction: ltr;
+  /*direction: ltr;*/
   z-index: 1;
-  padding: 0px 30px;
+  padding: 5px 30px 0 30px;
   vertical-align: middle;
   line-height: 58px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.readerNavTop .readerNavTopStart {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 .singlePanel .readerNavTop {
   padding: 0 10px;
@@ -600,10 +664,9 @@ input.noselect {
   padding: 0;
 }
 .readerPanel .readerNavTop h2 {
-  margin-bottom: 0px;
+  margin: 0px;
   font-weight: 400;
   color: black;
-  line-height: 38px;
 }
 .readerNavTop.search {
 }
@@ -616,40 +679,63 @@ input.noselect {
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia;
   height: 48px;
-  margin-top: 9px;
 }
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
+
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
 .readerNavTop .readerOptions {
   text-align: left;
-  width: 40px;
-  height: 48px;
-  margin-top: 5px;
   box-sizing: border-box;
-  color: #BFBFBF;
+  color: #999;
   float: left;
   font-size: 20px;
-  vertical-align: middle;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
-.readerNavTop .readerNavMenuCloseButton{
+.readerNavMenuCloseButton:hover {
+  text-decoration: none;
+}
+.readerNavTop .readerNavMenuCloseButton {
+  display: block;
   font-size: 46px;
   padding: 0;
-  line-height: 48px;
+  margin-top: -6px;
+}
+.readerNavMenuCloseButton:hover {
+  text-decoration: none;
+}
+.readerNavTop .readerNavMenuSearchButton {
+}
+.readerNavTop .readerNavMenuCloseButton .fa {
+  font-size: 20px;
 }
 .readerNavTop .readerOptions {
   float: right;
   text-align: right;
+  display: flex;
+  align-items: center;
 }
 .sefariaLogo img {
   width: 110px;
 }
 .readerNavTop .sefariaLogo img {
   vertical-align: middle;
+}
+.readerNavTop .searchBox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.readerNavTop .searchBox .readerNavMenuSearchButton {
+  margin: 0 10px;
+}
+.readerNavTop .searchBox .readerSearch {
+  flex: 1;
 }
 .readerNavMenu h1 {
   text-align: center;
@@ -674,7 +760,7 @@ h1 .languageToggle {
   cursor: pointer;
 }
 h1 div.languageToggle .en {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-weight: normal;
 }
 h1 .languageToggle .he {
@@ -685,7 +771,7 @@ h1 .languageToggle .he {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .readerNavMenu h1 .int-he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -740,7 +826,7 @@ h1 .languageToggle .he {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerPanel h2 .he, .readerPanel h3 .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .readerNavSection h2 {
   font-size: 13px;
@@ -756,6 +842,10 @@ a.resourcesLink {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+}
+.readerPanel .recentPanel .recentItem {
+  padding: 15px;
+  margin-bottom: 10px;
 }
 .readerNavCategories {
   width: 100%;
@@ -781,6 +871,10 @@ a.resourcesLink {
   letter-spacing: 1px;
   height: 46px;
   line-height: 46px;
+  display: block;
+}
+a.readerNavCategory {
+  color: #333;
 }
 @media (max-width: 450px) {
   .readerNavCategory {
@@ -814,7 +908,7 @@ a.resourcesLink {
   border-top: 4px solid transparent;
   width: 100%;
   cursor: pointer;
-  height: 46px;
+  min-height: 46px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
@@ -832,6 +926,18 @@ a.resourcesLink {
   width: 16px;
   opacity: 0.4;
   vertical-align: -3px;
+}
+.readerNavMenu .blockLink.calendarLink{
+  /*line-height: 1;
+  padding: 7px 8px;*/
+}
+.readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
+  display: block;
+  font-size: 0.9em;
+  color: #999999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .gridBox {
   table-layout: fixed;
@@ -855,7 +961,7 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .resourcesLink .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .readerNavMenu .resourcesLink .fa {
   margin: 0 6px;
@@ -870,7 +976,7 @@ a.resourcesLink {
   top: 2px;
 }
 .readerNavMenu .siteLinks {
-  margin-top: 20px;
+  margin: 20px 0 50px;
   text-align: center;
 }
 .readerNavMenu .siteLinks .siteLink {
@@ -880,11 +986,14 @@ a.resourcesLink {
   margin: 0 8px;
   font-size: 12px;
 }
+.uppercase {
+  text-transform: uppercase;
+}
 .readerNavMenu .siteLinks .siteLink .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .siteLinks .siteLink .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .readerNavMenu .siteLink .fa {
   margin: 0 4px;
@@ -898,7 +1007,8 @@ a.resourcesLink {
 .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
 }
-.readerNavCategoryMenu .content .category {
+.readerNavCategoryMenu .content .category,
+.readerNavCategoryMenu .content .gridBox {
   margin-bottom: 30px;
 }
 .readerNavCategoryMenu .categoryAttribution {
@@ -911,7 +1021,10 @@ a.resourcesLink {
 .readerNavCategoryMenu .categoryAttribution .he {
   font-style: normal;
 }
-.readerNavMenu .refLink,
+.readerNavCategoryMenu .category h3 {
+  margin-top: 36px;
+}
+.readerNavMenu .blockLink,
 .readerNavMenu .catLink,
 .readerNavMenu .navButton,
 .readerTextTableOfContents .refLink {
@@ -928,6 +1041,13 @@ a.resourcesLink {
   text-align: center;
   unicode-bidi: plaintext;
 }
+.readerNavMenu .blockLink:active,
+.readerNavMenu .catLink:active,
+.readerNavMenu .navButton:active,
+.readerNavCategory:active,
+.readerTextTableOfContents .refLink:active {
+  background-color: #f3f3f3;
+}
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
   .readerNavMenu .catLink,
@@ -941,11 +1061,9 @@ a.resourcesLink {
   background-color: white;
   border: 3px solid #F9F9F7;
 }
-
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
 }
-
 @media (max-width: 450px) {
   .readerNavMenu .readerNavCategoryMenu td,
   .readerSheetsNav .gridBox td {
@@ -955,6 +1073,11 @@ a.resourcesLink {
 .readerNavMenu .readerNavCategoryMenu .refLink,
 .readerNavMenu .readerNavCategoryMenu .catLink {
   width: 100%;
+  height: 100%;
+}
+.readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
+.readerNavMenu .catLink.incomplete {
+  opacity: 0.65;
 }
 .categoryColorLine {
   position: absolute;
@@ -963,6 +1086,24 @@ a.resourcesLink {
   width: 100%;
   height: 6px;
   z-index: 101;
+}
+.readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .en {
+  display: none;
+}
+.readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
+  display: inline;
+}
+.interface-hebrew .readerPanel.english .noLangToggleInHebrew .readerNavSection,
+.interface-hebrew .readerPanel.english .readerNavMenu.noLangToggleInHebrew .gridBox {
+  direction: rtl;
+}
+.interface-hebrew .english .noLangToggleInHebrew .gridBox td:first-child {
+  border-right: 0;
+  border-left: 3px solid transparent;
+}
+.interface-hebrew .english .noLangToggleInHebrew .gridBox td:last-child {
+  border-left: 0;
+  border-right: 3px solid transparent;
 }
 .bilingual .readerTextTableOfContents .he {
   display: none;
@@ -976,7 +1117,7 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .readerTextToc .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .categoryAttribution {
   color: #666;
@@ -1011,7 +1152,7 @@ a.resourcesLink {
   letter-spacing: 1px;
 }
 .readerTextTableOfContents .currentSection .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .tocDetails {
   margin-top: 30px;
@@ -1033,13 +1174,13 @@ a.resourcesLink {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetail .int-he {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .readerTextTableOfContents .tocDetails .description {
   margin: 6px 0 16px;
   font-style: normal;
   font-size: 16px;
-  line-height: 1.4;  
+  line-height: 1.4;
 }
 .readerTextTableOfContents .tocDetails .description .readMoreText {
   display: block;
@@ -1068,6 +1209,9 @@ a.resourcesLink {
   margin: 7px 6px 0px;
   font-size: 14px;
   position: absolute;
+}
+.interface-hebrew .readerTextTableOfContents .moderatorSectionExpand {
+  margin: 7px 18px 0px;
 }
 .readerTextTableOfContents .moderatorSectionExpand:hover {
   text-decoration: underline;
@@ -1099,7 +1243,9 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .versionEditForm #versionTitle,
 .readerTextTableOfContents .versionEditForm #versionSource,
-.readerTextTableOfContents .versionEditForm #versionNotes
+.readerTextTableOfContents .versionEditForm #versionNotes,
+.readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
+.readerTextTableOfContents .versionEditForm #versionNotesInHebrew
  {
   width: 98%;
 }
@@ -1131,9 +1277,14 @@ a.resourcesLink {
 .readerTextTableOfContents .versionTitle .fa,
 .readerTextTableOfContents .versionEditForm .fa {
   font-size: 10px;
+  color: #666;
   vertical-align: super;
   margin-left: 3px;
   cursor: pointer;
+}
+.interface-hebrew .readerTextTableOfContents .versionTitle .fa,
+.interface-hebrew .readerTextTableOfContents .versionEditForm .fa {
+  margin: 0 3px 0 0 ;
 }
 .readerTextTableOfContents .versionTitle .error {
   color: red;
@@ -1142,8 +1293,7 @@ a.resourcesLink {
   padding: 30px 10px 10px;
   box-sizing: border-box;
   text-align: center;
-  top: 58px;
-  height: calc(100% - 58px);
+  height: 100%;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -1165,7 +1315,7 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .sectionLink  .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .interface-hebrew .readerTextTableOfContents .content .structToggles{
   direction: rtl;
@@ -1189,12 +1339,16 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .structToggles .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .structToggles .altStructToggleBox {
   display: table-cell;
   height: 37px;
 }
+.altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
+  text-decoration: none;
+}
+
 .readerTextTableOfContents .structToggles .altStructToggle {
   display: block;
   padding: 8px;
@@ -1226,7 +1380,7 @@ a.resourcesLink {
 .readerTextTableOfContents .content .tocContent {
   padding: 30px 0 40px;
   text-align: left;
-} 
+}
 .readerTextTableOfContents.narrowPanel .tocContent {
   padding: 0 0 40px;
 }
@@ -1248,15 +1402,13 @@ a.resourcesLink {
   font-size: 16px;
   display: inline-block;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-title .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-toc.linked {
-  cursor: pointer;
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
@@ -1277,6 +1429,9 @@ a.resourcesLink {
 .readerTextTableOfContents .schema-node-toc {
   margin: 6px 20px;
 }
+.readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
+  text-decoration: underline;
+}
 .readerTextTableOfContents .altStruct .refLink {
   width: 49%;
   margin: 3px;
@@ -1289,8 +1444,14 @@ a.resourcesLink {
   }
 }
 .hebrew .readerTextTableOfContents .content .tocSection,
-.hebrew .readerTextTableOfContents .content .tocContent {
+.hebrew .readerTextTableOfContents .content .tocContent,
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
   text-align: right;
+}
+.english .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent,
+.bilingual .readerTextTableOfContents.noLangToggleInHebrew .content .tocContent{
+  direction: rtl;
 }
 .readerTextTableOfContents .versionsBox {
   padding: 20px 0;
@@ -1307,6 +1468,8 @@ a.resourcesLink {
 }
 .readerTextTableOfContents .versionBlocks {
   text-align: center;
+  border-top: 1px solid #ccc;
+  padding-top: 20px;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageBlock {
   padding-bottom: 30px;
@@ -1325,29 +1488,35 @@ a.resourcesLink {
   box-sizing: border-box;
   cursor: pointer;
 }
-.readerTextTableOfContents .versionBlock .versionTitle {
+.versionBlock .versionTitle {
   display: block;
   font-size: 18px;
   color: #333;
+  unicode-bidi: plaintext;
 }
-.readerTextTableOfContents .versionBlock a {
+.versionBlock a {
   color: #999;
 }
-.readerTextTableOfContents .versionBlock .versionDetails {
+.versionBlock .versionNotes a {
+  color: #333;
+}
+.versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
+  padding-top: 10px;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .separator {
+.versionBlock .versionDetails .separator {
   margin: 0 3px;
 }
-.readerTextTableOfContents .versionBlocks .versionBlock .versionTitle:hover {
+.versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
-.readerTextTableOfContents .versionBlock .versionNotes {
+.versionBlock .versionNotes {
   padding-top: 4px;
   color: #999;
+  font-size: 15px;
 }
 .modTools {
   width: 50%;
@@ -1374,7 +1543,29 @@ a.resourcesLink {
     padding: 10px 0;
     margin-bottom: 14px;
 }
-.modTools .dlVersionSelect { 
+.readerTextTableOfContents .content h2[role=button] {
+  cursor: pointer;
+}
+.readerTextTableOfContents .content h2 img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
+}
+.readerTextTableOfContents .versionSectionHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.readerTextTableOfContents .versionSectionSummary {
+  text-transform: none;
+  color: #ccc;
+  font-size: 14px;
+}
+.readerTextTableOfContents .versionSectionSummaryHidden {
+  visibility: hidden;
+}
+.modTools .dlVersionSelect {
   display: block;
 }
 
@@ -1390,6 +1581,11 @@ a.resourcesLink {
     color: #333;
     font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.modTools .dlVersionSelect option,
+.readerTextTableOfContents .content .dlVersionSelect option{
+  unicode-bidi: plaintext;
+}
+
 .modTools .versionDownloadButton,
 .readerTextTableOfContents .content .versionDownloadButton {
     width: 60%;
@@ -1409,7 +1605,7 @@ a.resourcesLink {
 }
 .modTools .versionDownloadButton .he,
 .readerTextTableOfContents .content .versionDownloadButton .he {
-    font-family: "Open Sans Hebrew", sans-serif;
+    font-family: "Heebo", sans-serif;
     direction: rtl;
     text-align: right;
 }
@@ -1418,7 +1614,6 @@ a.resourcesLink {
     border-color: #212E50;
     background-color: #212E50;
 }
-
 .searchContentFrame h1 {
   direction: ltr;
   height: 40px;
@@ -1427,20 +1622,23 @@ a.resourcesLink {
   font-size: 26px;
 }
 .searchContentFrame h1.hebrewQuery {
-  font-family: "Taamey Frank", "Times New Roman", serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 30px;
 }
-
 .searchContent {
   padding: 0 10px 100px;
 }
 .searchContent .searchTopMatter {
   padding-bottom: 10px;
-  border-bottom: 1px solid #ccc;
   margin-bottom: 30px;
+  position: relative;
 }
 .searchContent .searchTopMatter.loading {
   border-bottom: none;
+}
+.searchTopMatter .filterSortFlexbox {
+  display: flex;
+  justify-content: space-between;
 }
 .searchContent .searchStatusLine {
   padding: 0 0 36px 0;
@@ -1456,17 +1654,15 @@ a.resourcesLink {
   border: 1px solid #DADADA;
   display: inline-block;
   font-size: 12px;
-  color: #999;
+  color: #666;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
-
 .searchContent .type-button .he,
 .readerSheetsNav .type-button .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
-
 .searchContent .type-button.active,
 .readerSheetsNav .type-button.active {
   color: #000;
@@ -1483,9 +1679,10 @@ a.resourcesLink {
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
+  padding-top: 5px;
 }
 .searchContent .searchFilterToggle {
-  color: #999;
+  color: #666;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -1499,21 +1696,36 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchContent .searchFilterToggle .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
-.searchContent .searchFilterToggle i {
-  color: #999;
-  padding-left: 5px;
+.searchContent .searchFilterToggle img {
+  opacity: 0.43;
+  padding: 0 5px;
+  height: 10px;
+  width: 10px;
 }
 .interface-hebrew .searchContent .searchFilterToggle i {
   padding-left: 0;
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-    margin: 10px 0;
-    background: #eee;
+    margin-top: 10px;
+    background: white;
     width: 100%;
     display: flex;
+    flex-direction: column;
+    position: absolute;
+    z-index: 1;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    border: 1px solid #ccc;
+}
+
+.searchContent .searchFilterBoxes .searchFilterBoxRow {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 .searchFilterBoxes.hidden{
     display:none;
@@ -1521,16 +1733,16 @@ a.resourcesLink {
 .searchContent .searchFilterBoxes li {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
-  padding: 12px 0 12px 15px;
+  padding: 15px 0 15px 15px;
   font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .searchFilterBoxes li:hover {
+.searchContent .searchFilterBoxRow li:hover {
   background-color: #e0e0e0;
 }
 .interface-hebrew .searchContent .searchFilterBoxes li {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
   padding: 10px 15px 10px 0;
 }
 .searchContent .searchFilterBoxes li input[type="checkbox"] {
@@ -1568,8 +1780,86 @@ a.resourcesLink {
   padding-left: 20px;
   padding-right: 0;
 }
+.searchFilterBoxes .searchFilterExactBox {
+  border-top: 1px solid #ccc;
+  padding: 5px 0px 5px 0;
+}
+.searchFilterExactBox.hidden {
+  display:none;
+}
+.searchContent .searchSortBox {
+    margin-top: 10px;
+    background: white;
+    width: auto;
+    position: absolute;
+    z-index: 1;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    border: 1px solid #ccc;
+}
+.interface-english .searchSortBox {
+  right: 0;
+}
+.interface-hebrew .searchSortBox {
+  left: 0;
+}
+.searchSortBox.hidden{
+    display:none;
+}
+.searchContent .searchSortBox table {
+  border-collapse: collapse;
+}
+.searchContent .searchSortBox tr {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  padding: 15px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.interface-hebrew .searchContent .searchSortBox tr {
+  font-family: "Heebo", sans-serif;
+}
+.searchContent .searchSortBox tr:hover {
+  background-color: #e0e0e0;
+}
+.searchContent .searchSortBox tr:first-child {
+  border-bottom: 1px solid #eee;
+}
+.searchContent .searchSortBox td:not(:first-child) {
+  padding: 15px 15px 15px 0;
+}
+.searchContent .searchSortBox td:first-child {
+  padding: 0 0 0 15px;
+}
+.interface-hebrew .searchContent .searchSortBox td:not(:first-child) {
+  padding: 15px 0 15px 15px;
+}
+.interface-hebrew .searchContent .searchSortBox td:first-child {
+  padding: 0 15px 0 0;
+}
+.searchContent .searchSortBox tr.unselected {
+  color: #aaa;
+}
+.searchSortBox tr .searchSortCheck {
+  width: 10px;
+  height: 10px;
+  padding-left: 0;
+  padding-right: 10px;
+}
+.interface-hebrew .searchSortBox tr .searchSortCheck {
+  padding-left: 10px;
+  padding-right: 0;
+}
+.searchSortBox tr.unselected .searchSortCheck {
+  display: none;
+}
+.searchContent .searchResultsOverlay {
+  opacity: 0.5;
+}
 .searchContent .searchFilterCategoryBox,
 .searchContent .searchFilterBookBox {
+  padding-top: 10px;
   width: 50%;
   height: 150px;
   overflow-y: auto;
@@ -1602,9 +1892,18 @@ a.resourcesLink {
 .searchContent .result .result-title:hover {
   text-decoration: underline;
 }
+.readerPanel.english .searchContent .result .result-title .en,
+.readerPanel.hebrew .searchContent .result .result-title .he {
+  display: block;
+}
+.readerPanel.english .searchContent .text_result .snippet.he,
+.readerPanel.hebrew .searchContent .text_result .snippet.en,
+.bilingual .searchContent .text_result .snippet.he {
+  display: block;
+}
 .searchContent .text_result .snippet {
   color: #333;
-  font-size: 1.8em;
+  font-size: 2.3em;
 }
 .searchContent .sheet_result .snippet {
   color: #999;
@@ -1682,8 +1981,6 @@ a.resourcesLink {
   line-height: 1.4em;
   max-height: 2.8em;
 }
-
-
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -1694,10 +1991,14 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet {
-  display: block;
+  display: flex;
+  justify-content: space-between;
   padding: 25px 0px;
   border-bottom: 1px solid #eee;
   color: black;
+}
+.readerNavMenu .sheet:hover{
+  text-decoration: none;
 }
 .readerNavMenu .sheet:first-child {
   padding-top: 0;
@@ -1705,9 +2006,20 @@ a.resourcesLink {
 .readerNavMenu .sheet .sheetImg {
   height: 40px;
   width: 40px;
-  float: left;
-  margin: 1px 14px 20px 0;
+  margin: 1px 0px 0px 0;
   border-radius: 2px;
+}
+.readerNavMenu .sheet .sheetTextInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.readerNavMenu .sheet:hover .sheetTextInfo{
+  text-decoration: underline;
+}
+.readerNavMenu .sheet .sheetAuthTitle{
+  display: flex;
+  flex-flow: column;
+  margin: auto 14px;
 }
 .readerNavMenu .sheet .sheetAuthor {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1716,15 +2028,19 @@ a.resourcesLink {
   margin-bottom: 6px;
   letter-spacing: 1px;
 }
-.readerNavMenu .sheet .sheetTitle {
+.readerNavMenu .sheet .sheetTitle{
   overflow: hidden;
   font-size: 16px;
+  unicode-bidi: plaintext;
 }
-.readerNavMenu .sheet .sheetViews {
-  float: right;
+.readerNavMenu .sheet .sheetViews{
   color: #CCC;
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerNavMenu .sheet:hover .sheetViews{
+  display: inline-block ;
+  text-decoration: none;
 }
 .readerSheetsNav h2 .en {
   display: inline;
@@ -1733,7 +2049,7 @@ a.resourcesLink {
   margin: 50px 0 30px;
   height: auto
 }
-.readerSheetsNav .tagsHeader .actionText{
+.readerSheetsNav .tagsHeader .actionText {
   display: block;
   margin-top: 20px;
   text-transform: none;
@@ -1744,18 +2060,27 @@ a.resourcesLink {
 .hebrew .readerSheetsNav {
   direction: ltr;
 }
+.readerSheetsNav .filterLabel {
+  cursor: pointer;
+}
+.readerSheetsNav .tagsList .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.readerSheetsNav .tagsList .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
 .readerControls {
-  position: absolute;
-  direction: ltr;
+  position: relative;
+  /* direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
   box-sizing: border-box;
+  border-top: 4px solid transparent;
   text-align: center;
-  padding: 8px 0 0 0;
   z-index: 100;
   height: 58px;
-  line-height: 48px;
+  line-height: 54px;
   border-bottom: 1px solid #ddd;
   background-color: #F9F9F7;
 }
@@ -1770,32 +2095,58 @@ a.resourcesLink {
 .dark .readerControls .readerTextToc .readerTextTocBox {
   color: white;
 }
-.readerControls.connectionsHeader {
+.readerControls.connectionsHeader.fullPanel  {
   background-color: #EDEDED;
+}
+.readerControls.connectionsHeader {
+  background-color: #F3F3F2;
+}
+.connectionsPanelHeader .connectionsHeaderTitle {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: lighter;
+}
+.connectionsPanelHeader .connectionsHeaderTitle.active {
+  text-transform: none;
+  cursor: pointer;
+}
+.connectionsHeaderTitle .fa-chevron-left {
+  margin-right: 10px;
+}
+.connectionsHeaderTitle .fa-chevron-right {
+  margin-left: 10px;
 }
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
-  padding: 0;
+  margin: 0 auto;
   padding: 0 30px;
-  display: inline-block;
+  display: flex;
+  justify-content: space-between;
   max-width:  100%;
   box-sizing: border-box;
+}
+.readerControls.connectionsHeader .readerControlsInner {
+  padding: 0 40px 0 40px;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
 }
-.readerControls .readerTextToc {
-  text-align: center;
-  display: inline-block;
-  cursor: pointer;
-  vertical-align: middle;
+.readerControls .readerTextToc a {
+  color: inherit;
+}
+.readerControls .readerTextToc a:hover {
+  text-decoration: none;
+}
+.readerControls .readerTextToc .readerTextTocBox a {
+  display: flex;
+  align-items: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   color: #999;
-  direction: ltr !important;
+  width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
   line-height: 1.2;
@@ -1809,19 +2160,23 @@ a.resourcesLink {
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-.leftButtons,
-.rightButtons {
-  /*position: absolute;
-  top: 0;*/
-}
-.leftButtons {
+
+.interface-english .leftButtons,
+.interface-hebrew .rightButtons {
   text-align: left;
-  float: left;
 }
-.rightButtons {
+.interface-english .rightButtons,
+.interface-hebrew .leftButtons {
   text-align: right;
-  float: right;
 }
+/* icons need a little nudge in flipped hebrew mode */
+.interface-hebrew .rightButtons {
+  margin-left: -3px;
+}
+.interface-hebrew .leftButtons {
+  margin-right: 2px;
+}
+
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
@@ -1835,18 +2190,12 @@ a.resourcesLink {
   display: inline-block;
   cursor: pointer;
 }
-.leftButtons div,
-.rightButtons div {
-  vertical-align: middle;
-  display: inline-block;
-}
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 .leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
-  line-height: 40px;
 }
 .leftButtons .readerNavMenuSearchButton span,
 .rightButtons .readerOptions img,
@@ -1858,28 +2207,39 @@ a.resourcesLink {
   box-sizing: border-box;
   display: block;
   height: 50px;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  vertical-align: middle;
+  min-width: 0; /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
 .readerTextTocHeader.readerTextToc {
   font-size: 14px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
+  min-width: 0;
 }
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
+  vertical-align: middle;
+  color: #333;
+  max-width: 100%;
+}
+.readerControls .readerTextToc .readerTextTocBox a span {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 70%;
-  vertical-align: middle;
-  color: #333;
-}`
+}
 .readerControls .readerTextToc .readerTextVersion {
   font-style: italic;
   color: #999;
 }
+.readerControls .readerTextToc .readerTextVersion .en{
+  unicode-bidi: bidi-override;
+}
 .readerControls .readerTextToc .fa-caret-down {
-  color: #ccc;
+  color: #999;
   margin: 0 7px;
   vertical-align: 0px;
 }
@@ -1908,14 +2268,32 @@ a.resourcesLink {
   z-index: 103;
 }
 .readerOptionsPanelInner {
-  max-width: 660px;
+  max-width: 530px;
   margin: 0 auto;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  color: #999;
 }
 .toggleSet {
   display: inline-block;
-  width: 100%;
-  margin: 7px 0;
-  margin-left: 1px;
+  width: 48%;
+  margin: 2px auto 20px auto;
+  /*margin-left: 1px;*/
+}
+.interface-hebrew .toggleSet.aliyotTorah, .interface-hebrew .toggleSet .toggle-set-label{
+  font-family: "Heebo", sans-serif;
+}
+.interface-english .toggleSet.aliyotTorah, .interface-english .toggleSet .toggle-set-label{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+}
+.toggleSet .toggle-set-label{
+  font-size: 13px;
+  display: block;
+  text-align: center;
+  margin: 10px;
+  letter-spacing: 1.5px;
 }
 .toggleOption {
   box-sizing: border-box;
@@ -1925,8 +2303,22 @@ a.resourcesLink {
   padding: 4px;
   height: 42px;
   line-height: 34px;
-  background-color: white;
+  background-color: #f9f9f7;
   vertical-align: middle;
+}
+.toggleSet.aliyotTorah .toggleOption{
+  font-size: 14px;
+}
+.toggleSet.vowels .toggleOption.all span span, .toggleSet.vowels .toggleOption.partial span span{
+  /*line-height: 29px;*/
+  position: relative;
+  top: -3px;
+}
+.toggleSet.fontSize .toggleOption{
+  color: black;
+}
+.toggleSet.biLayout .toggleOption img, .toggleSet.layout .toggleOption img{
+  opacity: 0.5;
 }
 .toggleOption:first-child {
     border-top-left-radius: 4px;
@@ -1938,7 +2330,11 @@ a.resourcesLink {
     border-right: 1px solid #999;
 }
 .toggleOption.on, .toggleOption:hover {
-  background-color: #eee;
+  background-color: white;
+  color: black;
+}
+.toggleSet.biLayout .toggleOption.on img, .toggleSet.layout .toggleOption:hover img{
+  opacity: 1;
 }
 .toggleSet.separated .toggleOption {
   margin-right: 3%;
@@ -1992,8 +2388,9 @@ a.resourcesLink {
   border-top: 1px solid #ddd;
 }
 .mask {
-  position: absolute;
+  position: fixed;
   top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   z-index: 102;
@@ -2017,12 +2414,12 @@ a.resourcesLink {
 .narrowColumn .textRange.basetext {
 }
 .textRange.basetext .title {
-  padding: 24px 28px 24px;
+  padding: 0 28px;
+  margin: 24px 0;
   color: #999;
   text-align: center;
+  justify-content: center;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
   letter-spacing: 1px;
 }
 .dark .textRange.basetext .title {
@@ -2032,10 +2429,10 @@ a.resourcesLink {
   display: inline-block;
   border-bottom: 4px solid #E6E5E6;
   padding: 0 6px 3px;
-}  
+}
 .dark .textRange.basetext .title .titleBox {
   border-bottom: 4px solid #666;
-}  
+}
 .bilingual .textRange.basetext .title .he {
   display: none;
 }
@@ -2043,11 +2440,7 @@ a.resourcesLink {
 .interface-hebrew .readerPanel.english .categoryFilterGroup,
 .interface-hebrew .readerPanel.bilingual .categoryFilterGroup,
 .interface-hebrew .readerPanel.english .tocContent,
-.interface-hebrew .readerPanel.bilingual .tocContent,
-.interface-hebrew .readerPanel.english .dlVersionSelect,
-.interface-hebrew .readerPanel.bilingual .dlVersionSelect,
-.interface-hebrew .readerPanel.hebrew .dlVersionSelect
-{
+.interface-hebrew .readerPanel.bilingual .tocContent {
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
@@ -2056,22 +2449,53 @@ a.resourcesLink {
   direction: rtl;
 }
 .basetext .text {
-  padding: 30px 44px;
+  padding: 0 44px;
+  margin: 30px 0;
   background-color: inherit;
 }
 .narrowColumn .basetext .text {
-  padding: 26px;
+  padding: 0 26px;
 }
 .singlePanel .basetext .text {
-  padding: 30px 34px;
+  padding: 0 34px;
 }
-.basetext .segment {
+.parashahHeader {
+  text-align: center;
+  color: #8e8e8e;
+  margin: 32px 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.parashahHeader.aliyah{
+  color: #bebebe;
+}
+.parashahHeader.aliyah span{
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.parashahHeader .en {
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+}
+.parashahHeader .he {
+  font-family: "Heebo", sans-serif;
+}
+.bilingual .parashahHeader .en {
+  display: none;
+}
+.title + .text .parashahHeader {
+    margin-top: -5px;
+}
+.title + .text {
+    margin-top: 0;
+}
+.segment {
   cursor: pointer;
   display: block;
   background-color: inherit;
-  margin-bottom: 26px;
+  margin-bottom: 14px;
 }
-.continuous .basetext .segment {
+.continuous .segment {
   display: inline;
   margin: 0;
   padding: .3333em 0;
@@ -2079,21 +2503,29 @@ a.resourcesLink {
 .continuous .clearFix {
   display: none;
 }
+.segment > .he,
+.segment > .en {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.basetext .segment {
+  margin-bottom: 26px;
+}
 .bilingual .segment > .he,
-.bilingual .segment > .en { 
+.bilingual .segment > .en {
   display: block;
 }
-.bilingual .segment > .en { 
+.bilingual .segment > .en {
   text-align: left;
 }
-.bilingual .segment > .he { 
+.bilingual .segment > .he {
   text-align: right;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
   display: block;
 }
-.stacked.bilingual .segment > .en { 
+.stacked.bilingual .segment > .en {
   margin-top: 6px;
   text-align: left;
 }
@@ -2107,7 +2539,7 @@ a.resourcesLink {
 }
 .heLeft.bilingual .basetext .text,
 .heRight.bilingual .basetext .text {
-  padding: 30px 0;
+  padding: 0;
 }
 .heLeft.bilingual .segment > .en,
 .heLeft.bilingual .segment > .he,
@@ -2137,10 +2569,6 @@ a.resourcesLink {
 .basetext .segment:focus .linkCount {
   background-color: transparent;
 }
-.textColumn.connectionsOpen .basetext .segment:active,
-.textColumn.connectionsOpen .basetext .segment:focus {
-  background-color: inherit;
-}
 .dark .basetext .segment:active,
 .dark .basetext .segment:focus {
   background-color: #444;
@@ -2160,7 +2588,7 @@ a.resourcesLink {
 }
 .textRange {
   line-height: 1.4;
-  font-size: 1.6em; 
+  font-size: 1.6em;
 }
 .textRange .textInner {
   position: relative;
@@ -2255,18 +2683,18 @@ a.resourcesLink {
   -webkit-filter: invert(100%);
 }
 .readerPanel.english .segment .segmentNumber {
-  left: -49px;
+  left: -48px;
 }
 .readerPanel.hebrew .segment .segmentNumber,
 .readerPanel.bilingual .segment .segmentNumber {
-  right: -44px;
+  right: -46px;
 }
 .readerPanel.english .segment .linkCount {
-  right: -45px;
+  right: -46px;
 }
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
-  left: -50px;
+  left: -48px;
 }
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
@@ -2297,6 +2725,7 @@ a.resourcesLink {
   font-weight: bold;
   letter-spacing: 1px;
   cursor: pointer;
+  color: #333;
 }
 .refLink:hover {
   text-decoration: underline;
@@ -2328,62 +2757,90 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
 .textRange .actionLinks .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
-
 /* Footnotes */
 .segment sup {
   margin-left: .2em;
   margin-right: .2em;
   text-decoration: underline;
 }
+.segment sup.itag {
+  text-decoration: none;
+  font-family: "Heebo", "sans-serif";
+  font-size: 0.6em;
+  line-height: 1;
+  color: #4871bf;
+}
 .segment i.footnote {
   display: none;
   font-size: .8em;
   margin-left: .5em;
   margin-right: .5em;
-  color: #999;
+  color: #888;
+  font-style: normal;
 }
-
+.segment img {
+  max-width: 100%;
+}
 .connectionsPanelHeader{
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
-.interface-hebrew .connectionsPanelHeader{
+.singlePanel .connectionsPanelHeader {
+  justify-content: flex-start;
+  align-items: stretch;
+  height: 100%;
+}
+.interface-hebrew .connectionsPanelHeader {
   direction: rtl;
 }
+.interface-english .connectionsPanelHeader {
+  direction: ltr;
+}
+.connectionsPanelHeader .rightButtons {
+  margin-top: -4px;
+}
 .connectionsPanelHeader .languageToggle,
-.connectionsHeader .readerNavMenuCloseButton.arrow {
-  font-size: 24px;
+.connectionsHeader .readerNavMenuCloseButton.circledX{
   height: 32px;
-  width: 32px;
+  width: 30px;
   text-align: center;
   line-height: 32px;
-  background-color: #f9f9f7;
-  border: 1px solid #E6E6E6;
-  border-radius: 4px;
-  margin-left: 10px;
 }
-.connectionsHeader .readerNavMenuCloseButton.arrow .fa {
-  line-height: 32px;
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+  height: 32px;
+  width: 30px;
+  display: flex;
+  align-items: center;
+  margin: 0 15px;
 }
 .connectionsPanelHeader .languageToggle {
-  background-color: transparent;
-  border: 1px solid #ccc;
-  font-size: 30px;
+  margin: 0 15px;
 }
-.connectionsPanelTabs {
+.connectionsHeader .readerNavMenuCloseButton.circledX,
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+  width: 20px;
+}
+.connectionsHeader .readerNavMenuCloseButton.circledX img,
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img{
+  opacity: 0.4;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+}
+.connectionsPanelHeader .languageToggle img {
+  vertical-align: middle;
+}
+.connectionsPanel .flashMessage {
+  font-size: 18px;
+  color: #999;
+  margin-bottom: 30px;
   text-align: left;
 }
-.connectionsPanelTab {
-  text-transform: none;
-  display: inline-block;
-  padding: 2px 24px 2px 0px;
-  cursor: pointer;
-  font-size: 15px;
-}
-.connectionsPanelTab.active {
-  color: #333;
+.interface-hebrew .connectionsPanel .flashMessage {
+  text-align: right;
 }
 .textList {
   width: 100%;
@@ -2402,8 +2859,8 @@ a.resourcesLink {
   background-color: #333331;
 }
 .textList.fullPanel {
-  height: 100%;
   padding-top: 58px;
+  height: 100%;
   box-sizing: border-box;
 }
 .textList .texts,
@@ -2421,20 +2878,13 @@ a.resourcesLink {
 }
 .textList .texts .contentInner {
   max-width: 660px;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
-.textList.fullPanel .texts {
-  padding: 0 48px 300px 60px;
-}
-.addToSourceSheetPanel.textList.fullPanel .texts {
-  padding: 0 50px;
-}
-.textList .texts,
-.textList .fullFilterView {
+.textList .texts {
   padding: 30px 30px 80px 30px;
 }
-.textList.fullPanel .fullFilterView {
-  padding: 60px 48px 80px 60px;
+.textList.fullPanel .texts {
+  padding: 50px 40px 80px 40px;
 }
 .textListTop {
   position: absolute;
@@ -2495,12 +2945,7 @@ a.resourcesLink {
   border-right: 1px solid transparent;
 }
 .topFilters {
-  margin: -1px;
-  padding: 4px 22px;
-  line-height: 0px;
-  background-color: #F9F9F7;
-  border-top: 4px solid transparent;
-  border-bottom: 1px solid #D5D5D4;
+  text-transform: none;
 }
 .sepia .topFilters {
   background-color: #F3F3F1;
@@ -2518,7 +2963,7 @@ a.resourcesLink {
 .topFilters .textFilter {
   color: #999;
   display: inline-block;
-  padding: 10px 8px;
+  padding: 16px 8px;
 }
 .topFilters .textFilter.on {
   color: black;
@@ -2531,7 +2976,7 @@ a.resourcesLink {
   vertical-align: middle;
 }
 .textList.fullPanel .recentFilterSet {
-  margin: 30px 0 12px 0;
+  margin: 0 0 12 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter {
   display: inline-block;
@@ -2552,14 +2997,12 @@ a.resourcesLink {
 }
 .topFiltersInner {
   display: inline-block;
-  max-width: 80%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
 }
 .textList.fullPanel .topFiltersInner {
-  max-width: none;
   white-space: normal;
 }
 .showMoreFilters {
@@ -2568,24 +3011,34 @@ a.resourcesLink {
 }
 .categoryFilter {
   text-transform: uppercase;
-  padding: 12px;
-  text-align: center;
-  font-size: 15px;
+  padding: 17px 34px;
+  font-size: 17px;
   cursor: pointer;
   line-height: 18px;
   color: #333;
+  -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
+
 }
 .textFilter {
-  padding: 12px 4px;
-  text-align: center;
-  font-size: 15px;
+  padding: 12px 34px;
+  font-size: 17px;
   line-height: 1.2;
+  border-top: 1px solid #ccc;
   display: block;
   cursor: pointer;
   color: #333;
 }
+.connectionsCount {
+  color: #999;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
 .categoryFilterGroup a:hover {
   text-decoration: none;
+}
+.categoryFilterGroup.withBooks + .categoryFilterGroup {
+  margin-top: 30px;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
@@ -2667,10 +3120,7 @@ a.resourcesLink {
   top: 70px;
 }
 .textList .texts {
-  background-color: white;
   position: relative;
-}
-.textList.fullPanel .texts {
   background-color: #F9F9F7;
 }
 .sepia .textList .texts {
@@ -2683,9 +3133,11 @@ a.resourcesLink {
   font-size: 1.8em;
   padding: 16px 0;
   margin: 12px 0px;
-  border-bottom: 1px solid #eee;
   cursor: pointer;
   position: relative;
+}
+.textListTextRangeBox {
+  border-bottom: 1px solid #eee;
 }
 .textList .texts .textRange .title {
   color: #999;
@@ -2693,42 +3145,103 @@ a.resourcesLink {
 .dark .textList .texts .textRange .title {
   color: #ddd;
 }
+.textList.singlePanel .textListTextRangeBox:first-child {
+  margin-top: -30px;
+}
+.textRange .title {
+  display: flex;
+  justify-content: space-between;
+}
+.textRange .title .buttons {
+}
 .bilingual .textList .title .he {
   display: none;
 }
-.textList .sheet, .textList .note {
-  background-color: white;
-  margin: 6px 0px;
-  padding: 10px 20px;
+.textList .sheet,
+.textList .note {
+  padding: 0 0 24px 0;
+  display: flex;
+  flex-flow: column;
+}
+.textList .sheet + .sheet {
+  padding: 24px 0;
+  border-top: 1px solid #E6E5E6;
+}
+.textList .sheet .sheetInfo{
+  display: flex;
+  justify-content: space-between;
 }
 .textList .sheet .sheetAuthorImg,
 .textList .note .noteAuthorImg {
-  height: 36px;
-  width: 36px;
-  float: left;
-  margin-right: 10px;
+  height: 26px;
+  width: 26px;
+  vertical-align: -8px;
 }
 .textList .sheet .sheetViews {
-  float: right;
   color: #999;
+  font-size: 12px;
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
   color: #999;
-  text-transform: uppercase;
-  display: block;
+  font-size: 15px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin: auto 14px;
 }
 .textList .sheet .sheetTitle {
-  font-size: 14px;
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 14px;
+  font-size: 17px;
+  font-style: italic;
   text-align: left;
-  color: black;
+  color: #333;
+}
+.textList .sheet .sheetTitle .sheetIcon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.4;
+  vertical-align: -1px;
+}
+.textList .sheet .sheetTitle .sheetTitleText{
+  margin: auto 6px;
+}
+.textList .sheet .sheetTags {
+  display: flex;
+  flex-flow: row wrap;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #666;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-align: left;
+}
+/*.interface-hebrew .textList .sheet .sheetTags {
+  text-align: right;
+}*/
+.textList .sheet .sheetTag {
+  color: inherit;
+  display: inline-block;
+  white-space: nowrap;
+}
+.textList .sheet .sheetTag .separator {
+  display: inline-block;
+  margin-right: 8px;
+}
+.textList .sheetList {
+  padding-top: 40px;
+}
+.textList .sheetList + .sheetList {
+  border-top: 1px solid #E6E5E6;
+}
+.textList .note .noteAuthorInfo {
+  margin-bottom: 14px;
 }
 .textList .note .noteTitle {
   font-weight: bold;
 }
 .textList .note .noteTitle,
 .textList .note .noteText {
-  font-size: 1.8em;
+  font-size: 16px;
 }
 .textRange .numberLabel {
   position: absolute;
@@ -2737,6 +3250,10 @@ a.resourcesLink {
 .english .textRange .numberLabel {
   left: -24px;
 }
+.english .textRange .numberLabel.itag {
+  right: -30px;
+  left: initial;
+}
 .hebrew .textRange .numberLabel,
 .bilingual .textRange .numberLabel  {
   right: -30px;
@@ -2744,43 +3261,60 @@ a.resourcesLink {
 .multiPanel .textRange .numberLabel{
   display: none;
 }
+.multiPanel .textRange .numberLabel.itag{
+  display: block;
+  color: #4871bf;
+}
 .textRange.lowlight .numberLabel {
   color: #999;
 }
-.toolsPanel .texts .contentInner,
-.sharePanel .texts .contentInner,
-.myNotesPanel .texts .contentInner,
-.addToSourceSheetPanel .texts .contentInner,
-.addNotePanel .texts .contentInner {
-  margin: 60px auto;
-}
-.readerPanel.bilingual .toolsPanel .he {
+.readerPanel.bilingual .connectionsPanel .he {
   display: none;
 }
+.textListTextRangeBox {
+  position: relative;
+}
+.textListTextRangeBox:hover .editorLinkOptions {
+  display: block;
+}
+.editorLinkOptions {
+  display: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #999;
+  letter-spacing: 1px;
+  margin: -20px 0 10px;
+}
+.interface-hebrew .editorLinkOptions {
+  left: auto;
+  right: 0;
+}
+.editorLinkOptions > div:hover {
+  text-decoration: underline;
+}
 .toolsMessage {
-  margin: 130px 60px;
+  margin: 130px 0;
   text-align: center;
   font-size: 18px;
 }
 .toolsButton {
-  background-color: white;
-  color: #666;
-  border: 1px solid #F7F7F7;
-  border-radius: 7px;
-  cursor: pointer;
-  text-transform: uppercase;
-  font-size: 14px;
-  letter-spacing: 1px;
-  padding: 20px 26px;
-  margin: 10px 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
+  color: #333;
+  border-top: 1px solid #CCC;
+  cursor: pointer;
+  font-size: 16px;
+  letter-spacing: 1px;
+  padding: 20px 0 20px 0;
+}
+.toolsButton:hover {
+  text-decoration: none;
+  color: inherit;
 }
 .toolsButton .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  /*float: right;*/
   color: #ccc;
   font-size: 22px;
 }
@@ -2788,11 +3322,12 @@ a.resourcesLink {
   width: 22px;
   height: 22px;
   opacity: 0.2;
+  vertical-align: middle;
 }
-/*.hebrew .toolsButton .toolsButtonIcon {
-  float: left;
-}*/
-.sharePanel input {
+.toolsButton .toolsButtonText{
+  margin: 0 15px;
+}
+.shareInput {
   width: 100%;
   box-sizing: border-box;
   border-radius: 7px;
@@ -2802,9 +3337,12 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding: 20px 26px;
-  outline: none;
+  margin-bottom: 30px;
 }
-.addToSourceSheetPanel input {
+.addToSourceSheetBox {
+  position: relative;
+}
+.addToSourceSheetBox input {
   padding: 13px 12px;
   margin: 0;
   cursor: pointer;
@@ -2815,66 +3353,66 @@ a.resourcesLink {
   width: 60%;
   box-sizing: border-box;
 }
-.addToSourceSheetPanel .button {
+.addToSourceSheetBox .button {
   width: 100%;
   text-align: center;
+  margin: 0;
 }
-.addToSourceSheetPanel .button.small {
+.addToSourceSheetBox .button.small {
   width: 37%;
   box-sizing: border-box;
   padding: 12px;
   margin: 0;
   float: right;
 }
-.sourceSheetSelector {
-  color: #999;
-  background-color: white;
-  box-sizing: border-box;
-  width: 100%;
-  padding: 0;
-  margin: 10px 0 30px 0;
-  max-height: 300px;
-  overflow-x: hidden;
-  overflow-y: scroll;
+.addToSourceSheetBox .newSheet {
+  border-top: 1px solid #E9E9E9;
+  padding: 14px 22px;
 }
-.sourceSheetSelector .sheet {
-  font-size: 16px;
-  cursor: pointer;
-}
-.sourceSheetSelector .sheet.selected {
-  background: #ccc;
-  color: white;
-}
-.confirmAddToSheetPanel {
+.confirmAddToSheet {
   text-align: center;
-  padding: 100px 30px 0;
   background-color: #F9F9F7;
 }
-.confirmAddToSheetPanel .message {
+.confirmAddToSheet .message {
   font-size: 18px;
   margin-bottom: 30px;
   font-style: italic;
 }
-.confirmAddToSheetPanel .button {
+.confirmAddToSheet .button {
   width: 100%;
 }
-.addNotePanel .noteText {
+.connectionsPanel .allSheetsLink,
+.connectionsPanel .allNotesLink {
+  display: block;
+  margin-top: 10px;
+}
+.interface-hebrew .allNotesLinks {
+  text-align: left;
+}
+.noteList + .noteList {
+  border-top: 1px solid #ccc;
+}
+.connectionsPanel .loadingMessage {
+  margin-top: 40px;
+}
+.connectionsPanel textarea.noteText {
   width: 100%;
-  min-height: 220px;
+  min-height: 100px;
   border: none;
   border-radius: 4px;
   padding: 20px 25px;
-  outline: none;
   box-sizing: border-box;
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 10px
 }
-.addNotePanel .noteSharingToggle {
+.connectionsPanel .noteSharingToggle {
   border: 1px solid #ccc;
   border-radius: 4px;
+  margin-bottom: 12px;
 }
-.addNotePanel .notePrivateButton, .addNotePanel .notePublicButton {
+.connectionsPanel .notePrivateButton,
+.connectionsPanel .notePublicButton {
   width: 50%;
   display: inline-block;
   text-align: center;
@@ -2888,16 +3426,17 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
 }
-.addNotePanel .notePrivateButton.active, .addNotePanel .notePublicButton.active {
+.connectionsPanel .notePrivateButton.active,
+.connectionsPanel .notePublicButton.active {
   background-color: white;
   color: #666;
 }
-.addNotePanel .notePrivateButton {
+.connectionsPanel .notePrivateButton {
   border-right: 1px solid #ccc;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-.hebrew .addNotePanel .notePrivateButton {
+.hebrew .connectionsPanel .notePrivateButton {
   border-left: 1px solid #ccc;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -2905,12 +3444,12 @@ a.resourcesLink {
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
-.addNotePanel .line {
+.connectionsPanel .line {
   width: 100%;
   border-bottom: 1px solid #ccc;
   margin: 40px 0;
 }
-.addNotePanel .deleteNote {
+.connectionsPanel .deleteNote {
   text-align: center;
   padding: 18px 0;
   color: #999;
@@ -2918,45 +3457,54 @@ a.resourcesLink {
   cursor: pointer;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.myNotesPanel.textList .note {
-  background-color: transparent;
-  padding: 40px 0 30px;
+.connectionsPanel.textList .note {
+  padding: 30px 0;
   position: relative;
-  display: flex;
-  justify-content: space-between;
 }
-.myNotesPanel.textList .note {
-  border-top: 1px solid #ccc;
+.connectionsPanel.textList .note {
+  border-top: 1px solid #E6E5E6;
 }
-.myNotesPanel.textList .note:first-child {
-  padding-top: 10px;
+.connectionsPanel.textList .note:first-child {
   border-top: none;
 }
-.myNotesPanel .noteButtons {
+.connectionsPanel .noteButtons {
+  position: absolute;
+  top: 30px;
+  left: -32px;
+}
+.interface-hebrew .connectionsPanel .noteButtons {
+  left: auto;
+  right: -32px;
+}
+.connectionsPanel .editNoteButton {
   visibility: hidden;
 }
-.myNotesPanel.textList .note:first-child .noteButtons {
-  top: 14px;
-}
-.myNotesPanel .note:hover .noteButtons {
+.connectionsPanel .note:hover .editNoteButton {
   visibility: visible;
 }
-.myNotesPanel .noteButtons .fa {
+.connectionsPanel .noteButtons .fa {
   cursor: pointer;
   color: #C6C6C6;
   font-size: 20px;
   margin: 0 8px;
 }
-.myNotesPanel .toolsButton {
-  margin-top: 20px;
-}
-.loginPanel {
-  text-align: center;
-  padding-top: 40px;
-}
-.loginPanel .loginPanelMessage {
+.addConnectionBox {
   font-size: 18px;
-  margin: 80px 0 30px;
+  text-align: center;
+}
+.addConnectionSummary {
+  margin-bottom: 20px;
+}
+.loginPrompt {
+  text-align: center;
+}
+.loginPrompt .loginPromptMessage {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+.loginPrompt .button {
+  width: auto;
+  margin: 0 6px;
 }
 .notificationsPanel .content {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2977,7 +3525,15 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .systemPanel.readerNavMenu h1 .he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
+}
+.systemPanel.readerNavMenu h1 .button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 26px;
 }
 .notificationsPanel a {
   color: #333;
@@ -3041,23 +3597,23 @@ a.resourcesLink {
   text-transform: uppercase;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#s2Loading {
+#appLoading {
   text-align: center;
   background-color: #F9F9F7;
   height: 100%;
   color: #666;
 }
-#s2Loading .sefariaLogo {
+#appLoading .sefariaLogo {
   margin-top: 18px;
   margin-bottom: 2px;
 }
-#s2Loading .loadingMessage {
+#appLoading .loadingMessage {
   position: absolute;
   width: 100%;
   top: 32%;
   font-size: 18px;
 }
-#s2Loading img {
+#appLoading img {
   width: 150px;
   height: 42px;
 }
@@ -3080,6 +3636,7 @@ a.resourcesLink {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   line-height: 1;
+  text-align: center;
 }
 a.button {
   color: white;
@@ -3104,11 +3661,17 @@ a.button.white {
   background-color: transparent;
   border: 1px solid transparent;
 }
+.button.transparent.bordered {
+  border: 1px solid #CCC;
+}
 .button.fillWidth {
   width: 100%;
   text-align: center;
   display: block;
-  margin: 0 0 6px 0;
+  margin: 10px 0;
+}
+.button.squareBorder {
+  border-radius: 0;
 }
 a .button:hover {
   text-decoration: none;
@@ -3129,67 +3692,62 @@ a .button:hover {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
-::-moz-placeholder { 
+::-moz-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
 }
-:-ms-input-placeholder {  
+:-ms-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.interface-hebrew ::-webkit-input-placeholder {
+  font-style: normal;
+  font-family: "Heebo", sans-serif;
+}
+.interface-hebrew ::-moz-placeholder {
+  font-style: normal;
+  font-family: "Heebo", sans-serif;
+}
+.interface-hebrew :-ms-input-placeholder {
+  font-style: normal;
+  font-family: "Heebo", sans-serif;
 }
 input {
-  outline: none;
 }
-
 .lexicon-content{
-  /*max-height:45%;*/
   font-size: 15px;
   padding-bottom: 10px;
   margin-bottom: 1px;
-  border-bottom: 1px solid #e5e5e5;
 }
-
-
-
 .lexicon-link:hover {
   text-decoration: underline;
 }
-
-
 .lexicon-header {
   padding: 10px;
   border-bottom: 1px solid #e5e5e5;
   background-color: #AAAAAA;
 }
-
-.lexicon-header h4{
+.lexicon-header h4 {
   font-size: 1.2em;
   margin: 0px;
 }
-
 .entry + .entry {
   padding-top: 10px;
-  	/*border-top: 1px inset #AAAAAA;*/
 }
-
 .lexicon-results .entry > div{
   padding: 1% 0 1% 0;
   margin: auto;
 }
-
-.lexicon-results .entry .headword{
-	/*font-weight: bold;*/
+.lexicon-results .entry .headword {
   color: #333;
   font-size: 1.2em;
   display: block;
 }
-
-.lexicon-results .entry .morphology{
+.lexicon-results .entry .morphology {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   display: block;
 }
-
 .lexicon-results .entry .definition-content{
     color: #444;
 }
@@ -3199,14 +3757,11 @@ input {
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
 	padding: 0px;
-	/*margin: 0;*/
 }
 .lexicon-results .entry .definition ol.senses{
-	/*list-style-type: none;*/
 	padding-left: 0px;
 }
 .lexicon-results .entry .definition > li.sense{
-	/*list-style-type: none;*/
 	margin-left: 0px;
 }
 .lexicon-results .entry ol.definition {
@@ -3215,35 +3770,32 @@ input {
 	padding-left: 0px;
     margin: 0px;
 }
-/*.sense + .sense {
-	margin-top: 3px;
-	padding-top: 3px;
-	border-top: 1px solid #eee;}*/
-
-/*.lexicon-results a {
-	font-size: 12px;
-}*/
-.lexicon-results .attribution{
+.lexicon-results .attribution {
 
 }
-.lexicon-results .attribution span{
+.lexicon-results .attribution a {
   display: block;
 }
-.lexicon-results .attribution a{
+.lexicon-results .attribution a {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
 .lexicon-content .headword.en, .lexicon-content .headword.he,
 .lexicon-content .definition-content.en, .lexicon-content .definition-content.he,
-.lexicon-content .lexicon-results .attribution{
+.lexicon-content .lexicon-results .attribution {
   display: inline;
 }
-.lexicon-content .headword.he, .lexicon-content .definition-content.he{
+.lexicon-content .headword.he, .lexicon-content .definition-content.he {
   direction: rtl;
 }
-.lexicon-content .headword.en, .lexicon-content .definition-content.en{
+.lexicon-content .headword.en, .lexicon-content .definition-content.en {
   direction: ltr;
+}
+.lexicon-instructions,
+.lexicon-content .loadingMessage {
+  font-size: 15px;
+  font-style: italic;
 }
 h2.splitHeader {
   margin-bottom: 10px;
@@ -3259,6 +3811,10 @@ h2.splitHeader .he {
   float:right;
   text-transform: none;
   cursor: pointer;
+  color: inherit;
+}
+.splitHeader .actionText select {
+  margin-left: 6px;
 }
 .sheetsNewButton {
   text-align:center;
@@ -3268,26 +3824,43 @@ h2.splitHeader .he {
   font-color: inherit;
 }
 .sheet.userSheet .sheetTitle  {
-   font-family: "adobe-garamond-pro", Georgia, serif;
-   font-size: 20px;
-   color:#333;
-   margin-bottom: 6px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 20px;
+  color:#333;
+  margin-bottom: 6px;
+  unicode-bidi: plaintext;
 }
 .sheet.userSheet {
-   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-   font-size: 14px;
-   color:#999;
+  font-size: 14px;
+  color:#999;
   text-decoration: none;
+  flex-direction: column;
+}
+.interface-english .sheet.userSheet{
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .sheet.userSheet{
+  font-family: "Heebo", "sans-serif";
+}
+.sheet.userSheet .userSheetInfo{
+  display: flex;
+  justify-content: flex-start;
+}
+.sheet.userSheet .userSheetInfo span:before{
+  content: '·';
+  margin: auto 4px;
+}
+.sheet.userSheet .userSheetInfo span:first-child:before{
+  content: '';
+  margin: 0;
+}
+.sheet.userSheet .sheetAccess{
+  margin: auto 4px;
 }
 .filterByTag {
   cursor: pointer;
   text-transform: none
 }
-/*  Add back in when we're ready for tag/edit hover buttons on 'My Sheets'
-.sheet.userSheet:hover .sheetEditButtons {
-	display: inline-block;
-}
-*/
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
   height: 32px;
@@ -3326,6 +3899,9 @@ h2.splitHeader .he {
 }
 .groupsList {
   margin-top: 30px;
+}
+.groupsList .loadingMessage {
+  text-align: center;
 }
 .groupListing {
   padding: 30px 0;
@@ -3393,6 +3969,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupDescription {
   font-size: 16px;
+  text-align: center;
 }
 .groupPage .tabs {
   text-align: center;
@@ -3411,6 +3988,24 @@ h2.splitHeader .he {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.groupSheetInner {
+  display: flex;
+}
+.groupSheetInnerContent {
+  flex: 1;
+}
+.groupSheetListingPinButton {
+  display: none;
+  opacity: 0.3;
+  cursor: pointer;
+}
+.sheet:hover .groupSheetListingPinButton.active {
+  display: block;
+}
+.groupSheetListingPinButton.pinned {
+  display: block;
+  opacity: 0.6;
+}
 #groupInvitationInput {
   padding: 14px 30px;
   width: 492px;
@@ -3421,6 +4016,11 @@ h2.splitHeader .he {
   font-size: 18px;
   position: relative;
   top: 3px;
+}
+.groupInvitationBoxMessage {
+  font-size: 18px;
+  padding: 12px 0 0;
+  text-align: center;
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;
@@ -3439,6 +4039,11 @@ h2.splitHeader .he {
   color: #666;
   margin: 0 20px;
 }
+.groupInvitationListing {
+  display: inline-block;
+  min-height: 50px;
+  line-height: 50px;
+}
 .groupMemberListingRoleBox {
   float: right;
   line-height: 50px;
@@ -3449,7 +4054,7 @@ h2.splitHeader .he {
 .groupMemberListingActions {
   position: relative;
   display: inline-block;
-  background-color: white; 
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-left: 12px;
@@ -3465,8 +4070,7 @@ h2.splitHeader .he {
   position: absolute;
   right: 0;
   top: 46px;
-  width: 300px;
-  background-color: white; 
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   color: #999;
@@ -3476,6 +4080,7 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .action {
   padding: 4px 10px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .groupMemberListingActionsMenu .action:hover {
   background-color: #eee;
@@ -3490,23 +4095,225 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .role.current {
   color: #666;
 }
+.topicsPanel.systemPanel.readerNavMenu h1 {
+  margin: 0 0 30px 0;
+}
+.topicsPanel.systemPanel.readerNavMenu h3 {
+
+}
+.topicsPanel .loadingMessage {
+  text-align: center;
+}
+.topicsPanel .topicFilterBox {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 50px
+}
+.topicsPanel .topicFilterIcon {
+  font-size: 22px;
+  opacity: 0.4;
+}
+.topicsPanel .topicFilterInput {
+  padding: 12px 10px;
+  flex: 1;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+}
+.topicsPanel .topicsFilterReset {
+  color: #999;
+  cursor: pointer;
+}
+.topicsPanel .topicsFilterResetIcon {
+  height: 16px;
+  width: 16px;
+  opacity: 0.4;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.topicsPanel .topicList {
+  min-height: 500px;
+}
+.topicsPanel .content .topicList .navButton .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.topicsPanel .content .topicList .navButton .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicsPanel .trendingTopics {
+  margin-bottom: 40px;
+}
+.topicPanel .topicLabel {
+  text-transform: uppercase;
+  font-weight: lighter;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.topicPanel .topicLabel a {
+  color: #8E8E8E;
+}
+#s2 .topicPanel h1 {
+  margin-bottom: 50px;
+  font-size: 30px;
+}
+#s2 .topicPanel h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#s2 .topicPanel h1 .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicPanel .relatedTopicsList {
+  margin-bottom: 70px;
+  text-align: center;
+}
+.topicPanel .relatedTopic {
+  margin: 0 7px;
+  color: #333;
+  font-size: 16px;
+  line-height: 1.4;
+  display: inline-block;
+}
+.topicPanel .content .relatedTopic .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.topicPanel .content .relatedTopic .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicPanel .sourceList {
+  min-height: 500px;
+}
+.topicPanel .sourceList .loadingMessage {
+  text-align: center;
+}
+.topicPanel .topicSource {
+  margin-bottom: 40px;
+  cursor: pointer;
+  position: relative;
+}
+.topicPanel .topicSource .title {
+  font-weight: bold;
+}
+.topicPanel .topicSource .score {
+  font-size: 17px;
+  color: #333;
+  font-weight: normal;
+  white-space: nowrap;
+  border-radius: 4px;
+  padding: 3px;
+}
+.topicPanel .topicSource .score:hover {
+  background-color: #EEE;
+}
+.topicPanel .topicSource .score:active {
+  background-color: #DDD;
+}
+.hebrew .topicPanel .topicSource .score {
+  right: auto;
+  left: 5px;
+}
+.topicPanel .topicSource .score img {
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  margin: -4px 0 0 2px;
+  opacity: 0.6;
+}
+.hebrew .topicPanel .topicSource .score img {
+  margin: -4px 2px 0 0;
+}
+.note a {
+  color: #333;
+  text-decoration: underline;
+}
+.myNotesPanel .noteList {
+  margin-bottom: 220px;
+}
+.noteListing {
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #ccc;
+}
+.noteListing a:hover {
+  text-decoration: none;
+}
+.noteListing .textRange .title {
+  font-size: 18px;
+  color: #999;
+  margin-bottom: 10px;
+}
+.noteListing .textRange .title:hover {
+  text-decoration: underline;
+}
+.noteListing .textRange .text {
+  font-size: 18px;
+  font-style: italic;
+  color: #999;
+  margin-bottom: 18px;
+}
+.noteListing .segment {
+  display: block;
+}
+.noteListing .note {
+  font-size: 18px;
+}
+.noteListing .addToSheetButton {
+  visibility: hidden;
+  float: right;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  display: inline-block;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.noteListing:hover .addToSheetButton {
+  visibility: visible;
+}
+.noteListing .mask {
+  background-color: white;
+  opacity: 0.5;
+}
+.addToSourceSheetModal {
+  position: absolute;
+  display: block;
+  left: 40%;
+  top: 240px;
+  width: 330px;
+  padding: 20px;
+  background: #F9F9F7;;
+  border: #ccc 1px solid;
+  border-radius: 4px;
+  box-shadow: 0px 0px 10px #ccc;
+  z-index: 200;
+}
+.addToSourceSheetModal .closeButton {
+  margin-bottom: 10px;
+  cursor: pointer;
+  height: 18px;
+  width: 18px;
+  opacity: 0.5;
+  float: right;
+}
 /*** Interface lang - merge with static.css? ***/
-.readerApp.interface-hebrew .int-en{
+.interface-hebrew .int-en {
   display: none;
 }
-.readerApp.interface-english .int-he{
+.interface-english .int-he {
   display: none;
 }
-.readerApp.interface-hebrew .readerPanel{
+.readerApp.interface-hebrew .readerPanel {
   direction: rtl;
 }
-.readerApp.interface-english .readerPanel{
+.readerApp.interface-english .readerPanel {
   direction: ltr;
 }
-.int-he{
-  font-family: "Open Sans Hebrew", sans-serif;
+.int-he {
+  font-family: "Heebo", sans-serif;
+  direction: rtl;
 }
-.int-en{
+.int-en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchBox .keyboardInputInitiator {
@@ -3557,7 +4364,7 @@ body #keyboardInputMaster tbody tr td table{
 body #keyboardInputMaster tbody tr td table tbody tr td{
     border: 0.5px solid #eee;
     background: white;
-    font-family: "Open Sans Hebrew","proxima-nova", sans-serif;
+    font-family: "Heebo","proxima-nova", sans-serif;
     min-width: 15px;
     vertical-align: middle;
     padding: 2px 8px;
@@ -3578,14 +4385,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #editGroupPage .int-he {
-  font-family: "Open Sans Hebrew", sans-serif;
+  font-family: "Heebo", sans-serif;
 }
 #editGroupPage .field {
   box-sizing: border-box;
   width: 100%;
   display: inline-block;
   vertical-align: top;
-  padding: 10px;
+  padding: 12px;
 }
 #editGroupPage .field.halfWidth {
   width: 50%;
@@ -3599,7 +4406,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 75%;
   display: inline-block;
 }
-#editGroupPage .field label {
+#editGroupPage .field > label {
   display: block;
   margin-bottom: 15px;
 }
@@ -3613,14 +4420,21 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   box-sizing: border-box;
   color: #333;
 }
+#editGroupPage .hiddenFileInput {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
 #groupDescription:focus {
-  outline: none;
 }
 #editGroupPage .groupImage {
   max-width: 200px;
   margin-bottom: 5px;
   display: block;
-},
+}
 #editGroupPage .groupCover {
   width: 100%;
   margin-bottom: 5px;
@@ -3628,6 +4442,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editGroupPage .helperText {
   color: #999;
   font-size: 13px;
+  width: 500px;
 }
 #editGroupPage .groupHeaderBox {
   width: 100%;
@@ -3648,28 +4463,61 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editGroupPage .deleteGroup:hover {
   text-decoration: underline;
 }
-#footer #siteLanguageToggle {
-  color: #999;
-  margin-top: 15px;
-  font-size: 13px;
+.dropdown {
+  position: relative;
 }
-#footer #siteLanguageToggle #siteLanguageToggleLabel {
-  display: block;
-}
-#footer a#siteLanguageEnglish,
-#footer a#siteLanguageHebrew {
+.dropdown .dropdownMain {
+  background: white;
+  border: 1px solid #E9E9E9;
+  border-radius: 4px;
+  padding: 16px 22px;
+  font-size: 16px;
+  margin-bottom: 10px;
   cursor: pointer;
-  color: #666;
-  display: inline;
-  margin: 0 3px;
-  font-size: 13px;
 }
-#footer #siteLanguageEnglish:hover,
-#footer #siteLanguageHebrew:hover {
-  text-decoration: underline;
+.addToSourceSheetBox .dropdownMain .loadingMessage {
+  margin: 0;
 }
-#footer a#siteLanguageHebrew {
-  font-size: 14px;
+.dropdown .dropdownOpenButton {
+  float: right;
+  cursor: pointer;
+  color: #999;
+  font-size: 18px;
+}
+.dropdown .dropdownListBox {
+  position: absolute;
+  z-index: 1;
+  margin-top: -12px;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #E9E9E9;
+  background: white;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.dropdown .dropdownList {
+  color: #999;
+  background-color: white;
+  box-sizing: border-box;
+  padding: 0;
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+.singlePanel .dropdown .dropdownList {
+  max-height: 150px;
+}
+.dropdown .dropdownList .dropdownOption {
+  font-size: 16px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  cursor: pointer;
+  padding: 0 22px;
+  margin: 26px 0;
+  border: none;
+  color: #999;
+}
+.dropdown .dropdownList .dropdownOption.selected {
+  color: #333;
 }
 #footer {
   background-color: white;
@@ -3677,18 +4525,11 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   overflow: hidden;
   padding: 18px 40px;
   text-align: left;
-}
-#footer .section {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-#footer .header {
-  font-weight: bold;
-  font-size: 15px;
-  margin-bottom: 3px;
+  color: #999;
 }
 #footer a {
   display: block;
+  color: #999;
 }
 #footer.interface-hebrew, .interface-hebrew #footer{
   direction: rtl;
@@ -3702,20 +4543,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
   display: inline;
-  font-size: 120%;
   text-align: right;
 }
 #footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
   display: none;
 }
 #footerInner {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 #footer .section {
   display: inline-block;
   vertical-align: top;
-  width: 160px;
+  width: 200px;
+  margin: 20px 0;
 }
 #footer.interface-english .section, .interface-english #footer .section {
   text-align: left;
@@ -3725,31 +4566,112 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer .section .header {
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
   font-weight: normal;
-  font-size: 13px;
+  font-size: 15px;
 }
 #footer .section.last {
   float: right;
   text-align: right;
-  width: 210px;
-  border-left: 1px solid #EAEAEA;
 }
 #footer.interface-hebrew .section.last, .interface-hebrew #footer .section.last {
   float: left;
   text-align: left;
-  border-left: none;
-  border-right: 1px solid #EAEAEA;
 }
 #footer .section a {
-  color: #aaa;
-  font-size: 14px;
+  font-size: 15px;
   margin: 2px 0;
 }
 #footer .fa {
   margin: 0 3px;
 }
-.multiPanel .readerNavMenu .content.hasFooter #footer{
+#footer .header.connect {
+  text-transform: uppercase;
+}
+#newsletterFooterBox {
+  position: relative;
+  margin-bottom: 4px;
+}
+#newsletterInput {
+  border-radius: 6px;
+  padding: 8px 32px 11px 16px;
+  width: 150px;
+  font-size: 15px;
+  border: 1px solid #EEE;
+  margin-bottom: 6px;
+  color: #333;
+}
+#newsletterInput ::-webkit-input-placeholder,
+#newsletterInput ::-moz-placeholder,
+#newsletterInput :-ms-input-placeholder {
+  color: #AAA;
+}
+#newsletterFooterBox img {
+  height: 18px;
+  width: 18px;
+  opacity: 0.2;
+  position: absolute;
+  top: 10px;
+  right: 12px;
+}
+#footer.interface-hebrew #newsletterInput {
+  padding: 8px 16px 11px 32px;
+}
+#footer.interface-hebrew #newsletterFooterBox img {
+  right: auto;
+  left: 12px;
+  transform: scale(-1, 1);
+}
+#subscribeMessage {
+  margin-bottom: 14px;
+  color: #333;
+  font-style: italic;
+  text-align: center;
+}
+#footer .section.connect a {
+  display: inline;
+  margin: 0 4px;
+}
+#footer #socialButtons {
+  margin-bottom: 6px;
+}
+#footer #facebookButton {
+  display: inline-block;
+  vertical-align: middle;
+}
+#footer #twitterButton {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 4px;
+  margin-top: 4px;
+}
+#footer.interface-hebrew #twitterButton {
+  margin-left: 0;
+  margin-right: 4px;
+}
+#footer #siteLanguageToggle {
+  color: #999;
+  margin-top: 30px;
+  font-size: 15px;
+}
+#footer #siteLanguageToggle #siteLanguageToggleLabel {
+  display: block;
+  text-transform: uppercase;
+}
+#footer a#siteLanguageEnglish,
+#footer a#siteLanguageHebrew {
+  cursor: pointer;
+  color: #666;
+  display: inline;
+  margin: 0 3px;
+}
+#footer #siteLanguageEnglish:hover,
+#footer #siteLanguageHebrew:hover {
+  text-decoration: underline;
+}
+#footer a#siteLanguageHebrew {
+}
+.multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
 }
 .gemarra-regular, .gemarra-italic {
@@ -3757,6 +4679,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .it-text, .gemarra-italic {
   font-style: italic;
+}
+.categoryAttribution a {
+  color: inherit;
 }
 .bubbleTab {
   padding: 10px 25px;
@@ -3777,4 +4702,107 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .bubbleTab.active {
   color: #333;
 }
-
+.aboutBox .aboutHeader {
+  color: #999;
+  padding-bottom: 13px;
+  margin: 0;
+  margin-bottom: 15px;
+  text-align: initial;
+  text-transform: none;
+  font-size: 20px;
+  border-bottom: solid 1px #CCC;
+}
+.aboutBox .aboutTitle {
+  padding: 10px 0 15px 0;
+  font-size: 20px;
+  color: black;
+  display: inline-block;
+}
+.aboutBox .aboutSubtitle {
+  font-style: italic;
+  font-size: 15px;
+  color: #999;
+}
+.aboutBox .aboutSubtitle .he {
+  font-style: normal;
+}
+.aboutBox .aboutDesc {
+  padding: 15px 0 30px 0;
+  font-size: 15px;
+}
+.aboutBox .versionNotes {
+  padding-bottom: 15px;
+  font-size: 15px;
+  color: #666;
+}
+.aboutBox .versionDetails,
+.versionsBox .versionDetails {
+  font-size: 13px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  padding-bottom: 5px;
+  text-align: left;
+  line-height: 150%;
+}
+.readerApp.interface-hebrew .aboutBox .versionDetails,
+.readerApp.interface-hebrew .versionsBox .versionDetails {
+  text-align: right;
+}
+.aboutBox .versionDetails .separator,
+.versionsBox .versionDetails .separator {
+  margin: 0 3px;
+}
+.aboutBox a,
+.versionsBox a {
+  color: #999;
+}
+.aboutBox .currVersionSection {
+  padding-bottom: 30px;
+}
+.versionsBox .versionLanguage {
+  padding-bottom: 15px;
+  text-transform: uppercase;
+  font-size: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.versionsBox div:not(:first-child) .versionLanguage {
+  padding-top: 25px;
+}
+.versionsBox .versionLanguage .versionCount {
+  color: #999;
+}
+.versionsBox a.selectButton {
+  color: #ccc;
+  border: solid 1px #eee;
+  padding: 3px 8px;
+  text-transform: uppercase;
+  background-color: white;
+  border-radius: 4px;
+  line-height: 24px;
+}
+.versionsBox a.selectButton.currSelectButton {
+  color: #666;
+  text-decoration: none;
+  cursor: default;
+}
+.versionsTextList .topFiltersInner .uppercase {
+  text-transform: none;
+}
+.versionsBox .versionBlock {
+  padding: 20px;
+  border-top: solid 1px #CCC;
+}
+.versionsBox .versionBlock .versionTitle a {
+  color: black;
+}
+.interface-hebrew .versionsBox .versionLanguage {
+  direction: rtl;
+}
+.aboutBox .versionBlock .versionTitle:hover {
+  text-decoration: none;
+}
+span.purim-emoji img{
+  height: 25px;
+  width: 25px;
+}

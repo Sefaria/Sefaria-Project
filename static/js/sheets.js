@@ -4,7 +4,7 @@ sjs.flags = {
 		ckfocus: false,
 	 };
 
-sjs.can_save = (sjs.can_edit || sjs.can_add);
+sjs.can_save = (sjs.can_edit || sjs.can_add || sjs.can_publish);
 
 sjs.current = sjs.current || {
 	options: {
@@ -34,21 +34,33 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 // another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
+
+
 $(window).on("beforeunload", function() {
-	if (!($("#save").text() == "Saving...")) {
+	if (!($("#save").data("mode") == "saving")) {
 		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
-			return "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.";
+			return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
-			return "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.";
+			return _("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
 		}
 	}
 });
 
+//hide 
+$(window).scroll(function() {
+  var fixedBottom = $("#fileControls");
+  if ($('body').height() <= ($(window).height() + $(window).scrollTop())) {
+    fixedBottom.css("display", "none");
+  } else {
+    fixedBottom.css("display", "block");
+  }
+})
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
-		sjs.alert.message("Unfortunately an error has occurred.<br>If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.")
+		sjs.alert.message(_("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
+		" your work is properly saved."))
 	}
 }
 window.onerror = function (errorMsg, url, lineNumber) {
@@ -73,43 +85,10 @@ $(function() {
 	  }
 	);
 
-
-	$("#addSource, #addButton").click(function() { 
-		$("#addSourceModal").data("target", $("#sources")).show()
-			.position({of: $(window)}); 
-		$("#add").focus();
-		$("#overlay").show();
-		sjs.track.sheets("Open Add Source Modal");
-	});
-	
-	$("#addMedia").click(function(e) { 
-
-		var source = {media: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		
-		afterAction();
-		e.stopPropagation();
-
-		$("#addMediaModal").data("target", $("#sources").find(".media").last()).show().position({of: $(window)}); 
-		$("#addMediaInput").focus();
-		$("#overlay").show();
-//		sjs.track.sheets("Open Add Media Modal");
-
-
-	});
-	
-		$("#addMediaInput").keyup(checkAddSource).keyup(function(e) {
-			if (e.keyCode == 13) {
-				$( "#addMediaModal .ok" ).click()
-			}
-		});
-		
-
 	function makeMediaEmbedLink(mediaURL) {
-	    var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-   		var m;
+	  var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+  	var m;
+    var embedHTML;
 
 		if ((m = re.exec(mediaURL)) !== null) {
 			if (m.index === re.lastIndex) {
@@ -133,13 +112,17 @@ $(function() {
 					embedHTML = '<audio src="'+mediaURL+'.mp3" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
 
+		else if ( (mediaURL).match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null ) {
+					embedHTML = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url='+ mediaURL + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false"></iframe>';
+		}
+
 		else embedHTML = false;
 
 		return embedHTML
 	}
 
 	function mediaCheck(target){
-		$target = target;
+		var $target = target;
 		$target.find('audio, img').last()
 	    .on('error', function() {
 	    	$target.parent().remove();
@@ -148,183 +131,151 @@ $(function() {
 	}
 
 
-
-	$( "#addMediaModal .ok" ).click(function() {
-
-		var $target = $("#addMediaModal").data("target");
-		var embedHTML = makeMediaEmbedLink($("#addMediaInput").val())
-		if (embedHTML != false) {
-			$target.html(embedHTML);
-		}
-		else {
-			$target.parent().remove();
-			sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-		}
-
-		$("#addMediaModal, #overlay").hide();
-
-
-		mediaCheck($target);
-		autoSave();
-
-	if (sjs.openRequests == 0) {
-		var top = $target.offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 300);
-	}
-
-
-	});	
-	
-
-
-
-	$("#addBrowse, #inlineAddBrowse").click(function() {
+	$("#inlineAddBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
 		sjs.textBrowser.show({
 			callback: function(ref) {
 				if (!ref) { return; }
+				var $target = $("#addInterface").prev(".sheetItem");
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
-				addSource(q);
+				addSource(q, undefined, "insert", $target);
 				sjs.track.sheets("Add Source", ref);
+        cleanupActiveSource($target);
+
 			}
 		})
 	});
+	$("#inlineAddBrowse").keydown(function(e) {
+		if (e.which == 13) {
+			$("#inlineAddBrowse").click();
+		}
+  });
 
-	$(document).on("click", "#addSourceOK", function() {
-        var ref = $("#add").val();
-		var q = parseRef(ref);
-		$("#closeAddSource").trigger("click");
-		addSource(q);
-		sjs.track.sheets("Add Source", ref);
-	
-	});
 
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
-		$("#addSourceModal").data("target", $target);
         var ref = $("#inlineAdd").val();
-		var q = parseRef(ref);
-		addSource(q, undefined,"insert");
-		$('#inlineAdd').val('');
-		$("#inlineTextPreview").remove();
-		$("#inlineAddDialogTitle").text("Select a text");
-		$("#inlineAddSourceOK").addClass("disabled");
-		$("#sheet").click();
-
+		Sefaria.lookupRef(ref, function(q) {
+            addSource(q, undefined, "insert", $target);
+            $('#inlineAdd').val('');
+            $("#inlineTextPreview").html("");
+            $("#inlineTextPreview").hide();
+            $("#inlineAddDialogTitle").text("Select a text");
+            $("#inlineAddSourceOK").addClass("disabled");
+            $("#sheet").click();
+        });
 		sjs.track.sheets("Add Source", ref);
 	});
+	$(document).on("keydown", "#inlineAddSourceOK", function(e) {
+		if (e.which == 13) {
+			$("#inlineAddSourceOK").click();
+		}
+  });
 
-
-
-	$("#addComment").click(function(e) {
-		// Add a new comment to the end of the sheet
-		var source = {comment: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		$("#sources").find(".comment").last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Comment");
-		afterAction();
-		e.stopPropagation();
-
-	})
-
-	$("#addOutside").click(function(e) {
-		// Add a new outside text to the end of the sheet
-		var source = {outsideText: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		$("#sources").find(".outside").last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Outside Text");
-		afterAction();
-		e.stopPropagation();
-	})
-
-	$("#addBiOutside").click(function(e) {
-		// Add a new bilingual outside text to the end of the sheet
-		var source = {outsideBiText: {en: "<i>English</i>", he: "<i>עברית</i>"}, isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($("#sources"), source);
-		var elToFocus = $("#sheet").hasClass("hebrew") ? ".outsideBi .he" : ".outsideBi .en";
-		$("#sources").find(elToFocus).last().trigger("mouseup").focus();
-		
-		sjs.track.sheets("Add Outside Text (Bilingual)");
-		afterAction();
-		e.stopPropagation();
-	})
-	
-	$("#closeAddSource").click(function() { 
-		$("#addSourceModal, #overlay").hide(); 
-		$("#add").val("");
-		$("#error").empty();
-		$("#textPreview").remove();
-		$("#addDialogTitle").text("Enter a text or commentator name:");
-		sjs.track.sheets("Close Add Source Modal");
-
-	});
-	
-	$("#add").autocomplete({ source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-			},
-			focus: function(event, ui) { return false; } });
-
-	// Wrapper function for checkRef for adding sources for sheets
-	var checkAddSource = function(e) {
-		checkRef($("#add"), $("#addDialogTitle"), $("#addOK"), 0, addSourcePreview, false);
-	}
-
-	// Adding unknown Texts from Add modal
-	$("#add").keyup(checkAddSource)
-		.keyup(function(e) {
-		if (e.keyCode == 13) {
-			if ($("#addSourceOK").length) {
-				$("#addSourceOK").trigger("click");
-			} else if ($("#addDialogTitle").text() === "Unknown text. Would you like to add it?") {
-				var path = parseURL(document.URL).path;
-				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
+	function toggleSheetsMenu(menu) {
+		if ($(menu).parent().hasClass("open")) {
+			$(menu).parent().removeClass("open");
+		}
+		else {
+			$(".optionGroup.open").removeClass("open");
+			if (!$(menu).hasClass("optionTitle")) {
+				$(".sheetsMenuBarItem.open").removeClass("open");
 			}
-		}					
-	});
-
-
-	$("#inlineAdd").autocomplete({ source: function( request, response ) {
-				var matches = $.map( sjs.books, function(tag) {
-						if ( tag.toUpperCase().indexOf(request.term.toUpperCase()) === 0 ) {
-							return tag;
-						}
-					});
-				response(matches);
-			},
-			focus: function(event, ui) { return false; } });
-
-	// Wrapper function for checkRef for adding sources for sheets
-	var checkInlineAddSource = function(e) {
-		checkRef($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddOK"), 0, inlineAddSourcePreview, false);
+			$(menu).parent().toggleClass("open");
+		}
 	}
-
-	// Adding unknown Texts from Add modal
-	$("#inlineAdd").keyup(checkInlineAddSource )
-		.keyup(function(e) {
-		if (e.keyCode == 13) {
-			if (!$("#inlineAddSourceOK").hasClass('disabled')) {
-				$("#inlineAddSourceOK").trigger("click");
-			} else if ($("#inlineAddDialogTitle").text() === "Unknown text. Would you like to add it?") {
-				var path = parseURL(document.URL).path;
-				window.location = "/add/textinfo/" + $("#add").val().replace(/ /g, "_") + "?after=" + path;
+	$(".menuHeader").keydown(function(e) {
+		if (e.which == 13) {
+			toggleSheetsMenu($(this));
+		}
+		else if (e.which == 39) {
+			if ($(this).hasClass("optionTitle")) { // in case of submenu open it if it's closed otherwise focus on the first element
+				if (!$(this).parent().hasClass("open")) {
+					toggleSheetsMenu($(this));
+				}
+				$(this).next(".subMenu").find(':focusable').first().focus();
+      }
+			else {
+				$target = $(this).closest(".sheetsMenuBarItem").next(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
 			}
 		}
+		else if (e.which == 37) {
+				$target = $(this).closest(".sheetsMenuBarItem").prev(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+		}
+		else if (e.which == 38) {
+			//console.($(this).closest(".optionsMenu").find)
+				e.preventDefault();
+				if (!$(this).parent().hasClass("open")) {
+					toggleSheetsMenu($(this));
+				}
+				$(this).parent().prev(":focusable").first().focus();
+		}
+		else if (e.which == 40) {
+				e.preventDefault();
+				if ($(this).parent().hasClass("sheetsMenuBarItem")) {
+					if (!$(this).parent().hasClass("open")) {
+						toggleSheetsMenu($(this));
+					}
+					$(this).parent().find(".optionsMenu").find(".optionItem, .optionGroup").find(":focusable").addBack(":focusable").first().focus();
+				}
+				else {
+          $(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
+        }
+		}
+
+
+
+  });
+
+	$(".optionItem").keydown(function(e) {
+		if (e.which == 40) {
+				e.preventDefault();
+				$(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
+		}
+		else if (e.which == 38) {
+				e.preventDefault();
+				$(this).closest(".optionItem,.optionGroup").prevAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").last().focus();
+		}
+		else if (e.which == 39) {
+				$target = $(this).closest(".sheetsMenuBarItem").next(".sheetsMenuBarItem").find(':focusable').first();
+				$target.focus();
+				toggleSheetsMenu($target);
+		}
+		else if (e.which == 37) {
+      if ($(this).parent().hasClass("subMenu")) { // in case of submenu open it if it's closed otherwise focus on the first element
+        $(this).parent().prev(".menuHeader").focus();
+        $(this).closest(".optionGroup.open").removeClass("open");
+      }
+      else {
+        $target = $(this).closest(".sheetsMenuBarItem").prev(".sheetsMenuBarItem").find(':focusable').first();
+        $target.focus();
+        toggleSheetsMenu($target);
+      }
+    }
+		else if (e.which == 13) {
+    		$(this).click();
+				$(".optionGroup.open").removeClass("open");
+				$(".sheetsMenuBarItem.open").removeClass("open");
+    }
 	});
 
+	$(".sheetsMenuBarCommands").keydown(function(e) {
+		if (e.keyCode === 27) { //27 is escape
+        e.stopPropagation();
+				$(".optionGroup.open").removeClass("open");
+				$(".sheetsMenuBarItem.open").removeClass("open");
+    }
+	});
+
+
+    // This object is instantiated and sets up its own events.
+    // It doesn't need to be interacted with from the outside.
+    var validator = new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
 
 
 	// Printing
@@ -336,7 +287,12 @@ $(function() {
 
 	// General Options 
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
-		$check = $(".fa-check", $(this));
+		if($(this).parent().hasClass('languageToggleOption')||
+			$(this).parent().hasClass('layoutToggleOption') ||
+			$(this).parent().hasClass('sideBySideToggleOption')){
+			return;
+		}
+		var $check = $(".fa-check", $(this));
 		if ($check.hasClass("hidden")) {
 			$("#sheet").addClass($(this).attr("id"));
 			$check.removeClass("hidden");
@@ -354,7 +310,7 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
-		$("#assignmentDirections").html('Students can complete their assignment at this link:');
+		$("#assignmentDirections").html(_('Students can complete their assignment at this link:'));
 		$("#assignmentURLLink").show();
 		$("#assignedSheets").show();
 		autoSave();
@@ -365,7 +321,7 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
-		$("#assignmentDirections").html('Assignments allow you to create a template that your students can fill out on their own.')
+		$("#assignmentDirections").html(_('Assignments allow you to create a template that your students can fill out on their own.'));
 		$("#assignmentURLLink").hide();
 		if ( $("#assignedSheets a").length > 0) {
 			$("#assignedSheets").show();
@@ -397,7 +353,7 @@ $(function() {
 			$target.removeClass("sideBySide heLeft heRight");
 
 			$toggleTarget.find("#layoutToggleGroup div .fa-check").addClass("hidden");
-			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden")
+			$toggleTarget.find("#layoutToggleGroup .stacked .fa-check").removeClass("hidden");
 			$toggleTarget.find("#layoutToggleGroup").addClass("disabled");
 
 			$toggleTarget.find("#sideBySideToggleGroup div .fa-check").addClass("hidden");
@@ -555,7 +511,7 @@ $(function() {
 		var group = $(this).attr("data-group");
 		if (group != "None") {
 			sjs.track.sheets("Share with Group", group);
-			var groupUrl = group.replace(/ /g, "_");
+			var groupUrl = group.replace(/ /g, "-");
 			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
 				.closest("a").attr("href", "/groups/" + groupUrl );
 			$("#sheetHeader").show();
@@ -563,10 +519,6 @@ $(function() {
 			$(".groupSharing").show();
 			$(".groupName").text(group);
 			$(".individualSharing").hide();
-
-			//if sheet is unlisted but editable/addable set sheet be visible to group & editable/addable 
-			if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'privateAdd') $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked')
-			else if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'privateEdit') $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked')
 
 
 
@@ -578,21 +530,10 @@ $(function() {
 			$(".groupSharing").hide();
 			$(".individualSharing").show();
 
-			//if sheet is private but editable/addable to group set sheet to totally private on change 
-			if ($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'groupAdd' || $("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() == 'groupEdit') $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked')
-
 		}
 		autoSave(); 
 	});
-	
-	//Alert for collaboration anyone can edit change:
-	$("#sharingModal input[type='radio'][name='sharingOptions']").change(
-    function(){
-         if(($("#sharingModal input[type='radio'][name='sharingOptions']:checked").val()).indexOf("Edit")>=0){
-    	 sjs.alert.message('Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/><br/>Consider making a copy of this source sheet before allowing anyone to edit.',true);
-  	  }
-  	  }
-);          
+;
 	
 
 	
@@ -644,7 +585,6 @@ $(function() {
 		var $target = $(".activeSource").find(".text");
 		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
 		sjs.track.sheets("Auto Split Segments");
-		autoSave();
 	});
 
 	$("#addSourceTitle").click(function() {
@@ -669,7 +609,7 @@ $(function() {
 
 	$("#empty .remove").click(function() { $("#empty").remove(); });
 
-	$("#readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
+	$(".empty_readmore").toggle(function(e) { $("#howItWorks").show(); e.preventDefault(); }, function(e) {
 		$("#howItWorks").hide(); e.preventDefault();
 	});
 
@@ -677,17 +617,19 @@ $(function() {
 	// --------- CKEditor ------------
 
 	if (sjs.can_edit || sjs.can_add ) {
+		CKEDITOR.config.language = sjs.interfaceLang;
 		CKEDITOR.disableAutoInline = true;
 		CKEDITOR.config.startupFocus = true;
+		CKEDITOR.config.extraPlugins = 'bidi';
 		CKEDITOR.config.extraAllowedContent = 'small; span(segment, gemarra-regular, gemarra-italic, it-text); div(oldComment)';
-		CKEDITOR.config.removePlugins = 'magicline';
-
-		if ($.cookie("s2") == "true") {
-
-		CKEDITOR.config.extraPlugins = 'sharedspace';
+		CKEDITOR.config.removePlugins = 'magicline,resize';
 		CKEDITOR.config.sharedSpaces = {top: 'ckeTopMenu' };
-
-			}
+		CKEDITOR.config.colorButton_colors =
+			'1ABC9C,2ECC71,3498DB,9B59B6,4E5F70,F1C40F,' +
+			'16A085,27AE60,2980B9,8E44AD,2C3E50,F39C12,' +
+			'bd9eb6,afcab8,e5dabd,bd9796,a4b7de,e8dde5,' +
+			'E67E22,E74C3C,ECF0F1,95A5A6,DDD,FFF,' +
+			'D35400,C0392B,BDC3C7,7F8C8D,999,000';
 		CKEDITOR.on('instanceReady', function(ev) {
 		  // replace &nbsp; from pasted text
 		  ev.editor.on('paste', function(evt) {
@@ -706,32 +648,17 @@ $(function() {
 			'Times New Roman/Times New Roman, Times, serif;' +
 			'Verdana/Verdana, Geneva, sans-serif;';
 
-		if ($.cookie("s2") == "true") {
-
-			CKEDITOR.config.toolbar = [
-				{name: 'removestyle', items: ['RemoveFormat']},
-				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
-				{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
-				{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
-				{name: 'styles', items: ['Font', 'FontSize']},
-				{name: 'colors', items: ['TextColor', 'BGColor']},
-				{name: 'links', items: ['Link', 'Unlink']},
-				{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
-			];
-		}
-		else {
-			CKEDITOR.config.toolbar = [
-				{name: 'removestyle', items: ['RemoveFormat']},
-				{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
-				{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
-				{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
-				'/',
-				{name: 'styles', items: ['Font', 'FontSize']},
-				{name: 'colors', items: ['TextColor', 'BGColor']},
-				{name: 'links', items: ['Link', 'Unlink']},
-				{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']}
-			];
-		}
+		CKEDITOR.config.toolbar = [
+			{name: 'removestyle', items: ['RemoveFormat']},
+			{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
+			{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
+			{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
+			{name: 'styles', items: ['Font', 'FontSize']},
+			{name: 'colors', items: ['TextColor', 'BGColor']},
+			{name: 'links', items: ['Link', 'Unlink']},
+			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']},
+			{name: 'bidi', items: ['BidiLtr','BidiRtl']},
+		];
 
 		sjs.removeCKEditor = function(e) {
 
@@ -753,7 +680,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text("Untitled Source Sheet");
+						$el.text(_("Untitled Source Sheet"));
 					
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -804,6 +731,7 @@ $(function() {
 
 			editor.destroy();
 			$("[contenteditable]").attr("contenteditable", "false");
+			$(".sheetsEditorControls").hide();
 		};
 
 		sjs.removeCKEditorByElement = function(el) {
@@ -812,12 +740,13 @@ $(function() {
 		};
 
 		sjs.initCKEditor = function(e) {
+			$(".sheetsEditorControls").show();
 			// Don't init again, or while sorting
 			if ($(this).hasClass("cke_editable")) { return; }
 			if (sjs.flags.sorting) { return; }
 			// Don't init if the click began in another editable
 			if ($(e.target).find(".cke_editable").length) { return; }
-			// Don't init if element clicked is not on the source sheet (i.e. it's some other s2 reader element)
+			// Don't init if element clicked is not on the source sheet (i.e. it's some other app element)
 			if( !$("#sheet").has($(this)).length > 0  ) { return }
 			// Don't init if on mobile
 			if ($(".readerApp").length) {
@@ -852,9 +781,9 @@ $(function() {
 
 			if (!$(this).hasClass('contentToAdd')) {
 
-				saveCkEditorContinuous(ed);
+				//saveCkEditorContinuous(ed);
 				$(this).on('keydown', function (e) {
-					$("#lastSaved").text("Saving...");
+					$("#lastSaved").find(".saving").show().siblings().hide();
 				});
 			}
 		};
@@ -917,10 +846,23 @@ $(function() {
 
 	// ---------- Save Sheet --------------
 	$("#save").click(handleSave);
+	$("#save").keydown(function(e){
+		if (e.which == 13) {
+			handleSave();
+		}
+	});
+
+
 
 
 	// ---------- Share Sheet --------------
 	$("#share").click(showShareModal);
+	$("#share").keydown(function(e){
+		if (e.which == 13) {
+			showShareModal();
+		}
+	});
+	$("#sheetMetadata span.editButton").click(showShareModal);
 
 
 	// ---------- Copy Sheet ----------------
@@ -938,9 +880,11 @@ $(function() {
 	$("#exportToDrive").click(exportToDrive);
 
 
+	$("#highlightToggle").click(toggleHighlighter);
+
 	// ------- Sheet Tags --------------
 	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
-	$("#editTags").click(sjs.sheetTagger.show);
+	$("#editTags").click(showShareModal);
 
 
 	// Prevent backspace from navigating backwards
@@ -952,35 +896,33 @@ $(function() {
 
 	// ------------- Likes -----------------------
 
-	$("#likeLink").click(function(e) {
+	$("#likeButton").click(function(e) {
 		e.preventDefault();
 		if (!sjs._uid) { return sjs.loginPrompt(); }
 		
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
-			$(this).removeClass("liked").text("Like");
+			$(this).removeClass("liked").text(_("Like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
     		sjs.track.sheets("Unlike", sjs.current.id);
 		} else {
-			$(this).addClass("liked").text("Unlike");
+			$(this).addClass("liked").text(_("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
     		sjs.track.sheets("Like", sjs.current.id);
 		}
-		$("#likeInfoBox").toggle(likeCount != 0);
-		$("#likePlural").toggle(likeCount != 1);
 	});
-	$("#likeInfo").click(function(e) {
+	$(".likes").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) { 
-				var title = "No one has liked this sheet yet. Will you be the first?";
+				var title = _("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
-				var title = "1 Person Likes This Sheet";
+				var title = _("1 Person Likes This Sheet");
 			} else {
-				var title = data.likers.length + " People Like This Sheet";
+				var title = data.likers.length + _(" People Like This Sheet");
 			}
 			sjs.peopleList(data.likers, title);
 		});
@@ -999,7 +941,7 @@ $(function() {
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
-		$("#title").html("New Source Sheet");
+		$("#title").html(Sefaria._("New Source Sheet"));
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
@@ -1025,7 +967,7 @@ $(function() {
 			autoSave();
 		};
 
-		sjs.sortOptions = { 
+		sjs.sortOptions = {
 							start: sjs.sortStart,
 							stop: sjs.sortStop,
 							cancel: ':input, button, .cke_editable, #addInterface',
@@ -1062,459 +1004,475 @@ $(function() {
 
 
 		$("#sources").sortable(sjs.sortOptions);
+		if ($("#sheet").hasClass("highlightMode")) {
+			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
+		}
 	}
 
 
 	// ------------- Source Controls -------------------
 
-	var ownerControls = "<div id='sourceControls'>" + 
-							"<div class='editTitle' title='Edit Source Title'><i class='fa fa-pencil'></i></div>" +
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='resetSource' title='Reset Source Text'><i class='fa fa-rotate-left'></i></div>" +
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='switchSourceLayoutLang' title='Change Source Layout/Language'><i class='fa fa-ellipsis-h'></i></div>" +						
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up '></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-
-						"</div>";
-
-	var adderControls = "<div id='sourceControls'>" + 
-							"<div class='addSub' title='Add Source Below'><i class='fa fa-plus-circle'></i></div>" +
-							"<div class='addSubComment' title='Add Comment'><i class='fa fa-comment'></i></div>" +
-							"<div class='addConnections' title='Add All Connections'><i class='fa fa-sitemap'></i></div>"+				
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-
-						"</div>";
-
-	var viewerControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +					
-						"</div>";
-
-	var ownerSimpleControls = "<div id='sourceControls'>" + 
-							"<div class='copySource' title='Copy to Sheet'><i class='fa fa-copy'></i></div>" +
-							"<div class='moveSourceUp' title='Move Source Up'><i class='fa fa-arrow-up'></i></div>" +
-							"<div class='moveSourceDown' title='Move Source Down'><i class='fa fa-arrow-down'></i></div>" +
-							"<div class='moveSourceLeft' title='Outdent Source'><i class='fa fa-outdent'></i></div>" +
-							"<div class='moveSourceRight' title='Indent Source'><i class='fa fa-indent'></i></div>" +
-							"<div class='removeSource' title='Remove'><i class='fa fa-times-circle'></i></div>" +
-
-
-						"</div>";
-
-	if ($.cookie("s2") == "true") {
-
-
-		var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
-							"</div>";
-
-		var adderControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-							"</div>";
-
-		var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-							"</div>";
-
-		var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-								"<div class='copySource' title='Copy to Sheet'><img src='/static/img/copy.png'></div>" +
-								"<div class='removeSource' title='Remove'><img src='/static/img/remove.png'></div>" +
-								"<div class='moveSourceRight' title='Indent Source'><img src='/static/img/indent.png'></div>" +
-								"<div class='moveSourceLeft' title='Outdent Source'><img src='/static/img/outdent.png'></div>" +
-								"<div class='moveSourceUp' title='Move Source Up'><img src='/static/img/triangle-up.svg'></div>" +
-								"<div class='moveSourceDown' title='Move Source Down'><img src='/static/img/triangle-down.svg'></div>" +
-							"</div>";
-
-
-
-		// Add Interface
-
-		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-
-
-			$("#addInterface").on("click", ".buttonBar .addInterfaceButton", function (e) {
-				$("#addInterface .addInterfaceButton").removeClass('active');
-				$("#inlineTextPreview").remove();
-				$(this).addClass('active');
-				var divToShow = "#add" + ($(this).attr('id').replace('Button', '')) + "Div";
-				$(".contentDiv > div").hide();
-				$(divToShow).show();
-
-			});
-
-
-			$("#connectionsToAdd").on("click", ".sourceConnection", function (e) {
-				$(this).hasClass("active") ? $(this).removeClass("active") : $(this).addClass("active");
-			});
-
-			$("#addconnectionDiv").on("click", ".button", function (e) {
-
-				var $target = $("#addInterface").prev(".sheetItem");
-
-
-				$(".sourceConnection.active").each(function (index) {
-
-
-					refs = $(this).data("refs").split(";");
-					refs = refs.reverse()
-
-					for (var i = 0; i < refs.length; i++) {
-						var source = {
-							ref: refs[i]
-						}
-
-						buildSource($target, source, "insert");
-
-					}
-
-				});
-
-				autoSave();
-				$(".sourceConnection").removeClass('active');
-				$("#sheet").click();
-				$("#sourceButton").click();
-
-
-			});
-
-			$("#addSourceMenu").click(function () {
-				$("#sheet").click();
-				$("#sourceButton").click();
-				var top = $("#sourceButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
-
-			$("#addCustomMenu").click(function () {
-				$("#sheet").click();
-				$("#customTextButton").click();
-				var top = $("#customTextButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
-
-			$("#addCommentMenu").click(function () {
-				$("#sheet").click();
-				$("#commentButton").click();
-				var top = $("#commentButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
-
-			$("#addMediaMenu").click(function () {
-				$("#sheet").click();
-				$("#mediaButton").click();
-				var top = $("#mediaButton").offset().top - 200;
-				$("html, body").animate({scrollTop: top}, 300);
-			});
-
-
-			$("#addInterface").on("click", "#connectionButton", function (e) {
-
-				var ref = $("#addInterface").prev(".source").attr("data-ref");
-				var $target = $("#addInterface").prev(".sheetItem");
-				$("#connectionsToAdd").text("Looking up Connections...");
-
-				$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function (data) {
-					sjs.alert.clear();
-					if ("error" in data) {
-						$("#connectionsToAdd").text(data.error)
-					} else if (data.commentary.length == 0) {
-						$("#connectionsToAdd").text("No connections known for this source.");
-					} else {
-						data.commentary = [].concat.apply([], data.commentary);
-
-						data.commentary = data.commentary.sort(SortBySourceRef);
-
-						var categorySum = {}
-						for (var i = 0; i < data.commentary.length; i++) {
-							var c = data.commentary[i];
-							if (categorySum[c.collectiveTitle['en']]) {
-								categorySum[c.collectiveTitle['en']]++;
-							} else {
-								categorySum[c.collectiveTitle['en']] = 1;
-							}
-						}
-						var categories = [];
-						for (var k in categorySum) {
-							categories.push(k);
-						}
-						categories.sort();
-
-						var labels = [];
-						for (var k in categorySum) {
-							labels.push(k + " (" + categorySum[k] + ")");
-						}
-						labels.sort();
-
-						var connectionsToSource = '<div>';
-						for (var j = 0; j < labels.length; j++) {
-							var dataRefs = "";
-
-							for (var i = 0; i < data.commentary.length; i++) {
-								var c = data.commentary[i];
-								if (categories[j] == c.collectiveTitle['en']) {
-									dataRefs = dataRefs + c.sourceRef + ";";
-									//continue;
-								}
-							}
-							dataRefs = dataRefs.slice(0, -1); //remove trailing ";"
-							connectionsToSource += '<div class="sourceConnection" data-refs="' + dataRefs + '">' + labels[j] + '</div>';
-						}
-						connectionsToSource += "</div>";
-
-						$("#connectionsToAdd").html(connectionsToSource);
-
-					}
-
-
-				});
-			});
-
-			$("#addcommentDiv").on("click", ".button", function (e) {
-				var $target = $("#addInterface").prev(".sheetItem");
-				var source = {comment: $(e.target).prev(".contentToAdd").html(), isNew: true};
-				if (sjs.can_add) {
-					source.userLink = sjs._userLink;
-				}
-				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
-				autoSave();
-				$("#addcommentDiv .contentToAdd").html('<br>');
-				$("#sheet").click();
-				//$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
-			});
-
-			$("#addcommentDiv .contentToAdd").keypress(function (e) {
-				if(isHebrew($(this).text()) && $(this).text().length > 0) {
-					$(this).addClass("he");
-				}
-				else {
-					$(this).removeClass("he");
-				}
-			});
-
-			$("#addmediaDiv").on("click", ".button", function (e) {
-
-
-				var $target = $("#addInterface").prev(".sheetItem");
-				var source = {media: "", isNew: true};
-				if (sjs.can_add) {
-					source.userLink = sjs._userLink;
-				}
-				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
-
-				var embedHTML = makeMediaEmbedLink($("#inlineAddMediaInput").val());
-
-				if (embedHTML != false) {
-					$target.next(".sheetItem").find(".media").html(embedHTML);
-					mediaCheck($target.next(".sheetItem").find(".media"));
-				}
-				else {
-					$target.next(".sheetItem").remove();
-					sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
-				}
-
-				autoSave();
-
-
-			});
-
-
-			$("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function (e) {
-
-				$("#customTextLanguageToggle .toggleOption").removeClass('active');
-				$(this).addClass('active');
-				if ($(this).attr('id') == 'bilingualCustomText') {
-					$("#addcustomTextDiv").find(".contentToAdd").show();
-				}
-				else if ($(this).attr('id') == 'englishCustomText') {
-					$("#addcustomTextDiv").find(".en").show();
-					$("#addcustomTextDiv").find(".he").hide();
-				}
-				else if ($(this).attr('id') == 'hebrewCustomText') {
-					$("#addcustomTextDiv").find(".he").show();
-					$("#addcustomTextDiv").find(".en").hide();
-				}
-
-			});
-
-			$("#addcustomTextDiv").on("click", ".button", function (e) {
-				var $target = $("#addInterface").prev(".sheetItem");
-				if ($(e.target).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
-					source = {
-						outsideText: $(e.target).prev(".flexContainer").find(".contentToAdd:visible").html(),
-						isNew: true
-					};
-				}
-				else {
-					source = {
-						outsideBiText: {
-							en: $(e.target).prev(".flexContainer").find(".en").html(),
-							he: $(e.target).prev(".flexContainer").find(".he").html()
-						}, isNew: true
-					};
-				}
-
-				if (sjs.can_add) {
-					source.userLink = sjs._userLink;
-				}
-				$target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
-				autoSave();
-				$("#customTextContainer .contentToAdd.en").html('English');
-				$("#customTextContainer .contentToAdd.he").html('עברית');
-				$("#sheet").click();
-				//	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
-			});
-
-			$("html").on("click", "#content", function (e) {
-				//clicked off of a sheetitem
-				if ($(e.target).closest(".sheetItem").length || $(e.target).closest(".sheetsEditNavTop").length ) {
-					return;
-				}
-				if ($(e.target).closest("#addInterface").length) return
-				$("#connectionButton").hide();
-
-				cleanupActiveSource(e.target);
-			});
-
-			$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
-				$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
-				$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-				$(".inlineAddButtonIcon").removeClass("active");
-				$(this).addClass("active");
-				$("#sourceButton").click();
-				e.stopImmediatePropagation();
-			});
-
-
-			function cleanupActiveSource(target){
-				$(".inlineAddButtonIcon").removeClass("active");
-				$(".activeSource").removeClass("activeSource");
-				$("#sheetLayoutLanguageMenuItems").show();
-				$("#sourceLayoutLanguageMenuItems").hide();
-				$("#resetText").hide();
-				$("#removeNikkudot").hide();
-				$("#splitSourceToSegment").hide();
-				$("#addSourceTitle").hide();
-				if (!$(target).hasClass('inlineAddButtonIcon')) {
-					$(".inlineAddButtonIcon").last().click();
-				}
-				$(".sheetItem .inlineAddButtonIcon").off();
-				$(".sheetItem").on("click", ".inlineAddButtonIcon", function (e) {
-					$("#addInterface").insertAfter( $(this).parent().closest(".sheetItem") );
-					$(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-				});
-				$("#sourceButton").click();
-			}
-
-			function setLanguageLayoutCheckBoxes(source) {
-				if (!$(source).hasClass("hebrew") && !$(source).hasClass("bilingual") && !$(source).hasClass("english")) {
-					if (sjs.current.options.language == "hebrew") {
-						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
-					}
-					else if (sjs.current.options.language == "bilingual") {
-						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
-					}
-					else if (sjs.current.options.language == "english") {
-						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
-					}
-
-					if (sjs.current.options.layout == "stacked") {
-						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
-					}
-					else if (sjs.current.options.layout == "sideBySide") {
-						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
-					}
-
-					if (sjs.current.options.langLayout == "heLeft") {
-						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
-					}
-					else if (sjs.current.options.langLayout == "heRight") {
-						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
-					}
-				}
-
-				else {
-					if ($(source).hasClass("hebrew")) {
-						$("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
-					}
-					else if ($(source).hasClass("bilingual")) {
-						$("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
-					}
-					else if ($(source).hasClass("english")) {
-						$("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
-					}
-
-					if ($(source).hasClass("stacked")) {
-						$("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
-					}
-					else if ($(source).hasClass("sideBySide")) {
-						$("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
-						$("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
-					}
-
-					if ($(source).hasClass("heLeft")) {
-						$("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
-					}
-					else if ($(source).hasClass("heRight")) {
-						$("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
-					}
-				}
-
-			}
-
-			$("#sheet").on("click", ".sheetItem", function (e) {
-			//clicked on a sheet item
-				if ($(e.target).hasClass("inlineAddButtonIcon")) return;
-				if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
-
-				cleanupActiveSource(e.target);
-				$(this).addClass("activeSource");
-				$("#sheetLayoutLanguageMenuItems").hide();
-				$("#sourceLayoutLanguageMenuItems").show();
-				$("#resetText").show();
-				$("#addSourceTitle").show();
-				$("#removeNikkudot").show();
-				$("#splitSourceToSegment").show();
-				//$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
-
-				//set checkboxes for language/layout menus for active source
-				setLanguageLayoutCheckBoxes(e.target);
-
-				if (!($(this).hasClass("source"))) {
-					$("#resetText").hide();
-					$("#addSourceTitle").hide();
-					$("#removeNikkudot").hide();
-					$("#splitSourceToSegment").hide();
-					$("#sourceLayoutLanguageMenuItems").hide();
-				}
-			});
-
-			$("#sheet").click();
-		}
-	}
+  var outdent_img = (sjs.interfaceLang == "en") ? '/static/img/outdent.png' : '/static/img/indent.png';
+  var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
+
+  var ownerControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+              "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+              "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+            "</div>";
+
+  var adderControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+            "</div>";
+  var viewerControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+            "</div>";
+
+  var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
+              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
+              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+              "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
+              "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+            "</div>";
+
+
+
+  // Add Interface
+
+  if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
+
+    function toggleAddInterface(e, target, trigger) {
+      $("#addInterface .addInterfaceButton").removeClass('active');
+      $("#inlineTextPreview").html("");
+      $("#inlineTextPreview").hide();
+      target.addClass('active');
+      var divToShow = "#add" + (target.attr('id').replace('Button', '')) + "Div";
+      $(".contentDiv > div").hide();
+      $(divToShow).show();
+      if (trigger == "keyboard") {
+        var input = $(divToShow).find(':focusable').first();
+        input.focus();
+      }
+    }
+
+
+    $("#addInterface").on("click", ".buttonBar .addInterfaceButton", function(e) {
+      toggleAddInterface(e, $(this), "click");
+    });
+
+    $("#addInterface").on("keydown", ".buttonBar .addInterfaceButton", function(e) {
+      if (e.which == 13) {
+        toggleAddInterface(e, $(this), "keyboard");
+      }
+    });
+
+
+    $("#connectionsToAdd").on("click", ".sourceConnection", function(e) {
+      $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
+    });
+
+    $("#addconnectionDiv").on("keydown", ".sourceConnection", function(e) {
+      if (e.which == 13) {
+        $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
+      }
+    });
+
+    $("#addconnectionDiv").on("click", ".button", function(e) {
+
+      var $target = $("#addInterface").prev(".sheetItem");
+
+      $(".sourceConnection.active").each(function(index) {
+
+        var refs = $(this).data("refs").split(";");
+        refs = refs.reverse();
+
+        for (var i = 0; i < refs.length; i++) {
+          var source = {
+            ref: refs[i]
+          };
+          buildSource($target, source, "insert");
+        }
+
+      });
+
+      $("#addconnectionDiv").on("keydown", ".button", function(e) {
+        if (e.which == 13) {
+          $("#addconnectionDiv .button").click();
+        }
+      });
+
+
+      autoSave();
+      $(".sourceConnection").removeClass('active').attr("aria-checked", "false");
+      $("#sheet").click();
+      $("#sourceButton").click();
+
+
+    });
+
+    $("#addSourceMenu").click(function() {
+      $("#sheet").click();
+      $("#sourceButton").click();
+      var top = $("#sourceButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
+
+    $("#addCustomMenu").click(function() {
+      $("#sheet").click();
+      $("#customTextButton").click();
+      var top = $("#customTextButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
+
+    $("#addCommentMenu").click(function() {
+      $("#sheet").click();
+      $("#commentButton").click();
+      var top = $("#commentButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
+
+    $("#addMediaMenu").click(function() {
+      $("#sheet").click();
+      $("#mediaButton").click();
+      var top = $("#mediaButton").offset().top - 200;
+      $("html, body").animate({scrollTop: top}, 300);
+    });
+
+
+    $("#addInterface").on("click", "#connectionButton", function(e) {
+
+      var ref = $("#addInterface").prev(".source").attr("data-ref");
+      $("#connectionsToAdd").text(_("Looking up Connections..."));
+
+      $.getJSON("/api/texts/" + ref + "?context=0&commentary=1&pad=0", function(data) {
+        sjs.alert.clear();
+        if ("error" in data) {
+          $("#connectionsToAdd").text(data.error)
+        } else if (data.commentary.length == 0) {
+          $("#connectionsToAdd").text(_("No connections known for this source."));
+        } else {
+          data.commentary = [].concat.apply([], data.commentary);
+
+          data.commentary = data.commentary.sort(SortBySourceRef);
+
+          var categorySum = {};
+          for (var i = 0; i < data.commentary.length; i++) {
+            var c = data.commentary[i];
+            var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+            if (categorySum[key]) {
+              categorySum[key]++;
+            } else {
+              categorySum[key] = 1;
+            }
+          }
+          var categories = [];
+          for (var k in categorySum) {
+            categories.push(k);
+          }
+          categories.sort();
+
+          var labels = [];
+          for (var k in categorySum) {
+            labels.push(k + " (" + categorySum[k] + ")");
+          }
+          labels.sort();
+
+          var connectionsToSource = '<div>';
+          for (var j = 0; j < labels.length; j++) {
+            var dataRefs = "";
+
+            for (var i = 0; i < data.commentary.length; i++) {
+              var c = data.commentary[i];
+              var key = (sjs.interfaceLang == "en" ? c.collectiveTitle['en'] : c.collectiveTitle['he']);
+              if (categories[j] == key) {
+                dataRefs = dataRefs + c.sourceRef + ";";
+                //continue;
+              }
+            }
+            dataRefs = dataRefs.slice(0, -1); //remove trailing ";"
+            connectionsToSource += '<div role="checkbox" aria-checked="false" tabindex="0" class="sourceConnection" data-refs="' + dataRefs + '">' + labels[j] + '</div>';
+          }
+          connectionsToSource += "</div>";
+
+          $("#connectionsToAdd").html(connectionsToSource);
+
+        }
+
+
+      });
+    });
+
+    $("#addInterface").on("keydown", "#connectionButton", function(e) {
+      if (e.which == 13) {
+        $("#connectionButton").click()
+      }
+    });
+
+    $("#addcommentDiv").on("click", ".button", function(e) {
+      var $target = $("#addInterface").prev(".sheetItem");
+      var source = {comment: $(this).prev(".contentToAdd").html(), isNew: true};
+      if (sjs.can_add) {
+        source.userLink = sjs._userLink;
+      }
+      $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+      autoSave();
+      $("#addcommentDiv .contentToAdd").html('<br>');
+      $("#sheet").click();
+      //$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+
+    });
+
+    $("#addcommentDiv").on("keydown", ".button", function(e) {
+      if (e.which == 13) {
+        $("#addcommentDiv .button").click();
+      }
+    });
+
+
+    $("#addcommentDiv .contentToAdd").keypress(function(e) {
+      if (isHebrew($(this).text()) && $(this).text().length > 0) {
+        $(this).addClass("he");
+      }
+      else {
+        $(this).removeClass("he");
+      }
+    });
+
+    $("#addmediaDiv").on("click", ".button", function(e) {
+      var $target = $("#addInterface").prev(".sheetItem");
+      var source = {media: "", isNew: true};
+      if (sjs.can_add) {
+        source.userLink = sjs._userLink;
+      }
+      $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+
+      var embedHTML = makeMediaEmbedLink($("#inlineAddMediaInput").val());
+
+      if (embedHTML != false) {
+        var $mediaDiv = $("#sources").find(".media.new:empty").first()
+        $mediaDiv.html(embedHTML);
+        mediaCheck($mediaDiv);
+      }
+      else {
+        $target.next(".sheetItem").remove();
+        sjs.alert.flash("We couldn't understand your link.<br/>No media added.")
+      }
+
+      autoSave();
+    });
+
+    $("#addmediaDiv").on("keydown", ".button", function(e) {
+      if (e.which == 13) {
+        $("#addmediaDiv .button").click();
+      }
+    });
+
+
+    $("#addmediaDiv").on("keydown", "#addmediaFileSelector", function(e) {
+      if (e.which == 13) {
+        $("#addmediaDiv #addmediaFileSelector").click();
+      }
+    });
+
+
+    $("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function(e) {
+
+      $("#customTextLanguageToggle .toggleOption").removeClass('active');
+      $(this).addClass('active');
+      if ($(this).attr('id') == 'bilingualCustomText') {
+        $("#addcustomTextDiv").find(".contentToAdd").show();
+      }
+      else if ($(this).attr('id') == 'englishCustomText') {
+        $("#addcustomTextDiv").find(".en").show();
+        $("#addcustomTextDiv").find(".he").hide();
+      }
+      else if ($(this).attr('id') == 'hebrewCustomText') {
+        $("#addcustomTextDiv").find(".he").show();
+        $("#addcustomTextDiv").find(".en").hide();
+      }
+
+    });
+
+    $("#addcustomTextDiv").on("click", ".button", function(e) {
+      var $target = $("#addInterface").prev(".sheetItem");
+      if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
+        source = {
+          outsideText: $(this).prev(".flexContainer").find(".contentToAdd:visible").html(),
+          isNew: true
+        };
+      }
+      else {
+        source = {
+          outsideBiText: {
+            en: $(this).prev(".flexContainer").find(".en").html(),
+            he: $(this).prev(".flexContainer").find(".he").html()
+          }, isNew: true
+        };
+      }
+
+      if (sjs.can_add) {
+        source.userLink = sjs._userLink;
+      }
+      $target.length == 0 ? buildSource($("#sources"), source, "append") : buildSource($target, source, "insert");
+      autoSave();
+      $("#customTextContainer .contentToAdd.en").html('English');
+      $("#customTextContainer .contentToAdd.he").html('עברית');
+      $("#sheet").click();
+      //	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+
+    });
+
+    $("#addcustomTextDiv").on("keydown", ".button", function(e) {
+      if (e.which == 13) {
+        $("#addcustomTextDiv .button").click();
+      }
+    });
+
+    $("html").on("click", "#content", function(e) {
+      //clicked off of a sheetitem
+      if ($(e.target).closest(".sheetItem").length || $(e.target).closest(".sheetsEditNavTop").length) {
+        return;
+      }
+      if ($(e.target).closest("#addInterface").length) return
+      $("#connectionButton").hide();
+
+      if ($("#textBrowser").is(":visible")) {
+      	return
+			};
+
+      cleanupActiveSource(e.target);
+    });
+
+    $(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
+      $("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
+      $(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+      $(".inlineAddButtonIcon").removeClass("active");
+      $(this).addClass("active");
+      $("#sourceButton").click();
+      e.stopImmediatePropagation();
+    });
+
+
+    function cleanupActiveSource(target) {
+      $(".inlineAddButtonIcon").removeClass("active");
+      $(".activeSource").removeClass("activeSource");
+      $("#sheetLayoutLanguageMenuItems").show();
+      $("#sourceLayoutLanguageMenuItems").hide();
+      $("#resetText").hide();
+      $("#removeNikkudot").hide();
+      $(".resetHighlighter").hide();
+      $("#splitSourceToSegment").hide();
+      $("#addSourceTitle").hide();
+      if (!$(target).hasClass('inlineAddButtonIcon')) {
+        $(".inlineAddButtonIcon").last().click();
+      }
+      $(".sheetItem .inlineAddButtonIcon").off();
+      $(".sheetItem").on("click", ".inlineAddButtonIcon", function(e) {
+        $("#addInterface").insertAfter($(this).parent().closest(".sheetItem"));
+        $(this).parent().closest(".sheetItem").hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+      });
+      $("#sourceButton").click();
+    }
+
+    function setLanguageLayoutCheckBoxes(source) {
+      if (!$(source).hasClass("hebrew") && !$(source).hasClass("bilingual") && !$(source).hasClass("english")) {
+        if (sjs.current.options.language == "hebrew") {
+          $("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+        }
+        else if (sjs.current.options.language == "bilingual") {
+          $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+        }
+        else if (sjs.current.options.language == "english") {
+          $("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+        }
+
+        if (sjs.current.options.layout == "stacked") {
+          $("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+        }
+        else if (sjs.current.options.layout == "sideBySide") {
+          $("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+        }
+
+        if (sjs.current.options.langLayout == "heLeft") {
+          $("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+        }
+        else if (sjs.current.options.langLayout == "heRight") {
+          $("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+        }
+      }
+
+      else {
+        if ($(source).hasClass("hebrew")) {
+          $("#sourceLayoutLanguageMenuItems").find(".hebrew .fa-check").removeClass("hidden");
+        }
+        else if ($(source).hasClass("bilingual")) {
+          $("#sourceLayoutLanguageMenuItems").find(".bilingual .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#layoutToggleGroup").removeClass("disabled");
+        }
+        else if ($(source).hasClass("english")) {
+          $("#sourceLayoutLanguageMenuItems").find(".english .fa-check").removeClass("hidden");
+        }
+
+        if ($(source).hasClass("stacked")) {
+          $("#sourceLayoutLanguageMenuItems").find(".stacked .fa-check").removeClass("hidden")
+        }
+        else if ($(source).hasClass("sideBySide")) {
+          $("#sourceLayoutLanguageMenuItems").find(".sideBySide .fa-check").removeClass("hidden");
+          $("#sourceLayoutLanguageMenuItems").find("#sideBySideToggleGroup").removeClass("disabled");
+        }
+
+        if ($(source).hasClass("heLeft")) {
+          $("#sourceLayoutLanguageMenuItems").find(".heLeft .fa-check").removeClass("hidden")
+        }
+        else if ($(source).hasClass("heRight")) {
+          $("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
+        }
+      }
+
+    }
+
+    $("#sheet").on("click", ".sheetItem", function(e) {
+      //clicked on a sheet item
+      if ($(e.target).hasClass("inlineAddButtonIcon")) return;
+      if (!$(".readerApp").hasClass("multiPanel")) return; //prevent active source on mobile
+      cleanupActiveSource(e.target);
+      $(this).addClass("activeSource");
+      $("#sheetLayoutLanguageMenuItems").hide();
+      $("#sourceLayoutLanguageMenuItems").show();
+      $("#resetText").show();
+      $("#addSourceTitle").show();
+      $("#removeNikkudot").show();
+      $(".resetHighlighter").show();
+      $("#splitSourceToSegment").show();
+      //$(this).hasClass("source") ? $("#connectionButton").css('display', 'inline-block') : $("#connectionButton").hide();
+
+      //set checkboxes for language/layout menus for active source
+      setLanguageLayoutCheckBoxes(e.target);
+
+      if (!($(this).hasClass("source"))) {
+        $("#resetText").hide();
+        $("#addSourceTitle").hide();
+        $("#removeNikkudot").hide();
+        $("#splitSourceToSegment").hide();
+        $("#sourceLayoutLanguageMenuItems").hide();
+      }
+    });
+
+    $("#sheet").click();
+  }
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 	
-	if ($.cookie("s2") != "true") if ($(".cke_editable").length) { return; }
+	if ($(".cke_editable").length) { return; }
 		
 		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
@@ -1578,8 +1536,8 @@ $(function() {
 
 	// Reset Source Text 
 	$(".resetSource").live("click", function() { 
-		options = {
-			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
+		var options = {
+			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
 		var $target = $(this).closest(".source");
@@ -1600,7 +1558,7 @@ $(function() {
 
 	$(".parshahToAdd").click(function(){
 		$("#addParashaToSheetModal, #overlay").hide();
-        var parasha = $(this).text();
+        var parasha = $(this).data("parsha");
 		$.getJSON("/api/sheets/"+ parasha +"/get_aliyot", function(data) {
 			if ("error" in data) {
 				sjs.alert.flash(data.error);
@@ -1619,7 +1577,6 @@ $(function() {
 	);
 
 	$("#addParashaToSheetModalTrigger").live("click", function(e) {
-		$("#addSourceModal").hide();
 		$("#addParashaToSheetModal").show().position({of: window});
 		$("#overlay").show();
 	});
@@ -1640,127 +1597,67 @@ $(function() {
 		$(".s2Modal, #overlay").hide();
 	});
 
-	$("#sharingModalTrigger").live("click", function() { 
-		$("#sharingModal").show().position({of: window}); 
-		$("#overlay").show();
-
-	});
 
 	$("#shareWithOthers .ok").click(function(){
 		$("#shareWithOthers, #overlay").hide();
-		autoSave();
+		$("#sheetSummary").text($("#sheetSummaryInput").val());
+
+		var curTagsHTML = "";
+    for (var i = 0; i < sjs.sheetTagger.tags().length; i++) {
+    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
+    }
+		$("#sheetTags").html(curTagsHTML);
+
+    //save whole sheet if possible, otherwise, just save sheet tags:
+    if (sjs.can_save) {
+			autoSave();
+		}
+    else {
+    	var tags = JSON.stringify(sjs.sheetTagger.tags());
+    	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
+    }
 	});
 
-	function changeSharing() {
-			if ($("#sourceSheetGroupSelect").val()=="None"||($("#sourceSheetGroupSelect").val() == null)) {
+	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
+			$(this).height(0);
+			var heightToSwitch = this.scrollHeight < 40 ? 40:this.scrollHeight;
+			$(this).height(heightToSwitch);
+	}).find("#sheetSummaryInput").change();
 
-				switch ($("#sourceSheetShareSelect").val()) {
-
-					case 'private':
-						$("#sharingDesc").html('Only people with the direct link can view the source sheet.');
-						$("#sharingType").data("sharing", "private");
-						break;
-
-					case 'public':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
-						$("#sharingType").data("sharing", "public");
-						break;
-
-					case 'publicAdd':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
-						$("#sharingType").data("sharing", "publicAdd");
-						break;
-
-					case 'privateAdd':
-						$("#sharingDesc").html('Anyone with the link to your sheet can view and add sources & comments.');
-						$("#sharingType").data("sharing", "privateAdd");
-						break;
-
-					case 'publicEdit':
-						$("#sharingDesc").html('Anyone browsing Sefaria can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						$("#sharingType").data("sharing", "publicEdit");
-						break;
-
-					case 'privateEdit':
-						$("#sharingDesc").html('Anyone with the link to your sheet can make any change. The sheet will not be publicly listed.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						$("#sharingType").data("sharing", "privateEdit");
-						break;
-
-				};
-			}
-			else {
-
-				switch ($("#sourceSheetShareSelect").val()) {
-
-					case 'private':
-						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view your source sheet.');
-						$("#sharingType").data("sharing", "private");
-						break;
-
-					case 'public':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view your source sheet.');
-						$("#sharingType").data("sharing", "public");
-						break;
-
-					case 'publicAdd':
-						$("#sharingDesc").html('Anyone browsing Sefaria can find and view and add sources & comments to your sheet.');
-						$("#sharingType").data("sharing", "publicAdd");
-						break;
-
-					case 'privateAdd':
-						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can find and view and add sources & comments to your sheet.');
-						$("#sharingType").data("sharing", "groupAdd");
-						break;
-
-					case 'publicEdit':
-						$("#sharingDesc").html('Anyone browsing Sefaria can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						$("#sharingType").data("sharing", "publicEdit");
-						break;
-
-					case 'privateEdit':
-						$("#sharingType").data("sharing", "groupEdit");
-						$("#sharingDesc").html('Anyone in <span class="groupName">your group</span> can make any change to your source sheet.<br/><br/>Please be advised: There is no way to track or undo changes made by other editors, including deletions.<br/>Consider making a copy of this source sheet before allowing anyone to edit.');
-						break;
-
-				};
-
-
-			}
-
-	}
-
-	$("#sourceSheetShareSelect").change(function() {
-			changeSharing();
+	$("#tags").on("focus", "input", function() {
+		$("#tags .addTagMsg").hide();
 	});
+
 
 	$("#sourceSheetGroupSelect").change(function() {
-			changeSharing();
-			if ($(this).val()!="None") {
-				var groupUrl = $(this).val().replace(/ /g, "_");
-				$("#groupLogo").attr("src", $("#sourceSheetGroupSelect option:selected").attr("data-image")).show()
-					.closest("a").attr("href", "/groups/" + groupUrl);
-				$("#sheetHeader").show();
-				$(".groupName").text($(this).val());
+		if ($(this).val()!="None") {
+			var $el = $("#sourceSheetGroupSelect option:selected");
+			var groupUrl = $(this).val().replace(/ /g, "-");
+			$("#groupLogo").attr("src", $el.attr("data-image")).show()
+				.closest("a").attr("href", "/groups/" + groupUrl);
+			$("#sheetHeader").show();
+			$(".groupName").text($(this).val());
+			if (parseInt($el.attr("data-can-publish"))) {
+				$("#sourceSheetsAccessOptions").show();
+			} else {
+				$("#sourceSheetsAccessOptions").hide();
 			}
-			else {
-				$("#sheetHeader").hide();
-				$(".groupName").text("your group");
-			}
+		}
+		else {
+			$("#sheetHeader").hide();
+			$(".groupName").text("your group");
+			$("#sourceSheetsAccessOptions").show();
+		}
 	});
 
 
-	$("#sharingModal .ok").click(function(){
 
-		$("#sharingModal, #overlay").hide();
-
-		autoSave();
-		sjs.alert.flash("Sharing settings saved.")
-
-
-
+	$("#suggestedTags").on('click', '.tagButton', function() {
+		$("#tags").tagit("createTag",$(this).text());
+		$("#tags .addTagMsg").hide()
+		$(this).hide();
 	});
-
-
+	
 	$(".moveSourceUp").live("click", function() {
 		$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
 
@@ -1783,6 +1680,186 @@ $(function() {
 		autoSave();
 
 	});
+
+	$("#highlightMenu .optionsMenu").on('click', '.resetHighlighter', function() {
+		var curHighlighter = $(".activeSource").find(".highlighter");
+		var curText = $(".activeSource").find(".text");
+		curHighlighter.find(".en").html("<div class='highlighterSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
+		curHighlighter.find(".he").html("<div class='highlighterSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
+		autoSave();
+
+
+	});
+
+	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
+		var $elem = $(this);
+		if ($elem.data("mode") == "continuous") {
+			$elem.find(".continuousActive").hide();
+			$elem.find(".segmentedActive").show();
+			$('.highlighterSegment').css({'display': 'block'});
+			$elem.data("mode", "segmented");
+		}
+		else /*view mode */ {
+			$elem.find(".segmentedActive").hide();
+			$elem.find(".continuousActive").show();
+			$('.highlighterSegment').css({'display': 'inline'});
+			$elem.data("mode", "continuous");
+		}
+	});
+
+	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
+
+
+
+	function saveNewlyCreatedTag(newTagName,newTagColor) {
+		if (newTagName !== _('Create New') && newTagName !== "") {
+			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
+			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
+			resetSplitHighlighterSegment();
+			resetHighlighterFilterTags();
+			autoSave();
+		}
+
+		$(".createNewHighlighterTag .tagName").text(_('Create New'))
+	}
+
+	function applyNewlyCreatedTag(newTagName,newTagColor) {
+		if (newTagName !== _('Create New') && newTagName !== "") {
+			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment active" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
+			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
+			resetSplitHighlighterSegment();
+			resetHighlighterFilterTags();
+			if (sjs.selection.startOffset !== sjs.selection.endOffset) {
+        $(".highlighterTagWindow .save").click();
+				$(".createNewHighlighterTag .tagName").text(_('Create New'))
+      }
+      else {
+				$(".createNewHighlighterTag .tagName").text("")
+			}
+		}
+	}
+
+
+
+	$(".createNewHighlighterTag .tagName").keydown(function(e){
+		if (e.which == 13) {
+      e.preventDefault();
+      applyNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
+		}
+	});
+
+	$(".createNewHighlighterTag .tagName").focus(function(e){
+		if ($(this).text()==_('Create New')) {
+			$(this).text('');
+		}
+	});
+
+	$(".createNewHighlighterTag .tagName").focusout(function(e){
+      e.preventDefault();
+			saveNewlyCreatedTag($(e.target).text(),$(e.target).siblings('.colorSwatch.active').css('background-color'));
+			$('.createNewHighlighterTag .colorSwatch').removeClass('active');
+			$('.createNewHighlighterTag .colorSwatch').css('display', '');
+			$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+
+	});
+
+	$(".createNewHighlighterTag").on('mousedown', '.colorSwatch', function() {
+		console.log('clicked')
+		if ($('.createNewHighlighterTag .colorSwatch:visible').length > 1) {
+			$(".createNewHighlighterTag .colorSwatch").removeClass('active');
+			$(this).addClass('active');
+			$(".createNewHighlighterTag .colorSwatch").hide();
+			$(".createNewHighlighterTag .colorSwatch.active").css("display","inline-block");
+			$(this).siblings('.tagName').eq(0).show();
+		}
+		else {
+			$(".createNewHighlighterTag .colorSwatch").css("display","inline-block");
+			$(this).siblings('.tagName').eq(0).hide();
+		}
+	});
+
+	$(".highlighterTagWindow").on('click', '.save', function() {
+		restoreSelection(sjs.selection);
+		if ($(".splitHighlighterSegment.active").length == 0) {
+				restoreSelectedText(window.getSelection());
+			}
+		else {
+			splitSelectedText(window.getSelection(), $(".splitHighlighterSegment.active").find('.tagName').text(), $(".splitHighlighterSegment.active").find('.colorSwatch').css('background-color'));
+		}
+	closeHighlighterTagWindow();
+	});
+
+
+	function restoreSelectedText(selection) {
+		if (selection.anchorOffset < 0) return;
+		var curHighlighterSegment = $(selection.focusNode);
+		if ($(curHighlighterSegment[0]).hasClass('highlighterSegment')) { //firefox returns this if selection object already contains a tag
+			$(curHighlighterSegment[0]).css('background-color', '').removeAttr('data-tag','');
+		}
+		else {
+			$(curHighlighterSegment.parent()).css('background-color', '').removeAttr('data-tag','');
+		}
+		mergeSameClassAdjacentHighlighterSegments();
+	}
+
+	function mergeSameClassAdjacentHighlighterSegments() {
+		$( ".highlighterSegment" ).each(function( index ) {
+			if (($(this).attr('data-tag')) == $(this).next().attr('data-tag') && $(this).next().text() != '')  {
+				var textToPrepend = $(this).text();
+				var nextText = $(this).next().text();
+				textToPrepend = textToPrepend + nextText;
+				$(this).next().text(textToPrepend);
+				$(this).remove();
+			}
+		});
+		$(".highlighterSegment:empty").remove();
+		autoSave();
+	}
+
+	function splitSelectedText(selection, highlighterTag, tagBgColor) {
+			var selectedRange = selection;
+			var firstSelectedCharacter;
+			var lastSelectedCharacter;
+			if (selectedRange.anchorOffset < selectedRange.focusOffset) {
+				firstSelectedCharacter = selectedRange.anchorOffset;
+				lastSelectedCharacter = selectedRange.focusOffset;
+			}
+			else {
+				firstSelectedCharacter = selectedRange.focusOffset;
+				lastSelectedCharacter = selectedRange.anchorOffset;
+			}
+
+
+			var curHighlighterSegment = $(selectedRange.focusNode);
+
+			if ($(curHighlighterSegment[0]).hasClass('highlighterSegment')) { //firefox returns this if selection object already contains a tag
+				$(curHighlighterSegment[0]).css('background-color', tagBgColor).attr('data-tag', highlighterTag);
+			}
+
+			else {
+
+				if (curHighlighterSegment.parent().hasClass('tagName')) return;
+				var textBefore = curHighlighterSegment.text().slice(0, firstSelectedCharacter);
+				var selectedText = curHighlighterSegment.text().slice(firstSelectedCharacter, lastSelectedCharacter);
+				var textAfter = curHighlighterSegment.text().slice(lastSelectedCharacter);
+
+				highlighterTag = highlighterTag.replace(/\'/g, '&#39;'); //prevents js errors from improperly escaped strings.
+				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment'>" + textAfter + "</div>");
+				$(curHighlighterSegment.parent()).after("<div class='highlighterSegment' style='background-color: " + tagBgColor + "' data-tag='" + highlighterTag + "'>" + selectedText + "</div>");
+				$(curHighlighterSegment.parent()).text(textBefore);
+			}
+			resetHighlighterInteractivity();
+			closeHighlighterTagWindow();
+			$(".highlighterSegment:empty").remove();
+			mergeSameClassAdjacentHighlighterSegments();
+	}
+
+	resetSplitHighlighterSegment();
+
+
+	resetHighlighterInteractivity();
+
+	resetHighlighterFilterTags();
 
 
 	$(".moveSourceRight").live("click", function() {
@@ -1951,32 +2028,7 @@ $(function() {
 		sjs.track.sheets("Remove Source");
 
 	 });
-	 
 
-	// Add Sub-Source
-	$(".addSub").live("click", function() { 
-		$("#addSourceModal").data("target", $($(this).closest(".source")).eq(0))
-			.show().position({of: window});
-		$("#add").focus();
-		$("#overlay").show();
-		sjs.track.sheets("Add Sub-Source");
-
-	});
-
-	// Add comment below a Source
-	$(".addSubComment").live("click", function() {
-		var $target = $($(this).closest(".source")).eq(0);
-		
-		var source = {comment: "", isNew: true};
-		if (sjs.can_add) { source.userLink = sjs._userLink; }
-
-		buildSource($target, source, "insert");
-		$target.next(".sheetItem").addClass('indented-1');
-		$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
-		sjs.track.sheets("Add Sub Comment");
-	});
-	
 	// Copy a Source
 	$(".copySource").live("click", function() {
 		var source = readSource($(this).closest(".sheetItem"));
@@ -2003,7 +2055,7 @@ $(function() {
 
 		var type = $(this).hasClass("addCommentary") ? "Commentary": null;
 
-		sjs.alert.saving("Looking up Connections...")
+		sjs.alert.saving("Looking up Connections...");
 
 		$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
 			sjs.alert.clear();
@@ -2056,7 +2108,7 @@ $(function() {
 						buildSource($target, source, "insert");
 						count++;
 					}
-					var msg = count == 1 ? "1 Source Added." : count + " Sources Added."
+					var msg = count == 1 ? "1 Source Added." : count + " Sources Added.";
 					sjs.alert.message(msg);
 					autoSave();
 				});
@@ -2145,7 +2197,7 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 		.on('focus', '.cke_editable_inline', function(e) {
 			// Position sheetsEditNavTop absolute and bump it down to the scrollPosition
 			$('.sheetsEditNavTop').css({
-				marginTop: $(window).scrollTop()-54 + 'px',
+				marginTop: $(window).scrollTop()-54 + 'px'
 			});
 			$(document).scroll(updateSheetsEditNavTopPosOnScroll);
 		})
@@ -2167,20 +2219,43 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 }); // ------------------ End DOM Ready  ------------------
 
 
-function addSource(q, source, appendOrInsert) {
+sjs.sheetTagger = {
+	init: function(id, tags, callback) {
+		this.id       = id;
+		this.initTags = tags;
+		this.callback = callback;
+
+
+		// Init with tagit and with its tags
+		$("#tags").tagit({ allowSpaces: true });
+		this.setTags(tags);
+		if (tags && tags.length>0) {
+			$("#tags .addTagMsg").hide();
+		}
+
+	},
+	tags: function() {
+		return sjs.tagitTags("#tags");
+	},
+	setTags: function(tags) {
+		$("#tags").tagit("removeAll");
+		if (tags && tags.length) {
+			for (var i=0; i < tags.length; i++) {
+				$("#tags").tagit("createTag", tags[i]);
+			}
+		}
+	},
+};
+
+
+function addSource(q, source, appendOrInsert, $target) {
 	// Add a new source to the DOM.
 	// Completed by loadSource on return of AJAX call.
 	// unless 'source' is present, then load with given text.
-
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
-
-	var badRef = q.ref == undefined ? true : false;
-
-	if ($("#addSourceModal").data("target") == null) {
-		$("#addSourceModal").data("target", $("#sources"));
-	}
-	var $listTarget = $("#addSourceModal").data("target");
+	var badRef = q.ref == undefined;
+	var $listTarget = $target || $("#sources");
 
 	if ($listTarget.length == 0) appendOrInsert = "append";
 
@@ -2199,11 +2274,23 @@ function addSource(q, source, appendOrInsert) {
 		};
 	}
 
-	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) || 
+	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) ||
 					(!source && sjs.can_add);
 
-	var attributionLink = (source && "userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : 
-							addedByMe && !source ? "<div class='addedBy'>Added by " + sjs._userLink + "</div>" : "");
+	var attributionLink = (source && "userLink" in source ?
+		"<div class='addedBy'>" +
+			"<span class='int-en'>Added by </span><span class='int-he'> נוסף בידי</span>"
+			+ source.userLink +
+		"</div>"
+		:
+		addedByMe && !source ?
+			"<div class='addedBy'>" +
+			"<span class='int-en'>Added by </span><span class='int-he'> נוסף בידי</span>"
+			+ sjs._userLink +
+			"</div>"
+			:
+			""
+	);
 
 	if (source && "node" in source) {
 		var node = source.node;
@@ -2213,14 +2300,19 @@ function addSource(q, source, appendOrInsert) {
 	}
 
 	var attributionData = attributionDataString((source ? source.addedBy : null), !source, "source");
-	
+
 	var enRef = badRef == true ? source.ref : humanRef(q.ref);
 	var heRef = source && source.text ? source.heRef : "";
-	
+
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>" +"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +"<div class='customTitle'></div>" +"<div class='he'>" + "<span class='title'>" +"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" +"</div>" +"<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
+		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
+		+"<div class='customTitle'></div>"
+		+"<div class='he'>" +
+		"<span class='title'>"
+		+"<a class='he' href='" + refLink + "' target='_blank'><span class='ref'></span>" + heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1") + " </a>" + "</span>" +"<div class='text'>" +"<div class='he'>" + (source && source.text ? source.text.he : "") + "</div>" +"</div>" + "<div class='highlighter'><div class='he'></div></div>" + "</div>" + "<div class='en'>" +"<span class='title'>" +"<a class='en' href='" + refLink + "' target='_blank'><span class='ref'>" + enRef.replace(/([0-9][b|a]| ב| א):.+/,"$1") + "</span> </a>" +"</span>" +"<div class='text'>" +"<div class='en'>" + (source && source.text ? source.text.en : "") + "</div>" + "</div>" + "<div class='highlighter'><div class='en'></div></div>" +"</div>" + "<div class='clear'></div>" + attributionLink + appendInlineAddButton() + "</li>";
 
 	if (appendOrInsert == "append") {
 		$("#sources").append(newsource);
@@ -2229,7 +2321,7 @@ function addSource(q, source, appendOrInsert) {
 
 	else if (appendOrInsert == "insert") {
 		$listTarget.after(newsource);
-		var $target = $listTarget.next(".sheetItem")
+		var $target = $listTarget.next(".sheetItem");
 	}
 
 	setSourceNumbers();
@@ -2247,6 +2339,20 @@ function addSource(q, source, appendOrInsert) {
 	afterAction();
 }
 
+function placed_segment_mapper(lang, segmented, includeNumbers, s) {
+    if (!s[lang]) {return ""}
+
+    var numStr = "";
+    if (includeNumbers) {
+        var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;
+        numStr = "<small>(" + num + ")</small> ";
+    }
+    var str = "<span class='segment'>" + numStr + s[lang] + "</span> ";
+    if (segmented) {
+        str = "<p>" + str + "</p>";
+    }
+    return str;
+}
 
 function loadSource(data, $target, optionStr) {
 	
@@ -2257,26 +2363,6 @@ function loadSource(data, $target, optionStr) {
 		$target.remove();
 		return;
 	}
-	// If text is not a range, put text string in arrays
-	// to simplify processing below
-
-	if (typeof(data.text) === "string") {
-		data.text = data.text.length ? [data.text] : [];
-	}
-	if (typeof(data.he) === "string") {
-		data.he = data.he.length ? [data.he] : [];
-	}
-
-	var end = Math.max(data.text.length, data.he.length);
-
-	// If the requested end is beyond what's available, reset the ref to what we have
-/*
-	var requestedLength = (data.toSections[data.sectionNames.length-1] - data.sections[data.sectionNames.length-1]) + 1
-	if (requestedLength > end) {
-		data.toSections[data.sectionNames.length-1] = data.sections[data.sectionNames.length-1] + end -1;
-		data.ref = makeRef(data);
-	}
-*/
 
 	$target.attr("data-ref", data.ref);	
 	$target.attr("data-heRef", data.heRef);	
@@ -2285,57 +2371,18 @@ function loadSource(data, $target, optionStr) {
 	$enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/,"$1") ).attr("href", "/" + normRef(data.ref));
 	$heTitle.html(data.heRef.replace(/\d+(\-\d+)?/g, "").replace(/([0-9][b|a]| ב| א):.+/,"$1")).attr("href", "/" + normRef(data.ref));
 
+    var includeNumbers = $.inArray("Talmud", data.categories) == -1;
+    includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
+    var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
 
-	var enStr = "";
-	var heStr = "";
-	if (data.sections.length < data.sectionNames.length) {
-		var start = 1;
-	} else {
-		var start = data.sections[data.sectionNames.length-1];
-	}
+    var segments = Sefaria.makeSegments(data);
+    var enStr = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
+        .filter(Boolean)
+        .join("");
+    var heStr = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
+        .filter(Boolean)
+        .join("");
 
-
-
-    if (data.spanning) { timesToIterateThroughSections = data.spanningRefs.length }
-    else {timesToIterateThroughSections = 1
-                    data.he = data.he.length ? [data.he] : [];
-                    data.text = data.text.length ? [data.text] : [];
-    }
-
-    for (var q=0;q<timesToIterateThroughSections;q++) {
-        curEnglishText = data.text[q] || '';
-        curHebrewText = data.he[q] || '';
-		if (data.sections.length < data.sectionNames.length) {
-			data.sections.push(1);
-			data.toSections.push(Math.max(curEnglishText.length, curHebrewText.length));
-		}
-        if (q==0) {curSegmentNumber = data.sections[1]}
-        else {curSegmentNumber = 1 }
-
-        var includeNumbers = $.inArray("Talmud", data.categories) > -1 ? false : true;
-        includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
-        var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
-        for (var i = 0; i < Math.max(curEnglishText.length, curHebrewText.length); i++) {
-            if (!curEnglishText[i] && !curHebrewText[i]) {
-                continue;
-            }
-
-            if (curEnglishText.length > i) {
-                enStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
-                    (includeNumbers ? "<small>(" + (curSegmentNumber) + ")</small> " : "") +
-                    curEnglishText[i] +
-                    "</span> " + (segmented ? "</p>" : "");
-            }
-
-            if (curHebrewText.length > i) {
-                heStr += (segmented ? "<p>" : "") + "<span class='segment'>" +
-                    (includeNumbers ? "<small>(" + (encodeHebrewNumeral(curSegmentNumber)) + ")</small> " : "") +
-                    curHebrewText[i] +
-                    "</span> " + (segmented ? "</p>" : "");
-            }
-            curSegmentNumber++;
-        }
-    }
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";
@@ -2354,6 +2401,8 @@ function loadSource(data, $target, optionStr) {
 		var top = $target.offset().top - 200;
 		$("html, body").animate({scrollTop: top}, 300);
 	}
+
+	if ($("#sheet").hasClass("highlightMode")) { fillEmptyHighlighterSegments() }
 
 	autoSave();
 }
@@ -2377,23 +2426,25 @@ function readSheet() {
 		sheet.promptedToPublish = sjs.current.promptedToPublish || false;
 	}
 
-
-
 	sheet.title    = $("#title").html();
 	sheet.sources  = readSources($("#sources"));
 	sheet.options  = {};
 	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
 	sheet.tags     = sjs.sheetTagger.tags();
+	sheet.summary  = $("#sheetSummaryInput").val();
+
+	sheet.includedRefs = [];
+	$('.sheetItem.source').map(function(){
+	  sheet.includedRefs.push($(this).attr('data-ref'));
+	});
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
 	}
 
-
 	if (sjs.assignment_id) sheet.assignment_id = sjs.assignment_id;
 	if (sjs.assigner_id) sheet.assigner_id = sjs.assigner_id;
-
 
 	if (sjs.can_add) {
 		// Adders can't change saved options
@@ -2408,60 +2459,39 @@ function readSheet() {
 		sheet.options.layout        = $("#sheet").hasClass("stacked") ? "stacked" : "sideBySide";
 		sheet.options.langLayout    = $("#sheet").hasClass("heLeft") ? "heLeft" : "heRight";
 		sheet.options.divineNames   = $(".divineNamesOption .fa-check").not(".hidden").parent().attr("id");
+		sheet.options.highlightMode = $("#sheet").hasClass("highlightMode") ? 1 : 0;
 	}
 
-	if (sjs.is_owner) {
-		switch ($("#sharingType").data("sharing") || $("#sharingModal input[type='radio'][name='sharingOptions']:checked").val() ) {
+	if (sjs.is_owner || sjs.can_publish) {
 
-			case 'private':
+		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
+
+		if (sjs.current.status == "unlisted" && sheet["status"] == "public" ) {
+				sjs.track.sheets("Sheet Published");
+		}
+
+		switch ($("#sourceSheetShareSelect").val()) {
+			case 'view':
 				sheet.options.collaboration = "none";
-				sheet["status"] = "unlisted";
 				break;
-
-			case 'public':
-				sheet.options.collaboration = "none";
-				sheet["status"] = "public";
-				sjs.track.sheets("Make Public Click");
+			case 'add':
+				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-add" : "anyone-can-add";
 				break;
-
-			case 'publicAdd':
-				sheet.options.collaboration = "anyone-can-add";
-				sheet["status"] = "public";
-				sjs.track.sheets("Make Public Click");
-				sjs.track.sheets("Anyone Can Add Click");
+			case 'edit':
+				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
 				break;
+		}
+		
+		if ($(".sheetHighlighterTags").first().children()) {
+			sheet.highlighterTags = [];
+			$(".sheetHighlighterTags").first().children().each(function( i ) {
+				sheet.highlighterTags[i] = {};
+				var currentName = $(this).find('.tagName').text();
+				var currentColor = $(this).find('.colorSwatch').css('background-color');
+				sheet.highlighterTags[i].name = currentName;
+				sheet.highlighterTags[i].color = currentColor;
 
-			case 'groupAdd':
-				sheet.options.collaboration = "group-can-add";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Group Can Add Click");
-				break;
-
-			case 'privateAdd':
-				sheet.options.collaboration = "anyone-can-add";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Anyone Can Add Click");
-				break;
-
-			case 'publicEdit':
-				sheet.options.collaboration = "anyone-can-edit";
-				sheet["status"] = "public";
-				sjs.track.sheets("Make Public Click");
-				sjs.track.sheets("Anyone Can Edit Click");
-				break;
-
-			case 'privateEdit':
-				sheet.options.collaboration = "anyone-can-edit";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Anyone Can Edit Click");
-				break;
-
-			case 'groupEdit':
-				sheet.options.collaboration = "group-can-edit";
-				sheet["status"] = "unlisted";
-				sjs.track.sheets("Group Can Edit Click");
-				break;
-
+			});
 		}
 	}
 
@@ -2470,7 +2500,7 @@ function readSheet() {
 		sheet["status"] = sjs.current.status;
 	}
 
-	var group = $(".groupOption .fa-check").not(".hidden").parent().attr("data-group") || $("#sourceSheetGroupSelect").val();
+	var group = $("#sourceSheetGroupSelect").val();
 
 	if (group === undefined && sjs.current && sjs.current.group !== "None") {
 		// When working on someone else's group sheet
@@ -2496,7 +2526,7 @@ function readSources($target) {
 	$target.children().each(function() {
 		var source = readSource($(this));
 		sources.push(source);
-	})
+	});
 	return sources;
 }
 
@@ -2510,6 +2540,27 @@ function readSource($target) {
 		source["text"] = {en: $target.find(".text").find(".en").html(), 
 						  he: $target.find(".text").find(".he").html()};
 
+		if ($target.find(".highlighter").find(".en").html() != "" || $target.find(".highlighter").find(".he").html() != "") {
+			source["highlighter"] = {en: [], he: []};
+			$target.find(".highlighter").find(".en").find(".highlighterSegment").each(function(i){
+
+				source.highlighter.en[i] = {};
+				var currenttext = $(this).text();
+				var currenttag = $(this).attr('data-tag');
+
+
+				source.highlighter.en[i].text = currenttext;
+				source.highlighter.en[i].tag = currenttag;
+			});
+
+			$target.find(".highlighter").find(".he").find(".highlighterSegment").each(function(i){
+				source.highlighter.he[i] = {};
+				var currenttext = $(this).text();
+				var currenttag = $(this).attr('data-tag');
+				source.highlighter.he[i].text = currenttext;
+				source.highlighter.he[i].tag = currenttag;
+			});
+		}
 		//Set source layout
 		if ($target.hasClass("stacked")) {
 			var sourceLayout = "stacked"
@@ -2584,7 +2635,7 @@ function readSource($target) {
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
 			en: $target.find(".text .en").html(),
-			he: $target.find(".text .he").html(),
+			he: $target.find(".text .he").html()
 		};
 		//Set indentation level
 		if ($target.hasClass("indented-1")) {
@@ -2636,7 +2687,7 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+            indented: sourceIndentLevel
 		};
 
 	}
@@ -2663,7 +2714,8 @@ function handleSave() {
 		return alert("Sorry I can't save what you've got here: you need to be signed in to save."); 
 	}
 	sjs.loading = false;
-	$("#save").text("Saving...");
+	$("#save").data("mode", "saving").find("#inSave").show().siblings().hide();
+
 	var sheet = readSheet();
 	saveSheet(sheet, true);
 	sjs.track.sheets("Save New Sheet");
@@ -2671,8 +2723,9 @@ function handleSave() {
 
 
 function autoSave() {
+	console.log(sjs.current.group);
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
-		$("#lastSaved").text("Saving...")
+		$("#lastSaved").find(".saving").show().siblings().hide();
 		var sheet = readSheet();
 		saveSheet(sheet);
 	}
@@ -2694,12 +2747,13 @@ function saveSheet(sheet, reload) {
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
-			$("#lastSaved").text("All changes saved in Sefaria")
+			var $lastSaved = $("#lastSaved");
+			$lastSaved.find(".lastSavedConfirmed").show().siblings().hide();
 		} 
 
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
-			$("#save").text("Save");
+			$("#save").data("mode", "editing").find("#doSave").show().siblings().hide();
 		}
 	})
 }
@@ -2719,13 +2773,11 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").text("Untitled Source Sheet");
+		$("#title").html(_("Untitled Source Sheet"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
 	$("#sources").empty();
-
-	$("#addSourceModal").data("target", $("#sources"));
 
 	// Set options with binary value
 	$("#sheet").removeClass("numbered bsd boxed assignable");
@@ -2733,6 +2785,7 @@ function buildSheet(data){
 	if (data.options.numbered) { $("#numbered").trigger("click"); } 
 	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
 	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
+	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
 	if (data.options.assignable)    { $("#makeSheetAssignableButton").trigger("click"); }
 	else {$("#StopCollectingAssignmentsButton").trigger("click");}
 
@@ -2754,27 +2807,12 @@ function buildSheet(data){
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 
-	if (data.options.collaboration == "none" && data.status == "unlisted")  $("#sharingModal input[type='radio'][name='sharingOptions'][value='private']").attr('checked', 'checked');
-	else if (data.options.collaboration == "none" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='public']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "group-can-add" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupAdd']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "public") $("#sharingModal input[type='radio'][name='sharingOptions'][value='publicEdit']").attr('checked', 'checked');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='privateEdit']").attr('checked', 'checked');
-	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sharingModal input[type='radio'][name='sharingOptions'][value='groupEdit']").attr('checked', 'checked');
+	if (data.options.collaboration == "none")  $("#sourceSheetShareSelect").val('view');
+	else if (data.options.collaboration == "anyone-can-add" || data.options.collaboration == "group-can-add") $("#sourceSheetShareSelect").val('add');
+	else if (data.options.collaboration == "anyone-can-edit" || data.options.collaboration == "group-can-edit") $("#sourceSheetShareSelect").val('edit');
 
-
-
-	if (data.options.collaboration == "none" && data.status == "unlisted")  $("#sourceSheetShareSelect").val('private');
-	else if (data.options.collaboration == "none" && data.status == "public") $("#sourceSheetShareSelect").val('public');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "public") $("#sourceSheetShareSelect").val('publicAdd');
-	else if (data.options.collaboration == "anyone-can-add" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateAdd');
-	else if (data.options.collaboration == "group-can-add" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateAdd');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "public") $("#sourceSheetShareSelect").val('publicEdit');
-	else if (data.options.collaboration == "anyone-can-edit" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateEdit');
-	else if (data.options.collaboration == "group-can-edit" && data.status == "unlisted") $("#sourceSheetShareSelect").val('privateEdit');
-
-	$("#sharingType").data("sharing", $("#sourceSheetShareSelect").val());
+	if (data.status == "public") { $('#sheetPublicToggle').attr('checked', true); }
+	else { $('#sheetPublicToggle').attr('checked', false); }
 
 	// Set Sheet Group
 	if (data.group) {
@@ -2783,13 +2821,26 @@ function buildSheet(data){
 		$(".groupSharing").show();
 		$(".groupName").text(data.group);
 		$(".individualSharing").hide();
-		var groupUrl = data.group.replace(/ /g, "_");
-		var groupImage = $(".groupOption[data-group='"+ data.group + "']").attr("data-image"); 
-		$("#groupLogo").attr("src", groupImage).show();
 		$("#sourceSheetGroupSelect").val(data.group);
+		var $el = $("#sourceSheetGroupSelect option:selected");
+		var groupImage = $el.attr("data-image"); 
+
+		$("#groupLogo").attr("src", groupImage).show();
+		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
+			$("#sourceSheetsAccessOptions").show();
+		} else {
+			$("#sourceSheetsAccessOptions").hide();
+		}
 	} else {
 		$(".groupSharing").hide();
+		$("#sourceSheetsAccessOptions").show();
 		$(".individualSharing").show();
+	}
+
+	if (sjs.is_owner) {
+		$("#sourceSheetGroupOptions").show();
+	} else {		
+		$("#sourceSheetGroupOptions").hide();
 	}
 
 
@@ -2803,6 +2854,21 @@ function buildSheet(data){
 
 	$("#sources").css("min-height","");
 
+	if ("highlighterTags" in data) {
+		$(".sheetHighlighterTags").empty();
+		for (var i = 0; i < data.highlighterTags.length; i++) {
+			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="'+data.highlighterTags[i].name+'"><div class="colorSwatch active" style="background-color: '+data.highlighterTags[i].color+'"></div>'
+						+"<div class='colorSwatch' style='background-color: #bd9eb6'></div>"
+						+"<div class='colorSwatch' style='background-color: #afcab8'></div>"
+						+"<div class='colorSwatch' style='background-color: #e5dabd'></div>"
+						+"<div class='colorSwatch' style='background-color: #bd9796'></div>"
+						+"<div class='colorSwatch' style='background-color: #a4b7de'></div>"
+						+"<div class='colorSwatch' style='background-color: #e8dde5'></div>"
+						+"<div class='colorSwatch' style='background-color: #d2ddc9'></div>"
+				+'<div class="tagName">'+data.highlighterTags[i].name+'</div><div class="editCheckToggle">✎</div></div>');
+			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
+		}
+	}
 }
 	
 
@@ -2814,13 +2880,11 @@ function buildSources($target, sources) {
 }
 
 function buildSource($target, source, appendOrInsert) {
-
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
 		
 	if (!("node" in source)) {
-
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;
 	}
@@ -2832,8 +2896,7 @@ function buildSource($target, source, appendOrInsert) {
 	
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
-		$("#addSourceModal").data("target", $target);
-		addSource(q, source, appendOrInsert);
+		addSource(q, source, appendOrInsert, $target);
 		
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
@@ -2845,24 +2908,47 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass("hasCustom");
 		}
 
-	} else if ("comment" in source) {
-		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'>" +
-							"<div class='comment " + (sjs.loading ? "" : "new") + "'>" + source.comment + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
-						  "</div>";
+		if (source.highlighter) {
+			var enHighlighterHTML = '';
+			var heHighlighterHTML = '';
+			for (var i = 0; i < source.highlighter.en.length; i++) {
+				var highlighterTagHTML = source.highlighter.en[i].tag ? ' data-tag="'+ source.highlighter.en[i].tag +'" ': '';
+				var highlighterTagColorHTML = '';
+				if (highlighterTagHTML != '') {
+					var highlighterTagColor = sjs.current.highlighterTags.filter(function(tag) { return source.highlighter.en[i].tag == tag.name; })[0].color;
+					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
+				}
 
-		if ($.cookie("s2") == "true") {
 
-					var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
-						("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
-						"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>"
+				enHighlighterHTML = enHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'>'+source.highlighter.en[i].text+'</div>'
+			}
 
-						  "</div>";
+			for (var i = 0; i < source.highlighter.he.length; i++) {
+				var highlighterTagHTML = source.highlighter.he[i].tag ? ' data-tag="'+ source.highlighter.he[i].tag +'" ': '';
+				var highlighterTagColorHTML = '';
+				if (highlighterTagHTML != '') {
+					var highlighterTagColor = sjs.current.highlighterTags.filter(function(tag) { return source.highlighter.he[i].tag == tag.name; })[0].color;
+					highlighterTagColorHTML = 'style="background-color: '+highlighterTagColor+'"';
+				}
 
+
+				heHighlighterHTML = heHighlighterHTML + '<div class="highlighterSegment" '+ highlighterTagColorHTML + highlighterTagHTML  +'>'+source.highlighter.he[i].text+'</div>'
+			}
+
+			$(".highlighter .en").last().html(enHighlighterHTML);
+			$(".highlighter .he").last().html(heHighlighterHTML);
 		}
 
-		commentHtml = appendInlineAddButton(commentHtml);
+
+	} else if ("comment" in source) {
+		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
+
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
+			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
+			appendInlineAddButton() + "</div>";
+
+
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);
 		}
@@ -2881,9 +2967,9 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='en'>" + source.outsideBiText.en + "</div>" + 
 								"<div class='clear'></div>" +
 							"</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -2898,9 +2984,9 @@ function buildSource($target, source, appendOrInsert) {
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 		if (appendOrInsert == "append") {
 			$target.append(outsideHtml);
 		}
@@ -2922,6 +3008,10 @@ function buildSource($target, source, appendOrInsert) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
 
+		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
+			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
+		}
+
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
@@ -2934,9 +3024,9 @@ function buildSource($target, source, appendOrInsert) {
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -2959,9 +3049,9 @@ function buildSource($target, source, appendOrInsert) {
 								"<div class='en'>" + source.text.en + "</div>" + 
 								"<div class='clear'></div>" +
 							"</div>" +
-							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "")
+							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
+							appendInlineAddButton() +
 						  "</li>";
-		outsideHtml = appendInlineAddButton(outsideHtml);
 				if (appendOrInsert == "append") {
 					$target.append(outsideHtml);
 				}
@@ -2971,15 +3061,13 @@ function buildSource($target, source, appendOrInsert) {
 }
 
 function appendInlineAddButton(source) {
-	if (!source) {
-		source = ''
-		}
-	if ($.cookie("s2") == "true") {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
-			source = source + "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
+			button = "<div class='inlineAddButton'><i class='inlineAddButtonIcon'></i></div>";
 		}
-	}
-	return source
+		else {
+			button = "";
+		}
+	return button
 }
 
 
@@ -3003,60 +3091,6 @@ function attributionDataString(uid, newItem, classStr) {
 		      (addedBy ? " data-added-by='" + addedBy + "'" : "");
  
 	return str;
-}
-
-function addSourcePreview(e) {
-	if (sjs.editing.index.categories[0] === "Talmud") {
-		$("#addDialogTitle").html("Daf found. You may also specify numbered segments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	} else if (sjs.editing.index.categories[0] === "Commentary") {
-        $("#addDialogTitle").html("Commentary found. You may also specify numbered comments below.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-    } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
-		$("#addDialogTitle").html("Source found. You can add it, or specify a subsection.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	} else {
-		$("#addDialogTitle").html("Source found. Specify a range with '-'.<span class='btn btn-primary' id='addSourceOK'>Add This Source</span>");
-	}
-	var ref = $("#add").val();
-	if (!$("#textPreview").length) { $("body").append("<div id='textPreview'></div>"); }
-	
-	textPreview(ref, $("#textPreview"), function() {
-		if ($("#textPreview .previewNoText").length === 2) {
-			$("#addDialogTitle").html("<i>No text available. Click below to add this text.</i>");
-		}
-		if ($("#textPreview .error").length > 0) {
-			$("#addDialogTitle").html("Uh-Oh");
-		}
-		$("#textPreview")
-			.position({my: "left top", at: "left bottom", of: $("#add"), collision: "none" }).width($("#add").width())
-	});
-}
-
-function inlineAddSourcePreview(e) {
-	if (sjs.editing.index.categories[0] === "Talmud") {
-		$("#inlineAddDialogTitle").html("Daf found. You may also specify numbered segments below.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	} else if (sjs.editing.index.categories[0] === "Commentary") {
-        $("#inlineAddDialogTitle").html("Commentary found. You may also specify numbered comments below.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-    } else if (sjs.editing.index.depth && sjs.editing.index.depth == 1) {
-		$("#inlineAddDialogTitle").html("Source found. You can add it, or specify a subsection.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	} else {
-		$("#inlineAddDialogTitle").html("Source found. Specify a range with '-'.");
-		$("#inlineAddSourceOK").removeClass("disabled");
-	}
-	var ref = $("#inlineAdd").val();
-	if (!$("#inlineTextPreview").length) { $("body").append("<div id='inlineTextPreview'></div>"); }
-
-	textPreview(ref, $("#inlineTextPreview"), function() {
-		if ($("#inlineTextPreview .previewNoText").length === 2) {
-			$("#inlineAddDialogTitle").html("<i>No text available. Click below to add this text.</i>");
-		}
-		if ($("#inlineTextPreview .error").length > 0) {
-			$("#inlineAddDialogTitle").html("Uh-Oh");
-		}
-		$("#inlineTextPreview")
-			.position({my: "left top", at: "left bottom", of: $("#inlineAdd"), collision: "none" }).width('691px').css('margin-top','20px');
-	});
 }
 
 
@@ -3103,8 +3137,7 @@ sjs.replayLastEdit = function() {
 	var source = null;
 	switch(sjs.lastEdit.type) {
 		case "add source":
-			$("#addSourceModal").data("target", $target);
-			addSource(parseRef(sjs.lastEdit.ref));
+			addSource(parseRef(sjs.lastEdit.ref), undefined, undefined, $target);
 			break;
 		case "add comment":
 			source = {comment: sjs.lastEdit.html, isNew: true};
@@ -3165,7 +3198,7 @@ function pollForUpdates() {
 		} else if (data.modified) {
 				if ($(".sheetItem").find(".cke_editable").length) {
 					sjs.changesPending = true;
-				  $("#lastSaved").text('Changes Pending...');
+				  	$("#lastSaved").find(".pending").show().siblings().hide();;
 				}
 				else {
 					rebuildUpdatedSheet(data);
@@ -3183,7 +3216,7 @@ function startPolling() {
 	var pollChain = function() {
 		pollForUpdates();
 		sjs.pollTimer = setTimeout(pollChain, 3000)
-	}
+	};
 	sjs.pollTimer = setTimeout(pollChain, 3000);
 }
 
@@ -3225,7 +3258,7 @@ function rebuildUpdatedSheet(data) {
 	// Rebuild the current sheet and 
 	if (data.dateModified < sjs.current.dateModified) {
 		// If the update is older than the timestamp on the current sheet, ignore it
-		sjs.track.event("Sheets", "Error", "Out of sequence update request.")
+		sjs.track.event("Sheets", "Error", "Out of sequence update request.");
 		return;
 	}
 
@@ -3253,9 +3286,10 @@ function rebuildUpdatedSheet(data) {
 
 	buildSheet(data);
 	sjs.replayLastEdit();
+    var curTextLocation;
 
 	if (topMostVisibleSheetItem == null) {
-		curTextLocation = $("#sourceButton").offset().top - 200
+		curTextLocation = $("#sourceButton").offset().top - 200;
 	} else {
 		curTextLocation = $("[data-node='"+topMostVisibleSheetItem+"']").offset().top  + $("[data-node='"+topMostVisibleSheetItem+"']").height() - relativeScrollTop;
 	}
@@ -3275,7 +3309,14 @@ function rebuildUpdatedSheet(data) {
 		lastSelectedInterfaceButton.click();
 	}
 
+	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
+	closeHighlighterTagWindow();
+	resetSplitHighlighterSegment();
+	resetHighlighterFilterTags();
+	resetHighlighterInteractivity();
+
 	sjs.changesPending = false;
+
 }
 
 
@@ -3287,14 +3328,15 @@ function copyToSheet(source) {
 	
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
-		$("#sheetList").html("Loading...");
+		$("#sheetList").html(Sefaria._("Loading..."));
 		$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
-			sheets += '<li class="sheet new"><i>Start a New Source Sheet</i></li>';
+			sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					data.sheets[i].title.stripHtml() + "</li>";
+					(data.sheets[i].title === null ? Sefaria._("Untitled Source Sheet"): data.sheets[i].title.stripHtml()) +
+					"</li>";
 			}
 			$("#sheetList").html(sheets);
 			$("#addToSheetModal").position({of:$(window)});
@@ -3306,7 +3348,7 @@ function copyToSheet(source) {
 		})			
 	}
 	var name = source.ref ? source.ref :
-				(source.comment ? "this comment" : "this source"); 
+				(source.comment ? Sefaria._("this comment") : Sefaria._("this source"));
 
 	$("#addToSheetModal .sourceName").text(name);
 
@@ -3328,12 +3370,12 @@ $("#addToSheetModal .ok").click(function(){
 	if (sjs.flags.saving === true) { return false; }
 	var selected = $(".sheet.selected");
 	if (!selected.length) {
-		sjs.alert.message("Please select a source sheet.");
+		sjs.alert.message(Sefaria._("Please select a source sheet."));
 		return false;
 	}
 
 	if (selected.hasClass("new")) {
-		var title = prompt("New Source Sheet Name:", "");
+		var title = prompt(Sefaria._("New Source Sheet Name:"), "");
 		var sheet = {
 			title: title,
 			options: {numbered: 0},
@@ -3365,9 +3407,9 @@ $("#addToSheetModal .ok").click(function(){
 			sjs.alert.message(data.error)
 		} else {
 			var name = data.ref ? data.ref : 
-				(data.comment ? "This comment" : "This source"); 
-			sjs.alert.message(name + ' was added to "' + title + '".<br><br>' + 
-										'<a target="_blank" href="/sheets/' + data.id + '">View sheet.</a>')
+				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
+			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
+			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
 			sjs.track.sheets("Source Copied");
 		}
 	}
@@ -3390,7 +3432,8 @@ function copySheet() {
  	var postJSON = JSON.stringify(sheet);
 	$.post("/api/sheets/", {"json": postJSON}, function(data) {
 		if (data.id) {
-			sjs.alert.message('Source Sheet copied.<br><br><a href="/sheets/'+data.id+'">View copy &raquo;</a>');
+			sjs.alert.message('<span class="int-en">Source Sheet copied.</span><span class="int-he">דף המקורות הועתק.</span><br><br><a href="/sheets/'+data.id+'"><span class="int-en">View copy &raquo;</span><span' +
+				' class="int-he">צפה בהעתק &raquo;</span> </a>');
 
 		} else if ("error" in data) {
 			sjs.alert.message(data.error);
@@ -3401,7 +3444,7 @@ function copySheet() {
 
 function exportToDrive() {
 	$("#overlay").show();
-	sjs.alert.message("Syncing with Google Docs...");
+	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
 	sjs.track.sheets("Export to Google Drive");
 
 	$.ajax({
@@ -3411,7 +3454,12 @@ function exportToDrive() {
 			if ("error" in data) {
 				sjs.alert.message(data.error.message);
 			} else {
-				sjs.alert.message("Source Sheet exported to Google Drive.<br><br><a href='" + data.webViewLink + "' target='_blank'>Open in Google Drive &raquo;</a>");
+				sjs.alert.message("" +
+					'<span class="int-en">Source Sheet exported to Google Drive.</span><span class="int-he">ייצוא לגוגל דרייב הסתיים.</span>' +
+					"<br><br>" +
+					"<a href='" + data.webViewLink + "' target='_blank'>" +
+					'<span class="int-en">Open in Google Drive &raquo;</span><span class="int-he">לפתיחה בגוגל דרייב</span>' +
+					"</a>");
 			}
 		},
 		statusCode: {
@@ -3420,6 +3468,45 @@ function exportToDrive() {
 			}
 		}
 	});
+}
+
+function fillEmptyHighlighterSegments() {
+		$( ".highlighter" ).each(function( index ) {
+			if ($(this).find(".en").html() == "") {
+				$(this).find(".en").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.en').html().stripHtml()+"</div>")
+			}
+			if ($(this).find(".he").html() == "") {
+				$(this).find(".he").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.he').html().stripHtml()+"</div>")
+			}
+
+		});
+}
+
+function toggleHighlighter() {
+	if ($("#sheet").hasClass("highlightMode")) {
+		$("#sheet").removeClass("highlightMode");
+		$("#highlightModeDisplay").hide();
+		$("#highlightToggleDeactivate").hide();
+		$("#highlightToggleActivate").show();
+		$("#highlightMenu").css('display','none');
+		if ($("#sources").data('ui-sortable')) {
+			$("#sources").sortable("enable"); //disable dragging while in highlighter edit mode....
+		}
+	}
+	else {
+		$("#sheet").addClass("highlightMode");
+		$("#highlightModeDisplay").show();
+		$("#highlightToggleActivate").hide();
+		$("#highlightToggleDeactivate").show();
+		$("#highlightMenu").css('display','inline-block');
+		if ($("#sources").data('ui-sortable')) {
+			$("#sources").sortable("disable"); //disable dragging while in highlighter edit mode....
+		}
+	}
+	if ($(".sheetItem").length >0) {
+		fillEmptyHighlighterSegments();
+		autoSave();
+		}
 }
 
 function showEmebed() {
@@ -3433,18 +3520,57 @@ function showEmebed() {
 }
 
 function showShareModal(){
-	$("#shareWithOthers").show().position({of: window})
+	$("#shareWithOthers").show().position({of: window});
 	$("#overlay").show();
+
+	var suggestedTagsLookup = [];
+
+	var sources = readSources($("#sources"));
+
+	for (var i = 0; i < sources.length; i++) {
+		if (sources[i].ref) {
+			suggestedTagsLookup.push(sources[i].ref);
+		}
+	}
+
+	if (suggestedTagsLookup.length) {
+		$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
+			var suggestedTags = [];
+			$("#suggestedTags").html('');
+			for (var i = 0; i < data.topics.length; i++) {
+				if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
+					suggestedTags.push(data.topics[i][0]);
+				}
+			}
+
+			for (var i = 0; i < suggestedTags.length; i++) {
+				if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
+					$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+				}
+			}
+		});
+	}
+
 }
 
 
 function deleteSheet() {
-	if (confirm("Are you sure you want to delete this sheet? There is no way to undo this action.")) {
+	if (confirm(_("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 			if ("error" in data) {
 				sjs.alert.message(data.error);
 			} else {
-				sjs.alert.messageOnly("Source Sheet deleted.<br><br><a href='/sheets'><div class='ok btn'>OK</div></a>");
+				sjs.alert.messageOnly(
+					"<span class='int-en'>Source Sheet deleted.</span>" +
+					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
+					"<br><br>" +
+					"<a href='/sheets/private'>" +
+						"<div class='ok btn'>" +
+							"<span class='int-en'>OK</span>" +
+							"<span class='int-he'>המשך</span>" +
+						"</div>" +
+					"</a>"
+				);
 			}
 		})
 	}
@@ -3554,6 +3680,7 @@ var afterAction = function() {
 		$("#save").show();
 		$("#fileControlMsg").hide();
 	}
+	resetHighlighterInteractivity();
 };
 
 // ------------------ Upload locally stored images to Imgur ------------------
@@ -3608,3 +3735,133 @@ var addmediaUploadImageToImgur = function(imageData) {
 };
 
 $("#addmediaFileSelector").change(addmediaChooseFile);
+
+
+function resetSplitHighlighterSegment() {
+	$(".sheetHighlighterTags").off();
+	$(".sheetHighlighterTags").on('click', '.splitHighlighterSegment', function() {
+		if ($(this).hasClass("active")) {
+			$(".splitHighlighterSegment").removeClass('active');
+			injectSelectionColor("#D2DCFF");
+		}
+		else {
+			$(".splitHighlighterSegment").removeClass('active');
+			$(this).addClass('active');
+			injectSelectionColor($(this).find('.colorSwatch.active').css('background-color'));
+		}
+		$(".highlighterTagWindow .save").click();
+	});
+  $('.createNewHighlighterTag .colorSwatch').removeClass('active');
+	$('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+
+	$(".splitHighlighterSegment").off();
+	$(".splitHighlighterSegment").on('click', '.editCheckToggle', function(e) {
+		e.stopPropagation();
+		var curTag = $(this).siblings('.tagName');
+		curTagName = curTag.text();
+		curTag.attr("contenteditable", "true");
+		curTag.focus();
+	});
+	$(".splitHighlighterSegment").on('focusout', '.tagName', function(e) {
+		$(this).attr("contenteditable", "false");
+		$(".highlighterSegment[data-tag='" + curTagName + "']").attr('data-tag', $(this).text() );
+		autoSave();
+	});
+}
+
+function injectSelectionColor(color) {
+	var sel = window.getSelection();
+	sel.removeAllRanges();
+	$("#tempSelectOverride").remove();
+  var div = $("<div />", {
+    html: '&shy;<style id="tempSelectOverride">*::selection { background: '+color+'; }</style>'
+  }).appendTo("body");
+	setTimeout(function(){ sel.addRange(sjs.selection); }, 20);
+}
+
+function resetHighlighterInteractivity() {
+	if (sjs.is_owner) {
+
+		$(".highlighter .he, .highlighter .en").off();
+
+		$(".highlighter .he, .highlighter .en").on("mousedown", '.highlighterSegment', function() {
+			$(".highlighterSegment").removeClass("noSelect");
+			$(".highlighterSegment").not(this).addClass("noSelect");
+		});
+
+		$(".highlighter .he, .highlighter .en").on("mouseup", '.highlighterSegment', function(e) {
+			if ($(".highlighterTagWindow").is(":hidden")) {
+
+
+        if ($(e.target).attr('data-tag') && !$(e.target).hasClass("noSelect")) { //if clicking on a highlight that already is tagged, select whole highlight and open window.
+          var range = document.createRange();
+          range.selectNodeContents(e.currentTarget);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          var curTagName = $(e.target).attr('data-tag');
+          $(".splitHighlighterSegment[data-tagname='" + curTagName + "']").addClass('active');
+
+        }
+
+        sjs.selection = saveSelection();
+        $('.createNewHighlighterTag .colorSwatch').removeClass('active');
+        $('.createNewHighlighterTag .colorSwatch').eq($('.splitHighlighterSegment').length % 7).addClass('active'); //select the next color in the list
+        $("tagSelector").show();
+        $(".highlighterTagWindow").show().css({
+          "top": e.pageY,
+          "left": $(".highlighterTagWindow").width() + e.pageX < window.innerWidth ? e.pageX : window.innerWidth - $(".highlighterTagWindow").width() - 40
+        });
+        $(".createNewHighlighterTag .tagName").attr("contenteditable", "true");
+      }
+      else {
+				closeHighlighterTagWindow();
+			}
+		});
+	}
+}
+
+function closeHighlighterTagWindow() {
+	$("#tempSelectOverride").remove();
+	$(".highlighterTagWindow").hide();
+	$(".splitHighlighterSegment").removeClass('active');
+}
+
+function resetHighlighterFilterTags() {
+	$(".highlighterFilterTags").off();
+	$(".highlighterFilterTags").on("click", "input[type='checkbox'][name='highlighterFilterTags']", function(e) {
+		if (!($(this)[0].checked)) {
+			$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").hide();
+		}
+		else {
+			$(".highlighterSegment[data-tag='" + $(this)[0].value + "']").show();
+		}
+	});
+}
+
+ function saveSelection() {
+		if (window.getSelection) {
+				var sel = window.getSelection();
+				if (sel.getRangeAt && sel.rangeCount) {
+						return sel.getRangeAt(0);
+				}
+		} else if (document.selection && document.selection.createRange) {
+				return document.selection.createRange();
+		}
+		return null;
+ }
+
+function restoreSelection(range) {
+		if (range) {
+				if (window.getSelection) {
+						var sel = window.getSelection();
+						sel.removeAllRanges();
+						sel.addRange(range);
+				} else if (document.selection && range.select) {
+						range.select();
+				}
+		}
+}
+
+
+var _ = Sefaria._;

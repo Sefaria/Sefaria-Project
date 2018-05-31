@@ -1,6 +1,9 @@
 # Django settings for sefaria project.
 
 import os.path
+
+from django.utils.translation import ugettext_lazy as _
+
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 # Local time zone for this installation. Choices can be found here:
@@ -14,7 +17,12 @@ TIME_ZONE = 'America/Vancouver'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+
+LANGUAGES = (
+    ('en', _("English")),
+    ('he', _("Hebrew")),
+)
 
 SITE_ID = 1
 
@@ -48,13 +56,6 @@ STATIC_ROOT = ''
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
@@ -63,52 +64,66 @@ STATICFILES_FINDERS = (
     #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
+STATICFILES_DIRS = [
+    relative_to_abs_path('../static/'),
+]
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django_mobile.loader.Loader',
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#    'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            relative_to_abs_path('../templates/'),
+        ],
+        'OPTIONS': {
+            'context_processors': [
+                    # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                    # list if you haven't customized them:
+                    "django.contrib.auth.context_processors.auth",
+                    "django.template.context_processors.debug",
+                    "django.template.context_processors.i18n",
+                    "django.template.context_processors.media",
+                    "django.template.context_processors.static",
+                    "django.template.context_processors.tz",
+                    "django.contrib.messages.context_processors.messages",
+                    "django.template.context_processors.request",
+                    "sefaria.system.context_processors.global_settings",
+                    "sefaria.system.context_processors.titles_json",
+                    "sefaria.system.context_processors.toc",
+                    "sefaria.system.context_processors.terms",
+                    "sefaria.system.context_processors.embed_page",
+                    "sefaria.system.context_processors.user_and_notifications",
+                    "sefaria.system.context_processors.calendar_links",
+                    "sefaria.system.context_processors.header_html",
+                    "sefaria.system.context_processors.footer_html",
+            ],
+            'loaders': [
+                #'django_mobile.loader.Loader',
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ]
+        },
+    },
+]
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.tz",
-    "django.contrib.messages.context_processors.messages",
-    "django.core.context_processors.request",
-    "django_mobile.context_processors.flavour",
-	"sefaria.system.context_processors.global_settings",
-	"sefaria.system.context_processors.titles_json",
-	"sefaria.system.context_processors.toc",
-    "sefaria.system.context_processors.terms",
-	"sefaria.system.context_processors.embed_page",
-    "sefaria.system.context_processors.language_settings",
-	"sefaria.system.context_processors.user_and_notifications",
-    "sefaria.system.context_processors.calendar_links",
-    "sefaria.system.context_processors.header_html",
-    "sefaria.system.context_processors.footer_html",
-)
-
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',   
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_mobile.middleware.MobileDetectionMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
+    'sefaria.system.middleware.LocationSettingsMiddleware',
+    'sefaria.system.middleware.LanguageCookieMiddleware',
+    'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
-    'django_mobile.middleware.SetFlavourMiddleware',
+    'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware'
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
-)
+]
 
 ROOT_URLCONF = 'sefaria.urls'
 
@@ -125,22 +140,30 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'emailusernames',
     'reader',
-    'sheets',
+    'sourcesheets',
     'sefaria.gauth',
     'captcha',
-    'django_mobile',
     'django.contrib.admin',
+    'anymail',
+    'webpack_loader',
+    'django_user_agents'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
 
-LOGIN_URL = '/login'
+LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'table_of_contents'
 
+LOGOUT_REDIRECT_URL = 'table_of_contents'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
+)
+
+
+LOCALE_PATHS = (
+    relative_to_abs_path('../locale'),
 )
 
 # A sample logging configuration. The only tangible logging
@@ -218,7 +241,7 @@ LOGGING = {
         },
         'null': {
             'level':'INFO',
-            'class':'django.utils.log.NullHandler',
+            'class':'logging.NullHandler',
         },
 
         'mail_admins': {
@@ -261,9 +284,30 @@ CACHES = {
     }
 }
 
+
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
 try:
     from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
+
+# Listed after local settings are imported so CACHE can depend on DEBUG
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.client.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    },
+    'SEFARIA_JS': {
+        'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.sefaria.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    }
+
+}
+DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000

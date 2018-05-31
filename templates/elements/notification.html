@@ -10,15 +10,11 @@
                 <span class="int-he">{{ notification.content.sender|user_link }} שלח/ה לך הודעה:</span>
             </div>
 
-            {% autoescape off %}{{ notification.content.message|truncatechars:240 }}{% endautoescape %}
+            {% autoescape off %}{{ notification.content.message }}{% endautoescape %}
 
             <div class="messageText">{% autoescape off %}{{ notification.content.message }}{% endautoescape %}</div>
 		</div>
-		<a class="notification-message-link" data-recipient='{{ notification.content.sender }}'>
-            <span class="int-en">View</span>
-            <span class="int-he">צפה</span>
-        </a>
-		<a class="notification-message-link" data-recipient='{{ notification.content.sender }}'>
+		<a class="notification-message-link" href='{{ notification.content.sender|user_message_path }}'>
             <span class="int-en">Reply</span>
             <span class="int-he">השב</span>
         </a>

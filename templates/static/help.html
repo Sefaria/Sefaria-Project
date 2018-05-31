@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Help | Sefaria{% endblock %}
+{% block title %}{% trans "Help, FAQ and Tutorials" %} | {% trans "Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Watch video tutorials or read FAQs and written tutorials about how to use Sefaria." %}{% endblock %}
 
 {% block content %}
 <div id="helpPage" class="static biReady">
@@ -97,7 +100,7 @@
         <div class="section">
             <h2>
                <span class="int-en">Adding Texts not in Sefaria</span>
-               <span class="int-he">איך להוסיף טקסט מחוץ לספאריה לדף מקורות</span>
+               <span class="int-he">איך להוסיף טקסט מחוץ לספריא לדף מקורות</span>
             </h2>
             <div class="description">
                 <span class="int-en"></span>

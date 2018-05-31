@@ -6,7 +6,7 @@ import sefaria.tracker as tracker
 
 class Test_AutoLinker(object):
     desired_link_counts = {
-        'Rashi on Genesis' : 2020,
+        'Rashi on Genesis' : 2018,
         'Kos Shel Eliyahu on Pesach Haggadah': 80
     }
 

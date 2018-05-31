@@ -45,7 +45,7 @@ dump.rdb
 
 # Node Modules #
 ################
-/node_modules
+node_modules
 
 # PyCharm directory #
 #####################
@@ -72,9 +72,17 @@ venv/
 ##############
 /static/robots.txt
 
+# Sitemaps #
+############
+/static/sitemaps
+
 # Backed up Data # 
 ##################
 /data/backup
+
+# Private Data Files # 
+##################
+/data/private
 
 # Logs #
 ########
@@ -86,8 +94,17 @@ venv/
 /doc/_build
 
 # Client secrets for Google OAuth 2.0
+#####################################
 client_secrets.json
 
+# Webpack #
+###########
+/static/bundles
+webpack-stats.*\.json
+webpack-stats.json
+
+# PAGERANK #
+static/pagerank.json
+static/sheetrank.json
 
 /random_files
-

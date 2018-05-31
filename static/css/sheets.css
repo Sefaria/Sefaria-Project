@@ -5,6 +5,34 @@ body {
 	overflow-x: visible;
 	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
 }
+body:not(.user-is-tabbing) #sheet .cke_editable:focus {
+  	outline: auto;
+	outline-color: rgb(59,153,252);
+}
+*[contenteditable] {
+    -webkit-user-select: auto !important;
+}
+
+.interface-hebrew .int-en, .interface-hebrew #sheetsContent .int-en, .interface-hebrew.alertBox .int-en, .interface-hebrew.s2Modal .int-en{
+  display: none;
+}
+.interface-english .int-he, .interface-english #sheetsContent .int-he, .interface-english.alertBox .int-he, .interface-english.s2Modal .int-he{
+  display: none;
+}
+/*.interface-hebrew #sheetsContent{
+  direction: rtl;
+}
+.interface-english #sheetsContent{
+  direction: ltr;
+}*/
+
+.interface-hebrew #sheetsContent, .interface-hebrew #sheetsContent .sheetsEditNavTop, .interface-hebrew #fileControls{
+	direction: rtl;
+}
+
+.he, .int-he {
+    font-size: 100%;
+}
 
 #right {
 	width: 510px;
@@ -76,7 +104,11 @@ body {
 	padding: 7px 5px;
 	border-radius: 5px;
 	color: #888;
-	background-color: #eee;
+	background-color: #f2f2f2;
+}
+
+.interface-hebrew #lastSaved{
+	/*unicode-bidi: bidi-override;*/
 }
 
 .sheetsMenuBarItem #lastSaved {
@@ -179,7 +211,7 @@ body {
 .optionsMenu {
 	color: black;
 	position: absolute;
-	text-align: left;
+	/*text-align: left;*/
 	display: none;
 	font-style: normal;
 	text-shadow: none;
@@ -190,13 +222,20 @@ body {
 	z-index: 5;
 	min-width: 220px;
 	top: -20px;
-	right: auto;
-	left: 50px;
+	/*right: auto;
+	left: 50px;*/
 	line-height: 1.2;
 }
 
+.interface-hebrew .optionsMenu{
+	/*text-align: right;*/
+	min-width: 250px;
+}
+
 .optionsMenu img, .addInterfaceButton img {
-	margin-right: 5px;
+	/*margin-right: 5px;*/
+	-webkit-margin-end: 5px;
+	margin-inline-end: 5px;
 	margin-bottom: 3px;
 
 }
@@ -218,13 +257,19 @@ body {
 	margin-left: 12px;
 }
 
+.optionTitle, .optionItem{
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+}
+
 .optionItem, .optionLink, .languageToggleOption div, .layoutToggleOption div, .sideBySideToggleOption div, .optionTitle {
 	padding: 10px 12px;
 	cursor: pointer;
 	white-space: nowrap;
 }
 .optionItem:hover,
-.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover .sideBySideToggleOption div:hover {
+.optionTitle:hover, .optionLink:hover, .languageToggleOption div:hover, .layoutToggleOption div:hover, .sideBySideToggleOption div:hover {
 	background: #08c;
 	color:white;
 }
@@ -248,6 +293,12 @@ body {
 	width:100%;
 }
 
+
+#assignmentsModal {
+	max-height: 600px;
+	overflow-y: scroll;
+}
+
 #assignmentsModal .btn {
 	margin-top: 5px;
 }
@@ -257,22 +308,38 @@ body {
 	position: absolute;
 	background: white;
 	top: 0px;
-	left: 220px;
 	border: 1px solid #ccc;
+}
+.interface-english .subMenu{
 	box-shadow: 1px 1px 1px #555;
-
+	left: 220px;
+}
+.interface-hebrew .subMenu{
+	/*left: initial;*/
+	right: 250px;
+	box-shadow: -1px 1px 1px #555;
 }
 .optionGroup {
 	position: relative;
 }
 
-.optionGroup .optionTitle .fa-caret-right {
-	position: absolute;
-	right: 6px;
-	top: 15px;
+.interface-english .optionGroup .optionItemCaret.fa{
+	margin-left: auto;
 }
 
-.optionGroup:hover .subMenu {
+.interface-hebrew .optionGroup .optionItemCaret.fa{
+	margin-right: auto;
+}
+
+.interface-hebrew .optionItemCaret.fa-caret:before{
+	content: "\f0d9";
+}
+
+.interface-english .optionItemCaret.fa-caret:before{
+	content: "\f0da";
+}
+
+.optionGroup:hover .subMenu, .optionGroup.open .subMenu {
 	display: block;
 }
 
@@ -288,8 +355,17 @@ body {
 	margin-left:-40px;
 }
 
+#shareWithOthers .line {
+	margin-left:-30px;
+	margin-top: 30px;
+	margin-bottom: 30px;
+	width: 540px;
+}
+
 .optionsMenu .fa {
-	margin-right: 8px;
+	/*margin-right: 8px;*/
+	-webkit-margin-end: 5px;
+	margin-inline-end: 5px;
 	font-size: 13px;
 }
 
@@ -360,6 +436,7 @@ body {
 	border-radius: 3px;
 	z-index: 101;
 	width: 600px;
+	display: none;
 }
 #inlineTextPreview .en {
 	font-family: "adobe-garamond-pro", Georgia, serif
@@ -404,6 +481,7 @@ body {
 	font-size: 36px;
 	min-height: 40px;
 	margin-bottom: 6px;
+    padding: 0 76px;
 	text-align: center;
 	line-height: normal;
 }
@@ -417,6 +495,7 @@ body {
 	font-style: italic;
 	margin-bottom: 10px;
 	color: #999;
+    padding: 0 80px;
 }
 
 
@@ -436,6 +515,98 @@ body {
 
 #bottomVia {
 	font-size: 13px;
+}
+
+#sheetMetadata {
+	color: #999;
+	background-color: #fafafa;
+	padding: 0 80px;
+}
+
+#sheet #sheetMetadata .button {
+	background-color: #eee;
+	border-color: #ccc;
+	color: #999;
+	font-size: 14px;
+	margin: 4px;
+}
+
+#sheetMetadata summary {
+	text-align: center;
+	margin: 0 -76px;
+	background-color: #fff;
+	cursor: pointer;
+}
+
+#sheetMetadata[open] summary {
+	background-color: #fff;
+}
+
+#sheetMetadata summary::-webkit-details-marker {
+  	display: none;
+}
+
+#sheetTags {
+	margin-left: -4px;
+}
+
+#sheetMetadata summary:after {
+  	content: "❯";
+	margin: 0 0 0 6px;
+}
+#sheetMetadata[open] summary span {
+	display: none;
+}
+#sheetMetadata[open] summary:after {
+  	content: "✕";
+    top: 36px;
+    margin: 0 80px;
+    position: relative;
+}
+#sheetMetadata[open] summary:lang(en)::after {
+	float: right;
+}
+
+#sheetMetadata[open] summary:lang(he)::after {
+	float: left;
+}
+
+#sheetMetadata .editButton {
+	float: right;
+    margin: 0 26px;
+    padding: 4px 14px;
+    font-size: 12px;
+	background-color: #eee;
+    border-color: #ccc;
+    color: #999;
+	cursor: pointer;
+}
+
+#sheetMetadata .editButton:before {
+	content: "✎ ";
+}
+
+#sheetMetadata .int-he .editButton {
+	float: left;
+}
+
+#sheetMetadata .metadataOpenDetails {
+	font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	padding: 35px 0;
+}
+
+#sheetMetadata #via, #sheetMetadata #assignmentAttribution {
+	font-size: 14px;
+	padding: 7px 0;
+}
+
+#sheetSummary {
+	margin: 14px 0;
+	font-style: italic;
+}
+#sheetSummary:empty {
+	display: none;
 }
 
 #likeLink {
@@ -464,11 +635,11 @@ body {
 	display: block;
 }
 
-#likeInfo {
+#likeInfo-en, #likeInfo-he {
 	cursor: pointer;
 }
 
-#likeInfo:hover {
+.likes:hover {
 	text-decoration: underline;
 }
 
@@ -508,7 +679,8 @@ body {
 
 .sheetItem {
 	position: relative;
-	padding: 32px 76px;
+	padding: 24px 76px;
+	box-sizing: border-box;
 	border: solid 1px transparent;
 	border-left: solid 6px transparent;
 }
@@ -550,7 +722,7 @@ body {
 	border-bottom:solid 1px #F2F2F2;
 }
 
-#sourceControls {
+.interface-english #sourceControls {
 	text-align: center;
 	position: absolute;
 	bottom: 7px;
@@ -558,6 +730,15 @@ body {
 	background-color: #eee;
 	left: 50%;
 	margin-left: -150px;
+}
+.interface-hebrew #sourceControls {
+	text-align: center;
+	position: absolute;
+	bottom: 7px;
+	width: 300px;
+	background-color: #eee;
+	right: 50%;
+	margin-right: -150px;
 }
 
 .sourceControlsTop #sourceControls {
@@ -578,13 +759,22 @@ body {
 	background-color: #F9F9F7 !important;
 
 }
-.sideControls {
-	width: 16px !important;
-	left: 23px !important;
-	margin-left: 0 !important;
-	top: 32px !important;
-	background-color: transparent !important;
+.interface-english #sourceControls.sideControls {
+	width: auto;
+	left: 23px;
+	margin-left: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
+}
 
+.interface-hebrew #sourceControls.sideControls{
+	width: auto;
+	right: 23px;
+	margin-right: 0;
+	top: 32px;
+	bottom: auto;
+	background-color: inherit;
 }
 
 #sourceControls.sideControls div:hover {
@@ -662,8 +852,6 @@ body {
 	position: relative;
 }
 
-
-
 .text .en,
 .text .he {
 	min-height: 20px;
@@ -671,6 +859,7 @@ body {
 
 #sheet .en {
 	direction: ltr;
+	text-align: left;
 }
 #sheet .he {
 	direction: rtl;
@@ -792,7 +981,6 @@ body {
 	padding-right: 160px !important;
 }
 
-
 .comment, .oldComment {
 	font-size: 17px;
 	min-height: 30px;
@@ -859,14 +1047,30 @@ body {
 }
 
 #addParashaToSheetModal .cancel {
-	padding-top: 10px;
+	margin-top: 30px;
 }
 
 #addParashaToSheetModal li {
-	width:150px;
+	width: 150px;
 	display:inline;
-	float:left;
 	padding: 2px 0 2px 0;
+	cursor: pointer;
+	cursor: hand;
+}
+
+#addParashaToSheetModal li:hover span{
+	text-decoration: underline;
+}
+
+#addParashaToSheetModal ol {
+	display: flex;
+	flex-flow: row wrap;
+	margin: auto;
+	padding: 0;
+}
+
+.interface-hebrew #addParashaToSheetModal{
+	direction: rtl;
 }
 
 #addToSheetModal .header {
@@ -881,11 +1085,12 @@ body {
 	font-size: 22px;
 }
 
-#embedSheetModal textarea {
+#sheetsContent #embedSheetModal textarea {
 	width: 100%;
 	margin-top: 0;
 	height: 80px;
 	padding: 8px;
+	direction: ltr;
 }
 
 #embedSheetModal .sub {
@@ -977,6 +1182,10 @@ body {
 	padding-top: 20px;
 	border-top: 1px solid #aaa;
 	margin-top: 20px;
+}
+
+.interface-hebrew #empty #howItWorks{
+	text-align: right;
 }
 
 #empty h1 {
@@ -1179,9 +1388,24 @@ a:active {
 		height: 100%;
 	}
 
+	.indented-1 {
+		padding-left: 40px !important;
+		padding-right: 40px !important;
+	}
+
+	.indented-2 {
+		padding-left: 60px !important;
+		padding-right: 60px !important;
+	}
+
+	.indented-3 {
+		padding-left: 60px !important;
+		padding-right: 60px !important;
+	}
+
 }
 
-body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls {
+body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls, body.embeded .sheetsEditNavTop, body.embeded #interruptingMessage {
 	display: none;
 }
 
@@ -1208,62 +1432,60 @@ body.embeded #sheet {
 }
 
 
-/* Twitter Bootstrap Forms */
+/* from Twitter Bootstrap Forms */
 
-button,
-input,
-select,
-textarea {
+#sheetsContent button,
+#sheetsContent input,
+#sheetsContent select,
+#sheetsContent textarea {
   margin: 0;
   font-size: 100%;
   vertical-align: middle;
 }
-label,
-input,
-button,
-select,
-textarea {
+#sheetsContent input,
+#sheetsContent button,
+#sheetsContent select,
+#sheetsContent textarea {
   font-size: 13px;
   font-weight: normal;
   line-height: 18px;
 }
-button,
-input {
+#sheetsContent button,
+#sheetsContent input {
 *overflow: visible;
 line-height: normal;
 }
-button::-moz-focus-inner,
-input::-moz-focus-inner {
+#sheetsContent button::-moz-focus-inner,
+#sheetsContent input::-moz-focus-inner {
   padding: 0;
   border: 0;
 }
-button,
-input[type="button"],
-input[type="reset"],
-input[type="submit"] {
+#sheetsContent button,
+#sheetsContent input[type="button"],
+#sheetsContent input[type="reset"],
+#sheetsContent input[type="submit"] {
   cursor: pointer;
   -webkit-appearance: button;
 }
-input[type="search"] {
+#sheetsContent input[type="search"] {
   -webkit-appearance: textfield;
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
   box-sizing: content-box;
 }
-input[type="search"]::-webkit-search-decoration,
-input[type="search"]::-webkit-search-cancel-button {
+#sheetsContent input[type="search"]::-webkit-search-decoration,
+#sheetsContent input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
-textarea {
+#sheetsContent textarea {
   overflow: auto;
   vertical-align: top;
 }
-input,
-textarea,
-select
+#sheetsContent input,
+#sheetsContent textarea,
+#sheetsContent select
 {
   display: inline-block;
-  height: 18px;
   padding: 4px;
   margin-bottom: 9px;
   font-size: 13px;
@@ -1273,8 +1495,8 @@ select
   -moz-border-radius: 3px;
   border-radius: 3px;
 }
-input,
-textarea {
+#sheetsContent input,
+#sheetsContent textarea {
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
@@ -1284,8 +1506,8 @@ textarea {
   -o-transition: border linear 0.2s, box-shadow linear 0.2s;
   transition: border linear 0.2s, box-shadow linear 0.2s;
 }
-input:focus,
-textarea:focus {
+#sheetsContent input:focus,
+#sheetsContent textarea:focus {
   border-color: rgba(82, 168, 236, 0.8);
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
@@ -1293,12 +1515,11 @@ textarea:focus {
   outline: 0;
   outline: thin dotted \9;
   /* IE6-9 */
-
 }
-input[type="file"]:focus,
-input[type="radio"]:focus,
-input[type="checkbox"]:focus,
-select:focus {
+#sheetsContent input[type="file"]:focus,
+#sheetsContent input[type="radio"]:focus,
+#sheetsContent input[type="checkbox"]:focus,
+#sheetsContent select:focus {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none;
@@ -1306,19 +1527,16 @@ select:focus {
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
-
-select,
-input[type="file"] {
+#sheetsContent select,
+#sheetsContent input[type="file"] {
   height: 28px;
   /* In IE7, the height of the select element cannot be changed by height, only font-size */
-
   *margin-top: 4px;
   /* For IE7, add top margin to align select with labels */
-
   line-height: 28px;
 }
 
-img {
+#sheetsContent img {
 	vertical-align: middle;
 }
 
@@ -1446,6 +1664,10 @@ img {
 	z-index:101;
 }
 
+.alertBox.interface-hebrew{
+	direction: rtl;
+}
+
 .addedMedia {
 	max-width: 100%;
 }
@@ -1469,12 +1691,35 @@ img {
     background-color: #f2f2f2;
     border-bottom: 1px solid #E2E2E1;
     box-sizing: border-box;
-    direction: ltr;
     z-index: 21;
-    padding: 7px 30px 6px 10px;
     font-size: 16px;
     color: #333;
     top: 54px;
+}
+
+.sheetsMenuBar, .sheetsEditorControls{
+	padding: 7px 30px 6px 30px;
+}
+
+.sheetsMenuBar{
+
+}
+
+.sheetsEditorControls{
+	border-top: 1px solid #E2E2E1;
+	display: none;
+}
+
+.sheetsMenuBarInner{
+	display: flex;
+	justify-content: space-between;
+	direction: inherit;
+	align-items: center;
+}
+
+.sheetsMenuBarCommands{
+	display: flex;
+	justify-content: space-between;
 }
 
 .sheetsEditNavTop .optionsMenu {
@@ -1490,17 +1735,22 @@ img {
 
 .sheetsMenuBarItem {
 	display: inline-block;
-	padding: 10px 20px;
+	padding: 10px 22px;
 	font-size: 16px;
 	border: 1px solid transparent;
-
 }
 
-.sheetsMenuBarItem:hover {
+.sheetsMenuBarItem:first-child{
+	-webkit-padding-start: 0;
+	padding-inline-start: 0;
+	/*padding-left: 0;*/
+}
+
+.sheetsMenuBarItem:hover, .sheetsMenuBarItem.open {
 	position: relative;
 }
 
-.sheetsMenuBarItem:hover:after {
+.sheetsMenuBarItem:hover:after, .sheetsMenuBarItem.open:after {
   content: ' ';
   position: absolute;
   top: 0;
@@ -1510,34 +1760,31 @@ img {
   z-index: 6;
 }
 
-#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu {
+#fileMenu:hover .optionsMenu, #formatMenu:hover .optionsMenu, #insertMenu:hover .optionsMenu, #highlightMenu:hover .optionsMenu,
+.sheetsMenuBarItem.open .optionsMenu {
 	display: block;
 	top:45px;
-	left:20px;
+	/*left:20px;*/
 	background-color: #F9F9F7;
 }
 
-#insertMenu:hover .optionsMenu {
+#insertMenu:hover .optionsMenu, .menuHeaderOpen .optionsMenu {
 	width:240px;
 }
 
 #ckeTopMenu .cke_top, #ckeTopMenu .cke_shared{
-	border: #f2f2f2 solid 1px;
+	border: none;
 	background: #f2f2f2;
 	-moz-box-shadow: none;
     -webkit-box-shadow: none;
     box-shadow: none;
 	width:100%;
+	padding: 0;
 }
 
 #ckeTopMenu .cke_inner {
-    padding: 0 7px;
+    padding: 0 0px;
 	background: #f2f2f2;
-	position: relative;
-	margin-bottom: -8px;
-	border-bottom: 1px solid #E2E2E1;
-
-
 }
 
 #ckeTopMenu .cke_inner:after {
@@ -1547,6 +1794,10 @@ img {
 	left:-20px;
 	right:-20px;
 	border-top: 1px solid #E2E2E1;
+}
+
+.cke_toolgroup, a.cke_combo_button{
+	margin-bottom: 0;
 }
 
 .activeSource {
@@ -1560,17 +1811,16 @@ img {
     text-align: center;
     width: 100%;
     padding: 0;
-    bottom: -53px;
-	position: relative;
+    left: 0;
+    bottom: -21px;
+	position: absolute;
     font-size: 30px;
 	z-index: 3;
 }
 
-
 .inlineAddButtonIcon::before {
 	content: url("../img/add icon.png");
 }
-
 
 .inlineAddButtonIcon.active {
 	content: url("../img/add icon active.png");
@@ -1595,6 +1845,10 @@ img {
 	width: 702px;
 	margin: 20px 74px;
 	display:flex;
+}
+
+.interface-hebrew #addInterface .buttonBar{
+	direction: rtl;
 }
 
 
@@ -1636,11 +1890,15 @@ img {
 }
 
 .addInterfaceButton:first-of-type {
-	border-left: 1px solid #cecece;
+	/*border-left: 1px solid #cecece;*/
+	border-inline-start: 1px solid #cecece;
+	-webkit-border-start: 1px solid #cecece;
 
 }
 .addInterfaceButton:last-of-type {
-	border-right: 1px solid #cecece;
+	/*border-right: 1px solid #cecece;*/
+	border-inline-end: 1px solid #cecece;
+	-webkit-border-end: 1px solid #cecece;
 }
 
 .addInterfaceButton{
@@ -1672,6 +1930,7 @@ img {
 	color: #999;
 	font-size:12px;
 	margin: 40px 0;
+	unicode-bidi: plaintext;
 
 }
 
@@ -1683,7 +1942,7 @@ img {
 	display:none;
 }
 
-.inlineAddTextInput {
+#sheetsContent .inlineAddTextInput {
 	width: 320px;
 	height: 32px;
 	margin: 0;
@@ -1696,13 +1955,13 @@ img {
 .inlineAddOr {
 	display:inline-block;
 	color: #999;
-    margin: 6px;
+    margin: 4px;
+}
 
-}
 .inlineAddSourceByttons {
-	display:inline-block;
+	display: inline-block;
 }
-#sheet .button, .sheetsEditNavTop .button, .modal .button {
+.sheetsEditNavTop .button {
 	background-color: #212e50;
 	border-color: #212e50;
 	padding: 12px 24px;
@@ -1717,7 +1976,7 @@ img {
     margin-right: 67px;
 	height:30px;
 	width:160px;
-
+	direction: ltr;
 }
 
 #customTextLanguageToggle .toggleOption {
@@ -1737,8 +1996,14 @@ img {
     margin: 0 74px 0 74px;
 }
 .blockContainer {
-	display: inline-block;
+	display: flex;
+	justify-content: space-between;
 	width:100%;
+
+}
+
+.interface-hebrew .blockContainer{
+	direction: rtl;
 }
 
 #customTextContainer{
@@ -1778,7 +2043,7 @@ img {
 .customTextEditables.he {
 	text-align: right;
 }
-#inlineAddMediaInput{
+#sheetsContent #inlineAddMediaInput {
 	width: 280px;
 }
 
@@ -1801,7 +2066,6 @@ a.userLink{
 	color:#999;
 }
 
-
 .commentIcon {
 	color:#999;
 	font-size: .75em;
@@ -1809,12 +2073,10 @@ a.userLink{
 	margin-right: 7px;
 }
 .sheetsEditNavTop #save, .sheetsEditNavTop #share  {
-	float: right;
-    margin: 5px 0 0 0;
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
-	height: 30px;
+	margin: auto;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
     margin-bottom: 2px;
@@ -1822,27 +2084,89 @@ a.userLink{
 
 }
 
-
-#shareURL {
+#sheetsContent #shareURL {
 	cursor: text;
 	background-color: #fff;
+    border-radius: 4px;
     font-style: italic;
-    width: 100%;
+	font-size: 16px;
+    width: 75%;
     box-sizing: border-box;
-    height: 30px;
+    height: 36px;
+	margin-top: 6px;
+	padding-left: 35px;
+	color: #999;
+	/* url below is an inline copy of `/static/img/tools-add-connection.svg` it's required to change the color accordingly  */
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23999" d="M21.921 2.081c2.771 2.772 2.771 7.269 0 10.042l-3.84 3.839-2.121-2.122 3.839-3.84c1.599-1.598 1.599-4.199-.001-5.797-1.598-1.599-4.199-1.599-5.797-.001l-3.84 3.839-2.121-2.121 3.84-3.839c2.771-2.773 7.267-2.773 10.041 0zm-8.082 13.879l-3.84 3.839c-1.598 1.6-4.199 1.599-5.799 0-1.598-1.598-1.598-4.2 0-5.797l3.84-3.84-2.121-2.121-3.84 3.84c-2.771 2.772-2.772 7.268 0 10.041 2.773 2.772 7.27 2.773 10.041 0l3.84-3.84-2.121-2.122z"/></svg>') no-repeat 9px center;
+	background-size: 18px 18px;
+}
+#shareWithOthers #sourceSheetGroupSelect {
+	width: 75%;
+	margin-top: 13px;
+}
+
+#sourceSheetGroupOptions {
+	margin-top: 8px;
+}
+
+label[for="shareURL"],label[for="sourceSheetGroupSelect"], .labelforOnOffSwitch {
+	width: 24%;
+    display: inline-block;
+}
+
+.labelforOnOffSwitch {
+	position: relative;
+	top: -5px;
+}
+
+label[for="sourceSheetShareSelect"] {
+	width: 40%;
+    display: inline-block;
+}
+
+#shareWithOthers #sourceSheetShareSelect {
+	margin-bottom:0;
+	width: 25%;
+}
+
+#shareWithOthers .ok.button {
+    margin-top: -5px;
+    float: right;
+}
+
+#shareWithOthers .ok.button.int-he {
+	float:left;
+}
+
+
+#sheetsContent textarea#sheetSummaryInput {
+	width: 100%;
+	font-size: 16px;
+	padding: 10px 15px;
+    border-radius: 4px;
+	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+	margin-bottom: 0;
+}
+
+#sheetsContent textarea#sheetSummaryInput::placeholder {
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	color: #999999;
 }
 
 #shareWithOthers .content .inputHeader {
-	margin: 30px 0 15px 0;
+	margin: 10px 0 10px 0;
 }
 
 #shareWithOthers .content select {
 	width: 100%;
+	font-size: 16px;
+    height: 36px;
+	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 #shareWithOthers {
 	text-align: center;
-	width:400px;
+	width:480px;
 }
 
 #sharingDesc {
@@ -1878,6 +2202,10 @@ a.userLink{
 	border-radius: 6px;
 	width: 400px;
 }
+
+.interface-hebrew .s2Modal, .interface-hebrew.s2Modal{
+	direction: rtl;
+}
 .s2Modal .title {
 	font-size: 20px;
 	margin: 0;
@@ -1887,6 +2215,10 @@ a.userLink{
 .s2Modal .content {
 	color: #999;
 	text-align: left;
+}
+
+.interface-hebrew .s2Modal .content{
+	text-align: right;
 }
 
 .s2Modal .ok.button {
@@ -1915,11 +2247,41 @@ a.userLink{
 }
 
 #tags {
-	border: 1px solid #aaaaaa;
+	border: 1px solid rgb(204, 204, 204);
 	background: #ffffff;
 	color: #222222;
-    margin-top: 30px;
-    margin-bottom: 30px;
+	margin: 0 0 5px 0;
+	padding-left: 10px;
+    border-radius: 4px;
+}
+
+#tags .addTagMsg {
+	font-style: italic;
+	font-size: 16px;
+	float: left;
+	padding-top: 3px;
+    margin: 8px 3px;
+	color: #999999;
+}
+
+#tags .addTagMsg .int-he {
+	float: right;
+}
+
+#suggestedTags {
+	margin-bottom: 9px;
+}
+
+.tagButton {
+    color: #999999;
+    background-color: #f2f2f2;
+	border: 1px solid #e5e5e5;
+    border-radius: 2px;
+	padding: 5px;
+	margin: 2px;
+	font-size: 12px;
+	cursor: pointer;
+	display: inline-block;
 }
 
 .ui-widget-content {
@@ -1934,6 +2296,12 @@ a.userLink{
 
 ul.tagit li.tagit-choice .tagit-close .text-icon {
 	display:block;
+	margin-left: 5px;
+}
+
+#tags input {
+    font-size: 16px;
+    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .ui-icon {
@@ -1952,9 +2320,11 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 }
 
 ul.tagit li.tagit-choice {
-    color: #333;
+    color: #666;
 	background-color: #F9F9F7;
 	border-radius: 2px;
+	padding: 5px 15px 5px 5px;
+	margin: 5px 0 0 5px;
 }
 
 a.tagit-close {
@@ -1973,10 +2343,213 @@ a.tagit-close {
 	content: "X"
 }
 
-.moveSourceUp img, .moveSourceDown img  {
+.moveSourceUp img, .moveSourceDown img, .highlighterSource img  {
     width:16px;
 }
+
+.source .highlighter, .highlighterTools, .highlighterTagWindow, .addTagPanel {
+	display: none;
+}
+
+#sheet.highlightMode #sources .sheetItem .highlighter, #sheet.highlightMode .highlighterTools {
+	display: block;
+}
+
+#sheet.highlightMode #sources .sheetItem .text {
+	display: none;
+}
+
+#highlightMenu {
+	display: none;
+}
+
+
+.highlighterTagWindow {
+  	position: absolute;
+	z-index: 3;
+	width: 320px;
+	background-color: #f9f9f7;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+
+}
+
+.highlighterTagWindow .save.button {
+    margin: 20px;
+    width: 280px;
+    text-align: center;
+	display: none;
+
+}
+
+.highlighterSegment {
+	display: inline;
+	margin-top: 10px;
+}
+
+.editCheckToggle {
+    display: inline-block;
+    float: right;
+    height: 22px;
+}
+.interface-hebrew .editCheckToggle{
+	float: left;
+}
+
+
+.tagSelectorTitle {
+	font-weight: 400;
+    text-align: center;
+    margin: 20px;
+}
+
+.splitHighlighterSegment, .createNewHighlighterTag {
+	background-color: #fff;
+	margin: 10px 20px;
+	border-radius: 3px;
+	border: 1px solid transparent;
+	color: #999;
+	padding: 5px 10px;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.splitHighlighterSegment.active, .createNewHighlighterTag.active {
+	border: 1px solid #ccc;
+	color: #333;
+}
+
+.splitHighlighterSegment, .noSelect, .colorSelect div, .addTagPanel, .newTag {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+.colorSwatch {
+	width: 10px;
+	height: 10px;
+	display: none;
+	border: 3px solid transparent;
+	margin-right: 5px;
+	border-radius: 3px;
+    margin-bottom: -2px;
+}
+
+.colorSwatch.active {
+	display: inline-block;
+}
+
+.createNewHighlighterTag {
+	font-style: italic;
+}
+
+.tagName {
+	display: inline-block;
+}
+
+.colorSelect {
+	text-align:center;
+}
+
+#highlightModeDisplay {
+	display: none;
+	z-index: 100;
+	text-align: center;
+	font-size: 12px;
+	padding: 7px 5px;
+	color: #888;
+	background-color: #f2f2f2;
+
+}
+
+#sheet .segment {
+	display: inline;
+}
+
+#highlightToggleDeactivate,
+.segmentedContinuousToggle .segmentedActive,
+#lastSaved .lastSavedConfirmed,
+#lastSaved .saving,
+#lastSaved .pending,
+#save #inSave{
+	display: none;
+}
+
+.highlighterSegment[data-tag]::before {
+    content: attr(data-tag) ;
+    font-size: 14px;
+	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+    position:absolute;
+    z-index: 2;
+    white-space:nowrap;
+    background:#fff;
+    color:#666;
+	border-radius: 3px;
+	border: 1px solid #999;
+    padding:0px 7px;
+	margin-top: -30px;
+    line-height: 24px;
+    height: 24px;
+    opacity: 0;
+    transition:opacity 0.4s ease-out;
+	pointer-events: none;
+    }
+
+
+.highlighterSegment[data-tag]:hover::before {
+    opacity: 1;
+    }
+
+.highlightFilterSelection {
+	padding: 10px 12px;
+	display: flex;
+	justify-content: flex-start;
+}
+
+#sheetsContent .highlightFilterSelection label {
+	font-size: 17px;
+}
+
+#sheetsContent .highlightFilterSelection input {
+	margin: auto;
+}
+
+.highlighterFilterTags{
+	padding: 5px 0;
+}
+.highlighterFilterTags:hover {
+	background-color: #f2f2f2;
+	color: #000;
+}
+
+.divineNamesOption span[class^="int-"]{
+	unicode-bidi: plaintext;
+}
+
+.colorSelect div {
+	width: 34px;
+	height:30px;
+    border-radius: 5px;
+	margin:5px;
+	display: inline-block;
+	cursor: pointer;
+	border: 1px transparent solid;
+
+}
+
 
 #sheet.hebrew .outsideWrapper .en, #sheet.english .outsideWrapper .en .outsideWrapper .he {
 	display: block;
 }  /* TODO add ability to set outside text source formatting from menu bar like real sources to remove need for this. Allow overrides to occur like real source texts */
+
+.interface-hebrew .tooltipster-default .tooltipster-content{
+	font-family: "Heebo", sans-serif;
+}
+
+#peopleListModal.interface-hebrew{
+	direction: rtl;
+}

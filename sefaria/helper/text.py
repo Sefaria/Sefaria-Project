@@ -6,6 +6,7 @@ from sefaria.model import *
 from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
+from diff_match_patch import diff_match_patch
 
 
 def add_spelling(category, old, new, lang="en"):
@@ -31,7 +32,6 @@ def add_spelling(category, old, new, lang="en"):
                 i.save()
 
 
-
 def rename_category(old, new):
     """
     Walk through all index records, replacing every category instance
@@ -45,6 +45,7 @@ def rename_category(old, new):
         i.categories = [new if cat == old else cat for cat in i.categories]
         i.save()
 
+    # Not multiserver aware
     library.rebuild_toc()
 
 
@@ -228,15 +229,15 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
     from sefaria.tracker import modify_text
-    section_refs = library.get_index(title).all_section_refs()
-    for section_ref in section_refs:
-        section = section_ref.text(vtitle=vtitle, lang=lang)
-        segment_refs = section_ref.subrefs(len(section.text) if section.text else 0)
-        if segment_refs:
-            for i in range(len(section.text)):
-                if section.text[i] and len(section.text[i]) and needs_rewrite_function(section.text[i]):
-                    text = rewrite_function(section.text[i])
-                    modify_text(uid, segment_refs[i], vtitle, lang, text, **kwargs)
+
+    leaf_nodes = library.get_index(title).nodes.get_leaf_nodes()
+    for leaf in leaf_nodes:
+        oref = leaf.ref()
+        ja = oref.text(lang, vtitle).ja()
+        assert isinstance(ja, JaggedTextArray)
+        modified_text = ja.modify_by_function(rewrite_function)
+        if needs_rewrite_function(ja.array()):
+            modify_text(uid, oref, vtitle, lang, modified_text, **kwargs)
 
 
 def split_text_section(oref, lang, old_version_title, new_version_title):
@@ -480,8 +481,53 @@ def get_library_stats():
     return output.getvalue()
 
 
+def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
+    """
+    Make a diff of seg1 on seg2 and return two html strings displaying the differences between each one. Takes an
+    optional callback that can edit the texts before the diff is made
+    :param seg1:
+    :param seg2:
+    :param edit_cb: callback
+    :param bool css_classes: Set to True to style diffs with css classes. Classes will be "ins" and "del". If False
+     will set an inline style tag.
+    :return: (str, str)
+    """
+    def side_by_side_diff(diffs, change_from=True):
+        """
+        Used to render an html display of a diff from the diff_match_patch library
+        :param diffs: list of tuples as produced by diff_match_patch.diff_main()
+        :param change_from: diff_match_patch.diff_main() gives a diff that shows how to change from stringA to stringB. This
+          flag should be true if you wish to see only the additions that need to be made to textA (first string fed to
+          diff_main). If the inserts to the second are to be diplayed, set to False.
+        :return: html string
+        """
+        diff_delete, diff_insert, diff_equal = -1, 1, 0
+        html = []
+        if css_classes:
+            ins, dell = u'class="ins"', u'class="del"'
+        else:
+            ins, dell = u'style="background:#e6ffe6;"', u'style="background:#ffe6e6;"'
 
+        for (op, data) in diffs:
+            my_text = (data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "&para;<br>"))
+            if op == diff_insert:
+                if change_from:
+                    continue
+                else:
+                    html.append(u"<span {}>{}</span>".format(ins, my_text))
+            elif op == diff_delete:
+                if change_from:
+                    html.append(u"<span {}>{}</span>".format(dell, my_text))
+                else:
+                    continue
+            elif op == diff_equal:
+                html.append(u"<span>%s</span>" % my_text)
+        return u"".join(html)
 
+    if edit_cb is not None:
+        seg1, seg2 = edit_cb(seg1), edit_cb(seg2)
+    diff = diff_match_patch().diff_main(seg1, seg2)
+    return side_by_side_diff(diff), side_by_side_diff(diff, False)
 
 
 

@@ -1,6 +1,6 @@
 {% load sefaria_tags %}
 
-<script src="/static/js/keyboard.js"></script>
+<script src="/static/js/lib/keyboard.js"></script>
 <script type="text/javascript">
 {% autoescape off %}
 	var sjs = sjs || {};
@@ -48,7 +48,7 @@
 					sjs.track.ui("Nav Query");
 				} else {
 					if (sjs.currentPage !== 'search') {
-						window.location="/search?q=" + query.replace(/ /g, "+"); 
+						window.location="/search?q=" + query.replace(/ /g, "+");
 					} else {
                         sjs.search.query = query;
                         sjs.search.clear_available_filters();
@@ -63,7 +63,7 @@
 		searchInsteadOfNav: function (query) {
 			// Displays an option under the search box to search for 'query' rather
 			// than treat it as a navigational query.
-			var html = "<div id='searchInsteadOfNavPrompt'>" + 
+			var html = "<div id='searchInsteadOfNavPrompt'>" +
                             "Search for '<a href='/search?q=" + query + "'>" + query + "</a>' instead." +
 						"</div>";
 			$("#searchInsteadOfNavPrompt").remove();
@@ -155,7 +155,7 @@
                 this._structure = state.structure;
 				if (sjs.current && sjs.current.title && this._path[this._path.length-1] === sjs.current.title) {
 					this._path     = state.path;
-					this._sections = state.sections;					
+					this._sections = state.sections;
 				}
 				if (state.path.length) {
 					$("#navPanelTexts").addClass("expand");
@@ -173,11 +173,11 @@
 			sjs.navPanel._saveState();
 		},
 		_saveState: function() {
-			$.cookie("navPanelState", JSON.stringify({path:         sjs.navPanel._path, 
+			$.cookie("navPanelState", JSON.stringify({path:         sjs.navPanel._path,
 													  sections:     sjs.navPanel._sections,
 													  showPreviews: sjs.navPanel._showPreviews,
                                                       structure:    sjs.navPanel._structure
-													}));			
+													}));
 		},
 		setNavContent: function() {
 			var sections = this._sections;
@@ -275,7 +275,7 @@
 						"<div id='navTocLangToggle' class='toggle'>" +
 						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("english") ? "active" : "") + "' data-lang='english'>" +
 							"<img src='/static/img/english.png' /></div>" +
-						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" + 
+						"<div class='langToggle toggleOption " + ($("#navToc").hasClass("hebrew") ? "active" : "") + "' data-lang='hebrew'>" +
 							"<img src='/static/img/hebrew.png' /></div>" +
 						"</div></div>";
 
@@ -342,9 +342,9 @@
 								"data-sections='" + sectionPath + "'>" + crumb + "</div>");
 				}
 
-				html += "<div id='tocCatHeaders'>" + 
-								cats.join(" &raquo; ") + 
-								"<div class='clear'></div>" + 
+				html += "<div id='tocCatHeaders'>" +
+								cats.join(" &raquo; ") +
+								"<div class='clear'></div>" +
 							"</div>";
 
 			}
@@ -359,19 +359,19 @@
 
 					if ("title" in node[i]) {
 						// Text
-						html += "<div class='tocCat sparse" + node[i].sparseness + "' " +
+						html += "<div class='tocCat' " +
 									 "data-path='" + catPath + "'" +
-									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" + 
+									 "data-sections='" + node[i].title.replace(/\'/g, "&apos;") +"'>" +
 									 	"<i class='tocCatCaret fa fa-angle-" +
 									 		($("#navToc").hasClass("hebrew") ? "left" : "right") +
 									 	"'></i>" +
-									 	"<a class='textTocLink tooltipster' href='/" + node[i].title.replace(/\'/g, "&apos;") + "' title='Table of Contents'><i class='fa fa-list-ul'></i></a>" +									 	
+									 	"<a class='textTocLink tooltipster' href='/" + node[i].title.replace(/\'/g, "&apos;") + "' title='Table of Contents'><i class='fa fa-list-ul'></i></a>" +
 									 	"<span class='en'>" + node[i].title + "</span>" +
 									 	"<span class='he'>" + node[i].heTitle + "</span>" +
 								"</div>";
 					} else {
 						// Category
-						html += "<div class='tocCat' data-path='" + catPath + "'>" + 
+						html += "<div class='tocCat' data-path='" + catPath + "'>" +
 									"<i class='tocCatCaret fa fa-angle-" +
 										($("#navToc").hasClass("hebrew") ? "left" : "right") +
 									"'></i>" +
@@ -604,13 +604,6 @@
 			$("#navPanel.navPanelOpen").removeClass("navPanelOpen");
 		});
 
-
-		// Show the Search instead of query modal if it's in params
-		var params = getUrlVars();
-		if ("nav_query" in params) {
-			sjs.searchInsteadOfNav(params.nav_query);
-		}
-
 		// Language Toggles
 		sjs.changeContentLang = function() {
 			var mode = this.id;
@@ -649,14 +642,14 @@
 			if (ids.length) {
 				$.post("/api/notifications/read", {notifications: JSON.stringify(ids)}, function(data) {
 					console.log(data)
-				});			
+				});
 			}
 			var unread = parseInt($("#newNotificationsCount").text()) - ids.length;
 			if (unread == 0 ) {
 				$("#newNotificationsCount").hide();
 			}
 			$("#newNotificationsCount").text(unread);
- 			
+
 	    };
 
 	    // Notifications - Load more through scrolling
@@ -670,7 +663,7 @@
     		$.getJSON("/api/notifications?page=" + sjs.notificationsPage, function(data) {
     			if (data.count < data.page_size) {
     				$("#notifications").unbind("scroll");
-    			} 
+    			}
 				$("#notifications").append(data.html);
 				sjs.notificationsPage = data.page + 1;
     			sjs.markNotificationsAsRead();
@@ -703,7 +696,7 @@
 		};
 		sjs.postMessage = function(recipient, message) {
 			if (!message) { return; }
-			var postJSON = JSON.stringify({ 
+			var postJSON = JSON.stringify({
 				recipient: recipient,
 				message: message.escapeHtml()
 			});
@@ -719,7 +712,7 @@
 									"<div id='messageText'>" + message + "</div>" +
 									"<div class='messageReply btn btn-primary' data-recipient='" + sender +"'>Reply</div>" +
 									"<div class='cancel btn'>Close</div>" +
-								"</div>";				
+								"</div>";
 			$(messageHtml).appendTo("body").show()
 				.position({of: window})
 				.draggable({cancel: "#messageText"});
@@ -748,11 +741,11 @@
 			var recipient = parseInt($(this).attr("data-recipient"));
 			var name      = $(this).parent().find("a.userLink")[0].outerHTML;
 			var message   = $(this).parent().find(".messageText").html();
-			sjs.viewMessage(recipient, name, message);			
+			sjs.viewMessage(recipient, name, message);
 		});
 
 
-		// Share Link / Share Modal 
+		// Share Link / Share Modal
 		sjs.showShareModal = function(e){
 			$("#shareModal").show().position({of: window});
 			$("#overlay").show();
@@ -769,7 +762,7 @@
             $("#textPreview").remove();
             sjs.help.close();
 			e.stopPropagation();
-		}; 
+		};
 		$("#overlay").click(sjs.hideModals);
 
 
@@ -793,8 +786,8 @@
                 sjs.track.event("Help", "Video", vid);
             },
             makeVideo: function(vid) {
-            	var url = "http://www.youtube.com/embed/" + 
-            					sjs.help.videos[vid] + 
+            	var url = "http://www.youtube.com/embed/" +
+            					sjs.help.videos[vid] +
             					"?enablejsapi=1&rel=0&autoplay=1";
             	var html = '<iframe id="helpVideo" src="' + url + '" frameborder="0" allowfullscreen></iframe>';
             	$("#helpVideoBox").html(html);
@@ -815,7 +808,7 @@
         sjs.help.init();
 
 
-		// Move Goto box, controls into hidden menu for small screen size 
+		// Move Goto box, controls into hidden menu for small screen size
 		sjs.adjustLayout = function() {
 			// Layout changes for small screen sizes that can't be accomplised
 			// with media-queries only
@@ -823,7 +816,7 @@
 			var $gotoBox  = $("#gotoBox");
 			var $controls = $("#controls");
 
-			// gotoBox into options bar	    	
+			// gotoBox into options bar
 			if (width >= 500 && $gotoBox.parent().attr("id") === "navPanel") {
 				$("#breadcrumbs").before($gotoBox);
                 $(".navLine").first().remove();
@@ -856,7 +849,7 @@
 	    $("#rightButtons").click(function(e){e.stopPropagation();});
 	    $(window).click(sjs.hideOptionsBar);
 
-		// browser check -- 
+		// browser check --
 		// this attempts to create an element and add css3 text shadow to it to it
 		// these are only supported in recent firefox, chrome, safari & ie > 9
 

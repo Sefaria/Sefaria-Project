@@ -73,7 +73,7 @@ with open(filename, 'rb') as csvfile:
                     "refs": [mishnaRef.normal(), mishnahInTalmudRef.normal()],
                     "auto": True,
                     "generated_by": "mishnah_map",
-                    "type": "Mishnah in Talmud"
+                    "type": "mishnah in talmud"
                 })
             except DuplicateRecordError as e:
                 print e

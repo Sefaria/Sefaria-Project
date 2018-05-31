@@ -76,7 +76,7 @@ def make_json(doc):
     return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
 
-def make_text(doc):
+def make_text(doc, strip_html=False):
     """
     Export doc into a simple text format.
 
@@ -103,7 +103,10 @@ def make_text(doc):
     def make_node(node, depth, **kwargs):
         if not node.children:
             content = u"\n\n%s\n\n" % node.primary_title(doc["language"])
-            content += flatten(version.content_node(node), node.sectionNames)
+            cnode = version.content_node(node)
+            if strip_html:
+                cnode = version.remove_html_and_make_presentable(cnode)
+            content += flatten(cnode, node.sectionNames)
             return content
         else:
             return u"\n\n%s" % node.primary_title(doc["language"])

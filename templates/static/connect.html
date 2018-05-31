@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Sefaria: Newsletter, Social Media and More{% endblock %}
+{% block title %}{% trans "Sefaria Newsletter, Social Media and More" %}{% endblock %}
+
+{% block description %}{% trans "Get updates on new texts and features on Sefaria by signing up for our newsletter or following us on social media." %}{% endblock %}
 
 {% block content %}
 <div id="connectPage" class="static">
@@ -30,16 +33,15 @@
             <a href="http://www.facebook.com/sefaria.org" target="_blank">
                 <div class="button white">
                     <i class="fa fa-facebook-official"></i>
-                    <span class='en'>Facebook</span>
-                    <span class='he'>פייסבוק</span>
+                    <span class='int-en'>Facebook</span>
+                    <span class='int-he'>פייסבוק</span>
                 </div>
-
             </a>
 
             <a href="http://twitter.com/SefariaProject" target="_blank">
                 <div class="button white">
                     <i class="fa fa-twitter"></i>
-                    <span class='en'>Twitter</span>
+                    <span class='int-en'>Twitter</span>
                     <span class="int-he">טוויטר</span>
                 </div>
             </a>
@@ -83,7 +85,7 @@
         $("#subscribe").click(function() {
             var email = $("#mailingListEmail").val();
             if (Sefaria.util.isValidEmailAddress(email)) {
-                Sefaria.site.track.event("Home", "Subscribe from Homepage", "");
+                Sefaria.track.event("Home", "Subscribe from Homepage", "");
                 $("#subscribeMsg").html("<i>Subscribing...</i>");
                 $.post("/api/subscribe/" + email, function(data) {
                     if ("error" in data) {
@@ -100,7 +102,7 @@
         });
         $("#mailingListEmail").keyup(function(e){
             if (e.keyCode === 13) {
-                $("#subscribe").trigger("click");   
+                $("#subscribe").trigger("click");
             }
         });
     });

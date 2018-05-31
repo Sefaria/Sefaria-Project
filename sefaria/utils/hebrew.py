@@ -12,10 +12,22 @@ import re
 import regex
 import math
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 ### Change to all caps for constants
 GERESH = u"\u05F3"
 GERSHAYIM = u"\u05F4"
+ALPHABET_22 = u"אבגדהוזחטיכלמנסעפצקרשת"
+FINAL_LETTERS = u"םןץףך"
+ALPHABET_27 = ALPHABET_22 + FINAL_LETTERS
+
+H2E_KEYBOARD_MAP = {u"/": u"q", u"׳": u"w", u"ק": u"e", u"ר": u"r", u"א": u"t", u"ט": u"y", u"ו": u"u", u"ן": u"i", u"ם": u"o", u"פ": u"p", u"ש": u"a", u"ד": u"s", u"ג": u"d", u"כ": u"f", u"ע": u"g", u"י": u"h", u"ח": u"j", u"ל": u"k", u"ך": u"l", u"ף": u";", u",": u"'", u"ז": u"z", u"ס": u"x", u"ב": u"c", u"ה": u"v", u"נ": u"b", u"מ": u"n", u"צ": u"m", u"ת": u",", u"ץ": u".", u".": u"/"}
+E2H_KEYBOARD_MAP = {u"'": u',', u',': u'\u05ea', u'.': u'\u05e5', u'/': u'.', u';': u'\u05e3', u'A': u'\u05e9', u'B': u'\u05e0', u'C': u'\u05d1', u'D': u'\u05d2', u'E': u'\u05e7', u'F': u'\u05db', u'G': u'\u05e2', u'H': u'\u05d9', u'I': u'\u05df', u'J': u'\u05d7', u'K': u'\u05dc', u'L': u'\u05da', u'M': u'\u05e6', u'N': u'\u05de', u'O': u'\u05dd', u'P': u'\u05e4', u'Q': u'/', u'R': u'\u05e8', u'S': u'\u05d3', u'T': u'\u05d0', u'U': u'\u05d5', u'V': u'\u05d4', u'W': u'\u05f3', u'X': u'\u05e1', u'Y': u'\u05d8', u'Z': u'\u05d6', u'a': u'\u05e9', u'b': u'\u05e0', u'c': u'\u05d1', u'd': u'\u05d2', u'e': u'\u05e7', u'f': u'\u05db', u'g': u'\u05e2', u'h': u'\u05d9', u'i': u'\u05df', u'j': u'\u05d7', u'k': u'\u05dc', u'l': u'\u05da', u'm': u'\u05e6', u'n': u'\u05de', u'o': u'\u05dd', u'p': u'\u05e4', u'q': u'/', u'r': u'\u05e8', u's': u'\u05d3', u't': u'\u05d0', u'u': u'\u05d5', u'v': u'\u05d4', u'w': u'\u05f3', u'x': u'\u05e1', u'y': u'\u05d8', u'z': u'\u05d6'}
+KEYBOARD_SWAP_MAP = {u"/": u"q", u"׳": u"w", u"ק": u"e", u"ר": u"r", u"א": u"t", u"ט": u"y", u"ו": u"u", u"ן": u"i", u"ם": u"o", u"פ": u"p", u"ש": u"a", u"ד": u"s", u"ג": u"d", u"כ": u"f", u"ע": u"g", u"י": u"h", u"ח": u"j", u"ל": u"k", u"ך": u"l", u"ף": u";", u",": u"'", u"ז": u"z", u"ס": u"x", u"ב": u"c", u"ה": u"v", u"נ": u"b", u"מ": u"n", u"צ": u"m", u"ת": u",", u"ץ": u".", u".": u"/",
+					u"'": u',', u',': u'\u05ea', u'.': u'\u05e5', u'/': u'.', u';': u'\u05e3', u'A': u'\u05e9', u'B': u'\u05e0', u'C': u'\u05d1', u'D': u'\u05d2', u'E': u'\u05e7', u'F': u'\u05db', u'G': u'\u05e2', u'H': u'\u05d9', u'I': u'\u05df', u'J': u'\u05d7', u'K': u'\u05dc', u'L': u'\u05da', u'M': u'\u05e6', u'N': u'\u05de', u'O': u'\u05dd', u'P': u'\u05e4', u'Q': u'/', u'R': u'\u05e8', u'S': u'\u05d3', u'T': u'\u05d0', u'U': u'\u05d5', u'V': u'\u05d4', u'W': u'\u05f3', u'X': u'\u05e1', u'Y': u'\u05d8', u'Z': u'\u05d6', u'a': u'\u05e9', u'b': u'\u05e0', u'c': u'\u05d1', u'd': u'\u05d2', u'e': u'\u05e7', u'f': u'\u05db', u'g': u'\u05e2', u'h': u'\u05d9', u'i': u'\u05df', u'j': u'\u05d7', u'k': u'\u05dc', u'l': u'\u05da', u'm': u'\u05e6', u'n': u'\u05de', u'o': u'\u05dd', u'p': u'\u05e4', u'q': u'/', u'r': u'\u05e8', u's': u'\u05d3', u't': u'\u05d0', u'u': u'\u05d5', u'v': u'\u05d4', u'w': u'\u05f3', u'x': u'\u05e1', u'y': u'\u05d8', u'z': u'\u05d6'}
+
 
 
 def heb_to_int(unicode_char):
@@ -307,9 +319,40 @@ def decompose_presentation_forms(orig_char):
 
 presentation_re = re.compile(ur"[\uFB1D-\uFB4F]")
 
-def decompose_presentation_forms_in_str(orig_str):
-	return presentation_re.sub(lambda match: decompose_presentation_forms(match.group()),orig_str)
 
+def decompose_presentation_forms_in_str(orig_str):
+	return presentation_re.sub(lambda match: decompose_presentation_forms(match.group()), orig_str)
+
+
+def normalize_final_letters(orig_char):
+
+	decomp_map = {
+		u"\u05DA": u"\u05DB",		# khaf sofit
+		u"\u05DD": u"\u05DE",		# mem sofit
+		u"\u05DF": u"\u05E0", 		# nun sofit
+		u"\u05E3": u"\u05E4", 		# peh sofit
+		u"\u05E5": u"\u05E6", 		# tzadi sofit
+	}
+
+	if isinstance(orig_char, str): #needs to be unicode
+		orig_char = unicode(orig_char, 'utf-8')
+	return decomp_map.get(orig_char, u'')
+
+final_letter_re = re.compile(u"[" + FINAL_LETTERS + u"]")
+
+
+def normalize_final_letters_in_str(orig_str):
+	return final_letter_re.sub(lambda match: normalize_final_letters(match.group()), orig_str)
+
+
+def swap_keyboards_for_letter(orig_char):
+	if isinstance(orig_char, str):  # needs to be unicode
+		orig_char = unicode(orig_char, 'utf-8')
+	return KEYBOARD_SWAP_MAP.get(orig_char, orig_char)
+
+
+def swap_keyboards_for_string(orig_str):
+	return re.sub(ur".", lambda match: swap_keyboards_for_letter(match.group()), orig_str)
 
 
 def encode_small_hebrew_numeral(n):
@@ -370,8 +413,10 @@ def strip_nikkud(rawString):
 
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
-def is_hebrew(s):
-	if regex.search(u"\p{Hebrew}", s):
+def is_hebrew(s, heb_only=False):
+	if not heb_only and regex.search(u"\p{Hebrew}", s):
+		return True
+	elif heb_only and regex.search(u"\p{Hebrew}", s) and not regex.search(u"[a-zA-Z]", s):
 		return True
 	return False
 
@@ -441,32 +486,23 @@ def hebrew_term(s):
 	if is_hebrew(s):
 		return s
 
-	# If s is a text title, look for a stored Hebrew title
-	try:
-		i = library.get_index(s)
-		return i.get_title("he")
-	except BookNameError:
-		term = Term().load({'name': s})
-		if term:
-			return term.get_primary_title('he')
-	return ''
-
-
-def get_simple_term_mapping():
-	from sefaria.model import TermSet, Term
-	hebrew_mapping = {}
-	terms = TermSet()
-	for term in terms:
-		hebrew_mapping[term.name] = {"en": term.get_primary_title("en"), "he": term.get_primary_title("he")}
-	return hebrew_mapping
-
+	term = library.get_simple_term_mapping().get(s)
+	if term:
+		return term["he"]
+	else:
+		try:
+			# If s is a text title, look for a stored Hebrew title
+			i = library.get_index(s)
+			return i.get_title("he")
+		except BookNameError:
+			return ''
 
 
 def hebrew_parasha_name(value):
 	"""
 	Returns a Hebrew ref for the english ref passed in.
 	"""
-	from sefaria.model import Term
+	from sefaria.model import Term, library
 	if not value:
 		return ""
 	if "-" in value:
@@ -477,9 +513,8 @@ def hebrew_parasha_name(value):
 			return ("-").join(map(hebrew_parasha_name, names))
 	else:
 		try:
-			term    = Term().load({"name": value, "scheme": "Parasha"})
-			parasha = term.get_titles(lang="he")[0]
-		except Exception, e:
-			print e
-			parasha   = value
+			parasha = library.get_simple_term_mapping().get(value)["he"]
+		except Exception as e:
+			logger.error(e.message)
+			parasha = value
 		return parasha

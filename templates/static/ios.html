@@ -1,13 +1,16 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Sefaria iOS{% endblock %}
+{% block title %}{% trans "Sefaria iOS" %}{% endblock %}
+
+{% block description %}{% endblock %}
 
 {% block content %}
 <div id="iosPage" class="static biReady">
     <div class="inner">
         <h1>
             <span class="int-en">Sefaria for iOS</span>
-            <span class="int-he">ספאריה לאייפון</span>
+            <span class="int-he">ספריא לאייפון</span>
         </h1>
 
         <div class="section">
@@ -33,7 +36,7 @@
                 <span class="int-en">For general questions about Sefaria and our library, send an email to
                     <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.
                 </span>
-                <span class="int-he">לשאלות כלליות בנוגע לספאריה ולגבי אוסף הטקסטים בכלליות
+                <span class="int-he">לשאלות כלליות בנוגע לספריא ולגבי אוסף הטקסטים בכלליות
                     אנא צרו קשר במייל עם
                     <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.
                 </span>
@@ -62,7 +65,7 @@
             
             <p>
                 <span class="int-en">Sefaria’s iOS app was generously sponsored in honor of Henry Koschitzky’s 80th birthday by his children.</span>
-                <span class="int-he">אפליקציית האייפון של ספאריה היא בחסות ילדיו של הנרי קושיצקי לכבוד הגיעו לגבורות.</span>
+                <span class="int-he">אפליקציית האייפון של ספריא היא בחסות ילדיו של הנרי קושיצקי לכבוד הגיעו לגבורות.</span>
             </p>
 
         </div>      

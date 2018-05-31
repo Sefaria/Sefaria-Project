@@ -163,11 +163,9 @@ def test_spanning_family():
     assert isinstance(f.commentary[0], list)
 
 
-
-
 def test_family_chapter_result_no_merge():
     families = [
-        TextFamily(Ref("Midrash Tanchuma.1.2")),  # this is supposed to get a version with exactly 1 en and 1 he.  The data may change.
+        TextFamily(Ref("Onkelos Exodus 12")),  # this is supposed to get a version with exactly 1 en and 1 he.  The data may change.
         TextFamily(Ref("Daniel 2")),
         TextFamily(Ref("Daniel 4"), lang="en", version="The Holy Scriptures: A New Translation (JPS 1917)"),
         TextFamily(Ref("Daniel 4"), lang="he", version="Tanach with Nikkud")
@@ -191,10 +189,12 @@ def test_chapter_result_merge():
     for key in ["text", "ref", "he", "book", "sources", "commentary"]:  # todo: etc.
         assert key in c
 
+
 def test_text_family_alts():
     tf = TextFamily(Ref("Exodus 6"), commentary=False, alts=True)
     c = tf.contents()
     assert c.get("alts")
+
 
 def test_validate():
     passing_refs = [
@@ -441,6 +441,7 @@ def test_complex_with_depth_1():
     assert len(c.text) == 3
     assert u"Kiddush" in c.text[0]
     assert u"seventh day" in c.text[2]
+
 
 def test_complex_with_depth_2():
     pass

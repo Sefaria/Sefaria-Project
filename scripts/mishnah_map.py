@@ -35,7 +35,7 @@ with open('../data/Mishnah Map.csv') as mmap:
         refs = compile_refs(map_rows.next())
 
         ls = LinkSet({'refs': {'$all': [refs['m_ref'], refs['t_ref']]},
-                      'type': 'Mishnah in Talmud',
+                      'type': 'mishnah in talmud',
                       'auto': True,
                       'generated_by': 'mishnah_map'})
 
@@ -47,14 +47,14 @@ with open('../data/Mishnah Map.csv') as mmap:
                 print '{}, {} not found'.format(refs['m_ref'], refs['t_ref'])
                 Link({
                     'refs': [refs['m_ref'], refs['t_ref']],
-                    'type': 'Mishnah in Talmud',
+                    'type': 'mishnah in talmud',
                     'auto': True,
                     'generated_by': 'mishnah_map'
                 }).save()
             else:
                 print '{}, {} exists with incorrect attributes'.format(refs['m_ref'], refs['t_ref'])
                 for l in ls:
-                    l.type = 'Mishnah in Talmud'
+                    l.type = 'mishnah in talmud'
                     l.auto = True
                     l.generated_by = 'mishnah_map'
                     l.save()

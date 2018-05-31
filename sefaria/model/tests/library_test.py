@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from sefaria.model.text import library, Ref, Index
-
+from sefaria.model import *
 
 
 def setup_module(module):
@@ -71,9 +70,11 @@ class Test_get_refs_in_text(object):
         s = "Here's one with Rashi on Genesis 2:5:3"
         s2 = "Here's one with both Rashi on Genesis 3:4 and Exodus 5:2. yeah"
         s3 = "Here's one with Genesis 2:3"
+        s4 = "Here's a tricky one. Rashi on Shabbat 25a:5. Bet you'll never get it"
         assert library.get_refs_in_string(s, "en", citing_only=citing_only) == [Ref("Rashi on Genesis 2:5:3")]
         assert library.get_refs_in_string(s2, "en", citing_only=citing_only) == [Ref("Rashi on Genesis 3:4"), Ref("Exodus 5:2")]
         assert library.get_refs_in_string(s3, "en", citing_only=citing_only) == [Ref("Genesis 2:3")]
+        assert library.get_refs_in_string(s4, "en", citing_only=False) == [Ref("Rashi on Shabbat 25a:5")] # Rashi on Shabbat has `is_citing=False`
 
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_citing_only(self, citing_only):
@@ -83,6 +84,57 @@ class Test_get_refs_in_text(object):
         else:
             assert matched_refs == [Ref("The Book of Maccabees I 1.2"), Ref("Leviticus 12.4")]
 
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_supposed_ref_graceful_fail(self, citing_only):
+        matched_refs = library.get_refs_in_string(u"What's important is that you get the Job done.", lang='en', citing_only=citing_only)
+        assert matched_refs == []
+
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_ranged_ref(self, citing_only):
+        trefs = ["Deuteronomy 23:8-9", "Job.2:3-3:1", "Leviticus 15:3 - 17:12", "Shabbat 15a-16b",
+                 "Shabbat 15a:15-15b:13", "Shabbat 15a:10-13", "Rashi on Exodus 3:1-3:10", "Rashi on Exodus 3:1:1-3:1:3",
+                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
+        test_strings = [
+            "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
+            temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='en', citing_only=citing_only)
+            assert matched_refs == [Ref(trefs[i])]
+
+    def test_ranged_ref_not_cited(self):
+        trefs = [u"Rashi on Shabbat 15a:10-13", u"Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
+        test_strings = [
+            u"I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
+            temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='en', citing_only=False)
+            assert matched_refs == [Ref(trefs[i])]
+
+    def test_bad_ranged_refs(self):
+        trefs = ["Rashi on Shabbat 15a:4-16a", "Rashi on Shabbat 2a:2-2b", "Rashi on Shabbat 2b:1:1-2a:2:1",
+                 "Rashi on Shabbat 2b-2a", "Genesis 3:1-2:5", "Genesis 3-4:2"]
+        test_strings = [
+            "I am going to quote a range. hopefully you can NOT parse it. ({}) plus some other stuff.".format(temp_tref)
+            for temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='en', citing_only=False)
+            assert matched_refs == []
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_wrap_refs(self, citing_only):
+        trefs = ["Deuteronomy 23:8-9", "Job.2:3-3:1", "Leviticus 15:3 - 17:12", "Shabbat 15a-16b",
+                 "Shabbat 15a:15-15b:13", "Shabbat 15a:10-13", "Rashi on Exodus 3:1-3:10", "Rashi on Exodus 3:1:1-3:1:3",
+                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
+        orefs = [Ref(tref) for tref in trefs]
+        st = reduce(lambda a, b: a + b + " blah blah ", trefs, "")
+        res = reduce(lambda a, b: a + '<a class ="refLink" href="/{}" data-ref="{}">{}</a> blah blah '.format(b[0].url(), b[0].normal(), b[1]), zip(orefs, trefs), "")
+        wrapped = library.get_wrapped_refs_string(st, lang="en", citing_only=citing_only)
+        assert wrapped == res
 
 class Test_he_get_refs_in_text(object):
     @pytest.mark.parametrize(('citing_only'), (True, False))
@@ -201,6 +253,10 @@ class Test_he_get_refs_in_text(object):
         else:
             assert matched_refs == [Ref("Leviticus 12.4"), Ref("The Book of Maccabees I 1.2")]
 
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_supposed_ref_graceful_fail(self, citing_only):
+        matched_refs = library.get_refs_in_string(u"אלו דברים בני ישראל", lang='he', citing_only=citing_only)
+        assert matched_refs == []
 
     @pytest.mark.failing
     @pytest.mark.parametrize(('citing_only'), (True, False))
@@ -219,6 +275,26 @@ class Test_he_get_refs_in_text(object):
         assert 1 == len(ref)
         assert ref[0] == Ref(u'Mishnah Nidah 6:4')
         '''
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_ranged_ref_plain(self, citing_only):
+        trefs = [u"דברים כג:ח-ט", u'שמות, כ"ד, יג-יד', u'במדבר, כ"ז, טו - כג', u'במדבר, כ"ז, טו -כ״ט כג']
+        test_strings = [
+            u"בלה בלה שנאמר ({}) וכולי".format(temp_tref)
+            for temp_tref in trefs
+        ]
+        for i, test_string in enumerate(test_strings):
+            matched_refs = library.get_refs_in_string(test_string, lang='he', citing_only=citing_only)
+            assert matched_refs == [Ref(trefs[i])]
+
+    @pytest.mark.parametrize(('citing_only'), (True, False))
+    def test_wrap_refs(self, citing_only):
+        trefs = [u"דברים כג:ח-ט", u'שמות, כ"ד, יג-יד', u'במדבר, כ"ז, טו - כג', u'במדבר, כ"ז, טו -כ״ט כג', u"דברים כ״ג ח-ט"]
+        orefs = [Ref(tref) for tref in trefs]
+        st = reduce(lambda a, b: a + u"({}) בלה בלה ".format(b), trefs, u"")
+        res = reduce(lambda a, b: a + u'(<a class ="refLink" href="/{}" data-ref="{}">{}</a>) בלה בלה '.format(b[0].url(), b[0].normal(), b[1]), zip(orefs, trefs), u"")
+        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=citing_only)
+        assert wrapped == res
 
 
 class Test_get_titles_in_text(object):
@@ -280,6 +356,14 @@ class Test_get_titles_in_text(object):
 
 
 class Test_Library(object):
+    def test_schema_validity(self):
+        for i in library.all_index_records():
+            assert isinstance(i, Index)
+            i.nodes.validate()
+            for name, obj in i.get_alt_structures().items():
+                obj.validate()
+
+
     def test_cache_populated_on_instanciation(self):
         assert library._index_map
         assert "en" in library.langs
@@ -340,7 +424,6 @@ class Test_Library(object):
         assert u'רש"י על בראשית' in library._index_title_maps["he"]["Rashi on Genesis"]
         assert u'רש"י על בראשית' in library._title_node_maps["he"]
 
-
     def test_get_title_node(self):
         node = library.get_schema_node("Exodus")
         assert node.is_flat()
@@ -348,6 +431,56 @@ class Test_Library(object):
         assert node.primary_title("he") == u"שמות"
         n2 = library.get_schema_node(u"שמות", "he")
         assert node == n2
+
+
+class Test_Term_Map(object):
+    @classmethod
+    def teardown_class(cls):
+        CategorySet({'path': ["Tanakh", "Torah", "New Category"]}).delete()
+        TermSet({"name": 'New Term'}).delete()
+
+
+    def test_terms_in_map(self):
+        assert "Siman" in library.get_simple_term_mapping()
+        assert "Chapter" in library.get_simple_term_mapping()
+
+    def test_cats_in_map(self):
+        assert "Tanakh" in library.get_simple_term_mapping()
+        assert "Commentary" in library.get_simple_term_mapping()
+
+    @pytest.mark.deep
+    def test_cache_and_reset_of_term_map(self):
+        # Check that cache works
+        old = library.get_simple_term_mapping()
+        assert old == library.get_simple_term_mapping()
+
+        # Add category causes cache refresh
+        c = Category()
+        c.add_primary_titles("New Category", u"חדשנית")
+        c.path = ["Tanakh", "Torah", "New Category"]
+        c.save()
+
+        assert old != library.get_simple_term_mapping()
+        old = library.get_simple_term_mapping()
+
+        # Delete category causes cache refresh
+        CategorySet({'path': ["Tanakh", "Torah", "New Category"]}).delete()
+        assert old != library.get_simple_term_mapping()
+        old = library.get_simple_term_mapping()
+
+        # Add term causes cache refresh
+        t = Term()
+        t.name = "New Term"
+        t.scheme = "Parasha"
+        t.add_primary_titles("New Term", u"חדשנית")
+        t.save()
+
+        assert old != library.get_simple_term_mapping()
+        old = library.get_simple_term_mapping()
+
+        # Delete term causes cache refresh
+        Term().load({"name": 'New Term'}).delete()
+        assert old != library.get_simple_term_mapping()
 
 
 def test_get_en_text_titles():

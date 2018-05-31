@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% load i18n sefaria_tags %}
 
-{% load sefaria_tags %}
+{% block title %}{% trans "Visualizing the Sefaria Library" %}%{% if lang %} ({{ lang }}){% endif %}{% endblock %}
 
-{% block title %}Visualizing the Sefaria Library{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block description %}{% trans "How big is Torah compared to Talmud? This sunburst diagram lets you see the number of words in the texts and categories of Sefaria's library (which is growing every day!)." %}{% endblock %}
+
+
 {% block ogimage %}<meta property="og:image" content="/static/img/sunburst.png"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
@@ -116,6 +119,7 @@
         .attr("height", height)
       .append("g")
         .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
+    svg.append("svg:desc").text("This SVG diagrams the number of words in the texts and categories of Sefaria's library");
 
     var x = d3.scale.linear()
         .range([0, 2 * Math.PI]);

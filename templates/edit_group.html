@@ -1,35 +1,37 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% load sefaria_tags %}
 
 
-{% block title %}Edit Group on Sefaria{% endblock %}
+{% block title %}{% trans "Edit Group on Sefaria" %}{% endblock %}
+
+{% block css %}
+body {
+  overflow: scroll;
+}
+{% endblock %}
 
 {% block content %}
-{% if S2 %}
 <div id="editGroupPageContainer" class="static biReady">
   <div id="editGroupPageContainerInner" class="inner">
     <h1>Loading...</h1>
   </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block js %}
 
-<script {% if DEBUG %}type="text/jsx;harmony=true"{% endif %}>
+<script>
     {% autoescape off %}
-    {% include "js/django-csrf.js" %}
-    $(function() {
-
-      var props = {
-      	initialData: {{ groupData|jsonify }}
-      };
-
-      var container = document.getElementById('editGroupPageContainerInner');
-      var component = React.createElement(EditGroupPage, props);
-      ReactDOM.render(component, container);
-    });
+    var DJANGO_VARS = {
+        props: {
+      	    initialData: {{ groupData|jsonify }}
+        },
+        containerId: 'editGroupPageContainerInner',
+        reactComponentName: 'EditGroupPage',
+        ga: ga
+    };
     {% endautoescape %}
 
 </script>

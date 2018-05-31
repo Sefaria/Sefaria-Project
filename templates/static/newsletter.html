@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign up for Sefaria's Newsletter" %} | {% trans "Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Sign up for Sefaria's Newsletter." %}{% endblock %}
+
+{% block content %}
+<div id="homePage" class="static biReady">
+    <div id="homeConnect" class="inner">
+        <div class="section center" style="display:none"></div>
+
+        <div class="section center">
+            <div class="sectionInner">
+                <h2>
+                    <span class="int-en">Stay Connected</span>
+                    <span class="int-he">השארו מחוברים</span>
+                </h2>
+                <div id="mailingListBox">
+                    <div id="mailingListTitle" class="sans">
+                        <span class="int-en">Sign up for Sefaria emails</span>
+                        <span class="int-he">הצטרפו לרשימת הדיוור שלנו</span>
+                    </div>
+                    <input id="mailingListEmail" title="Subscribe to our mailing list by entering your email here" placeholder="{% trans 'Email Address' %}">
+                    <span id="subscribe" class="button control-elem">
+                        <span class="int-en">Subscribe</span>
+                        <span class="int-he">הרשמו</span>
+                    </span>
+                    <div id="subscribeMsg">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block js  %}
+    <script>
+    $(function() {
+        // Email List
+        $("#subscribe").click(function() {
+            var email = $("#mailingListEmail").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.track.event("Home", "Subscribe from Newsletter page", "");
+                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list,  function(data) {
+                    if ("error" in data) {
+                        $("#subscribeMsg").text(data.error).show();
+                    } else {
+                        $("#subscribeMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                    }
+                }).error(function(data) {
+                    $("#subscribeMsg").text('{% trans "Sorry, there was an error." %}').show();
+                })
+            } else {
+                $("#subscribeMsg").text('{% trans "Please enter a valid email address." %}').show();
+            }
+        });
+        $("#mailingListEmail").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");
+            }
+        });
+    });
+    </script>
+{% endblock %}

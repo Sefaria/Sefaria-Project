@@ -31,7 +31,7 @@ for sheet in sheets:
 				normTags.append(titlecase(commaSeparatedTag.strip()))
 
 		else:
-			normTags.append(titlecase(tag))
+			normTags.append(titlecase(tag.strip()))
 
 	newdoc = olddoc
 	normTags = list(set(normTags)) 	# tags list should be unique

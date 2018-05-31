@@ -16,10 +16,11 @@ from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import Group
+from django.utils.translation import ugettext as _
 
 from sefaria.sheets import get_sheet
-from sefaria.model.user_profile import user_link as ulink
-from sefaria.model.user_profile import user_name as uname
+from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
+from sefaria.model.text import Version
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, hebrew_parasha_name
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
@@ -103,6 +104,18 @@ def he_parasha(value):
 
 
 @register.filter(is_safe=True)
+@stringfilter
+def he_version(value):
+	"""
+	Returns the Hebrew translation of a version title, if it exists.
+	"""
+	version = Version().load({"versionTitle": value})
+	if not version:
+		return value
+	return getattr(version, "versionTitleInHebrew", value)
+
+
+@register.filter(is_safe=True)
 def version_link(v):
 	"""
 	Return an <a> tag linking to the first available text of a particular version.
@@ -158,7 +171,7 @@ def version_source_link(v):
 	Return an <a> tag linking to the versionSource, or to a Google Search for the source.
 	"""
 	if " " in v.versionSource or "." not in v.versionSource:
-		href       = "http://www.google.com/search?q=" + urllib.quote(v.versionSource.encode('utf8'))
+		href       = "https://www.google.com/search?q=" + urllib.quote(v.versionSource.encode('utf8'))
 		val        = v.versionSource
 	else:
 		parsed_uri = urlparse( v.versionSource )
@@ -197,16 +210,25 @@ def user_link(uid):
 def user_name(uid):
 	return mark_safe(uname(uid))
 
+
+@register.filter(is_safe=True)
+def user_message_path(uid):
+	"""Returns the relative path to send a message to `uid`"""
+	data = public_user_data(uid)
+	return mark_safe(data["profileUrl"] + "?message=1")
+
+
 @register.filter(is_safe=True)
 def group_link(group_name):
 	return mark_safe("<a href='/groups/%s'>%s</a>" % (group_name.replace(" ", "_"), group_name))
 
+
 @register.filter(is_safe=True)
 def lang_code(code):
 	codes = {
-		"en": "English",
-		"he": "Hebrew",
-		"bi": "Bilingual",
+		"en": _("English"),
+		"he": _("Hebrew"),
+		"bi": _("Bilingual"),
 	}
 	return codes.get(code, "Unknown Language")
 
@@ -292,8 +314,18 @@ def absolute_link(value):
 	<a href='/Job.3.4'>Job 3:4</a> --> <a href='http://www.sefaria.org/Job.3.4'>Job 3:4</a>
 	"""
 	# run twice to account for either single or double quotes
-	absolute = value.replace("href='/", "href='http://%s/" % domain)
-	absolute = absolute.replace('href="/', 'href="http://%s/' % domain)
+	absolute = value.replace("href='/", "href='https://%s/" % domain)
+	absolute = absolute.replace('href="/', 'href="https://%s/' % domain)
+	return mark_safe(absolute)
+
+
+@register.filter(is_safe=True)
+def absolute_url(value):
+	"""
+	Takes a string with path starting with "/" and returls url with domain and protocol.
+	"""
+	# run twice to account for either single or double quotes
+	absolute = "https://%s%s" % (domain, value)
 	return mark_safe(absolute)
 
 

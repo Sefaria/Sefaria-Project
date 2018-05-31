@@ -7,7 +7,7 @@
 {% block head %}
     <script src="https://d3js.org/d3.v3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
-    <script src="/static/js/dc.js"></script>
+    <script src="/static/js/lib/dc.js"></script>
     <link rel="stylesheet" href="/static/css/dc.css" />
 {%  endblock %}
 
@@ -604,6 +604,7 @@
             }
 
             ReactDOM.render(component, container);
+            $(".addToSourceSheetModal").position({my: "left+20 center", at: "right center", of: $(event.currentTarget)});
         };
 
         results

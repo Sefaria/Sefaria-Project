@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Donate to Sefaria{% endblock %}
+{% block title %}{% trans "Donate to Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Support Sefaria by making a tax-deductible donation online or by check or wire transfer." %}{% endblock %}
 
 {% block content %}
 
@@ -8,7 +11,7 @@
     <div class="inner">
     <h1>
         <span class="int-en">Donate to Sefaria</span>
-        <span class="int-he">תרמו לספאריה</span>
+        <span class="int-he">תרמו לספריא</span>
     </h1>
         <div class="section">
             <p>
@@ -17,7 +20,7 @@
                     Sefaria is a 501(c)(3) charitable organization; donations are tax-deductible as allowed by law. Thank you for supporting Sefaria.
                 </span>
                 <span class="int-he">
-                    בעזרתכם, ספאריה תהפוך לבית הדיגיטלי של הקאנון היהודי, ולפלטפורמת העתיד של לימוד יהודי. התרומה לספאריה פטורה ממס כפי שמעוגן בחוק. תודה על תמיכתכם בספאריה.
+                    בעזרתכם, ספריא תהפוך לבית הדיגיטלי של הקאנון היהודי, ולפלטפורמת העתיד של לימוד יהודי. התרומה לספריא פטורה ממס כפי שמעוגן בחוק. תודה על תמיכתכם בספריא.
                 </span>
             </p>
             <div class="single-button center">
@@ -39,9 +42,8 @@
                 </p>
 <pre>
 Sefaria
-c/o Daniel Septimus
-174 Hudson Street, Sixth Floor
-New York, NY 10013
+195 Montague St, 14th Floor
+Brooklyn, New York 11201
 </pre>
             </div>
 
@@ -176,7 +178,7 @@ New York, NY 10013
                     501(c)3 charitable organization.
                     You can access Sefaria's latest IRS 990 Form <a href="static/files/SEFARIA, INC.pdf">here</a>.
                 </span>
-                <span class="int-he">ספאריה גאה בהתנהלותה השקופה כלכלית כארגון ללא מטרות רווח. ביכלתכם לצפות בדו"ח מס הכנסה (שלטונות ארה"ב) האחרון <a href="static/files/SEFARIA, INC.pdf">כאן</a>.</span>
+                <span class="int-he">ספריא גאה בהתנהלותה השקופה כלכלית כארגון ללא מטרות רווח. ביכלתכם לצפות בדו"ח מס הכנסה (שלטונות ארה"ב) האחרון <a href="static/files/SEFARIA, INC.pdf">כאן</a>.</span>
             </p>
         </div>
         <div class="section info">
@@ -186,11 +188,11 @@ New York, NY 10013
                 </h2>
                 <p>
                     <span class="int-en">
-                        If you have questions about making a donation, please contact Annie Lumerman at 650-600-8148
-                        or <a href="mailto:annie@sefaria.org">annie@sefaria.org</a>.
+                        If you have questions about making a donation, please contact Amelia Wolf at 347-773-0077
+                        or <a href="mailto:amelia@sefaria.org">amelia@sefaria.org</a>.
                     </span>
                     <span class="int-he">
-                        אם יש לכם שאלות לגבי תרומות, אנא צרו קשר עם אנני לומרמן במספר טלפון 650-600-8148 או באימייל <a href="mailto:annie@sefaria.org">annie@sefaria.org</a>.
+                        אם יש לכם שאלות לגבי תרומות, אנא צרו קשר עם אמיליה וולף במספר טלפון 347-773-0077 או באימייל <a href="mailto:amelia@sefaria.org">amelia@sefaria.org</a>.
                     </span>
                 </p>
         </div>

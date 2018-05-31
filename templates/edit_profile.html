@@ -1,26 +1,24 @@
 {% extends "base.html" %}
-
 {% load sefaria_tags %}
+{% load i18n %}
 
-
-{% block title %}Edit Your Profile on Sefaria.org{% endblock %}
+{% block title %}{% trans "Edit Your Profile on Sefaria" %}{% endblock %}
 
 {% block content %}
-{% if S2 %}
 <div id="editProfilePage" class="static biReady">
 	<div class="inner">
         <h1>
             <span class="int-en">Edit Your Profile</span>
-            <span class="int-he">ערוך את הפרופיל שלך</span>
+            <span class="int-he">עריכת פרופיל</span>
         </h1>
         <div id="saveCancelButtons">
             <a class="button transparent control-elem" href="/my/profile">
                 <span class="int-en">Cancel</span>
-                <span class="int-he">בטל</span>
+                <span class="int-he">ביטול</span>
             </a>
-            <div id="saveProfile" class="button blue control-elem">
+            <div id="saveProfile" tabindex="0" role="button" class="button blue control-elem">
                 <span class="int-en">Save</span>
-                <span class="int-he">שמור</span>
+                <span class="int-he">שמירה</span>
             </div>
         </div>
         <div id="profileBox">
@@ -71,7 +69,7 @@
                     <span class="int-en">Profile Picture</span>
                     <span class="int-he">תמונת פרופיל</span>
                 </label>
-                <img src="{{ profile.gravatar_url_small }}" />
+                <img src="{{ profile.gravatar_url_small }}" alt="User Profile Icon"/>
                 <span class="int-en">Your profile picture is hosted on <a href="http://www.gravatar.com" target="_blank">Gravatar</a>. Create an account or login on Gravatar to <a class="" href="https://en.gravatar.com/site/signup" target="_blank">change your Profile Picture</a>.</span>
                 <span class="int-he">תמונת הפרופיל שלך מתקבלת מאתר <a href="http://www.gravatar.com" target="_blank">Gravatar</a>. צור שם חשבון או הכנס בכדי <a class="" href="https://en.gravatar.com/site/signup" target="_blank">לשנות את תמונת הפרופיל שלך</a>.</span>
             </div>
@@ -185,144 +183,6 @@
         </div>
 	</div>
 </div>
-{% else %}
-
-<div id="editProfileContent">
-	<h1>Edit Your Profile</h1>
-	<div id="profileBox" class="well">
-
-		<div class="editProfileContentLeft">
-			<div class="field control-elem" id="profilePictureBox">
-				<label>Profile Picture</label>
-				<img src="{{ profile.gravatar_url_small }}" />
-				<a class="btn" href="https://en.gravatar.com/site/signup" target="_blank">Change Profile Picture</a>
-				<br><br>
-				<span>You will need to create an account with <a href="http://www.gravatar.com" target="_blank">Gravatar</a> to change your picture.</span>
-				<div class="clear"></div>
-			</div>
-
-
-			<div id="aboutBox">
-				<label>About Me</label>
-				<div contenteditable="true" id="bio">
-					{% autoescape off %}
-					{{ profile.bio }}
-					{% endautoescape %}				
-				</div>
-			</div>
-			<div id="jewishEducation" class="field control-elem">
-				<label>Jewish Education (where have you learned)</label>
-				<ul id="jewishEducation">
-					{% for line in profile.jewish_education %}
-					<li><input value="{{ line }}" /><i class='remove fa fa-times'></i></li>
-					{% empty %}
-					<li><input value="" /></li>
-					{% endfor %}
-				</ul>
-				<div id="addEducation"><i class="fa fa-plus"></i> Add a line</div>
-			</div>
-		</div>
-
-		<div class="editProfileContentRight">
-			<div class="field control-elem">
-				<label>First Name</label>
-				<input id="firstName" value="{{ user.first_name }}">
-			</div>
-			<div class="field control-elem">
-				<label>Last Name</label>
-				<input id="lastName"  value="{{ user.last_name }}">
-			</div>
-			<div class="field control-elem">
-				<label>Title</label>
-				<input id="position"  value="{{ profile.position }}">
-			</div>
-			<div class="field control-elem">
-				<label>Organization</label>
-				<input id="organization" value="{{ profile.organization }}" >
-			</div>
-			<div class="field control-elem">
-				<label>Website</label>
-				<input id="website" value="{{ profile.website }}" >
-			</div>
-			<div class="field control-elem">
-				<label>Location</label>
-				<input id="location" value="{{ profile.location }}" >
-			</div>
-
-
-		</div>
-		<div class="clear"></div>
-	</div>
-
-	{% if sheets %}
-	<h2>Public Sheets</h2>
-	<div id="sheetsBox" class="well">
-		<div id="pinnedSheetsMessage">Drag and order sources sheets that you want to pin to the top of your profile.</div>
-
-		<div id="pinnedSheets" class="editProfileContentLeft">
-			Pinned Sheets:
-			<ul class="sortableSheets">
-				{% for id in profile.pinned_sheets %}
-				<li>{{ id|sheet_link }}</li>
-				{% endfor %}
-			</ul>
-		</div>
-
-		<div class="editProfileContentRight">
-		All Sheets:
-			<ul class="sortableSheets">
-				{% for sheet in sheets %}
-					{% if sheet.id not in profile.pinned_sheets %}
-					<li>{{ sheet.id|sheet_link }}</li>
-					{% endif %}
-				{% endfor %}
-			</ul>
-		</div>
-
-		<div class="clear"></div>
-	</div>
-	{% endif %}
-
-	<h2>Contact</h2>
-	<div id="contactBox" class="well">
-
-		<div class="editProfileContentLeft">
-			<div class="field control-elem">
-				<label>LinkedIn</label>
-				<input id="linkedin"  value="{{ profile.linkedin }}">
-			</div>
-			<div class="field control-elem">
-				<label>Twitter Handle</label>
-				<input id="twitter"  value="{{ profile.twitter }}">
-			</div>
-			<div class="field control-elem">
-				<label>Facebook</label>
-				<input id="facebook"  value="{{ profile.facebook }}">
-			</div>
-
-		</div>
-
-		<div class="editProfileContentRight">
-			<div class="field control-elem">
-				<label>YouTube Channel</label>
-				<input id="youtube" value="{{ profile.youtube }}">
-			</div>
-			<div class="field control-elem">
-				<label>Email (will be public)</label>
-				<input id="public_email" value="{{ profile.public_email }}">
-			</div>
-
-			<div class="field control-elem">
-				<label>Profile URL (www.sefaria.org/profile/{{ profile.slug }})</label>
-				<input id="slug"  value="{{ profile.slug }}">
-			</div>
-
-		</div>
-		<div class="clear"></div>
-	</div>
-	<div id="saveProfile" class="btn btn-primary">Save</div> <a class="btn" href="/my/profile">Cancel</a>
-</div>
-{% endif %}
 {% endblock %}
 
 {% block js %}
@@ -344,7 +204,7 @@
 			{name: 'removestyle', items: ['RemoveFormat']},
 			{name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript' ] },
 			{name: "justify", items: [ 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock' ] },
-			{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] }, 
+			{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] },
 			'/',
 			{ name: 'styles', items: [ 'Font', 'FontSize' ] },
 			{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },
@@ -361,7 +221,7 @@
 			}).on("blur", "input", function(e) {
 				if ($(this).val().length == 0 && $("#jewishEducation li").length > 1) {
 					$(this).closest("li").remove();
-				} 
+				}
 			});
 			$("#jewishEducation").on("click", ".remove", function(e) {
 				$(this).closest("li").remove();
@@ -376,14 +236,14 @@
 				$("#jewishEducation").find("input").each(function() {
 					var val = $(this).val();
 					if (val) {
-						jewishEducation.push(val);						
+						jewishEducation.push(val);
 					}
 				});
 				var pinnedSheets = [];
 				$("#pinnedSheets").find("a").each(function() {
 					var id = parseInt($(this).attr("data-id"));
 					if (id) {
-						pinnedSheets.push(id);						
+						pinnedSheets.push(id);
 					}
 				});
 				// Strip full URLs from youtube and twitter user names
@@ -402,9 +262,9 @@
                 });
 
 				var profile = {
-					first_name:       $("#firstName").val(),   
-					last_name:        $("#lastName").val(),   
-					bio:              $("#bio").text() ? $("#bio").html() : "",   
+					first_name:       $("#firstName").val(),
+					last_name:        $("#lastName").val(),
+					bio:              $("#bio").text() ? $("#bio").html() : "",
 					position:         $("#position").val(),
 					organization:     $("#organization").val(),
 					website:          $("#website").val(),
@@ -424,7 +284,7 @@
 						alert(data.error);
 					} else {
 						if (Sefaria) {
-							Sefaria.site.track.event("Settings", "Profile Edit", "");
+							Sefaria.track.event("Settings", "Profile Edit", "");
 						}
 						window.location = "/my/profile";
 					}
@@ -432,6 +292,11 @@
 					sjs.alert.message("Sorry, an Error occurred.");
 				});
 			});
+            $("#saveProfile").keyup(function(e){
+                if (e.keyCode === 13) {
+                    $("#saveProfile").trigger("click");
+                }
+            });
 		});
 	</script>
 {% endblock %}

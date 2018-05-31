@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Sefaria Groups{% endblock %}
+{% block title %}{% trans "Sefaria Groups" %}{% endblock %}
 
 {% block content %}
 
@@ -11,124 +12,31 @@
     <div class="inner">
     <h1>
         <span class='en'>Groups on Sefaria</span>
-        <span class='he'></span>
+        <span class='he'>Groups on Sefaria</span>
     </h1>
     <div class="row static-text">
         <div id="groups">
                 {% for group in groups %}
                 <a class="group" href="/groups/{{ group.name|url_safe }}">
-                    <img class="groupHeader" src="{{ group.headerUrl }}">
-                    <img class="groupCover" src="{{ group.coverUrl }}">
+                    <img class="groupImage" src="{{ group.imageUrl|default:"/static/img/group.svg" }}" alt="Image for {{ group.name }}">
                     <div class="groupName">{{ group.name }}</div>
-                    {% if request.user.is_staff %}
-                    <div class="groupSettings"><i class="fa fa-gear"></i></div>
-                    {% endif %}
                 </a>
                 {% endfor %}
         </div>
-        {% if request.user.is_staff %}
-        <div class="row">
-            <div class="span12">
-                <center>
-                    <div id="newGroup" class="btn btn-large btn-primary">New Group</div>
-                </center>
-            </div>
-        </div>
-        {% endif %}
     </div>
     </div>
 </div>
-
-
 
 {% endblock %}
 
 {% block js %}
     {% if request.user.is_staff %}
-    <script src="/static/js/jquery.textchange.js"></script>
     <script>
-
-        Sefaria.saveGroup = function(group) {
-            $.post("/api/groups", {json: JSON.stringify(group)}, function(data) {
-                $("#overlay").trigger("click");
-                if ("error" in data) {
-                    alert(data.error);
-                } else {
-                    window.location = "/groups";
-                }
-            }).fail(function() {
-                $("#overlay").trigger("click");
-                alert("Sorry, an Error occurred.");
-            });  
-        };
-
-        $(".groupSettings").click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var $group = $(this).closest(".group");
-            var name   = $group.find(".groupName").text();
-            var header  = $group.find(".groupHeader").attr("src");
-            var cover = $group.find(".groupCover").attr("src");
-            var html   = "<div id='editGroupModal' class='modal'>" +
-                            "<h1 class='name'>" + name + "</h1>" +
-                            "<div class='imageBox gheader'>" +
-                                "<div class='left'>" +
-                                    "<h3>Header</h3>" + 
-                                    "<input value='" + header + "'/>" +
-                                "</div>" +
-                                "<img src='" + header + "'>" +
-                                "<div class='clear'></div>" + 
-                            "</div>" +
-                            "<div class='imageBox cover'>" +
-                                "<div class='left'>" +
-                                    "<h3>Cover</h3>" + 
-                                    "<input value='" + cover + "'/>" +
-                                "</div>" +
-                                "<img src='" + cover + "'>" +
-                                "<div class='clear'></div>" + 
-                            "</div>" +
-                            "<div id='saveGroup' class='btn btn-primary btn-large'>Save</div>"
-                        "</div>";
-
-            $("#editGroupModal").remove();
-            $(html).appendTo("body").show().position({of: window});
-            $("#overlay").show();
-
-            $("#editGroupModal input").bind("textchange", function() {
-                var url  = $(this).val();
-                var $img = $(this).closest(".imageBox").find("img");
-                $img.load(function(){ $("#editGroupModal").position({of: window}); });
-                $img.attr("src", url);
-                $("#saveGroup").show();
-            });
-
-            $("#saveGroup").click(function() {
-                var group = {
-                    name: $("#editGroupModal .name").text(),
-                    headerUrl: $("#editGroupModal .gheader img").attr("src"),
-                    coverUrl: $("#editGroupModal .cover img").attr("src")
-                };
-                Sefaria.saveGroup(group);
-            });
-
-            return false;
-        });
-
-        $("#newGroup").click(function() {
-            var name = prompt("What is the name of the new group?");
-            if (name) {
-                Sefaria.saveGroup({name: name});
-            }
-        });
-
-
         $(document).ready(function() {
             $("img").error(function() {
                 $(this).hide();
             });
         });
-
-
     </script>
     {% endif %}
 {% endblock %}

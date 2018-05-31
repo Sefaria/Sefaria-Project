@@ -1,4 +1,5 @@
 language: python
+dist: trusty
 
 python:
   - "2.7"
@@ -7,7 +8,7 @@ cache: pip
 
 services:
   - mongodb
-
+  - redis-server
 
 addons:
   sauce_connect:
@@ -18,9 +19,19 @@ addons:
 env:
   PYTHONPATH=$TRAVIS_BUILD_DIR
   DJANGO_SETTINGS_MODULE=sefaria.settings
+  TRAVIS_NODE_VERSION="7.9.0"
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install libwww-perl
 
 # command to install dependencies
-install: "pip install -r requirements.txt"
+install:
+  - "pip install -r requirements.txt"
+  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+  - npm install
+  - cp ./node/local_settings_example.json ./node/local_settings.json
+  - npm run build-prod
 
 before_script:
   # Create a writable log dir
@@ -28,15 +39,15 @@ before_script:
   - chmod 777 log
 
   # Install mongo 2.6.6 (default is too old) - as per https://docs.mongodb.com/v2.6/tutorial/install-mongodb-on-ubuntu/
-  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-  - echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
-  - sudo apt-get update
-  - sudo apt-get install -y mongodb-org=2.6.6 mongodb-org-server=2.6.6 mongodb-org-shell=2.6.6 mongodb-org-mongos=2.6.6 mongodb-org-tools=2.6.6
+  # - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+  # - echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+  # - sudo apt-get update
+  # - sudo apt-get install -y mongodb-org=2.6.6 mongodb-org-server=2.6.6 mongodb-org-shell=2.6.6 mongodb-org-mongos=2.6.6 mongodb-org-tools=2.6.6
 
   # Download and restore the Sefaria database
-  - wget $MONGO_DUMP_URL
+  - wget -nv $MONGO_DUMP_URL
   - tar -xzvf $MONGO_DUMP_FILENAME
-  - mongorestore --drop
+  - mongorestore --quiet --drop
 
   # Copy in settings files tuned for the travis build
   - cp ./sefaria/.travis.settings.py ./sefaria/local_settings.py
@@ -45,9 +56,21 @@ before_script:
   # Get rid of the conftest that forces a copy of the datastore to a test db
   - rm ./sefaria/conftest.py
 
-  # Create the user db, and run the django server, redirecting output to log files
-  - python manage.py syncdb --noinput
-  - python manage.py runserver --insecure 2> server.error.log > server.log &
+  # Copy LC_MESSAGES to Django locale dirs -- for unknown reasons this file is missing on Travis.
+  # When Django admin runs `syncdb` it tries to activate the english language from within
+  # the Django core files. This is likely related to Travis using virutalenv, may be fixed by upgrading Django.
+  - cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.14/lib/python2.7/site-packages/django/conf/locale/en
+
+  # Create the user db
+  - python manage.py migrate --noinput
+  - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --username  $SEFARIA_SUPERUSER --noinput
+
+  # Rebuild TOC - TEMP to pass tests involving TOC changes
+  - ./run rebuild_toc.py 
+
+  # run the django server, redirecting output to log files
+  - python manage.py runserver --insecure # 2> server.error.log > server.log &
+  - python scripts/setup_travis_users.py
 
   # Wait for server to come up
   - while ! nc -z localhost 8000; do sleep 0.1; done;
@@ -55,6 +78,8 @@ before_script:
   # Prime the cache
   - GET http://localhost:8000/api/texts/Genesis.1 > /dev/null &
   - GET http://localhost:8000/api/preview/Zohar > /dev/null &
+  - GET http://localhost:8000/api/name/stam?ref_only=1 > /dev/null &
+  - GET http://localhost:8000/api/name/stam > /dev/null &
 
 script:
  - 'py.test -m "not deep and not failing"'
