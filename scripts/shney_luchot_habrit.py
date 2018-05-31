@@ -4,6 +4,7 @@ from sefaria.system.database import db
 import django
 django.setup()
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
 
 def create_ref_map(refs_map, file):
     with open(file) as f:
@@ -108,7 +109,10 @@ def replace_source(orig_ref, new_ref):
                 print "Changing sheet...{}".format(sheet["id"])
                 print "{}".format(new_ref)
                 sheet["sources"][source_n]['ref'] = new_ref
-                sheet["sources"][source_n]['heRef'] = Ref(new_ref).he_normal()
+                try:
+                    sheet["sources"][source_n]['heRef'] = Ref(new_ref).he_normal()
+                except InputError as e:
+                    print e.message
         db.sheets.save(sheet)
 
 
@@ -125,7 +129,7 @@ if __name__ == "__main__":
     # load_csv(draft_ref_to_text, "draft.csv")
     # matches = get_text_for_source_refs(ref_map, draft_ref_to_text, prod_ref_to_text)
     #draft_ref_to_text[row[1]] = get_text(row[1], text_info["lang"], text_info["versionTitle"], "http://draft.sefaria.org")["text"]
-    with open("match.csv") as file:
+    with open("data/match.csv") as file:
         reader = csv.reader(file)
         for row in reader:
             orig, new = row
