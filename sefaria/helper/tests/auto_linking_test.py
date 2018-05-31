@@ -5,10 +5,14 @@ from sefaria.helper.link import rebuild_links_for_title, AutoLinkerFactory
 import sefaria.tracker as tracker
 
 class Test_AutoLinker(object):
+    link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()},"auto": True, "generated_by": "add_commentary_links"})
+    rashi_on_genesis_links = link_set_lambda("Rashi on Genesis")
+    kos_eliyahu_links = link_set_lambda("Kos Shel Eliyahu on Pesach Haggadah")
     desired_link_counts = {
-        'Rashi on Genesis' : 2018,
-        'Kos Shel Eliyahu on Pesach Haggadah': 80
+        'Rashi on Genesis' : rashi_on_genesis_links.count(),
+        'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count()
     }
+    pass
 
     def test_rebuild_commentary_links(self):
         #test simple adding links
