@@ -98,6 +98,7 @@ Sefaria = extend(Sefaria, {
           return {"error": "Bad input."};
       }
       var ref = q.book.replace(/ /g, "_");
+      ref = encodeURIComponent(ref);
 
       if (q.sections.length)
           ref += "." + q.sections.join(".");
