@@ -4,9 +4,10 @@ RUN rm -rf /app
 COPY . /app/
 WORKDIR /app/
 
-RUN mkdir /app/log \
+RUN rm -rf /app/log \
+ && mkdir /app/log \
  && chmod 777 /app/log \
- && ln -s /settings/local_settings.py /app/sefaria/local_settings.py
+ && ln -sf /settings/local_settings.py /app/sefaria/local_settings.py
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
