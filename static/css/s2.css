@@ -2266,7 +2266,8 @@ a.readerNavCategory {
   color: #333;
   max-width: 100%;
 }
-.readerControls .readerTextToc .readerTextTocBox a span {
+.readerControls .readerTextToc .readerTextTocBox a span,
+.readerControls .readerTextToc .readerTextTocBox a div {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
