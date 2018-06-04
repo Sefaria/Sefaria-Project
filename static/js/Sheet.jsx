@@ -94,6 +94,7 @@ class Sheet extends Component {
             highlightedNodes={this.props.highlightedNodes}
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
+            hasSidebar = {this.props.hasSidebar}
           />
       )
     }
@@ -135,13 +136,13 @@ class SheetContent extends Component {
     //scroll down
     var nextSegment = segment.next();
     var segmentBottomDistanceFromTop = segment.offset().top+segment.height()-160;
-    if (segmentBottomDistanceFromTop < 0) {
+    if (segmentBottomDistanceFromTop < 0 && this.props.hasSidebar) {
       nextSegment.click();
     }
     //scroll up
     var prevSegment = segment.prev();
     var segmentTopDistanceFromBottom = segment.offset().top;
-    if (segmentTopDistanceFromBottom > this.windowMiddle && this.props.scrollDir == "up") {
+    if (segmentTopDistanceFromBottom > this.windowMiddle && this.props.scrollDir == "up" && this.props.hasSidebar) {
       prevSegment.click();
     }
 

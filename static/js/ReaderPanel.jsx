@@ -557,6 +557,7 @@ class ReaderPanel extends Component {
           key={"sheet-"+this.state.sheet.id}
           highlightedNodes={this.state.highlightedNodes}
           onRefClick={this.handleSheetCitationClick}
+          hasSidebar={this.props.hasSidebar}
           contentLang={this.state.settings.language}
           interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
