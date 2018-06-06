@@ -30,7 +30,7 @@ def get_section_segment(ref):
 
 def get_text_for_source_refs(ref_map, draft_text, prod_text):
     # go through each prod source ref, get its text, figure out its corresponding draft source ref, and get its text and compare both
-    match_csv = open("match.csv", 'w')
+    match_csv = open("scripts/shney_luchot_habrit_source_sheet_refs.csv", 'w')
     match_writer = csv.writer(match_csv)
     with open("list of refs") as f:
         for ref in f:
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     # load_csv(draft_ref_to_text, "draft.csv")
     # matches = get_text_for_source_refs(ref_map, draft_ref_to_text, prod_ref_to_text)
     #draft_ref_to_text[row[1]] = get_text(row[1], text_info["lang"], text_info["versionTitle"], "http://draft.sefaria.org")["text"]
-    with open("data/match.csv") as file:
+    with open("scripts/shney_luchot_habrit_source_sheet_refs.csv") as file:
         reader = csv.reader(file)
         for row in reader:
             orig, new = row
