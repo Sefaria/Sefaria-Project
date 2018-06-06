@@ -285,7 +285,8 @@ class TextRange extends Component {
             showLinkCount={this.props.basetext}
             linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
             filter={this.props.filter}
-            panelPosition={this.props.panelPosition}onSegmentClick={this.props.onSegmentClick}
+            panelPosition={this.props.panelPosition}
+            onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
             onFootnoteClick={this.onFootnoteClick}/>
             </span>

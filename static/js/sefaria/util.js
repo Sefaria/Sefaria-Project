@@ -176,7 +176,7 @@ class Util {
              tmp.innerHTML = this;
              return tmp.textContent|| "";
            } else {*/
-            return striptags(this);
+            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' '));
            //}
         };
 

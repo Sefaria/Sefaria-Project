@@ -1321,8 +1321,8 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
-        super(JaggedArrayNode, self).__init__(serial, **kwargs)
-        self._init_address_classes()
+        SchemaNode.__init__(self, serial, **kwargs)
+        NumberedTitledTreeNode.__init__(self, serial, **kwargs)
 
     def validate(self):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
@@ -1457,6 +1457,19 @@ class AddressType(object):
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
             return encode_hebrew_numeral(i, punctuation=punctuation)
+
+    @staticmethod
+    def toStrByAddressType(atype, lang, i):
+        """
+        Return string verion of `i` given `atype`
+        :param str atype: name of address type
+        :param str lang: "en" or "he"
+        """
+        try:
+            klass = globals()["Address" + atype]
+        except KeyError:
+            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+        return klass(0).toStr(lang, i)
 
     def storage_offset(self):
         return 0

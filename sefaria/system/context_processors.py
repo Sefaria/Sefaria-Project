@@ -60,6 +60,7 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
+        "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY
         #"USE_VARNISH":            USE_VARNISH,
         #"VARNISH_ADDR":           VARNISH_ADDR,
         #"USE_VARNISH_ESI":        USE_VARNISH_ESI
@@ -94,7 +95,7 @@ def user_and_notifications(request):
     /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         import urlparse
         recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
         recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies

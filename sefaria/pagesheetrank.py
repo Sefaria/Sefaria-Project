@@ -132,40 +132,48 @@ def init_pagerank_graph():
     all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
     len_all_links = all_links.count()
     all_ref_strs = set()
-    for i, link in enumerate(all_links):
-        if i % 1000 == 0:
-            print "{}/{}".format(i,len_all_links)
+    current_link, page, link_limit = 0, 0, 100000
+    all_links = LinkSet(limit=link_limit, page=page)
 
-        try:
-            #TODO pagerank segments except Talmud. Talmud is pageranked by section
-            #TODO if you see a section link, add pagerank to all of its segments
-            refs = [Ref(r) for r in link.refs]
-            tp1 = refs[0].index.best_time_period()
-            tp2 = refs[1].index.best_time_period()
-            start1 = int(tp1.start) if tp1 else 3000
-            start2 = int(tp2.start) if tp2 else 3000
+    while len(all_links.array()) > 0:
+        for link in all_links:  # raw records avoids caching the entire LinkSet into memory
+            if current_link % 1000 == 0:
+                print "{}/{}".format(current_link,len_all_links)
 
-            older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
+            try:
+                #TODO pagerank segments except Talmud. Talmud is pageranked by section
+                #TODO if you see a section link, add pagerank to all of its segments
+                refs = [Ref(r) for r in link.refs]
+                tp1 = refs[0].index.best_time_period()
+                tp2 = refs[1].index.best_time_period()
+                start1 = int(tp1.start) if tp1 else 3000
+                start2 = int(tp2.start) if tp2 else 3000
 
-            older_ref = older_ref.padded_ref()
-            if older_ref.is_range():
-                older_ref = older_ref.range_list()[0]
-            older_ref = older_ref.section_ref()
+                older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
 
-            newer_ref = newer_ref.padded_ref()
-            if newer_ref.is_range():
-                newer_ref = newer_ref.range_list()[0]
-            newer_ref = newer_ref.section_ref()
+                older_ref = older_ref.padded_ref()
+                if older_ref.is_range():
+                    older_ref = older_ref.range_list()[0]
+                older_ref = older_ref.section_ref()
 
-            put_link_in_graph(older_ref, newer_ref)
+                newer_ref = newer_ref.padded_ref()
+                if newer_ref.is_range():
+                    newer_ref = newer_ref.range_list()[0]
+                newer_ref = newer_ref.section_ref()
+
+                put_link_in_graph(older_ref, newer_ref)
 
 
-        except InputError:
-            pass
-        except TypeError:
-            print link.refs
-        except IndexError:
-            pass
+            except InputError:
+                pass
+            except TypeError:
+                print link.refs
+            except IndexError:
+                pass
+            current_link += 1
+
+        page += 1
+        all_links = LinkSet(limit=link_limit, page=page)
 
     for ref in all_ref_strs:
         if ref not in graph:

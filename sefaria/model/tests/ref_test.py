@@ -14,6 +14,7 @@ class Test_Ref(object):
         assert Ref("Exo 3.20")
         assert Ref("Prov.3.21")
         assert Ref("Exo.3.21")
+        assert Ref("1Ch.") == Ref("1 Chronicles")
 
     def test_normal_form_is_identifcal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
@@ -156,7 +157,7 @@ class Test_Ref(object):
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Karpas 1"
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2"
         assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
-        assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is None
+        assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is Ref('Kos Eliyahu on Pesach Haggadah, Barech, Pour Out Thy Wrath 2')
 
 
     def test_prev_ref(self):

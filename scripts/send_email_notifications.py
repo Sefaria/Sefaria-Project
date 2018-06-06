@@ -4,6 +4,8 @@ Send unread notifcations for users with a particular notificationg setting
 (daily, weekly, or all)
 """
 import sys
+import django
+django.setup()
 
 from sefaria.model.user_profile import email_unread_notifications
 

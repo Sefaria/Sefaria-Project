@@ -56,9 +56,6 @@ subscribe(history.process_version_title_change_in_history,              text.Ver
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
 subscribe(cascade(notification.GlobalNotificationSet, "content.version"), text.Version, "attributeChange", "versionTitle")
 
-subscribe(text.process_version_save_in_cache,                           text.Version, "save")
-
-subscribe(text.process_version_delete_in_cache,                         text.Version, "delete")
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", "versionTitle"),   text.Version, "delete")
 
 
@@ -105,9 +102,9 @@ subscribe(group.process_group_delete_in_sheets,                              gro
 
 # Categories
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
-subscribe(category.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
-subscribe(category.rebuild_library_after_category_change,                   category.Category, "delete")
-subscribe(category.rebuild_library_after_category_change,                   category.Category, "save")
+subscribe(text.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
+subscribe(text.rebuild_library_after_category_change,                   category.Category, "delete")
+subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
 
 '''
 # These are contained in the library rebuild, above.

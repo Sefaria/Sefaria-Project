@@ -11,8 +11,9 @@ from django.shortcuts import redirect
 from sefaria.settings import *
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
+from django.utils.deprecation import MiddlewareMixin
 
-class LocationSettingsMiddleware(object):
+class LocationSettingsMiddleware(MiddlewareMixin):
     """
         Determines if the user should see diaspora content or Israeli.
     """
@@ -26,19 +27,19 @@ class LocationSettingsMiddleware(object):
                 loc = "us"
         request.diaspora = False if loc in ("il", "IL", "Il") else True
 
-class LanguageSettingsMiddleware(object):
+class LanguageSettingsMiddleware(MiddlewareMixin):
     """
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/interface/", "/static/")
+        excluded = ('/linker.js', "/api/", "/interface/", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             return # Save looking up a UserProfile, or redirecting when not needed
 
         # INTERFACE 
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
-        if request.user.is_authenticated() and not interface:
+        if request.user.is_authenticated and not interface:
             profile = UserProfile(id=request.user.id)
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
@@ -87,7 +88,7 @@ class LanguageSettingsMiddleware(object):
         translation.activate(request.LANGUAGE_CODE)
 
 
-class LanguageCookieMiddleware(object):
+class LanguageCookieMiddleware(MiddlewareMixin):
     """
     If `set-language-cookie` param is set, set a cookie the interfaceLange of current domain, 
     then redirect to a URL without the param (so the urls with the param don't get loose in wild).
@@ -103,7 +104,7 @@ class LanguageCookieMiddleware(object):
             domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
             response = redirect(domain + request.path + params_string)
             response.set_cookie("interfaceLang", lang)
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
                 p.save()
@@ -123,7 +124,7 @@ def current_domain_lang(request):
     return domain_lang
 
 
-class ProfileMiddleware(object):
+class ProfileMiddleware(MiddlewareMixin):
     """
     Displays hotshot profiling for any view.
     http://yoursite.com/yourview/?prof
