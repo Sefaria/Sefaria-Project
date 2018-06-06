@@ -1593,7 +1593,6 @@ class AddressYear(AddressInteger):
     :class: AddressYear stores Hebrew years as numbers, for example 778 for the year תשע״ח
     To convert to Roman year, add 1240
     """
-    @classmethod
     def toNumber(self, lang, s):
         if lang == "he":
             return decode_hebrew_numeral(s)
