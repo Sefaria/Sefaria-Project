@@ -3192,7 +3192,7 @@ def explore(request, book1, book2, lang=None):
 
 
 def person_page(request, name):
-    person = Person().load({"key": name}) # called a model record
+    person = Person().load({"key": name})
 
     if not person:
         raise Http404
