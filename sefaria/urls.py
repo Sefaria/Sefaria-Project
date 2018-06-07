@@ -65,6 +65,7 @@ urlpatterns += [
     url(r'^visualize/toc$', reader_views.visualize_toc),
     url(r'^visualize/parasha-colors$', reader_views.visualize_parasha_colors),
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
+    url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
 ]
 
 # Source Sheet Builder
