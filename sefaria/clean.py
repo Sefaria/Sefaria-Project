@@ -56,10 +56,11 @@ def broken_links(tref=None, auto_links = False, manual_links = False, delete_lin
                 error_msg = "Ref 2 has no text in the system"
 
             broken_links_list.append("{}\t{}\t{}".format(link.refs, link_type, error_msg))
+            print broken_links_list[-1]
             if delete_links:
                 link.delete()
-
     return broken_links_list
+
 
 
 def remove_bad_links():

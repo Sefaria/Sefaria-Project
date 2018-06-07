@@ -6,7 +6,14 @@ from django.http import HttpResponseRedirect
 from emailusernames.forms import EmailAuthenticationForm
 
 from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
-from sefaria.settings import DOWN_FOR_MAINTENANCE
+from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
+
+import reader.views as reader_views
+import sefaria.views as sefaria_views
+import sourcesheets.views as sheets_views
+import sefaria.gauth.views as gauth_views
+import django.contrib.auth.views as django_auth_views
+
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
@@ -151,6 +158,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  sheets_views.visual_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     sheets_views.unlike_sheet_api),
@@ -335,11 +343,15 @@ urlpatterns += [
     url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
-    url(r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
-    url(r'^workshop/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_SummerMeeting_2016.pdf')),
-    url(r'^ideasforteaching/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
+url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
+]
+
+urlpatterns +=[
+    url(r'^textmap/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria-Text-Map-June-2016.pdf')),
+    url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
+    url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
 ]
 
 # Sefaria.js -- Packaged JavaScript
@@ -409,6 +421,11 @@ urlpatterns += [
 urlpatterns += [
     url(r'^gauth$', gauth_views.index, name="gauth_index"),
     url(r'^gauth/callback$', gauth_views.auth_return, name="gauth_callback"),
+]
+
+# Sheets in a reader panel
+urlpatterns += [
+    url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
 
 # Catch all to send to Reader

@@ -4,9 +4,10 @@ RUN rm -rf /app
 COPY . /app/
 WORKDIR /app/
 
-RUN mkdir /app/log \
+RUN rm -rf /app/log \
+ && mkdir /app/log \
  && chmod 777 /app/log \
- && ln -s /settings/local_settings.py /app/sefaria/local_settings.py
+ && ln -sf /settings/local_settings.py /app/sefaria/local_settings.py
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
@@ -18,3 +19,5 @@ COPY build/web/wsgi.whiskey /app/.whiskey
 # In practice, differing requirements don't install cleanly
 RUN pip install -r requirements.txt \
   && chown -R whiskey /app
+
+RUN python manage.y collectstatic --noinput

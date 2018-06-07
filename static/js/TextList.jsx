@@ -77,6 +77,7 @@ class TextList extends Component {
     }
   }
   preloadSingleCommentaryText(filter) {
+    console.log('preloading single commentary')
     // Preload commentary for an entire section of text.
     this.setState({textLoaded: false});
     var commentator       = filter[0];

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
+{% get_static_prefix as STATIC_PREFIX %}
 
 {% load sefaria_tags %}
 {% load humanize %}
@@ -18,7 +19,8 @@
         <div id="groups">
                 {% for group in groups %}
                 <a class="group" href="/groups/{{ group.name|url_safe }}">
-                    <img class="groupImage" src="{{ group.imageUrl|default:"/static/img/group.svg" }}" alt="Image for {{ group.name }}">
+                    {% static "img/group.svg" as default_group %}
+                    <img class="groupImage" src="{{ group.imageUrl|default:default_group}}" alt="Image for {{ group.name }}">
                     <div class="groupName">{{ group.name }}</div>
                 </a>
                 {% endfor %}

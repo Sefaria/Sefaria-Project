@@ -1,6 +1,7 @@
 {% load cache %}
 {% load humanize %}
 {% load sefaria_tags %}
+{% load static %}
 
 <!DOCTYPE html>
 <html>
@@ -2226,7 +2227,7 @@ a {
 		</ol>
 
 		<!-- <div id="printFooter">
-			<img src="/static/img/fb-og-image.png">
+			<img src="{% static 'img/fb-og-image.png' %}">
 			<div>
 				Made with the Sefaria Source Sheet Builder<br>
 				www.sefaria.org/sheets
@@ -2253,10 +2254,10 @@ a {
 	-->
 
 	<!--
-	<script type="text/javascript" src="/static/js/lib/jquery.scrollTo-1.4.2-min.js"></script>
-	<script type="text/javascript" src="/static/js/lib/jquery.easing.1.3.js"></script>
-	<script type="text/javascript" src="/static/js/lib/jquery-tooltip/jquery.tooltip.js"></script>
-	<script src="/static/js/lib/jquery.tag-it.min.js"></script>
+	<script type="text/javascript" src="{% static 'js/lib/jquery.scrollTo-1.4.2-min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/lib/jquery.easing.1.3.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/lib/jquery-tooltip/jquery.tooltip.js' %}"></script>
+	<script src="{% static 'js/lib/jquery.tag-it.min.js' %}"></script>
 
 
 	{% include "js/headers.js" %}
@@ -2285,10 +2286,10 @@ a {
 	{% endautoescape %}
 	</script>
 	{% if can_edit or can_add %}
-	<script src="/static/ckeditor/ckeditor.js"></script>
-	<script src="/static/ckeditor/adapters/jquery.js"></script>
+	<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
+	<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
 	{% endif %}
-	<script src="/static/js/sheets.js"></script>
+	<script src="{% static 'js/sheets.js' %}"></script>
 	-->
 </body>
 </html>
