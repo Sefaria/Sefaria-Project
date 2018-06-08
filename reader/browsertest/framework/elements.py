@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
         element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element, _find_element, StaleElementReferenceException
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
@@ -189,12 +189,12 @@ class AbstractTest(object):
 
         # These CSS selectors could fail if the category is a substring of another possible category
         WebDriverWait(self.driver, TEMPER).until(
-            presence_of_element_located((By.CSS_SELECTOR, '.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
+            presence_of_element_located((By.CSS_SELECTOR,'.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
         )
-        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name))
+        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name,category_name))
         e.click()
         WebDriverWait(self.driver, TEMPER).until(
-            _one_of_any_text_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
+            _one_of_any_text_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"),[category_name, category_name.upper()])
         )
         return self
 
@@ -221,7 +221,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     def click_source_title(self):
-        title_selector = '#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.readerTextToc > div > a > span.en'
+        title_selector = '#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.readerTextToc > div > a'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, title_selector))
         )
@@ -237,6 +237,7 @@ class AbstractTest(object):
         ttl.click()
 
     def click_sefaria(self):
+        time.sleep(.5)
         sefaria_img_selector = '#s2 > div > div.header > div > div.headerHomeSection > a > img'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, sefaria_img_selector))
@@ -334,35 +335,39 @@ class AbstractTest(object):
         self.click_object_by_css_selector('#panel-1 > div:nth-child(1) > div > div > div > div > a > div')
 
     def click_other_text_on_sidebar(self):
-        self.click_object_by_link_text('Other Text')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
 
     def click_sheets_on_sidebar(self):
-        self.click_object_by_link_text('Sheets')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
 
     def click_notes_on_sidebar(self):
-        self.click_object_by_link_text('Notes')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
 
     def click_about_on_sidebar(self):
-        self.click_object_by_link_text('About')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
 
     def click_versions_on_sidebar(self):
-        self.click_object_by_link_text('Versions')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
 
     def click_tools_on_sidebar(self):
-        self.click_object_by_link_text('Tools')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(6) > span:nth-child(2)')
 
     def click_share_on_sidebar(self):
-        self.click_object_by_link_text('Share')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
 
     def click_add_translation_on_sidebar(self):
-        self.click_object_by_link_text('Add Translation')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
 
     def click_add_connection_on_sidebar(self):
-        self.click_object_by_link_text('Add Connection')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
 
     def close_popup_with_accept(self):
-        alert = self.driver.switch_to.alert
-        alert.accept()
+        try:
+            alert = self.driver.switch_to.alert
+            alert.accept()
+        except NoAlertPresentException:
+            print('A <<NoAlertPresentException>> was thrown')
+            pass
 
     def click_explore_sheets(self):
         self.click_object_by_css_selector('#homeSheets > div > div.textBox > a.inAppLink > div > span.int-en')
@@ -429,6 +434,13 @@ class AbstractTest(object):
         txt_box.clear()
         txt_box.send_keys(txt_to_type)
 
+    def get_object_by_id(self, obj_id):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.ID, obj_id))
+        )
+        obj_to_return = self.driver.find_element_by_id(obj_id)
+        return obj_to_return
+
     def click_what_in_sefaria_link(self):
         self.click_object_by_link_text('What is Sefaria?')
 
@@ -487,10 +499,10 @@ class AbstractTest(object):
         self.click_object_by_link_text('Jobs')
 
     def click_facebook_link(self):
-        self.click_object_by_link_text('Facebook')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
 
     def click_twitter_link(self):
-        self.click_object_by_link_text('Twitter')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
 
     def click_youtube_link(self):
         self.click_object_by_link_text('YouTube')
@@ -502,10 +514,13 @@ class AbstractTest(object):
         self.click_object_by_link_text('Forum')
 
     def click_email_link(self):
-        self.click_object_by_link_text('Email')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
 
-    def click_ivrit_link(self):
+    def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
         self.click_object_by_link_text('עברית')
+
+    def click_hebrew_link(self):
+        self.click_ivrit_link()
 
     def click_english_link(self):
         self.click_object_by_link_text('English')
@@ -585,6 +600,36 @@ class AbstractTest(object):
         elif 'english' in content_lang_class:
             return 'english'
 
+    def get_login_link_text(self):
+        ret = self.get_object_by_css_selector('#s2 > div > div > div.headerInner > div.headerLinksSection > div > a.login.loginLink').text
+        return ret
+
+    def get_signup_link_text(self):
+        ret = self.get_object_by_css_selector('#s2 > div > div > div.headerInner > div.headerLinksSection > div > a.login.signupLink').text
+        return ret
+
+    def get_what_is_sefaria_link_text(self):
+        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(1) > a:nth-child(2)').text
+        return ret
+
+    def get_teach_with_sefaria_link_text(self):
+        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(2)').text
+        return ret
+
+    def get_get_involved_link_text(self):
+        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(2)').text
+        return ret
+
+    def get_donate_link_text(self):
+        ret = self.get_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(2)').text
+        return ret
+    def get_facebook_link_text(self):
+        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect > a:nth-child(4)').text
+        return ret
+
+    def get_sefaria_lib_title(self):
+        return self.get_object_by_css_selector('#panel-undefined > div > div > div > h1').text
+
     def get_font_size(self):
         size = self.get_nth_section_hebrew(1).value_of_css_property("font-size")
         return float(size.replace('px',''))
@@ -658,6 +703,13 @@ class AbstractTest(object):
         obj = self.driver.find_element_by_id(id)
         return obj.text
 
+    def get_object_by_link_text(self, link_txt):
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.LINK_TEXT, link_txt))
+        )
+        ret = self.driver.find_element_by_link_text(link_txt)
+        return ret
+
     def click_object_by_link_text(self, link_txt):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.LINK_TEXT, link_txt))
@@ -686,6 +738,7 @@ class AbstractTest(object):
 
     def get_newly_opened_tab_url(self):
         self.driver.switch_to_window(self.driver.window_handles[1])
+        time.sleep(2)#page needs to load, as this should work for any page - no specific element to wait on
         new_url = self.driver.current_url
         self.driver.switch_to_window(self.driver.window_handles[0])
         return new_url
@@ -1162,6 +1215,7 @@ class AtomicTest(AbstractTest):
         Only run when test is root.  Can be overridden at test class level.
         :return:
         """
+        self.driver.maximize_window()
         self.load_toc()
 
     def teardown(self):
@@ -1429,8 +1483,9 @@ class TestResultSet(AbstractTestResult):
 
 class Trial(object):
 
-    default_local_driver = webdriver.Chrome
-
+    # default_local_driver = webdriver.Chrome
+    # default_local_driver = webdriver.Firefox
+    default_local_driver = webdriver.Safari
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
@@ -1680,3 +1735,18 @@ def get_multiplatform_tests(tests):
 
 def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
+
+# The following util method highlights (blinks) a Webdriver on the page, helpful for figuring out what a code line does.
+# A relevant use case would be to recognize an element on browser-1 when it can't be found on browser-2. Just switch locally to
+# the other browser (by changing the value of default_local_driver above), run up to the point of failure (using a breakpoint), and from the Evaluate Expression
+# window run something like:
+#           highlight(self.driver.find_element_by_css_selector('.categoryFilter'))
+def highlight(element):
+    driver = element._parent
+    def apply_style(s):
+        driver.execute_script("arguments[0].setAttribute('style', arguments[1]);",
+                              element, s)
+    original_style = element.get_attribute('style')
+    apply_style("background: yellow; border: 2px solid red;")
+    time.sleep(.3)
+    apply_style(original_style)

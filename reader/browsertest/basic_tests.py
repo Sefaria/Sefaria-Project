@@ -86,7 +86,8 @@ class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
 
     def body(self):
         self.load_toc()
-        self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
+        self.click_toc_category("Midrash")
+        self.click_toc_text("Ein Yaakov")
         self.click_source_title()
         self.click_masechet_and_chapter('2','3')
         section = self.get_section_txt('1')
@@ -131,11 +132,11 @@ class GoThroughHomeLinksAndButtons(AtomicTest):
         self.click_sefaria()
         self.click_ios_app()
         tab_url = self.get_newly_opened_tab_url()
-        assert 'itunes.apple.com/us/app/sefaria' in tab_url
+        assert 'itunes.apple.com/us/app/sefaria' in tab_url, 'Actual URL: ' + tab_url
         self.close_tab_and_return_to_prev_tab()
         self.click_android_app()
         tab_url = self.get_newly_opened_tab_url()
-        assert 'play.google.com/store/apps' in tab_url
+        assert 'play.google.com/store/apps' in tab_url, 'Actual URL: ' + tab_url
         assert 'org.sefaria.sefaria' in tab_url
         self.close_tab_and_return_to_prev_tab()
         self.click_start_a_sheet()
@@ -496,8 +497,138 @@ class SideBarEntries(AtomicTest):
         self.back()
         self.click_sefaria()
 
-        print('Done')
+# Switch between Hebrew and English and sample a few of the objects to make sure the language has actually changed.
+class ChangeSiteLanguage(AtomicTest):
+    suite_class = ReaderSuite
+    every_build = True
 
+    def body(self):
+        url1 = self.get_current_url()
+        self.click_ivrit_link()
+        url2 = self.get_current_url()
+        ivrit_title = self.get_sefaria_lib_title()
+        if 'safari' in self.driver.name:
+            time.sleep(1)
+            assert self.driver.find_element_by_class_name('interface-hebrew') != None
+        else:
+            assert ivrit_title == u'האוסף של ספריא'
+            assert self.get_login_link_text() == u'התחבר'
+            assert self.get_signup_link_text() == u'הרשם'
+            assert self.get_what_is_sefaria_link_text() == u'מהי ספריא'
+            assert self.get_teach_with_sefaria_link_text() == u'למד באמצעות ספריא'
+            assert self.get_get_involved_link_text() == u'הצטרף אלינו'
+            assert self.get_donate_link_text() == u'תרומות'
+            assert self.get_facebook_link_text() == u'פייסבוק'
+        self.click_english_link()
+        english_title = self.get_sefaria_lib_title()
+        if 'safari' in self.driver.name:
+            time.sleep(1)
+            assert self.driver.find_element_by_class_name('interface-english') != None
+        else:
+            assert english_title == u'The Sefaria Library'
+            assert self.get_login_link_text() == u'Log in'
+            assert self.get_signup_link_text() == u'Sign up'
+            assert self.get_what_is_sefaria_link_text() == u'What is Sefaria?'
+            assert self.get_teach_with_sefaria_link_text() == u'Teach with Sefaria'
+            assert self.get_get_involved_link_text() == u'Get Involved'
+            assert self.get_donate_link_text() == u'Donate'
+            assert self.get_facebook_link_text() == u'Facebook'
+
+class CheckGraphs(AtomicTest):
+    suite_class = ReaderSuite
+    every_build = True
+
+    # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check that torah>nevi'im>ketuvim and the Sedarim are in the correct order
+    def body(self):
+        self.load_home()
+        self.click_explore_connections()
+        if 'safari' in self.driver.name:
+            time.sleep(1)  # Might fail on Safari without this sleep
+        assert self.get_object_by_id('Genesis').is_displayed()
+        assert self.get_object_by_id('Exodus').is_displayed()
+        assert self.get_object_by_id('Leviticus').is_displayed()
+        assert self.get_object_by_id('Numbers').is_displayed()
+        assert self.get_object_by_id('Deuteronomy').is_displayed()
+        assert float(self.get_object_by_id('Deuteronomy').get_attribute('cx')) < float(self.get_object_by_id('Joshua').get_attribute('cx'))
+        assert self.get_object_by_id('Joshua').is_displayed()
+        assert self.get_object_by_id('Judges').is_displayed()
+        assert self.get_object_by_id('I-Samuel').is_displayed()
+        assert self.get_object_by_id('II-Samuel').is_displayed()
+        assert self.get_object_by_id('I-Kings').is_displayed()
+        assert self.get_object_by_id('II-Kings').is_displayed()
+        assert self.get_object_by_id('Isaiah').is_displayed()
+        assert self.get_object_by_id('Jeremiah').is_displayed()
+        assert self.get_object_by_id('Ezekiel').is_displayed()
+        assert self.get_object_by_id('Hosea').is_displayed()
+        assert self.get_object_by_id('Joel').is_displayed()
+        assert self.get_object_by_id('Amos').is_displayed()
+        assert self.get_object_by_id('Obadiah').is_displayed()
+        assert self.get_object_by_id('Jonah').is_displayed()
+        assert self.get_object_by_id('Micah').is_displayed()
+        assert self.get_object_by_id('Nahum').is_displayed()
+        assert self.get_object_by_id('Habakkuk').is_displayed()
+        assert self.get_object_by_id('Zephaniah').is_displayed()
+        assert self.get_object_by_id('Haggai').is_displayed()
+        assert self.get_object_by_id('Zechariah').is_displayed()
+        assert self.get_object_by_id('Malachi').is_displayed()
+        assert float(self.get_object_by_id('Malachi').get_attribute('cx')) < float(self.get_object_by_id('Psalms').get_attribute('cx'))
+        assert self.get_object_by_id('Psalms').is_displayed()
+        assert self.get_object_by_id('Proverbs').is_displayed()
+        assert self.get_object_by_id('Job').is_displayed()
+        assert self.get_object_by_id('Song-of-Songs').is_displayed()
+        assert self.get_object_by_id('Ruth').is_displayed()
+        assert self.get_object_by_id('Lamentations').is_displayed()
+        assert self.get_object_by_id('Ecclesiastes').is_displayed()
+        assert self.get_object_by_id('Esther').is_displayed()
+        assert self.get_object_by_id('Daniel').is_displayed()
+        assert self.get_object_by_id('Ezra').is_displayed()
+        assert self.get_object_by_id('Nehemiah').is_displayed()
+        assert self.get_object_by_id('I-Chronicles').is_displayed()
+        assert self.get_object_by_id('II-Chronicles').is_displayed()
+
+
+        assert self.get_object_by_id('Berakhot').is_displayed()
+        assert float(self.get_object_by_id('Berakhot').get_attribute('cx')) < float(self.get_object_by_id('Shabbat').get_attribute('cx'))
+        assert self.get_object_by_id('Shabbat').is_displayed()
+        assert self.get_object_by_id('Eruvin').is_displayed()
+        assert self.get_object_by_id('Pesachim').is_displayed()
+        assert self.get_object_by_id('Rosh-Hashanah').is_displayed()
+        assert self.get_object_by_id('Yoma').is_displayed()
+        assert self.get_object_by_id('Sukkah').is_displayed()
+        assert self.get_object_by_id('Beitzah').is_displayed()
+        assert self.get_object_by_id('Taanit').is_displayed()
+        assert self.get_object_by_id('Megillah').is_displayed()
+        assert self.get_object_by_id('Moed-Katan').is_displayed()
+        assert self.get_object_by_id('Chagigah').is_displayed()
+        assert float(self.get_object_by_id('Chagigah').get_attribute('cx')) < float(self.get_object_by_id('Yevamot').get_attribute('cx'))
+        assert self.get_object_by_id('Yevamot').is_displayed()
+        assert self.get_object_by_id('Ketubot').is_displayed()
+        assert self.get_object_by_id('Nedarim').is_displayed()
+        assert self.get_object_by_id('Nazir').is_displayed()
+        assert self.get_object_by_id('Sotah').is_displayed()
+        assert self.get_object_by_id('Gittin').is_displayed()
+        assert self.get_object_by_id('Kiddushin').is_displayed()
+        assert float(self.get_object_by_id('Kiddushin').get_attribute('cx')) < float(self.get_object_by_id('Bava-Kamma').get_attribute('cx'))
+        assert self.get_object_by_id('Bava-Kamma').is_displayed()
+        assert self.get_object_by_id('Bava-Metzia').is_displayed()
+        assert self.get_object_by_id('Bava-Batra').is_displayed()
+        assert self.get_object_by_id('Sanhedrin').is_displayed()
+        assert self.get_object_by_id('Makkot').is_displayed()
+        assert self.get_object_by_id('Shevuot').is_displayed()
+        assert self.get_object_by_id('Avodah-Zarah').is_displayed()
+        assert self.get_object_by_id('Horayot').is_displayed()
+        assert float(self.get_object_by_id('Kiddushin').get_attribute('cx')) < float(self.get_object_by_id('Horayot').get_attribute('cx'))
+        assert self.get_object_by_id('Zevachim').is_displayed()
+        assert self.get_object_by_id('Menachot').is_displayed()
+        assert self.get_object_by_id('Chullin').is_displayed()
+        assert self.get_object_by_id('Bekhorot').is_displayed()
+        assert self.get_object_by_id('Arakhin').is_displayed()
+        assert self.get_object_by_id('Temurah').is_displayed()
+        assert self.get_object_by_id('Keritot').is_displayed()
+        assert self.get_object_by_id('Meilah').is_displayed()
+        assert self.get_object_by_id('Tamid').is_displayed()
+        assert float(self.get_object_by_id('Tamid').get_attribute('cx')) < float(self.get_object_by_id('Niddah').get_attribute('cx'))
+        assert self.get_object_by_id('Niddah').is_displayed()
 
 class RecentInToc(AtomicTest):
     suite_class = ReaderSuite
@@ -638,7 +769,9 @@ class PermanenceOfRangedRefs(AtomicTest):
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
     def body(self):
-        self.search_ref("Shabbat 2a").click_segment("Shabbat 2a:1").click_category_filter("Mishnah")
+        self.search_ref("Shabbat 2a")
+        self.click_segment("Shabbat 2a:1")
+        self.click_category_filter("Mishnah")
         assert self.find_text_filter("Mishnah Shabbat")
         self.click_segment("Shabbat 2a:2")
         assert self.find_text_filter("Mishnah Shabbat")
@@ -793,12 +926,20 @@ class SaveNewSourceSheet(AtomicTest):
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
-        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
+        if 'safari' in self.driver.name:
+            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "Enter a"))
+        else:
+            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
         textBox.send_keys(" 1")
-        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
+        if 'safari' in self.driver.name:
+           WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or"))
+        else:
+            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
         textBox.send_keys(":9")
-        WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR ENTER A RANGE"))
-
+        if 'safari' in self.driver.name:
+            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or enter a range"))
+        else:
+            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR ENTER A RANGE"))
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')
