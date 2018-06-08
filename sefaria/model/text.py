@@ -2022,9 +2022,9 @@ class Ref(object):
         self.sections = []
         self.toSections = []
         self.index_node = None
+        self.__init_ref_pointer_vars()
 
         if tref:
-            self.__init_ref_pointer_vars()
             self.orig_tref = self.tref = tref
             self._lang = "he" if is_hebrew(tref) else "en"
             self.__clean_tref()
@@ -2033,11 +2033,8 @@ class Ref(object):
         elif _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
-            self.__init_ref_pointer_vars()
             self.tref = self.normal()
             self._validate()
-        else:
-            self.__init_ref_pointer_vars()
 
     def __init_ref_pointer_vars(self):
         self._normal = None
