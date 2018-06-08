@@ -2292,7 +2292,7 @@ a.readerNavCategory {
   margin: 0 7px;
   vertical-align: 0px;
 }
-.readerControls .readerTextToc .fa-caret-down.invisible {
+.readerControls .readerTextToc .fa.invisible {
   visibility: hidden;
 }
 .bilingual .readerTextToc .he {
