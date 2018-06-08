@@ -4652,16 +4652,7 @@ class Library(object):
                 toSections.append(sections[len(sections) - len(toSections) - 1])
             toSections.reverse()
 
-        _obj = {
-            "tref": ref_match.group(),
-            "book": node.full_title("en"),
-            "index_node": node,
-            "index": node.index,
-            "primary_category": node.index.get_primary_category(),
-            "sections": sections,
-            "toSections": toSections
-        }
-        return Ref(_obj=_obj)
+        return Ref(ref_match.group())
 
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
