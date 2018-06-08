@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load sefaria_tags %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Edit Your Profile on Sefaria" %}{% endblock %}
 
@@ -186,8 +186,8 @@
 {% endblock %}
 
 {% block js %}
-	<script src="/static/ckeditor/ckeditor.js"></script>
-	<script src="/static/ckeditor/adapters/jquery.js"></script>
+	<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
+	<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
 	<script>
 
 		CKEDITOR.config.font_names =

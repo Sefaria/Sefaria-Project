@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n cache humanize sefaria_tags %}
+{% load i18n cache humanize sefaria_tags static %}
 
 {% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
 
@@ -28,9 +28,9 @@
 
     <div id="homePage" class="static biReady">
         <div id="homeCover">
-            <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
-                <source src="/static/img/home-video.webm" type="video/webm">
-                <source src="/static/img/home-video.mp4" type="video/mp4">
+            <video id="homeVideo" poster="{% static 'img/home-video.jpg' %}" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">
+                <source src="{% static 'img/home-video.webm' %}" type="video/webm">
+                <source src="{% static 'img/home-video.mp4' %}" type="video/mp4">
                 Video of sofer writing letters of the Torah
             </video>
             <h1>

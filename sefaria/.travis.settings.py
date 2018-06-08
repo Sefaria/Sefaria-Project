@@ -61,10 +61,16 @@ SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
 
 # ElasticSearch server
-SEARCH_HOST = "http://search.sefaria.org"
-SEARCH_ADMIN = "http://search.sefaria.org:1788"
+SEARCH_HOST = "http://localhost:9200"
+SEARCH_ADMIN = "http://localhost:9200"
+SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
+SEARCH_ADMIN_PW = None
+SEARCH_ADMIN_K8S = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_NAME = 'sefaria'  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME = 'sefaria'
+SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_MERGED = 'merged'
 
 # Node Server
 USE_NODE = False
@@ -97,7 +103,7 @@ RECAPTCHA_PUBLIC_KEY = "Dummy"
 RECAPTCHA_PRIVATE_KEY = "Dummy"
 
 # Multiserver
-MULTISERVER_ENABLED = True
+MULTISERVER_ENABLED = False
 MULTISERVER_REDIS_SERVER = "127.0.0.1"
 MULTISERVER_REDIS_PORT = 6379
 MULTISERVER_REDIS_DB = 0

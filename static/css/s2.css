@@ -1140,20 +1140,38 @@ a.readerNavCategory {
   margin-bottom: 8px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .tocTitle {
+.readerTextTableOfContents .tocTitle,
+.sheetContent .title {
   text-align: center;
   font-size: 28px;
   line-height: 1.3;
 }
-.readerTextTableOfContents .currentSection {
+.readerTextTableOfContents .currentSection,
+.readerTextTableOfContents .authorStatement,
+.sheetContent .sheetMetaDataBox .authorStatement {
   font-size: 17px;
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.readerTextTableOfContents .currentSection .he {
+.readerTextTableOfContents .currentSection .he,
+.readerTextTableOfContents .authorStatement .he,
+.readerTextTableOfContents .sheetMeta .he {
   font-family: "Heebo", sans-serif;
+}
+
+.readerTextTableOfContents .authorStatement a {
+ color: #333;
+}
+
+.readerTextTableOfContents .sheetMeta {
+  font-size: 14px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
 }
 .readerTextTableOfContents .tocDetails {
   margin-top: 30px;
@@ -1194,6 +1212,14 @@ a.readerNavCategory {
   color: #666;
   margin: 0 5px;
 }
+.readerTextTableOfContents .tocDetails .sheetSummary {
+  margin: 6px 0 16px;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .readerTextTableOfContents .currentVersionBox {
   margin-bottom: 18px;
 }
@@ -1295,6 +1321,17 @@ a.readerNavCategory {
   box-sizing: border-box;
   text-align: center;
   height: 100%;
+}
+.readerTextTableOfContents .content .sheetTags.int-en {
+  clear: both;
+  padding-top: 30px;
+  border-top: 1px solid #ccc;
+}
+.readerTextTableOfContents .content .sheetTags.int-en {
+  text-align: left;
+}
+.readerTextTableOfContents .content .sheetTags.int-he {
+  text-align: right;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -2117,6 +2154,9 @@ a.readerNavCategory {
 .connectionsHeaderTitle .fa-chevron-right {
   margin-left: 10px;
 }
+.connectionsHeaderTitle .fa-chevron-left, .connectionsHeaderTitle .fa-chevron-right{
+  color: #999;
+}
 .readerControls .readerControlsInner {
   position: relative;
   width: 700px;
@@ -2146,7 +2186,7 @@ a.readerNavCategory {
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
-  color: #999;
+  color: #666;
   width: 100%;
 }
 .readerControls .readerTextToc.attributed .readerTextTocBox {
@@ -2186,7 +2226,7 @@ a.readerNavCategory {
   width: 40px;
   height: 48px;
   line-height: 48px;
-  color: #CCC;
+  color: #999;
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
@@ -2227,7 +2267,8 @@ a.readerNavCategory {
   color: #333;
   max-width: 100%;
 }
-.readerControls .readerTextToc .readerTextTocBox a span {
+.readerControls .readerTextToc .readerTextTocBox a span,
+.readerControls .readerTextToc .readerTextTocBox a div {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -2409,12 +2450,13 @@ a.readerNavCategory {
   position: relative;
   padding: 0 30px;
 }
-.singlePanel .textRange.basetext {
+.singlePanel .textRange.basetext,
+.singlePanel .sheetContent {
   padding: 0;
 }
 .narrowColumn .textRange.basetext {
 }
-.textRange.basetext .title {
+.textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
   margin: 24px 0;
   color: #999;
@@ -2423,18 +2465,18 @@ a.readerNavCategory {
   font-weight: lighter;
   letter-spacing: 1px;
 }
-.dark .textRange.basetext .title {
+.dark .textRange.basetext .title, .dark .sheetContent .title {
   color: #ccc;
 }
-.textRange.basetext .title .titleBox {
+.textRange.basetext .title .titleBox, .sheetContent .customSourceTitle .titleBox {
   display: inline-block;
   border-bottom: 4px solid #E6E5E6;
   padding: 0 6px 3px;
 }
-.dark .textRange.basetext .title .titleBox {
+.dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
   border-bottom: 4px solid #666;
 }
-.bilingual .textRange.basetext .title .he {
+.bilingual .textRange.basetext .title .he, .bilingual .sheetContent .title .he {
   display: none;
 }
 .interface-hebrew .readerPanel.english .textRange,
@@ -2449,15 +2491,15 @@ a.readerNavCategory {
 .interface-english .readerPanel.hebrew .tocContent{
   direction: rtl;
 }
-.basetext .text {
+.basetext .text, .sheetContent .text {
   padding: 0 44px;
   margin: 30px 0;
   background-color: inherit;
 }
-.narrowColumn .basetext .text {
+.narrowColumn .basetext .text, .narrowColumn .sheetContent .text {
   padding: 0 26px;
 }
-.singlePanel .basetext .text {
+.singlePanel .basetext .text, .singlePanel .sheetContent .text  {
   padding: 0 34px;
 }
 .parashahHeader {
@@ -2530,6 +2572,11 @@ a.readerNavCategory {
   margin-top: 6px;
   text-align: left;
 }
+
+.stacked.bilingual .sheetContent .segment > .en {
+  margin-top: 0;
+}
+
 .stacked.bilingual .basetext .segment > .en {
   margin: 10px 0 20px;
   color: #666;
@@ -2539,7 +2586,9 @@ a.readerNavCategory {
   display: inline;
 }
 .heLeft.bilingual .basetext .text,
-.heRight.bilingual .basetext .text {
+.heRight.bilingual .basetext .text,
+.heLeft.bilingual .sheetContent .text,
+.heRight.bilingual .sheetContent .text {
   padding: 0;
 }
 .heLeft.bilingual .segment > .en,
@@ -2564,6 +2613,10 @@ a.readerNavCategory {
 .basetext .segment:focus {
   background-color: #f4f4f4;
 }
+.sheetContent .segment:active .segmentNumber,
+.sheetContent .segment:focus .segmentNumber,
+.sheetContent .segment:active .linkCount,
+.sheetContent .segment:focus .linkCount,
 .basetext .segment:active .segmentNumber,
 .basetext .segment:focus .segmentNumber,
 .basetext .segment:active .linkCount,
@@ -2574,24 +2627,45 @@ a.readerNavCategory {
 .dark .basetext .segment:focus {
   background-color: #444;
 }
-.basetext .segment.highlight {
+.basetext .segment.highlight,
+.sheetContent .segment.highlight .en,
+.sheetContent .segment.highlight .he,
+.readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
+.readerPanel.bilingual.heRight .sheetContent .segment.highlight {
   background-color: #E9E9E7;
 }
-.basetext .segment.highlight .segmentNumber,
-.basetext .segment.highlight .linkCount {
+.sheetContent .segment.highlight .linkCount .en,
+.sheetContent .segment.highlight .linkCount .he,
+.sheetContent .segment.highlight .segmentNumber .en,
+.sheetContent .segment.highlight .segmentNumber .he {
   background-color: transparent;
 }
-.sepia .basetext .segment.highlight {
+
+
+.readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
+  padding-bottom: 1px;
+}
+
+
+.basetext .segment.highlight .segmentNumber,
+.basetext .segment.highlight .linkCount,
+.sheetContent .segment.highlight .linkCount,
+.sheetContent .segment.highlight .segmentNumber {
+  background-color: transparent;
+}
+.sepia .basetext .segment.highlight,
+.sepia .sheetContent .segment.highlight {
   background-color: #E3E3E1;
 }
-.dark .basetext .segment.highlight {
+.dark .basetext .segment.highlight,
+.dark .sheetContent .segment.highlight {
   background-color: #444;
 }
 .textRange {
   line-height: 1.4;
   font-size: 1.6em;
 }
-.textRange .textInner {
+.textRange .textInner, .sheetContent .textInner  {
   position: relative;
 }
 .textRange.lowlight .text {
@@ -2654,6 +2728,9 @@ a.readerNavCategory {
   display: none;
   line-height: 1.6;
 }
+.sheetContent .segment .linkCount {
+  display: inline-block;
+}
 .segment .segmentNumber .segmentNumberInner,
 .textRange .numberLabel .numberLabelInner {
   font-size: 12px;
@@ -2690,13 +2767,23 @@ a.readerNavCategory {
 .readerPanel.bilingual .segment .segmentNumber {
   right: -46px;
 }
-.readerPanel.english .segment .linkCount {
-  right: -46px;
-}
 .readerPanel.hebrew .segment .linkCount,
 .readerPanel.bilingual .segment .linkCount {
   left: -48px;
 }
+.readerPanel.english .segment .linkCount,
+.readerPanel.bilingual .sheetItem.segment .linkCount
+{
+  right: -46px;
+  left:auto;
+}
+.readerApp.interface-hebrew .readerPanel.bilingual.stacked .sheetItem.segment .linkCount {
+  left: -46px;
+  right: auto;
+}
+
+
+
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
   left: 50%;
@@ -2720,6 +2807,15 @@ a.readerNavCategory {
 .singlePanel .readerPanel.hebrew .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
   left: -20px;
+}
+.singlePanel .readerPanel.english .sheetItem.segment .linkCount,
+.singlePanel .readerPanel.bilingual .sheetItem.segment .linkCount {
+  left: auto;
+  right: -30px;
+}
+.singlePanel .readerPanel.hebrew .sheetItem.segment .linkCount {
+  left: -48px;
+  right: auto;
 }
 .segment .refLink {
   font-size: .8em;
@@ -3227,6 +3323,18 @@ a.readerNavCategory {
 .textList .sheet .sheetTag .separator {
   display: inline-block;
   margin-right: 8px;
+}
+.sheetTag.button,
+.sheetTag.button:hover,
+.sheetTag.button:active {
+  background-color: #eee;
+  border-color: #ccc;
+  color: #999;
+  font-size: 14px;
+  margin: 4px;
+}
+.readerTextTableOfContents .sheetTag.button {
+  padding: 10px 16px
 }
 .textList .sheetList {
   padding-top: 40px;
@@ -4806,4 +4914,201 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 span.purim-emoji img{
   height: 25px;
   width: 25px;
+}
+
+/* Sheets */
+
+.sheetsInPanel {
+  overflow-y: scroll;
+  height: 100%;
+  padding: 0 15px;
+  box-sizing: border-box;
+  position: relative;
+}
+.sheetContent {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.8em;
+  line-height: 1.6;
+  text-align: justify;
+  background-color: inherit;
+  margin: 0 auto;
+  max-width: 700px;
+  position: relative;
+  padding: 0 30px;
+}
+
+.sheetContent .ref {
+  cursor: pointer;
+  color: #999;
+  text-transform: uppercase;
+  font-size: .8em;
+}
+.sheetContent .ref a {
+  color: #999;
+}
+
+.sheetContent img {
+  max-width: 100%;
+}
+
+.sheetContent table {
+  margin: auto;
+  max-width: 100%;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed
+}
+.sheetContent table th,
+.sheetContent table td {
+  padding: 10px;
+  border-top: 1px solid #E6E5E6;
+  vertical-align: top;
+}
+.sheetContent table thead th {
+  vertical-align: bottom;
+  border-bottom: 2px solid #E6E5E6;
+  border-top: none;
+}
+
+.sheetContent table th:first-of-type,
+.sheetContent table tr td:first-of-type {
+  padding-left: 0;
+}
+.sheetContent table th:last-of-type,
+.sheetContent table tr td:last-of-type {
+  padding-right: 0;
+}
+
+
+.sheetContent tbody {
+  width: 100%;
+}
+
+.readerPanel.hebrew .sheetItem .he {
+  display: block;
+}
+
+.readerPanel.english .sheetItem .en {
+  display: block;
+}
+.sheetContent .customSourceTitle {
+  padding: 0 28px;
+  margin: 24px 0;
+  color: #999;
+  text-align: center;
+  justify-content: center;
+  font-weight: lighter;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.sheetsInPanel p {
+  margin: 0 0 1em 0;
+}
+.segmentNumber.sheetSegmentNumber {
+  display: block;
+  position: relative;
+}
+.readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
+.readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  left: -48px;
+  top: 28px;
+  text-align: center;
+}
+.interface-hebrew .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  float: left;
+  left: -48px;
+  margin-right: -30px;
+  top: 0;
+}
+.singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
+.singlePanel .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  left: -32px;
+}
+.readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
+.readerPanel.bilingual.heRight .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  left: 0;
+  margin: auto;
+  top: 23px;
+  text-align: center;
+}
+
+
+.readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  margin-left: auto;
+  right: -32px;
+  top: 26px;
+  text-align: center;
+}
+.singlePanel .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
+  right: -18px;
+}
+
+.he.forceDisplayOverrideHe,
+.en.forceDisplayOverrideEn,
+.he.forceDisplayOverrideBi,
+.en.forceDisplayOverrideBi
+{
+  display: block !important;
+}
+.en.forceDisplayOverrideHe,
+.he.forceDisplayOverrideEn {
+  display: none !important;
+}
+
+.sheetTocIcon {
+  color: #ccc;
+  font-size: 16px;
+  width: 15px;
+  height: 15px;
+  opacity: 0.2;
+  margin: 0 8px;
+  vertical-align: middle;
+}
+
+.readerTextTableOfContents .content h2.tagsTitle {
+  text-align: center;
+  color:black;
+  font-size: 13px;
+  margin-bottom: 0;
+  padding-bottom: 8px;
+
+}
+
+.sheetMetaDataBox {
+  margin: 40px auto;
+  text-align: center;
+}
+
+.sheetContent .sheetItem > .he > span {
+  /* some sheet content comes over in a `span` instead of `p` -- this helps to display appropriately. */
+  margin-bottom: 18px;
+  display: inline-block;
+}
+
+.sheetContent .sheetItem > .he > span > p:last-child {
+  margin-bottom: 0;
+}
+
+.youTubeContainer {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  padding-top: 25px;
+  height: 0;
+}
+
+.youTubeContainer iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.oldSheetNotice,
+.oldSheetNotice a {
+  font-size: 12px;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
 }

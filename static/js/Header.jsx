@@ -289,12 +289,12 @@ class Header extends Component {
                     </div>
                 </div>
                 <div className="headerHomeSection">
-                    <a className="home" href="/?home" ><img src="/static/img/sefaria.svg" alt="Sefaria Logo"/></a>
+                    <a className="home" href="/?home" ></a>
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
-                </div>
+                </div> 
               </div>
               { viewContent ?
                 (<div className="headerNavContent">

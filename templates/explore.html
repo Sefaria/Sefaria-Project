@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria" %}{% endblock %}
 
 {% block description %}{% trans "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper." %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="https://www.sefaria.org/static/img/explorer.png" />{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
 
 {% block head %}
 <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -201,7 +201,7 @@
         interfaceLang: "{{ request.interfaceLang }}"
     }
 </script>
-<script src = "/static/bundles/explore/explore.js"></script>
+<script src="{% static 'bundles/explore/explore.js' %}"></script>
 
 
 {% endblock %}

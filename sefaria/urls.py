@@ -7,12 +7,13 @@ import django.contrib.auth.views as django_auth_views
 from emailusernames.forms import EmailAuthenticationForm
 
 from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
-from sefaria.settings import DOWN_FOR_MAINTENANCE
+from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
 import reader.views as reader_views
 import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
+import django.contrib.auth.views as django_auth_views
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -60,6 +61,7 @@ urlpatterns += [
     url(r'^visualize/toc$', reader_views.visualize_toc),
     url(r'^visualize/parasha-colors$', reader_views.visualize_parasha_colors),
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
+    url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
 ]
 
 # Source Sheet Builder
@@ -152,6 +154,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  sheets_views.visual_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     sheets_views.unlike_sheet_api),
@@ -284,6 +287,7 @@ urlpatterns += [
     url(r'^vgarden/custom/(?P<key>.*)$', reader_views.custom_visual_garden_page),  # legacy.  Used for "maggid" and "ecology"
 ]
 
+
 # Sefaria.js -- Packaged JavaScript
 urlpatterns += [
     url(r'^data\.js$', sefaria_views.data_js),
@@ -352,8 +356,13 @@ urlpatterns += [
     url(r'^gauth/callback$', gauth_views.auth_return, name="gauth_callback"),
 ]
 
-# Site specific URLS loaded from 
+# Site specific URLS loaded from
 urlpatterns += site_urlpatterns
+
+# Sheets in a reader panel
+urlpatterns += [
+    url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
+]
 
 # Catch all to send to Reader
 urlpatterns += [
