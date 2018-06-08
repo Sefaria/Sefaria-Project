@@ -1061,11 +1061,11 @@ class ReaderControls extends Component {
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
         <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
-            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            { title ? (<i className="fa fa-angle-down invisible"></i>) : null }
             { this.props.sheet? <div><img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /><span>{title}</span></div> :
             <div><span className="en">{title}</span>
             <span className="he">{heTitle}</span></div> }
-            { title ? (<i className="fa fa-caret-down"></i>) : null }
+            { title ? (<i className="fa fa-angle-down"></i>) : null }
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
           <div onClick={(e) => {e.stopPropagation();}}>

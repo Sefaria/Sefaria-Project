@@ -321,16 +321,15 @@ class ReaderNavigationMenuCloseButton extends Component {
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    return (<div
+    return (<a
               className="readerOptions"
               tabIndex="0"
               role="button"
               aria-haspopup="true"
+              aria-label="Toggle Reader Menu Display Settings"
               style={style}
               onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-                <img src="/static/img/stacked.png" alt="Toggle Reader Menu Display Settings" style={style} />
-            </div>);
+              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>Aa</a>);
   }
 }
 ReaderNavigationMenuDisplaySettingsButton.propTypes = {
