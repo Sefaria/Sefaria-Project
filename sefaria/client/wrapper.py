@@ -208,7 +208,9 @@ def get_links(tref, with_text=True):
                 link["anchorRef"] = prefix + link["anchorRef"]
                 return link
             base_links = [add_prefix(link) for link in base_links]
-            base_links = filter(lambda x: x["sourceRef"] != x["anchorRef"], base_links)
+            # base_links = filter(lambda x: x["sourceRef"] != x["anchorRef"], base_links)
+            orig_links_refs = [(origlink['sourceRef'], origlink['anchorRef']) for origlink in links]
+            base_links = filter(lambda x: ((origlink['sourceRef'], origlink['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"]), base_links)
             links += base_links
 
     links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
