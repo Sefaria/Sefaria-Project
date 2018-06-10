@@ -66,7 +66,7 @@ class ReaderPanel extends Component {
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
-        language:      "bilingual",
+        language:      "english", // 4x - was "bilingual"
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
