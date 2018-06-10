@@ -319,7 +319,7 @@ def base_props(request):
         "_uid": request.user.id,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
-            "language":      request.contentLang,
+            "language":      "english", # 4x - wasrequest.contentLang
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
