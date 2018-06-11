@@ -20,4 +20,4 @@ COPY build/web/wsgi.whiskey /app/.whiskey
 RUN pip install -r requirements.txt \
   && chown -R whiskey /app
 
-RUN python manage.y collectstatic --noinput
+#RUN python manage.py collectstatic --noinput

@@ -797,7 +797,7 @@ $(function() {
 		// Destroy editor on outside clicks 
 		// Without this, CKEeditor was not consistently closing itself
 		$("html").on("mousedown", function(e) {
-			if ($(e.target).closest(".cke_editable").length) {
+			if ($(e.target).closest(".cke_editable").length || $(e.target).closest(".cke").length || $(e.target).closest(".cke_dialog").length || $(e.target).closest(".cke_dialog_background_cover").length) {
 				return; // If the click began inside an editable don't remove
 			}
 			$('.cke_editable').each(function() {

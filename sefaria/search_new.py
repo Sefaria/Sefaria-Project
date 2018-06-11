@@ -422,7 +422,10 @@ def create_index(index_name, type):
         logging.warning("Failed to delete non-existent index: {}".format(index_name))
 
     settings = {
-        "index" : {
+        "index": {
+            "blocks": {
+                "read_only_allow_delete": None
+            },
             "analysis" : {
                 "analyzer" : {
                     "my_standard" : {
