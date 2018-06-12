@@ -19,6 +19,7 @@ import json
 import math
 import collections
 from logging import NullHandler
+import time as pytime
 logger = logging.getLogger(__name__)
 
 from elasticsearch import Elasticsearch
@@ -574,12 +575,23 @@ class TextIndexer(object):
         traverse(toc)
 
     @classmethod
-    def get_all_versions(tries=0):
+    def get_all_versions(tries=0, versions=None, page=0):
+        if versions is None:
+            versions = []
         try:
-            return VersionSet().array()
+            version_limit = 100
+            temp_versions = []
+            first_run = True
+            while first_run or len(temp_versions) > 0:
+                temp_versions = VersionSet(limit=version_limit, page=page).array()
+                versions += temp_versions
+                page += 1
+                first_run = False
+
         except pymongo.errors.AutoReconnect as e:
             if tries < 20:
-                return get_all_versions(tries+1)
+                pytime.sleep(5)
+                return get_all_versions(tries+1, versions, page)
             else:
                 raise e
 
@@ -603,7 +615,7 @@ class TextIndexer(object):
         print "Beginning index of {} versions.".format(len(versions))
         vcount = 0
         total_versions = len(versions)
-        for title, vlist in versions_by_index.items():
+        for title, vlist in versions_by_index.items()[:10]:
             cls.trefs_seen = set()
             cls._bulk_actions = []
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
@@ -875,7 +887,6 @@ def index_all(skip=0, merged=False, debug=False):
 
 def index_all_of_type(type, skip=0, merged=False, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
-    import time as pytime
     print 'CREATING / DELETING {}'.format(index_names_dict['new'])
     print 'CURRENT {}'.format(index_names_dict['current'])
     for i in range(10):
@@ -899,9 +910,6 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
-
-    end = datetime.now()
-    print "Elapsed time: %s" % str(end-start)
 
 
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):
