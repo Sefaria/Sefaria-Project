@@ -51,32 +51,13 @@ steps:
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
 
   # Post Deploy
-
-  # Flush varnish
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["get pods | grep varnish-deployment | cut -d ' ' -f 1 | xargs -I{} kubectl exec {}  varnishadm 'ban req.url ~ \"/static/\"'"]
-    env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-
-  # Prime cache on each node
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["get pods | grep web-deployment | cut -d ' ' -f 1 | xargs -I{} kubectl exec {} build/prime_cache.sh"]
-    env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-
-  # Flush cloudflare
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["get pods | grep monitor-deployment | cut -d ' ' -f 1 | xargs -I{} kubectl exec {} ./run scripts/purge_cloudflare.py"]
-    env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-
-  # Notify on Slack
-  - name: 'debian'
+    entryPoint: "bash"
     dir: "k8s-admin/scripts"
     args: ["bash", "-c", "apt-get -y update && apt-get -y install curl && ./post-deploy.sh $TAG_NAME"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
 
 images:
   - "gcr.io/production-deployment/multi_monitor:$TAG_NAME"
