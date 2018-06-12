@@ -228,7 +228,7 @@ def calculate_sheetrank():
     sheets = db.sheets.find()
     total = sheets.count()
     sources_count = 0
-    for i, sheet in enumerate(sheets):
+    for i, sheet in enumerate(sheets[:1000]):
         if i % 1000 == 0:
             print "{}/{}".format(i, total)
         if "sources" not in sheet:

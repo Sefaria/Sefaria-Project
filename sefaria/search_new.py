@@ -587,7 +587,7 @@ class TextIndexer(object):
                 versions += temp_versions
                 page += 1
                 first_run = False
-
+            return versions
         except pymongo.errors.AutoReconnect as e:
             if tries < 20:
                 pytime.sleep(5)
