@@ -579,7 +579,7 @@ class TextIndexer(object):
         if versions is None:
             versions = []
         try:
-            version_limit = 100
+            version_limit = 10
             temp_versions = []
             first_run = True
             while first_run or len(temp_versions) > 0:
@@ -589,10 +589,11 @@ class TextIndexer(object):
                 first_run = False
             return versions
         except pymongo.errors.AutoReconnect as e:
-            if tries < 20:
+            if tries < 200:
                 pytime.sleep(5)
                 return get_all_versions(tries+1, versions, page)
             else:
+                print "Tried: {} times. Got {} versions".format(tries, len(versions))
                 raise e
 
     @classmethod
