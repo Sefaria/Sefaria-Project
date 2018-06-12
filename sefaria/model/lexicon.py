@@ -91,7 +91,8 @@ class DictionaryEntry(LexiconEntry):
         "plural_form",
         "binyan_form",
         "alt_headwords",
-        "derivatives"
+        "derivatives",
+        "quotes"
     ]
 
 class StrongsDictionaryEntry(DictionaryEntry):
