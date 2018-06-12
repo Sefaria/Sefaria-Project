@@ -76,7 +76,7 @@ steps:
   # Notify on Slack
   - name: 'debian'
     dir: "k8s-admin/scripts"
-    args: ["bash", "-c", "apt-get update && apt-get install curl && ./post-deploy.sh $TAG_NAME"]
+    args: ["bash", "-c", "apt-get -y update && apt-get -y install curl && ./post-deploy.sh $TAG_NAME"]
 
 images:
   - "gcr.io/production-deployment/multi_monitor:$TAG_NAME"
