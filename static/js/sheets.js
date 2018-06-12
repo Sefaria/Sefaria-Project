@@ -933,6 +933,12 @@ $(function() {
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
+		if (sjs.can_edit) {
+			// Bind init of CKEditor to mouseup, so dragging can start first
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd").off("mouseup")
+				.on("mouseup", sjs.initCKEditor);
+		}
+
 	}
 
 
