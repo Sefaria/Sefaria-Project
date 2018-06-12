@@ -797,7 +797,7 @@ $(function() {
 		// Destroy editor on outside clicks 
 		// Without this, CKEeditor was not consistently closing itself
 		$("html").on("mousedown", function(e) {
-			if ($(e.target).closest(".cke_editable").length || $(e.target).closest(".cke_inner").length) {
+			if ($(e.target).closest(".cke_editable").length || $(e.target).closest(".cke").length || $(e.target).closest(".cke_dialog").length || $(e.target).closest(".cke_dialog_background_cover").length) {
 				return; // If the click began inside an editable don't remove
 			}
 			$('.cke_editable').each(function() {
@@ -933,6 +933,12 @@ $(function() {
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
+		if (sjs.can_edit) {
+			// Bind init of CKEditor to mouseup, so dragging can start first
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd").off("mouseup")
+				.on("mouseup", sjs.initCKEditor);
+		}
+
 	}
 
 
@@ -3569,15 +3575,17 @@ function deleteSheet() {
 
 // Regexes for identifying divine names with or without nikkud / trop
 // Currently ignores אֵל & צְבָאוֹת & שדי
-sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
 
-sjs.adoshemRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05C7]*י[\u0591-\u05C7]*|אדושם)(?=[\s.,;:'"\-]|$)/g;
+// don't match אֲדֹנִי
+sjs.adoshemRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'"\-]|$)/g;
 
-sjs.elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C7]*)?[ךיוהםן][\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[\u0591-\u05C7]*[םן])(?=[\s.,;:'"\-]|$)/g;
+// only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
+sjs.elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'"\-]|$)/g;
 
-sjs.elokaRE   = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)(?=[)(?=[\s.,;:'"\-]|$)/g;
+sjs.elokaRE   = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'"\-]|$)/g;
 
-//sjs.shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;:'"\-]|$)/g;
+//sjs.shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
 
 
 sjs.divineSubs = {
