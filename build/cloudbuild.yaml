@@ -54,7 +54,7 @@ steps:
   - name: 'gcr.io/cloud-builders/kubectl'
     entrypoint: "bash"
     dir: "k8s-admin/scripts"
-    args: ["bash", "-c", "apt-get -y update && apt-get -y install curl && ./post-deploy.sh $TAG_NAME"]
+    args: ["-c", "apt-get -y update && apt-get -y install curl && ./post-deploy.sh $TAG_NAME"]
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
