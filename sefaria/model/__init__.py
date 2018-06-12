@@ -10,8 +10,6 @@ symbols are then accessed directly as, e.g.:
 """
 
 import abstract
-import django
-django.setup()
 
 # not sure why we have to do this now - it wasn't previously required
 import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, \
