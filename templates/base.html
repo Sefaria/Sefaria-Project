@@ -16,8 +16,12 @@
     {% block ogtype %}
         <meta property="og:type" content="website"/>
     {% endblock %}
-    {% block ogimage %}<meta property="og:image" content="https://sefaria-embeded.appspot.com{{ request.path }}?lang={{request.GET.lang}}&platform=facebook" />{% endblock %}
-
+    {% block ogimage %}
+        <meta property="og:image" content="https://sefaria-embeded.appspot.com{{ request.path }}?lang={{request.GET.lang}}&platform=facebook" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+    {% endblock %}
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
