@@ -84,7 +84,7 @@
   }
   p.meta, p.footer {
     font-size: 13px;
-    color: #333;
+    /*color: #333;*/
   }
   p.meta {
     text-align: center;
@@ -92,7 +92,7 @@
 
   text.icicle { pointer-events: none; }
 
-  .options { font-size: 12px; text-align: center; padding: 5px 0; }
+.options { font-size: 12px; text-align: center; /*padding: 5px 0;*/ }
   .curves { float: left; }
   .source { float: right; }
   pre, code { font-family: "Menlo", monospace; }
@@ -115,8 +115,19 @@
 
   .vizcontent{
     background-color: none;
-    align-self: center;
-    margin: 3.5em;
+    align: center;
+    margin-top: 52px;
+    margin-right: 300px;
+    margin-left: 300px;
+  }
+
+  .vizcontent .footer {
+    margin-bottom: 0;
+    padding-bottom: 16px;
+  }
+  .vis{
+    max-width: 900px;
+    max-height: 1200px;
   }
 
   .html .doctype,
@@ -151,8 +162,7 @@
   please continue to think critically and read the texts for yourself (in fact, click <a href = "https://www.sefaria.org/Sefer_HaChinukh?lang=bi">here</a> to learn through the Sefer HaChinukh yourself!)
 <p>Drag the dimensions and categories to reorder them. You can also click the “alpha” or “size” links that appear next to the dimension name on mouseover, to order the categories by name or frequency.
 
-<p class="footer">Based on a visualization created by <a href="http://www.jasondavies.com/">Jason Davies</a>.  Thanks to <a href="http://bost.ocks.org/mike">Mike Bostock</a> for his libraries (and of course, <a href="http://d3js.org/">D3.js</a>!)
-<p>
+<p class ="footer">Based on a visualization created by <a href="http://www.jasondavies.com/">Jason Davies</a>.  Thanks to <a href="http://bost.ocks.org/mike">Mike Bostock</a> for his libraries (and of course, <a href="http://d3js.org/">D3.js</a>!)</p>
 </div>
 {% endblock %}
 
