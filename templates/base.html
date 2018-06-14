@@ -22,6 +22,16 @@
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
     {% endblock %}
+
+        <meta property="og:title" content="{{title}}" />
+        <meta name="twitter:image" content="https://sefaria-embeded.appspot.com{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:site" content="@sefariaproject" />
+        <meta name="twitter:creator" content="@sefariaproject" />
+        <meta property="og:url" content="//www.sefaria.org{{ request.path }}" />
+
+
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
