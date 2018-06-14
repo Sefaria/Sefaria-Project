@@ -1,0 +1,360 @@
+
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load i18n %}
+
+{% block title %}{% trans "Sefer HaChinukh Visualization" %}{% endblock %}
+
+{% block description %}{% trans "Description goes here." %}{% endblock %}
+
+{% block ogimage %}<meta property="og:image" content="/static/img/links-through-rashi.png"/>{% endblock %}
+{% block head %}
+    {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Open Sans Hebrew:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    <!-- Search Box -->
+    {% endif %}
+
+
+{%  endblock %}
+
+{% block css %}
+  <style>
+
+.dimension { cursor: ns-resize; }
+.category { cursor: ew-resize; }
+.dimension tspan.name { font-size: 1.5em; fill: #333; font-weight: bold; }
+.dimension tspan.sort { fill: #000; cursor: pointer; opacity: 0; }
+.dimension tspan.sort:hover { fill: #333; }
+.dimension:hover tspan.name { fill: #000; }
+.dimension:hover tspan.sort { opacity: 1; }
+.dimension line { stroke: #000; }
+.dimension rect { stroke: none; fill-opacity: 0; }
+.dimension > rect, .category-background { fill: #fff; }
+.dimension > rect { display: none; }
+.category:hover rect { fill-opacity: .3; }
+.dimension:hover > rect { fill-opacity: .3; }
+.ribbon path { stroke-opacity: 0; fill-opacity: .5; }
+.ribbon path.active { fill-opacity: .9; }
+.ribbon-mouse path { fill-opacity: 0; }
+
+.category-0 { fill: #004e5f; stroke: #004e5f; }
+.category-1 { fill: #7c406f; stroke: #7c406f; }
+.category-2 { fill: #5d956f; stroke: #5d956f; }
+.category-3 { fill: #00827f; stroke: #00827f; }
+.category-4 { fill: #4871bf; stroke: #4871bf; }
+.category-5 { fill: #cb6158; stroke: #cb6158; }
+.category-6 { fill: #c7a7b4; stroke: #c7a7b4; }
+.category-7 { fill: #073570; stroke: #073570; }
+.category-8 { fill: #ab4e66; stroke: #ab4e66; }
+.category-9 { fill: #7f85a9; stroke: #7f85a9; }
+
+.tooltip {
+  background-color: rgba(242, 242, 242, .6);
+  position: absolute;
+  padding: 5px;
+}
+
+  h1, h2, .dimension text {
+    text-align: center;
+    font-family: "PT Sans", Helvetica;
+    font-weight: 300;
+  }
+  h1 {
+    font-family: "adobe-garamond-pro", Georgia, serif;
+    text-align: center;
+    font-size: 4em;
+    margin: .5em 0 0 0;
+  }
+  h2 {
+    font-family: "adobe-garamond-pro", Georgia, serif;
+    text-align: center;
+    font-size: 2em;
+    margin: 1em 0 0.5em;
+    border-bottom: solid #ccc 1px;
+  }
+  p.meta, p.footer {
+    font-size: 13px;
+    /*color: #333;*/
+  }
+  p.meta {
+    text-align: center;
+  }
+
+  text.icicle { pointer-events: none; }
+
+.options { font-size: 12px; text-align: center; /*padding: 5px 0;*/ }
+  .curves { float: left; }
+  .source { float: right; }
+  pre, code { font-family: "Menlo", monospace; }
+
+  .html .value,
+  .javascript .string,
+  .javascript .regexp {
+    color: #756bb1;
+  }
+
+  .html .tag,
+  .css .tag,
+  .javascript .keyword {
+    color: #3182bd;
+  }
+
+  .comment {
+    color: #636363;
+  }
+
+  .vizcontent{
+    background-color: none;
+    align: center;
+    margin-top: 52px;
+    margin-right: 300px;
+    margin-left: 300px;
+  }
+
+  .vizcontent .footer {
+    margin-bottom: 0;
+    padding-bottom: 16px;
+  }
+  .vis{
+    max-width: 900px;
+    max-height: 1200px;
+  }
+
+  .html .doctype,
+  .javascript .number {
+    color: #31a354;
+  }
+
+  .html .attribute,
+  .css .attribute,
+  .javascript .class,
+  .javascript .special {
+    color: #e6550d;
+  }
+  </style>
+{% endblock %}
+
+{% block content %}
+
+<div class ="vizcontent">
+<h1>Sefer HaChinukh Mitzvot Visualization</h1>
+<h2>The Sefer HaChinukh's 613 Mitzvot Categorized by Type</h2>
+<div id="vis"><noscript><img src="parsets.png"></noscript></div>
+<div class="options">
+  <span class="source">Data: <a href="https://www.sefaria.org/api/index/Sefer_HaChinukh">Sefaria API</a>.</span>
+  <span class="curves"><label for="curved"><input type="checkbox" id="curved" onchange="curves.call(this)"> Curved Lines</label></span>
+</div>
+
+<h2>Explanation</h2>
+<p>For each dimension (Type, People, Place and Time), a horizontal bar is shown for each of its possible categories.  The width of the bar denotes the absolute number of matches for that category. There were some
+  categories which were mentioned in the Sefer HaChinukh that were consolidated for the sake of the visualization (ex: time of Yovel, time majority of Jewish people live in the land of Israel were all consolidated under "Time of Temple"; mitzvot incumbent on the community were grouped with "men & women" unless the Chinukh noted otherwise), as too many sub-categories caused a messy chart
+  that became difficult to read. Additionally, while this is a very helpful tool for looking at the data on a macro-level, there may be errors in our consolidation, and
+  please continue to think critically and read the texts for yourself (in fact, click <a href = "https://www.sefaria.org/Sefer_HaChinukh?lang=bi">here</a> to learn through the Sefer HaChinukh yourself!)
+<p>Drag the dimensions and categories to reorder them. You can also click the “alpha” or “size” links that appear next to the dimension name on mouseover, to order the categories by name or frequency.
+
+<p class ="footer">Based on a visualization created by <a href="http://www.jasondavies.com/">Jason Davies</a>.  Thanks to <a href="http://bost.ocks.org/mike">Mike Bostock</a> for his libraries (and of course, <a href="http://d3js.org/">D3.js</a>!)</p>
+</div>
+{% endblock %}
+
+
+
+{% block js %}
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="../static/js/lib/d3.parsets.js"></script>
+<script src="../static/js/lib/highlight.min.js"></script>
+<script>
+var chart = d3.parsets()
+    .dimensions(["type", "place", "people", "time"]); // Adding time
+
+var vis = d3.select("#vis").append("svg")
+    //.attr("width", chart.width())
+    //.attr("height", chart.height());
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", "0 0 960 600")
+     //class to make it responsive
+    .classed("svg-content-responsive", true);
+
+var partition = d3.layout.partition()
+    .sort(null)
+    .size([chart.width(), chart.height() * 5 / 4])
+    .children(function(d) { return d.children ? d3.values(d.children) : null; })
+    .value(function(d) { return d.count; });
+
+var ice = false;
+
+function curves() {
+  var t = vis.transition().duration(500);
+  if (ice) {
+    t.delay(1000);
+    icicle();
+  }
+  t.call(chart.tension(this.checked ? .5 : 1));
+}
+
+d3.csv("../static/files/mitzvot.csv", function(error, csv) {
+  vis.datum(csv).call(chart);
+
+  window.icicle = function() {
+    var newIce = this.checked,
+        tension = chart.tension();
+    if (newIce === ice) return;
+    if (ice = newIce) {
+      var dimensions = [];
+      vis.selectAll("g.dimension")
+         .each(function(d) { dimensions.push(d); });
+      dimensions.sort(function(a, b) { return a.y - b.y; });
+      var root = d3.parsets.tree({children: {}}, csv, dimensions.map(function(d) { return d.name; }), function() { return 1; }),
+          nodes = partition(root),
+          nodesByPath = {};
+      nodes.forEach(function(d) {
+        var path = d.data.name,
+            p = d;
+        while ((p = p.parent) && p.data.name) {
+          path = p.data.name + "\0" + path;
+        }
+        if (path) nodesByPath[path] = d;
+      });
+      var data = [];
+      vis.on("mousedown.icicle", stopClick, true)
+        .select(".ribbon").selectAll("path")
+          .each(function(d) {
+            var node = nodesByPath[d.path],
+                s = d.source,
+                t = d.target;
+            s.node.x0 = t.node.x0 = 0;
+            s.x0 = t.x0 = node.x;
+            s.dx0 = s.dx;
+            t.dx0 = t.dx;
+            s.dx = t.dx = node.dx;
+            data.push(d);
+          });
+      iceTransition(vis.selectAll("path"))
+          .attr("d", function(d) {
+            var s = d.source,
+                t = d.target;
+            return ribbonPath(s, t, tension);
+          })
+          .style("stroke-opacity", 1);
+      iceTransition(vis.selectAll("text.icicle")
+          .data(data)
+        .enter().append("text")
+          .attr("class", "icicle")
+          .attr("text-anchor", "middle")
+          .attr("dy", ".3em")
+          .attr("transform", function(d) {
+            return "translate(" + [d.source.x0 + d.source.dx / 2, d.source.dimension.y0 + d.target.dimension.y0 >> 1] + ")rotate(90)";
+          })
+          .text(function(d) { return d.source.dx > 15 ? d.node.name : null; })
+          .style("opacity", 1e-6))
+          .style("opacity", 1);
+      iceTransition(vis.selectAll("g.dimension rect, g.category")
+          .style("opacity", 1))
+          .style("opacity", 1e-6)
+          .each("end", function() { d3.select(this).attr("visibility", "hidden"); });
+      iceTransition(vis.selectAll("text.dimension"))
+          .attr("transform", "translate(0,-5)");
+      vis.selectAll("tspan.sort").style("visibility", "hidden");
+    } else {
+      vis.on("mousedown.icicle", null)
+        .select(".ribbon").selectAll("path")
+          .each(function(d) {
+            var s = d.source,
+                t = d.target;
+            s.node.x0 = s.node.x;
+            s.x0 = s.x;
+            s.dx = s.dx0;
+            t.node.x0 = t.node.x;
+            t.x0 = t.x;
+            t.dx = t.dx0;
+          });
+      iceTransition(vis.selectAll("path"))
+          .attr("d", function(d) {
+            var s = d.source,
+                t = d.target;
+            return ribbonPath(s, t, tension);
+          })
+          .style("stroke-opacity", null);
+      iceTransition(vis.selectAll("text.icicle"))
+          .style("opacity", 1e-6).remove();
+      iceTransition(vis.selectAll("g.dimension rect, g.category")
+          .attr("visibility", null)
+          .style("opacity", 1e-6))
+          .style("opacity", 1);
+      iceTransition(vis.selectAll("text.dimension"))
+          .attr("transform", "translate(0,-25)");
+      vis.selectAll("tspan.sort").style("visibility", null);
+    }
+  };
+  d3.select("#icicle")
+      .on("change", icicle)
+      .each(icicle);
+});
+
+function iceTransition(g) {
+  return g.transition().duration(1000);
+}
+
+function ribbonPath(s, t, tension) {
+  var sx = s.node.x0 + s.x0,
+      tx = t.node.x0 + t.x0,
+      sy = s.dimension.y0,
+      ty = t.dimension.y0;
+  return (tension === 1 ? [
+      "M", [sx, sy],
+      "L", [tx, ty],
+      "h", t.dx,
+      "L", [sx + s.dx, sy],
+      "Z"]
+   : ["M", [sx, sy],
+      "C", [sx, m0 = tension * sy + (1 - tension) * ty], " ",
+           [tx, m1 = tension * ty + (1 - tension) * sy], " ", [tx, ty],
+      "h", t.dx,
+      "C", [tx + t.dx, m1], " ", [sx + s.dx, m0], " ", [sx + s.dx, sy],
+      "Z"]).join("");
+}
+
+function stopClick() { d3.event.stopPropagation(); }
+
+// Given a text function and width function, truncates the text if necessary to
+// fit within the given width.
+function truncateText(text, width) {
+  return function(d, i) {
+    var t = this.textContent = text(d, i),
+        w = width(d, i);
+    if (this.getComputedTextLength() < w) return t;
+    this.textContent = "…" + t;
+    var lo = 0,
+        hi = t.length + 1,
+        x;
+    while (lo < hi) {
+      var mid = lo + hi >> 1;
+      if ((x = this.getSubStringLength(0, mid)) < w) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo > 1 ? t.substr(0, lo - 2) + "…" : "";
+  };
+}
+
+d3.select("#file").on("change", function() {
+  var file = this.files[0],
+      reader = new FileReader;
+  reader.onloadend = function() {
+    var csv = d3.csv.parse(reader.result);
+    vis.datum(csv).call(chart
+        .value(csv[0].hasOwnProperty("Number") ? function(d) { return +d.Number; } : 1)
+        .dimensions(function(d) { return d3.keys(d[0]).filter(function(d) { return d !== "Number"; }).sort(); }));
+  };
+  reader.readAsText(file);
+});
+</script>
+{% endblock %}
