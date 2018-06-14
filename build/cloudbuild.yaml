@@ -49,9 +49,15 @@ steps:
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
     - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
-  #- name: 'debian'
-  #  dir: "k8s-admin/scripts"
-  #  args: ["bash", "-c", "./notify_on_slack.sh $TAG_NAME"]
+
+  # Post Deploy
+  - name: 'gcr.io/cloud-builders/kubectl'
+    entrypoint: "bash"
+    dir: "k8s-admin/scripts"
+    args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $TAG_NAME"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
 
 images:
   - "gcr.io/production-deployment/multi_monitor:$TAG_NAME"

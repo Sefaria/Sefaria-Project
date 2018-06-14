@@ -65,6 +65,7 @@ urlpatterns += [
     url(r'^visualize/toc$', reader_views.visualize_toc),
     url(r'^visualize/parasha-colors$', reader_views.visualize_parasha_colors),
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
+    url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
 ]
 
 # Source Sheet Builder
@@ -157,6 +158,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  sheets_views.visual_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     sheets_views.unlike_sheet_api),
@@ -419,6 +421,11 @@ urlpatterns += [
 urlpatterns += [
     url(r'^gauth$', gauth_views.index, name="gauth_index"),
     url(r'^gauth/callback$', gauth_views.auth_return, name="gauth_callback"),
+]
+
+# Sheets in a reader panel
+urlpatterns += [
+    url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
 
 # Catch all to send to Reader

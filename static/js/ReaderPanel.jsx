@@ -14,6 +14,8 @@ const {
 const ReaderTextTableOfContents = require('./ReaderTextTableOfContents');
 const SearchPage                = require('./SearchPage');
 const SheetsNav                 = require('./SheetsNav');
+const Sheet                     = require('./Sheet');
+const SheetMetadata             = require('./SheetMetadata');
 const TopicsPanel               = require('./TopicsPanel');
 const TopicPage                 = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
@@ -44,19 +46,23 @@ class ReaderPanel extends Component {
       var state = this.clonePanel(props.initialState);
       state["initialAnalyticsTracked"] = false;
       this.state = state;
+
       return;
+
     }
+
 
     // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     this.state = {
       refs: props.initialRefs || [], // array of ref strings
       bookRef: null,
-      mode: props.initialMode, // "Text", "TextAndConnections", "Connections"
+      mode: props.initialMode, // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnections"
       connectionsMode: props.initialConnectionsMode,
       filter: props.initialFilter || [],
       versionFilter: props.initialVersionFilter || [],
       currVersions: props.initialCurrVersions || {en:null, he: null},
       highlightedRefs: props.initialHighlightedRefs || [],
+      highlightedNodes: props.highlightedNodes || [],
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
@@ -75,6 +81,8 @@ class ReaderPanel extends Component {
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
+      sheet:                props.sheet || null,
+      sheetID:              null,
       searchQuery:          props.initialQuery || null,
       appliedSearchFilters: props.initialAppliedSearchFilters || [],
       searchFieldExact:     "exact",
@@ -180,6 +188,31 @@ class ReaderPanel extends Component {
       }
     }
   }
+  handleSheetSegmentClick(source) {
+    this.conditionalSetState({highlightedNodes: source.node});
+    if (this.state.mode ==="SheetAndConnections") {
+      this.closeSheetConnectionsInPanel();
+    }
+    else if (this.state.mode === "Sheet") {
+      if (this.props.multiPanel) {
+        if (source.ref) {
+          this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
+        }
+        else {
+          this.props.onSegmentClick("sheetRef", source.node)
+        }
+      } else {
+          if (source.ref) {
+            this.openSheetConnectionsInPanel(source.ref, source.node);
+          }
+      }
+    }
+  }
+
+  handleSheetCitationClick(ref) {
+    this.props.onCitationClick(ref);
+  }
+
   handleCitationClick(citationRef, textRef) {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef);
@@ -198,6 +231,22 @@ class ReaderPanel extends Component {
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
+  }
+  openSheetConnectionsInPanel(ref, node) {
+    var refs = typeof ref == "string" ? [ref] : ref;
+    var nodes = typeof node == "string" ? [node] : node;
+    this.replaceHistory = this.state.mode === "SheetAndConnections"; // Don't push history for change in Connections focus
+    this.conditionalSetState({highlightedNodes: nodes, highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
+  }
+  closeSheetConnectionsInPanel() {
+    // Return to the original text in the ReaderPanel contents
+    this.conditionalSetState({highlightedNodes: [], highlightedRefs: [], mode: "Sheet"});
+  }
+  handleSheetClick(e,sheet) {
+    e.preventDefault();
+    var newSettings = this.state.settings
+    newSettings["language"] = sheet.options.language
+    this.conditionalSetState({ mode: "Sheet", sheet: sheet, settings: newSettings});
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
@@ -268,6 +317,16 @@ class ReaderPanel extends Component {
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
+  }
+  closeSheetMetaData() {
+    var state = {
+      // If there's no content to show, return to home
+      menuOpen: null,
+      navigationCategories: null,
+      navigationSheetTag: null
+    };
+    this.conditionalSetState(state);
+
   }
   closePanelSearch() {
     // Assumption: Search in a panel is always within a "compare" panel
@@ -436,6 +495,9 @@ class ReaderPanel extends Component {
     return data;
   }
   currentBook() {
+    if ("sheetRef" == this.state.refs.slice()) {
+      return "Source Sheet";
+    }
     var data = this.currentData();
     if (data) {
       return data.indexTitle;
@@ -445,8 +507,13 @@ class ReaderPanel extends Component {
     }
   }
   currentCategory() {
-    var book = this.currentBook();
-    return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
+    if (this.state.mode == "Sheet") {
+      return "Sheets"
+    }
+    else {
+      var book = this.currentBook();
+      return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
+    }
   }
   currentLayout() {
     if (this.state.settings.language == "bilingual") {
@@ -483,6 +550,19 @@ class ReaderPanel extends Component {
         );
     }
     var items = [];
+    if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
+      items.push(<Sheet
+          panelPosition ={this.props.panelPosition}
+          id={this.state.sheet.id}
+          key={"sheet-"+this.state.sheet.id}
+          highlightedNodes={this.state.highlightedNodes}
+          onRefClick={this.handleSheetCitationClick}
+          hasSidebar={this.props.hasSidebar}
+          contentLang={this.state.settings.language}
+          interfaceLang={this.props.interfaceLang}
+          onSegmentClick={this.handleSheetSegmentClick}
+      />);
+    }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       var oref  = Sefaria.parseRef(this.state.refs[0]);
       var title = oref && oref.index ? oref.index : "empty";
@@ -514,7 +594,8 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           key={title + "-TextColumn"} />);
     }
-    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
+
+    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
       var canEditText = data &&
@@ -541,7 +622,10 @@ class ReaderPanel extends Component {
           setFilter={this.setFilter}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
+          sheetMetaData={this.state.sheet}
+          nodeRef={this.state.nodeRef}
           closeConectionsInPanel={this.closeConnectionsInPanel}
+          handleSheetClick={this.handleSheetClick}
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
           editNote={this.editNote}
@@ -564,7 +648,6 @@ class ReaderPanel extends Component {
           key="connections" />
       );
     }
-
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
       var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
@@ -590,6 +673,21 @@ class ReaderPanel extends Component {
                     onTextClick={this.props.onNavTextClick || this.showBaseText}
                     onRecentClick={onRecentClick}
                     hideNavHeader={this.props.hideNavHeader} />);
+
+    } else if (this.state.menuOpen === "sheet meta") {
+      var menu = (<SheetMetadata
+                    mode={this.state.menuOpen}
+                    interfaceLang={this.props.interfaceLang}
+                    close={this.closeSheetMetaData}
+                    sheet={this.state.sheet}
+                    versionLanguage={this.state.versionLanguage}
+                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
+                    narrowPanel={!this.props.multiPanel}
+                    currentRef={this.state.currentlyVisibleRef}
+                    openNav={this.openMenu.bind(null, "navigation")}
+                    openDisplaySettings={this.openDisplaySettings}
+                    selectVersion={this.props.selectVersion}
+                    showBaseText={this.showBaseText}/>);
 
     }
     else if (this.state.menuOpen === "text toc") {
@@ -782,6 +880,7 @@ class ReaderPanel extends Component {
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
+          sheet={this.state.sheet}
           currentRef={this.state.currentlyVisibleRef}
           currentMode={this.currentMode.bind(this)}
           currentCategory={this.currentCategory}
@@ -815,6 +914,7 @@ class ReaderPanel extends Component {
                                               settings={this.state.settings}
                                               multiPanel={this.props.multiPanel}
                                               setOption={this.setOption}
+                                              parentPanel={this.props.initialState.mode}
                                               currentLayout={this.currentLayout}
                                               currentBook={this.currentBook}
                                               currentData={this.currentData}
@@ -893,11 +993,15 @@ class ReaderControls extends Component {
     e.preventDefault();
     this.props.openMenu("text toc");
   }
+  openSheetMeta(e) {
+    e.preventDefault();
+    this.props.openMenu("sheet meta");
+  }
   componentDidMount() {
     var title = this.props.currentRef;
     if (title) {
       var oref = Sefaria.ref(title);
-      if (!oref) {
+      if (!oref && title != "sheetRef") {
         // If we don't have this data yet, rerender when we do so we can set the Hebrew title
         var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
           if ("error" in data) {
@@ -916,12 +1020,18 @@ class ReaderControls extends Component {
     }
   }
   render() {
-    var title     = this.props.currentRef;
+    var title  = this.props.sheet ? this.props.sheet.title.stripHtml().replace(/&amp;/g, '&') : this.props.currentRef;
     var heTitle, categoryAttribution;
 
     if (title) {
-      var oref    = Sefaria.ref(title);
-      heTitle = oref ? oref.heTitle : "";
+      if (this.props.sheet) {
+        heTitle = title;
+      }
+      else {
+        var oref    = Sefaria.ref(title);
+        heTitle = oref ? oref.heTitle : "";
+      }
+
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
                                   <CategoryAttribution categories={oref.categories} linked={false} /> : null;
     } else {
@@ -934,7 +1044,8 @@ class ReaderControls extends Component {
     var connectionsHeader = this.props.multiPanel && mode === "Connections";
     var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
-    var url = Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
+    var url = this.props.sheet ? "/sheets/"+ this.props.sheet.id : Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
+
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -947,12 +1058,13 @@ class ReaderControls extends Component {
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
-      (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.openTextToc}>
+      (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
         <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-            <span className="en">{title}</span>
-            <span className="he">{heTitle}</span>
+            { this.props.sheet? <div><img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /><span>{title}</span></div> :
+            <div><span className="en">{title}</span>
+            <span className="he">{heTitle}</span></div> }
             { title ? (<i className="fa fa-caret-down"></i>) : null }
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
@@ -1063,6 +1175,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
     var layoutToggle = this.props.settings.language !== "bilingual" ?
+      this.props.parentPanel == "Sheet" ? null :
       (<ToggleSet
           role="radiogroup"
           ariaLabel="text layout toggle"
@@ -1119,6 +1232,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "aliyotOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
     ];
     var aliyahToggle = this.renderAliyotToggle() ? (
+      this.props.parentPanel == "Sheet" ? null :
         <ToggleSet
           role="radiogroup"
           ariaLabel="Toggle Aliyot"
@@ -1137,6 +1251,7 @@ class ReaderDisplayOptionsMenu extends Component {
       let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
       vowelsOptions = vowelsOptions.slice(vowelOptionsSlice);
       var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
+        this.props.parentPanel == "Sheet" ? null :
         (<ToggleSet
             role="radiogroup"
             ariaLabel="vowels and cantillation toggle"

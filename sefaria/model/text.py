@@ -2022,9 +2022,9 @@ class Ref(object):
         self.sections = []
         self.toSections = []
         self.index_node = None
+        self.__init_ref_pointer_vars()
 
         if tref:
-            self.__init_ref_pointer_vars()
             self.orig_tref = self.tref = tref
             self._lang = "he" if is_hebrew(tref) else "en"
             self.__clean_tref()
@@ -2033,11 +2033,8 @@ class Ref(object):
         elif _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
-            self.__init_ref_pointer_vars()
             self.tref = self.normal()
             self._validate()
-        else:
-            self.__init_ref_pointer_vars()
 
     def __init_ref_pointer_vars(self):
         self._normal = None
@@ -4389,9 +4386,6 @@ class Library(object):
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
-
-
-
     #todo: onlyused in  bio scripts
     def get_index_forest(self):
         """
@@ -4658,16 +4652,7 @@ class Library(object):
                 toSections.append(sections[len(sections) - len(toSections) - 1])
             toSections.reverse()
 
-        _obj = {
-            "tref": ref_match.group(),
-            "book": node.full_title("en"),
-            "index_node": node,
-            "index": node.index,
-            "primary_category": node.index.get_primary_category(),
-            "sections": sections,
-            "toSections": toSections
-        }
-        return Ref(_obj=_obj)
+        return Ref(ref_match.group())
 
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """

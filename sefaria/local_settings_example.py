@@ -32,6 +32,8 @@ DATABASES = {
 
 
 ################ These are things you can change! ###########################################################################
+ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
+
 ADMINS = (
      ('Your Name', 'you@example.com'),
 )
