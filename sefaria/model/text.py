@@ -4736,7 +4736,7 @@ class Library(object):
         if lang == "en":
             return titles_regex.sub(_wrap_ref_match, st)
         else:
-            outer_regex_str = ur"[({].+?[)}]"
+            outer_regex_str = ur"[({\[].+?[)}\]]"
             outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
             return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
 
