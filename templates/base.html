@@ -17,7 +17,7 @@
         <meta property="og:type" content="website"/>
     {% endblock %}
     {% block ogimage %}
-        <meta property="og:image" content="https://sefaria-embeded.appspot.com{{ request.path }}?lang={{request.GET.lang}}&platform=facebook" />
+        <meta property="og:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&int_lang={{ request.interfaceLang|slice:"0:2" }}&platform=facebook" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -32,7 +32,7 @@
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title}}" />
     <meta name="twitter:description" content="{{ desc }}" />
-    <meta name="twitter:image" content="https://sefaria-embeded.appspot.com{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
+    <meta name="twitter:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&int_lang={{ request.interfaceLang|slice:"0:2" }}&platform=twitter">
 
 
     <meta name="apple-mobile-web-app-capable" content="yes">
