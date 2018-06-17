@@ -904,6 +904,7 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
     try:
         #TODO do we need this? index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
         index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
+        print "Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
     except NotFoundError:
         print "Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
     clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
