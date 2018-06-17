@@ -616,7 +616,7 @@ class TextIndexer(object):
         print "Beginning index of {} versions.".format(len(versions))
         vcount = 0
         total_versions = len(versions)
-        for title, vlist in versions_by_index.items()[:5]:
+        for title, vlist in versions_by_index.items():
             cls.trefs_seen = set()
             cls._bulk_actions = []
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
