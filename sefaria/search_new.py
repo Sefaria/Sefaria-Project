@@ -425,7 +425,7 @@ def create_index(index_name, type):
     settings = {
         "index": {
             "blocks": {
-                "read_only_allow_delete": None
+                "read_only_allow_delete": False
             },
             "analysis" : {
                 "analyzer" : {
@@ -616,7 +616,7 @@ class TextIndexer(object):
         print "Beginning index of {} versions.".format(len(versions))
         vcount = 0
         total_versions = len(versions)
-        for title, vlist in versions_by_index.items():
+        for title, vlist in versions_by_index.items()[:5]:
             cls.trefs_seen = set()
             cls._bulk_actions = []
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
@@ -902,6 +902,7 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
         index_public_sheets(index_names_dict['new'])
 
     try:
+        #TODO do we need this? index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
         index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
     except NotFoundError:
         print "Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
