@@ -105,11 +105,11 @@ def user_and_notifications(request):
         }
     
     profile = UserProfile(id=request.user.id)
-    if request.path == "/texts":
+    """if request.path == "/texts":
         return {
             "recentlyViewed": profile.recentlyViewed,
         }
-
+    """
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
     

@@ -126,7 +126,7 @@ def data_js(request):
     Javascript populating dynamic data like book lists, toc.
     """
     from reader.views import data_props
-    return render(request, "js/data.js", {"data_props" : data_props(request)}, content_type="text/javascript")
+    return render(request, "js/data.js", {"data_props" : json.dumps(data_props(request))}, content_type="text/javascript")
 
 
 def sefaria_js(request):
