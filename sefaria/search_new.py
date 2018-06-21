@@ -559,7 +559,7 @@ class TextIndexer(object):
             elif "contents" in mini_toc:
                 for t in mini_toc["contents"]:
                     traverse(t)
-            else:
+            elif "title" in mini_toc:
                 title = mini_toc["title"]
                 r = Ref(title)
                 vlist = r.version_list()
