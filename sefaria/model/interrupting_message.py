@@ -1,6 +1,7 @@
 import json
 from django.template.loader import render_to_string
 
+
 class InterruptingMessage(object):
   def __init__(self, attrs={}, request=None):
     if attrs is None:
@@ -43,16 +44,19 @@ class InterruptingMessage(object):
 
     return True
 
+  def contents(self):
+    if self.check_condition():
+      return {
+        "name": self.name,
+        "html": render_to_string("messages/%s.html" % self.name), #TODO should html be rendering inside models?
+        "repetition": self.repetition
+      }
+    else:
+      return None
+
   def json(self):
     """
     Returns JSON for this interrupting message which may be just `null` if the
     message should not be shown.
     """
-    if self.check_condition():
-      return json.dumps({
-          "name": self.name,
-          "html": render_to_string("messages/%s.html" % self.name),
-          "repetition": self.repetition
-        })
-    else:
-      return "null"
+    return json.dumps(self.contents())
