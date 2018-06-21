@@ -284,8 +284,20 @@ class SheetSource extends Component {
       var style = {opacity: linkScore};
 
       if (this.props.source.options) {
-        var heSourceClasses = classNames({he: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
-        var enSourceClasses = classNames({en: 1, forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english", forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew", forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"});
+        var heSourceClasses = classNames({
+            he: 1,
+            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
+            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
+            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
+            this.props.source.options.indented
+        );
+        var enSourceClasses = classNames({
+            en: 1,
+            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
+            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
+            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
+            this.props.source.options.indented
+        );
       }
       else {
           var heSourceClasses = classNames({he:1})

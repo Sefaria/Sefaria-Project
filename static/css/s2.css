@@ -4991,6 +4991,25 @@ span.purim-emoji img{
 .readerPanel.english .sheetItem .en {
   display: block;
 }
+
+.readerPanel .sheetItem .en.indented-1,
+.readerPanel .sheetItem .he.indented-1 {
+  padding-left:  30px;
+  padding-right: 30px;
+}
+
+.readerPanel .sheetItem .en.indented-2,
+.readerPanel .sheetItem .he.indented-2 {
+  padding-left:  60px;
+  padding-right: 60px;
+}
+
+.readerPanel .sheetItem .en.indented-3,
+.readerPanel .sheetItem .he.indented-3 {
+  padding-left:  90px;
+  padding-right: 90px;
+}
+
 .sheetContent .customSourceTitle {
   padding: 0 28px;
   margin: 24px 0;
