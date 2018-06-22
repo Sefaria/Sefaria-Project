@@ -1052,6 +1052,7 @@ class SchemaNode(TitledTreeNode):
     The two are both handled by this class, with calls to "if self.children" to distinguishing behavior.
 
     """
+    is_virtual = False
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1062,12 +1063,14 @@ class SchemaNode(TitledTreeNode):
         """
         super(SchemaNode, self).__init__(serial, **kwargs)
         self.index = kwargs.get("index", None)
+        self.concrete_children = [c for c in self.children if not c.is_virtual]
 
     def _init_defaults(self):
         super(SchemaNode, self)._init_defaults()
         self.key = None
         self.checkFirst = None
         self._address = []
+        self.concrete_children = []
 
     def validate(self):
         super(SchemaNode, self).validate()
@@ -1091,8 +1094,8 @@ class SchemaNode(TitledTreeNode):
         :param callback:
         :return:
         """
-        if self.children:
-            return {node.key: node.create_content(callback, *args, **kwargs) for node in self.children}
+        if self.concrete_children:
+            return {node.key: node.create_content(callback, *args, **kwargs) for node in self.concrete_children}
         else:
             if not callback:
                 return None
@@ -1118,7 +1121,7 @@ class SchemaNode(TitledTreeNode):
         """
         if self.children:
             dict = {}
-            for node in self.children:
+            for node in self.concrete_children:
                 # todo: abstract out or put in helper the below reduce
                 c = [tree[node.key] for tree in contents]
                 dict[node.key] = node.visit_content(callback, *c, **kwargs)
@@ -1136,8 +1139,8 @@ class SchemaNode(TitledTreeNode):
         :param kwargs:
         :return:
         """
-        if self.children:
-            for node in self.children:
+        if self.concrete_children:
+            for node in self.concrete_children:
                 node.visit_structure(callback, content)
             callback(self, content.content_node(self), **kwargs)
 
@@ -1302,7 +1305,6 @@ class SchemaNode(TitledTreeNode):
         else:
             return False, reduce(lambda x, y: x+y, [result[1] for result in children_results])
 
-
     def __eq__(self, other):
         return self.address() == other.address()
 
@@ -1353,6 +1355,127 @@ class StringNode(JaggedArrayNode):
         d = super(StringNode, self).serialize(**kwargs)
         d["nodeType"] = "JaggedArrayNode"
         return d
+
+"""
+                -------------------------------------
+                 Index Schema Tree Nodes - Virtual
+                -------------------------------------
+"""
+
+
+class VirtualNode(TitledTreeNode):
+
+    is_virtual = True    # False on SchemaNode
+    entry_class = None
+
+    def __init__(self, serial=None, **kwargs):
+        super(VirtualNode, self).__init__(serial, **kwargs)
+        self.index = kwargs.get("index", None)
+
+    def _init_defaults(self):
+        super(VirtualNode, self)._init_defaults()
+        self.index = None
+
+    """
+    # This is identical to the method on SchemaNode.  Common parent?
+    def ref(self):
+        from . import text
+        d = {
+            "index": self.index,
+            "book": self.full_title("en"),
+            "primary_category": self.index.get_primary_category(),
+            "index_node": self,
+            "sections": [],
+            "toSections": []
+        }
+        return text.Ref(_obj=d)
+    """
+
+    def create_dynamic_node(self, title, tref):
+        return self.entry_class(self, title, tref)
+
+
+class DictionaryEntryNode(TitledTreeNode):
+    is_virtual = True
+
+    def __init__(self, parent, title, tref):
+        reg = regex.compile(regex.escape(title) + self.after_title_delimiter_re  + "(\S.*)")
+        match = reg.match(tref)
+        self.word = match.group(1) or ""
+
+        super(DictionaryEntryNode, self).__init__({
+            "titles": [{
+                "lang": "he",
+                "text": self.word,
+                "primary": True
+            },
+                {
+                "lang": "en",
+                "text": self.word,
+                "primary": True
+            }]
+        })
+
+        self.parent = parent
+        self.index = self.parent.index
+        self.tref = tref.strip()
+        self.sectionNames = ["Line"]    # Hacky hack
+        self.depth = 1
+        self.addressTypes = ["Integer"]
+        if self.word:
+            # The hardcoded "Jastrow Dictionary" below needs to be passed in.  Likely define that on schema and derivce class from it
+
+            self.lexicon_entry = self.parent.dictionaryClass().load({"parent_lexicon": 'Jastrow Dictionary', "headword": self.word})
+            self.has_word_match = bool(self.lexicon_entry)
+        else:
+            word = "Not Found"
+
+    def get_sections(self):
+        return []
+
+    def get_text(self):
+        if not self.has_word_match:
+            return [u"No Entry for {}".format(self.word)]
+        from pprint import pformat
+        return [pformat(self.lexicon_entry.content)]
+
+
+class DictionaryNode(VirtualNode):
+
+    entry_class = DictionaryEntryNode
+
+    def __init__(self, serial=None, **kwargs):
+        """
+        Construct a SchemaNode
+        :param serial: The serialized form of this subtree
+        :param kwargs: "index": The Index object that this tree is rooted in.
+        :return:
+        """
+        super(DictionaryNode, self).__init__(serial, **kwargs)
+        try:
+            from lexicon import JastrowDictionaryEntry  # todo: get the right import scope here
+            self.dictionaryClass = locals()[self.dictionaryClassName]
+        except KeyError:
+            raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.dictionaryClassName))
+
+    def _init_defaults(self):
+        super(DictionaryNode, self)._init_defaults()
+        self.dictionaryClassName = None
+
+    def validate(self):
+        super(DictionaryNode, self).validate()
+        assert globals().get(self.dictionaryClassName)
+
+    def serialize(self, **kwargs):
+        """
+        :return string: serialization of the subtree rooted in this node
+        """
+        d = super(DictionaryNode, self).serialize(**kwargs)
+        d["dictionaryClassName"] = self.dictionaryClassName
+        return d
+
+
+
 
 
 """
@@ -1429,7 +1552,8 @@ class AddressType(object):
 
     def stop_parsing(self, lang):
         """
-        If this is true, the regular expression will stop parsing at this address level for this language
+        If this is true, the regular expression will stop parsing at this address level for this language.
+        It is currently checked for only in the first address position, and is used for Hebrew Talmud addresses.
         :param lang: "en" or "he"
         :return bool:
         """
@@ -1473,6 +1597,25 @@ class AddressType(object):
 
     def storage_offset(self):
         return 0
+
+
+class AddressDictionary(AddressType):
+    # Important here is language of the dictionary, not of the text where the reference is.
+    def _core_regex(self, lang, group_id=None):
+        if group_id:
+            reg = ur"(?P<" + group_id + ur">"
+        else:
+            reg = ur"("
+
+        reg += ur".+"
+        return reg
+
+    def toNumber(self, lang, s):
+        pass
+
+    def toStr(cls, lang, i, **kwargs):
+        pass
+
 
 
 class AddressTalmud(AddressType):
@@ -1601,6 +1744,7 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
+
 class AddressYear(AddressInteger):
     """
     :class: AddressYear stores Hebrew years as numbers, for example 778 for the year תשע״ח
@@ -1619,6 +1763,7 @@ class AddressYear(AddressInteger):
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
             return encode_hebrew_numeral(i, punctuation=punctuation)
+
 
 class AddressAliyah(AddressInteger):
     en_map = [u"First", u"Second", u"Third", u"Fourth", u"Fifth", u"Sixth", u"Seventh"]

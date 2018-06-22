@@ -131,7 +131,6 @@ class LexiconEntrySubClassMapping(object):
         return cls.instance_factory(record['parent_lexicon'], record)
 
 
-
 class LexiconEntrySet(abst.AbstractMongoSet):
     recordClass = LexiconEntry
 

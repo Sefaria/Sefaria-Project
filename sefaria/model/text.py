@@ -1178,6 +1178,23 @@ def merge_texts(text, sources):
         text = text[0]
     return [text, text_sources]
 
+class TextFamilyDelegator(type):
+    """
+    Metaclass to delegate virtual text records
+    """
+
+
+    def __call__(cls, *args, **kwargs):
+        if len(args) >= 1:
+            oref = args[0]
+        else:
+            oref = kwargs.get("oref")
+
+        if oref and oref.index_node.is_virtual:
+            return VirtualTextChunk(*args, **kwargs)
+        else:
+            return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
+
 
 class TextChunk(AbstractTextRecord):
     """
@@ -1188,6 +1205,8 @@ class TextChunk(AbstractTextRecord):
     :param lang: "he" or "en"
     :param vtitle: optional. Title of the version desired.
     """
+    __metaclass__ = TextFamilyDelegator
+
     text_attr = "text"
 
     def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
@@ -1580,25 +1599,47 @@ class TextChunk(AbstractTextRecord):
         return ind_list, ref_list, total_len
 
 
-# Mirrors the construction of the old get_text() method.
-# The TextFamily.contents() method will return a dictionary in the same format that was provided by get_text().
+class VirtualTextChunk(AbstractTextRecord):
+    """
+    Delegated from TextChunk
+    Should only arrive here if oref.index_node is virtual.
+    """
+
+    text_attr = "text"
+
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
+        self._oref = oref
+        self.text = oref.index_node.get_text()
+        self._ref_depth = len(self._oref.sections)
+        self._versions = []
+        self._version_ids = None
+        self._saveable = False  # Can this TextChunk be saved?
+
+        self.lang = lang
+        self.is_merged = False
+        self.sources = []
+
+    def version(self):
+        return ""
+
+# This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
 class TextFamily(object):
     """
     A text with its translations and optionally the commentary on it.
 
-    Can be instanciated with just the first argument.
+    Can be instantiated with just the first argument.
 
     :param oref: :class:`Ref`.  This is the only required argument.
     :param int context: Default: 1. How many context levels up to go when getting commentary.  See :func:`Ref.context_ref`
     :param bool commentary: Default: True. Include commentary?
     :param version: optional. Name of version to use when getting text.
-    :param lang: None, "en" or "he".  Default: None.  If None, included both languages.
+    :param lang: None, "en" or "he".  Default: None.  If None, include both languages.
     :param version2: optional. Additional name of version to use.
-
     :param bool pad: Default: True.  Pads the provided ref before processing.  See :func:`Ref.padded_ref`
     :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
     """
-    #Attribute maps used for generating dict format
+
+    ## Attribute maps used for generating dict format ##
     """
     A bit of a naming conflict has arisen here. The TextFamily bundles two versions - one with English text and one
     with Hebrew text. versionTitle refers to the English title of the English version, while heVersionTitle refers to
@@ -1693,7 +1734,7 @@ class TextFamily(object):
         self._inode         = oref.index_node
         self._alts          = []
 
-        if not isinstance(oref.index_node, JaggedArrayNode):
+        if not isinstance(oref.index_node, JaggedArrayNode) and not oref.index_node.is_virtual:
             raise InputError("Can not get TextFamily at this level, please provide a more precise reference")
 
         for i in range(0, context):
@@ -1732,7 +1773,7 @@ class TextFamily(object):
             self.commentary = links if "error" not in links else []
 
         # get list of available versions of this text
-        self.versions = oref.version_list()
+        self.versions = oref.version_list() if not oref.index_node.is_virtual else []
 
         # Adds decoration for the start of each alt structure reference
         if alts:
@@ -1990,7 +2031,7 @@ class Ref(object):
     """
         A Ref is a reference to a location. A location could be to a *book*, to a specific *segment* (e.g. verse or mishnah), to a *section* (e.g chapter), or to a *range*.
 
-        Instanciated with a string representation of the reference, e.g.:
+        Instantiated with a string representation of the reference, e.g.:
 
         ::
 
@@ -2001,7 +2042,6 @@ class Ref(object):
             >>> Ref("Rashi on Shabbat 4b-5a")
     """
     __metaclass__ = RefCacheType
-
 
     __slots__ = (
         'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
@@ -2026,7 +2066,7 @@ class Ref(object):
 
         if tref:
             self.orig_tref = self.tref = tref
-            self._lang = "he" if is_hebrew(tref) else "en"
+            self._lang = "he" if is_hebrew(tref, heb_only=True) else "en"
             self.__clean_tref()
             self.__init_tref()
             self._validate()
@@ -2131,9 +2171,10 @@ class Ref(object):
                 self.__reinit_tref(new_tref)
                 return
 
-        # At this `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
+        # At this point, `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
+        # JJ title = "Jastrow"
         if title:
-            assert isinstance(self.index_node, SchemaNode)
+            assert isinstance(self.index_node, TitledTreeNode)
             self.index = self.index_node.index
             self.book = self.index_node.full_title("en")
 
@@ -2178,9 +2219,16 @@ class Ref(object):
         try:
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
-            if self.index.has_alt_structures():
+            if self.index_node.is_virtual:
+                self.index_node = self.index_node.create_dynamic_node(title, base)
+                self.sections = self.index_node.get_sections()
+                self.toSections = self.sections[:]
+                return
+
+            elif self.index.has_alt_structures():
                 # Give an opportunity for alt structure parsing, below
                 pass
+
             else:
                 # We matched a schema node followed by an illegal number. (Are there other cases here?)
                 matched = self.index_node.full_title(self._lang)
@@ -3684,24 +3732,6 @@ class Ref(object):
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return self.__class__.__name__ + "('" + str(self.uid()) + "')"
-
-    '''
-    def old_dict_format(self):
-        """
-        Outputs the ref in the old format, for code that relies heavily on that format
-        """
-        #todo: deprecate this.
-        d = {
-            "ref": self.tref,
-            "book": self.book,
-            "sections": self.sections,
-            "toSections": self.toSections,
-            "type": self.primary_category
-        }
-        d.update(self.index.contents())
-        del d["title"]
-        return d
-    '''
 
     def he_book(self):
         return self.index_node.full_title("he")

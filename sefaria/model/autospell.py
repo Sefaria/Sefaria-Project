@@ -36,7 +36,7 @@ splitter = re.compile(ur"[\s,]+")
 class AutoCompleter(object):
     """
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
-    It instanciates objects that provide string completion according to different algorithms.
+    It instantiates objects that provide string completion according to different algorithms.
     """
     def __init__(self, lang, lib, include_people=False, include_categories=False, include_parasha=False, *args, **kwargs):
         """
