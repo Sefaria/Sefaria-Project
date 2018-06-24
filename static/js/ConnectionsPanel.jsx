@@ -73,13 +73,15 @@ class ConnectionsPanel extends Component {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
-    var ref = this.sectionRef();
-    if (!Sefaria.related(ref)) {
-      Sefaria.related(ref, function(data) {
-        if (this._isMounted) {
-          this.forceUpdate();
+    if (this.props.srefs != "sheetRef") {
+        var ref = this.sectionRef();
+        if (!Sefaria.related(ref)) {
+            Sefaria.related(ref, function (data) {
+                if (this._isMounted) {
+                    this.forceUpdate();
+                }
+            }.bind(this));
         }
-      }.bind(this));
     }
   }
   reloadData() {
@@ -128,31 +130,59 @@ class ConnectionsPanel extends Component {
     }
   }
   getCurrentVersions() {
-    const data = this.getData((data) => {
-      let currentLanguage = this.props.masterPanelLanguage;
-      if (currentLanguage == "bilingual") {currentLanguage = "hebrew"}
-      if (!data) {
-        this.setState({
-          currObjectVersions: {en: null, he: null},
-          mainVersionLanguage: currentLanguage,
-        });
+      if (this.props.srefs != "sheetRef") {
+
+          const data = this.getData((data) => {
+              let currentLanguage = this.props.masterPanelLanguage;
+              if (currentLanguage == "bilingual") {
+                  currentLanguage = "hebrew"
+              }
+              if (!data) {
+                  this.setState({
+                      currObjectVersions: {en: null, he: null},
+                      mainVersionLanguage: currentLanguage,
+                  });
+              }
+              if (currentLanguage == "hebrew" && !data.he.length) {
+                  currentLanguage = "english"
+              }
+              if (currentLanguage == "english" && !data.text.length) {
+                  currentLanguage = "hebrew"
+              }
+              this.setState({
+                  currObjectVersions: {
+                      en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
+                      he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+                  },
+                  mainVersionLanguage: currentLanguage,
+              });
+          });
       }
-      if (currentLanguage == "hebrew" && !data.he.length) {currentLanguage = "english"}
-      if (currentLanguage == "english" && !data.text.length) {currentLanguage = "hebrew"}
-      this.setState({
-        currObjectVersions: {
-          en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
-          he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
-        },
-        mainVersionLanguage: currentLanguage,
-      });
-    });
   }
+
+  checkSrefs(srefs) {
+    // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
+    if (typeof(srefs) == "object" && srefs.length == 1) {
+      srefs = Sefaria.splitRangingRef(srefs[0]);
+    }
+    return(srefs)
+  }
+
   render() {
     var content = null;
-    var loaded = !!Sefaria.related(this.sectionRef());
+    var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
     if (!loaded) {
       content = <LoadingMessage />;
+    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Sheets") {
+      content = (<div>
+                    <SheetNodeConnectionTools
+                    multiPanel={this.props.multiPanel}
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    openComparePanel={this.props.openComparePanel}
+                    srefs={this.props.srefs}
+                    nodeRef = {this.props.nodeRef}
+                    />
+                 </div>);
     } else if (this.props.mode == "Resources") {
       content = (<div>
                   { this.state.flashMessage ?
@@ -190,12 +220,12 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "TextList") {
       content = (<TextList
                     panelPosition ={this.props.panelPosition}
-                    srefs={this.props.srefs}
+                    srefs={this.checkSrefs(this.props.srefs)}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
                     fullPanel={this.props.fullPanel}
                     multiPanel={this.props.multiPanel}
-                    contentLang={this.props.conteLang}
+                    contentLang={this.props.contentLang}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     onTextClick={this.props.onTextClick}
@@ -212,6 +242,7 @@ class ConnectionsPanel extends Component {
       content = (<div>
                   <AddToSourceSheetBox
                     srefs={this.props.srefs}
+                    nodeRef = {this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     addToSourceSheet={this.props.addToSourceSheet} />
@@ -221,12 +252,20 @@ class ConnectionsPanel extends Component {
                     <span className="int-he">דפי המקורות שלי</span>
                   </a>
                   : null }
+                  { this.props.srefs[0] != "sheetRef" ?
                   <MySheetsList
                     srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel} />
+                    fullPanel={this.props.fullPanel}
+                    handleSheetClick={this.props.handleSheetClick}
+                  /> : null }
+
+                  { this.props.srefs[0] != "sheetRef" ?
                   <PublicSheetsList
                     srefs={this.props.srefs}
-                    fullPanel={this.props.fullPanel} />
+                    fullPanel={this.props.fullPanel}
+                    handleSheetClick={this.props.handleSheetClick}
+                  /> : null }
+
                 </div>);
 
     } else if (this.props.mode === "Notes") {
@@ -254,6 +293,9 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])} />);
 
     } else if (this.props.mode === "Tools") {
+        console.log(this.props.srefs)
+        console.log(this.props.canEditText)
+        console.log(this.props.canEditText)
       content = (<ToolsList
                     srefs={this.props.srefs}
                     canEditText={this.props.canEditText}
@@ -262,6 +304,7 @@ class ConnectionsPanel extends Component {
                     masterPanelLanguage={this.props.masterPanelLanguage} />);
 
     } else if (this.props.mode === "Share") {
+        console.log('share');
       content = (<ShareBox
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
@@ -409,6 +452,26 @@ ResourcesList.propTypes = {
 }
 
 
+class SheetNodeConnectionTools extends Component {
+  // A list of Resources in addition to connections
+  render() {
+    return (<div className="resourcesList">
+              {this.props.multiPanel ?
+                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+              : null }
+                <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+
+                <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
+            </div>);
+  }
+}
+SheetNodeConnectionTools.propTypes = {
+  multiPanel:         PropTypes.bool.isRequired,
+  setConnectionsMode: PropTypes.func.isRequired,
+  openComparePanel:   PropTypes.func.isRequired,
+}
+
+
 class ConnectionsSummary extends Component {
   // A summary of available connections on `srefs`.
   // If `category` is present, shows a single category, otherwise all categories.
@@ -488,8 +551,8 @@ class MySheetsList extends Component {
   render() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
     var content = sheets.length ? sheets.map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} />)
-    }) : null;
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} />)
+    }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
 }
@@ -506,8 +569,8 @@ class PublicSheetsList extends Component {
       // My sheets are show already in MySheetList
       return sheet.owner !== Sefaria._uid;
     }).map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} />)
-    }) : null;
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} />)
+    }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
 }
@@ -518,13 +581,14 @@ PublicSheetsList.propTypes = {
 
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
-  handleSheetClick() {
+  handleSheetClick(e, sheet) {
     //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
+    this.props.handleSheetClick(e,sheet);
   }
   handleSheetOwnerClick() {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
@@ -549,7 +613,7 @@ class SheetListing extends Component {
           </div>
           {viewsIcon}
         </div>
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={this.handleSheetClick}>
+        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{sheet.title}</span>
         </a>
@@ -573,6 +637,11 @@ SheetListing.propTypes = {
 
 class ToolsList extends Component {
   render() {
+      console.log(this.props.srefs)
+      console.log(this.props.canEditText)
+      console.log(this.props.currVersions)
+      console.log(this.props.setConnectionsMode)
+      console.log(this.props.masterPanelLanguage)
     var editText  = this.props.canEditText ? function() {
         var refString = this.props.srefs[0];
         var currentPath = Sefaria.util.currentPath();

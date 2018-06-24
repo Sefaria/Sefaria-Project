@@ -32,6 +32,8 @@ DATABASES = {
 
 
 ################ These are things you can change! ###########################################################################
+ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
+
 ADMINS = (
      ('Your Name', 'you@example.com'),
 )
@@ -141,6 +143,7 @@ DOMAIN_LANGUAGES = {
 }
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
+GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'
 
 AWS_ACCESS_KEY = None

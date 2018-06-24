@@ -811,7 +811,12 @@ class JaggedArrayNodeSection extends Component {
         if (this.props.addressTypes[0] === "Talmud") {
           var enSection = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
-        } else {
+        } else if (this.props.addressTypes[0] === "Year") {
+          var enSection = i + 1241;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
+        }
+        else {
           var enSection = i+1;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
@@ -836,12 +841,17 @@ class JaggedArrayNodeSection extends Component {
     for (var i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
       if (this.props.addressTypes[0] === "Talmud") {
-        var section = Sefaria.hebrew.intToDaf(i);
-        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-      } else {
-        var section = i+1;
-        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-      }
+          var section = Sefaria.hebrew.intToDaf(i);
+          var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+        } else if (this.props.addressTypes[0] === "Year") {
+          var section = i + 1241;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
+        }
+        else {
+          var section = i+1;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+        }
       var ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       var link = (
         <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
@@ -879,7 +889,12 @@ class ArrayMapNode extends Component {
         if (this.props.schema.addressTypes[0] === "Talmud") {
           var section = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else {
+        } else if (this.props.schema.addressTypes[0] === "Year") {
+          var section = i + 1241;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
+        }
+        else {
           var section = i+1;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }

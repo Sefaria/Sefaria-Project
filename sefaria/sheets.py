@@ -28,6 +28,7 @@ import urllib
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
+from django.contrib.humanize.templatetags.humanize import naturaltime
 
 
 
@@ -47,6 +48,39 @@ def get_sheet(id=None):
 	s["_id"] = str(s["_id"])
 	return s
 
+def get_sheet_node(sheet_id=None, node_id=None):
+	"""
+	Returns the source sheet with id.
+	"""
+	if sheet_id is None:
+		return {"error": "No sheet id given."}
+	if node_id is None:
+		return {"error": "No node id given."}
+	s = db.sheets.find_one({
+		"id": int(sheet_id),
+		"sources.node": int(node_id)
+	}, {
+		"sources.$": 1,
+		"_id": 0
+	})
+
+	if not s:
+		return {"error": "Couldn't find node with sheet id: %s and node id: %s" % (sheet_id, node_id)}
+	return s["sources"][0]
+
+
+def get_sheet_for_panel(id=None):
+	sheet = get_sheet(id)
+	if "assigner_id" in sheet:
+		asignerData = public_user_data(sheet["assigner_id"])
+		sheet["assignerName"]  = asignerData["name"]
+	if "viaOwner" in sheet:
+		viaOwnerData = public_user_data(sheet["viaOwner"])
+		sheet["viaOwnerName"]  = viaOwnerData["name"]
+	ownerData = public_user_data(sheet["owner"])
+	sheet["ownerName"]  = ownerData["name"]
+	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+	return sheet
 
 def user_sheets(user_id, sort_by="date", limit=0, skip=0):
 	query = {"owner": int(user_id)}
@@ -121,6 +155,7 @@ def sheet_to_dict(sheet):
 		"views": sheet["views"],
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"tags": sheet["tags"] if "tags" in sheet else [],
+		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
 
@@ -302,27 +337,6 @@ def add_source_to_sheet(id, source, note=None):
 	db.sheets.save(sheet)
 	return {"status": "ok", "id": id, "source": source}
 
-
-def copy_source_to_sheet(to_sheet, from_sheet, source):
-	"""
-	Copy source of from_sheet to to_sheet.
-	"""
-	copy_sheet = db.sheets.find_one({"id": from_sheet})
-	if not copy_sheet:
-		return {"error": "No sheet with id %s." % (from_sheet)}
-	if source >= len(from_sheet["source"]):
-		return {"error": "Sheet %d only has %d sources." % (from_sheet, len(from_sheet["sources"]))}
-	copy_source = copy_sheet["source"][source]
-
-	sheet = db.sheets.find_one({"id": to_sheet})
-	if not sheet:
-		return {"error": "No sheet with id %s." % (to_sheet)}
-	sheet["dateModified"] = datetime.now().isoformat()
-	sheet["sources"].append(copy_source)
-	db.sheets.save(sheet)
-	return {"status": "ok", "id": to_sheet, "ref": copy_source["ref"]}
-
-
 def add_ref_to_sheet(id, ref):
 	"""
 	Add source 'ref' to sheet 'id'.
@@ -434,7 +448,7 @@ def get_sheets_for_ref(tref, uid=None):
 	else:
 		query["status"] = "public"
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -455,25 +469,48 @@ def get_sheets_for_ref(tref, uid=None):
 				match = model.Ref(match)
 			except InputError:
 				continue
-			ownerData = user_profiles[sheet["owner"]]
+			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None})
+
 			default_image = "https://www.sefaria.org/static/img/profile-default.png"
 			gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
 			gravatar_url_small = gravatar_base + urllib.urlencode({'d': default_image, 's': str(80)})
 
+			if "assigner_id" in sheet:
+				asignerData = public_user_data(sheet["assigner_id"])
+				sheet["assignerName"] = asignerData["name"]
+				sheet["assignerProfileUrl"] = asignerData["profileUrl"]
+			if "viaOwner" in sheet:
+				viaOwnerData = public_user_data(sheet["viaOwner"])
+				sheet["viaOwnerName"] = viaOwnerData["name"]
+				sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
+
 			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
+				"id":              str(sheet["id"]),
 				"anchorRef":       match.normal(),
 				"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
 				"public":          sheet["status"] == "public",
 				"title":           strip_tags(sheet["title"]),
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
+				"options": 		   sheet["options"],
+				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"via":			   sheet.get("via", None),
+				"viaOwnerName":	   sheet.get("viaOwnerName", None),
+				"assignerName":	   sheet.get("assignerName", None),
+				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
+				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
 				"ownerProfileUrl": "/profile/" + ownerData["slug"],
 				"ownerImageUrl":   gravatar_url_small,
 				"status":          sheet["status"],
 				"views":           sheet["views"],
 				"tags":            sheet.get("tags", []),
+				"likes":           sheet.get("likes", []),
+				"summary":         sheet.get("summary", None),
+				"attribution":     sheet.get("attribution", None),
+				"category":        "Sheets", # ditto
+				"type":            "sheet", # ditto
 			}
 
 			results.append(sheet_data)

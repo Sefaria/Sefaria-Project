@@ -1,0 +1,866 @@
+<!--
+Many people gave great feedback about this visualization,
+so we’ve compiled a “To-Do” list for some future time if
+anyone wants to come back here and fiddle with it, improve it etc.
+For now, it is functional and we’ll leave it to others to improve.
+
+Ideas:
+- More of a linear tree form
+- Click on a node, and have it link to
+  the Rabbi’s bio page, or top quotes in the Gemara etc
+- Expandable graph. Start with one node, and expand by
+  clicking on the screen, revealing each immediate layer
+  of connected nodes, layer by layer.
+- Search bar does not work for Hebrew,
+  since our keys in the json are all in English…
+  Would require more data work potentially.
+-->
+
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load i18n %}
+
+{% block title %}{% trans "Student-Teacher Relationships in the Talmud" %}{% endblock %}
+
+{% block description %}{% trans "Description goes here." %}{% endblock %}
+
+{% block ogimage %}<meta property="og:image" content="/static/img/talmud-rabbis-visualization.png"/>{% endblock %}
+{% block head %}
+    {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Open Sans Hebrew:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    <!-- Search Box -->
+    {% endif %}
+    <script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"> </script>
+    <script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css"> </script>
+
+    <!-- The d3 script we had to pull from online, used the terminal
+    to set up a python environment at a specific port
+    to run it, then ran it at said port. -->
+      <script src="//d3js.org/d3.v3.min.js"></script>
+{%  endblock %}
+
+{% block css %}
+
+     h1  {
+      font-family: "adobe-garamond-pro", Georgia, serif;
+      text-align: center;
+    }
+    #description li {
+      margin: 18px 0;
+    }
+
+    .link {
+      stroke: steelblue;
+      stroke-opacity: .4;
+      fill: none;
+      pointer-events: none;
+    }
+
+
+    .column {
+        float: left;
+        width: 33.33%;
+    }
+
+    /* Clear floats after the columns */
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    body {
+        margin: 0;
+        label-align: center;
+    }
+
+   .svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    }
+    p {
+        font-family: verdana;
+        font-size: 8px;
+        text-align: center;
+    }
+    text {
+        font-family: sans-serif;
+        pointer-events: none;
+        /*Minimum text size add here later*/
+    }
+    #visualization {
+      border: 1px solid #333;
+      display: inline-block;
+      position: relative;
+      margin-top: 20px;
+      width: 100%;
+      padding-bottom: 100%; /* aspect ratio */
+      vertical-align: top;
+      overflow: hidden;
+    }
+
+    .main{
+      padding: 60px 20px;
+
+    }
+{% endblock %}
+
+{% block content %}
+<!--
+<h1>
+    <span class="int-en">Teach with Sefaria</span>
+    <span class="int-he">לָמדו עם ספריא</span>
+</h1>
+-->
+  <div class = "main">
+  <h1>
+    <span class="int-en">The Student-Teacher Relationships between the Rabbis of the Talmud </span>
+    <span class="int-he">יחסי רב-תלמיד בין חכמי התלמוד</span>
+  </h1>
+  <br>
+  <div class="row">
+    <div class="column">
+      <p>
+        <b>
+          <span class="int-en"> Zugot </span>
+          <span class = "int-he">זוגות</span>
+        </b>
+      </p>
+      <p style = "color:#004e5f">
+        <span class= "int-en">First and second generations (2nd century BCE)</span>
+        <span class= "int-he">דור ראשון ושני - המאה השנייה לפנה״ס </span>
+      </p>
+      <p style = "color:#7c406f">
+        <span class = "int-en">Third, fourth and fifth generations (1st century BCE through 20 CE)</span>
+        <span class = "int-he">דור שלישי, דור רביעי ודור חמישי: המאה הראשונה לפנה״ס עד 20 לספירה</span>
+      </p>
+    </div>
+    <div class="column">
+      <p>
+        <b>
+          <span class = "int-en">Tanaim</span>
+          <span class = "int-he">תנאים</span>
+        </b>
+      </p>
+      <p style="color: #5d956f">
+        <span class = "int-en"> First generation (20 - 40 CE)</span>
+        <span class = "int-he"> דור ראשון: 20 - 40 לספירה</span>
+      </p>
+      <p style ="color: #9ab8cb">
+        <span class = "int-en"> Second generation (40 - 80 CE)</span>
+        <span class = "int-he">דור שני: 40 - 80 לספירה</span>
+      </p>
+      <p style ="color: #4871bf">
+        <span class = "int-en">Third generation (80 - 110 CE)</span>
+        <span class = "int-he">דור שלישי: 80 - 110 לספירה</span>
+        </p>
+      <p style ="color: #cb6158">
+        <span class = "int-en">Fourth and fifth generations (110 - 170 CE)</span>
+        <span class = "int-he">דור רביעי ודור חמישי: 110 - 170 לספירה</span>
+      </p>
+      <p style ="color: #c7a7b4">
+        <span class = "int-en">Sixth and transition generations (170 - 220 CE)</span>
+        <span class = "int-he">דור שישי ודור המעבר: 220-170 לספירה</span>
+      </p>
+      <p style ="color: #00827f">
+        <span class = "int-en"> Generation unknown </span>
+        <span class = "int-he">תקופה לא ידועה</span>
+      </p>
+    </div>
+    <div class="column">
+      <p> <b>
+        <span class = "int-en">Amoraim </span>
+        <span class = "int-he">אמוראים</span>
+      </b></p>
+      <p style ="color: #073570">
+        <span class = "int-en">First generation (220 - 290 CE)</span>
+        <span class = "int-he">דור ראשון: 290-220 לספירה</span>
+        </p>
+      <p style ="color: #ab4e66">
+        <span class = "int-en">Second generation (250 - 320 CE)</span>
+        <span class = "int-he">דור שני: 320-250 לספירה</span>
+      </p>
+      <p style ="color: #7f85a9">
+        <span class = "int-en">Third generation (290 - 350 CE)</span>
+        <span class = "int-he">דור שלישי: 350-290 לספירה</span>
+        </p>
+      <p style ="color: #ccb479">
+        <span class = "int-en">Fourth generation (320 - 375 CE)</span>
+        <span class = "int-he">דור רביעי: 375-320 לספירה</span>
+        </p>
+      <p style ="color: #594176">
+        <span class = "int-en">Fifth generation (350 - 425 CE)</span>
+        <span class = "int-he">דור חמישי: 425-350 לספירה</span>
+        </p>
+      <p style ="color: #5a99b7">
+        <span class = "int-en">Sixth generation (375 - 460 CE)</span>
+        <span class = "int-he">דור שישי: 460-375 לספירה</span>
+      </p>
+      <p style ="color: #97b386">
+        <span class = "int-en">Seventh generation (425 - 460 CE)</span>
+        <span class = "int-he">דור שביעי: 460-425 לספירה</span>
+      </p>
+      <p style ="color: #802f3e">
+        <span class = "int-en">Eigth generation (460 - 500 CE)</span>
+        <span class = "int-he">דור שמיני: 500-460 לספירה</span>
+      </p>
+    </div>
+  </div>
+
+  <!--Language toggle-->
+  <div style= "text-align: center">
+  <input type="radio" name="langSelect" id="choice1" value="he">
+     <label for="choice1">Hebrew</label>
+     <input type="radio"name="langSelect" id="choice2" value="en" checked = "checked">
+     <label for="choice2">English</label>
+ </div>
+
+ <!-- Search Box -->
+ <div class="ui-widget" style= "text-align: center">
+   <input id="search">
+    <button type="button" onclick="searchNode()">Search</button>
+</div>
+
+  <div id="visualization"></div>
+</div>
+{% endblock %}
+
+{% block js %}
+    <script>
+    var load_url = "{{ json_file }}";
+        var visualizationDiv = document.getElementById("visualization");
+        var w = visualizationDiv.clientWidth;
+        var h = visualizationDiv.clientHeight;
+
+        var keyc = true,
+            keys = true,
+            keyt = true,
+            keyr = true,
+            keyx = true,
+            keyd = true,
+            keyl = true,
+            keym = true,
+            keyh = true,
+            key1 = true,
+            key2 = true,
+            key3 = true,
+            key0 = true
+
+        var focus_node = null,
+            highlight_node = null;
+
+        var text_center = false;
+        var outline = false;
+
+        var min_score = 0;
+        var max_score = 1;
+
+        var color = d3.scale.linear()
+            .domain([min_score, (min_score + max_score) / 2, max_score])
+            .range(["lime", "yellow", "red"]);
+
+        var highlight_color = "#00827f";
+        var highlight_trans = 0.4;
+
+        var size = d3.scale.pow().exponent(1)
+            .domain([1, 100])
+            .range([8, 24]);
+
+        var force = d3.layout.force()
+            .charge(-5500) // best at -5500, more negative = increased repulsion
+            .gravity(0.5) //best at 0.5
+            .linkDistance(30)
+            .size([w, h]);
+
+        var default_node_color = "#ccc";
+        //var default_node_color = "rgb(3,190,100)";
+        var default_link_color = "#888";
+        var nominal_base_node_size = 8;
+        var nominal_text_size = 10;
+        var max_text_size = 24;
+        var nominal_stroke = 1.5;
+        var max_stroke = 4.5;
+        var max_base_node_size = 36;
+        var min_zoom = 0.1;
+        var max_zoom = 7;
+        var svg = d3.select("#visualization")
+           //.append("div")
+           //.classed("svg-container", true) container class to make it responsive
+           .append("svg")
+           //responsive SVG needs these 2 attributes and no width and height attr
+           .attr("preserveAspectRatio", "xMinYMin meet")
+           .attr("viewBox", "0 0 1600 900")
+           //.attr("width", w)
+           //.attr("height", h)
+           //class to make it responsive
+           .classed("svg-content-responsive", true);
+
+         // Apparently these needs to match below
+        var zoom = d3.behavior.zoom().scaleExtent([min_zoom, max_zoom]);
+
+        //zoom.center();
+        //zoom.size([w, h]);
+        var g = svg.append("g");
+        svg.style("cursor", "move");
+
+        var selectedLanguage;
+
+           d3.selectAll("input")
+           .on("change", function(){
+
+               selectedLanguage  = d3.select('input[name=langSelect]:checked').attr('value');
+           if (text_center)
+               text.text(function(d) {
+                   return selectedLanguage == 'he' ? d.he : d.key;
+               })
+               .style("text-anchor", "middle");
+           else
+               text.attr("dx", function(d) {
+                   return (size(d.size) || nominal_base_node_size);
+               })
+               .text(function(d) {
+                   return selectedLanguage == 'he' ? d.he : d.key;
+               });
+
+           });
+
+
+        d3.json(load_url, function(error, json) {
+
+
+            var hasLinks = function containsObject(sourceNode) {
+                var i;
+                for (i = 0; i < json.links.length; i++) {
+                    if (json.links[i].source === sourceNode.key || json.links[i].target === sourceNode.key) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+
+            cleanedNodes = json.nodes.filter(node => hasLinks(node));
+
+            var edges = [];
+
+            json.links.forEach(function(e) {
+                var sourceNode = cleanedNodes.filter(function(n) {
+
+                        return n.key === e.source;
+                    })[0],
+
+                    targetNode = cleanedNodes.filter(function(n) {
+                        return n.key === e.target;
+                    })[0];
+
+
+                if (!sourceNode || !targetNode) {
+                    console.log("Failed to resolve link with Source: " + e.source + " and target: " + e.target);
+
+                } else {
+                    edges.push({
+                        source: sourceNode,
+                        target: targetNode,
+                        value: 1
+                    });
+                }
+            });
+
+
+            var linkedByIndex = {};
+            json.links.forEach(function(d) {
+                linkedByIndex[d.source + "," + d.target] = true;
+            });
+
+            function isConnected(a, b) {
+                return linkedByIndex[a.key + "," + b.key] || linkedByIndex[b.key + "," + a.key] || a.key == b.key;
+            }
+
+            function hasConnections(a) {
+                for (var property in linkedByIndex) {
+                    s = property.split(",");
+                    if ((s[0] == a.key || s[1] == a.key) && linkedByIndex[property]) return true;
+                }
+                return false;
+            }
+
+
+            force
+                .nodes(cleanedNodes)
+                .links(edges)
+                .start();
+
+            var link = g.selectAll(".link")
+                .data(edges)
+                .enter().append("line")
+                .attr("class", "link")
+                .style("stroke-width", nominal_stroke)
+                .style("stroke", default_link_color)
+
+
+            var node = g.selectAll(".node")
+                .data(cleanedNodes)
+                .enter().append("g")
+                .attr("class", "node")
+
+                .call(force.drag)
+
+
+            node.on("dblclick.zoom", function(d) {
+                d3.event.stopPropagation();
+                var dcx = (window.innerWidth / 2 - d.x * zoom.scale());
+                var dcy = (window.innerHeight / 2 - d.y * zoom.scale());
+                zoom.translate([dcx, dcy]);
+                g.attr("transform", "translate(" + dcx + "," + dcy + ")scale(" + zoom.scale() + ")");
+
+
+            });
+
+
+
+
+            var tocolor = "fill";
+            var towhite = "stroke";
+            if (outline) {
+                tocolor = "stroke"
+                towhite = "fill"
+            }
+
+            // Code for the search box
+                        var optArray = [];
+
+                for (var i = 0; i < json.nodes.length; i++) {
+                    optArray.push(json.nodes[i].key);
+                }
+                optArray = optArray.sort();
+                $(function () {
+                    $("#search").autocomplete({
+                        source: optArray
+                        /*Use Sefaria's source for autocomplete with a
+                        an autocomplete list of all of the people*/
+                    });
+                });
+
+
+            var circle = node.append("path")
+
+
+                .attr("d", d3.svg.symbol()
+                    .size(function(d) {
+                        return Math.PI * Math.pow(size(d.size) || nominal_base_node_size, 2);
+                    })
+                    .type(function(d) {
+                        return d.type;
+                    }))
+
+                .style(tocolor, function(d) {
+                    if (d.order <= 8) {
+                        return ("#004e5f") //darkteal zugot gen 1 and 2
+                    } else if (d.order <= 11) { //zugot 3, 4, 5 rasberry
+                        return ("#7c406f")
+                    } else if (d.order <= 12) { //early tanaim green
+                        return ("#5d956f")
+                    } else if (d.order == 12.1) { //unknown tanaim
+                        return ("#00827f")
+                    } else if (d.order == 13) { //tanaim 2 paleblue
+                        return ("#9ab8cb")
+                    } else if (d.order == 14) { //tanaim 3 blue
+                        return ("#4871bf")
+                    } else if (d.order <= 16) { //tanaim 4 and 5 orange
+                        return ("#cb6158")
+                    } else if (d.order <= 18) { //tanaim 6 and transition, lightpink
+                        return ("#c7a7b4")
+                    } else if (d.order <= 19.5) { //amoraim first, darkblue
+                        return ("#073570")
+                    } else if (d.order <= 20.5) { //amoraim second, darkpink
+                        return ("#ab4e66")
+                    } else if (d.order <= 21.5) { // amoraim third, lavender
+                        return ("#7f85a9")
+                    } else if (d.order <= 22.5) { //amoraim fourth, yellow
+                        return ("#ccb479")
+                    } else if (d.order < 23.5) { //amoraim fifth, lightblue
+                        return ("#5a99b7")
+                    } else if (d.order <= 24.5) { //amoraim sixth, lightgreen
+                        return ("#97b386")
+                    } else if (d.order == 25) { //amoraim seventh, red
+                        return ("#802f3e")
+                    } else if (d.order == 26) { //amoraim eight, teal
+                        return ("#00827f")
+                    } else {                   // default
+                        return ("#ffffff")
+                    }
+
+                    //return fill(d.group);
+
+                })
+                //.attr("r", function(d) { return size(d.size)||nominal_base_node_size; })
+                .style("stroke-width", nominal_stroke)
+                .style(towhite, "white");
+
+
+                var text = g.selectAll(".text")
+                    .data(cleanedNodes)
+                    .enter().append("text")
+                    .attr("dy", ".35em")
+                    .style("font-size", nominal_text_size + "px")
+
+                var selectedLanguage;
+
+                d3.selectAll("input")
+                .on("change", function(){
+
+                    selectedLanguage  = d3.select('input[name=langSelect]:checked').attr('value');
+                if (text_center)
+                    text.text(function(d) {
+                        return selectedLanguage == 'he' ? d.he : d.key;
+                    })
+                    .style("text-anchor", "middle");
+                else
+                    text.attr("dx", function(d) {
+                        return (size(d.size) || nominal_base_node_size);
+                    })
+                    .text(function(d) {
+                        return selectedLanguage == 'he' ? d.he : d.key;
+                    });
+
+                });
+
+                if (text_center)
+                text.text(function(d) {
+                    return selectedLanguage == 'he' ? d.he : d.key;
+                })
+                .style("text-anchor", "middle");
+            else
+                text.attr("dx", function(d) {
+                    return (size(d.size) || nominal_base_node_size);
+                })
+                .text(function(d) {
+                    return selectedLanguage == 'he' ? d.he : d.key;
+                });
+
+            node.on("mouseover", function(d) {
+                    set_highlight(d);
+                    set_focus(d)
+                    focus_node = d;
+                    //set_focus(d)
+                    //Somehow also highlight the target nodes
+
+                    if (highlight_node === null) set_highlight(d)
+
+                })
+                .on("mousedown", function(d) {
+                    d3.event.stopPropagation();
+                    //focus_node = d;
+                    set_focus(d)
+                    if (highlight_node === null) set_highlight(d)
+
+                })
+                .on("mouseout", function(d) {
+                    exit_highlight();
+
+                    if (focus_node !== null) {
+                        focus_node = null;
+                        if (highlight_trans < 1) {
+
+                            circle.style("opacity", 1);
+                            text.style("opacity", 1);
+                            link.style("opacity", 1);
+                        }
+                    }
+
+                    if (highlight_node === null) exit_highlight();
+
+
+                });
+
+            d3.select(window).on("mouseup",
+                function() {});
+
+            function exit_highlight() {
+                highlight_node = null;
+                if (focus_node === null) {
+                    svg.style("cursor", "move");
+                    if (highlight_color != "white") {
+                        circle.style(towhite, "white");
+                        text.style("font-weight", "normal");
+                        link.style("stroke", function(o) {
+                            return (isNumber(o.score) && o.score >= 0) ? color(o.score) : default_link_color
+                        });
+                    }
+
+                }
+            }
+
+            function set_focus(d) {
+                if (highlight_trans < 1) {
+                  // What is this "o" we are passing through
+                  // the function?
+                    circle.style("opacity", function(o) {
+                      // Syntax note - like a comperehension
+                      // return isConnected if 1, else highlight_trans
+                      // if 1, will check to see if d and o are connected
+                        return isConnected(d, o) ? 1 : highlight_trans;
+                    });
+
+                    text.style("opacity", function(o) {
+                        // return isConnected if 1, else highlight_trans
+                        return isConnected(d, o) ? 1 : highlight_trans;
+                    });
+
+                    link.style("opacity", function(o) {
+                      // if 1, do the complicated or statement, else highlight_trans
+                        return o.source.key == d.key || o.target.key == d.key ? 1 : highlight_trans;
+                    });
+
+                    // Somehow tell the nodes immediately connected to
+                    // stay highlighted
+                    // if o.isConnected == true: DON'T CHANGE OPACITY
+                }
+            }
+
+
+            function set_highlight(d) {
+                svg.style("cursor", "pointer");
+                if (focus_node !== null) d = focus_node;
+                highlight_node = d;
+
+                if (highlight_color != "white") {
+                    circle.style(towhite, function(o) {
+                        return isConnected(d, o) ? highlight_color : "white";
+                    });
+                    text.style("font-weight", function(o) {
+                        return isConnected(d, o) ? "bold" : "normal";
+                    });
+                    link.style("stroke", function(o) {
+                        return o.source.key == d.key || o.target.key == d.key ? highlight_color : ((isNumber(o.score) && o.score >= 0) ? color(o.score) : default_link_color);
+
+                    });
+                }
+            }
+
+
+            zoom.on("zoom", function() {
+
+                var stroke = nominal_stroke;
+                if (nominal_stroke * zoom.scale() > max_stroke) stroke = max_stroke / zoom.scale();
+                link.style("stroke-width", stroke);
+                circle.style("stroke-width", stroke);
+
+                var base_radius = nominal_base_node_size;
+                if (nominal_base_node_size * zoom.scale() > max_base_node_size) base_radius = max_base_node_size / zoom.scale();
+                circle.attr("d", d3.svg.symbol()
+                    .size(function(d) {
+                        return Math.PI * Math.pow(size(d.size) * base_radius / nominal_base_node_size || base_radius, 2);
+                    })
+                    .type(function(d) {
+                        return d.type;
+                    }))
+
+                //circle.attr("r", function(d) { return (size(d.size)*base_radius/nominal_base_node_size||base_radius); })
+                if (!text_center) text.attr("dx", function(d) {
+                    return (size(d.size) * base_radius / nominal_base_node_size || base_radius);
+                });
+
+                var text_size = nominal_text_size;
+                if (nominal_text_size * zoom.scale() > max_text_size) text_size = max_text_size / zoom.scale();
+                text.style("font-size", text_size + "px");
+
+                g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            });
+
+            svg.call(zoom);
+
+            resize();
+            //window.focus();
+            d3.select(window).on("resize", resize).on("keydown", keydown);
+
+            force.on("tick", function() {
+
+                node.attr("transform", function(d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
+                text.attr("transform", function(d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
+
+                link.attr("x1", function(d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function(d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function(d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function(d) {
+                        return d.target.y;
+                    });
+
+                node.attr("cx", function(d) {
+                        return d.x;
+                    })
+                    .attr("cy", function(d) {
+                        return d.y;
+                    });
+            });
+
+            function resize() {
+              var visualizationDiv = document.getElementById("visualization");
+              var width = visualizationDiv.clientWidth;
+              var height = visualizationDiv.clientHeight;
+                svg.attr("width", width).attr("height", height);
+
+                force.size([force.size()[0] + (width - w) / zoom.scale(), force.size()[1] + (height - h) / zoom.scale()]).resume();
+                w = width;
+                h = height;
+            }
+
+            function keydown() {
+                if (d3.event.keyCode == 32) {
+                    force.stop();
+                } else if (d3.event.keyCode >= 48 && d3.event.keyCode <= 90 && !d3.event.ctrlKey && !d3.event.altKey && !d3.event.metaKey) {
+                    switch (String.fromCharCode(d3.event.keyCode)) {
+                        case "C":
+                            keyc = !keyc;
+                            break;
+                        case "S":
+                            keys = !keys;
+                            break;
+                        case "T":
+                            keyt = !keyt;
+                            break;
+                        case "R":
+                            keyr = !keyr;
+                            break;
+                        case "X":
+                            keyx = !keyx;
+                            break;
+                        case "D":
+                            keyd = !keyd;
+                            break;
+                        case "L":
+                            keyl = !keyl;
+                            break;
+                        case "M":
+                            keym = !keym;
+                            break;
+                        case "H":
+                            keyh = !keyh;
+                            break;
+                        case "1":
+                            key1 = !key1;
+                            break;
+                        case "2":
+                            key2 = !key2;
+                            break;
+                        case "3":
+                            key3 = !key3;
+                            break;
+                        case "0":
+                            key0 = !key0;
+                            break;
+                    }
+
+                    link.style("display", function(d) {
+                        var flag = vis_by_type(d.source.type) && vis_by_type(d.target.type) && vis_by_node_score(d.source.score) && vis_by_node_score(d.target.score) && vis_by_link_score(d.score);
+                        linkedByIndex[d.source.key + "," + d.target.key] = flag;
+                        return flag ? "inline" : "none";
+                    });
+                    node.style("display", function(d) {
+                        return (key0 || hasConnections(d)) && vis_by_type(d.type) && vis_by_node_score(d.score) ? "inline" : "none";
+                    });
+                    text.style("display", function(d) {
+                        return (key0 || hasConnections(d)) && vis_by_type(d.type) && vis_by_node_score(d.score) ? "inline" : "none";
+                    });
+
+                    if (highlight_node !== null) {
+                        if ((key0 || hasConnections(highlight_node)) && vis_by_type(highlight_node.type) && vis_by_node_score(highlight_node.score)) {
+                            if (focus_node !== null) set_focus(focus_node);
+                            set_highlight(highlight_node);
+                        } else {
+                            exit_highlight();
+                        }
+                    }
+
+                }
+            }
+
+        });
+
+        function vis_by_type(type) {
+            switch (type) {
+                case "circle":
+                    return keyc;
+                case "square":
+                    return keys;
+                case "triangle-up":
+                    return keyt;
+                case "diamond":
+                    return keyr;
+                case "cross":
+                    return keyx;
+                case "triangle-down":
+                    return keyd;
+                default:
+                    return true;
+            }
+        }
+
+        function vis_by_node_score(score) {
+            if (isNumber(score)) {
+                if (score >= 0.666) return keyh;
+                else if (score >= 0.333) return keym;
+                else if (score >= 0) return keyl;
+            }
+            return true;
+        }
+
+        function vis_by_link_score(score) {
+            if (isNumber(score)) {
+                if (score >= 0.666) return key3;
+                else if (score >= 0.333) return key2;
+                else if (score >= 0) return key1;
+            }
+            return true;
+        }
+
+        function isNumber(n) {
+            return !isNaN(parseFloat(n)) && isFinite(n);
+        }
+        function searchNode() {
+            //find the node
+            var selectedVal = document.getElementById('search').value;
+            var node = svg.selectAll(".node");
+            if (selectedVal == "none") {
+                node.style("stroke", "white").style("stroke-width", "1");
+            } else {
+                var selected = node.filter(function (d, i) {
+                    console.log(d)
+                    return d.key != selectedVal;
+                    /*Make it center on it - Russel has code
+                    and bounce? link transitions in miliseconds
+                    and make it go to exposition -1, expand and de-expand*/
+                });
+                selected.style("opacity", "0");
+                var link = svg.selectAll(".link")
+                link.style("opacity", "0");
+                d3.selectAll(".node, .link").transition()
+                    .duration(5000)
+                    .style("opacity", 1);
+            }
+        }
+    </script>
+{% endblock %}

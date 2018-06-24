@@ -98,6 +98,7 @@ Sefaria = extend(Sefaria, {
           return {"error": "Bad input."};
       }
       var ref = q.book.replace(/ /g, "_");
+      ref = encodeURIComponent(ref);
 
       if (q.sections.length)
           ref += "." + q.sections.join(".");
@@ -1443,6 +1444,22 @@ Sefaria = extend(Sefaria, {
     return data;
   },
   sheets: {
+    _loadSheetByID: {},
+    loadSheetByID: function(id, callback) {
+      var sheet = this._loadSheetByID[id];
+      if (sheet) {
+        if (callback) { callback(sheet); }
+      } else {
+        var url = "/api/sheets/" + id +"?more_data=1";
+         $.getJSON(url, function(data) {
+            this._loadSheetByID[id] = data;
+            if (callback) { callback(data); }
+          }.bind(this));
+        }
+      return sheet;
+    },
+
+
     _trendingTags: null,
     trendingTags: function(callback) {
       // Returns a list of trending tags -- source sheet tags which have been used often recently.
@@ -1752,6 +1769,9 @@ Sefaria = extend(Sefaria, {
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",
       "Name New Sheet" : "כותרת לדף המקורות",
+      "Copy" : "העתקה",
+      "Copied" : "הועתק",
+      "Copying..." : "מעתיק...",
       "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
       "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
       "Are you sure you want to delete this note?": "האם אתם בטוחים שברצונכם למחוק?",
@@ -1767,6 +1787,7 @@ Sefaria = extend(Sefaria, {
       "View sheet": "מעבר ל-דף המקורות",
       "Please select a source sheet.": "אנא בחר דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
+      "Source Sheet by" : "דף מקורות מאת",
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
