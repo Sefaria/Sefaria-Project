@@ -14,7 +14,6 @@ class Test_AutoLinker(object):
         'Rashi on Genesis' : rashi_on_genesis_links.count(),
         'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count()
     }
-    pass
 
     def test_rebuild_commentary_links(self):
         #test simple adding links
