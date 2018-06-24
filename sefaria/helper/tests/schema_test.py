@@ -275,6 +275,30 @@ def test_migrate_to_complex_structure():
 
 
 
+def test_convert_simple_index_to_complex():
+    title = "Rashi on Exodus"
+    index = library.get_index(title)
+    schema.convert_simple_index_to_complex(index)
+    index = library.get_index(title)
+    assert not isinstance(index.nodes, JaggedArrayNode)
+    assert len(index.nodes.children) is 1
+    assert index.nodes.children[0].default is True
+
+
+def test_insert_first_child():
+    title = "Rashi on Exodus"
+    index = library.get_index(title)
+    intro = JaggedArrayNode()
+    intro.add_shared_term("Introduction")
+    intro.key = 'intro'
+    intro.add_structure(["Chapter", "Paragraph"])
+    schema.insert_first_child(intro, index.nodes)
+
+    index = library.get_index(title)
+    assert len(index.nodes.children) == 2 # assume 2 because there should be a default node and intro node
+    presumed_intro = index.nodes.children[0]
+    presumed_default = index.nodes.children[1]
+    assert presumed_intro.key == "intro" and presumed_default.key == "default"
 
 
 @pytest.mark.deep
