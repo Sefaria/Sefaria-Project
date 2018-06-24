@@ -99,7 +99,7 @@ class AbstractAutoLinker(object):
             else:
                 tracker.add(self._user, Link, nlink, **kwargs)
         except DuplicateRecordError as e:
-            print e.message
+            pass
         return tref
 
     def _delete_link(self, link):
