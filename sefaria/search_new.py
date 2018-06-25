@@ -270,8 +270,8 @@ def make_text_index_document(tref, version, lang, version_priority):
     if oref.is_section_level():
         seg_ref = oref.all_subrefs()[0]
 
-    pagerank = math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0
-    sheetrank = (1.0 + sheetrank_dict[seg_ref.normal()]["count"] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2
+    pagerank = math.log(pagerank_dict[oref.normal()]) + 20 if oref.normal() in pagerank_dict else 1.0
+    sheetrank = 1.0  # (1.0 + sheetrank_dict[seg_ref.normal()]["count"] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2
     return {
         "title": title,
         "ref": oref.normal(),

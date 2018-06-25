@@ -62,11 +62,11 @@ def create_web(g):
   node2index = {r:i for i, r in enumerate(g.keys())}
   for i, (r, links) in enumerate(g.items()):
     r_ind = node2index[r]
-    link_inds = [node2index[r_temp] for r_temp in links]
-    w.in_links[r_ind] = link_inds
-    for j in link_inds:
+    link_inds = [(node2index[r_temp], count) for r_temp, count in links.items()]
+    w.in_links[r_ind] = [l[0] for l in link_inds]
+    for j, count in link_inds:
       if w.number_out_links[j] == 0: w.dangling_pages.pop(j)
-      w.number_out_links[j] += 1
+      w.number_out_links[j] += count
   return w
 
 def step(g,p,s=0.85):
@@ -111,6 +111,25 @@ def init_pagerank_graph():
     def is_tanach(r):
         return r.index.title in tanach_indexes
 
+    def recursively_put_in_graph(ref1, ref2, weight=1.0):
+        if ref1.is_section_level():
+            seg_refs = ref1.all_segment_refs()
+            for ref1_seg in seg_refs:
+                recursively_put_in_graph(ref1_seg, ref2, weight / len(seg_refs))
+        elif ref2.is_section_level():
+            seg_refs = ref2.all_segment_refs()
+            for ref2_seg in seg_refs:
+                recursively_put_in_graph(ref1, ref2_seg, weight / len(seg_refs))
+        elif ref1.is_range():
+            for ref1_seg in ref1.range_list():
+                if ref2.is_range():
+                    for ref2_seg in ref2.range_list():
+                        recursively_put_in_graph(ref1_seg, ref2_seg)
+                else:
+                    recursively_put_in_graph(ref1_seg, ref2)
+        else:
+            put_link_in_graph(ref1, ref2)
+
     def put_link_in_graph(ref1, ref2):
         str1 = ref1.normal()
         str2 = ref2.normal()
@@ -151,17 +170,10 @@ def init_pagerank_graph():
 
                 older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
 
+                temp_links = []
                 older_ref = older_ref.padded_ref()
-                if older_ref.is_range():
-                    older_ref = older_ref.range_list()[0]
-                older_ref = older_ref.section_ref()
-
                 newer_ref = newer_ref.padded_ref()
-                if newer_ref.is_range():
-                    newer_ref = newer_ref.range_list()[0]
-                newer_ref = newer_ref.section_ref()
-
-                put_link_in_graph(older_ref, newer_ref)
+                recursively_put_in_graph(older_ref, newer_ref)
 
 
             except InputError:
