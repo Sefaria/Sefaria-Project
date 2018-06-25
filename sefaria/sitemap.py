@@ -8,7 +8,7 @@ from datetime import datetime
 
 from sefaria.model import *
 from sefaria.system.database import db
-from settings import STATICFILES_DIRS
+from settings import STATICFILES_DIRS, STATIC_URL
 
 
 def chunks(l, n):
@@ -99,7 +99,10 @@ class SefariaSiteMapGenerator(object):
                 if cat:
                     cat = cat.replace(" ", "%20")
                     paths.append(cat)
-                    subpaths = cat_paths(t["contents"])
+                    try:
+                        subpaths = cat_paths(t["contents"])
+                    except KeyError:
+                        continue
                     paths = paths + [cat + "/" + sp for sp in subpaths]
             return paths
         paths = cat_paths(toc)
@@ -144,10 +147,10 @@ class SefariaSiteMapGenerator(object):
         for m in sitemaps:
             xml += """
                <sitemap>
-                  <loc>%s/static/sitemaps/%s/%s</loc>
+                  <loc>%s%ssitemaps/%s/%s</loc>
                   <lastmod>%s</lastmod>
                </sitemap>
-               """ % (self._hostname, self._interfaceLang, m, now)
+               """ % (self._hostname, STATIC_URL, self._interfaceLang, m, now)
 
         sitemapindex = """<?xml version="1.0" encoding="UTF-8"?>
             <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

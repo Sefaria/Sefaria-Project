@@ -35,6 +35,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
+from reader.views import catchall
+
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
@@ -186,6 +188,13 @@ def view_sheet(request, sheet_id):
 	"""
 	View the sheet with sheet_id.
 	"""
+	panel = request.GET.get('panel', '0')
+
+
+
+	if panel == '1':
+		return catchall(request, sheet_id, True)
+
 	sheet = get_sheet(sheet_id)
 	if "error" in sheet:
 		return HttpResponse(sheet["error"])
@@ -623,12 +632,23 @@ def sheet_api(request, sheet_id):
 	API for accessing and individual sheet.
 	"""
 	if request.method == "GET":
-		sheet = get_sheet(int(sheet_id))
+		more_data = request.GET.get('more_data', '0')
+		if more_data == '1':
+			sheet = get_sheet_for_panel(int(sheet_id))
+		else:
+			sheet = get_sheet(int(sheet_id))
 		return jsonResponse(sheet, callback=request.GET.get("callback", None))
 
 	if request.method == "POST":
 		return jsonResponse({"error": "TODO - save to sheet by id"})
 
+def sheet_node_api(request, sheet_id, node_id):
+	if request.method == "GET":
+		sheet_node = get_sheet_node(int(sheet_id),int(node_id))
+		return jsonResponse(sheet_node, callback=request.GET.get("callback", None))
+
+	if request.method == "POST":
+		return jsonResponse({"error": "Unsupported HTTP method."})
 
 def check_sheet_modified_api(request, sheet_id, timestamp):
 	"""
@@ -717,11 +737,17 @@ def copy_source_to_sheet_api(request, sheet_id):
 	"""
 	API to copy a source from one sheet to another.
 	"""
-	copy_sheet = request.POST.get("sheet")
-	copy_source = request.POST.get("source")
+	copy_sheet = request.POST.get("sheetID")
+	copy_source = request.POST.get("nodeID")
 	if not copy_sheet and copy_source:
-		return jsonResponse({"error": "Need both a sheet and source number to copy."})
-	return jsonResponse(copy_source_to_sheet(int(sheet_id), int(copy_sheet), int(copy_source)))
+		return jsonResponse({"error": "Need both a sheet and source node ID to copy."})
+
+	source = get_sheet_node(int(copy_sheet), int(copy_source))
+	del source["node"]
+	response = add_source_to_sheet(int(sheet_id), source)
+
+	return jsonResponse(response)
+
 
 
 def add_ref_to_sheet_api(request, sheet_id):

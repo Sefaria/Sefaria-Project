@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Sefaria Strategy" %}{% endblock %}
 
@@ -37,7 +37,7 @@
       fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));</script>
 
-    <a id="downloadButton" href="/static/files/Sefaria.Deck.v3.for.web.pdf" target="_blank" class="btn btn-mini">Download Presentation <i class="fa fa-download"></i></a>
+    <a id="downloadButton" href="{% static 'files/Sefaria.Deck.v3.for.web.pdf' %}" target="_blank" class="btn btn-mini">Download Presentation <i class="fa fa-download"></i></a>
     <div class="fb-like" data-href="http://www.sefaria.org/strategy" data-layout="button_count" data-width="300" data-action="like" data-show-faces="false" data-share="false"></div>
     <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.sefaria.org/strategy" data-text="Sefaria: The Digital Future of Jewish Texts - Strategy Presentation" data-via="SefariaProject">Tweet</a>
     <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>

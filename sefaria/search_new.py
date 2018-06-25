@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import re
 import bleach
 import pymongo
+
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
@@ -24,7 +25,6 @@ from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
-
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
 from sefaria.model.user_profile import user_link, public_user_data
@@ -60,6 +60,90 @@ tracer.setLevel(logging.CRITICAL)
 tracer.addHandler(NullHandler())
 
 doc_count = 0
+
+
+def index_text(index_name, oref, version=None, lang=None, bavli_amud=True, merged=False, version_priority=None):
+    """
+    Index the text designated by ref.
+    If no version and lang are given, this function will be called for each available version.
+    If `merged` is true, and lang is given, it will index a merged version of this document
+   :param str index_name: The index name, as provided by `get_new_and_current_index_names`
+    :param str oref: Currently assumes ref is at section level. :param str version: Version being indexed
+    :param str lang: Language of version being indexed
+    :param bool bavli_amud:  Is this Bavli? Bavli text is indexed by section, not segment.
+    :param bool merged: is this a merged index?
+    :param int version_priority: priority of version compared to other versions of this ref. lower is higher priority. NOTE: zero is not necessarily the highest priority for a given language
+    :return:
+    """
+    #TODO it seems that `bavli_amud` is never set...?
+
+    assert isinstance(oref, Ref)
+    oref = oref.default_child_ref()
+
+    # Recall this function for each specific text version, if none provided
+    if merged and version:
+        raise InputError("index_text() called with version title and merged flag.")
+    if not merged and not (version and lang):
+        for priority, v in enumerate(oref.version_list()):
+            index_text(index_name, oref, version=v["versionTitle"], lang=v["language"], version_priority=priority, bavli_amud=bavli_amud)
+        return
+    elif merged and not lang:
+        for l in ["he", "en"]:
+            index_text(index_name, oref, lang=l, bavli_amud=bavli_amud, merged=merged)
+        return
+
+    # Index each segment of this document individually
+    padded_oref = oref.padded_ref()
+
+    if bavli_amud and padded_oref.is_bavli() and padded_oref.index.title not in davidson_indexes:  # Index bavli by amud. and commentaries by line
+        pass
+    elif len(padded_oref.sections) < len(padded_oref.index_node.sectionNames):
+        t = TextChunk(oref, lang=lang, vtitle=version) if not merged else TextChunk(oref, lang=lang)
+
+        for iref, ref in enumerate(oref.subrefs(len(t.text))):
+            if padded_oref.index.title in davidson_indexes:
+                if iref == len(t.text) - 1 and ref != ref.last_segment_ref():
+                    # if it's a talmud ref and it's the last ref on daf, but not the last ref in the mesechta, skip it.
+                    # we'll combine it with the first ref of the next daf. This is dealing with the issue of sentences
+                    # that get cut-off due to daf breaks
+                    continue
+                elif iref == 0 and ref.prev_segment_ref() is not None:
+                    ref = ref.prev_segment_ref().to(ref)
+            index_text(index_name, ref, version=version, lang=lang, bavli_amud=bavli_amud, merged=merged, version_priority=version_priority)
+        return  # Returning at this level prevents indexing of full chapters
+
+    '''   Can't get here after the return above
+    # Don't try to index docs with depth 3
+    if len(oref.sections) < len(oref.index_node.sectionNames) - 1:
+        return
+    '''
+    if oref.index.title in library.get_indexes_in_category("Tanakh") and version == u"Yehoyesh's Yiddish Tanakh Translation [yi]":
+        print "skipping yiddish. we don't like yiddish"
+        return  # we don't like Yiddish here
+
+    # Index this document as a whole
+    try:
+        if version and lang and not version_priority:
+            for priority, v in enumerate(oref.version_list()):
+                if v['versionTitle'] == version:
+                    version_priority = priority
+                    break
+        doc = make_text_index_document(oref.normal(), version, lang, version_priority)
+        # print doc
+    except Exception as e:
+        logger.error(u"Error making index document {} / {} / {} : {}".format(oref.normal(), version, lang, e.message))
+        return
+
+    if doc:
+        try:
+            global doc_count
+
+            if doc_count % 5000 == 0:
+                logger.info(u"[{}] Indexing {} / {} / {}".format(doc_count, oref.normal(), version, lang))
+            es_client.create(index=index_name, doc_type='text', id=make_text_doc_id(oref.normal(), version, lang), body=doc)
+            doc_count += 1
+        except Exception, e:
+            logger.error(u"ERROR indexing {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
 
 def delete_text(oref, version, lang):
@@ -100,6 +184,112 @@ def delete_sheet(index_name, id):
         es_client.delete(index=index_name, doc_type='sheet', id=id)
     except Exception, e:
         logger.error(u"ERROR deleting sheet {}".format(id))
+
+
+def flatten_list(l):
+    # see: https://stackoverflow.com/questions/2158395/flatten-an-irregular-list-of-lists/2158532#2158532
+    for el in l:
+        if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
+            for sub in flatten_list(el):
+                yield sub
+        else:
+            yield el
+
+
+def make_text_index_document(tref, version, lang, version_priority):
+    from sefaria.utils.hebrew import strip_cantillation
+    """
+    Create a document for indexing from the text specified by ref/version/lang
+    """
+    oref = Ref(tref)
+    text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
+
+    content = text["he"] if lang == 'he' else text["text"]
+    if not content:
+        # Don't bother indexing if there's no content
+        return False
+
+    if isinstance(content, list):
+        content = flatten_list(content)  # deal with mutli-dimensional lists as well
+        content = " ".join(content)
+
+    content = bleach.clean(content, strip=True, tags=())
+    content_wo_cant = strip_cantillation(content, strip_vowels=False)
+
+    if re.match(ur'^\s*[\(\[].+[\)\]]\s*$',content):
+        return False #don't bother indexing. this segment is surrounded by parens
+
+    if oref.is_talmud() and oref.index.title not in davidson_indexes:
+        title = text["book"] + " Daf " + text["sections"][0]
+    else:
+        title = text["book"] + " " + " ".join([u"{} {}".format(p[0], p[1]) for p in zip(text["sectionNames"], text["sections"])])
+    title += u" ({})".format(version)
+
+    if lang == "he":
+        title = text.get("heTitle", "") + " " + title
+
+    if getattr(oref.index, "dependence", None) == 'Commentary' and "Commentary" in text["categories"]:  # uch, special casing
+        categories = text["categories"][:]
+        categories.remove('Commentary')
+        categories[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
+    else:
+        categories = text["categories"]
+
+    index = oref.index
+    tp = index.best_time_period()
+    if not tp is None:
+        comp_start_date = int(tp.start)
+    else:
+        comp_start_date = 3000  # far in the future
+
+    is_short = len(content_wo_cant) < 30
+    prev_ref = oref.prev_segment_ref()
+    next_ref = oref.next_segment_ref()
+    if prev_ref and prev_ref.section_ref() == oref.section_ref():
+        prev_text = TextFamily(prev_ref, context=0, commentary=False, version=version, lang=lang).contents()
+        prev_content = prev_text["he"] if lang == 'he' else prev_text["text"]
+        if not prev_content:
+            prev_content = u""
+        else:
+            prev_content = bleach.clean(content, strip=True, tags=())
+    else:
+        prev_content = u""
+
+    if next_ref and next_ref.section_ref() == oref.section_ref():
+        next_text = TextFamily(next_ref, context=0, commentary=False, version=version, lang=lang).contents()
+        next_content = next_text["he"] if lang == 'he' else next_text["text"]
+        if not prev_content:
+            next_content = u""
+        else:
+            next_content = bleach.clean(content, strip=True, tags=())
+    else:
+        next_content = u""
+
+    seg_ref = oref
+    if oref.is_section_level():
+        seg_ref = oref.all_subrefs()[0]
+
+    pagerank = math.log(pagerank_dict[oref.section_ref().normal()]) + 20 if oref.section_ref().normal() in pagerank_dict else 1.0
+    sheetrank = (1.0 + sheetrank_dict[seg_ref.normal()]["count"] / 5)**2 if seg_ref.normal() in sheetrank_dict else (1.0 / 5) ** 2
+    return {
+        "title": title,
+        "ref": oref.normal(),
+        "heRef": oref.he_normal(),
+        "version": version,
+        "lang": lang,
+        "version_priority": version_priority if version_priority is not None else 1000,
+        "titleVariants": text["titleVariants"],
+        "categories": categories,
+        "order": oref.order_id(),
+        "path": "/".join(categories + [oref.index.title]),
+        "pagesheetrank": pagerank * sheetrank,
+        "comp_date": comp_start_date,
+        #"hebmorph_semi_exact": content_wo_cant,
+        "exact": content_wo_cant,
+        "naive_lemmatizer": content_wo_cant,
+        "prev_content": prev_content,
+        "next_content": next_content
+    }
 
 
 def make_text_doc_id(ref, version, lang):
@@ -232,7 +422,10 @@ def create_index(index_name, type):
         logging.warning("Failed to delete non-existent index: {}".format(index_name))
 
     settings = {
-        "index" : {
+        "index": {
+            "blocks": {
+                "read_only_allow_delete": None
+            },
             "analysis" : {
                 "analyzer" : {
                     "my_standard" : {
@@ -365,7 +558,7 @@ class TextIndexer(object):
             elif "contents" in mini_toc:
                 for t in mini_toc["contents"]:
                     traverse(t)
-            else:
+            elif "title" in mini_toc:
                 title = mini_toc["title"]
                 r = Ref(title)
                 vlist = r.version_list()
@@ -523,6 +716,8 @@ def index_all_sections(index_name, skip=0, merged=False, debug=False):
     """
     global doc_count
     doc_count = 0
+
+    refs = library.ref_list()
     if debug:
         refs = refs[:10]
     print "Beginning index of %d refs." % len(refs)
@@ -705,6 +900,8 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
 
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
 
 
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):

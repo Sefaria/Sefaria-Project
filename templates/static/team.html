@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "The Sefaria Team" %}{% endblock %}
 
@@ -16,7 +16,7 @@
                 <div class="main-text">
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/daniel.png" alt="Headshot of Daniel Septimus">
+                            <img src="{% static 'img/headshots/daniel.png' %}" alt="Headshot of Daniel Septimus">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -33,7 +33,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/brett.png" alt="Headshot of Brett Lockspeiser">
+                            <img src="{% static 'img/headshots/brett.png' %}" alt="Headshot of Brett Lockspeiser">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -50,7 +50,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/annie.png" alt="Headshot of Annie Lumerman">
+                            <img src="{% static 'img/headshots/annie.png' %}" alt="Headshot of Annie Lumerman">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -67,7 +67,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/sara.png" alt="Headshot of Sara Wolkenfeld">
+                            <img src="{% static 'img/headshots/sara.png' %}" alt="Headshot of Sara Wolkenfeld">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -84,7 +84,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/lev.png" alt="Headshot of Lev Israel">
+                            <img src="{% static 'img/headshots/lev.png' %}" alt="Headshot of Lev Israel">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -101,7 +101,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/ephraim.png" alt="Headshot of Ephraim Damboritz">
+                            <img src="{% static 'img/headshots/ephraim.png' %}" alt="Headshot of Ephraim Damboritz">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -118,7 +118,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/russel.png" alt="Headshot of Russel Neiss">
+                            <img src="{% static 'img/headshots/russel.png' %}" alt="Headshot of Russel Neiss">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -135,7 +135,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/gabriel.png" alt="Headshot of Gabriel Winer">
+                            <img src="{% static 'img/headshots/gabriel.png' %}" alt="Headshot of Gabriel Winer">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -152,7 +152,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/steve.png" alt="Headshot of Steve Kaplan">
+                            <img src="{% static 'img/headshots/steve.png' %}" alt="Headshot of Steve Kaplan">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -169,7 +169,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/yoni.png" alt="Headshot of Jonathan Mosenkis">
+                            <img src="{% static 'img/headshots/yoni.png' %}" alt="Headshot of Jonathan Mosenkis">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -186,7 +186,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/shmuel.png" alt="Headshot of Shmuel Weissman">
+                            <img src="{% static 'img/headshots/shmuel.png' %}" alt="Headshot of Shmuel Weissman">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -203,7 +203,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/noah.png" alt="Headshot of Noah Santacruz">
+                            <img src="{% static 'img/headshots/noah.png' %}" alt="Headshot of Noah Santacruz">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -220,7 +220,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/rachel.png" alt="Headshot of Rachel Buckman">
+                            <img src="{% static 'img/headshots/rachel.png' %}" alt="Headshot of Rachel Buckman">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -237,7 +237,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/amelia.png" alt="Headshot of Amelia Wolf">
+                            <img src="{% static 'img/headshots/amelia.png' %}" alt="Headshot of Amelia Wolf">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -254,7 +254,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/tali.png" alt="Headshot of Tali Herenstein">
+                            <img src="{% static 'img/headshots/tali.png' %}" alt="Headshot of Tali Herenstein">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -262,8 +262,8 @@
                                 <span class="int-he">טלי הרנשטיין</span>
                             </div>
                             <div class="teamTitle">
-                                <span class="int-en">Strategy and Education Senior Associate</span>
-                                <span class="int-he">רכזת במחלקת חינוך ופיתוח</span>
+                                <span class="int-en">Chief of Staff</span>
+                                <span class="int-he">ראש הסגל</span>
                             </div>
                             <a class="teamEmail" href="mailto:tali@sefaria.org">tali@sefaria.org</a>
                             <div class="teamBio"></div>
@@ -271,7 +271,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/shanee.png" alt="Headshot of Shanee Rosen">
+                            <img src="{% static 'img/headshots/shanee.png' %}" alt="Headshot of Shanee Rosen">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">
@@ -288,7 +288,7 @@
                     </div>
                     <div class="teamMember">
                         <div class="teamMemberImage">
-                            <img src="/static/img/headshots/eran.jpg" alt="Headshot of Eran Shafir">
+                            <img src="{% static 'img/headshots/eran.jpg' %}" alt="Headshot of Eran Shafir">
                         </div>
                         <div class="teamMemberDetails">
                             <div class="teamName sans">

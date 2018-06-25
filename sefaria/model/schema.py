@@ -1601,6 +1601,24 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
+class AddressYear(AddressInteger):
+    """
+    :class: AddressYear stores Hebrew years as numbers, for example 778 for the year תשע״ח
+    To convert to Roman year, add 1240
+    """
+    def toNumber(self, lang, s):
+        if lang == "he":
+            return decode_hebrew_numeral(s)
+        elif lang == "en":
+            return int(s) - 1240
+
+    @classmethod
+    def toStr(cls, lang, i, **kwargs):
+        if lang == "en":
+            return str(i + 1240)
+        elif lang == "he":
+            punctuation = kwargs.get("punctuation", True)
+            return encode_hebrew_numeral(i, punctuation=punctuation)
 
 class AddressAliyah(AddressInteger):
     en_map = [u"First", u"Second", u"Third", u"Fourth", u"Fifth", u"Sixth", u"Seventh"]

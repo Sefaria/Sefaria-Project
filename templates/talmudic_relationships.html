@@ -1,3 +1,20 @@
+<!--
+Many people gave great feedback about this visualization,
+so we’ve compiled a “To-Do” list for some future time if
+anyone wants to come back here and fiddle with it, improve it etc.
+For now, it is functional and we’ll leave it to others to improve.
+
+Ideas:
+- More of a linear tree form
+- Click on a node, and have it link to
+  the Rabbi’s bio page, or top quotes in the Gemara etc
+- Expandable graph. Start with one node, and expand by
+  clicking on the screen, revealing each immediate layer
+  of connected nodes, layer by layer.
+- Search bar does not work for Hebrew,
+  since our keys in the json are all in English…
+  Would require more data work potentially.
+-->
 
 {% extends "base.html" %}
 
@@ -8,7 +25,7 @@
 
 {% block description %}{% trans "Description goes here." %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="/static/img/links-through-rashi.png"/>{% endblock %}
+{% block ogimage %}<meta property="og:image" content="/static/img/talmud-rabbis-visualization.png"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
     <script src="https://use.typekit.net/aeg8div.js"></script>
@@ -21,11 +38,15 @@
         }
       });
     </script>
+    <!-- Search Box -->
     {% endif %}
+    <script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"> </script>
+    <script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css"> </script>
+
     <!-- The d3 script we had to pull from online, used the terminal
     to set up a python environment at a specific port
     to run it, then ran it at said port. -->
-      <script src="http://d3js.org/d3.v3.min.js"></script>
+      <script src="//d3js.org/d3.v3.min.js"></script>
 {%  endblock %}
 
 {% block css %}
@@ -97,34 +118,104 @@
 {% endblock %}
 
 {% block content %}
+<!--
+<h1>
+    <span class="int-en">Teach with Sefaria</span>
+    <span class="int-he">לָמדו עם ספריא</span>
+</h1>
+-->
   <div class = "main">
-  <h1>The Student-Teacher Relationships between the Rabbis of the Talmud </h1>
+  <h1>
+    <span class="int-en">The Student-Teacher Relationships between the Rabbis of the Talmud </span>
+    <span class="int-he">יחסי רב-תלמיד בין חכמי התלמוד</span>
+  </h1>
   <br>
   <div class="row">
     <div class="column">
-      <p> <b> The Zugot </b></p>
-      <p style = "color:#004e5f"> First  and second generations (2nd century BCE) </p>
-      <p style = "color:#7c406f"> Third, fourth and fifth generations (1st century BCE through 20 CE) </p>
+      <p>
+        <b>
+          <span class="int-en"> Zugot </span>
+          <span class = "int-he">זוגות</span>
+        </b>
+      </p>
+      <p style = "color:#004e5f">
+        <span class= "int-en">First and second generations (2nd century BCE)</span>
+        <span class= "int-he">דור ראשון ושני - המאה השנייה לפנה״ס </span>
+      </p>
+      <p style = "color:#7c406f">
+        <span class = "int-en">Third, fourth and fifth generations (1st century BCE through 20 CE)</span>
+        <span class = "int-he">דור שלישי, דור רביעי ודור חמישי: המאה הראשונה לפנה״ס עד 20 לספירה</span>
+      </p>
     </div>
     <div class="column">
-      <p> <b> The Tanaim </b></p>
-      <p style="color: #5d956f"> First generation (20 - 40 CE)</p>
-      <p style = "color:#9ab8cb"> Second generation (40 - 80 CE)</p>
-      <p style = "color:#4871bf"> Third generation (80 - 110 CE)</p>
-      <p style = "color:#cb6158"> Fourth and fifth generations (110 - 170 CE)</p>
-      <p style = "color:#c7a7b4"> Sixth and transition generations (170 - 220 CE)</p>
-      <p style = "color:#00827f"> Generation unknown </p>
+      <p>
+        <b>
+          <span class = "int-en">Tanaim</span>
+          <span class = "int-he">תנאים</span>
+        </b>
+      </p>
+      <p style="color: #5d956f">
+        <span class = "int-en"> First generation (20 - 40 CE)</span>
+        <span class = "int-he"> דור ראשון: 20 - 40 לספירה</span>
+      </p>
+      <p style ="color: #9ab8cb">
+        <span class = "int-en"> Second generation (40 - 80 CE)</span>
+        <span class = "int-he">דור שני: 40 - 80 לספירה</span>
+      </p>
+      <p style ="color: #4871bf">
+        <span class = "int-en">Third generation (80 - 110 CE)</span>
+        <span class = "int-he">דור שלישי: 80 - 110 לספירה</span>
+        </p>
+      <p style ="color: #cb6158">
+        <span class = "int-en">Fourth and fifth generations (110 - 170 CE)</span>
+        <span class = "int-he">דור רביעי ודור חמישי: 110 - 170 לספירה</span>
+      </p>
+      <p style ="color: #c7a7b4">
+        <span class = "int-en">Sixth and transition generations (170 - 220 CE)</span>
+        <span class = "int-he">דור שישי ודור המעבר: 220-170 לספירה</span>
+      </p>
+      <p style ="color: #00827f">
+        <span class = "int-en"> Generation unknown </span>
+        <span class = "int-he">תקופה לא ידועה</span>
+      </p>
     </div>
     <div class="column">
-      <p> <b> The Amoraim </b></p>
-      <p style = "color:#073570"> First generation (220 - 290 CE)</p>
-      <p style = "color:#ab4e66"> Second generation (250 - 320 CE)</p>
-      <p style = "color:#7f85a9"> Third generation (290 - 350 CE)</p>
-      <p style = "color:#ccb479"> Fourth generation (320 - 375 CE)</p>
-      <p style = "color:#594176"> Fifth generation (350 - 425 CE)</p>
-      <p style = "color:#5a99b7"> Sixth generation (375 - 460 CE)</p>
-      <p style = "color:#97b386"> Seventh generation (425 - 460 CE)</p>
-      <p style = "color:#802f3e"> Eigth generation (460 - 500 CE)</p>
+      <p> <b>
+        <span class = "int-en">Amoraim </span>
+        <span class = "int-he">אמוראים</span>
+      </b></p>
+      <p style ="color: #073570">
+        <span class = "int-en">First generation (220 - 290 CE)</span>
+        <span class = "int-he">דור ראשון: 290-220 לספירה</span>
+        </p>
+      <p style ="color: #ab4e66">
+        <span class = "int-en">Second generation (250 - 320 CE)</span>
+        <span class = "int-he">דור שני: 320-250 לספירה</span>
+      </p>
+      <p style ="color: #7f85a9">
+        <span class = "int-en">Third generation (290 - 350 CE)</span>
+        <span class = "int-he">דור שלישי: 350-290 לספירה</span>
+        </p>
+      <p style ="color: #ccb479">
+        <span class = "int-en">Fourth generation (320 - 375 CE)</span>
+        <span class = "int-he">דור רביעי: 375-320 לספירה</span>
+        </p>
+      <p style ="color: #594176">
+        <span class = "int-en">Fifth generation (350 - 425 CE)</span>
+        <span class = "int-he">דור חמישי: 425-350 לספירה</span>
+        </p>
+      <p style ="color: #5a99b7">
+        <span class = "int-en">Sixth generation (375 - 460 CE)</span>
+        <span class = "int-he">דור שישי: 460-375 לספירה</span>
+      </p>
+      <p style ="color: #97b386">
+        <span class = "int-en">Seventh generation (425 - 460 CE)</span>
+        <span class = "int-he">דור שביעי: 460-425 לספירה</span>
+      </p>
+      <p style ="color: #802f3e">
+        <span class = "int-en">Eigth generation (460 - 500 CE)</span>
+        <span class = "int-he">דור שמיני: 500-460 לספירה</span>
+      </p>
     </div>
   </div>
 
@@ -135,6 +226,12 @@
      <input type="radio"name="langSelect" id="choice2" value="en" checked = "checked">
      <label for="choice2">English</label>
  </div>
+
+ <!-- Search Box -->
+ <div class="ui-widget" style= "text-align: center">
+   <input id="search">
+    <button type="button" onclick="searchNode()">Search</button>
+</div>
 
   <div id="visualization"></div>
 </div>
@@ -342,6 +439,20 @@
                 towhite = "fill"
             }
 
+            // Code for the search box
+                        var optArray = [];
+
+                for (var i = 0; i < json.nodes.length; i++) {
+                    optArray.push(json.nodes[i].key);
+                }
+                optArray = optArray.sort();
+                $(function () {
+                    $("#search").autocomplete({
+                        source: optArray
+                        /*Use Sefaria's source for autocomplete with a
+                        an autocomplete list of all of the people*/
+                    });
+                });
 
 
             var circle = node.append("path")
@@ -728,6 +839,28 @@
 
         function isNumber(n) {
             return !isNaN(parseFloat(n)) && isFinite(n);
+        }
+        function searchNode() {
+            //find the node
+            var selectedVal = document.getElementById('search').value;
+            var node = svg.selectAll(".node");
+            if (selectedVal == "none") {
+                node.style("stroke", "white").style("stroke-width", "1");
+            } else {
+                var selected = node.filter(function (d, i) {
+                    console.log(d)
+                    return d.key != selectedVal;
+                    /*Make it center on it - Russel has code
+                    and bounce? link transitions in miliseconds
+                    and make it go to exposition -1, expand and de-expand*/
+                });
+                selected.style("opacity", "0");
+                var link = svg.selectAll(".link")
+                link.style("opacity", "0");
+                d3.selectAll(".node, .link").transition()
+                    .duration(5000)
+                    .style("opacity", 1);
+            }
         }
     </script>
 {% endblock %}

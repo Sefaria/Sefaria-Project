@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% load sefaria_tags %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Visualizing Torah Connections through Rashi's Commentary" %}{% endblock %}
 
 {% block description %}{% trans "Explore how Rashi connects verses of Torah to one another when he quotes one verse in his commentary on another." %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="/static/img/links-through-rashi.png"/>{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{% static 'img/links-through-rashi.png' %}"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
     <script src="https://use.typekit.net/aeg8div.js"></script>
@@ -65,6 +65,37 @@
   pointer-events: none;
 }
 
+.link-gen {
+    stroke: red;
+  stroke-opacity: .4;
+  fill: none;
+  pointer-events: none;
+}
+.link-ex {
+    stroke: blue;
+  stroke-opacity: .4;
+  fill: none;
+  pointer-events: none;
+}
+.link-lev {
+    stroke: green;
+  stroke-opacity: .4;
+  fill: none;
+  pointer-events: none;
+}
+.link-bam {
+    stroke: black;
+  stroke-opacity: .4;
+  fill: none;
+  pointer-events: none;
+}
+.link-dev {
+    stroke: purple;
+  stroke-opacity: .4;
+  fill: none;
+  pointer-events: none;
+}
+
 .node:hover,
 .node--source,
 .node--target {
@@ -84,22 +115,26 @@
 
 .link--source,
 .link--target {
-  stroke-opacity: 1;
-  stroke-width: 2px;
+    opacity: 1 !important;
+    stroke-width: 6px;
 }
 
-.link--source {
-  stroke: #d62728;
-}
+    .link--hide {
+    opacity: .25;
+    }
 
-.link--target {
-  stroke: #2ca02c;
-}
+    .link--full {
+    opacity: 1 !important;
+    stroke-width: 6px;
+    }
 .green {
   color: #2ca02c;
 }
 .red {
   color: #d62728;
+}
+.black {
+  color: #000;
 }
 {% endblock %}
 
@@ -113,8 +148,9 @@
       <p>This visualization show links between verses of Torah that are connected by virtue of Rashi <i>quoting</i> one verse while <i>commenting</i> on another.</p>
       <ul>
         <li>Hover over the grey ring to reveal connections.
-        <li>A <span class="green">green</span> line means Rashi quotes the selected verse in his commentary on the connected verse.</li>
-        <li>A <span class="red">red</span> line means Rashi quotes the connected verse when commenting on the selected verse.</li>
+        <li>A <span class="black">black</span> title reference represents the selected verse.</li>
+        <li>A <span class="green">green</span> title reference means that the Rashi on that verse quotes the <span class="black">selected</span> verse.</li>
+        <li>A <span class="red">red</span> title reference is quoted by the Rashi on the selected verse.</li>
         <li>Click a verse to open it with Rashi's commentary.</li>
       </ul>
     </div>
@@ -165,7 +201,24 @@ d3.json(load_url, function(error, classes) {
       .data(bundle(links))
     .enter().append("path")
       .each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
-      .attr("class", "link")
+      .attr("class", function(key){
+          if (key.source.name.includes("Genesis")) {
+              return "link-gen"
+          }
+          else if (key.source.name.includes("Exodus")) {
+              return "link-ex"
+          }
+          else if (key.source.name.includes("Leviticus" )) {
+              return "link-lev"
+          }
+          else if (key.source.name.includes("Numbers")) {
+              return "link-bam"
+          }
+          else if (key.source.name.includes("Deuteronomy")) {
+              return "link-dev"
+          }
+          else {return "link"}
+      })
       .attr("d", line)
 
   node = node
@@ -183,12 +236,14 @@ d3.json(load_url, function(error, classes) {
 function mouseovered(d) {
   node
       .each(function(n) { n.target = n.source = false; });
-
+  link.style("opacity", .1);
   link
       .classed("link--target", function(l) { if (l.target === d) return l.source.source = true; })
       .classed("link--source", function(l) { if (l.source === d) return l.target.target = true; })
     .filter(function(l) { return l.target === d || l.source === d; })
-      .each(function() { this.parentNode.appendChild(this); });
+      .each(function() {
+          this.parentNode.appendChild(this);
+      });
 
   node
       .classed("node--target", function(n) { return n.target; })
@@ -196,7 +251,9 @@ function mouseovered(d) {
 }
 
 function mouseouted(d) {
+  link.style("opacity", 1);
   link
+      .classed("link--hide", false)
       .classed("link--target", false)
       .classed("link--source", false);
 

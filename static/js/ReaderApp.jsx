@@ -41,6 +41,40 @@ class ReaderApp extends Component {
             currVersions:  props.initialPanels[0].currVersions,
             bookRef:       props.initialPanels[0].bookRef
         };
+      } else if (props.initialPath.indexOf("/sheets") !== -1) {
+        var mode = props.initialFilter ? "SheetAndConnections" : "Sheet";
+        var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
+
+        panels[0] = {
+          highlightedNodes: initialPanel.highlightedNodes,
+          naturalDateCreated: initialPanel.sheet.naturalDateCreated,
+          sheetID: initialPanel.sheetID,
+          sheet: initialPanel.sheet,
+          refs: props.initialRefs,
+          mode: mode,
+          menuOpen: props.initialMenu,
+          filter: props.initialFilter,
+          versionFilter: props.initialVersionFilter,
+          menuOpen: props.initialMenu,
+          connectionsMode: initialPanel.connectionsMode || "Resources",
+          currVersions: initialPanel.currVersions || {en:null, he:null},
+          searchQuery: props.initialQuery,
+          appliedSearchFilters: props.initialSearchFilters,
+          navigationCategories: props.initialNavigationCategories,
+          navigationTopic: props.initialTopic,
+          sheetsTag: props.initialSheetsTag,
+          group: props.initialGroup,
+          searchField: props.initialSearchField,
+          searchSortType: props.initialSearchSortType,
+          settings: Sefaria.util.clone(defaultPanelSettings)
+        };
+        if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
+        else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
+        else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        if (mode === "SheetAndConnections") {
+          panels[0].highlightedRefs = props.initialRefs;
+        }
+
       }
       else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
@@ -414,6 +448,12 @@ class ReaderApp extends Component {
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
             break;
+          case "sheet meta":
+            var sheetTitle = state.sheet.title.stripHtml();
+            hist.title = Sefaria._("Sefaria Source Sheets")+": " + sheetTitle;
+            hist.url = i == 0 ? "sheets/"+ state.sheet.id+"." : "sheet&s="+ state.sheet.id;
+            hist.mode = "sheet meta";
+            break;
           case "extended notes":
             var bookTitle = state.mode==="Connections" ?Sefaria.parseRef(state.currentlyVisibleRef).index : state.bookRef;
             hist.currVersions = state.currVersions;
@@ -484,6 +524,11 @@ class ReaderApp extends Component {
             hist.url = "groups";
             hist.mode = "publicGroups";
             break;
+          case "publicGroups":
+            hist.title = Sefaria._("Sefaria Groups");
+            hist.url = "groups";
+            hist.mode = "publicGroups";
+            break;
           case "myGroups":
             hist.title = Sefaria._("Sefaria Groups");
             hist.url = "my/groups";
@@ -508,8 +553,8 @@ class ReaderApp extends Component {
       } else if (state.mode === "Text") {
         var highlighted = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : null;
 
-        if (highlighted && 
-            (Sefaria.refContains(highlighted, state.currentlyVisibleRef) 
+        if (highlighted &&
+            (Sefaria.refContains(highlighted, state.currentlyVisibleRef)
              || Sefaria.refContains(state.currentlyVisibleRef, highlighted))) {
           var htitle = highlighted;
         } else {
@@ -534,6 +579,7 @@ class ReaderApp extends Component {
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections"
 
+
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
@@ -556,6 +602,22 @@ class ReaderApp extends Component {
           hist.url += window.location.search;
         }
         hist.mode   = "Header"
+
+      } else if (state.mode === "Sheet") {
+        hist.title = state.sheet.title.stripHtml();
+        var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
+        hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
+        hist.mode     = "Sheet"
+      } else if (state.mode === "SheetAndConnections") {
+        var filter    = state.filter.length ? state.filter :
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
+        hist.sources  = filter.join("+");
+        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+          hist.versionFilter = state.versionFilter[0];
+        }
+        hist.title    = state.sheet.title.stripHtml()  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.mode     = "SheetAndConnections";
       }
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language.substring(0,2);
@@ -569,7 +631,7 @@ class ReaderApp extends Component {
 
     var url   = "/" + (histories.length ? histories[0].url : "");
     url += this._getUrlVersionsParams(histories[0].currVersions, 0);
-    if (histories[0].mode === "TextAndConnections") {
+    if (histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections") {
         url += "&with=" + histories[0].sources;
     }
     if(histories[0].lang) {
@@ -582,10 +644,11 @@ class ReaderApp extends Component {
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      if (histories[i-1].mode === "Text" && histories[i].mode === "Connections") {
+      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
+          var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
-          hist.url   = "/" + histories[1].url; // Rewrite the URL
+          hist.url  = sheetAndCommentary ? "/" + histories[0].url : "/" + histories[1].url; // Rewrite the URL
           hist.url += this._getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
@@ -598,7 +661,7 @@ class ReaderApp extends Component {
           }
           hist.url += "&with=" + histories[1].sources;
 
-          hist.title = histories[1].title;
+          hist.title = sheetAndCommentary ? histories[0].title : histories[1].title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
@@ -681,19 +744,23 @@ class ReaderApp extends Component {
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
-      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections"
+      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnection"
       refs:                    state.refs                    || [], // array of ref strings
       filter:                  state.filter                  || [],
       versionFilter:           state.versionFilter           || [],
       connectionsMode:         state.connectionsMode         || "Resources",
       currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
+      highlightedNodes:        state.highlightedNodes        || [],
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
+      sheet:                   state.sheet                   || null,
+      sheetNodes:              state.sheetNodes              || null,
+      nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
@@ -770,13 +837,23 @@ class ReaderApp extends Component {
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
-  handleSegmentClick(n, ref) {
+  handleSegmentClick(n, ref, sheetNode) {
     // Handle a click on a text segment `ref` in from panel in position `n`
     // Update or add panel after this one to be a TextList
-    this.setTextListHighlight(n, [ref]);
+    var refs = typeof ref == "string" ? [ref] : ref;
+
+    if (sheetNode) {
+      this.setSheetHighlight(n, sheetNode);
+    }
+    else {
+      this.setTextListHighlight(n, refs);
+    }
+
+    var nodeRef = sheetNode ? this.state.panels[n].sheet.id + "." + sheetNode : null;
+
     if (this.currentlyConnecting()) { return }
 
-    this.openTextListAt(n+1, [ref]);
+    this.openTextListAt(n+1, refs, nodeRef);
     if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
@@ -920,7 +997,28 @@ class ReaderApp extends Component {
       this.saveRecentlyViewed(state);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
-    this.setState({panels: this.state.panels});
+    var new_state = {panels: this.state.panels};
+    if(this.didDefaultPanelSettingsChange(state)){
+      new_state["defaultPanelSettings"] = Sefaria.util.clone(state.settings);
+    }
+    this.setState(new_state);
+  }
+  didDefaultPanelSettingsChange(state){
+    if ("settings" in state){
+      let defaultSettings = this.getDefaultPanelSettings();
+      let defaultKeys = Object.keys(defaultSettings);
+      for (let i of defaultKeys) {
+        console.log(i); // logs 3, 5, 7
+        if (state.settings[i] != defaultSettings[i]){
+          return true;
+        }
+
+      }
+    }else{
+      return false;
+    }
+
+
   }
   didPanelRefChange(prevPanel, nextPanel) {
     // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
@@ -1105,13 +1203,13 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  openTextListAt(n, refs) {
+  openTextListAt(n, refs, sheetNodes) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
     var newPanels = this.state.panels.slice();
     var panel = newPanels[n] || {};
-    var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text') ? newPanels[n-1] : null;
+    var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text' || n >= 1 && newPanels[n-1].mode == 'Sheet') ? newPanels[n-1] : null;
 
     if (panel.mode !== "Connections") {
       // No connections panel is open yet, splice in a new one
@@ -1121,6 +1219,8 @@ class ReaderApp extends Component {
       panel.versionFilter = [];
     }
     panel.refs              = refs;
+    panel.sheetNodes        = sheetNodes ? sheetNodes.split(".")[1] : null;
+    panel.nodeRef           = sheetNodes;
     panel.menuOpen          = null;
     panel.mode              = panel.mode || "Connections";
     panel.settings          = panel.settings ? panel.settings : Sefaria.util.clone(this.getDefaultPanelSettings());
@@ -1147,6 +1247,16 @@ class ReaderApp extends Component {
       this.openTextListAt(n+1, refs);
     }
   }
+
+  setSheetHighlight(n, node) {
+    // Set the sheetListHighlight for panel `n` to `node`
+    node = typeof node === "string" ? [node] : node;
+    this.state.panels[n].highlightedNodes = node;
+    this.setState({panels: this.state.panels});
+    }
+
+
+
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
@@ -1244,7 +1354,16 @@ class ReaderApp extends Component {
   convertToTextList(n) {
     var base = this.state.panels[n-1];
     this.closePanel(n);
-    this.openTextListAt(n, base.highlightedRefs);
+    if (base.mode == "Sheet") {
+      for(var i in base.sheet.sources){
+        if (base.sheet.sources[i].node == base.highlightedNodes) {
+          this.openTextListAt(n, [base.sheet.sources[i].ref]);
+        }
+      }
+    }
+    else {
+      this.openTextListAt(n, base.highlightedRefs);
+    }
   }
   showLibrary(categories) {
     if (this.props.multiPanel) {
@@ -1346,19 +1465,19 @@ class ReaderApp extends Component {
     }
 
     if (panelStates.length == 2 &&
-        panelStates[0].mode == "Text" &&
+        (panelStates[0].mode == "Text" || panelStates[0].mode == "Sheet") &&
         (panelStates[1].mode == "Connections" || panelStates[1].menuOpen === "compare" || panelStates[1].menuOpen === "search" )) {
       widths = [68.0, 32.0];
       unit = "%";
     } else if (panelStates.length == 3 &&
-        panelStates[0].mode == "Text" &&
+        (panelStates[0].mode == "Text" || panelStates[0].mode == "Sheet") &&
         panelStates[1].mode == "Connections" &&
-        panelStates[2].mode == "Text") {
+        (panelStates[2].mode == "Text" || panelStates[2].mode == "Sheet")) {
       widths = [37.0, 26.0, 37.0];
       unit = "%";
     } else if (panelStates.length == 3 &&
-        panelStates[0].mode == "Text" &&
-        panelStates[1].mode == "Text" &&
+        (panelStates[0].mode == "Text"|| panelStates[0].mode == "Sheet") &&
+        (panelStates[1].mode == "Text"|| panelStates[1].mode == "Sheet") &&
         panelStates[2].mode == "Connections") {
       widths = [37.0, 37.0, 26.0];
       unit = "%";
