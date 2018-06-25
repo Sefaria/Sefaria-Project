@@ -1,0 +1,194 @@
+'''
+this text file has a list of sugyot marked differently as mishanyot (or not) depending on how the csv was created.
+Steinsaltz mishnayot not Koren - are Refs (usually ranges) that according to the Steinsaltz sugyot letter segmentation point to a Mishnah, but according to the Koren translation markers is not marked as a mishnah. Koren mishnayot not Steinsaltz - lists the vice versa.
+As a rule of thumb (based on how these refs were created) if there is a misunderstanding about how long the mishnah is (ex: 'Shevuot 2a:1-2b:7' vs 'Shevuot 2a:1-2b:11') the koren (usually the longer one) is correct. But this rule is not necessary use all the info you have. (ex: 'Bava Metzia 65a:7 and Bava Metzia 65b:2' vs 'Bava Metzia 65a:7-65b:2')
+We may just want to compare this with the Talmud Davidson versions of Mishnayot to get a fuller picture
+'''
+
+** Kiddushin **
+Steinsaltz mishnayot not Koren
+Kiddushin 82a:2
+Kiddushin 82a:6-10
+Koren mishnayot not Steinsaltz
+** Makkot **
+Steinsaltz mishnayot not Koren
+Makkot 8b:8
+Koren mishnayot not Steinsaltz
+** Ketubot **
+Steinsaltz mishnayot not Koren
+Ketubot 44a:11-44b:3
+Ketubot 78a:1-7
+Koren mishnayot not Steinsaltz
+Ketubot 44a:11-13
+Ketubot 65b:13-14
+Ketubot 78a:1-4
+Ketubot 83a:1-3
+** Bava Metzia **
+Steinsaltz mishnayot not Koren
+Bava Metzia 65a:7
+Bava Metzia 65b:2
+Bava Metzia 75a:11-75b:1
+Bava Metzia 115a:8
+Koren mishnayot not Steinsaltz
+Bava Metzia 65a:7-65b:2
+Bava Metzia 75a:11-75b:4
+** Sukkah **
+Steinsaltz mishnayot not Koren
+Sukkah 24b:9
+Sukkah 50a:6-50b:1
+Koren mishnayot not Steinsaltz
+Sukkah 22a:1
+Sukkah 50a:6
+** Megillah **
+Steinsaltz mishnayot not Koren
+Megillah 7b:10
+Megillah 8a:9
+Koren mishnayot not Steinsaltz
+** Shevuot **
+Steinsaltz mishnayot not Koren
+Shevuot 2a:1-2b:7
+Shevuot 14a:12-14
+Shevuot 36b:5-8
+Shevuot 38b:8-11
+Shevuot 44b:8-45a:2
+Shevuot 49a:4-6
+Koren mishnayot not Steinsaltz
+Shevuot 2a:1-2b:11
+Shevuot 14a:12-14b:7
+Shevuot 36b:5-18
+Shevuot 38b:8-19
+Shevuot 44b:8-45a:10
+Shevuot 49a:4-49b:5
+** Nazir **
+Steinsaltz mishnayot not Koren
+Nazir 5a:15
+Nazir 13b:2-14a:4
+Nazir 16a:4-6
+Nazir 23a:2
+Nazir 24a:2-24b:1
+Nazir 42a:8
+Nazir 42a:11-13
+Nazir 42a:14-43a:4
+Nazir 66a:10-11
+Koren mishnayot not Steinsaltz
+Nazir 13b:2
+Nazir 16a:4-7
+Nazir 42a:11
+Nazir 42a:14
+** Sotah **
+Steinsaltz mishnayot not Koren
+Sotah 27b:3-5
+Sotah 32a:5-6
+Sotah 45b:10-18
+Sotah 49a:12-16
+Koren mishnayot not Steinsaltz
+Sotah 17a:1-5
+Sotah 27b:3-14
+Sotah 32a:5-32b:1
+Sotah 44b:10-12
+Sotah 45b:10
+Sotah 49a:12-49b:3
+** Yoma **
+Steinsaltz mishnayot not Koren
+Yoma 2a:3-5
+Yoma 18b:6-19a:12
+Yoma 30a:6-31a:4
+Yoma 34b:7-35a:2
+Yoma 35b:14-36a:5
+Koren mishnayot not Steinsaltz
+Yoma 2a:1-2
+Yoma 18b:6-7
+Yoma 22a:1-3
+Yoma 30a:6
+Yoma 34b:7-8
+Yoma 35b:14-15
+** Gittin **
+Steinsaltz mishnayot not Koren
+Gittin 43b:7
+Gittin 79b:14-80a:3
+Koren mishnayot not Steinsaltz
+Gittin 79a:1
+Gittin 79b:9
+Gittin 79b:14-80a:9
+Gittin 81a:2
+** Yevamot **
+Steinsaltz mishnayot not Koren
+Yevamot 30a:3
+Yevamot 76b:8-10
+Yevamot 104a:16-104b:1
+Koren mishnayot not Steinsaltz
+Yevamot 23b:1-5
+Yevamot 30a:1
+Yevamot 35b:1-5
+Yevamot 84a:5-12
+Yevamot 104a:16-104b:2
+Yevamot 107a:1-4
+** Rosh Hashanah **
+Steinsaltz mishnayot not Koren
+Rosh Hashanah 22a:10-12
+Koren mishnayot not Steinsaltz
+Rosh Hashanah 22a:10-11
+** Chagigah **
+Steinsaltz mishnayot not Koren
+Koren mishnayot not Steinsaltz
+** Bava Batra **
+Steinsaltz mishnayot not Koren
+Bava Batra 84b:5-6
+Bava Batra 134a:10-12
+Bava Batra 135b:4
+Koren mishnayot not Steinsaltz
+Bava Batra 134a:10-135b:4
+** Taanit **
+Steinsaltz mishnayot not Koren
+Taanit 15a:4-15b:2
+Taanit 18b:14-19a:2
+Taanit 26a:3
+Koren mishnayot not Steinsaltz
+Taanit 15a:4-15b:9
+Taanit 18b:14-19a:11
+Taanit 26a:3-26b:6
+** Beitzah **
+Steinsaltz mishnayot not Koren
+Beitzah 14b:12-15a:2
+Beitzah 39b:11-40a:1
+Beitzah 40a:14
+Koren mishnayot not Steinsaltz
+Beitzah 14b:12
+** Moed Katan **
+Steinsaltz mishnayot not Koren
+Koren mishnayot not Steinsaltz
+** Nedarim **
+Steinsaltz mishnayot not Koren
+Nedarim 10b:12-11a:6
+Nedarim 15b:13-16a:3
+Nedarim 38b:8-39b:1
+Nedarim 51a:10
+Nedarim 72b:1
+Nedarim 73b:1
+Koren mishnayot not Steinsaltz
+Nedarim 10b:12-13
+Nedarim 15b:13
+Nedarim 35b:1
+Nedarim 38b:8
+Nedarim 57a:1-57b:1
+Nedarim 71a:1
+Nedarim 72b:1-73b:1
+Nedarim 74a:1-4
+Nedarim 86b:4
+** Bava Kamma **
+Steinsaltz mishnayot not Koren
+Koren mishnayot not Steinsaltz
+** Sanhedrin **
+Steinsaltz mishnayot not Koren
+Sanhedrin 2a:9-10
+Sanhedrin 21a:3
+Sanhedrin 40a:1-2
+Sanhedrin 46a:13-16
+Sanhedrin 85b:3
+Sanhedrin 85b:18
+Sanhedrin 107b:18-108a:4
+Koren mishnayot not Steinsaltz
+Sanhedrin 2a:1-2b:2
+Sanhedrin 40a:1-14
+Sanhedrin 46a:13-46b:1
+Sanhedrin 85b:3-18

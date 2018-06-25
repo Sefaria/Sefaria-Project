@@ -15,7 +15,8 @@ from pprint import pprint
 from datetime import datetime
 from collections import Counter
 from copy import deepcopy
-
+import django
+django.setup()
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
 
@@ -395,7 +396,7 @@ def prepare_merged_text_for_export(title, lang=None):
 
     # Exclude copyrighted docs from merging
     text_docs = [text for text in text_docs if not text_is_copyright(text)]
-    
+
     if len(text_docs) == 0:
         return
     elif len(text_docs) == 1:
@@ -758,5 +759,3 @@ def _import_versions_from_csv(rows, columns, user_id):
                 modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
             except InputError:
                 pass
-
-

@@ -423,7 +423,10 @@ def create_index(index_name, type):
         logging.warning("Failed to delete non-existent index: {}".format(index_name))
 
     settings = {
-        "index" : {
+        "index": {
+            "blocks": {
+                "read_only_allow_delete": None
+            },
             "analysis" : {
                 "analyzer" : {
                     "my_standard" : {
@@ -556,7 +559,7 @@ class TextIndexer(object):
             elif "contents" in mini_toc:
                 for t in mini_toc["contents"]:
                     traverse(t)
-            else:
+            elif "title" in mini_toc:
                 title = mini_toc["title"]
                 r = Ref(title)
                 vlist = r.version_list()

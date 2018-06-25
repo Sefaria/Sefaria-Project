@@ -810,7 +810,7 @@ class JaggedArrayNodeSection extends Component {
         if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
         if (this.props.addressTypes[0] === "Talmud") {
           var enSection = Sefaria.hebrew.intToDaf(i);
-          var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+          var heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
         } else if (this.props.addressTypes[0] === "Year") {
           var enSection = i + 1241;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
