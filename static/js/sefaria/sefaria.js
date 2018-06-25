@@ -49,9 +49,20 @@ Sefaria = extend(Sefaria, {
       var toSplit = q.split("-");
       var first   = toSplit[0];
 
-      var book, bookOn, index, nums, i;
+      var book, index, nums, i;
       for (i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
+          if (book in Sefaria.virtualBooksDict) {
+              // todo: This assumes that this is a depth one integer indexed node
+              var numberMatch = first.match(/([\d ]+)$/);
+              if (numberMatch) {
+                  nums = String(+numberMatch[0]);
+                  book = first.slice(0, numberMatch.index)
+              } else {
+                  book = first;
+              }
+              break;
+          }
           if (book in Sefaria.booksDict) {
               nums = first.slice(i+1);
               break;
@@ -2049,6 +2060,7 @@ Sefaria.setup = function(data) {
       Sefaria._partner_role = cookie._partner_role;
     }
     Sefaria._makeBooksDict();
+    Sefaria.virtualBooksDict = {Jastrow: 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
     if (!Sefaria.recentlyViewed) {
         Sefaria.recentlyViewed = [];

@@ -1390,9 +1390,12 @@ class VirtualNode(TitledTreeNode):
         }
         return text.Ref(_obj=d)
     """
+    def address(self):
+        return self.parent.address()
 
     def create_dynamic_node(self, title, tref):
         return self.entry_class(self, title, tref)
+
 
 
 class DictionaryEntryNode(TitledTreeNode):
@@ -1439,6 +1442,21 @@ class DictionaryEntryNode(TitledTreeNode):
         from pprint import pformat
         return [pformat(self.lexicon_entry.content)]
 
+    def address(self):
+        return self.parent.address() + [self.word]
+
+    # This is identical to SchemaNode.ref().  Inherit?
+    def ref(self):
+        from . import text
+        d = {
+            "index": self.index,
+            "book": self.full_title("en"),
+            "primary_category": self.index.get_primary_category(),
+            "index_node": self,
+            "sections": [],
+            "toSections": []
+        }
+        return text.Ref(_obj=d)
 
 class DictionaryNode(VirtualNode):
 
