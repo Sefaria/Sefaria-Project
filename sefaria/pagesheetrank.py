@@ -182,6 +182,8 @@ def init_pagerank_graph():
                 print link.refs
             except IndexError:
                 pass
+            except AssertionError:
+                pass
             current_link += 1
 
         page += 1
