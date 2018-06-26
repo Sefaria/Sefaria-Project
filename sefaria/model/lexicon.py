@@ -93,7 +93,9 @@ class DictionaryEntry(LexiconEntry):
         "binyan_form",
         "alt_headwords",
         "derivatives",
-        "quotes"
+        "quotes",
+        "prev_hw",
+        "next_hw"
     ]
 
 class StrongsDictionaryEntry(DictionaryEntry):
