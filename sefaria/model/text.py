@@ -153,7 +153,8 @@ class AbstractIndex(object):
         def annotate_schema(schema, vstate):
             if "nodes" in schema:
                 for node in schema["nodes"]:
-                    annotate_schema(node, vstate[node["key"]])
+                    if "key" in node:
+                        annotate_schema(node, vstate[node["key"]])
             else:
                 schema["content_counts"] = simplify_version_state(vstate)
 
@@ -1609,10 +1610,8 @@ class VirtualTextChunk(AbstractTextRecord):
 
     def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
         self._oref = oref
-        self.text = oref.index_node.get_text()
+        self.text = oref.index_node.get_text()   # <- This is where the magic happens
         self._ref_depth = len(self._oref.sections)
-        self._versions = []
-        self._version_ids = None
         self._saveable = False  # Can this TextChunk be saved?
 
         self.lang = lang
@@ -1621,6 +1620,9 @@ class VirtualTextChunk(AbstractTextRecord):
 
     def version(self):
         return ""
+
+    def version_ids(self):
+        return ["virtualid"]
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
@@ -3383,30 +3385,30 @@ class Ref(object):
                 normals = [r.normal() for r in self.range_list()]
 
             for r in normals:
-                sections = re.sub("^%s" % re.escape(self.book), '', r)
-                patterns.append("%s$" % sections)   # exact match
-                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
-                patterns.append("%s \d" % sections) # extra granularity following space
+                sections = re.sub(u"^%s" % re.escape(self.book), '', r)
+                patterns.append(u"%s$" % sections)   # exact match
+                patterns.append(u"%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(u"%s \d" % sections) # extra granularity following space
         else:
-            sections = re.sub("^%s" % re.escape(self.book), '', self.normal())
-            patterns.append("%s$" % sections)   # exact match
+            sections = re.sub(u"^%s" % re.escape(self.book), '', self.normal())
+            patterns.append(u"%s$" % sections)   # exact match
             if self.index_node.has_titled_continuation():
                 patterns.append(u"{}({}).".format(sections, u"|".join(self.index_node.title_separators)))
             if self.index_node.has_numeric_continuation():
-                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
-                patterns.append("%s \d" % sections) # extra granularity following space
+                patterns.append(u"%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(u"%s \d" % sections) # extra granularity following space
 
         escaped_book = re.escape(self.book)
         if anchored:
             if as_list:
-                return ["^{}{}".format(escaped_book, p) for p in patterns]
+                return [u"^{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "^%s(%s)" % (escaped_book, "|".join(patterns))
+                return u"^%s(%s)" % (escaped_book, u"|".join(patterns))
         else:
             if as_list:
-                return ["{}{}".format(escaped_book, p) for p in patterns]
+                return [u"{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "%s(%s)" % (escaped_book, "|".join(patterns))
+                return "u%s(%s)" % (escaped_book, u"|".join(patterns))
 
     def ref_regex_query(self):
         """
