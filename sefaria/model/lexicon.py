@@ -18,7 +18,8 @@ class WordForm(abst.AbstractMongoRecord):
     optional_attrs = [
         "c_form",
         "refs",
-        "language_code"
+        "language_code",
+        "generated_by"
     ]
 
     def load(self, query, proj=None):
@@ -92,7 +93,9 @@ class DictionaryEntry(LexiconEntry):
         "binyan_form",
         "alt_headwords",
         "derivatives",
-        "quotes"
+        "quotes",
+        "prev_hw",
+        "next_hw"
     ]
 
 class StrongsDictionaryEntry(DictionaryEntry):
@@ -211,6 +214,3 @@ class LexiconLookupAggregator(object):
             return LexiconEntrySet({"$or": results})
         else:
             return None
-
-
-
