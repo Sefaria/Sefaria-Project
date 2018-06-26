@@ -200,18 +200,20 @@ def init_pagerank_graph():
 def calculate_pagerank():
     graph = init_pagerank_graph()
     #NOTE just a backup in case pagerank fails: json.dump(dict(graph), open("{}pagerank_graph.json".format(STATICFILES_DIRS[0]), "wb"), indent=4)
-    ranked = pagerank(graph, 0.9999, verbose=True, tolerance=0.00005)
+    ranked = pagerank(graph, 0.85, verbose=True, tolerance=0.00005)
     f = open(STATICFILES_DIRS[0] + "pagerank.json","wb")
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
     count = 0
-    smallest_pr = sorted_ranking[0]
-    while (sorted_ranking[count] - smallest_pr) < 1e-30:
+    smallest_pr = sorted_ranking[0][1]
+    while (sorted_ranking[count][1] - smallest_pr) < 1e-30:
         count += 1
     sorted_ranking = sorted_ranking[count:]
     print "Removing {} low pageranks".format(count)
 
     pr_plus_text_len = []
-    for r, pr in sorted_ranking:
+    for i, (r, pr) in enumerate(sorted_ranking):
+        if i % 100 == 0:
+            print "{}/{}".format(i, len(sorted_ranking))
         t = re.sub(ur"[^\u05d0-\u05ea ]", u"", TextChunk(Ref(r), "he").text)
         pr_plus_text_len += [r, math.log(pr) + 20 + math.log(3.0/len(t))]
 
