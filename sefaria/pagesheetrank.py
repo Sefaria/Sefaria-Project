@@ -215,7 +215,7 @@ def calculate_pagerank():
         if i % 100 == 0:
             print "{}/{}".format(i, len(sorted_ranking))
         t = re.sub(ur"[^\u05d0-\u05ea ]", u"", TextChunk(Ref(r), "he").text)
-        pr_plus_text_len += [r, math.log(pr) + 20 + math.log(3.0/len(t))]
+        pr_plus_text_len += [[r, math.log(pr) + 20 + math.log(3.0/(len(t)+1))]]
 
     pr_plus_text_len.sort(key=lambda x: x[1])
     json.dump(pr_plus_text_len,f,indent=4)
