@@ -1401,10 +1401,20 @@ class VirtualNode(TitledTreeNode):
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
 
-    def __init__(self, parent, title, tref):
-        reg = regex.compile(regex.escape(title) + self.after_title_delimiter_re  + "(\S.*)")
-        match = reg.match(tref)
-        self.word = match.group(1) or ""
+    def __init__(self, parent, title=None, tref=None, word=None):
+        """
+        Can be instanciated with title+tref or word
+        :param parent:
+        :param title:
+        :param tref:
+        :param word:
+        """
+        if title and tref:
+            reg = regex.compile(regex.escape(title) + self.after_title_delimiter_re  + "(\S.*)")
+            match = reg.match(tref)
+            self.word = match.group(1) or ""
+        elif word:
+            self.word = word
 
         super(DictionaryEntryNode, self).__init__({
             "titles": [{
@@ -1421,7 +1431,6 @@ class DictionaryEntryNode(TitledTreeNode):
 
         self.parent = parent
         self.index = self.parent.index
-        self.tref = tref.strip()
         self.sectionNames = ["Line"]    # Hacky hack
         self.depth = 1
         self.addressTypes = ["Integer"]
@@ -1431,7 +1440,7 @@ class DictionaryEntryNode(TitledTreeNode):
             self.lexicon_entry = self.parent.dictionaryClass().load({"parent_lexicon": 'Jastrow Dictionary', "headword": self.word})
             self.has_word_match = bool(self.lexicon_entry)
         else:
-            word = "Not Found"
+            self.word = "Not Found"
 
     def get_sections(self):
         return []
@@ -1444,6 +1453,24 @@ class DictionaryEntryNode(TitledTreeNode):
 
     def address(self):
         return self.parent.address() + [self.word]
+
+    def prev_sibling(self):
+        return self.prev_leaf()
+
+    def next_sibling(self):
+        return self.next_leaf()
+
+    #Currently assumes being called from leaf node
+    def next_leaf(self):
+        if not self.has_word_match:
+            return None
+        return self.__class__(parent=self.parent, word=self.lexicon_entry.next_hw)
+
+    #Currently assumes being called from leaf node
+    def prev_leaf(self):
+        if not self.has_word_match:
+            return None
+        return self.__class__(parent=self.parent, word=self.lexicon_entry.prev_hw)
 
     # This is identical to SchemaNode.ref().  Inherit?
     def ref(self):
