@@ -1,6 +1,8 @@
 # implementation of pagerank with low ram requirements
 #source: http://michaelnielsen.org/blog/using-your-laptop-to-compute-pagerank-for-millions-of-webpages/
 
+import re
+import math
 import numpy
 import random
 import json
@@ -63,7 +65,7 @@ def create_web(g):
   for i, (r, links) in enumerate(g.items()):
     r_ind = node2index[r]
     link_inds = [(node2index[r_temp], count) for r_temp, count in links.items()]
-    w.in_links[r_ind] = [l[0] for l in link_inds]
+    w.in_links[r_ind] = reduce(lambda a, b: a + [b[0]]*int(round(b[1])), link_inds, [])
     for j, count in link_inds:
       if w.number_out_links[j] == 0: w.dangling_pages.pop(j)
       w.number_out_links[j] += count
@@ -201,8 +203,35 @@ def calculate_pagerank():
     ranked = pagerank(graph, 0.9999, verbose=True, tolerance=0.00005)
     f = open(STATICFILES_DIRS[0] + "pagerank.json","wb")
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
-    json.dump(sorted_ranking,f,indent=4)
+    count = 0
+    smallest_pr = sorted_ranking[0]
+    while (sorted_ranking[count] - smallest_pr) < 1e-30:
+        count += 1
+    sorted_ranking = sorted_ranking[count:]
+    print "Removing {} low pageranks".format(count)
+
+    pr_plus_text_len = []
+    for r, pr in sorted_ranking:
+        t = re.sub(ur"[^\u05d0-\u05ea ]", u"", TextChunk(Ref(r), "he").text)
+        pr_plus_text_len += [r, math.log(pr) + 20 + math.log(3.0/len(t))]
+
+    pr_plus_text_len.sort(key=lambda x: x[1])
+    json.dump(pr_plus_text_len,f,indent=4)
     f.close()
+
+
+def test_pagerank(a,b):
+    g = {
+        "a": {
+            "b": 0.7
+        },
+        "b": {
+            "c": 0.1
+        },
+        "c": {}
+    }
+    ranked = pagerank(g, a, verbose=True, tolerance=b)
+    print ranked
 
 def calculate_sheetrank():
 
