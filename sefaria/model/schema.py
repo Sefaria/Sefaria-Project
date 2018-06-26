@@ -1444,12 +1444,50 @@ class DictionaryEntryNode(TitledTreeNode):
 
     def get_sections(self):
         return []
-
+    
+    def get_sense(self, sense):
+        text = u''
+        for field in ['number', 'definition', 'alternative', 'notes']:
+            #TODO: add space after number
+            text += sense.get(field, u'')
+        return text
+    
     def get_text(self):
         if not self.has_word_match:
             return [u"No Entry for {}".format(self.word)]
         from pprint import pformat
-        return [pformat(self.lexicon_entry.content)]
+        content = self.lexicon_entry.content
+        new_content = []
+        if hasattr(self.lexicon_entry, 'alt_headwords'):
+            alt_hws = u''
+            for alt_hw in self.lexicon_entry.alt_headwords:
+                if alt_hws:
+                    alt_hws += u', '
+                alt_hws += u'<strong>{}</strong>'.format(alt_hw)
+            new_content.append(alt_hws)
+        for field in ['morphology']:
+            if field in content:
+                new_content.append(content[field])
+        lang = u''
+        if hasattr(self.lexicon_entry, 'language_code'):
+            lang += self.lexicon_entry.language_code
+        if hasattr(self.lexicon_entry, 'language_reference'):
+            if lang:
+                lang += u' '
+            lang += self.lexicon_entry.language_reference
+        if lang:
+            new_content.append(lang)
+            
+        for sense in content['senses']:
+            text = u''
+            if 'senses' in sense:
+                new_content.append(u'<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'], sense['grammar']['binyan_form']))              
+                for binyan_sense in sense['senses']:
+                    new_content.append(self.get_sense(binyan_sense))
+            else:
+                new_content.append(self.get_sense(sense))
+            
+        return new_content
 
     def address(self):
         return self.parent.address() + [self.word]
