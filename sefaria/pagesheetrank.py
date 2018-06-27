@@ -219,15 +219,14 @@ def calculate_pagerank():
         if len(t) == 0:
             zero_length += [r]
             continue  # we don't need zero length links here
-        pr_plus_text_len += [[r, math.log(pr) + 20]]
+        pr_plus_text_len += [[r, math.log(pr) + 20, math.log(pr) + 20 + length_penalty(len(t))]]
 
     pr_plus_text_len.sort(key=lambda x: x[1])
+    yoyo = sorted(pr_plus_text_len, key=lambda x: x[2])
     with open(STATICFILES_DIRS[0] + "pagerank.json","wb") as fout:
         json.dump(pr_plus_text_len,fout,indent=4)
-    with open(STATICFILES_DIRS[0] + "zero_length_refs.json","wb") as fout:
-        json.dump(zero_length,fout,indent=4)
-    with open(STATICFILES_DIRS[0] + "removed_pagerank.json","wb") as fout:
-        json.dump(removed_rankings,fout,indent=4)
+    with open(STATICFILES_DIRS[0] + "pagerank_length.json","wb") as fout:
+        json.dump(yoyo,fout,indent=4)
 
 
 def length_penalty(l):
