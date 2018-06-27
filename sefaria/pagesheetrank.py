@@ -130,9 +130,9 @@ def init_pagerank_graph():
                 else:
                     recursively_put_in_graph(ref1_seg, ref2)
         else:
-            put_link_in_graph(ref1, ref2)
+            put_link_in_graph(ref1, ref2, weight)
 
-    def put_link_in_graph(ref1, ref2):
+    def put_link_in_graph(ref1, ref2, weight=1.0):
         str1 = ref1.normal()
         str2 = ref2.normal()
         all_ref_strs.add(str1)
@@ -147,7 +147,7 @@ def init_pagerank_graph():
 
         if str2 not in graph[str1]:
             graph[str1][str2] = 0
-        graph[str1][str2] += 1
+        graph[str1][str2] += weight
 
     graph = OrderedDict()
     all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
@@ -219,7 +219,7 @@ def calculate_pagerank():
         if len(t) == 0:
             zero_length += [r]
             continue  # we don't need zero length links here
-        pr_plus_text_len += [[r, math.log(pr) + 20 + math.log(5.0/(len(t)))]]
+        pr_plus_text_len += [[r, math.log(pr) + 20]]
 
     pr_plus_text_len.sort(key=lambda x: x[1])
     with open(STATICFILES_DIRS[0] + "pagerank.json","wb") as fout:
@@ -229,6 +229,14 @@ def calculate_pagerank():
     with open(STATICFILES_DIRS[0] + "removed_pagerank.json","wb") as fout:
         json.dump(removed_rankings,fout,indent=4)
 
+
+def length_penalty(l):
+    # min of about -4.4
+    # penalize segments less than minLen characters
+    minLen, maxLen = 10, 1000
+    l = l if l <= maxLen else maxLen
+    penalty = 1000*math.log(1.0/(-l + 10000))-log(10000-minLen)
+    return -penalty if l <= minLen else penalty
 
 
 def test_pagerank(a,b):
