@@ -226,14 +226,11 @@ def calculate_pagerank():
         if len(t) == 0:
             zero_length += [r]
             continue  # we don't need zero length links here
-        pr_plus_text_len += [[r, math.log(pr) + 17, (math.log(pr) + 17) * cat_bonus(len(all_ref_cat_counts.get(r, []))) )]]
+        pr_plus_text_len += [[r, (math.log(pr) + 17) * cat_bonus(len(all_ref_cat_counts.get(r, []))) )]]
 
     pr_plus_text_len.sort(key=lambda x: x[1])
-    yoyo = sorted(pr_plus_text_len, key=lambda x: x[2])
-    with open(STATICFILES_DIRS[0] + "pagerank.json","wb") as fout:
+    with open(STATICFILES_DIRS[0] + "pagerank2.json","wb") as fout:
         json.dump(pr_plus_text_len,fout,indent=4)
-    with open(STATICFILES_DIRS[0] + "pagerank_cat_bonus.json","wb") as fout:
-        json.dump(yoyo,fout,indent=4)
 
 def cat_bonus(num_cats):
     return 1.0 + (0.04*num_cats)
