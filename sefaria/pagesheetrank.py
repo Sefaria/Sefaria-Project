@@ -135,8 +135,14 @@ def init_pagerank_graph():
     def put_link_in_graph(ref1, ref2, weight=1.0):
         str1 = ref1.normal()
         str2 = ref2.normal()
-        all_ref_strs.add(str1)
-        all_ref_strs.add(str2)
+        if str1 not in all_ref_cat_counts:
+            all_ref_cat_counts[str1] = set()
+        if str2 not in all_ref_cat_counts:
+            all_ref_cat_counts[str2] = set()
+        #not a typo. add the cat of ref2 to ref1
+        all_ref_cat_counts[str1].add(ref2.primary_category())
+        all_ref_cat_counts[str2].add(ref1.primary_category())
+
         if str1 not in graph:
             graph[str1] = {}
 
@@ -152,9 +158,10 @@ def init_pagerank_graph():
     graph = OrderedDict()
     all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
     len_all_links = all_links.count()
-    all_ref_strs = set()
+    all_ref_cat_counts = {}
     current_link, page, link_limit = 0, 0, 100000
     all_links = LinkSet(limit=link_limit, page=page)
+
 
     while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
@@ -191,14 +198,14 @@ def init_pagerank_graph():
         page += 1
         all_links = LinkSet(limit=link_limit, page=page)
 
-    for ref in all_ref_strs:
+    for ref in all_ref_cat_counts:
         if ref not in graph:
             graph[ref] = {}
 
-    return graph
+    return graph, all_ref_cat_counts
 
 def calculate_pagerank():
-    graph = init_pagerank_graph()
+    graph, all_ref_cat_counts = init_pagerank_graph()
     #NOTE just a backup in case pagerank fails: json.dump(dict(graph), open("{}pagerank_graph.json".format(STATICFILES_DIRS[0]), "wb"), indent=4)
     ranked = pagerank(graph, 0.85, verbose=True, tolerance=0.00005)
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
@@ -219,15 +226,17 @@ def calculate_pagerank():
         if len(t) == 0:
             zero_length += [r]
             continue  # we don't need zero length links here
-        pr_plus_text_len += [[r, math.log(pr) + 20, math.log(pr) + 20 + length_penalty(len(t))]]
+        pr_plus_text_len += [[r, math.log(pr) + 17, (math.log(pr) + 17) * cat_bonus(len(all_ref_cat_counts.get(r, []))) )]]
 
     pr_plus_text_len.sort(key=lambda x: x[1])
     yoyo = sorted(pr_plus_text_len, key=lambda x: x[2])
     with open(STATICFILES_DIRS[0] + "pagerank.json","wb") as fout:
         json.dump(pr_plus_text_len,fout,indent=4)
-    with open(STATICFILES_DIRS[0] + "pagerank_length.json","wb") as fout:
+    with open(STATICFILES_DIRS[0] + "pagerank_cat_bonus.json","wb") as fout:
         json.dump(yoyo,fout,indent=4)
 
+def cat_bonus(num_cats):
+    return 1.0 + (0.04*num_cats)
 
 def length_penalty(l):
     # min of about -4.4
