@@ -234,7 +234,7 @@ def length_penalty(l):
     # penalize segments less than minLen characters
     minLen, maxLen = 10, 1000
     l = l if l <= maxLen else maxLen
-    penalty = 1000*math.log(1.0/(-l + 10000))-log(10000-minLen)
+    penalty = 1000*math.log(1.0/(-l + 10000))-math.log(10000-minLen)
     return -penalty if l <= minLen else penalty
 
 
