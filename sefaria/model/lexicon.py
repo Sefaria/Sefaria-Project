@@ -118,7 +118,7 @@ class DictionaryEntry(LexiconEntry):
 
         lang = u''
         if hasattr(self, 'language_code'):
-            lang += self.language_code
+            lang += u" " + self.language_code
         if hasattr(self, 'language_reference'):
             if lang:
                 lang += u' '
