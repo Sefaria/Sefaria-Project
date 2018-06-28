@@ -140,8 +140,8 @@ def init_pagerank_graph():
         if str2 not in all_ref_cat_counts:
             all_ref_cat_counts[str2] = set()
         #not a typo. add the cat of ref2 to ref1
-        all_ref_cat_counts[str1].add(ref2.primary_category())
-        all_ref_cat_counts[str2].add(ref1.primary_category())
+        all_ref_cat_counts[str1].add(ref2.primary_category)
+        all_ref_cat_counts[str2].add(ref1.primary_category)
 
         if str1 not in graph:
             graph[str1] = {}
@@ -190,8 +190,8 @@ def init_pagerank_graph():
             except InputError:
                 pass
             except TypeError as e:
+                print "TypeError"
                 print link.refs
-                raise e
             except IndexError:
                 pass
             except AssertionError:
