@@ -183,7 +183,9 @@ def init_pagerank_graph():
                 older_ref = older_ref.padded_ref()
                 newer_ref = newer_ref.padded_ref()
                 recursively_put_in_graph(older_ref, newer_ref)
-
+                if start1 == start2:
+                    # also add the opposite link dir
+                    recursively_put_in_graph(newer_ref, older_ref)
 
             except InputError:
                 pass
