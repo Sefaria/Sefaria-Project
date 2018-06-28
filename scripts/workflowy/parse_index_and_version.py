@@ -6,7 +6,8 @@ first argument :: filename.opml
 -t :: stores all items nodes in opml as shared terms (not including root)
 -v :: saves any text stored in opml as notes to a single version
 """
-
+import django
+django.setup()
 import argparse
 import string
 import regex as re

@@ -741,12 +741,7 @@
                 </div>
                 <div class="blockContainer">
                     <input id="inlineAdd" class="inlineAddTextInput"
-                           placeholder=
-                                   {% if request.interfaceLang == 'english' %}
-                                       "Search for a Text or Commentator"
-                                   {% else %}
-                                       "הקלידו לחיפוש טקסט או פרשן"
-                                   {% endif %}/>
+                           placeholder="{% trans "Search for a Text or Commentator" %}"/>
                     <div class="buttonContainer">
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                             <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">

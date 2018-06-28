@@ -425,7 +425,7 @@ def create_index(index_name, type):
     settings = {
         "index": {
             "blocks": {
-                "read_only_allow_delete": None
+                "read_only_allow_delete": False
             },
             "analysis" : {
                 "analyzer" : {
@@ -559,7 +559,7 @@ class TextIndexer(object):
             elif "contents" in mini_toc:
                 for t in mini_toc["contents"]:
                     traverse(t)
-            else:
+            elif "title" in mini_toc:
                 title = mini_toc["title"]
                 r = Ref(title)
                 vlist = r.version_list()
@@ -902,11 +902,14 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
         index_public_sheets(index_names_dict['new'])
 
     try:
+        #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
         index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
+        print "Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
     except NotFoundError:
         print "Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
     clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
 
+    #index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
     index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
 
     if index_names_dict['new'] != index_names_dict['current']:
