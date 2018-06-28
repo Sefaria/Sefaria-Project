@@ -226,7 +226,7 @@ def calculate_pagerank():
         if len(t) == 0:
             zero_length += [r]
             continue  # we don't need zero length links here
-        pr_plus_text_len += [[r, (math.log(pr) + 17) * cat_bonus(len(all_ref_cat_counts.get(r, []))) )]]
+        pr_plus_text_len += [[r, (math.log(pr) + 17) * cat_bonus(len(all_ref_cat_counts.get(r, [])))]]
 
     pr_plus_text_len.sort(key=lambda x: x[1])
     with open(STATICFILES_DIRS[0] + "pagerank2.json","wb") as fout:
