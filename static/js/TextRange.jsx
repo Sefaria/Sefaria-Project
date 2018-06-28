@@ -238,7 +238,8 @@ class TextRange extends Component {
     var showNumberLabel    =  data &&
                               data.categories &&
                               data.categories[0] !== "Talmud" &&
-                              data.categories[0] !== "Liturgy";
+                              data.categories[0] !== "Liturgy" &&
+                              data.categories[0] !== "Dictionary";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
 
