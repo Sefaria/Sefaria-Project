@@ -189,8 +189,9 @@ def init_pagerank_graph():
 
             except InputError:
                 pass
-            except TypeError:
+            except TypeError as e:
                 print link.refs
+                raise e
             except IndexError:
                 pass
             except AssertionError:
