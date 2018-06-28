@@ -15,6 +15,13 @@ import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
 
+import reader.views as reader_views
+import sefaria.views as sefaria_views
+import sourcesheets.views as sheets_views
+import sefaria.gauth.views as gauth_views
+import django.contrib.auth.views as django_auth_views
+
+
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
 
@@ -58,6 +65,8 @@ urlpatterns += [
     url(r'^visualize/toc$', reader_views.visualize_toc),
     url(r'^visualize/parasha-colors$', reader_views.visualize_parasha_colors),
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
+    url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
+    url(r'^visualize/sefer-hachinukh-mitzvot$', reader_views.sefer_hachinukh_mitzvot),
 ]
 
 # Source Sheet Builder
@@ -150,6 +159,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  sheets_views.visual_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     sheets_views.unlike_sheet_api),
@@ -311,6 +321,9 @@ static_pages = [
     "educators",
     "the-sefaria-story",
     "aramaic-translation-contest",
+    "newsletter",
+    "shavuot-map-2018",
+    "testimonials"
 ]
 
 # Static and Semi Static Content
@@ -332,6 +345,7 @@ urlpatterns += [
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
+url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 ]
 
@@ -408,6 +422,11 @@ urlpatterns += [
 urlpatterns += [
     url(r'^gauth$', gauth_views.index, name="gauth_index"),
     url(r'^gauth/callback$', gauth_views.auth_return, name="gauth_callback"),
+]
+
+# Sheets in a reader panel
+urlpatterns += [
+    url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
 
 # Catch all to send to Reader

@@ -6,8 +6,9 @@
 <html>
 <head>
     <title>{% block title %}{{ title }}{% endblock %}</title>
+    <meta charset="utf-8">
     <meta name="description" property="og:description" content="{% block description %}{{ desc }}{% endblock %}">
-    
+
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
@@ -16,9 +17,7 @@
         <meta property="og:type" content="website"/>
     {% endblock %}
 
-    {% block ogimage %}
-        <meta property="og:image" content="{{ STATIC_PREFIX }}img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png" />
-    {% endblock %}
+    {% block ogimage %}<meta property="og:image" content="{{ STATIC_PREFIX }}img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png" />{% endblock %}
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
@@ -95,7 +94,7 @@
 </head>
 
 <body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
-    
+
     {% autoescape off %}
     {% if html %}
     <!-- React will complain about whitespace -->
@@ -111,7 +110,7 @@
             {% block content %}{% endblock %}
         </div>
     </div>
-    
+
     {% block footer %} <!-- todo: sheets is overwriting this, why? -->
         {% include "elements/footer.html" with class=contentLang %}
     {% endblock %}
@@ -133,7 +132,7 @@
         props: {{ propsJSON|default:"null" }},
         contentLang: "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",
-        inReaderApp: {% if html %}true{% else %}false{% endif %}, 
+        inReaderApp: {% if html %}true{% else %}false{% endif %},
         ga: ga,
         static_url: {{ STATIC_PREFIX }}
       };

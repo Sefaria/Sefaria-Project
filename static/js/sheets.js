@@ -788,28 +788,16 @@ $(function() {
 			}
 		};
 
-
-		if (sjs.can_edit) {
-			// Bind init of CKEditor to mouseup, so dragging can start first
-			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd")
-				.live("mouseup", sjs.initCKEditor);
-		}
-		else if (sjs.can_add) {
-			// For colloborative adders, only allow edits on their on content
-			$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd")
-				.live("mouseup", sjs.initCKEditor);
-		}
-
 		// So clicks on editor or editable area don't destroy editor
 		$("#title, .comment, .outside, .customTitle, .en, .he, #author, .cke, .cke_dialog, .cke_dialog_background_cover")
-			.live("mousedown", function(e) { 
+			.on("mousedown", function(e) {
 				e.stopPropagation();
 			 });
 
 		// Destroy editor on outside clicks 
 		// Without this, CKEeditor was not consistently closing itself
-		$("html").live("mousedown", function(e) {
-			if ($(e.target).closest(".cke_editable").length) {
+		$("html").on("mousedown", function(e) {
+			if ($(e.target).closest(".cke_editable").length || $(e.target).closest(".cke").length || $(e.target).closest(".cke_dialog").length || $(e.target).closest(".cke_dialog_background_cover").length) {
 				return; // If the click began inside an editable don't remove
 			}
 			$('.cke_editable').each(function() {
@@ -945,6 +933,12 @@ $(function() {
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
+		if (sjs.can_edit) {
+			// Bind init of CKEditor to mouseup, so dragging can start first
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd").off("mouseup")
+				.on("mouseup", sjs.initCKEditor);
+		}
+
 	}
 
 
@@ -1504,6 +1498,91 @@ $(function() {
 			delay: 0,
 			position: "bottom"
 		});
+
+		$(".moveSourceUp").on("click", function() {
+			$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
+
+			var top = $(this).offset().top - 200;
+			$("html, body").animate({scrollTop: top}, 750);
+			setSourceNumbers();
+
+			autoSave();
+
+		});
+
+
+		$(".moveSourceDown").on("click", function() {
+			$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
+
+			var top = $(this).offset().top - 200;
+			$("html, body").animate({scrollTop: top}, 750);
+			setSourceNumbers();
+
+			autoSave();
+
+		});
+
+
+		$(".moveSourceRight").on("click", function() {
+
+			if ($(this).closest(".sheetItem").hasClass("indented-1")) {
+				var toIndent = "indented-2";
+			} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
+				var toIndent = "indented-3";
+			} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
+				var toIndent = "indented-3";
+			} else {
+				var toIndent = "indented-1";
+			}
+
+			$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
+			$(this).closest(".sheetItem").addClass(toIndent);
+
+			autoSave();
+
+		});
+
+
+		$(".moveSourceLeft").on("click", function() {
+
+			if ($(this).closest(".sheetItem").hasClass("indented-1")) {
+				var toIndent = "";
+			} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
+				var toIndent = "indented-1";
+			} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
+				var toIndent = "indented-2";
+			} else {
+				var toIndent = "";
+			}
+
+			$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
+			$(this).closest(".sheetItem").addClass(toIndent);
+
+			autoSave();
+
+		});
+
+
+		// Remove Source
+		$(".removeSource").on("click", function() {
+			var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
+			if (confirm("Are you sure you want to remove this?")) {
+				$item.remove();
+				autoSave();
+				setSourceNumbers();
+			}
+			sjs.track.sheets("Remove Source");
+
+		 });
+
+		// Copy a Source
+		$(".copySource").on("click", function() {
+			var source = readSource($(this).closest(".sheetItem"));
+			copyToSheet(source);
+		});
+
+
+
 	});
 	$("#sheet").on("mouseleave", ".sheetItem", function(e) {
 		$(this).removeClass("sourceControlsOpen");
@@ -1513,10 +1592,12 @@ $(function() {
 			$to.trigger("mouseenter");
 		}
 		e.stopPropagation();
+
+		$(".moveSourceLeft, .moveSourceRight, .moveSourceDown, .moveSourceUp, .copySource, .removeSource").off("click")
 	});
 
 	// Custom Source Titles
-	$(".editTitle").live("click", function(e) {
+	$(".editTitle").on("click", function(e) {
         var $target = $(this).closest(".source");
         var ref = normRef($target.attr("data-ref"));
 		var $customTitle = $(".customTitle", $target).eq(0);
@@ -1535,7 +1616,7 @@ $(function() {
 
 
 	// Reset Source Text 
-	$(".resetSource").live("click", function() { 
+	$(".resetSource").on("click", function() {
 		var options = {
 			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
 			options: ["Hebrew", "English", "Both"]
@@ -1576,12 +1657,12 @@ $(function() {
 		}
 	);
 
-	$("#addParashaToSheetModalTrigger").live("click", function(e) {
+	$("#addParashaToSheetModalTrigger").on("click", function(e) {
 		$("#addParashaToSheetModal").show().position({of: window});
 		$("#overlay").show();
 	});
 
-	$("#assignmentsModalTrigger").live("click", function(e) {
+	$("#assignmentsModalTrigger").on("click", function(e) {
 		$("#assignmentsModal").hide();
 		$("#assignmentsModal").show().position({of: window});
 		$("#overlay").show();
@@ -1658,28 +1739,6 @@ $(function() {
 		$(this).hide();
 	});
 	
-	$(".moveSourceUp").live("click", function() {
-		$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
-
-		var top = $(this).offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 750);
-		setSourceNumbers();
-
-		autoSave();
-
-	});
-
-
-	$(".moveSourceDown").live("click", function() {
-		$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
-
-		var top = $(this).offset().top - 200;
-		$("html, body").animate({scrollTop: top}, 750);
-		setSourceNumbers();
-
-		autoSave();
-
-	});
 
 	$("#highlightMenu .optionsMenu").on('click', '.resetHighlighter', function() {
 		var curHighlighter = $(".activeSource").find(".highlighter");
@@ -1862,79 +1921,9 @@ $(function() {
 	resetHighlighterFilterTags();
 
 
-	$(".moveSourceRight").live("click", function() {
-
-		if ($(this).closest(".sheetItem").hasClass("indented-1")) {
-			var toIndent = "indented-2";
-		} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
-			var toIndent = "indented-3";
-		} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
-			var toIndent = "indented-3";
-		} else {
-			var toIndent = "indented-1";
-		}
-
-		$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
-		$(this).closest(".sheetItem").addClass(toIndent);
-
-		autoSave();
-
-	});
-
-
-	$(".moveSourceLeft").live("click", function() {
-
-		if ($(this).closest(".sheetItem").hasClass("indented-1")) {
-			var toIndent = "";
-		} else if ($(this).closest(".sheetItem").hasClass("indented-2")) {
-			var toIndent = "indented-1";
-		} else if ($(this).closest(".sheetItem").hasClass("indented-3")) {
-			var toIndent = "indented-2";
-		} else {
-			var toIndent = "";
-		}
-
-		$(this).closest(".sheetItem").removeClass("indented-1 indented-2 indented-3")
-		$(this).closest(".sheetItem").addClass(toIndent);
-
-		autoSave();
-
-	});
 
 
 
-
-	// Open Modal to override the sheet's default language/layout options for a specific source 
-	$(".switchSourceLayoutLang").live("click", function() { 
-
-		$("#overrideLayoutModal").data("target", $(this).closest(".sheetItem")).show().position({ of: $(window) });	
-		
-		//set buttons to current realities
-		$("#hebLeftSource, #hebRightSource").removeClass("active");
-		if ($(this).closest(".sheetItem").hasClass("heRight")  ) {$("#hebRightSource").click()}
-		else if ($(this).closest(".sheetItem").hasClass("heLeft")  ) {$("#hebLeftSource").click()}
-		else {
-		   "heRight"==$("#biLayoutToggle").find(".active").attr("id")?$("#hebRightSource").click():$("#hebLeftSource").click();		
-
-		}	
-
-		$("#sideBySideSource, #stackedSource").removeClass("active");
-		if ($(this).closest(".sheetItem").hasClass("sideBySide")  ) {$("#sideBySideSource").click()}
-		else if ($(this).closest(".sheetItem").hasClass("stacked")  ) {$("#stackedSource").click()}
-		else {$("#"+$('#sheetLayoutToggle').find('.active').attr('id')+"Source").click()}
-
-		$("#bilingualSource, #hebrewSource, #englishSource").removeClass("active");
-		if ($(this).closest(".sheetItem").hasClass("bilingual")  ) {$("#bilingualSource").click()}
-		else if ($(this).closest(".sheetItem").hasClass("hebrew")  ) {$("#hebrewSource").click()}
-		else if ($(this).closest(".sheetItem").hasClass("english")  ) {$("#englishSource").click()}
-		else {$("#"+$('#languageToggle').find('.active').attr('id')+"Source").click()}
-
-			
-		$("#overlay").show();
-
-		sjs.track.sheets("Open Source Layout Modal");
-	 });
- 
 	$("#overrideLayoutModal .ok").click(function(){
 		
 		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
@@ -2007,7 +1996,7 @@ $(function() {
 	
 
 	// Remove all custom source language/layout overrides:
-	$("#resetToDefaults").live("click", function() { 
+	$("#resetToDefaults").on("click", function() {
 		var $target = $("#overrideLayoutModal").data("target");
 		$target.removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
 		$("#overrideLayoutModal, #overlay").hide();
@@ -2015,25 +2004,6 @@ $(function() {
 		sjs.track.sheets("Reset Source Layout to Default");
 	});
 
-
-
-	// Remove Source
-	$(".removeSource").live("click", function() { 
-		var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
-		if (confirm("Are you sure you want to remove this?")) {
-			$item.remove();
-			autoSave();
-			setSourceNumbers();
-		}
-		sjs.track.sheets("Remove Source");
-
-	 });
-
-	// Copy a Source
-	$(".copySource").live("click", function() {
-		var source = readSource($(this).closest(".sheetItem"));
-		copyToSheet(source);
-	});
 
 
 	// Add All Connections 
@@ -2117,7 +2087,7 @@ $(function() {
 			}
 		});
 	};
-	$(".addConnections").live("click", autoAddConnetions);
+	$(".addConnections").on("click", autoAddConnetions);
 
 
 	// ---- Start Polling -----
@@ -2337,6 +2307,20 @@ function addSource(q, source, appendOrInsert, $target) {
 	sjs.openRequests += 1;
 
 	afterAction();
+
+	if (sjs.can_edit) {
+		// Bind init of CKEditor to mouseup, so dragging can start first
+		$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd").off("mouseup")
+			.on("mouseup", sjs.initCKEditor);
+	}
+	else if (sjs.can_add) {
+		// For colloborative adders, only allow edits on their on content
+		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
+			.on("mouseup", sjs.initCKEditor);
+	}
+
+
+
 }
 
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
@@ -2723,7 +2707,6 @@ function handleSave() {
 
 
 function autoSave() {
-	console.log(sjs.current.group);
 	if (sjs.can_save && sjs.current.id && !sjs.loading && !sjs.openRequests) {
 		$("#lastSaved").find(".saving").show().siblings().hide();
 		var sheet = readSheet();
@@ -2869,6 +2852,7 @@ function buildSheet(data){
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
 		}
 	}
+
 }
 	
 
@@ -3058,6 +3042,19 @@ function buildSource($target, source, appendOrInsert) {
 
 
 	}
+
+	if (sjs.can_edit) {
+		// Bind init of CKEditor to mouseup, so dragging can start first
+		$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd").off("mouseup")
+			.on("mouseup", sjs.initCKEditor);
+	}
+	else if (sjs.can_add) {
+		// For colloborative adders, only allow edits on their on content
+		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
+			.on("mouseup", sjs.initCKEditor);
+	}
+
+
 }
 
 function appendInlineAddButton(source) {
@@ -3578,15 +3575,17 @@ function deleteSheet() {
 
 // Regexes for identifying divine names with or without nikkud / trop
 // Currently ignores אֵל & צְבָאוֹת & שדי
-sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[\s.,;:'"\-]|$)/g;
+sjs.divineRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\')(?=[/(/[<//.,;:׃'"\-\s]|$)/g;
 
-sjs.adoshemRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05C7]*י[\u0591-\u05C7]*|אדושם)(?=[\s.,;:'"\-]|$)/g;
+// don't match אֲדֹנִי
+sjs.adoshemRE = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'"\-]|$)/g;
 
-sjs.elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C7]*)?[ךיוהםן][\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[\u0591-\u05C7]*[םן])(?=[\s.,;:'"\-]|$)/g;
+// only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
+sjs.elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'"\-]|$)/g;
 
-sjs.elokaRE   = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)(?=[)(?=[\s.,;:'"\-]|$)/g;
+sjs.elokaRE   = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'"\-]|$)/g;
 
-//sjs.shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;:'"\-]|$)/g;
+//sjs.shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
 
 
 sjs.divineSubs = {

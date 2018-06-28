@@ -1458,6 +1458,19 @@ class AddressType(object):
             punctuation = kwargs.get("punctuation", True)
             return encode_hebrew_numeral(i, punctuation=punctuation)
 
+    @staticmethod
+    def toStrByAddressType(atype, lang, i):
+        """
+        Return string verion of `i` given `atype`
+        :param str atype: name of address type
+        :param str lang: "en" or "he"
+        """
+        try:
+            klass = globals()["Address" + atype]
+        except KeyError:
+            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+        return klass(0).toStr(lang, i)
+
     def storage_offset(self):
         return 0
 
@@ -1588,6 +1601,24 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
+class AddressYear(AddressInteger):
+    """
+    :class: AddressYear stores Hebrew years as numbers, for example 778 for the year תשע״ח
+    To convert to Roman year, add 1240
+    """
+    def toNumber(self, lang, s):
+        if lang == "he":
+            return decode_hebrew_numeral(s)
+        elif lang == "en":
+            return int(s) - 1240
+
+    @classmethod
+    def toStr(cls, lang, i, **kwargs):
+        if lang == "en":
+            return str(i + 1240)
+        elif lang == "he":
+            punctuation = kwargs.get("punctuation", True)
+            return encode_hebrew_numeral(i, punctuation=punctuation)
 
 class AddressAliyah(AddressInteger):
     en_map = [u"First", u"Second", u"Third", u"Fourth", u"Fifth", u"Sixth", u"Seventh"]

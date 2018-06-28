@@ -9,6 +9,7 @@ from pprint import pprint
 from datetime import datetime, timedelta
 import re
 import bleach
+import pymongo
 
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
@@ -18,11 +19,13 @@ import json
 import math
 import collections
 from logging import NullHandler
+import time as pytime
 logger = logging.getLogger(__name__)
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
-
+from elasticsearch.helpers import bulk
+from elasticsearch.exceptions import NotFoundError
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
 from sefaria.model.user_profile import user_link, public_user_data
@@ -31,6 +34,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN_K8S, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
 from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
 def init_pagesheetrank_dicts():
@@ -345,18 +349,18 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
-    doc = {
-        "title": strip_tags(sheet["title"]),
-        "content": make_sheet_text(sheet, pud),
-        "owner_id": sheet["owner"],
-        "owner_name": pud["name"],
-        "owner_image": pud["imageUrl"],
-        "profile_url": pud["profileUrl"],
-        "version": "Source Sheet by " + user_link(sheet["owner"]),
-        "tags": ",".join(sheet.get("tags",[])),
-        "sheetId": id,
-    }
     try:
+        doc = {
+            "title": strip_tags(sheet["title"]),
+            "content": make_sheet_text(sheet, pud),
+            "owner_id": sheet["owner"],
+            "owner_name": pud["name"],
+            "owner_image": pud["imageUrl"],
+            "profile_url": pud["profileUrl"],
+            "version": "Source Sheet by " + user_link(sheet["owner"]),
+            "tags": ",".join(sheet.get("tags",[])),
+            "sheetId": id,
+        }
         es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
         global doc_count
         doc_count += 1
@@ -419,7 +423,10 @@ def create_index(index_name, type):
         logging.warning("Failed to delete non-existent index: {}".format(index_name))
 
     settings = {
-        "index" : {
+        "index": {
+            "blocks": {
+                "read_only_allow_delete": False
+            },
             "analysis" : {
                 "analyzer" : {
                     "my_standard" : {
@@ -533,6 +540,187 @@ def put_sheet_mapping():
 
     # currently a no-op
     return
+#TODO index_text needs replacement
+class TextIndexer(object):
+    @classmethod
+    def create_terms_dict(cls):
+        cls.terms_dict = {}
+        ts = TermSet()
+        for t in ts:
+            cls.terms_dict[t.name] = t.contents()
+    @classmethod
+    def create_version_priority_map(cls):
+        toc = library.get_toc()
+        cls.version_priority_map = {}
+        def traverse(mini_toc):
+            if type(mini_toc) == list:
+                for t in mini_toc:
+                    traverse(t)
+            elif "contents" in mini_toc:
+                for t in mini_toc["contents"]:
+                    traverse(t)
+            elif "title" in mini_toc:
+                title = mini_toc["title"]
+                r = Ref(title)
+                vlist = r.version_list()
+                vpriorities = {
+                    u"en": 0,
+                    u"he": 0
+                }
+                for i, v in enumerate(vlist):
+                    lang = v["language"]
+                    cls.version_priority_map[(title, v["versionTitle"], lang)] = (vpriorities[lang], mini_toc["categories"])
+                    vpriorities[lang] += 1
+
+        traverse(toc)
+
+    @classmethod
+    def get_all_versions(tries=0, versions=None, page=0):
+        if versions is None:
+            versions = []
+        try:
+            version_limit = 10
+            temp_versions = []
+            first_run = True
+            while first_run or len(temp_versions) > 0:
+                temp_versions = VersionSet(limit=version_limit, page=page).array()
+                versions += temp_versions
+                page += 1
+                first_run = False
+            return versions
+        except pymongo.errors.AutoReconnect as e:
+            if tries < 200:
+                pytime.sleep(5)
+                return get_all_versions(tries+1, versions, page)
+            else:
+                print "Tried: {} times. Got {} versions".format(tries, len(versions))
+                raise e
+
+    @classmethod
+    def index_all(cls, index_name, merged=False, debug=False):
+        cls.index_name = index_name
+        cls.merged = merged
+        cls.create_version_priority_map()
+        cls.create_terms_dict()
+        cls.doc_count = 0
+
+        versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, cls.get_all_versions()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+        versions_by_index = {}
+        # organizing by index for the merged case
+        for v in versions:
+            key = (v.title, v.language)
+            if key in versions_by_index:
+                versions_by_index[key] += [v]
+            else:
+                versions_by_index[key] = [v]
+        print "Beginning index of {} versions.".format(len(versions))
+        vcount = 0
+        total_versions = len(versions)
+        for title, vlist in versions_by_index.items():
+            cls.trefs_seen = set()
+            cls._bulk_actions = []
+            cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
+            for v in vlist:
+                if v.versionTitle == u"Yehoyesh's Yiddish Tanakh Translation [yi]":
+                    print "skipping yiddish. we don't like yiddish"
+                    continue
+
+                cls.index_version(v)
+                print "Indexed Version {}/{}".format(vcount, total_versions)
+                vcount += 1
+            bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
+
+
+    @classmethod
+    def index_version(cls, version):
+        version.walk_thru_contents(cls._cache_action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
+
+    @classmethod
+    def _cache_action(cls, segment_str, tref, heTref, version):
+        # Index this document as a whole
+        # dont index the same ref more than once in the case you're merged
+        if cls.merged and tref in cls.trefs_seen:
+            return
+        cls.trefs_seen.add(tref)
+        vtitle = version.versionTitle
+        vlang = version.language
+        try:
+            version_priority, categories = cls.version_priority_map[(version.title, vtitle, vlang)]
+            #TODO include sgement_str in this func
+            doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories)
+            # print doc
+        except Exception as e:
+            logger.error(u"Error making index document {} / {} / {} : {}".format(tref, vtitle, vlang, e.message))
+            return
+
+        if doc:
+            try:
+                # if cls.doc_count % 5000 == 0:
+                #     logger.info(u"[{}] Indexing {} / {} / {}".format(cls.doc_count, tref, vtitle, vlang))
+                cls._bulk_actions += [
+                    {
+                        "_index": cls.index_name,
+                        "_type": "text",
+                        "_id": make_text_doc_id(tref, vtitle, vlang),
+                        "_source": doc
+                    }
+                ]
+                cls.doc_count += 1
+            except Exception, e:
+                logger.error(u"ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e))
+
+    @classmethod
+    def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories):
+        """
+        Create a document for indexing from the text specified by ref/version/lang
+        """
+        oref = Ref(tref)
+        text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
+
+        if not content:
+            # Don't bother indexing if there's no content
+            return False
+
+        content = bleach.clean(content, strip=True, tags=())
+        content_wo_cant = strip_cantillation(content, strip_vowels=True)
+        content_wo_cant = re.sub(ur'\([^)]+\)', u'', content_wo_cant.strip())  # remove all parens
+        if len(content_wo_cant) == 0:
+            return False
+
+        if "Commentary" in categories:  # uch, special casing
+            temp_categories = categories[:]
+            temp_categories.remove('Commentary')
+            temp_categories[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
+        else:
+            temp_categories = categories
+
+        tp = cls.curr_index.best_time_period()
+        if not tp is None:
+            comp_start_date = int(tp.start)
+        else:
+            comp_start_date = 3000  # far in the future
+
+        section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
+
+        pagerank = math.log(pagerank_dict[section_ref]) + 20 if section_ref in pagerank_dict else 1.0
+        sheetrank = (1.0 + sheetrank_dict[tref]["count"] / 5)**2 if tref in sheetrank_dict else (1.0 / 5) ** 2
+        return {
+            "ref": tref,
+            "heRef": heTref,
+            "version": version,
+            "lang": lang,
+            "version_priority": version_priority if version_priority is not None else 1000,
+            "titleVariants": text["titleVariants"],
+            "categories": temp_categories,
+            "order": comp_start_date,
+            "path": "/".join(categories + [cls.curr_index.title]),
+            "pagesheetrank": pagerank * sheetrank,
+            "comp_date": comp_start_date,
+            #"hebmorph_semi_exact": content_wo_cant,
+            "exact": content_wo_cant,
+            "naive_lemmatizer": content_wo_cant,
+        }
+
 
 
 def index_all_sections(index_name, skip=0, merged=False, debug=False):
@@ -695,11 +883,11 @@ def index_all(skip=0, merged=False, debug=False):
     else:
         index_all_of_type('text', skip=skip, merged=merged, debug=debug)
         index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
-
+    end = datetime.now()
+    print "Elapsed time: %s" % str(end-start)
 
 def index_all_of_type(type, skip=0, merged=False, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
-    import time as pytime
     print 'CREATING / DELETING {}'.format(index_names_dict['new'])
     print 'CURRENT {}'.format(index_names_dict['current'])
     for i in range(10):
@@ -709,20 +897,23 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
     if skip == 0:
         create_index(index_names_dict['new'], type)
     if type == 'text' or type == 'merged':
-        index_all_sections(index_names_dict['new'], skip=skip, merged=merged, debug=debug)
+        TextIndexer.index_all(index_names_dict['new'], merged=merged, debug=debug)
     elif type == 'sheet':
         index_public_sheets(index_names_dict['new'])
 
-    index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
+    try:
+        #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
+        index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
+        print "Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
+    except NotFoundError:
+        print "Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current'])
+    clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
 
-    clear_index(alias_name) # make sure there are no indexes with the alias_name
-
+    #index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
     index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
 
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
-    end = datetime.now()
-    print "Elapsed time: %s" % str(end-start)
 
 
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):

@@ -1,0 +1,3161 @@
+{
+"nodes": [
+{
+"order": 21,
+"en": "Rabbi Abba",
+"era": "Amoraim",
+"key": "Rabbi Abba",
+"he": "רבי אבא"
+},
+{
+"order": 2,
+"en": "Moses",
+"era": "Tanakh",
+"key": "Moses",
+"he": "משה"
+},
+{
+"order": 3,
+"en": "Joshua",
+"era": "Tanakh",
+"key": "Joshua",
+"he": "יהושוע"
+},
+{
+"order": 3,
+"en": "The Elders",
+"era": "Tanakh",
+"key": "The Elders",
+"he": "זקנים"
+},
+{
+"order": 3,
+"en": "The Prophets",
+"era": "Tanakh",
+"key": "The Prophets",
+"he": "נביאים"
+},
+{
+"order": 5,
+"en": "Great Assembly",
+"era": "Great Assembly",
+"key": "Great Assembly",
+"he": "אנשי כנסת הגדולה"
+},
+{
+"order": 21,
+"en": "Rabbi Abba b. Hiyya b. Abba",
+"era": "Amoraim",
+"key": "Rabbi Abba b. Hiyya b. Abba",
+"he": "רבי אבא בן חייא בן אבא"
+},
+{
+"order": 15.5,
+"en": "Abba Shaul",
+"era": "Tannaim",
+"key": "Abba Shaul",
+"he": "אבא שאול"
+},
+{
+"order": 21,
+"en": "Rabbi Abbahu",
+"era": "Amoraim",
+"key": "Rabbi Abbahu",
+"he": "רבי אבהו‎"
+},
+{
+"order": 19,
+"en": "Avuha Di Shmuel",
+"era": "Amoraim",
+"key": "Avuha Di Shmuel",
+"he": "אבוה דשמואל"
+},
+{
+"order": 10,
+"en": "Avtalyon",
+"era": "",
+"key": "Avtalyon",
+"he": "אבטליון"
+},
+{
+"order": 22,
+"en": "Abaye",
+"era": "Amoraim",
+"key": "Abaye",
+"he": "אביי‎"
+},
+{
+"order": 20,
+"en": "Avimi",
+"era": "Amoraim",
+"key": "Avimi",
+"he": "אבימי"
+},
+{
+"order": 22,
+"en": "Avimi b. Abbahu",
+"era": "Amoraim",
+"key": "Avimi b. Abbahu",
+"he": "אבימי בן אבהו"
+},
+{
+"order": 23,
+"en": "Rabbi Avin b. Ravin",
+"era": "Amoraim",
+"key": "Rabbi Avin b. Ravin",
+"he": "רבי אבין בן רבין"
+},
+{
+"order": 22,
+"en": "Rav Adda b. Ahavah (II)",
+"era": "Amoraim",
+"key": "Rav Adda b. Ahavah (II)",
+"he": "רב אדא בר אהבה"
+},
+{
+"order": 20,
+"en": "Rav Adda b. Ahavah (I)",
+"era": "Amoraim",
+"key": "Rav Adda b. Ahavah (I)",
+"he": "רב אדא בר אהבה"
+},
+{
+"order": 15,
+"en": "Aquilas",
+"era": "Tannaim",
+"key": "Aquilas",
+"he": "עקילס"
+},
+{
+"order": 18,
+"en": "Rabbi Oshaya Rabbah",
+"era": "Tannaim",
+"key": "Rabbi Oshaya Rabbah",
+"he": "רבי אושעיא בריבי"
+},
+{
+"order": 22,
+"en": "Rabbi Aha",
+"era": "Amoraim",
+"key": "Rabbi Aha",
+"he": "רבי אחא"
+},
+{
+"order": 21,
+"en": "Rav Aha b. Ya'akov",
+"era": "Amoraim",
+"key": "Rav Aha b. Ya'akov",
+"he": "רב אחא בר יעקב"
+},
+{
+"order": 24.5,
+"en": "Rav Aha b. Rava",
+"era": "Amoraim",
+"key": "Rav Aha b. Rava",
+"he": "רב אחא בר רבא"
+},
+{
+"order": 23,
+"en": "Rav Idi b. Avin (II)",
+"era": "Amoraim",
+"key": "Rav Idi b. Avin (II)",
+"he": "רב אידי בר אבין"
+},
+{
+"order": 21.5,
+"en": "Rav Idi b. Avin (I)",
+"era": "Amoraim",
+"key": "Rav Idi b. Avin (I)",
+"he": "רב אידי בר אבין"
+},
+{
+"order": 14,
+"en": "Rabbi Eliezer b. Hyrcanus",
+"era": "Tannaim",
+"key": "Rabbi Eliezer b. Hyrcanus",
+"he": "רבי אליעזר בן הורקנוס‎"
+},
+{
+"order": 23,
+"en": "Rabbi Eliezer b. Yose",
+"era": "Amoraim",
+"key": "Rabbi Eliezer b. Yose",
+"he": "רבי אליעזר בן יוסי"
+},
+{
+"order": 16,
+"en": "Rabbi Eliezer b. Yose haGelili",
+"era": "Tannaim",
+"key": "Rabbi Eliezer b. Yose haGelili",
+"he": "רבי אליעזר בן יוסי הגלילי"
+},
+{
+"order": 14,
+"en": "Rabbi Eliezer b. Ya'akov (I)",
+"era": "Tannaim",
+"key": "Rabbi Eliezer b. Ya'akov (I)",
+"he": "רבי אליעזר בן יעקב"
+},
+{
+"order": 15,
+"en": "Elisha b. Avuyah",
+"era": "Tannaim",
+"key": "Elisha b. Avuyah",
+"he": "אלישע בן אבויה"
+},
+{
+"order": 15,
+"en": "Rabbi Elazar b. Azaryah",
+"era": "Tannaim",
+"key": "Rabbi Elazar b. Azaryah",
+"he": "רבי אלעזר בן עזריה"
+},
+{
+"order": 14,
+"en": "Rabbi Elazar b. Arakh",
+"era": "Tannaim",
+"key": "Rabbi Elazar b. Arakh",
+"he": "רבי אלעזר בן ערך"
+},
+{
+"order": 21,
+"en": "Rabbi Elazar b. Pedat",
+"era": "Amoraim",
+"key": "Rabbi Elazar b. Pedat",
+"he": "רבי אלעזר בן פדת"
+},
+{
+"order": 14,
+"en": "Rabbi Elazar b. Tzadok (I)",
+"era": "Tannaim",
+"key": "Rabbi Elazar b. Tzadok (I)",
+"he": "רבי אלעזר בן צדוק"
+},
+{
+"order": 16,
+"en": "Rabbi Elazar b. Tzadok (II)",
+"era": "Tannaim",
+"key": "Rabbi Elazar b. Tzadok (II)",
+"he": "רבי אלעזר בן צדוק"
+},
+{
+"order": 16,
+"en": "Rabbi Elazar b. Shamu'a",
+"era": "Tannaim",
+"key": "Rabbi Elazar b. Shamu'a",
+"he": "רבי אלעזר בן שמוע"
+},
+{
+"order": 17,
+"en": "Rabbi Elazar b. Shimon",
+"era": "Tannaim",
+"key": "Rabbi Elazar b. Shimon",
+"he": "רבי אלעזר בן שמעון"
+},
+{
+"order": 15,
+"en": "Rabbi Elazar haModa'i",
+"era": "Tannaim",
+"key": "Rabbi Elazar haModa'i",
+"he": "רבי אלעזר המודעי"
+},
+{
+"order": 17,
+"en": "Rabbi Elazar haKappar",
+"era": "Tannaim",
+"key": "Rabbi Elazar haKappar",
+"he": "רבי אלעזר הקפר"
+},
+{
+"order": 21,
+"en": "Rabbi Ammi",
+"era": "Amoraim",
+"key": "Rabbi Ammi",
+"he": "רבי אמי"
+},
+{
+"order": 23.5,
+"en": "Amemar",
+"era": "Amoraim",
+"key": "Amemar",
+"he": "אמימר"
+},
+{
+"order": 19,
+"en": "Rav Assi",
+"era": "Amoraim",
+"key": "Rav Assi",
+"he": "רב אסי"
+},
+{
+"order": 21,
+"en": "Rabbi Assi",
+"era": "Amoraim",
+"key": "Rabbi Assi",
+"he": "רבי אסי"
+},
+{
+"order": 19,
+"en": "Rabbi Aphes",
+"era": "Amoraim",
+"key": "Rabbi Aphes",
+"he": "רבי אפס"
+},
+{
+"order": 24,
+"en": "Rav Ashi",
+"era": "Amoraim",
+"key": "Rav Ashi",
+"he": "רב אשי‎"
+},
+{
+"order": 12,
+"en": "Bava b. Buta",
+"era": "Tannaim",
+"key": "Bava b. Buta",
+"he": "בבא בן בוטא"
+},
+{
+"order": 23,
+"en": "Rav Bivi b. Abaye",
+"era": "Amoraim",
+"key": "Rav Bivi b. Abaye",
+"he": "רב ביבי בר אביי"
+},
+{
+"order": 12,
+"en": "Ben He He",
+"era": "Tannaim",
+"key": "Ben He He",
+"he": "בן הא הא"
+},
+{
+"order": 18,
+"en": "Bar Kappara",
+"era": "Tannaim",
+"key": "Bar Kappara",
+"he": "בר קפרא"
+},
+{
+"order": 22,
+"en": "Rabbi Berekhyah",
+"era": "Amoraim",
+"key": "Rabbi Berekhyah",
+"he": "רבי ברכיה"
+},
+{
+"order": 24,
+"en": "Rav Geviha of Bei Katil",
+"era": "Amoraim",
+"key": "Rav Geviha of Bei Katil",
+"he": "רב גביהה מבי כתיל"
+},
+{
+"order": 20,
+"en": "Rav Giddel",
+"era": "Amoraim",
+"key": "Rav Giddel",
+"he": "רב גידל"
+},
+{
+"order": 14,
+"en": "Rabban Gamliel (II) of Yavneh",
+"era": "Tannaim",
+"key": "Rabban Gamliel (II) of Yavneh",
+"he": "רבן גמליאל דיבנה"
+},
+{
+"order": 18,
+"en": "Rabban Gamliel (III) b. Rabbi",
+"era": "Tannaim",
+"key": "Rabban Gamliel (III) b. Rabbi",
+"he": "רבן גמליאל דיבנה"
+},
+{
+"order": 12,
+"en": "Rabban Gamliel (I) haZaken",
+"era": "Tannaim",
+"key": "Rabban Gamliel (I) haZaken",
+"he": "רבן גמליאל הזקן"
+},
+{
+"order": 19.5,
+"en": "Geniva",
+"era": "Amoraim",
+"key": "Geniva",
+"he": "גניבא"
+},
+{
+"order": 13,
+"en": "Rabbi Dosa b. Harkinas",
+"era": "Tannaim",
+"key": "Rabbi Dosa b. Harkinas",
+"he": "רבי דוסא בן הרכינס"
+},
+{
+"order": 21.5,
+"en": "Rav Dimi",
+"era": "Amoraim",
+"key": "Rav Dimi",
+"he": "רב דימי"
+},
+{
+"order": 22,
+"en": "Rav Dimi of Neharde'a",
+"era": "Amoraim",
+"key": "Rav Dimi of Neharde'a",
+"he": "רב דימי מנהרדעא"
+},
+{
+"order": 20,
+"en": "Rav Huna",
+"era": "Amoraim",
+"key": "Rav Huna",
+"he": "רב הונא"
+},
+{
+"order": 22,
+"en": "Rav Huna b. Avin",
+"era": "Amoraim",
+"key": "Rav Huna b. Avin",
+"he": "רב הונא בר אבין"
+},
+{
+"order": 23,
+"en": "Rav Huna b. Yehoshua",
+"era": "Amoraim",
+"key": "Rav Huna b. Yehoshua",
+"he": "רב הונא בר יהושע"
+},
+{
+"order": 18,
+"en": "Rabbi Hiyya",
+"era": "Tannaim",
+"key": "Rabbi Hiyya",
+"he": "רבי חייא"
+},
+{
+"order": 20,
+"en": "Rav Hiyya b. Ashi",
+"era": "Amoraim",
+"key": "Rav Hiyya b. Ashi",
+"he": "רב חייא בר אשי"
+},
+{
+"order": 20,
+"en": "Rav Hiyya b. Yosef",
+"era": "Amoraim",
+"key": "Rav Hiyya b. Yosef",
+"he": "רב חייא בר יוסף"
+},
+{
+"order": 20,
+"en": "Rav Hiyya b. Rav",
+"era": "Amoraim",
+"key": "Rav Hiyya b. Rav",
+"he": "רב חייא בר רב"
+},
+{
+"order": 11,
+"en": "Hillel the Elder",
+"era": "",
+"key": "Hillel the Elder",
+"he": "הלל הזקן"
+},
+{
+"order": 22,
+"en": "Hillel haNasi",
+"era": "Amoraim",
+"key": "Hillel haNasi",
+"he": "הלל נשיאה"
+},
+{
+"order": 21,
+"en": "Rav Hamnuna (II)",
+"era": "Amoraim",
+"key": "Rav Hamnuna (II)",
+"he": "רב המנונא"
+},
+{
+"order": 20,
+"en": "Rav Hamnuna (I)",
+"era": "Amoraim",
+"key": "Rav Hamnuna (I)",
+"he": "רב המנונא"
+},
+{
+"order": 7,
+"en": "Yose b. Yoezer",
+"era": "",
+"key": "Yose b. Yoezer",
+"he": "יוסי בן יועזר"
+},
+{
+"order": 23,
+"en": "Rav Zevid",
+"era": "Amoraim",
+"key": "Rav Zevid",
+"he": "רב זביד"
+},
+{
+"order": 21,
+"en": "Rabbi Zera",
+"era": "Amoraim",
+"key": "Rabbi Zera",
+"he": "רבי זירא"
+},
+{
+"order": 22,
+"en": "Rav Zera",
+"era": "Amoraim",
+"key": "Rav Zera",
+"he": "רב זירא"
+},
+{
+"order": 20,
+"en": "Ze'iri",
+"era": "Amoraim",
+"key": "Ze'iri",
+"he": "זעירא"
+},
+{
+"order": 21,
+"en": "Rabbi Zerika",
+"era": "Amoraim",
+"key": "Rabbi Zerika",
+"he": "רבי זריקא"
+},
+{
+"order": 21.5,
+"en": "Rabbi Haggai",
+"era": "Amoraim",
+"key": "Rabbi Haggai",
+"he": "רבי חגי"
+},
+{
+"order": 22.5,
+"en": "Rabbi Hizkiyah",
+"era": "Amoraim",
+"key": "Rabbi Hizkiyah",
+"he": "רבי חזקיהו"
+},
+{
+"order": 19,
+"en": "Hizkiyah b. Hiyya",
+"era": "Amoraim",
+"key": "Hizkiyah b. Hiyya",
+"he": "חזקיהו בן חייא"
+},
+{
+"order": 21,
+"en": "Rabbi Hiyya b. Abba",
+"era": "Amoraim",
+"key": "Rabbi Hiyya b. Abba",
+"he": "רבי חייא בן אבא"
+},
+{
+"order": 21,
+"en": "Rabbi Helbo",
+"era": "Amoraim",
+"key": "Rabbi Helbo",
+"he": "רבי חלבו"
+},
+{
+"order": 15,
+"en": "Rabbi Halafta",
+"era": "Tannaim",
+"key": "Rabbi Halafta",
+"he": "רבי חלפתא"
+},
+{
+"order": 23,
+"en": "Rav Hama",
+"era": "Amoraim",
+"key": "Rav Hama",
+"he": "רב חמא"
+},
+{
+"order": 19,
+"en": "Rabbi Hama b. Bisa",
+"era": "Amoraim",
+"key": "Rabbi Hama b. Bisa",
+"he": "רבי חמא בר ביסא"
+},
+{
+"order": 20,
+"en": "Rav Hama b. Gurya",
+"era": "Amoraim",
+"key": "Rav Hama b. Gurya",
+"he": "רב חמא בר גוריא"
+},
+{
+"order": 20,
+"en": "Rabbi Hama b. Hanina",
+"era": "Amoraim",
+"key": "Rabbi Hama b. Hanina",
+"he": "רבי חמא בר חנינא"
+},
+{
+"order": 15,
+"en": "Rabbi Hanina b. Gamliel",
+"era": "Tannaim",
+"key": "Rabbi Hanina b. Gamliel",
+"he": "רבי חנינא בן גמליאל"
+},
+{
+"order": 13,
+"en": "Rabbi Hanina b. Dosa",
+"era": "Tannaim",
+"key": "Rabbi Hanina b. Dosa",
+"he": "רבי חנינא בן דוסא"
+},
+{
+"order": 14,
+"en": "Rabbi Eliezar of Bertota",
+"era": "Tannaim",
+"key": "Rabbi Eliezar of Bertota",
+"he": "רבי אלעזר איש ברתותא"
+},
+{
+"order": 19,
+"en": "Rabbi Hanina b. Hama",
+"era": "Amoraim",
+"key": "Rabbi Hanina b. Hama",
+"he": "רבי חנינא בר חמא"
+},
+{
+"order": 23,
+"en": "Rabbi Hanina of Tzipori",
+"era": "Amoraim",
+"key": "Rabbi Hanina of Tzipori",
+"he": "רבי חנינא דציפורי"
+},
+{
+"order": 13,
+"en": "Rabbi Hanina Segan haKohanim",
+"era": "Tannaim",
+"key": "Rabbi Hanina Segan haKohanim",
+"he": "רבי חנינא סגן הכהנים"
+},
+{
+"order": 21,
+"en": "Rabbi Hanina b. Pappa",
+"era": "Amoraim",
+"key": "Rabbi Hanina b. Pappa",
+"he": "רבי חנינה בר פפא‎"
+},
+{
+"order": 20,
+"en": "Rav Hanan b. Rabbah",
+"era": "Amoraim",
+"key": "Rav Hanan b. Rabbah",
+"he": "רב חנן בר רבא"
+},
+{
+"order": 15,
+"en": "Rabbi Hananyah b. Hakhinai",
+"era": "Tannaim",
+"key": "Rabbi Hananyah b. Hakhinai",
+"he": "רבי חנינה בן חכינאי"
+},
+{
+"order": 15,
+"en": "Hananyah",
+"era": "Tannaim",
+"key": "Hananyah",
+"he": "חנניה"
+},
+{
+"order": 15,
+"en": "Rabbi Hananyah b. Teradyon",
+"era": "Tannaim",
+"key": "Rabbi Hananyah b. Teradyon",
+"he": "רבי חנניה בן תרדיון"
+},
+{
+"order": 21,
+"en": "Rav Hisda",
+"era": "Amoraim",
+"key": "Rav Hisda",
+"he": "רב חסדא"
+},
+{
+"order": 14,
+"en": "Rabbi Tarfon",
+"era": "Tannaim",
+"key": "Rabbi Tarfon",
+"he": "רבי טרפון‎"
+},
+{
+"order": 15,
+"en": "Rabbi Yehudah b. Bava",
+"era": "Tannaim",
+"key": "Rabbi Yehudah b. Bava",
+"he": "רבי יהודה בן בבא"
+},
+{
+"order": 15,
+"en": "Rabbi Yehudah b. Betera (II)",
+"era": "Tannaim",
+"key": "Rabbi Yehudah b. Betera (II)",
+"he": "רבי יהודה בן בתירא"
+},
+{
+"order": 13,
+"en": "Rabbi Yehudah b. Betera (I)",
+"era": "Tannaim",
+"key": "Rabbi Yehudah b. Betera (I)",
+"he": "רבי יהודה בן בתירא"
+},
+{
+"order": 19,
+"en": "Yehudah b. Hiyya",
+"era": "Amoraim",
+"key": "Yehudah b. Hiyya",
+"he": "יהודה בן חייא"
+},
+{
+"order": 9,
+"en": "Yehudah b. Tabbai",
+"era": "",
+"key": "Yehudah b. Tabbai",
+"he": "יהודה בן טבאי"
+},
+{
+"order": 20,
+"en": "Rav Yehudah b. Yehezkel",
+"era": "Amoraim",
+"key": "Rav Yehudah b. Yehezkel",
+"he": "רב יהודה בן יחזקאל"
+},
+{
+"order": 22,
+"en": "Rabbi Yehudah b. Pazi",
+"era": "Amoraim",
+"key": "Rabbi Yehudah b. Pazi",
+"he": "רבי יהודה בן פזי"
+},
+{
+"order": 16,
+"en": "Rabbi Yehudah b. R' II'ai",
+"era": "Tannaim",
+"key": "Rabbi Yehudah b. R' II'ai",
+"he": "רבי יהודה ברבי אילעאי"
+},
+{
+"order": 17,
+"en": "Rabbi Yehudah haNasi",
+"era": "Tannaim",
+"key": "Rabbi Yehudah haNasi",
+"he": "רבי יהודה הנשיא"
+},
+{
+"order": 21,
+"en": "Rabbi Yehudah Nesi'a (II)",
+"era": "Amoraim",
+"key": "Rabbi Yehudah Nesi'a (II)",
+"he": "רבי יהודה נשיאה"
+},
+{
+"order": 19,
+"en": "Rabbi Yehudah Nesi'a (I)",
+"era": "Amoraim",
+"key": "Rabbi Yehudah Nesi'a (I)",
+"he": "רבי יהודה נשיאה"
+},
+{
+"order": 14,
+"en": "Rabbi Yehoshua b. Hananyah",
+"era": "Tannaim",
+"key": "Rabbi Yehoshua b. Hananyah",
+"he": "רבי יהושע בן חנניה"
+},
+{
+"order": 19,
+"en": "Rabbi Yehoshua b. Levi",
+"era": "Amoraim",
+"key": "Rabbi Yehoshua b. Levi",
+"he": "רבי יהושע‎ בן לוי"
+},
+{
+"order": 8,
+"en": "Yehoshua b. Perachya",
+"era": "",
+"key": "Yehoshua b. Perachya",
+"he": "יהושע בן פרחיה‎"
+},
+{
+"order": 16,
+"en": "Rabbi Yehoshua b. Korha",
+"era": "Tannaim",
+"key": "Rabbi Yehoshua b. Korha",
+"he": "רבי יהושע בן קרחה"
+},
+{
+"order": 23.5,
+"en": "Rabbi Yehoshua b. Idi",
+"era": "Amoraim",
+"key": "Rabbi Yehoshua b. Idi",
+"he": "רבי יהושע בריה דרב אידי"
+},
+{
+"order": 15,
+"en": "Rabbi Yohanan b. Berokah",
+"era": "Tannaim",
+"key": "Rabbi Yohanan b. Berokah",
+"he": "רבי יוחנן בן ברוקה"
+},
+{
+"order": 13,
+"en": "Rabbi Yohanan b. Zakkai",
+"era": "Tannaim",
+"key": "Rabbi Yohanan b. Zakkai",
+"he": "רבן יוחנן בן זכאי‎"
+},
+{
+"order": 15,
+"en": "Rabbi Yohanan b. Nuri",
+"era": "Tannaim",
+"key": "Rabbi Yohanan b. Nuri",
+"he": "רבי יוחנן בן נורי"
+},
+{
+"order": 20,
+"en": "Rabbi Yohanan b. Nappaha",
+"era": "Amoraim",
+"key": "Rabbi Yohanan b. Nappaha",
+"he": "רבי יוחנן בר נפחא"
+},
+{
+"order": 16,
+"en": "Rabbi Yohanan haSandlar",
+"era": "Tannaim",
+"key": "Rabbi Yohanan haSandlar",
+"he": "רבי יוחנן הסנדלר"
+},
+{
+"order": 22,
+"en": "Rabbi Yonah",
+"era": "Amoraim",
+"key": "Rabbi Yonah",
+"he": "רבי יונה"
+},
+{
+"order": 16,
+"en": "Rabbi Yonatan",
+"era": "Tannaim",
+"key": "Rabbi Yonatan",
+"he": "רבי יונתן"
+},
+{
+"order": 12,
+"en": "Rabbi Yonatan b. Uziel",
+"era": "Tannaim",
+"key": "Rabbi Yonatan b. Uziel",
+"he": "רבי יונתן בן עוזיאל"
+},
+{
+"order": 16,
+"en": "Rabbi Yose b. Halafta",
+"era": "Tannaim",
+"key": "Rabbi Yose b. Halafta",
+"he": "רבי יוסי בן חלפתא"
+},
+{
+"order": 17,
+"en": "Rabbi Yose b. Yehudah",
+"era": "Tannaim",
+"key": "Rabbi Yose b. Yehudah",
+"he": "רבי יוסי בן יהודה"
+},
+{
+"order": 7,
+"en": "Yose b. Yochanan",
+"era": "",
+"key": "Yose b. Yochanan",
+"he": "יוסי בן יוחנן‎"
+},
+{
+"order": 22,
+"en": "Rabbi Yose b. Zevida",
+"era": "Amoraim",
+"key": "Rabbi Yose b. Zevida",
+"he": "רבי יוסי בר זבידא"
+},
+{
+"order": 15,
+"en": "Rabbi Yose haGelili",
+"era": "Tannaim",
+"key": "Rabbi Yose haGelili",
+"he": "רבי יוסי הגלילי"
+},
+{
+"order": 14,
+"en": "Rabbi Yose haKohen",
+"era": "Tannaim",
+"key": "Rabbi Yose haKohen",
+"he": "רבי יוסי הכהן"
+},
+{
+"order": 21,
+"en": "Rav Yosef b. Hiyya",
+"era": "Amoraim",
+"key": "Rav Yosef b. Hiyya",
+"he": "רב יוסף בר חייא"
+},
+{
+"order": 24.5,
+"en": "Rav Yeimar",
+"era": "Amoraim",
+"key": "Rav Yeimar",
+"he": "רב יימר"
+},
+{
+"order": 19,
+"en": "Rabbi Yannai",
+"era": "Amoraim",
+"key": "Rabbi Yannai",
+"he": "רבי ינאי"
+},
+{
+"order": 20.5,
+"en": "Rabbi Ya'akov b. Idi",
+"era": "Amoraim",
+"key": "Rabbi Ya'akov b. Idi",
+"he": "רבי יעקב בר אידי"
+},
+{
+"order": 22,
+"en": "Rabbi Yitzhak b. Elazar",
+"era": "Amoraim",
+"key": "Rabbi Yitzhak b. Elazar",
+"he": "רבי יצחק בן אליעזר"
+},
+{
+"order": 21,
+"en": "Rabbi Yitzhak b. Nahman",
+"era": "Amoraim",
+"key": "Rabbi Yitzhak b. Nahman",
+"he": "רבי יצחק בן נחמן"
+},
+{
+"order": 20,
+"en": "Rabbi Yitzhak Nappaha",
+"era": "Amoraim",
+"key": "Rabbi Yitzhak Nappaha",
+"he": "רבי יצחק נפחא"
+},
+{
+"order": 20,
+"en": "Rav Yirmeyah b. Abba",
+"era": "Amoraim",
+"key": "Rav Yirmeyah b. Abba",
+"he": "רב ירמיה בר אבא"
+},
+{
+"order": 21.5,
+"en": "Rabbi Yirmeyah",
+"era": "Amoraim",
+"key": "Rabbi Yirmeyah",
+"he": "רבי ירמיהו"
+},
+{
+"order": 15,
+"en": "Rabbi Yishmael b. Elisha",
+"era": "Tannaim",
+"key": "Rabbi Yishmael b. Elisha",
+"he": "רבי ישמעאל בן אלישע"
+},
+{
+"order": 17,
+"en": "Rabbi Yishmael b. Yose",
+"era": "Tannaim",
+"key": "Rabbi Yishmael b. Yose",
+"he": "רבי ישמעאל בן יוסי"
+},
+{
+"order": 16,
+"en": "Rabbi Yishmael b. Yohanan b. Berokah",
+"era": "Tannaim",
+"key": "Rabbi Yishmael b. Yohanan b. Berokah",
+"he": "רבי ישמעאל יוחנן בן ברוקה"
+},
+{
+"order": 21,
+"en": "Rabbi Kohen",
+"era": "Amoraim",
+"key": "Rabbi Kohen",
+"he": "רבי כהן"
+},
+{
+"order": 20,
+"en": "Rav Kahana (II)",
+"era": "Amoraim",
+"key": "Rav Kahana (II)",
+"he": "רב כהנא"
+},
+{
+"order": 24,
+"en": "Rav Kahana (V)",
+"era": "Amoraim",
+"key": "Rav Kahana (V)",
+"he": "רב כהנא"
+},
+{
+"order": 21,
+"en": "Rav Kahana (III)",
+"era": "Amoraim",
+"key": "Rav Kahana (III)",
+"he": "רב כהנא"
+},
+{
+"order": 19,
+"en": "Rav Kahana (I)",
+"era": "Amoraim",
+"key": "Rav Kahana (I)",
+"he": "רב כהנא"
+},
+{
+"order": 23,
+"en": "Rav Kahana (IV)",
+"era": "Amoraim",
+"key": "Rav Kahana (IV)",
+"he": "רב כהנא"
+},
+{
+"order": 21,
+"en": "Rabbi Levi",
+"era": "Amoraim",
+"key": "Rabbi Levi",
+"he": "רבי לוי"
+},
+{
+"order": 18,
+"en": "Levi b. Sisi",
+"era": "Tannaim",
+"key": "Levi b. Sisi",
+"he": "לוי בר סיסי"
+},
+{
+"order": 16,
+"en": "Rabbi Meir",
+"era": "Tannaim",
+"key": "Rabbi Meir",
+"he": "רבי מאיר"
+},
+{
+"order": 23,
+"en": "Rabbi Mana (II)",
+"era": "Amoraim",
+"key": "Rabbi Mana (II)",
+"he": "רבי מנא"
+},
+{
+"order": 20,
+"en": "Rabbi Mana (I)",
+"era": "Amoraim",
+"key": "Rabbi Mana (I)",
+"he": "רבי מנא"
+},
+{
+"order": 25,
+"en": "Mar b. Rav Ashi",
+"era": "Amoraim",
+"key": "Mar b. Rav Ashi",
+"he": "מר בר רב אשי"
+},
+{
+"order": 24,
+"en": "Mar Zutra",
+"era": "Amoraim",
+"key": "Mar Zutra",
+"he": "מר זוטרא"
+},
+{
+"order": 19,
+"en": "Mar Ukva",
+"era": "Amoraim",
+"key": "Mar Ukva",
+"he": "מר עוקבא"
+},
+{
+"order": 23,
+"en": "Rav Mesharshiya",
+"era": "Amoraim",
+"key": "Rav Mesharshiya",
+"he": "רב משרשיא"
+},
+{
+"order": 20,
+"en": "Rav Matenah",
+"era": "Amoraim",
+"key": "Rav Matenah",
+"he": "רב מתנא"
+},
+{
+"order": 14,
+"en": "Nahum of Gamzo",
+"era": "Tannaim",
+"key": "Nahum of Gamzo",
+"he": "נחום איש גמזו"
+},
+{
+"order": 14,
+"en": "Rabbi Nehunya b. haKanah",
+"era": "Tannaim",
+"key": "Rabbi Nehunya b. haKanah",
+"he": "רבי נחוניה בן הקנה"
+},
+{
+"order": 16,
+"en": "Rabbi Nehemyah",
+"era": "Tannaim",
+"key": "Rabbi Nehemyah",
+"he": "רבי נחמיה"
+},
+{
+"order": 22,
+"en": "Rav Nahman b. Hisda",
+"era": "Amoraim",
+"key": "Rav Nahman b. Hisda",
+"he": "רב נחמן בר חסדא"
+},
+{
+"order": 21,
+"en": "Rav Nahman b. Ya'akov",
+"era": "Amoraim",
+"key": "Rav Nahman b. Ya'akov",
+"he": "רב נחמן בר יעקב"
+},
+{
+"order": 22,
+"en": "Rav Nahman b. Yitzhak",
+"era": "Amoraim",
+"key": "Rav Nahman b. Yitzhak",
+"he": "רב נחמן בר יצחק"
+},
+{
+"order": 8,
+"en": "Nittai haArbeli",
+"era": "",
+"key": "Nittai haArbeli",
+"he": "נתאי הארבלי"
+},
+{
+"order": 16,
+"en": "Rabbi Natan haBavli",
+"era": "Tannaim",
+"key": "Rabbi Natan haBavli",
+"he": "רבי נתן הבבלי"
+},
+{
+"order": 17,
+"en": "Summakhos",
+"era": "Tannaim",
+"key": "Summakhos",
+"he": "סומכוס"
+},
+{
+"order": 20.5,
+"en": "Ulla",
+"era": "Amoraim",
+"key": "Ulla",
+"he": "עולא"
+},
+{
+"order": 23,
+"en": "Azaryah",
+"era": "Amoraim",
+"key": "Azaryah",
+"he": "עזריה"
+},
+{
+"order": 21,
+"en": "Rabbi Il'ai (II)",
+"era": "Amoraim",
+"key": "Rabbi Il'ai (II)",
+"he": "רבי עילאי"
+},
+{
+"order": 15,
+"en": "Rabbi Il'ai (I)",
+"era": "Tannaim",
+"key": "Rabbi Il'ai (I)",
+"he": "רבי עילאי"
+},
+{
+"order": 12,
+"en": "Akavyah b. Mahalal'el",
+"era": "Tannaim",
+"key": "Akavyah b. Mahalal'el",
+"he": "עקביא בן מהללאל"
+},
+{
+"order": 15,
+"en": "Rabbi Akiva",
+"era": "Tannaim",
+"key": "Rabbi Akiva",
+"he": "רבי עקיבא"
+},
+{
+"order": 17,
+"en": "Rabbi Pinehas b. Yair",
+"era": "Tannaim",
+"key": "Rabbi Pinehas b. Yair",
+"he": "רבי פנחס בן יאיר"
+},
+{
+"order": 22,
+"en": "Rabbi Pinehas b. Hama",
+"era": "Amoraim",
+"key": "Rabbi Pinehas b. Hama",
+"he": "רבי פנחס בר חמא"
+},
+{
+"order": 23,
+"en": "Rav Pappa",
+"era": "Amoraim",
+"key": "Rav Pappa",
+"he": "רב פפא‎"
+},
+{
+"order": 23,
+"en": "Rav Pappai",
+"era": "Amoraim",
+"key": "Rav Pappai",
+"he": "רב פפאי"
+},
+{
+"order": 16,
+"en": "Rabbi Tzadok (II)",
+"era": "Tannaim",
+"key": "Rabbi Tzadok (II)",
+"he": "רבי צדוק"
+},
+{
+"order": 13,
+"en": "Rabbi Tzadok (I)",
+"era": "Tannaim",
+"key": "Rabbi Tzadok (I)",
+"he": "רבי צדוק"
+},
+{
+"order": 20,
+"en": "Rav Ketina",
+"era": "Amoraim",
+"key": "Rav Ketina",
+"he": "רב קטינא"
+},
+{
+"order": 19,
+"en": "Karna",
+"era": "Amoraim",
+"key": "Karna",
+"he": "קרנא"
+},
+{
+"order": 19,
+"en": "Rav",
+"era": "Amoraim",
+"key": "Rav",
+"he": "רב"
+},
+{
+"order": 22,
+"en": "Rava",
+"era": "Amoraim",
+"key": "Rava",
+"he": "רבא"
+},
+{
+"order": 20,
+"en": "Rabbah b. Avuha",
+"era": "Amoraim",
+"key": "Rabbah b. Avuha",
+"he": "רבה בר אבוה"
+},
+{
+"order": 21,
+"en": "Rabbah b. b. Hanah",
+"era": "Amoraim",
+"key": "Rabbah b. b. Hanah",
+"he": "רבה בר בר חנה"
+},
+{
+"order": 19,
+"en": "Rabbah b. Hanah",
+"era": "Amoraim",
+"key": "Rabbah b. Hanah",
+"he": "רבה בר חנה"
+},
+{
+"order": 21,
+"en": "Rabbah b. Nahmani",
+"era": "Amoraim",
+"key": "Rabbah b. Nahmani",
+"he": "רבה בר נחמני"
+},
+{
+"order": 21,
+"en": "Rabbah b. Rav Huna",
+"era": "Amoraim",
+"key": "Rabbah b. Rav Huna",
+"he": "רבה בר רב הונא"
+},
+{
+"order": 5,
+"en": "Shimon haTzaddik",
+"era": "Great Assembly",
+"key": "Shimon haTzaddik",
+"he": "שִׁמְעוֹן הצדיק"
+},
+{
+"order": 26,
+"en": "Rabbah Tosafa'ah",
+"era": "Amoraim",
+"key": "Rabbah Tosafa'ah",
+"he": "רבה תוספאה"
+},
+{
+"order": 21.5,
+"en": "Ravin",
+"era": "Amoraim",
+"key": "Ravin",
+"he": "רבין"
+},
+{
+"order": 24,
+"en": "Ravina (I)",
+"era": "Amoraim",
+"key": "Ravina (I)",
+"he": "רבינא"
+},
+{
+"order": 26,
+"en": "Ravina (II) b. Huna",
+"era": "Amoraim",
+"key": "Ravina (II) b. Huna",
+"he": "רבינא"
+},
+{
+"order": 21,
+"en": "Rahava of Pumbedita",
+"era": "Amoraim",
+"key": "Rahava of Pumbedita",
+"he": "רחבא דפומבדיתא"
+},
+{
+"order": 22,
+"en": "Rami b. Hama",
+"era": "Amoraim",
+"key": "Rami b. Hama",
+"he": "רמי בר חמא"
+},
+{
+"order": 24,
+"en": "Rafram (I)",
+"era": "Amoraim",
+"key": "Rafram (I)",
+"he": "רפרם"
+},
+{
+"order": 25,
+"en": "Rafram (II)",
+"era": "Amoraim",
+"key": "Rafram (II)",
+"he": "רפרם"
+},
+{
+"order": 18,
+"en": "Rav Shela",
+"era": "Tannaim",
+"key": "Rav Shela",
+"he": "רב שילא"
+},
+{
+"order": 22.5,
+"en": "Rav Shesha b. Rav Idi",
+"era": "Amoraim",
+"key": "Rav Shesha b. Rav Idi",
+"he": "רב שישא בריה דרב אידי"
+},
+{
+"order": 11,
+"en": "Shammai",
+"era": "",
+"key": "Shammai",
+"he": "שמאי"
+},
+{
+"order": 19,
+"en": "Shmuel",
+"era": "Amoraim",
+"key": "Shmuel",
+"he": "שמואל"
+},
+{
+"order": 21,
+"en": "Rabbi Shmuel b. Yitzhak",
+"era": "Amoraim",
+"key": "Rabbi Shmuel b. Yitzhak",
+"he": "רבי שמואל בן יצחק"
+},
+{
+"order": 21,
+"en": "Rabbi Shmuel b. Nahmani",
+"era": "Amoraim",
+"key": "Rabbi Shmuel b. Nahmani",
+"he": "רבי שמואל בן נחמן"
+},
+{
+"order": 23,
+"en": "Rabbi Shmuel b. Yose b. Boon",
+"era": "Amoraim",
+"key": "Rabbi Shmuel b. Yose b. Boon",
+"he": "רבי שמואל בר יוסי בר בון"
+},
+{
+"order": 14,
+"en": "Shmuel haKatan",
+"era": "Tannaim",
+"key": "Shmuel haKatan",
+"he": "שמואל הקטן"
+},
+{
+"order": 17,
+"en": "Rabbi Shimon b. Elazar",
+"era": "Tannaim",
+"key": "Rabbi Shimon b. Elazar",
+"he": "רבי שמוען בן אלעזר"
+},
+{
+"order": 20,
+"en": "Rabbi Simlai",
+"era": "Amoraim",
+"key": "Rabbi Simlai",
+"he": "רבי שמלאי"
+},
+{
+"order": 21,
+"en": "Rabbi Shimon b. Abba",
+"era": "Amoraim",
+"key": "Rabbi Shimon b. Abba",
+"he": "רבי שמעון בן אבא"
+},
+{
+"order": 16,
+"en": "Rabban Shimon b. Gamliel (II)",
+"era": "Tannaim",
+"key": "Rabban Shimon b. Gamliel (II)",
+"he": "רבן שמעון בן גמליאל"
+},
+{
+"order": 13,
+"en": "Rabban Shimon b. Gamliel (I)",
+"era": "Tannaim",
+"key": "Rabban Shimon b. Gamliel (I)",
+"he": "רבן שמעון בן גמליאל"
+},
+{
+"order": 15,
+"en": "Shimon b. Zoma",
+"era": "Tannaim",
+"key": "Shimon b. Zoma",
+"he": "שמעון בן זומא"
+},
+{
+"order": 17,
+"en": "Shimon b. Halafta",
+"era": "Tannaim",
+"key": "Shimon b. Halafta",
+"he": "שמעון בן חלפתא"
+},
+{
+"order": 17,
+"en": "Rabbi Shimon b. Yehudah",
+"era": "Tannaim",
+"key": "Rabbi Shimon b. Yehudah",
+"he": "רבי שמעון בן יהודה"
+},
+{
+"order": 20,
+"en": "Rabbi Shimon b. Lakish",
+"era": "Amoraim",
+"key": "Rabbi Shimon b. Lakish",
+"he": "רבי שמעון בן לקיש"
+},
+{
+"order": 17,
+"en": "Rabbi Shimon b. Menasya",
+"era": "Tannaim",
+"key": "Rabbi Shimon b. Menasya",
+"he": "רבי שמעון בן מנסיא"
+},
+{
+"order": 15,
+"en": "Rabbi Shimon b. Nannas",
+"era": "Tannaim",
+"key": "Rabbi Shimon b. Nannas",
+"he": "רבי שמעון בן ננס"
+},
+{
+"order": 15,
+"en": "Shimon b. Azzai",
+"era": "Tannaim",
+"key": "Shimon b. Azzai",
+"he": "שמעון בן עזאי"
+},
+{
+"order": 20.5,
+"en": "Rabbi Shimon b. Pazzi",
+"era": "Amoraim",
+"key": "Rabbi Shimon b. Pazzi",
+"he": "רבי שמעון בן פזי"
+},
+{
+"order": 18,
+"en": "Rabbi Shimon b. Rabbi",
+"era": "Tannaim",
+"key": "Rabbi Shimon b. Rabbi",
+"he": "רבי שמעון בן רבי"
+},
+{
+"order": 9,
+"en": "Shimon b. Shetach",
+"era": "",
+"key": "Shimon b. Shetach",
+"he": "שמעון בן שטח"
+},
+{
+"order": 16,
+"en": "Rabbi Shimon b. Yohai",
+"era": "Tannaim",
+"key": "Rabbi Shimon b. Yohai",
+"he": "רבי שמעון בר יוחאי"
+},
+{
+"order": 10,
+"en": "Shemayah",
+"era": "",
+"key": "Shemayah",
+"he": "שמעיה"
+},
+{
+"order": 21,
+"en": "Rav Sheshet",
+"era": "Amoraim",
+"key": "Rav Sheshet",
+"he": "רב ששת"
+},
+{
+"order": 23,
+"en": "Rabbi Tanhuma b. Abba",
+"era": "Amoraim",
+"key": "Rabbi Tanhuma b. Abba",
+"he": "רבי תנחומא בר אבא"
+},
+{
+"order": 16,
+"en": "Rabbi Eliezer b. Ya'akov (II)",
+"era": "Tannaim",
+"key": "Rabbi Eliezer b. Ya'akov (II)",
+"he": "רבי אליעזר בן יעקב"
+},
+{
+"order": 16,
+"en": "Rabbi Dostai b. R' Yannai",
+"era": "Tannaim",
+"key": "Rabbi Dostai b. R' Yannai",
+"he": "רבי דוסתאי ברבי ינאי"
+},
+{
+"order": 14,
+"en": "Rabbi Eliezar Hisma",
+"era": "Tannaim",
+"key": "Rabbi Eliezar Hisma",
+"he": "רבי אליאזר בן חיסמא"
+},
+{
+"order": 14,
+"en": "Rabbi Levitas of Yavneh",
+"era": "Tannaim",
+"key": "Rabbi Levitas of Yavneh",
+"he": "רבי לויטס איש יבנה"
+},
+{
+"order": 16,
+"en": "Rabbi Nehorai",
+"era": "Tannaim",
+"key": "Rabbi Nehorai",
+"he": "רבי נהוראי"
+},
+{
+"order": 16,
+"en": "Rabbi Mattia b. Heresh",
+"era": "Tannaim",
+"key": "Rabbi Mattia b. Heresh",
+"he": "רבי מתיא בן חרש"
+},
+{
+"order": 16,
+"en": "Rabbi Yose b. Yehudah of Kefar haBavli",
+"era": "Tannaim",
+"key": "Rabbi Yose b. Yehudah of Kefar haBavli",
+"he": "רבי יוסי בר יהודה איש כפר הבב"
+},
+{
+"order": 15,
+"en": "Yehudah b. Tema",
+"era": "Tannaim",
+"key": "Yehudah b. Tema",
+"he": "יהודה בן תימא"
+},
+{
+"order": 12,
+"en": "Ben Bag Bag",
+"era": "Tannaim",
+"key": "Ben Bag Bag",
+"he": "בן בג בג"
+},
+{
+"order": 14,
+"en": "Rabbi Yose b. Kisma",
+"era": "Tannaim",
+"key": "Rabbi Yose b. Kisma",
+"he": "רבי יוסי בן קסמא"
+},
+{
+"order": 12,
+"en": "Nahum haMedi",
+"era": "Tannaim",
+"key": "Nahum haMedi",
+"he": "נחום המדי"
+},
+{
+"order": 12,
+"en": "Hananyah b. Hizkiyah b. Garon",
+"era": "Tannaim",
+"key": "Hananyah b. Hizkiyah b. Garon",
+"he": "חנניה בן חזקיה בן גרון"
+},
+{
+"order": 14,
+"en": "Rabbi Pappeyas",
+"era": "Tannaim",
+"key": "Rabbi Pappeyas",
+"he": "רבי פפייס"
+},
+{
+"order": 14,
+"en": "Shimon haPaqoli",
+"era": "Tannaim",
+"key": "Shimon haPaqoli",
+"he": "שמעון הפקולי"
+},
+{
+"order": 15,
+"en": "Rabbi Yohanan b. Torta",
+"era": "Tannaim",
+"key": "Rabbi Yohanan b. Torta",
+"he": "רבי יוחנן בן תורתא"
+},
+{
+"order": 15,
+"en": "Pappos b. Yehudah",
+"era": "Tannaim",
+"key": "Pappos b. Yehudah",
+"he": "פפוס בן יהודה"
+},
+{
+"order": 15,
+"en": "Rabbi Yose b. Dormasqit",
+"era": "Tannaim",
+"key": "Rabbi Yose b. Dormasqit",
+"he": "רבי יוסי בן דורמסקית"
+},
+{
+"order": 15,
+"en": "Rabbi Eliezar b. Parta",
+"era": "Tannaim",
+"key": "Rabbi Eliezar b. Parta",
+"he": "רבי אליעזר בן פרטא"
+},
+{
+"order": 15,
+"en": "Rabbi Elazar b. Yehudah of Bartota",
+"era": "Tannaim",
+"key": "Rabbi Elazar b. Yehudah of Bartota",
+"he": "רבי אלעזר בן יהודה איש ברתותא"
+},
+{
+"order": 15,
+"en": "Shimon haTimni",
+"era": "Tannaim",
+"key": "Shimon haTimni",
+"he": "שמעון התימני"
+},
+{
+"order": 15,
+"en": "Rabbi Shimon haShiqmoni",
+"era": "Tannaim",
+"key": "Rabbi Shimon haShiqmoni",
+"he": "רבי שמעון השקמוני"
+},
+{
+"order": 15,
+"en": "Rabbi Hidqa",
+"era": "Tannaim",
+"key": "Rabbi Hidqa",
+"he": "רבי חידקא"
+},
+{
+"order": 16,
+"en": "Rabbi Yoshiah",
+"era": "Tannaim",
+"key": "Rabbi Yoshiah",
+"he": "רבי יאשיה"
+},
+{
+"order": 16,
+"en": "Abba Hanan",
+"era": "Tannaim",
+"key": "Abba Hanan",
+"he": "אבא חנן"
+},
+{
+"order": 16,
+"en": "Rabbi Yose b. Yasyan",
+"era": "Tannaim",
+"key": "Rabbi Yose b. Yasyan",
+"he": "רבי יוסי בן יסיאן"
+},
+{
+"order": 16,
+"en": "Rabbi Hananyah b. Akabia",
+"era": "Tannaim",
+"key": "Rabbi Hananyah b. Akabia",
+"he": "רבי חנניה בן עקביא"
+},
+{
+"order": 16,
+"en": "Issi b. Yehudah",
+"era": "Tannaim",
+"key": "Issi b. Yehudah",
+"he": "איסי בן יהודה"
+},
+{
+"order": 15,
+"en": "Rabbi Reuven b. Itztrobeli",
+"era": "Tannaim",
+"key": "Rabbi Reuven b. Itztrobeli",
+"he": "רבי ראובן בן אצטרובילי"
+},
+{
+"order": 15,
+"en": "Abba Yose b. Dostai",
+"era": "Tannaim",
+"key": "Abba Yose b. Dostai",
+"he": "אבא יוסי בן דוסתאי"
+},
+{
+"order": 16,
+"en": "Rabbi Achai b. Yoshiah",
+"era": "Tannaim",
+"key": "Rabbi Achai b. Yoshiah",
+"he": "רבי אחאי בר יאשיה"
+},
+{
+"order": 16,
+"en": "Rabbi Ya'akov b. Qorshai",
+"era": "Tannaim",
+"key": "Rabbi Ya'akov b. Qorshai",
+"he": "רבי יעקב בן קרשי"
+},
+{
+"order": 16,
+"en": "Rabbi Yitzhak",
+"era": "Tannaim",
+"key": "Rabbi Yitzhak",
+"he": "רבי יצחק"
+},
+{
+"order": 17,
+"en": "Rabbi Dosa",
+"era": "Tannaim",
+"key": "Rabbi Dosa",
+"he": "רבי דוסא"
+},
+{
+"order": 17,
+"en": "Rabbi Dostai b. Yehuda",
+"era": "Tannaim",
+"key": "Rabbi Dostai b. Yehuda",
+"he": "רבי דוסתאי בן יהודה"
+},
+{
+"order": 16,
+"en": "Rabbi Yose b. Kippar",
+"era": "Tannaim",
+"key": "Rabbi Yose b. Kippar",
+"he": "רבי וסי בן כיפר"
+},
+{
+"order": 17,
+"en": "Rabbi Menahem b. R' Yose",
+"era": "Tannaim",
+"key": "Rabbi Menahem b. R' Yose",
+"he": "רבי מנחם ברבי יוסי"
+},
+{
+"order": 17,
+"en": "Rabbi Yose b. haMeshullam",
+"era": "Tannaim",
+"key": "Rabbi Yose b. haMeshullam",
+"he": "רבי יוסי בן המשולם"
+},
+{
+"order": 17,
+"en": "Rabbi Shimon b. R' Yose b. Laqonya",
+"era": "Tannaim",
+"key": "Rabbi Shimon b. R' Yose b. Laqonya",
+"he": "רבי שמעון ברבי יוסי בן לקוניא"
+},
+{
+"order": 6,
+"en": "Antigonus of Sokho",
+"era": "Pre-Tannaim",
+"key": "Antigonus of Sokho",
+"he": "אַנְטִיגְנוֹס אִישׁ סוֹכוֹ"
+},
+{
+"order": 18,
+"en": "Rabbi Banna'ah",
+"era": "Tannaim",
+"key": "Rabbi Banna'ah",
+"he": "רבי בנאה"
+},
+{
+"order": 14,
+"en": "Shimon b. Netanel",
+"era": "Tannaim",
+"key": "Shimon b. Netanel",
+"he": "סמעון בן נתנאל"
+},
+{
+"order": 16,
+"en": "Rabbi Halafta of Kefar Hanania",
+"era": "Tannaim",
+"key": "Rabbi Halafta of Kefar Hanania",
+"he": "רבי חלפתא איש כפר חנניה"
+},
+{
+"order": 14,
+"en": "Rabbi Hanina",
+"era": "Tannaim",
+"key": "Rabbi Hanina",
+"he": "רב חנינא"
+},
+{
+"order": 23,
+"en": "Rav Aha brei d' R' Iqa",
+"era": "Amoraim",
+"key": "Rav Aha brei d' R' Iqa",
+"he": "רב אחא בריה דרב איפא"
+},
+{
+"order": 21.5,
+"en": "Rav Yitzhak b. Yosef",
+"era": "Amoraim",
+"key": "Rav Yitzhak b. Yosef",
+"he": "רב יצחק בר יוסף"
+},
+{
+"order": 21,
+"en": "Rami b. Abba",
+"era": "Amoraim",
+"key": "Rami b. Abba",
+"he": "רמי בר אבא"
+},
+{
+"order": 15,
+"en": "Yohanan b. Dahavai",
+"era": "Tannaim",
+"key": "Yohanan b. Dahavai",
+"he": "יוחנן בן דהבאי"
+}
+],
+"links": [
+{
+"source": "Rabbi Abba",
+"target": "Rav Yirmeyah b. Abba"
+},
+{
+"source": "Rabbi Abba b. Hiyya b. Abba",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Abba Shaul",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Abbahu",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rabbi Abbahu",
+"target": "Rabbi Shimon b. Lakish"
+},
+{
+"source": "Avtalyon",
+"target": "Yehudah b. Tabbai"
+},
+{
+"source": "Avtalyon",
+"target": "Shimon b. Shetach"
+},
+{
+"source": "Abaye",
+"target": "Rav Yosef b. Hiyya"
+},
+{
+"source": "Abaye",
+"target": "Rav Nahman b. Ya'akov"
+},
+{
+"source": "Abaye",
+"target": "Rabbah b. Nahmani"
+},
+{
+"source": "Avimi b. Abbahu",
+"target": "Rabbi Abbahu"
+},
+{
+"source": "Rav Adda b. Ahavah (II)",
+"target": "Rava"
+},
+{
+"source": "Rav Adda b. Ahavah (I)",
+"target": "Rav"
+},
+{
+"source": "Aquilas",
+"target": "Rabbi Eliezer b. Hyrcanus"
+},
+{
+"source": "Aquilas",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Aquilas",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Oshaya Rabbah",
+"target": "Bar Kappara"
+},
+{
+"source": "Rabbi Oshaya Rabbah",
+"target": "Rabbi Hiyya"
+},
+{
+"source": "Rabbi Oshaya Rabbah",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Rav Aha b. Ya'akov",
+"target": "Rav Huna"
+},
+{
+"source": "Rav Aha b. Ya'akov",
+"target": "Rav Nahman b. Ya'akov"
+},
+{
+"source": "Rav Aha b. Rava",
+"target": "Rav Kahana (IV)"
+},
+{
+"source": "Rav Idi b. Avin (II)",
+"target": "Rav Pappa"
+},
+{
+"source": "Rav Idi b. Avin (I)",
+"target": "Rav Hisda"
+},
+{
+"source": "Rabbi Eliezer b. Hyrcanus",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Eliezer b. Yose haGelili",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Elazar b. Azaryah",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Elazar b. Arakh",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Elazar b. Pedat",
+"target": "Rabbi Oshaya Rabbah"
+},
+{
+"source": "Rabbi Elazar b. Pedat",
+"target": "Rabbi Nehunya b. haKanah"
+},
+{
+"source": "Rabbi Elazar b. Pedat",
+"target": "Rav"
+},
+{
+"source": "Rabbi Elazar b. Pedat",
+"target": "Shmuel"
+},
+{
+"source": "Rabbi Elazar b. Tzadok (I)",
+"target": "Rabban Gamliel (I) haZaken"
+},
+{
+"source": "Rabbi Elazar b. Tzadok (II)",
+"target": "Rabbi Meir"
+},
+{
+"source": "Rabbi Elazar b. Shamu'a",
+"target": "Rabbi Yehudah b. Betera (II)"
+},
+{
+"source": "Rabbi Elazar b. Shamu'a",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Elazar b. Shimon",
+"target": "Rabbi Yehudah b. R' II'ai"
+},
+{
+"source": "Rabbi Elazar b. Shimon",
+"target": "Rabbi Shimon b. Yohai"
+},
+{
+"source": "Rabbi Ammi",
+"target": "Rabbi Elazar b. Pedat"
+},
+{
+"source": "Rabbi Ammi",
+"target": "Rabbi Yitzhak Nappaha"
+},
+{
+"source": "Rav Ashi",
+"target": "Rav Kahana (IV)"
+},
+{
+"source": "Rav Ashi",
+"target": "Rav Pappa"
+},
+{
+"source": "Bava b. Buta",
+"target": "Shammai"
+},
+{
+"source": "Rav Bivi b. Abaye",
+"target": "Abaye"
+},
+{
+"source": "Rav Bivi b. Abaye",
+"target": "Rav Yosef b. Hiyya"
+},
+{
+"source": "Bar Kappara",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Rabbi Berekhyah",
+"target": "Rabbi Helbo"
+},
+{
+"source": "Rav Geviha of Bei Katil",
+"target": "Rava"
+},
+{
+"source": "Rav Giddel",
+"target": "Rav"
+},
+{
+"source": "Rabban Gamliel (II) of Yavneh",
+"target": "Rabban Gamliel (I) haZaken"
+},
+{
+"source": "Rabban Gamliel (II) of Yavneh",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Geniva",
+"target": "Rav"
+},
+{
+"source": "Rav Dimi",
+"target": "Rav Nahman b. Ya'akov"
+},
+{
+"source": "Rav Huna",
+"target": "Rav"
+},
+{
+"source": "Rav Huna",
+"target": "Shmuel"
+},
+{
+"source": "Rav Huna b. Yehoshua",
+"target": "Rav Idi b. Avin (I)"
+},
+{
+"source": "Rabbi Hiyya",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Rav Hiyya b. Ashi",
+"target": "Ze'iri"
+},
+{
+"source": "Rav Hiyya b. Ashi",
+"target": "Rav"
+},
+{
+"source": "Rav Hiyya b. Yosef",
+"target": "Rav"
+},
+{
+"source": "Rav Hiyya b. Yosef",
+"target": "Shmuel"
+},
+{
+"source": "Rav Hiyya b. Rav",
+"target": "Rav Hiyya b. Ashi"
+},
+{
+"source": "Rav Hiyya b. Rav",
+"target": "Rav Hanan b. Rabbah"
+},
+{
+"source": "Rav Hiyya b. Rav",
+"target": "Rav"
+},
+{
+"source": "Rav Hiyya b. Rav",
+"target": "Shmuel"
+},
+{
+"source": "Hillel the Elder",
+"target": "Avtalyon"
+},
+{
+"source": "Hillel the Elder",
+"target": "Shemayah"
+},
+{
+"source": "Rav Hamnuna (II)",
+"target": "Rav Adda b. Ahavah (I)"
+},
+{
+"source": "Rav Hamnuna (II)",
+"target": "Rav Huna"
+},
+{
+"source": "Rav Hamnuna (II)",
+"target": "Rav Hisda"
+},
+{
+"source": "Rav Hamnuna (II)",
+"target": "Ulla"
+},
+{
+"source": "Rav Hamnuna (I)",
+"target": "Rav"
+},
+{
+"source": "Yose b. Yoezer",
+"target": "Antigonus of Sokho"
+},
+{
+"source": "Moses",
+"target": "Joshua"
+},
+{
+"source": "Joshua",
+"target": "The Elders"
+},
+{
+"source": "The Elders",
+"target": "The Prophets"
+},
+{
+"source": "The Prophets",
+"target": "Great Assembly"
+},
+{
+"source": "Great Assembly",
+"target": "Yose b. Yoezer"
+},
+{
+"source": "Yose b. Yoezer",
+"target": "Shimon haTzaddik"
+},
+{
+"source": "Great Assembly",
+"target": "Shimon haTzaddik"
+},
+{
+"source": "Rav Zevid",
+"target": "Abaye"
+},
+{
+"source": "Rav Zevid",
+"target": "Rava"
+},
+{
+"source": "Rabbi Zera",
+"target": "Rav Huna"
+},
+{
+"source": "Rabbi Zera",
+"target": "Rav Yirmeyah b. Abba"
+},
+{
+"source": "Rav Zera",
+"target": "Rav Huna"
+},
+{
+"source": "Rav Zera",
+"target": "Rav Hisda"
+},
+{
+"source": "Rav Zera",
+"target": "Rav Yosef b. Hiyya"
+},
+{
+"source": "Rav Zera",
+"target": "Rabbi Yirmeyah"
+},
+{
+"source": "Rav Zera",
+"target": "Rabbi Il'ai (II)"
+},
+{
+"source": "Ze'iri",
+"target": "Rabbi Hanina b. Hama"
+},
+{
+"source": "Ze'iri",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Ze'iri",
+"target": "Rav"
+},
+{
+"source": "Rabbi Zerika",
+"target": "Rabbi Ammi"
+},
+{
+"source": "Rabbi Zerika",
+"target": "Rav Hamnuna (I)"
+},
+{
+"source": "Rabbi Haggai",
+"target": "Rav Huna"
+},
+{
+"source": "Rabbi Hizkiyah",
+"target": "Rabbi Yirmeyah"
+},
+{
+"source": "Rabbi Hiyya b. Abba",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rabbi Helbo",
+"target": "Rav Huna"
+},
+{
+"source": "Rabbi Helbo",
+"target": "Rav Hama b. Gurya"
+},
+{
+"source": "Rabbi Helbo",
+"target": "Rabbi Shmuel b. Nahmani"
+},
+{
+"source": "Rav Hama",
+"target": "Rav Hisda"
+},
+{
+"source": "Rav Hama b. Gurya",
+"target": "Rav"
+},
+{
+"source": "Rabbi Hama b. Hanina",
+"target": "Rabbi Hiyya b. Abba"
+},
+{
+"source": "Rabbi Hanina b. Gamliel",
+"target": "Rabban Gamliel (II) of Yavneh"
+},
+{
+"source": "Rabbi Hanina b. Gamliel",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Hanina b. Dosa",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Hanina b. Hama",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Hanina b. Pappa",
+"target": "Rabbi Shmuel b. Nahmani"
+},
+{
+"source": "Rav Hanan b. Rabbah",
+"target": "Rav"
+},
+{
+"source": "Rav Hanan b. Rabbah",
+"target": "Shmuel"
+},
+{
+"source": "Rabbi Hananyah b. Hakhinai",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Hananyah b. Hakhinai",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Hananyah",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rav Hisda",
+"target": "Avimi"
+},
+{
+"source": "Rav Hisda",
+"target": "Rav Huna"
+},
+{
+"source": "Rav Hisda",
+"target": "Rav"
+},
+{
+"source": "Rabbi Tarfon",
+"target": "Rabban Gamliel (I) haZaken"
+},
+{
+"source": "Rabbi Tarfon",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Yehudah b. Bava",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Yehudah b. Betera (II)",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Yehudah b. Tabbai",
+"target": "Yehoshua b. Perachya"
+},
+{
+"source": "Yehudah b. Tabbai",
+"target": "Nittai haArbeli"
+},
+{
+"source": "Rav Yehudah b. Yehezkel",
+"target": "Rav"
+},
+{
+"source": "Rav Yehudah b. Yehezkel",
+"target": "Shmuel"
+},
+{
+"source": "Rabbi Yehudah b. R' II'ai",
+"target": "Rabban Gamliel (II) of Yavneh"
+},
+{
+"source": "Rabbi Yehudah b. R' II'ai",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Yehudah b. R' II'ai",
+"target": "Rabbi Il'ai (I)"
+},
+{
+"source": "Rabbi Yehudah b. R' II'ai",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabbi Elazar b. Shamu'a"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabbi Yehudah b. R' II'ai"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabbi Yose b. Halafta"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabbi Meir"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabbi Natan haBavli"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabban Shimon b. Gamliel (II)"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabbi Shimon b. Yohai"
+},
+{
+"source": "Rabbi Yehudah haNasi",
+"target": "Rabbi Ya'akov b. Qorshai"
+},
+{
+"source": "Rabbi Yehudah Nesi'a (II)",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rabbi Yehudah Nesi'a (I)",
+"target": "Rabban Gamliel (III) b. Rabbi"
+},
+{
+"source": "Rabbi Yehoshua b. Hananyah",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Yehoshua b. Hananyah",
+"target": "Rabbi Il'ai (I)"
+},
+{
+"source": "Rabbi Yehoshua b. Levi",
+"target": "Bar Kappara"
+},
+{
+"source": "Yehoshua b. Perachya",
+"target": "Yose b. Yoezer"
+},
+{
+"source": "Yehoshua b. Perachya",
+"target": "Yose b. Yochanan"
+},
+{
+"source": "Yehoshua b. Perachya",
+"target": "Nittai haArbeli"
+},
+{
+"source": "Rabbi Yehoshua b. Korha",
+"target": "Rabbi Elazar b. Azaryah"
+},
+{
+"source": "Rabbi Yehoshua b. Korha",
+"target": "Rabbi Yohanan b. Nuri"
+},
+{
+"source": "Rabbi Yohanan b. Berokah",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Rabbi Yohanan b. Berokah",
+"target": "Rabbi Yohanan b. Nuri"
+},
+{
+"source": "Rabbi Yohanan b. Zakkai",
+"target": "Hillel the Elder"
+},
+{
+"source": "Rabbi Yohanan b. Nappaha",
+"target": "Rabbi Oshaya Rabbah"
+},
+{
+"source": "Rabbi Yohanan b. Nappaha",
+"target": "Hizkiyah b. Hiyya"
+},
+{
+"source": "Rabbi Yohanan b. Nappaha",
+"target": "Rabbi Hanina b. Hama"
+},
+{
+"source": "Rabbi Yohanan b. Nappaha",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Rabbi Yohanan b. Nappaha",
+"target": "Rabbi Yehoshua b. Levi"
+},
+{
+"source": "Rabbi Yohanan b. Nappaha",
+"target": "Rabbi Yannai"
+},
+{
+"source": "Rabbi Yohanan b. Nappaha",
+"target": "Shmuel"
+},
+{
+"source": "Rabbi Yohanan haSandlar",
+"target": "Rabbi Yehudah b. Betera (II)"
+},
+{
+"source": "Rabbi Yohanan haSandlar",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Yonah",
+"target": "Rabbi Zera"
+},
+{
+"source": "Rabbi Yonah",
+"target": "Rabbi Yirmeyah"
+},
+{
+"source": "Rabbi Yonah",
+"target": "Rabbi Nehunya b. haKanah"
+},
+{
+"source": "Rabbi Yonah",
+"target": "Rabbi Il'ai (II)"
+},
+{
+"source": "Rabbi Yonatan",
+"target": "Rabbi Yishmael b. Elisha"
+},
+{
+"source": "Rabbi Yonatan b. Uziel",
+"target": "Hillel the Elder"
+},
+{
+"source": "Rabbi Yose b. Halafta",
+"target": "Rabbi Halafta"
+},
+{
+"source": "Rabbi Yose b. Halafta",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Yose b. Halafta",
+"target": "Rabbi Yohanan b. Nuri"
+},
+{
+"source": "Rabbi Yose b. Halafta",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Yose b. Yehudah",
+"target": "Rabbi Yehudah b. R' II'ai"
+},
+{
+"source": "Yose b. Yochanan",
+"target": "Antigonus of Sokho"
+},
+{
+"source": "Yose b. Yochanan",
+"target": "Shimon haTzaddik"
+},
+{
+"source": "Rabbi Yose haGelili",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Yose haKohen",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rav Yosef b. Hiyya",
+"target": "Rav Huna"
+},
+{
+"source": "Rav Yosef b. Hiyya",
+"target": "Rav Yehudah b. Yehezkel"
+},
+{
+"source": "Rav Yosef b. Hiyya",
+"target": "Rav Kahana (II)"
+},
+{
+"source": "Rabbi Yannai",
+"target": "Rabbi Hiyya"
+},
+{
+"source": "Rabbi Yannai",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Rabbi Ya'akov b. Idi",
+"target": "Rav Yehudah b. Yehezkel"
+},
+{
+"source": "Rabbi Ya'akov b. Idi",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rabbi Yitzhak b. Nahman",
+"target": "Rabbi Yehoshua b. Levi"
+},
+{
+"source": "Rabbi Yitzhak b. Nahman",
+"target": "Shmuel"
+},
+{
+"source": "Rabbi Yitzhak Nappaha",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rav Yirmeyah b. Abba",
+"target": "Rav"
+},
+{
+"source": "Rav Yirmeyah b. Abba",
+"target": "Shmuel"
+},
+{
+"source": "Rabbi Yirmeyah",
+"target": "Rabbi Abbahu"
+},
+{
+"source": "Rabbi Yirmeyah",
+"target": "Rabbi Zera"
+},
+{
+"source": "Rabbi Yirmeyah",
+"target": "Rabbi Hiyya b. Abba"
+},
+{
+"source": "Rabbi Yishmael b. Elisha",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Yishmael b. Elisha",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Rabbi Yishmael b. Elisha",
+"target": "Rabbi Nehunya b. haKanah"
+},
+{
+"source": "Rabbi Yishmael b. Yose",
+"target": "Rabbi Yehudah b. R' II'ai"
+},
+{
+"source": "Rabbi Yishmael b. Yohanan b. Berokah",
+"target": "Rabbi Yohanan b. Berokah"
+},
+{
+"source": "Rav Kahana (II)",
+"target": "Rav"
+},
+{
+"source": "Rav Kahana (V)",
+"target": "Rav Zevid"
+},
+{
+"source": "Rav Kahana (III)",
+"target": "Rav Yehudah b. Yehezkel"
+},
+{
+"source": "Rav Kahana (III)",
+"target": "Rabbah b. Nahmani"
+},
+{
+"source": "Rav Kahana (I)",
+"target": "Rav"
+},
+{
+"source": "Rav Kahana (IV)",
+"target": "Rava"
+},
+{
+"source": "Rabbi Levi",
+"target": "Rabbi Hama b. Hanina"
+},
+{
+"source": "Levi b. Sisi",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Rabbi Meir",
+"target": "Elisha b. Avuyah"
+},
+{
+"source": "Rabbi Meir",
+"target": "Rabbi Yishmael b. Elisha"
+},
+{
+"source": "Rabbi Meir",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Mana (II)",
+"target": "Rabbi Hizkiyah"
+},
+{
+"source": "Rabbi Mana (II)",
+"target": "Rabbi Yonah"
+},
+{
+"source": "Rabbi Mana (I)",
+"target": "Rabbi Yannai"
+},
+{
+"source": "Mar b. Rav Ashi",
+"target": "Rav Ashi"
+},
+{
+"source": "Mar Zutra",
+"target": "Rav Pappa"
+},
+{
+"source": "Mar Zutra",
+"target": "Rav Pappai"
+},
+{
+"source": "Rav Mesharshiya",
+"target": "Rava"
+},
+{
+"source": "Rabbi Nehunya b. haKanah",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rabbi Nehemyah",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rav Nahman b. Ya'akov",
+"target": "Rabbi Abbahu"
+},
+{
+"source": "Rav Nahman b. Ya'akov",
+"target": "Rav Adda b. Ahavah (I)"
+},
+{
+"source": "Rav Nahman b. Ya'akov",
+"target": "Rabbah b. Avuha"
+},
+{
+"source": "Rav Nahman b. Yitzhak",
+"target": "Rav Nahman b. Ya'akov"
+},
+{
+"source": "Nittai haArbeli",
+"target": "Yose b. Yoezer"
+},
+{
+"source": "Nittai haArbeli",
+"target": "Yose b. Yochanan"
+},
+{
+"source": "Rabbi Natan haBavli",
+"target": "Rabbi Eliezer b. Hyrcanus"
+},
+{
+"source": "Rabbi Natan haBavli",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Rabbi Natan haBavli",
+"target": "Rabbi Yishmael b. Elisha"
+},
+{
+"source": "Summakhos",
+"target": "Rabbi Meir"
+},
+{
+"source": "Ulla",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Ulla",
+"target": "Rabbi Shimon b. Lakish"
+},
+{
+"source": "Rabbi Il'ai (II)",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rabbi Il'ai (II)",
+"target": "Rabbi Shimon b. Lakish"
+},
+{
+"source": "Rabbi Il'ai (I)",
+"target": "Rabbi Eliezer b. Hyrcanus"
+},
+{
+"source": "Rabbi Il'ai (I)",
+"target": "Rabbi Elazar b. Azaryah"
+},
+{
+"source": "Rabbi Il'ai (I)",
+"target": "Rabban Gamliel (II) of Yavneh"
+},
+{
+"source": "Rabbi Il'ai (I)",
+"target": "Rabbi Yishmael b. Elisha"
+},
+{
+"source": "Rabbi Akiva",
+"target": "Rabbi Eliezer b. Hyrcanus"
+},
+{
+"source": "Rabbi Akiva",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Rabbi Akiva",
+"target": "Nahum of Gamzo"
+},
+{
+"source": "Rabbi Pinehas b. Hama",
+"target": "Rabbi Yirmeyah"
+},
+{
+"source": "Rav Pappa",
+"target": "Abaye"
+},
+{
+"source": "Rav Pappa",
+"target": "Rav Idi b. Avin (I)"
+},
+{
+"source": "Rav Pappa",
+"target": "Rava"
+},
+{
+"source": "Rav Pappai",
+"target": "Rava"
+},
+{
+"source": "Rav Ketina",
+"target": "Rav"
+},
+{
+"source": "Rav",
+"target": "Bar Kappara"
+},
+{
+"source": "Rav",
+"target": "Rabbi Hiyya"
+},
+{
+"source": "Rav",
+"target": "Rabbi Hanina b. Hama"
+},
+{
+"source": "Rav",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Rav",
+"target": "Rabbi Yishmael b. Yose"
+},
+{
+"source": "Rav",
+"target": "Rabbi Achai b. Yoshiah"
+},
+{
+"source": "Rava",
+"target": "Rav Hisda"
+},
+{
+"source": "Rava",
+"target": "Rav Yosef b. Hiyya"
+},
+{
+"source": "Rava",
+"target": "Rav Nahman b. Ya'akov"
+},
+{
+"source": "Rabbah b. Avuha",
+"target": "Rav"
+},
+{
+"source": "Rabbah b. b. Hanah",
+"target": "Rabbi Elazar b. Pedat"
+},
+{
+"source": "Rabbah b. b. Hanah",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rabbah b. Hanah",
+"target": "Rabbi Hiyya"
+},
+{
+"source": "Rabbah b. Hanah",
+"target": "Rav"
+},
+{
+"source": "Rabbah b. Nahmani",
+"target": "Rav Huna"
+},
+{
+"source": "Rabbah b. Nahmani",
+"target": "Rav Hisda"
+},
+{
+"source": "Rabbah b. Nahmani",
+"target": "Rav Yehudah b. Yehezkel"
+},
+{
+"source": "Rabbah b. Nahmani",
+"target": "Rav Kahana (II)"
+},
+{
+"source": "Rabbah b. Rav Huna",
+"target": "Rav Huna"
+},
+{
+"source": "Rabbah b. Rav Huna",
+"target": "Rav"
+},
+{
+"source": "Rabbah b. Rav Huna",
+"target": "Shmuel"
+},
+{
+"source": "Rabbah Tosafa'ah",
+"target": "Ravina (I)"
+},
+{
+"source": "Ravin",
+"target": "Rabbi Abbahu"
+},
+{
+"source": "Ravin",
+"target": "Rabbi Yirmeyah"
+},
+{
+"source": "Ravin",
+"target": "Rabbi Il'ai (II)"
+},
+{
+"source": "Ravina (I)",
+"target": "Rav Ashi"
+},
+{
+"source": "Ravina (I)",
+"target": "Rava"
+},
+{
+"source": "Ravina (II) b. Huna",
+"target": "Rav Ashi"
+},
+{
+"source": "Ravina (II) b. Huna",
+"target": "Ravina (I)"
+},
+{
+"source": "Rahava of Pumbedita",
+"target": "Rav Yehudah b. Yehezkel"
+},
+{
+"source": "Rami b. Hama",
+"target": "Rav Hisda"
+},
+{
+"source": "Rami b. Hama",
+"target": "Rav Sheshet"
+},
+{
+"source": "Rafram (II)",
+"target": "Rav Ashi"
+},
+{
+"source": "Shammai",
+"target": "Avtalyon"
+},
+{
+"source": "Shammai",
+"target": "Shemayah"
+},
+{
+"source": "Shmuel",
+"target": "Avuha Di Shmuel"
+},
+{
+"source": "Shmuel",
+"target": "Levi b. Sisi"
+},
+{
+"source": "Rabbi Shmuel b. Nahmani",
+"target": "Rabbi Yehoshua b. Levi"
+},
+{
+"source": "Rabbi Shimon b. Elazar",
+"target": "Rabbi Meir"
+},
+{
+"source": "Rabbi Simlai",
+"target": "Rabbi Yehudah Nesi'a (I)"
+},
+{
+"source": "Rabbi Simlai",
+"target": "Rabbi Yannai"
+},
+{
+"source": "Rabban Shimon b. Gamliel (II)",
+"target": "Rabbi Yehudah b. R' II'ai"
+},
+{
+"source": "Shimon b. Zoma",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Rabbi Shimon b. Lakish",
+"target": "Rabbi Yehudah Nesi'a (I)"
+},
+{
+"source": "Rabbi Shimon b. Lakish",
+"target": "Rabbi Yohanan b. Nappaha"
+},
+{
+"source": "Rabbi Shimon b. Lakish",
+"target": "Rabbi Nehunya b. haKanah"
+},
+{
+"source": "Rabbi Shimon b. Menasya",
+"target": "Rabbi Meir"
+},
+{
+"source": "Shimon b. Azzai",
+"target": "Rabbi Tarfon"
+},
+{
+"source": "Shimon b. Azzai",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Shimon b. Azzai",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Shimon b. Pazzi",
+"target": "Rabbi Yehoshua b. Levi"
+},
+{
+"source": "Rabbi Shimon b. Rabbi",
+"target": "Rabbi Yehudah haNasi"
+},
+{
+"source": "Shimon b. Shetach",
+"target": "Yehoshua b. Perachya"
+},
+{
+"source": "Shimon b. Shetach",
+"target": "Nittai haArbeli"
+},
+{
+"source": "Rabbi Shimon b. Yohai",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Shemayah",
+"target": "Yehudah b. Tabbai"
+},
+{
+"source": "Shemayah",
+"target": "Shimon b. Shetach"
+},
+{
+"source": "Rav Sheshet",
+"target": "Rav Huna"
+},
+{
+"source": "Rav Sheshet",
+"target": "Rav Yirmeyah b. Abba"
+},
+{
+"source": "Rabbi Eliezer b. Ya'akov (II)",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Eliezar Hisma",
+"target": "Rabban Gamliel (II) of Yavneh"
+},
+{
+"source": "Shimon haTimni",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Shimon haTimni",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Shimon haShiqmoni",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Hidqa",
+"target": "Rabbi Akiva"
+},
+{
+"source": "Rabbi Yoshiah",
+"target": "Rabbi Yishmael b. Elisha"
+},
+{
+"source": "Abba Hanan",
+"target": "Rabbi Yishmael b. Elisha"
+},
+{
+"source": "Rabbi Nehorai",
+"target": "Rabbi Yehoshua b. Hananyah"
+},
+{
+"source": "Rabbi Ya'akov b. Qorshai",
+"target": "Rabbi Meir"
+},
+{
+"source": "Rabbi Yitzhak",
+"target": "Rabbi Yishmael b. Elisha"
+},
+{
+"source": "Rabbi Dosa",
+"target": "Rabbi Yehudah b. R' II'ai"
+},
+{
+"source": "Rabbi Dostai b. Yehuda",
+"target": "Rabbi Shimon b. Yohai"
+},
+{
+"source": "Rabbi Yose b. Kippar",
+"target": "Rabbi Elazar b. Shamu'a"
+},
+{
+"source": "Shimon b. Netanel",
+"target": "Rabbi Yohanan b. Zakkai"
+},
+{
+"source": "Rav Aha brei d' R' Iqa",
+"target": "Rav Aha b. Ya'akov"
+},
+{
+"source": "Rav Yitzhak b. Yosef",
+"target": "Rabbi Abbahu"
+},
+{
+"source": "Rami b. Abba",
+"target": "Rav Huna"
+},
+{
+"source": "Yohanan b. Dahavai",
+"target": "Yehudah b. Tema"
+}
+]
+}
