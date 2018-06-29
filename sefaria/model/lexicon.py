@@ -108,7 +108,7 @@ class DictionaryEntry(LexiconEntry):
         return text
 
     def as_strings(self):
-        new_content = []
+        new_content = u""
 
         next_line = u', '.join([u'<strong>{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
 
@@ -129,8 +129,8 @@ class DictionaryEntry(LexiconEntry):
         for sense in self.content['senses']:
             if 'senses' in sense:
                 # Start a new segment for the new form
-                new_content += [next_line]
-                next_line = u'<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
+                new_content += next_line
+                next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
                                                                       sense['grammar']['binyan_form'])
                 for binyan_sense in sense['senses']:
                     next_line += u" " + self.get_sense(binyan_sense)
@@ -138,9 +138,9 @@ class DictionaryEntry(LexiconEntry):
                 next_line += u" " + self.get_sense(sense)
 
         if next_line:
-            new_content += [next_line]
+            new_content += next_line
 
-        return new_content
+        return [new_content]
 
 
 class StrongsDictionaryEntry(DictionaryEntry):
