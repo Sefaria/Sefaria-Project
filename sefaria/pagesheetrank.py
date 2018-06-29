@@ -182,10 +182,10 @@ def init_pagerank_graph():
                 temp_links = []
                 older_ref = older_ref.padded_ref()
                 newer_ref = newer_ref.padded_ref()
-                recursively_put_in_graph(older_ref, newer_ref)
                 if start1 == start2:
-                    # also add the opposite link dir
-                    recursively_put_in_graph(newer_ref, older_ref)
+                    # randomly switch refs that are equally dated
+                    older_ref, newer_ref = older_ref, newer_ref if random.choice([True, False]) else newer_ref, older_ref
+                recursively_put_in_graph(older_ref, newer_ref)
 
             except InputError:
                 pass
