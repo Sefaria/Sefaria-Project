@@ -184,7 +184,7 @@ def init_pagerank_graph():
                 newer_ref = newer_ref.padded_ref()
                 if start1 == start2:
                     # randomly switch refs that are equally dated
-                    older_ref, newer_ref = older_ref, newer_ref if random.choice([True, False]) else newer_ref, older_ref
+                    older_ref, newer_ref = (older_ref, newer_ref) if random.choice([True, False]) else (newer_ref, older_ref)
                 recursively_put_in_graph(older_ref, newer_ref)
 
             except InputError:
