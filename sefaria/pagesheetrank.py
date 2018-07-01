@@ -58,11 +58,10 @@ def create_empty_nodes(g):
 
 
 def create_web(g):
-  #g = create_empty_nodes(g)
   n = len(g)
   w = web(n)
-  node2index = {r:i for i, r in enumerate(g.keys())}
-  for i, (r, links) in enumerate(g.items()):
+  node2index = {r:i for i, r in enumerate([x[0] for x in g])}
+  for i, (r, links) in enumerate(g):
     r_ind = node2index[r]
     link_inds = [(node2index[r_temp], count) for r_temp, count in links.items()]
     w.in_links[r_ind] = reduce(lambda a, b: a + [b[0]]*int(round(b[1])), link_inds, [])
@@ -71,17 +70,17 @@ def create_web(g):
       w.number_out_links[j] += count
   return w
 
-def step(g,p,s=0.85):
+def step(w,p,s=0.85):
   '''Performs a single step in the PageRank computation,
   with web g and parameter s.  Applies the corresponding M
   matrix to the vector p, and returns the resulting
   vector.'''
-  n = g.size
+  n = w.size
   v = numpy.matrix(numpy.zeros((n,1)))
-  inner_product = sum([p[j] for j in g.dangling_pages.keys()])
+  inner_product = sum([p[j] for j in w.dangling_pages.keys()])
   for j in xrange(n):
-    v[j] = s*sum([p[k]/g.number_out_links[k]
-    for k in g.in_links[j]])+s*inner_product/n+(1-s)/n
+    v[j] = s*sum([p[k]/w.number_out_links[k]
+    for k in w.in_links[j]])+s*inner_product/n+(1-s)/n
   # We rescale the return vector, so it remains a
   # probability distribution even with floating point
   # roundoff.
@@ -101,7 +100,7 @@ def pagerank(g,s=0.85,tolerance=0.00001, maxiter=100, verbose=False):
     p = new_p
     iteration += 1
   pr_list = list(numpy.squeeze(numpy.asarray(p)))
-  return {k:v for k,v in zip(g.keys(), pr_list)}
+  return {k:v for k,v in zip([x[0] for x in g], pr_list)}
 
 
 def init_pagerank_graph():
@@ -209,8 +208,8 @@ def init_pagerank_graph():
 
 def calculate_pagerank():
     graph, all_ref_cat_counts = init_pagerank_graph()
-    json.dump(dict(graph), open("{}pagerank_graph.json".format(STATICFILES_DIRS[0]), "wb"))
-    ranked = pagerank(graph, 0.85, verbose=True, tolerance=0.00005)
+    json.dump(graph.items(), open("{}pagerank_graph.json".format(STATICFILES_DIRS[0]), "wb"))
+    ranked = pagerank(graph.items(), 0.85, verbose=True, tolerance=0.00005)
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
     count = 0
     smallest_pr = sorted_ranking[0][1]
@@ -231,7 +230,7 @@ def calculate_pagerank():
             zero_length += [r]
             continue  # we don't need zero length links here
         pr_plus_text_len += [[r, (math.log(pr) + 17) * cat_bonus(len(all_ref_cat_counts.get(r, [])))]]
-        pr_stam = [[r, math.log(pr) + 17]]
+        pr_stam += [[r, math.log(pr) + 17]]
 
     pr_plus_text_len.sort(key=lambda x: x[1], reverse=True)
     with open(STATICFILES_DIRS[0] + "pagerank2.json","wb") as fout:
