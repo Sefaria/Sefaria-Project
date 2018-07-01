@@ -446,7 +446,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text",  "Frank Ruehl Libre", "Taamey Frank", Georgia, serif;
 }
 .readerContent {
   width: 100%;

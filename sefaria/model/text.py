@@ -2175,7 +2175,6 @@ class Ref(object):
                 return
 
         # At this point, `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
-        # JJ title = "Jastrow"
         if title:
             assert isinstance(self.index_node, TitledTreeNode)
             self.index = self.index_node.index
@@ -2224,7 +2223,7 @@ class Ref(object):
         except AttributeError:
             if self.index_node.is_virtual:
                 self.index_node = self.index_node.create_dynamic_node(title, base)
-                self.sections = self.index_node.get_sections()
+                self.sections = self.index_node.get_sections(base)
                 self.toSections = self.sections[:]
                 return
 

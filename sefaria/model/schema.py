@@ -1397,19 +1397,20 @@ class VirtualNode(TitledTreeNode):
         return self.entry_class(self, title, tref)
 
 
-
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
 
     def __init__(self, parent, title=None, tref=None, word=None):
         """
-        Can be instanciated with title+tref or word
+        A schema node created on the fly, in memory, to correspond to a dictionary entry
+        Can be instantiated with title+tref or word
         :param parent:
         :param title:
         :param tref:
         :param word:
         """
         if title and tref:
+            self.title = title
             reg = regex.compile(regex.escape(title) + self.after_title_delimiter_re  + "(\S[^.]*)(?:\.)?(\d+)?")
             match = reg.match(tref)
             self.word = match.group(1) or ""
@@ -1434,6 +1435,8 @@ class DictionaryEntryNode(TitledTreeNode):
         self.sectionNames = ["Line"]    # Hacky hack
         self.depth = 1
         self.addressTypes = ["Integer"]
+        self._addressTypes = [AddressInteger(0)]
+
         if self.word:
             # The hardcoded "Jastrow Dictionary" below needs to be passed in.  Likely define that on schema and derivce class from it
 
@@ -1442,9 +1445,14 @@ class DictionaryEntryNode(TitledTreeNode):
         else:
             self.word = "Not Found"
 
-    def get_sections(self):
-        return []
-    
+    def get_sections(self, tref):
+        reg = regex.compile(regex.escape(self.title) + self.after_title_delimiter_re + "(\S[^.]*)(?:\.)?(\d+)?")
+        s = reg.match(tref).group(2)
+        return [int(s)] if s else []
+
+    def address_class(self, depth):
+        return self._addressTypes[depth]
+
     def get_text(self):
         if not self.has_word_match:
             return [u"No Entry for {}".format(self.word)]
@@ -1485,8 +1493,12 @@ class DictionaryEntryNode(TitledTreeNode):
         }
         return text.Ref(_obj=d)
 
-class DictionaryNode(VirtualNode):
 
+class DictionaryNode(VirtualNode):
+    """
+    A schema node corresponding to the entirety of a dictionary.
+    The parent of DictionaryEntryNode objects, which represent individual entries
+    """
     entry_class = DictionaryEntryNode
 
     def __init__(self, serial=None, **kwargs):
