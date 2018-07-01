@@ -209,7 +209,7 @@ def init_pagerank_graph():
 
 def calculate_pagerank():
     graph, all_ref_cat_counts = init_pagerank_graph()
-    #NOTE just a backup in case pagerank fails: json.dump(dict(graph), open("{}pagerank_graph.json".format(STATICFILES_DIRS[0]), "wb"), indent=4)
+    json.dump(dict(graph), open("{}pagerank_graph.json".format(STATICFILES_DIRS[0]), "wb"))
     ranked = pagerank(graph, 0.85, verbose=True, tolerance=0.00005)
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
     count = 0
@@ -221,6 +221,7 @@ def calculate_pagerank():
     print "Removing {} low pageranks".format(count)
 
     pr_plus_text_len = []
+    pr_stam = []
     zero_length = []
     for i, (r, pr) in enumerate(sorted_ranking):
         if i % 100 == 0:
@@ -230,10 +231,14 @@ def calculate_pagerank():
             zero_length += [r]
             continue  # we don't need zero length links here
         pr_plus_text_len += [[r, (math.log(pr) + 17) * cat_bonus(len(all_ref_cat_counts.get(r, [])))]]
+        pr_stam = [[r, math.log(pr) + 17]]
 
-    pr_plus_text_len.sort(key=lambda x: x[1])
+    pr_plus_text_len.sort(key=lambda x: x[1], reverse=True)
     with open(STATICFILES_DIRS[0] + "pagerank2.json","wb") as fout:
         json.dump(pr_plus_text_len,fout,indent=4)
+    pr_stam.sort(key=lambda x: x[1], reverse=True)
+    with open(STATICFILES_DIRS[0] + "pagerank.json","wb") as fout:
+        json.dump(pr_stam,fout,indent=4)
 
 def cat_bonus(num_cats):
     return 1.0 + (0.04*num_cats)
