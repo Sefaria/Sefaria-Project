@@ -88,45 +88,14 @@ def daily_rambam(datetime_obj):
     }]
 
 
-def this_weeks_parasha(datetime_obj, diaspora=True):
-    """
-    Returns the upcoming Parasha for datetime.
-    """
-    p = db.parshiot.find({"date": {"$gt": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}, limit=1).sort([("date", 1)])
-    p = p.next()
-
-    return p
-
-def make_parashah_response_from_calendar_entry(db_parasha):
-    rf = model.Ref(db_parasha["ref"])
-    parasha = {
-        'title': {'en': 'Parashat Hashavua', 'he': u'פרשת השבוע'},
-        'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
-        'url': rf.url(),
-        'order': 1,
-        'category': rf.index.get_primary_category()
-    }
-    return [parasha]
-
-def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
-    haftarah_objs = []
-    if len(db_parasha["haftara"].keys()) == 1 or not len(db_parasha["haftara"].get(custom, [])):
-        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, "ashkenazi", False)
-    elif custom:
-        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, True)
-    else:
-        for key in db_parasha["haftara"]:
-            haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, key, True)
-    return haftarah_objs
-
-def make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, add_custom_to_display):
+def make_haftarah_by_custom_response_from_calendar_entry(db_haftara, custom, add_custom_to_display):
     shorthands = {
         "ashkenazi" : {"en": 'A', "he": u'א'},
         "sephardi": {"en": 'S', "he": u'ס'},
         "edot hamizrach": {"en": 'EM', "he": u'עמ'}
     }
     haftarah_objs = []
-    for h in db_parasha["haftara"].get(custom, []):
+    for h in db_haftara:
         rf = model.Ref(h)
         haftara = {
             'title': {'en': 'Haftarah', 'he': u'הפטרה'},
@@ -140,6 +109,42 @@ def make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, add
                 haftara['title'][lang] = u'{} ({})'.format(haftara['title'][lang], shorthands[custom][lang])
         haftarah_objs.append(haftara)
     return haftarah_objs
+
+
+def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
+    haftarah_objs = []
+    if isinstance(db_parasha["haftara"], list): #backwards compatability
+        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"], "ashkenazi", False)
+    elif len(db_parasha["haftara"].keys()) == 1 or not len(db_parasha["haftara"].get(custom, [])):
+        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get(custom, []), "ashkenazi", False)
+    elif custom:
+        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get(custom, []), custom, True)
+    else:
+        for key in db_parasha["haftara"]:
+            haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get(key), key, True)
+    return haftarah_objs
+
+
+def make_parashah_response_from_calendar_entry(db_parasha):
+    rf = model.Ref(db_parasha["ref"])
+    parasha = {
+        'title': {'en': 'Parashat Hashavua', 'he': u'פרשת השבוע'},
+        'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
+        'url': rf.url(),
+        'order': 1,
+        'category': rf.index.get_primary_category()
+    }
+    return [parasha]
+
+
+def this_weeks_parasha(datetime_obj, diaspora=True):
+    """
+    Returns the upcoming Parasha for datetime.
+    """
+    p = db.parshiot.find({"date": {"$gt": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}, limit=1).sort([("date", 1)])
+    p = p.next()
+
+    return p
 
 def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
     parasha_items = []
