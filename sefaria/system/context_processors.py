@@ -181,6 +181,6 @@ def calendar_links(request):
         profile = UserProfile(id=request.user.id)
         custom = profile.settings.get("textual_custom", "ashkenazi")
     else:
-        custom = "ashkenazi"
+        custom = "ashkenazi" # this is default because this is the most complete data set
     return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora, custom=custom))}
 
