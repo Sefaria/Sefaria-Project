@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+import django
+django.setup()
 import argparse
 import sefaria.model as model
 from sefaria.system.database import db
@@ -10,6 +11,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+
 
 
 def add_sephardic(filename):
