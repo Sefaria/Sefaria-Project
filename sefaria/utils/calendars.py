@@ -110,7 +110,7 @@ def make_parashah_response_from_calendar_entry(db_parasha):
 
 def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
     haftarah_objs = []
-    if len(db_parasha["haftara"].keys()) == 1:
+    if len(db_parasha["haftara"].keys()) == 1 or not len(db_parasha["haftara"].get(custom, [])):
         haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, "ashkenazi", False)
     elif custom:
         haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, True)
@@ -126,7 +126,7 @@ def make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, add
         "edot hamizrach": {"en": 'EM', "he": u'עמ'}
     }
     haftarah_objs = []
-    for h in db_parasha["haftara"][custom]:
+    for h in db_parasha["haftara"].get(custom, []):
         rf = model.Ref(h)
         haftara = {
             'title': {'en': 'Haftarah', 'he': u'הפטרה'},
@@ -137,7 +137,7 @@ def make_haftarah_by_custom_response_from_calendar_entry(db_parasha, custom, add
         }
         if add_custom_to_display:
             for lang in haftara['title']:
-                haftara['title'][lang] = '{} ({})'.format(haftara['title'][lang], shorthands[custom][lang])
+                haftara['title'][lang] = u'{} ({})'.format(haftara['title'][lang], shorthands[custom][lang])
         haftarah_objs.append(haftara)
     return haftarah_objs
 
@@ -152,7 +152,7 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
 
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items  = []
-    cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora)
+    cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora, custom=custom)
     cal_items += daf_yomi(datetime_obj)
     cal_items += daily_929(datetime_obj)
     cal_items += daily_mishnayot(datetime_obj)
@@ -161,11 +161,11 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     return cal_items
 
 
-def get_todays_calendar_items(diaspora=True):
-    return get_all_calendar_items(datetime.datetime.now(), diaspora=diaspora, custom="sephardi")
+def get_todays_calendar_items(diaspora=True, custom=None):
+    return get_all_calendar_items(datetime.datetime.now(), diaspora=diaspora, custom=custom)
 
-def get_keyed_calendar_items(diaspora=True):
-    cal_items = get_todays_calendar_items(diaspora=diaspora)
+def get_keyed_calendar_items(diaspora=True, custom=None):
+    cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)
     cal_dict = {}
     for cal_item in cal_items:
         cal_dict[cal_item["title"]["en"]] = cal_item
