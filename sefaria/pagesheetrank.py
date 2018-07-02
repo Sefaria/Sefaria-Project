@@ -114,10 +114,12 @@ def init_pagerank_graph():
 
     def recursively_put_in_graph(ref1, ref2, weight=1.0):
         if ref1.is_section_level():
+            return  # ignore section level
             seg_refs = ref1.all_segment_refs()
             for ref1_seg in seg_refs:
                 recursively_put_in_graph(ref1_seg, ref2, weight / len(seg_refs))
         elif ref2.is_section_level():
+            return  # ignore section level
             seg_refs = ref2.all_segment_refs()
             for ref2_seg in seg_refs:
                 recursively_put_in_graph(ref1, ref2_seg, weight / len(seg_refs))
@@ -208,7 +210,7 @@ def init_pagerank_graph():
 
 def calculate_pagerank():
     graph, all_ref_cat_counts = init_pagerank_graph()
-    json.dump(graph.items(), open("{}pagerank_graph.json".format(STATICFILES_DIRS[0]), "wb"))
+    json.dump(graph.items(), open("{}pagerank_graph3.json".format(STATICFILES_DIRS[0]), "wb"))
     ranked = pagerank(graph.items(), 0.85, verbose=True, tolerance=0.00005)
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
     count = 0
@@ -236,7 +238,7 @@ def calculate_pagerank():
     with open(STATICFILES_DIRS[0] + "pagerank2.json","wb") as fout:
         json.dump(pr_plus_text_len,fout,indent=4)
     pr_stam.sort(key=lambda x: x[1], reverse=True)
-    with open(STATICFILES_DIRS[0] + "pagerank.json","wb") as fout:
+    with open(STATICFILES_DIRS[0] + "pagerank3.json","wb") as fout:
         json.dump(pr_stam,fout,indent=4)
 
 def cat_bonus(num_cats):
