@@ -7,23 +7,14 @@ Uses MongoDB collections: dafyomi, parshiot
 import sefaria.model as model
 from sefaria.system.database import db
 import p929
+from sefaria.utils.util import graceful_exception
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 import datetime
-from functools import wraps
 
 
 import logging
 logger = logging.getLogger(__name__)
 
-def graceful_exception(func):
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except Exception as e:
-            logger.exception(e.message())
-        return []
-    return decorated_function
 
 """
 Calendar items:
@@ -34,10 +25,11 @@ hebrew display value
 ref
 """
 
-@graceful_exception
+@graceful_exception(logger=logger, return_value=[])
 def daily_929(datetime_obj):
     #datetime should just be a date, like datetime.today()
     p = p929.Perek(datetime_obj.date())
+    raise Exception
     rf = model.Ref("{} {}".format(p.book_name, p.book_chapter))
     display_en = "{} ({})".format(rf.normal(), p.number)
     display_he = u"{} ({})".format(rf.he_normal(), p.number)
@@ -49,7 +41,7 @@ def daily_929(datetime_obj):
         'category': rf.index.get_primary_category()
     }]
 
-@graceful_exception
+@graceful_exception(logger=logger, return_value=[])
 def daf_yomi(datetime_obj):
     """
     Returns the daf yomi for date
@@ -70,7 +62,7 @@ def daf_yomi(datetime_obj):
         'category': rf.index.get_primary_category()
     }]
 
-@graceful_exception
+@graceful_exception(logger=logger, return_value=[])
 def daily_mishnayot(datetime_obj):
     mishnah_items = []
     datetime_obj = datetime.datetime(datetime_obj.year,datetime_obj.month,datetime_obj.day)
@@ -86,7 +78,7 @@ def daily_mishnayot(datetime_obj):
     })
     return mishnah_items
 
-@graceful_exception
+@graceful_exception(logger=logger, return_value=[])
 def daily_rambam(datetime_obj):
     datetime_obj = datetime.datetime(datetime_obj.year,datetime_obj.month,datetime_obj.day)
     daily_rambam = db.daily_rambam.find_one({"date": {"$eq": datetime_obj}})
@@ -162,7 +154,7 @@ def this_weeks_parasha(datetime_obj, diaspora=True):
 
     return p
 
-@graceful_exception
+@graceful_exception(logger=logger, return_value=[])
 def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
     parasha_items = []
     db_parasha = this_weeks_parasha(datetime_obj, diaspora=diaspora)
