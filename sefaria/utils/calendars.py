@@ -29,7 +29,6 @@ ref
 def daily_929(datetime_obj):
     #datetime should just be a date, like datetime.today()
     p = p929.Perek(datetime_obj.date())
-    raise Exception
     rf = model.Ref("{} {}".format(p.book_name, p.book_chapter))
     display_en = "{} ({})".format(rf.normal(), p.number)
     display_he = u"{} ({})".format(rf.he_normal(), p.number)
