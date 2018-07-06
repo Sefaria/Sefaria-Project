@@ -595,7 +595,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"[,.: \r\n]+"  # should be an arg?  \r\n are for html matches
+    after_title_delimiter_re = ur"[,.: \r\nsto]+"  # should be an arg?  \r\n are for html matches
     title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -1510,7 +1510,7 @@ class DictionaryNode(VirtualNode):
         """
         super(DictionaryNode, self).__init__(serial, **kwargs)
         try:
-            from lexicon import JastrowDictionaryEntry  # todo: get the right import scope here
+            from lexicon import JastrowDictionaryEntry, KleinDictionaryEntry  # todo: get the right import scope here
             self.dictionaryClass = locals()[self.dictionaryClassName]
         except KeyError:
             raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.dictionaryClassName))
