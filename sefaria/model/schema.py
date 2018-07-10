@@ -1470,13 +1470,19 @@ class DictionaryEntryNode(TitledTreeNode):
     def next_leaf(self):
         if not self.has_word_match:
             return None
-        return self.__class__(parent=self.parent, word=self.lexicon_entry.next_hw)
+        try:
+            return self.__class__(parent=self.parent, word=self.lexicon_entry.next_hw)
+        except AttributeError:
+            return None
 
     #Currently assumes being called from leaf node
     def prev_leaf(self):
         if not self.has_word_match:
             return None
-        return self.__class__(parent=self.parent, word=self.lexicon_entry.prev_hw)
+        try:
+            return self.__class__(parent=self.parent, word=self.lexicon_entry.prev_hw)
+        except AttributeError:
+            return None
 
     # This is identical to SchemaNode.ref().  Inherit?
     def ref(self):

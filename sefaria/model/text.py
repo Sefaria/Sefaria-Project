@@ -2812,7 +2812,8 @@ class Ref(object):
         """
         if not self._next:
             if self.index_node.is_virtual:
-                self._next = self.index_node.next_leaf().ref()
+                nl = self.index_node.next_leaf()
+                self._next = nl.ref() if nl else None
                 return self._next
             self._next = self._iter_text_section()
             if self._next is None and not self.index_node.children:
@@ -2842,7 +2843,8 @@ class Ref(object):
         """
         if not self._prev:
             if self.index_node.is_virtual:
-                self._prev = self.index_node.prev_leaf().ref()
+                pl = self.index_node.prev_leaf()
+                self._prev = pl.ref() if pl else None
                 return self._prev
             self._prev = self._iter_text_section(False)
             if self._prev is None and not self.index_node.children:
