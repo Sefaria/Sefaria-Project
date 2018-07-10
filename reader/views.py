@@ -2131,6 +2131,17 @@ def name_api(request, name):
 
 
 @catch_error_as_json
+def dictionary_completion_api(request, word, dictionary=None):
+    """
+    Given a dictionary, looks up the word in that
+    :param request:
+    :param word:
+    :param dictionary:
+    :return:
+    """
+    pass
+
+@catch_error_as_json
 def dictionary_api(request, word):
     """
     Looks for lexicon entries for the given string.

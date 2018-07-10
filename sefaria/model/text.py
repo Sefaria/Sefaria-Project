@@ -3984,6 +3984,7 @@ class Library(object):
         # Spell Checking and Autocompleting
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
+        self._dictionary_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4015,9 +4016,6 @@ class Library(object):
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
         self._title_regexes = {}
-        if include_auto_complete:  # This path not yet used.  Useful?
-            self.build_full_auto_completer()
-            self.build_ref_auto_completer()
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
@@ -4030,9 +4028,6 @@ class Library(object):
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
-        if include_auto_complete:  # This path not yet used.  Useful?
-            self.build_full_auto_completer()
-            self.build_ref_auto_completer()
 
     def rebuild_toc(self, skip_toc_tree=False, skip_filter_toc=False):
         if not skip_toc_tree:
