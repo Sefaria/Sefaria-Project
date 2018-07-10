@@ -77,7 +77,8 @@
             '}' +
             '.sefaria-text {' +
                 'max-height: 430px;'+
-                'overflow: auto;' +
+                'overflow-y: auto;' +
+                'overflow-x: hidden;' +
             '}' +
             '.sefaria-text:focus {' +
                 'outline: none;'+
@@ -100,10 +101,11 @@
             'display: inline-block;'+
             'margin-left: 3px;' +
             'height: 15px;' +
+            'line-height: 16px;' +
             '}' +
             '.sefaria-footer {' +
             'color: #999;' +
-            'padding:15px 20px 20px 25px;' +
+            'padding:20px 20px 20px 20px;' +
             'border-top: 1px solid #ddd;' +
             'background-color: #F9F9F7;' +
             'font-size: 12px;' +
@@ -114,7 +116,7 @@
             'float: right;' +
             'background-color: #fff;' +
             'padding: 5px 10px;'+
-            'margin-top: -5px;' +
+            'margin-top: -3px;' +
             'border: 1px solid #ddd;' +
             'border-radius: 5px;' +
             '}' +
@@ -127,7 +129,7 @@
 
 
             '#sefaria-linker-header {' +
-                'border-top: 3px solid #ddd;' +
+                'border-top: 4px solid #ddd;' +
                 'border-bottom: 1px solid #ddd;' +
                 'background-color: #F9F9F7;' +
                 'text-align: center;' +
@@ -202,7 +204,6 @@
             popUpElem.querySelector('#sefaria-close').addEventListener('click', hidePopup, false);
             popUpElem.addEventListener('keydown', function (e) {
                 var key = e.which || e.keyCode;
-                console.log (key);
                 if (key === 27) { // 27 is escape
                   hidePopup();
                 }
@@ -240,6 +241,7 @@
             source.en = [].concat.apply([], source.en);
             source.he = [].concat.apply([], source.he);
         }
+
 
         for (i = 0; i < source.en.length; i++) {
             var enBox = document.createElement('div');
@@ -297,6 +299,20 @@
               hidePopup();
             });
         }
+
+        var scrollbarOffset = popUpElem.clientWidth - textBox.clientWidth;
+        if (scrollbarOffset > 0) {
+            var nodes = textBox.childNodes;
+            for(var i=0; i<nodes.length; i++) {
+                nodes[i].style.marginRight = -scrollbarOffset+"px";
+            }
+
+
+
+        }
+
+
+
     };
     var hidePopup = function() {
         if (popUpElem.style.display == "block") {
@@ -406,7 +422,6 @@
                                     showPopup(this, mode);
                                     event.preventDefault();
                                     event.stopPropagation();
-                                    console.log('click')
                                     document.getElementById("sefaria-linker-text").focus();
                                 }, false);
                             }
