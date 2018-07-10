@@ -68,6 +68,7 @@ class UserProfile(object):
 		self.settings     =  {
 			"email_notifications": "daily",
 			"interface_language": "english",
+			"textual_custom" : "sephardi"
 		}
 
 		self._name_updated      = False
