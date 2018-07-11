@@ -1396,6 +1396,12 @@ class VirtualNode(TitledTreeNode):
     def create_dynamic_node(self, title, tref):
         return self.entry_class(self, title, tref)
 
+    def first_child(self):
+        pass
+
+    def last_child(self):
+        pass
+
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
@@ -1470,13 +1476,19 @@ class DictionaryEntryNode(TitledTreeNode):
     def next_leaf(self):
         if not self.has_word_match:
             return None
-        return self.__class__(parent=self.parent, word=self.lexicon_entry.next_hw)
+        try:
+            return self.__class__(parent=self.parent, word=self.lexicon_entry.next_hw)
+        except AttributeError:
+            return None
 
     #Currently assumes being called from leaf node
     def prev_leaf(self):
         if not self.has_word_match:
             return None
-        return self.__class__(parent=self.parent, word=self.lexicon_entry.prev_hw)
+        try:
+            return self.__class__(parent=self.parent, word=self.lexicon_entry.prev_hw)
+        except AttributeError:
+            return None
 
     # This is identical to SchemaNode.ref().  Inherit?
     def ref(self):
@@ -1497,6 +1509,8 @@ class DictionaryNode(VirtualNode):
     A schema node corresponding to the entirety of a dictionary.
     The parent of DictionaryEntryNode objects, which represent individual entries
     """
+    required_param_keys = ["lexiconName", "firstWord", "lastWord"]
+    optional_param_keys = ["headwordMap"]
     entry_class = DictionaryEntryNode
 
     def __init__(self, serial=None, **kwargs):
@@ -1520,14 +1534,23 @@ class DictionaryNode(VirtualNode):
 
     def validate(self):
         super(DictionaryNode, self).validate()
-        assert globals().get(self.dictionaryClassName)
+
+    def first_child(self):
+        return self.entry_class(self, word=self.firstWord)
+
+    def last_child(self):
+        return self.entry_class(self, word=self.lastWord)
 
     def serialize(self, **kwargs):
         """
         :return string: serialization of the subtree rooted in this node
         """
         d = super(DictionaryNode, self).serialize(**kwargs)
+        d["nodeType"] = "DictionaryNode"
         d["lexiconName"] = self.lexiconName
+        d["headwordMap"] = self.headwordMap
+        d["firstWord"] = self.firstWord
+        d["lastWord"] = self.lastWord
         return d
 
 

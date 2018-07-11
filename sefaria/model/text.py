@@ -2812,7 +2812,8 @@ class Ref(object):
         """
         if not self._next:
             if self.index_node.is_virtual:
-                self._next = self.index_node.next_leaf().ref()
+                nl = self.index_node.next_leaf()
+                self._next = nl.ref() if nl else None
                 return self._next
             self._next = self._iter_text_section()
             if self._next is None and not self.index_node.children:
@@ -2820,6 +2821,8 @@ class Ref(object):
                 #we now need to iterate over the next leaves, finding the first available section
                 while True:
                     next_leaf = current_leaf.next_leaf() #next schema/JANode
+                    if next_leaf and next_leaf.is_virtual:
+                        return next_leaf.first_child().ref()
                     if next_leaf:
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
                         potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1)
@@ -2842,7 +2845,8 @@ class Ref(object):
         """
         if not self._prev:
             if self.index_node.is_virtual:
-                self._prev = self.index_node.prev_leaf().ref()
+                pl = self.index_node.prev_leaf()
+                self._prev = pl.ref() if pl else None
                 return self._prev
             self._prev = self._iter_text_section(False)
             if self._prev is None and not self.index_node.children:
@@ -2850,6 +2854,8 @@ class Ref(object):
                 # we now need to iterate over the prev leaves, finding the first available section
                 while True:
                     prev_leaf = current_leaf.prev_leaf()  # prev schema/JANode
+                    if prev_leaf and prev_leaf.is_virtual:
+                        return prev_leaf.last_child().ref()
                     if prev_leaf:
                         prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
                         potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
@@ -3982,6 +3988,7 @@ class Library(object):
         # Spell Checking and Autocompleting
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
+        self._lexicon_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4013,9 +4020,6 @@ class Library(object):
         self._full_title_list_jsons = {}
         self._title_regex_strings = {}
         self._title_regexes = {}
-        if include_auto_complete:  # This path not yet used.  Useful?
-            self.build_full_auto_completer()
-            self.build_ref_auto_completer()
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
@@ -4028,9 +4032,6 @@ class Library(object):
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
-        if include_auto_complete:  # This path not yet used.  Useful?
-            self.build_full_auto_completer()
-            self.build_ref_auto_completer()
 
     def rebuild_toc(self, skip_toc_tree=False, skip_filter_toc=False):
         if not skip_toc_tree:
@@ -4121,6 +4122,20 @@ class Library(object):
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
+
+    def build_lexicon_auto_completers(self):
+        from autospell import LexiconTrie
+        self._lexicon_auto_completer = {
+            lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
+        }
+
+    def lexicon_auto_completer(self, lexicon):
+        try:
+            return self._lexicon_auto_completer[lexicon]
+        except KeyError:
+            logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
+            self.build_lexicon_auto_completers()  # I worry that these could pile up.
+            return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
         try:

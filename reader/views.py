@@ -69,6 +69,7 @@ logger.warn("Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
+library.build_lexicon_auto_completers()
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
@@ -1991,11 +1992,13 @@ def category_api(request, path=None):
 def calendars_api(request):
     if request.method == "GET":
         diaspora = request.GET.get("diaspora", "1")
+        custom = request.GET.get("custom", None)
+
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
-            calendars = get_todays_calendar_items(diaspora=diaspora)
+            calendars = get_todays_calendar_items(diaspora=diaspora, custom=custom)
             return jsonResponse(calendars, callback=request.GET.get("callback", None))
 
 
@@ -2128,6 +2131,25 @@ def name_api(request, name):
             d["key"] = object_data["key"]
 
     return jsonResponse(d)
+
+
+@catch_error_as_json
+def dictionary_completion_api(request, word, lexicon=None):
+    """
+    Given a dictionary, looks up the word in that dictionary
+    :param request:
+    :param word:
+    :param dictionary:
+    :return:
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    # Number of results to return.  0 indicates no limit
+    LIMIT = int(request.GET.get("limit", 16))
+
+    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    return jsonResponse(result)
 
 
 @catch_error_as_json

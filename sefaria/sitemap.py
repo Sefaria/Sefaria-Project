@@ -99,7 +99,10 @@ class SefariaSiteMapGenerator(object):
                 if cat:
                     cat = cat.replace(" ", "%20")
                     paths.append(cat)
-                    subpaths = cat_paths(t["contents"])
+                    try:
+                        subpaths = cat_paths(t["contents"])
+                    except KeyError:
+                        continue
                     paths = paths + [cat + "/" + sp for sp in subpaths]
             return paths
         paths = cat_paths(toc)

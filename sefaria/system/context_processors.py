@@ -177,5 +177,10 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora))}
+    if request.user.is_authenticated:
+        profile = UserProfile(id=request.user.id)
+        custom = profile.settings.get("textual_custom", "ashkenazi")
+    else:
+        custom = "ashkenazi" # this is default because this is the most complete data set
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora, custom=custom))}
 

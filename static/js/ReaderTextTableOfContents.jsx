@@ -690,6 +690,10 @@ class SchemaNode extends Component {
         return (
           <ArrayMapNode schema={this.props.schema} />
         );
+      } else if (this.props.schema.nodeType === "DictionaryNode") {
+        return (
+          <DictionaryNode schema={this.props.schema} />
+        );
       }
 
     } else {
@@ -713,7 +717,9 @@ class SchemaNode extends Component {
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
-          return <ArrayMapNode schema={node} key={i} />;
+          return <ArrayMapNode schema={node} key={i}/>;
+        } else if (node.nodeType == "DictionaryNode") {
+          return <DictionaryNode schema={node}/>;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
@@ -755,6 +761,7 @@ SchemaNode.propTypes = {
   schema:      PropTypes.object.isRequired,
   refPath:     PropTypes.string.isRequired
 };
+
 
 
 class JaggedArrayNode extends Component {
@@ -923,6 +930,27 @@ ArrayMapNode.propTypes = {
   schema:      PropTypes.object.isRequired
 };
 
+
+class DictionaryNode extends Component {
+  render() {
+    if (this.props.schema.headwordMap) {
+      var sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
+      var letter = m[0];
+      var ref = m[1];
+      return (
+          <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+            <span className="he">{letter}</span>
+            <span className="en">{letter}</span>
+          </a>
+        );
+      });
+      return (<div>{sectionLinks}</div>);
+    }
+  }
+}
+DictionaryNode.propTypes = {
+  schema:      PropTypes.object.isRequired
+};
 
 class CommentatorList extends Component {
   render() {
