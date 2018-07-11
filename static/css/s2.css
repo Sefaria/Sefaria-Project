@@ -2692,6 +2692,12 @@ a.readerNavCategory {
 .segment.enOnly .en{
   display: initial;
 }
+.readerPanel.hebrew .segment.enOnly .sheetSegmentNumber .en{
+  display: none;
+}
+.readerPanel.english .segment.enOnly .sheetSegmentNumber .he{
+  display: none;
+}
 .segment .segmentNumber,
 .segment .linkCount,
 .textRange .numberLabel {

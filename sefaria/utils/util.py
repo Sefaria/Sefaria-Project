@@ -4,7 +4,21 @@ Miscellaneous functions for Sefaria.
 """
 from HTMLParser import HTMLParser
 import re
+from functools import wraps
 
+
+def graceful_exception(logger=None, return_value=[]):
+    def argumented_decorator(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                if logger:
+                    logger.exception(e)
+            return return_value
+        return decorated_function
+    return argumented_decorator
 
 # also at JaggedArray.depth().  Still needed?
 def list_depth(x, deep=False):

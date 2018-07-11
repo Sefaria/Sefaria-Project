@@ -1992,11 +1992,13 @@ def category_api(request, path=None):
 def calendars_api(request):
     if request.method == "GET":
         diaspora = request.GET.get("diaspora", "1")
+        custom = request.GET.get("custom", None)
+
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
-            calendars = get_todays_calendar_items(diaspora=diaspora)
+            calendars = get_todays_calendar_items(diaspora=diaspora, custom=custom)
             return jsonResponse(calendars, callback=request.GET.get("callback", None))
 
 
