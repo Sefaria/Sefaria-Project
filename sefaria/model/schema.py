@@ -1438,9 +1438,7 @@ class DictionaryEntryNode(TitledTreeNode):
         self._addressTypes = [AddressInteger(0)]
 
         if self.word:
-            # The hardcoded "Jastrow Dictionary" below needs to be passed in.  Likely define that on schema and derivce class from it
-
-            self.lexicon_entry = self.parent.dictionaryClass().load({"parent_lexicon": 'Jastrow Dictionary', "headword": self.word})
+            self.lexicon_entry = self.parent.dictionaryClass().load({"parent_lexicon": self.parent.lexiconName, "headword": self.word})
             self.has_word_match = bool(self.lexicon_entry)
         else:
             self.word = "Not Found"
@@ -1510,8 +1508,9 @@ class DictionaryNode(VirtualNode):
         """
         super(DictionaryNode, self).__init__(serial, **kwargs)
         try:
-            from lexicon import JastrowDictionaryEntry, KleinDictionaryEntry  # todo: get the right import scope here
-            self.dictionaryClass = locals()[self.dictionaryClassName]
+            from lexicon import LexiconEntrySubClassMapping
+            self.dictionaryClass = LexiconEntrySubClassMapping.lexicon_class_map[self.lexiconName]
+
         except KeyError:
             raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.dictionaryClassName))
 
@@ -1528,7 +1527,7 @@ class DictionaryNode(VirtualNode):
         :return string: serialization of the subtree rooted in this node
         """
         d = super(DictionaryNode, self).serialize(**kwargs)
-        d["dictionaryClassName"] = self.dictionaryClassName
+        d["lexiconName"] = self.lexiconName
         return d
 
 

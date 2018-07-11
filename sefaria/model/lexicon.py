@@ -102,7 +102,7 @@ class DictionaryEntry(LexiconEntry):
         text = u''
         text += sense.get('number', u'')
         if text:
-            text += u" "
+            text = u"<b>{}</b> ".format(text)
         for field in ['definition', 'alternative', 'notes']:
             text += sense.get(field, u'')
         return text
@@ -140,6 +140,8 @@ class DictionaryEntry(LexiconEntry):
         if next_line:
             new_content += next_line
 
+        if hasattr(self, 'derivatives'):
+            new_content += u' {}'.format(self.derivatives)
         return [new_content]
 
 
@@ -217,8 +219,8 @@ class LexiconLookupAggregator(object):
         wform_pkey = lookup_key
         if is_hebrew(input_word):
             input_word = strip_cantillation(input_word)
-            """if not has_cantillation(input_word, detect_vowels=True):
-                wform_pkey = 'c_form'"""
+            if not has_cantillation(input_word, detect_vowels=True):
+                wform_pkey = 'c_form'
         query_obj = {wform_pkey: input_word}
         if lookup_ref:
             nref = Ref(lookup_ref).normal()
