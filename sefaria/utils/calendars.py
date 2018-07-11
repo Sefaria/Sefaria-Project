@@ -81,8 +81,6 @@ def daily_mishnayot(datetime_obj):
 def daily_rambam(datetime_obj):
     datetime_obj = datetime.datetime(datetime_obj.year,datetime_obj.month,datetime_obj.day)
     daily_rambam = db.daily_rambam.find_one({"date": {"$eq": datetime_obj}})
-    if not daily_rambam:
-        return None
     rf = model.Ref(daily_rambam["ref"])
     display_value_en = rf.normal().replace("Mishneh Torah, ","")
     display_value_he = rf.he_normal().replace(u"משנה תורה, ", u"")
