@@ -121,7 +121,7 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
     if isinstance(db_parasha["haftara"], list): #backwards compatability
         haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"], "ashkenazi", False)
     elif len(db_parasha["haftara"].keys()) == 1 or not len(db_parasha["haftara"].get(custom, [])):
-        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get(custom, []), "ashkenazi", False)
+        haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get("ashkenazi"), "ashkenazi", False)
     elif custom:
         haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get(custom, []), custom, True)
     else:
