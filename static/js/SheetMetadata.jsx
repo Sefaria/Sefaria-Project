@@ -244,7 +244,7 @@ class SheetMetadata extends Component {
                           Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length + this.state.sheetLikeAdjustment : 0 +this.state.sheetLikeAdjustment} Likes
                       </div>
                       <div className="int-he">
-                          <span>נוצר ב{this.props.sheet.naturalDateCreated} · </span>
+                          <span>נוצר {this.props.sheet.naturalDateCreated} · </span>
                           <span>{this.props.sheet.views} צפיות · </span>
                           <span>קיבלת {this.props.sheet.likes ? this.props.sheet.likes.length + this.state.sheetLikeAdjustment : 0 + this.state.sheetLikeAdjustment } לייקים </span>
                       </div>
