@@ -23,6 +23,7 @@
     var popUpElem;
     var heBox;
     var enBox;
+    var heNotice;
     var heTitle;
     var enTitle;
     var heElems;
@@ -30,142 +31,68 @@
     var triggerLink;
 
     var setupPopup = function(styles, mode) {
-        category_colors = {
-          "Commentary":         "#4871bf",
-          "Tanakh":             "#004e5f",
-          "Midrash":            "#5d956f",
-          "Mishnah":            "#5a99b7",
-          "Talmud":             "#ccb479",
-          "Halakhah":           "#802f3e",
-          "Kabbalah":           "#594176",
-          "Philosophy":         "#7f85a9",
-          "Liturgy":            "#ab4e66",
-          "Tanaitic":           "#00827f",
-          "Parshanut":          "#9ab8cb",
-          "Chasidut":           "#97b386",
-          "Musar":              "#7c406f",
-          "Responsa":           "#cb6158",
-          "Apocrypha":          "#c7a7b4",
-          "Other":              "#073570",
-          "Quoting Commentary": "#cb6158",
-          "Sheets":             "#7c406f",
-          "Community":          "#7c406f",
-          "Targum":             "#7f85a9",
-          "Modern Works":       "#7c406f",
-          "Modern Commentary":  "#7c406f",
-        }
         popUpElem = document.createElement("div");
         popUpElem.id = "sefaria-popup";
 
         var html = "";
         // Set default content for the popup
         html += '<style scoped>' +
-                '@import url("https://fonts.googleapis.com/css?family=Crimson+Text|Frank+Ruhl+Libre");' +
                 '#sefaria-popup {'+
-                    'width: 400px;'+
-                    'max-height: 560px;' +
-                    'font-size: 16px;' +
-                    'border-left: 1px #ddd solid;'+
-                    'border-right: 1px #ddd solid;'+
-                    'border-bottom: 1px #ddd solid;'+
-                    'background-color: #fff;'+
+                    'max-width: 400px;'+
+                    'font-size: 16px;'+
+                    'border: 1px black solid;'+
+                    'background-color: #fff3da;'+
                     'color: #222222;'+
+                    'padding: 10px 20px 5px 20px;'+
                 '}'+
-            '.sefaria-text .en, .sefaria-text .he {' +
-                'padding: 10px 20px;'+
-                'text-align: justify;'+
-            '}' +
             '.sefaria-text {' +
-                'max-height: 430px;'+
-                'overflow-y: auto;' +
-                'overflow-x: hidden;' +
-            '}' +
-            '.sefaria-text:focus {' +
-                'outline: none;'+
+                'padding-top: 10px;' +
             '}' +
             '#sefaria-title {' +
                 'font-weight: bold;' +
                 'font-size: 16px;'+
                 'text-align: center;' +
-                'text-decoration: none;' +
-            '}' +
-            '.en {' +
-                'font-family: "Crimson Text";' +
-            '}' +
-            '.he {' +
-                'font-family: "Frank Ruhl Libre";' +
-            '}' +
-            '#sefaria-logo {' +
-            'background: url(\'data:image/svg+xml;utf8,<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 337.28 72.42"><title>LOGO2</title><path d="M80.7,52.71L84.85,47a18.38,18.38,0,0,0,13.48,5.88c6.13,0,8.56-3,8.56-5.81,0-3.83-4.54-5-9.71-6.33C90.22,39,82,36.93,82,27.92c0-7,6.2-12.46,15.52-12.46,6.64,0,12,2.11,16,5.94L109.26,27a17.32,17.32,0,0,0-12.33-4.86c-4.41,0-7.22,2.11-7.22,5.3s4.34,4.41,9.39,5.69c7,1.79,15.4,4,15.4,13.22,0,7.09-5,13.16-16.48,13.16C90.16,59.48,84.47,56.74,80.7,52.71Z" fill="#999"/><path d="M122.68,58.72V16.1h29.2v6.58H130.15V33.74h21.27v6.58H130.15V52.14h21.72v6.58h-29.2Z" fill="#999"/><path d="M160.82,58.72V16.1H190v6.58H168.29V33.74h21.27v6.58H168.29v18.4h-7.48Z" fill="#999"/><path d="M225.28,58.72l-3.13-8.18H202.6l-3.13,8.18H191L207.71,16.1H217l16.74,42.61h-8.5ZM212.38,23.64L204.71,44H220Z" fill="#999"/><path d="M264.07,58.72l-9.46-15.91H247.2V58.72h-7.48V16.1h18.72c8.43,0,13.93,5.49,13.93,13.35,0,7.6-5,11.69-10.09,12.52l10.41,16.74h-8.62Zm0.64-29.26c0-4.09-3.07-6.77-7.28-6.77H247.2V36.23h10.22C261.64,36.23,264.7,33.54,264.7,29.46Z" fill="#999"/><path d="M281.12,58.72V16.1h7.48V58.72h-7.48Z" fill="#999"/><path d="M328.79,58.72l-3.13-8.18H306.11L303,58.72h-8.5L311.22,16.1h9.33l16.74,42.61h-8.5ZM315.88,23.64L308.21,44h15.33Z" fill="#999"/><path d="M27.87,20.68H18.6c-0.63,0-1.26.05-1.89,0.09-0.84.05-1.68,0.15-2.52,0.17a1.76,1.76,0,0,0-1.23.48A30.86,30.86,0,0,0,6.7,29a26.46,26.46,0,0,0-3.17,8.74,29.41,29.41,0,0,0-.4,3.89,22.13,22.13,0,0,0,.5,6,12.29,12.29,0,0,0,5.46,7.78,18.71,18.71,0,0,0,4.62,2.09,34.76,34.76,0,0,0,7.24,1.33q2.52,0.22,5.06.21,2.14,0,4.29,0,2.43,0,4.84-.25a40.7,40.7,0,0,0,4.64-.66,22.4,22.4,0,0,0,4.47-1.39,12.64,12.64,0,0,0,7.09-7.44,21.07,21.07,0,0,0,1.18-6.34,47.77,47.77,0,0,0-.09-5.38,36.19,36.19,0,0,0-.6-4.67,21.13,21.13,0,0,0-1.39-4.5,12.6,12.6,0,0,0-3-4.24,12.22,12.22,0,0,0-4.95-2.67,21.84,21.84,0,0,0-5.84-.79c-2.93,0-5.87,0-8.8,0M5.76,0C5.82,0.2,5.86.33,5.9,0.47A5.8,5.8,0,0,0,7.58,3,9.9,9.9,0,0,0,11.15,5a14.19,14.19,0,0,0,3.69.76c0.83,0.06,1.67.1,2.5,0.1,5.9,0,11.8,0,17.7,0A15.14,15.14,0,0,1,42.74,8a18.77,18.77,0,0,1,6,5.51,27.86,27.86,0,0,1,3.4,6.46,42.49,42.49,0,0,1,1.93,6.89,54.79,54.79,0,0,1,.83,5.77c0.13,1.52.24,3,.29,4.57s0.07,3.27,0,4.9a44,44,0,0,1-.46,5.62,38.93,38.93,0,0,1-2.24,8.75,29.14,29.14,0,0,1-4.7,8.1,22.79,22.79,0,0,1-7.54,6A18.05,18.05,0,0,1,35,72.26a14.45,14.45,0,0,1-2.15.15c-3.27,0-6.54,0-9.81,0a22.87,22.87,0,0,1-10.82-2.7,20.39,20.39,0,0,1-8.11-8A27.73,27.73,0,0,1,1.23,54.6a39.48,39.48,0,0,1-.92-5.13A49.56,49.56,0,0,1,0,43.3,18.74,18.74,0,0,1,.62,39a41.13,41.13,0,0,1,2.72-7.44,74.43,74.43,0,0,1,6-10.47l0.19-.28L9,20.73a11.8,11.8,0,0,1-2.93-.88A8.06,8.06,0,0,1,1.72,15a12.75,12.75,0,0,1-.65-3.23c0-.35,0-0.69-0.06-1a10.51,10.51,0,0,1,.84-4.55A21.06,21.06,0,0,1,4.91,1C5.17,0.7,5.45.38,5.76,0" fill="#999"/></svg>\') no-repeat;' +
-            'width: 100px;' +
-            'display: inline-block;'+
-            'margin-left: 3px;' +
-            'height: 15px;' +
-            'line-height: 16px;' +
-            '}' +
-            '.sefaria-footer {' +
-            'color: #999;' +
-            'padding:20px 20px 20px 20px;' +
-            'border-top: 1px solid #ddd;' +
-            'background-color: #F9F9F7;' +
-            'font-size: 12px;' +
-            'display: block;' +
-            'font-family: "Helvetica Neue", "Helvetica", sans-serif;' +
-            '}'+
-            '.sefaria-read-more-button {' +
-            'float: right;' +
-            'background-color: #fff;' +
-            'padding: 5px 10px;'+
-            'margin-top: -3px;' +
-            'border: 1px solid #ddd;' +
-            'border-radius: 5px;' +
-            '}' +
-
-            '.sefaria-read-more-button a {' +
-            'text-decoration: none;' +
-            'color: #666;' +
-            '}'+
-
-
-
-            '#sefaria-linker-header {' +
-                'border-top: 4px solid #ddd;' +
-                'border-bottom: 1px solid #ddd;' +
-                'background-color: #F9F9F7;' +
-                'text-align: center;' +
-                'padding-bottom: 3px;' +
+                'text-decoration: underline;' +
             '}';
 
         if (mode == "popup-click") {
             html += '#sefaria-close {' +
-                '    font-family: "Crimson Text";' +
-                '    font-size: 36px;' +
-                '    height: 48px;' +
-                '    line-height: 48px;' +
+                '    font-family: Helvetica,Arial,sans-serif;' +
+                '    font-size: 14px;' +
+                '    font-weight: 700;' +
+                '    line-height: 12px;' +
                 '    position: absolute;' +
-                '    top: -5px;' +
-                '    left: 20px;' +
+                '    top: 5px;' +
+                '    right: 5px;' +
+                '    padding: 5px 5px 3px;' +
                 '    cursor: pointer;' +
-                '    color: #999;' +
+                '    color: #fff;' +
                 '    border: 0;' +
                 '    outline: none;' +
+                '    background: #c74c3c;' +
                 '}' +
             '</style>' +
-            '<div id="sefaria-close">×</div>';
+            '<div id="sefaria-close">X</div>';
         } else {
             html += '</style>'
         }
 
-        html += '<div id="sefaria-linker-header">' +
-            '<h1 id="sefaria-title"><span class="he" dir="rtl"></span><span class="en"></span></h1>' +
-            '</div>' +
-            '<div class="sefaria-text" id="sefaria-linker-text" tabindex="0"></div>' +
+        html += '<h1 id="sefaria-title"><span class="he" dir="rtl"></span><span class="en"></span></h1>' +
+            '<div class="sefaria-text he" dir="rtl"></div>' +
+            '<div class="sefaria-text en"></div>' +
+            '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">';
 
-            '<div class="sefaria-footer">Powered by <div id="sefaria-logo">&nbsp;</div> <span class="sefaria-read-more-button">';
+        if (mode == "popup-click") {
+            html += '<div class="en">Text from Sefaria.org.  <a class = "sefaria-popup-ref" href = "">Click here</a> for full context and commentary.</div>' +
+            '<div class="he" dir="rtl">תוכן מספריא. ' +
+                ' <a class = "sefaria-popup-ref" href = "">' + 'ליחצו' + '</a> ' + 'לראות הקשר ופרושים' +
+            '</div>';
+        } else {
+            html += '<div class="en">Text from Sefaria.org.  Click the reference for full context and commentary.</div>' +
+            '<div class="he" dir="rtl">תוכן מספריא. תלחץ לראות הקשר ופרושים</div>';
+        }
 
-             if (mode == "popup-click") {
-             html += '<a class = "sefaria-popup-ref" href = "">Read More ›</a></span></div>'
-             }
+        html += '</div>';
 
         popUpElem.innerHTML = html;
         // Apply any override styles
@@ -192,11 +119,9 @@
 
         heBox = popUpElem.querySelector(".sefaria-text.he");
         enBox = popUpElem.querySelector(".sefaria-text.en");
-        linkerHeader = popUpElem.querySelector("#sefaria-linker-header");
-        linkerFooter = popUpElem.querySelector(".sefaria-footer");
-        textBox = popUpElem.querySelector(".sefaria-text");
         heTitle = popUpElem.querySelector("#sefaria-title .he");
         enTitle = popUpElem.querySelector("#sefaria-title .en");
+        heNotice = popUpElem.querySelector(".sefaria-notice .he");
         heElems = popUpElem.querySelectorAll(".he");
         enElems = popUpElem.querySelectorAll(".en");
 
@@ -204,6 +129,7 @@
             popUpElem.querySelector('#sefaria-close').addEventListener('click', hidePopup, false);
             popUpElem.addEventListener('keydown', function (e) {
                 var key = e.which || e.keyCode;
+                console.log (key);
                 if (key === 27) { // 27 is escape
                   hidePopup();
                 }
@@ -215,50 +141,19 @@
     };
 
     var showPopup = function(e, mode) {
-        while (textBox.firstChild) {
-            textBox.removeChild(textBox.firstChild);
-        }
         triggerLink = e;
         var source = ns.sources[e.getAttribute('data-ref')];
-
-        linkerHeader.style["border-top-color"] = category_colors[source["primary_category"]];
-
-        if (source.lang === "en") {
+        if (source.lang == "en") {
             // [].forEach.call(heElems, function(e) {e.style.display = "None"});
             heTitle.style.display = "None";
+            heNotice.style.display = "None";
             [].forEach.call(enElems, function(e) {e.style.display = "Block"});
-        } else if (source.lang === "he") {
+        } else if (source.lang == "he") {
             [].forEach.call(heElems, function(e) {e.style.display = "Block"});
             [].forEach.call(enElems, function(e) {e.style.display = "None"});
         }
-
-
-        if(typeof(source.en) === "string") {
-            source.en = [source.en]
-            source.he = [source.he]
-        }
-        if(typeof(source.en) === "object") {
-            source.en = [].concat.apply([], source.en);
-            source.he = [].concat.apply([], source.he);
-        }
-
-
-        for (i = 0; i < source.en.length; i++) {
-            var enBox = document.createElement('div');
-            var heBox = document.createElement('div');
-            enBox.className = "en";
-            heBox.className = "he";
-            heBox.setAttribute("dir", "rtl");
-            enBox.innerHTML = source.en[i];
-            heBox.innerHTML = source.he[i].replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
-            textBox.appendChild(heBox);
-            textBox.appendChild(enBox);
-        }
-
-
-
-
-
+        enBox.innerHTML = source.en;
+        heBox.innerHTML = source.he;
         enTitle.textContent = source.ref;
         heTitle.textContent = source.heRef;
 
@@ -299,20 +194,6 @@
               hidePopup();
             });
         }
-
-        var scrollbarOffset = popUpElem.clientWidth - textBox.clientWidth;
-        if (scrollbarOffset > 0) {
-            var nodes = textBox.childNodes;
-            for(var i=0; i<nodes.length; i++) {
-                nodes[i].style.marginRight = -scrollbarOffset+"px";
-            }
-
-
-
-        }
-
-
-
     };
     var hidePopup = function() {
         if (popUpElem.style.display == "block") {
@@ -331,8 +212,8 @@
         options = options || {};
         var popupStyles = options.popupStyles || {};
         var selector = options.selector || "body";
-        if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
-        else { mode = "popup-click"; }
+        var mode = options.mode || "popup-hover"; // "link", "popup-hover", "popup-click"
+        if (window.screen.width < 820) { mode = "link"; }  // If the screen is small, fallback to link mode
 
         setupPopup(popupStyles, mode);
 
@@ -399,7 +280,7 @@
                     console.log("No references found to link to Sefaria.");
                     return;
                 }
-                atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
+                atomic.get(base_url + "api/bulktext/" + ns.matches.join("|"))
                     .success(function (data, xhr) {
                         //Put text data into sefaria.sources
                         ns.sources = data;
@@ -422,7 +303,7 @@
                                     showPopup(this, mode);
                                     event.preventDefault();
                                     event.stopPropagation();
-                                    document.getElementById("sefaria-linker-text").focus();
+                                    document.getElementById("sefaria-popup").focus();
                                 }, false);
                             }
                         });

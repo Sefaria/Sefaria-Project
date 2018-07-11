@@ -283,6 +283,27 @@ class SheetSource extends Component {
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
 
+      if (this.props.source.options) {
+        var heSourceClasses = classNames({
+            he: 1,
+            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
+            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
+            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
+            this.props.source.options.indented
+        );
+        var enSourceClasses = classNames({
+            en: 1,
+            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
+            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
+            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
+            this.props.source.options.indented
+        );
+      }
+      else {
+          var heSourceClasses = classNames({he:1})
+          var enSourceClasses = classNames({en:1})
+      }
+
       linkCountElement = (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
