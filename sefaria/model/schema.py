@@ -1533,6 +1533,7 @@ class DictionaryNode(VirtualNode):
         :return string: serialization of the subtree rooted in this node
         """
         d = super(DictionaryNode, self).serialize(**kwargs)
+        d["nodeType"] = "DictionaryNode"
         d["lexiconName"] = self.lexiconName
         return d
 

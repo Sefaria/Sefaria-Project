@@ -579,6 +579,7 @@ class TextTableOfContentsNavigation extends Component {
                     active={this.state.tab}
                     narrowPanel={this.props.narrowPanel} />;
 
+    debugger;
     switch(this.state.tab) {
       case "default":
         var content = <SchemaNode
@@ -679,6 +680,7 @@ class SchemaNode extends Component {
     this.setState({collapsed: this.state.collapsed});
   }
   render() {
+    debugger;
     if (!("nodes" in this.props.schema)) {
       if (this.props.schema.nodeType === "JaggedArrayNode") {
         return (
@@ -689,6 +691,10 @@ class SchemaNode extends Component {
       } else if (this.props.schema.nodeType === "ArrayMapNode") {
         return (
           <ArrayMapNode schema={this.props.schema} />
+        );
+      } else if (this.props.schema.nodeType === "ArrayMapNode") {
+        return (
+          <DictionaryNode schema={this.props.schema} />
         );
       }
 
@@ -755,6 +761,7 @@ SchemaNode.propTypes = {
   schema:      PropTypes.object.isRequired,
   refPath:     PropTypes.string.isRequired
 };
+
 
 
 class JaggedArrayNode extends Component {
@@ -923,6 +930,15 @@ ArrayMapNode.propTypes = {
   schema:      PropTypes.object.isRequired
 };
 
+
+class DictionaryNode extends Component {
+  render() {
+    return (<strong>Magic!</strong>);
+  }
+}
+DictionaryNode.propTypes = {
+  schema:      PropTypes.object.isRequired,
+};
 
 class CommentatorList extends Component {
   render() {
