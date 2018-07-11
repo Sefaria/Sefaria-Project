@@ -579,7 +579,6 @@ class TextTableOfContentsNavigation extends Component {
                     active={this.state.tab}
                     narrowPanel={this.props.narrowPanel} />;
 
-    debugger;
     switch(this.state.tab) {
       case "default":
         var content = <SchemaNode
@@ -680,7 +679,6 @@ class SchemaNode extends Component {
     this.setState({collapsed: this.state.collapsed});
   }
   render() {
-    debugger;
     if (!("nodes" in this.props.schema)) {
       if (this.props.schema.nodeType === "JaggedArrayNode") {
         return (
@@ -692,7 +690,7 @@ class SchemaNode extends Component {
         return (
           <ArrayMapNode schema={this.props.schema} />
         );
-      } else if (this.props.schema.nodeType === "ArrayMapNode") {
+      } else if (this.props.schema.nodeType === "DictionaryNode") {
         return (
           <DictionaryNode schema={this.props.schema} />
         );
@@ -719,7 +717,9 @@ class SchemaNode extends Component {
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
-          return <ArrayMapNode schema={node} key={i} />;
+          return <ArrayMapNode schema={node} key={i}/>;
+        } else if (node.nodeType == "DictionaryNode") {
+          return <DictionaryNode schema={node}/>;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
@@ -933,11 +933,23 @@ ArrayMapNode.propTypes = {
 
 class DictionaryNode extends Component {
   render() {
-    return (<strong>Magic!</strong>);
+    if (this.props.schema.headwordMap) {
+      var sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
+      var letter = m[0];
+      var ref = m[1];
+      return (
+          <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+            <span className="he">{letter}</span>
+            <span className="en">{letter}</span>
+          </a>
+        );
+      });
+      return (<div>{sectionLinks}</div>);
+    }
   }
 }
 DictionaryNode.propTypes = {
-  schema:      PropTypes.object.isRequired,
+  schema:      PropTypes.object.isRequired
 };
 
 class CommentatorList extends Component {
