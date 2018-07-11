@@ -3984,7 +3984,7 @@ class Library(object):
         # Spell Checking and Autocompleting
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
-        self._dictionary_auto_completer = {}
+        self._lexicon_auto_completer = {}
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4118,6 +4118,20 @@ class Library(object):
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
+
+    def build_lexicon_auto_completers(self):
+        from autospell import LexiconTrie
+        self._lexicon_auto_completer = {
+            lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
+        }
+
+    def lexicon_auto_completer(self, lexicon):
+        try:
+            return self._lexicon_auto_completer[lexicon]
+        except KeyError:
+            logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
+            self.build_lexicon_auto_completers()  # I worry that these could pile up.
+            return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
         try:
