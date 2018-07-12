@@ -70,7 +70,7 @@ class Footer extends Component {
               </a>
               <a href="/testimonials" className="outOfAppLink">
                   <span className="int-en">Testimonials</span>
-                  <span className="int-he">המלצות</span>
+                  <span className="int-he">חוות דעת</span>
               </a>
               <a href="/terms" className="outOfAppLink">
                   <span className="int-en">Terms of Use</span>
