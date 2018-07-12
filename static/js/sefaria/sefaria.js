@@ -663,6 +663,23 @@ Sefaria = extend(Sefaria, {
         });
     }
   },
+  _lexiconCompletions: {},
+  lexiconCompletion: function(word, lexicon, callback) {
+      word = word.trim();
+      var key = word + "/" + lexicon;
+      if (key in this._lexiconCompletions) {
+          callback(this._lexiconCompletions[key]);
+          return null;
+      }
+      return $.ajax({
+          dataType: "json",
+          url: Sefaria.apiHost + "/api/words/completion/" + word + "/" + lexicon,
+          success: function(data) {
+              this._lexiconCompletions[key] = data;
+              callback(data);
+          }.bind(this)
+      });
+  },
   _lexiconLookups: {},
   lexicon: function(words, ref, cb){
     // Returns a list of lexicon entries for the given words
