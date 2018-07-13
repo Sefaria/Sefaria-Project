@@ -406,6 +406,7 @@ class ReaderTextTableOfContents extends Component {
                     <div onClick={this.handleClick}>
                       <TextTableOfContentsNavigation
                         schema={details.schema}
+                        isDictionary={isDictionary}
                         commentatorList={Sefaria.commentaryList(this.props.title)}
                         alts={details.alts}
                         defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
@@ -502,7 +503,7 @@ class DictionarySearch extends Component {
     }
   }
   showVirtualKeyboardIcon(show){
-      if(document.getElementById('keyboardInputMaster')){//if keyboard is open, ignore.
+      if(document.getElementById('keyboardInputMaster')) { // if keyboard is open, ignore.
         return; //this prevents the icon from flashing on every key stroke.
       }
       if(this.props.interfaceLang == 'english'){
@@ -511,11 +512,11 @@ class DictionarySearch extends Component {
       }
   }
   render() {
-    var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
+    var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == 'english'});
 
-    return (<div className = "searchBox">
+    return (<div className = "searchBox dictionaryTocSearchBox">
       <span className="dictionaryTocSearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
-                      <input className={"search"+ vkClassActivator}
+                      <input className={inputClasses}
                              id="searchInput"
                              placeholder={Sefaria._("Search")}
                              onKeyUp={this.handleSearchKeyUp}
@@ -676,10 +677,11 @@ class TextTableOfContentsNavigation extends Component {
       });
     }
 
-    var toggle = <TabbedToggleSet
+    var toggle = (this.props.isDictionary ? "" :
+                  <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
-                    narrowPanel={this.props.narrowPanel} />;
+                    narrowPanel={this.props.narrowPanel} />);
 
     switch(this.state.tab) {
       case "default":
@@ -719,6 +721,7 @@ TextTableOfContentsNavigation.propTypes = {
   alts:            PropTypes.object,
   defaultStruct:   PropTypes.string,
   narrowPanel:     PropTypes.bool,
+  isDictionary:    PropTypes.bool,
   title:           PropTypes.string.isRequired,
 };
 
