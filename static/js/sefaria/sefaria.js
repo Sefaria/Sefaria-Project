@@ -208,7 +208,7 @@ Sefaria = extend(Sefaria, {
       var refs  = [];
       var start = oRef.sections[oRef.sections.length-1];
       var end   = oRef.toSections[oRef.sections.length-1];
-      for (var i = start; i <= end; i++) {
+      for (var i = parseInt(start); i <= parseInt(end); i++) {
         newRef = Sefaria.util.clone(oRef);
         newRef.sections[oRef.sections.length-1] = i;
         newRef.toSections[oRef.sections.length-1] = i;
