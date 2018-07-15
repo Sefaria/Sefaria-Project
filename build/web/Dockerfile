@@ -18,6 +18,7 @@ COPY build/web/wsgi.whiskey /app/.whiskey
 # requirements are installed on wsgi-re2, this tries to cover the case where requirements differ in this commit.
 # In practice, differing requirements don't install cleanly
 RUN pip install -r requirements.txt \
+  && pip install p929 -U \
   && chown -R whiskey /app
 
 #RUN python manage.py collectstatic --noinput
