@@ -153,7 +153,6 @@ class Search {
                     }
                 }
             };
-            }
         }
 
         //after that confusing logic, hopefully inner_query is defined properly
