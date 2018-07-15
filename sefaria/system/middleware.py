@@ -27,6 +27,7 @@ class LocationSettingsMiddleware(MiddlewareMixin):
                 loc = "us"
         request.diaspora = False if loc in ("il", "IL", "Il") else True
 
+
 class LanguageSettingsMiddleware(MiddlewareMixin):
     """
     Determines Interface and Content Language settings for each request.

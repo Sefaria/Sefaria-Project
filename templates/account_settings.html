@@ -45,8 +45,28 @@
 			<span class="int-he">שפת ממשק</span>
         </label>
 		<div class="toggleSet doubleOption control-elem" role="radiogroup">
-			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">English</div><!--
-			--><div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">עברית</div>
+			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-bi">English</span>
+            </div><!--
+			--><div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-bi">עברית</span>
+            </div>
+		</div>
+	</div>
+    <div id="textualCustom" class="section">
+		<label class="control-elem">
+            <span class="int-en">Preferred Custom (Weekly Haftarot)</span>
+			<span class="int-he">נוסח מועדף (להפטרות)</span>
+        </label>
+		<div class="toggleSet doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-value="sephardi" class="toggleOption {% if profile.settings.textual_custom == "sephardi" %} active{% endif %}" tabindex="{% if profile.settings.textual_custom == "sephardi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">Sephardi</span>
+                <span class="int-he">עדות המזרח</span>
+            </div><!--
+			--><div role="radio" data-value="ashkenazi" class="toggleOption {% if profile.settings.textual_custom == "ashkenazi" %} active{% endif %}" tabindex="{% if profile.settings.textual_custom == "ashkenazi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">Ashkenazi</span>
+                <span class="int-he">אשכנזי</span>
+            </div>
 		</div>
 	</div>
 	</div>
@@ -77,7 +97,8 @@
 				var profile = {
 						settings: {
 							email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
-							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value")
+							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
+                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value")
 						}
 				};
 
