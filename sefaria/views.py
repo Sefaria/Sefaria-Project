@@ -32,7 +32,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -134,7 +134,7 @@ def sefaria_js(request):
     """
     data_js = render_to_string("js/data.js",context={}, request=request)
     webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
-    bundle_path = webpack_files[0]["path"]
+    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
     with open(bundle_path, 'r') as file:
         sefaria_js=file.read()
     attrs = {
