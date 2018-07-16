@@ -38,7 +38,7 @@ class Search {
             args.success(cache_result);
             return null;
         }
-        const url = `${this.baseUrl}/${type == 'text' ? this.searchIndexText : this.searchIndexSheet}/_search`;
+        const url = `${this.baseUrl}/${args.type == 'text' ? this.searchIndexText : this.searchIndexSheet}/_search`;
         console.log("SERACH URL", url);
         return $.ajax({
             url,
