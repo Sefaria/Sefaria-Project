@@ -682,7 +682,7 @@ class TextIndexer(object):
             return False
 
         content = bleach.clean(content, strip=True, tags=())
-        content_wo_cant = strip_cantillation(content, strip_vowels=True)
+        content_wo_cant = strip_cantillation(content, strip_vowels=False)
         content_wo_cant = re.sub(ur'\([^)]+\)', u'', content_wo_cant.strip())  # remove all parens
         if len(content_wo_cant) == 0:
             return False
