@@ -44,6 +44,7 @@ class Search {
             url,
             type: 'POST',
             data: req,
+            contentType: "application/json; charset=utf-8",
             crossDomain: true,
             processData: false,
             dataType: 'json',
@@ -124,8 +125,7 @@ class Search {
             o['aggs'] = {
                 "category": {
                     "terms": {
-                        "field": "path",
-                        "size": 0
+                        "field": "path"
                     }
                 }
             };
