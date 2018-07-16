@@ -125,7 +125,8 @@ class Search {
             o['aggs'] = {
                 "category": {
                     "terms": {
-                        "field": "path"
+                        "field": "path",
+                        "size": 10000,
                     }
                 }
             };
@@ -146,8 +147,8 @@ class Search {
                 /* Test for Commentary2 as well as Commentary */
             }
             inner_query = {
-                "filtered": {
-                    "query": core_query,
+                "bool": {
+                    "must": core_query,
                     "filter": {
                         "or": clauses
                     }
