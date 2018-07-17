@@ -170,7 +170,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
     def as_strings(self):
         new_content = u""
 
-        next_line = u', '.join([u'<strong>{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+        next_line = u', '.join([u'<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
 
         for field in ['morphology']:
             if field in self.content:
