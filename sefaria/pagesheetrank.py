@@ -8,7 +8,7 @@ import random
 import json
 from collections import defaultdict, OrderedDict
 from sefaria.model import *
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
 from settings import STATICFILES_DIRS
 
@@ -231,7 +231,10 @@ def calculate_pagerank():
     for i, (r, pr) in enumerate(sorted_ranking):
         if i % 100 == 0:
             print "{}/{}".format(i, len(sorted_ranking))
-        t = re.sub(ur"[^\u05d0-\u05ea ]", u"", TextChunk(Ref(r), "he").text)
+        try:
+            t = re.sub(ur"[^\u05d0-\u05ea ]", u"", TextChunk(Ref(r), "he").text)
+        except NoVersionFoundError as e:
+            continue
         if len(t) == 0:
             zero_length += [r]
             continue  # we don't need zero length links here
