@@ -208,7 +208,7 @@ Sefaria = extend(Sefaria, {
       var refs  = [];
       var start = oRef.sections[oRef.sections.length-1];
       var end   = oRef.toSections[oRef.sections.length-1];
-      for (var i = start; i <= end; i++) {
+      for (var i = parseInt(start); i <= parseInt(end); i++) {
         newRef = Sefaria.util.clone(oRef);
         newRef.sections[oRef.sections.length-1] = i;
         newRef.toSections[oRef.sections.length-1] = i;
@@ -662,6 +662,23 @@ Sefaria = extend(Sefaria, {
           }.bind(this)
         });
     }
+  },
+  _lexiconCompletions: {},
+  lexiconCompletion: function(word, lexicon, callback) {
+      word = word.trim();
+      var key = word + "/" + lexicon;
+      if (key in this._lexiconCompletions) {
+          callback(this._lexiconCompletions[key]);
+          return null;
+      }
+      return $.ajax({
+          dataType: "json",
+          url: Sefaria.apiHost + "/api/words/completion/" + word + "/" + lexicon,
+          success: function(data) {
+              this._lexiconCompletions[key] = data;
+              callback(data);
+          }.bind(this)
+      });
   },
   _lexiconLookups: {},
   lexicon: function(words, ref, cb){

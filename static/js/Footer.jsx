@@ -68,6 +68,10 @@ class Footer extends Component {
                   <span className="int-en">Team</span>
                   <span className="int-he">צוות</span>
               </a>
+              <a href="/testimonials" className="outOfAppLink">
+                  <span className="int-en">Testimonials</span>
+                  <span className="int-he">חוות דעת</span>
+              </a>
               <a href="/terms" className="outOfAppLink">
                   <span className="int-en">Terms of Use</span>
                   <span className="int-he">תנאי שימוש</span>
@@ -101,7 +105,7 @@ class Footer extends Component {
               </a>
               <a href="/updates" className="outOfAppLink">
                   <span className="int-en">New Additions</span>
-                  <span className="int-he">מה חדש</span>
+                  <span className="int-he">עדכונים</span>
               </a>
           </div>
 

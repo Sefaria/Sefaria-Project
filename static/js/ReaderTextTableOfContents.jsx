@@ -177,6 +177,7 @@ class ReaderTextTableOfContents extends Component {
     // Text Details
     var details = Sefaria.indexDetails(this.props.title);
     var detailsSection = details ? <TextDetails index={details} narrowPanel={this.props.narrowPanel} /> : null;
+    var isDictionary = !!details.lexiconName;
 
     if (this.isTextToc()) {
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
@@ -394,15 +395,24 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   : null}
                   {details ?
-                  <div onClick={this.handleClick}>
-                    <TextTableOfContentsNavigation
-                      schema={details.schema}
-                      commentatorList={Sefaria.commentaryList(this.props.title)}
-                      alts={details.alts}
-                      defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
-                      narrowPanel={this.props.narrowPanel}
-                      title={this.props.title}/>
-
+                  <div>
+                    { isDictionary ? <DictionarySearch
+                        lexiconName={details.lexiconName}
+                        title={this.props.title}
+                        interfaceLang={this.props.interfaceLang}
+                        close={this.props.close}
+                        showBaseText={this.props.showBaseText}
+                        currVersions={this.props.currVersions}/> : ""}
+                    <div onClick={this.handleClick}>
+                      <TextTableOfContentsNavigation
+                        schema={details.schema}
+                        isDictionary={isDictionary}
+                        commentatorList={Sefaria.commentaryList(this.props.title)}
+                        alts={details.alts}
+                        defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
+                        narrowPanel={this.props.narrowPanel}
+                        title={this.props.title}/>
+                    </div>
                   </div>
                   : <LoadingMessage />}
                   {versionSection}
@@ -432,6 +442,99 @@ ReaderTextTableOfContents.propTypes = {
   extendedNotesHebrew: PropTypes.string
 };
 
+class DictionarySearch extends Component {
+  componentDidMount() {
+    this.initAutocomplete();
+  }
+  initAutocomplete() {
+    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
+      position: {my: "left-12 top+14", at: "left bottom"},
+      minLength: 1,
+      select: function( event, ui ) {
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
+        this.submitSearch(ui.item.label);
+        return false;
+      }.bind(this),
+
+      source: function(request, response) {
+        Sefaria.lexiconCompletion(
+            request.term,
+            this.props.lexiconName,
+            d => {
+              if (d.length > 0) {
+                response(d.map(function(e) { return {label: e[1], value: e[0]}}));
+              } else {
+                response([])
+              }
+            }
+        );
+      }.bind(this)
+    });
+  }
+  handleSearchButtonClick(event) {
+    var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
+    if (query) {
+      this.submitSearch(query, true);
+    }
+  }
+  handleSearchKeyUp(event) {
+    if (event.keyCode === 13) {
+      var query = $(event.target).val();
+      if (query) {
+        this.submitSearch(query, true);
+      }
+    }
+  }
+  submitSearch(word, needsResolution) {
+    if (needsResolution) {
+      // Get the dotted form of this word, or the nearest match
+      Sefaria.lexiconCompletion(word, this.props.lexiconName,
+        d => {
+          var resolvedWord = (d.length > 0) ? d[0][1] : word;
+          var ref = this.props.title + ", " + resolvedWord;
+          this.props.close();
+          this.props.showBaseText(ref, false, this.props.currVersions);
+          }
+      )
+    } else {
+      var ref = this.props.title + ", " + word;
+      this.props.close();
+      this.props.showBaseText(ref, false, this.props.currVersions);
+    }
+  }
+  showVirtualKeyboardIcon(show){
+      if(document.getElementById('keyboardInputMaster')) { // if keyboard is open, ignore.
+        return; //this prevents the icon from flashing on every key stroke.
+      }
+      if(this.props.interfaceLang == 'english'){
+          var opacity = show ? 0.4 : 0;
+          $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
+      }
+  }
+  render() {
+    var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == 'english'});
+
+    return (<div className = "searchBox dictionaryTocSearchBox">
+      <span className="dictionaryTocSearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
+                      <input className={inputClasses}
+                             id="searchInput"
+                             placeholder={Sefaria._("Search")}
+                             onKeyUp={this.handleSearchKeyUp}
+                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
+                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                             maxLength={75}
+                      title={Sefaria._("Search for Texts or Keywords Here")}/>
+    </div>);
+  }
+}
+DictionarySearch.propTypes = {
+  lexiconName:      PropTypes.string.isRequired,
+  title:            PropTypes.string.isRequired,
+  interfaceLang:    PropTypes.string,
+  close:            PropTypes.func.isRequired,
+  showBaseText:     PropTypes.func.isRequired,
+  currVersions:     PropTypes.object.isRequired,
+};
 
 class TextDetails extends Component {
  render() {
@@ -574,10 +677,11 @@ class TextTableOfContentsNavigation extends Component {
       });
     }
 
-    var toggle = <TabbedToggleSet
+    var toggle = (this.props.isDictionary ? "" :
+                  <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
-                    narrowPanel={this.props.narrowPanel} />;
+                    narrowPanel={this.props.narrowPanel} />);
 
     switch(this.state.tab) {
       case "default":
@@ -617,6 +721,7 @@ TextTableOfContentsNavigation.propTypes = {
   alts:            PropTypes.object,
   defaultStruct:   PropTypes.string,
   narrowPanel:     PropTypes.bool,
+  isDictionary:    PropTypes.bool,
   title:           PropTypes.string.isRequired,
 };
 
