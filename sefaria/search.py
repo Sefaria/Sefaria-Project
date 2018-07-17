@@ -358,8 +358,14 @@ def index_sheet(index_name, id):
             "owner_image": pud["imageUrl"],
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
-            "tags": ",".join(sheet.get("tags",[])),
+            "tags": sheet.get("tags", []),
             "sheetId": id,
+            "summary": sheet.get("summary", None),
+            "group": sheet.get("group", None),
+            "datePublished": sheet.get("datePublished", None),
+            "dateCreated": sheet.get("dateCreated", None),
+            "dateModified": sheet.get("dateCreated", None),
+            "views": sheet.get("views", 0)
         }
         es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
         global doc_count

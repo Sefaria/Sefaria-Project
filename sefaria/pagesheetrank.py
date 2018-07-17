@@ -197,6 +197,10 @@ def init_pagerank_graph():
                 pass
             except AssertionError:
                 pass
+            except ValueError:
+                print "ValueError"
+                print link.refs
+                pass
             current_link += 1
 
         page += 1
