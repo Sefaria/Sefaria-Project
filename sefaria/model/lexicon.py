@@ -95,7 +95,8 @@ class DictionaryEntry(LexiconEntry):
         "derivatives",
         "quotes",
         "prev_hw",
-        "next_hw"
+        "next_hw",
+        "notes"
     ]
 
     def get_sense(self, sense):
