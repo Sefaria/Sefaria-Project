@@ -159,6 +159,13 @@ class LexiconEntry extends Component {
     var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
+    var altHeadHtml = "";
+    if ('alt_headwords' in entry) {
+        for (var i = 0; i < entry['alt_headwords'].length; i++) { 
+            altHeadHtml += " " + entry['alt_headwords'][i];
+        }
+        altHeadHtml = <span className="alt-headwords">{altHeadHtml}</span>;
+    }
     var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
     var senses = this.renderLexiconEntrySenses(entry['content']);
     var attribution = this.renderLexiconAttribution();
