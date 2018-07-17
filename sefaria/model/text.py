@@ -4731,7 +4731,10 @@ class Library(object):
     def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
 
         node = self.get_schema_node(title, lang)
-        assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
+        if not isinstance(node, JaggedArrayNode):
+            #TODO fix when not JaggedArrayNode
+            # Assumes that node is a JaggedArrayNode
+            return None
 
         refs = []
         try:

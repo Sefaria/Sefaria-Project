@@ -114,9 +114,9 @@ LexiconBox.propTypes = {
 
 class LexiconEntry extends Component {
   renderLexiconEntrySenses(content) {
-		var grammar     = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
-		var def         = ('definition' in content) ? content['definition'] : "";
-    var notes       = ('notes' in content) ? (<span className="notes">{content['notes']}</span>) : "";
+    var grammar     = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
+    var def         = ('definition' in content) ? (<span className="def"  dangerouslySetInnerHTML={ {__html: content['definition']}}></span>) : "";
+    var notes       = ('notes' in content) ? (<span className="notes" dangerouslySetInnerHTML={ {__html: content['notes']}}></span>) : "";
     var sensesElems = ('senses' in content) ? content['senses'].map((sense, i) => {
       return <div key={i}>{this.renderLexiconEntrySenses(sense)}</div>;
     }) : "";
@@ -159,12 +159,19 @@ class LexiconEntry extends Component {
     var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
+    var altHeadHtml = "";
+    if ('alt_headwords' in entry) {
+        for (var i = 0; i < entry['alt_headwords'].length; i++) { 
+            altHeadHtml += " " + entry['alt_headwords'][i];
+        }
+        altHeadHtml = <span className="alt-headwords">{altHeadHtml}</span>;
+    }
     var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
     var senses = this.renderLexiconEntrySenses(entry['content']);
     var attribution = this.renderLexiconAttribution();
     return (
         <div className="entry">
-          <div className={headwordClassNames}>{entryHeadHtml}</div>
+          <div className={headwordClassNames}>{entryHeadHtml}{altHeadHtml}</div>
           <div className={definitionClassNames}>{morphologyHtml}<ol className="definition">{senses}</ol></div>
           <div className="attribution">{attribution}</div>
         </div>
