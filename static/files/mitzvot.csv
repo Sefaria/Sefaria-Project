@@ -1,614 +1,617 @@
-key,type,place,people,time
-"Sefer HaMitzvot, Negative Commandments 284:1",negative mitzvah,Anywhere,beit din,all times
-"Sefer HaMitzvot, Positive Commandments 153:1",positive mitzvah,Anywhere,beit din,all times
-"Sefer HaMitzvot, Positive Commandments 242:1",positive mitzvah,Anywhere,beit din,all times
-"Sefer HaMitzvot, Negative Commandments 90:1",negative mitzvah,Anywhere,indeterminate,all times
-"Sefer HaMitzvot, Negative Commandments 247:1",negative mitzvah,Anywhere,indeterminate,all times
-"Sefer HaMitzvot, Negative Commandments 89:1",negative mitzvah,Anywhere,indeterminate,all times
-"Sefer HaMitzvot, Positive Commandments 85:1",positive mitzvah,Anywhere,indeterminate,time of Temple
-"Sefer HaMitzvot, Positive Commandments 128:1",positive mitzvah,Anywhere,indeterminate,time of Temple
-"Sefer HaMitzvot, Positive Commandments 237:1",positive mitzvah,Anywhere,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 294:1",negative mitzvah,Anywhere,indeterminate,all times
-"Sefer HaMitzvot, Negative Commandments 242:1",negative mitzvah,Anywhere,indeterminate,all times
-"Sefer HaMitzvot, Negative Commandments 159:1",negative mitzvah,Anywhere,kohanim,all times
-"Sefer HaMitzvot, Negative Commandments 167:1",negative mitzvah,Anywhere,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 168:1",negative mitzvah,Anywhere,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 26:1",positive mitzvah,Anywhere,kohanim,all times
-"Sefer HaMitzvot, Negative Commandments 158:1",negative mitzvah,Anywhere,kohanim,all times
-"Sefer HaMitzvot, Negative Commandments 160:1",negative mitzvah,Anywhere,kohanim,all times
-"Sefer HaMitzvot, Negative Commandments 135:1",negative mitzvah,Anywhere,kohanim,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 143:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 37:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 57:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 66:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 269:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 203:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 306:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 298:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 216:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 236:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 94:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 268:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 267:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 240:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 280:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 357:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 293:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 253:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 60:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 154:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 238:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 206:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 314:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 17:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 18:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 19:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 20:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 21:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 24:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 171:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 150:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 232:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 231:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 233:1",negative mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 114:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 176:1",positive mitzvah,Anywhere,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 95:1",negative mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 171:1",positive mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 194:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 97:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 112:1",positive mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 102:1",positive mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 110:1",positive mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 351:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 330:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 331:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 334:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 335:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 333:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 340:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 341:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 352:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 342:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 343:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 344:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 337:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 338:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 339:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 211:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 210:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 249:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 301:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 303:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 305:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 153:1",negative mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 63:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 159:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 160:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 324:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 190:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 191:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 162:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 325:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 163:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 329:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 196:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 328:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 328:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 251:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 114:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 347:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 109:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 73:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 202:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 203:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 204:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 205:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 206:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 133:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 183:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 4:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 83:1",positive mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 145:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 146:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 84:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 83:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 158:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 83:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 187:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 201:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 198:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 194:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 185:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 184:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 149:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 172:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 152:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 173:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 174:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 151:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 98:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 176:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 178:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 179:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 177:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 307:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 111:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 109:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 147:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 353:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 197:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 7:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 200:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 10:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 3:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 157:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 244:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 248:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 61:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 245:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 81:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 317:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 299:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 297:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 302:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 205:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 304:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 217:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 192:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 33:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 321:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 32:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 41:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 8:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 209:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 271:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 208:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 1:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 318:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 30:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 37:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 32:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 1:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 2:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 91:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 97:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 5:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 361:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 101:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 9:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 323:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 6:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 189:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 62:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 326:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 164:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 165:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 166:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 155:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 167:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 320:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 250:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 210:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 235:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 235:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 12:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 289:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 106:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 87:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 107:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 78:1",positive mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 243:1",negative mitzvah,Anywhere,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 209:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 92:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 208:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 207:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 47:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 265:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 4:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 248:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 157:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 266:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 2:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 3:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 15:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 64:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 187:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 50:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 52:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 22:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 25:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 207:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 5:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 7:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 185:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 65:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 84:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 146:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 147:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 149:1",negative mitzvah,Anywhere,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 182:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 313:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 28:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 16:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 45:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 140:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 175:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 180:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 142:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 195:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 113:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 199:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 54:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 319:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 11:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 312:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 46:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 31:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 34:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 35:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 36:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 38:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 27:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 26:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 246:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 231:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 204:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 148:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 184:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 218:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 42:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 354:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 54:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 355:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 198:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 201:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 308:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 239:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 199:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 200:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 241:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 300:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 219:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 247:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 272:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 8:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 252:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 256:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 234:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 237:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 315:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 316:1",negative mitzvah,Anywhere,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 181:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 175:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 202:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 14:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 15:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 186:1",negative mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 156:1",positive mitzvah,Anywhere,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 213:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 359:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 222:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 310:1",negative mitzvah,Anywhere,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 214:1",positive mitzvah,Anywhere,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 188:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 59:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 178:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 275:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 177:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 43:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 44:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 166:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 215:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 161:1",positive mitzvah,Anywhere,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 169:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 168:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 245:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 285:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 14:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 80:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 170:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 95:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 276:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 11:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 10:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 13:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 19:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 6:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 179:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 262:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 288:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 40:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 239:1",positive mitzvah,Anywhere,only men,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 360:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 356:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 287:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 246:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 216:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 217:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 243:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 189:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 17:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 281:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 286:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 277:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 278:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 274:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 104:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 105:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 336:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 212:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 345:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 346:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 350:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 348:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 273:1",negative mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Positive Commandments 12:1",positive mitzvah,Anywhere,only men,all times
-"Sefer HaMitzvot, Negative Commandments 39:1",negative mitzvah,Anywhere,women only,all times
-"Sefer HaMitzvot, Positive Commandments 219:1",positive mitzvah,Anywhere,women only,all times
-"Sefer HaMitzvot, Positive Commandments 100:1",positive mitzvah,Anywhere,women only,all times
-"Sefer HaMitzvot, Positive Commandments 99:1",positive mitzvah,Anywhere,women only,all times
-"Sefer HaMitzvot, Positive Commandments 106:1",positive mitzvah,Anywhere,women only,all times
-"Sefer HaMitzvot, Negative Commandments 349:1",negative mitzvah,Anywhere,women only,all times
-"Sefer HaMitzvot, Negative Commandments 137:1",negative mitzvah,Anywhere,women only,time of Temple
-"Sefer HaMitzvot, Positive Commandments 82:1",positive mitzvah,elsewhere,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 82:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 35:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 137:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Positive Commandments 136:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Positive Commandments 225:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Positive Commandments 227:1",positive mitzvah,Land of Israel,beit din,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 226:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Negative Commandments 29:1",negative mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Positive Commandments 180:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Positive Commandments 229:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Positive Commandments 224:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Positive Commandments 220:1",positive mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Negative Commandments 282:1",negative mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Negative Commandments 283:1",negative mitzvah,Land of Israel,beit din,time of Temple
-"Sefer HaMitzvot, Negative Commandments 143:1",negative mitzvah,Land of Israel,indeterminate,time of Temple
-"Sefer HaMitzvot, Positive Commandments 234:1",positive mitzvah,Land of Israel,indeterminate,time of Temple
-"Sefer HaMitzvot, Negative Commandments 261:1",negative mitzvah,Land of Israel,indeterminate,time of Temple
-"Sefer HaMitzvot, Positive Commandments 130:1",positive mitzvah,Land of Israel,indeterminate,time of Temple
-"Sefer HaMitzvot, Negative Commandments 230:1",negative mitzvah,Land of Israel,indeterminate,time of Temple
-"Sefer HaMitzvot, Positive Commandments 126:1",positive mitzvah,Land of Israel,indeterminate,time of Temple
-"Sefer HaMitzvot, Positive Commandments 182:1",positive mitzvah,Land of Israel,king,time of Temple
-"Sefer HaMitzvot, Negative Commandments 363:1",negative mitzvah,Land of Israel,king,time of Temple
-"Sefer HaMitzvot, Negative Commandments 364:1",negative mitzvah,Land of Israel,king,time of Temple
-"Sefer HaMitzvot, Negative Commandments 365:1",negative mitzvah,Land of Israel,king,time of Temple
-"Sefer HaMitzvot, Positive Commandments 18:1",positive mitzvah,Land of Israel,king,time of Temple
-"Sefer HaMitzvot, Negative Commandments 270:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 25:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 103:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 120:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 144:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 68:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 40:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 68:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 49:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 76:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 38:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 161:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 162:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 70:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 71:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 69:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 47:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 48:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 50:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 51:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 104:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 59:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 41:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 42:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 45:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 89:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 28:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 24:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 63:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 67:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 99:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 62:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 102:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 30:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 29:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 88:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 64:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 65:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 66:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 91:1",positive mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 163:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 164:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 165:1",negative mitzvah,Land of Israel,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 170:1",negative mitzvah,Land of Israel,Levites,time of Temple
-"Sefer HaMitzvot, Negative Commandments 169:1",negative mitzvah,Land of Israel,Levites,time of Temple
-"Sefer HaMitzvot, Positive Commandments 34:1",positive mitzvah,Land of Israel,Levites,time of Temple
-"Sefer HaMitzvot, Positive Commandments 23:1",positive mitzvah,Land of Israel,Levites,time of Temple
-"Sefer HaMitzvot, Positive Commandments 129:1",positive mitzvah,Land of Israel,Levites,time of Temple
-"Sefer HaMitzvot, Negative Commandments 72:1",negative mitzvah,Land of Israel,Levites,time of Temple
-"Sefer HaMitzvot, Negative Commandments 67:1",negative mitzvah,Land of Israel,Levites,time of Temple
-"Sefer HaMitzvot, Negative Commandments 78:1",negative mitzvah,Land of Israel,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 214:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 16:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 125:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 20:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 93:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 92:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 94:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 141:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 135:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 112:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 139:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 90:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 73:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 103:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 121:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 211:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 123:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 212:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 124:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 213:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 133:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 134:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 61:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 220:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 221:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 223:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 140:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 224:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 225:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 226:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 116:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 119:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 121:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 108:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 113:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 107:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 108:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 39:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 183:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 142:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 229:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 79:1",positive mitzvah,Land of Israel,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 120:1",positive mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 215:1",negative mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 222:1",negative mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 227:1",negative mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 138:1",positive mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 139:1",positive mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 228:1",negative mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 145:1",positive mitzvah,Land of Israel,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 127:1",positive mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 144:1",positive mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 188:1",negative mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 193:1",negative mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 154:1",negative mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 134:1",positive mitzvah,Land of Israel,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 49:1",negative mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 181:1",positive mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 221:1",positive mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 263:1",negative mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 264:1",negative mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 233:1",positive mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 173:1",positive mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 362:1",negative mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 195:1",negative mitzvah,Land of Israel,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 228:1",positive mitzvah,Land of Israel,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 132:1",positive mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 311:1",negative mitzvah,Land of Israel,only men,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 290:1",negative mitzvah,Land of Israel,only men,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 322:1",negative mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 74:1",positive mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 127:1",negative mitzvah,Land of Israel,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 76:1",positive mitzvah,Land of Israel,women only,time of Temple
-"Sefer HaMitzvot, Positive Commandments 75:1",positive mitzvah,Land of Israel,women only,time of Temple
-"Sefer HaMitzvot, Negative Commandments 105:1",negative mitzvah,Land of Israel,women only,time of Temple
-"Sefer HaMitzvot, Positive Commandments 96:1",positive mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 9:1",negative mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 107:1",positive mitzvah,unspecified,indeterminate,time of Temple
-"Sefer HaMitzvot, Negative Commandments 296:1",negative mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 53:1",negative mitzvah,unspecified,indeterminate,Before Sanherib
-"Sefer HaMitzvot, Negative Commandments 55:1",negative mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 193:1",positive mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 155:1",negative mitzvah,unspecified,indeterminate,time of Temple
-"Sefer HaMitzvot, Positive Commandments 197:1",positive mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 48:1",negative mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 86:1",negative mitzvah,unspecified,indeterminate,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 75:1",negative mitzvah,unspecified,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 96:1",negative mitzvah,unspecified,kohanim,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 43:1",positive mitzvah,unspecified,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 36:1",positive mitzvah,unspecified,kohanim,time of Temple
-"Sefer HaMitzvot, Positive Commandments 33:1",positive mitzvah,unspecified,kohanim,time of Temple
-"Sefer HaMitzvot, Negative Commandments 332:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 110:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 111:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 87:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 88:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 69:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 72:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 118:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 70:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 71:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 81:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 124:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 138:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 128:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 132:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 130:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 126:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 123:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 129:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 101:1",positive mitzvah,unspecified,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 121:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 77:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 131:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 119:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 21:1",positive mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 136:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 60:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 257:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 258:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 259:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 260:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 115:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 117:1",positive mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 31:1",positive mitzvah,unspecified,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 77:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 93:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 74:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 292:1",negative mitzvah,unspecified,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 79:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 295:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 80:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 86:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 141:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 23:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 196:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 118:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 174:1",positive mitzvah,unspecified,men & women,all times
-"Sefer HaMitzvot, Positive Commandments 172:1",positive mitzvah,unspecified,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 309:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 254:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 255:1",negative mitzvah,unspecified,men & women,all times
-"Sefer HaMitzvot, Negative Commandments 100:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 122:1",positive mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 55:1",positive mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 151:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 150:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 152:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Positive Commandments 56:1",positive mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 115:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 117:1",negative mitzvah,unspecified,men & women,time of Temple
-"Sefer HaMitzvot, Negative Commandments 51:1",negative mitzvah,unspecified,men & women,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 358:1",negative mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 53:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 156:1",negative mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 98:1",negative mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 44:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 46:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 223:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 57:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 58:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 22:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 291:1",negative mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 232:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 186:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 13:1",negative mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 236:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 279:1",negative mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 58:1",negative mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 191:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 190:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 230:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 238:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 218:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 240:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Negative Commandments 56:1",negative mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 192:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 241:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 131:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 244:1",positive mitzvah,unspecified,only men,Unknown specific time
-"Sefer HaMitzvot, Positive Commandments 52:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Negative Commandments 116:1",negative mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 125:1",positive mitzvah,unspecified,only men,time of Temple
-"Sefer HaMitzvot, Positive Commandments 27:1",positive mitzvah,unspecified,only men,time of Temple
+Number,Who is obligated?,What kind of commandment is this?,Where is one obligated?,What is the penalty for transgressing?
+232,Everyone,Negative,Anywhere,No Specific Penalty
+58,Men Only,Positive,Israel,No Specific Penalty
+499,Everyone,Negative,Anywhere,No Specific Penalty
+177,Everyone,Positive,Israel,No Specific Penalty
+16,Everyone,Negative,Temple,Lashes
+363,Everyone,Negative,Anywhere,No Specific Penalty
+437,Everyone,Negative,Anywhere,Lashes
+355,Everyone,Positive,Anywhere,No Specific Penalty
+271,Priests,Negative,Temple,Lashes
+54,Men Only,Positive,Israel,No Specific Penalty
+116,Men Only,Positive,Temple,No Specific Penalty
+308,Everyone,Positive,Anywhere,No Specific Penalty
+189,Men Only,Negative,Anywhere,Death
+223,Everyone,Negative,Israel,Lashes
+21,Everyone,Positive,Anywhere,No Specific Penalty
+593,Everyone,Negative,Israel,No Specific Penalty
+372,Everyone,Negative,Anywhere,Lashes
+350,Everyone,Positive,Anywhere,No Specific Penalty
+536,Everyone,Negative,Anywhere,No Specific Penalty
+50,Men Only,Positive,Israel,No Specific Penalty
+228,Everyone,Negative,Anywhere,Death
+136,Priests,Positive,Temple,No Specific Penalty
+343,Everyone,Negative,Anywhere,No Specific Penalty
+546,Everyone,Positive,Anywhere,No Specific Penalty
+420,Men Only,Positive,Anywhere,No Specific Penalty
+499,Misc,Negative,Israel,No Specific Penalty
+30,Everyone,Negative,Anywhere,Lashes
+586,Everyone,Negative,Anywhere,Lashes
+312,Priests,Positive,Temple,No Specific Penalty
+72,Everyone,Negative,Anywhere,No Specific Penalty
+316,Everyone,Negative,Anywhere,Excision
+602,Everyone,Negative,Anywhere,No Specific Penalty
+228,Everyone,Negative,Anywhere,Lashes
+592,Everyone,Positive,Anywhere,No Specific Penalty
+33,Everyone,Positive,Anywhere,No Specific Penalty
+433,Everyone,Positive,Anywhere,No Specific Penalty
+90,Men Only,Negative,Temple,No Specific Penalty
+573,Everyone,Positive,Anywhere,No Specific Penalty
+280,Everyone,Negative,Israel,No Specific Penalty
+106,Men Only,Positive,Temple,No Specific Penalty
+511,Everyone,Negative,Anywhere,Lashes
+25,Everyone,Positive,Anywhere,No Specific Penalty
+553,Everyone,Positive,Anywhere,No Specific Penalty
+124,Everyone,Negative,Temple,Lashes
+132,Men Only,Positive,Temple,No Specific Penalty
+271,Priests,Negative,Temple,Lashes
+165,Everyone,Negative,Anywhere,Lashes
+482,Everyone,Positive,Temple,No Specific Penalty
+321,Everyone,Positive,Anywhere,No Specific Penalty
+72,Everyone,Negative,Anywhere,No Specific Penalty
+68,Everyone,Negative,Anywhere,No Specific Penalty
+359,Everyone,Negative,Temple,No Specific Penalty
+416,Everyone,Negative,Anywhere,No Specific Penalty
+110,Everyone,Negative,Anywhere,Excision
+515,Everyone,Negative,Anywhere,Lashes
+32,Everyone,Negative,Anywhere,Death
+503,Everyone,Positive,Israel,No Specific Penalty
+148,Everyone,Negative,Anywhere,Excision
+558,Everyone,Negative,Anywhere,Lashes
+446,Everyone,Negative,Anywhere,No Specific Penalty
+442,Everyone,Negative,Anywhere,No Specific Penalty
+185,Priests,Positive,Temple,No Specific Penalty
+478,Everyone,Negative,Anywhere,No Specific Penalty
+329,Everyone,Negative,Israel,Lashes
+428,Everyone,Negative,Anywhere,Lashes
+462,Everyone,Negative,Anywhere,Death
+198,Men Only,Negative,Anywhere,Death
+408,Misc,Positive,Israel,No Specific Penalty
+227,Everyone,Negative,Anywhere,Lashes
+601,Everyone,Negative,Anywhere,No Specific Penalty
+550,Everyone,Negative,Anywhere,Lashes
+210,Men Only,Negative,Anywhere,Death
+367,Priests,Negative,Temple,No Specific Penalty
+322,Priests,Positive,Temple,No Specific Penalty
+9,Everyone,Positive,Anywhere,No Specific Penalty
+491,Misc,Positive,Israel,No Specific Penalty
+400,Everyone,Negative,Anywhere,No Specific Penalty
+219,Everyone,Positive,Israel,No Specific Penalty
+144,Everyone,Negative,Temple,Excision
+148,Everyone,Negative,Anywhere,Excision
+581,Men Only,Negative,Anywhere,No Specific Penalty
+304,Everyone,Negative,Anywhere,Lashes
+276,Priests,Negative,Temple,Lashes
+396,Priests,Positive,Israel,No Specific Penalty
+161,Everyone,Positive,Anywhere,No Specific Penalty
+527,Misc,Positive,Israel,No Specific Penalty
+202,Men Only,Negative,Anywhere,Death
+470,Everyone,Positive,Anywhere,No Specific Penalty
+81,Men Only,Negative,Anywhere,No Specific Penalty
+296,Everyone,Positive,Anywhere,No Specific Penalty
+254,Everyone,Positive,Anywhere,No Specific Penalty
+412,Everyone,Negative,Temple,No Specific Penalty
+194,Men Only,Negative,Anywhere,Death
+128,Everyone,Positive,Temple,No Specific Penalty
+384,Priests,Positive,Temple,No Specific Penalty
+100,Everyone,Negative,Temple,Lashes
+458,Everyone,Negative,Anywhere,No Specific Penalty
+85,Everyone,Positive,Anywhere,No Specific Penalty
+120,Men Only,Positive,Temple,No Specific Penalty
+339,Everyone,Negative,Israel,No Specific Penalty
+263,Men Only,Negative,Anywhere,Lashes
+610,Everyone,Negative,Temple,No Specific Penalty
+249,Everyone,Negative,Anywhere,Lashes
+242,Everyone,Negative,Anywhere,No Specific Penalty
+577,Everyone,Negative,Anywhere,No Specific Penalty
+284,Everyone,Negative,Israel,No Specific Penalty
+153,Everyone,Positive,Anywhere,No Specific Penalty
+507,Everyone,Negative,Israel,No Specific Penalty
+454,Everyone,Negative,Anywhere,Lashes
+450,Everyone,Negative,Israel,No Specific Penalty
+245,Everyone,Negative,Israel,No Specific Penalty
+233,Men Only,Negative,Anywhere,No Specific Penalty
+392,Men Only,Positive,Anywhere,No Specific Penalty
+76,Men Only,Negative,Anywhere,No Specific Penalty
+262,Everyone,Negative,Anywhere,Lashes
+558,Men Only,Negative,Anywhere,No Specific Penalty
+380,Men Only,Positive,Temple,No Specific Penalty
+607,Men Only,Positive,Temple,No Specific Penalty
+63,Everyone,Negative,Anywhere,No Specific Penalty
+322,Priests,Positive,Temple,No Specific Penalty
+288,Everyone,Negative,Temple,No Specific Penalty
+484,Everyone,Negative,Anywhere,No Specific Penalty
+99,Men Only,Positive,Temple,No Specific Penalty
+531,Everyone,Negative,Israel,Lashes
+376,Everyone,Negative,Anywhere,Lashes
+495,Everyone,Positive,Israel,No Specific Penalty
+388,Priests,Positive,Temple,No Specific Penalty
+541,Everyone,Positive,Anywhere,No Specific Penalty
+45,Men Only,Negative,Anywhere,No Specific Penalty
+300,Everyone,Positive,Anywhere,No Specific Penalty
+424,Everyone,Negative,Anywhere,No Specific Penalty
+466,Everyone,Negative,Israel,No Specific Penalty
+487,Everyone,Negative,Temple,No Specific Penalty
+404,Priests,Positive,Temple,No Specific Penalty
+157,Everyone,Negative,Anywhere,Lashes
+474,Everyone,Positive,Israel,No Specific Penalty
+594,Men Only,Positive,Israel,No Specific Penalty
+112,Everyone,Positive,Israel,No Specific Penalty
+523,Men Only,Negative,Anywhere,No Specific Penalty
+215,Everyone,Negative,Temple,Excision
+181,Everyone,Positive,Anywhere,No Specific Penalty
+206,Men Only,Negative,Anywhere,Death
+40,Everyone,Negative,Temple,Lashes
+370,Everyone,Negative,Anywhere,Lashes
+5,Everyone,Positive,Temple,Excision
+569,Everyone,Negative,Anywhere,No Specific Penalty
+140,Men Only,Positive,Temple,No Specific Penalty
+564,Everyone,Negative,Anywhere,No Specific Penalty
+238,Everyone,Negative,Anywhere,No Specific Penalty
+267,Men Only,Negative,Anywhere,Lashes
+173,Everyone,Positive,Anywhere,No Specific Penalty
+335,Everyone,Negative,Israel,Lashes
+41,Everyone,Negative,Temple,Lashes
+331,Misc,Positive,Israel,No Specific Penalty
+214,Everyone,Negative,Anywhere,Lashes
+56,Men Only,Positive,Israel,No Specific Penalty
+518,Everyone,Negative,Anywhere,Death
+176,Everyone,Positive,Temple,No Specific Penalty
+12,Everyone,Negative,Anywhere,Lashes
+362,Everyone,Positive,Anywhere,No Specific Penalty
+436,Everyone,Positive,Anywhere,No Specific Penalty
+354,Everyone,Positive,Anywhere,No Specific Penalty
+270,Priests,Negative,Temple,Lashes
+53,Men Only,Positive,Israel,No Specific Penalty
+115,Men Only,Positive,Temple,No Specific Penalty
+307,Men Only,Positive,Temple,No Specific Penalty
+188,Everyone,Negative,Anywhere,Lashes
+222,Everyone,Positive,Israel,No Specific Penalty
+20,Everyone,Negative,Anywhere,Lashes
+591,Everyone,Negative,Anywhere,No Specific Penalty
+371,Everyone,Negative,Anywhere,Lashes
+349,Everyone,Negative,Anywhere,Lashes
+535,Men Only,Positive,Israel,No Specific Penalty
+49,Men Only,Positive,Anywhere,No Specific Penalty
+253,Everyone,Negative,Anywhere,Lashes
+135,Everyone,Negative,Temple,Lashes
+342,Everyone,Negative,Israel,No Specific Penalty
+545,Everyone,Positive,Anywhere,No Specific Penalty
+419,Men Only,Positive,Anywhere,No Specific Penalty
+498,Misc,Negative,Israel,No Specific Penalty
+27,Everyone,Negative,Anywhere,Lashes
+585,Everyone,Negative,Anywhere,Lashes
+311,Everyone,Negative,Anywhere,Lashes
+93,Everyone,Negative,Anywhere,Lashes
+315,Everyone,Negative,Anywhere,Excision
+597,Everyone,Negative,Anywhere,No Specific Penalty
+190,Men Only,Negative,Anywhere,Excision
+588,Everyone,Positive,Anywhere,No Specific Penalty
+31,Everyone,Positive,Anywhere,No Specific Penalty
+432,Everyone,Positive,Anywhere,No Specific Penalty
+89,Everyone,Negative,Temple,Lashes
+572,Everyone,Negative,Anywhere,No Specific Penalty
+279,Priests,Negative,Temple,Death
+104,Men Only,Negative,Temple,No Specific Penalty
+510,Everyone,Negative,Anywhere,Lashes
+24,Everyone,Negative,Anywhere,Lashes
+544,Everyone,Negative,Anywhere,Lashes
+123,Everyone,Positive,Temple,No Specific Penalty
+131,Men Only,Positive,Temple,No Specific Penalty
+291,Everyone,Negative,Anywhere,Lashes
+164,Everyone,Negative,Anywhere,Lashes
+481,Everyone,Negative,Temple,No Specific Penalty
+318,Everyone,Positive,Anywhere,No Specific Penalty
+71,Everyone,Negative,Anywhere,Lashes
+67,Everyone,Negative,Anywhere,No Specific Penalty
+358,Everyone,Negative,Temple,No Specific Penalty
+415,Men Only,Negative,Anywhere,No Specific Penalty
+108,Men Only,Negative,Anywhere,Excision
+514,Everyone,Negative,Anywhere,Lashes
+26,Everyone,Negative,Anywhere,Death
+502,Misc,Negative,Israel,No Specific Penalty
+169,Everyone,Positive,Anywhere,No Specific Penalty
+554,Men Only,Negative,Anywhere,Lashes
+445,Everyone,Negative,Anywhere,No Specific Penalty
+440,Everyone,Positive,Anywhere,No Specific Penalty
+184,Men Only,Positive,Temple,No Specific Penalty
+477,Everyone,Positive,Anywhere,No Specific Penalty
+328,Everyone,Negative,Israel,Lashes
+427,Everyone,Negative,Anywhere,No Specific Penalty
+461,Everyone,Negative,Anywhere,No Specific Penalty
+197,Men Only,Negative,Anywhere,Death
+407,Everyone,Negative,Anywhere,No Specific Penalty
+226,Everyone,Negative,Anywhere,Lashes
+605,Everyone,Negative,Anywhere,No Specific Penalty
+549,Everyone,Negative,Israel,Lashes
+209,Men Only,Negative,Anywhere,Death
+366,Priests,Negative,Temple,No Specific Penalty
+346,Everyone,Negative,Israel,No Specific Penalty
+8,Everyone,Negative,Temple,Lashes
+490,Men Only,Positive,Temple,No Specific Penalty
+399,Everyone,Positive,Temple,No Specific Penalty
+218,Everyone,Negative,Israel,Lashes
+143,Men Only,Positive,Temple,No Specific Penalty
+147,Everyone,Negative,Anywhere,Lashes
+580,Men Only,Negative,Anywhere,No Specific Penalty
+303,Everyone,Negative,Anywhere,Lashes
+275,Priests,Negative,Temple,Lashes
+395,Everyone,Positive,Israel,No Specific Penalty
+160,Everyone,Positive,Anywhere,No Specific Penalty
+526,Misc,Positive,Israel,No Specific Penalty
+201,Men Only,Negative,Anywhere,Death
+469,Everyone,Negative,Anywhere,Lashes
+80,Everyone,Positive,Anywhere,No Specific Penalty
+295,Everyone,Negative,Anywhere,No Specific Penalty
+250,Everyone,Negative,Anywhere,Lashes
+411,Men Only,Negative,Temple,No Specific Penalty
+193,Men Only,Negative,Anywhere,Death
+127,Everyone,Negative,Temple,Lashes
+383,Everyone,Negative,Temple,No Specific Penalty
+75,Men Only,Positive,Temple,No Specific Penalty
+457,Everyone,Negative,Anywhere,No Specific Penalty
+84,Everyone,Positive,Israel,No Specific Penalty
+119,Men Only,Positive,Temple,No Specific Penalty
+338,Everyone,Negative,Anywhere,No Specific Penalty
+261,Men Only,Positive,Israel,No Specific Penalty
+611,Men Only,Negative,Anywhere,Lashes
+246,Everyone,Negative,Anywhere,Lashes
+57,Everyone,Positive,Anywhere,No Specific Penalty
+576,Everyone,Positive,Anywhere,No Specific Penalty
+283,Women,Negative,Israel,Lashes
+131,Everyone,Negative,Temple,Lashes
+506,Everyone,Positive,Israel,No Specific Penalty
+453,Everyone,Positive,Anywhere,No Specific Penalty
+449,Everyone,Negative,Anywhere,No Specific Penalty
+241,Everyone,Negative,Anywhere,No Specific Penalty
+231,Everyone,Negative,Anywhere,Lashes
+391,Priests,Negative,Temple,No Specific Penalty
+75,Men Only,Negative,Anywhere,No Specific Penalty
+260,Everyone,Negative,Anywhere,Death
+557,Men Only,Positive,Anywhere,No Specific Penalty
+379,Priests,Positive,Temple,No Specific Penalty
+606,Men Only,Positive,Temple,No Specific Penalty
+61,Men Only,Positive,Israel,No Specific Penalty
+299,Priests,Positive,Temple,No Specific Penalty
+287,Everyone,Negative,Anywhere,No Specific Penalty
+430,Everyone,Positive,Anywhere,No Specific Penalty
+88,Men Only,Positive,Temple,No Specific Penalty
+530,Men Only,Positive,Israel,No Specific Penalty
+375,Everyone,Negative,Anywhere,Lashes
+494,Everyone,Negative,Temple,Lashes
+387,Everyone,Negative,Anywhere,No Specific Penalty
+540,Everyone,Negative,Anywhere,No Specific Penalty
+44,Men Only,Positive,Israel,No Specific Penalty
+299,Priests,Positive,Temple,No Specific Penalty
+423,Everyone,Positive,Anywhere,No Specific Penalty
+465,Everyone,Negative,Israel,No Specific Penalty
+486,Everyone,Negative,Temple,No Specific Penalty
+403,Priests,Positive,Temple,No Specific Penalty
+156,Everyone,Negative,Anywhere,Lashes
+473,Everyone,Positive,Israel,No Specific Penalty
+598,Men Only,Positive,Anywhere,No Specific Penalty
+111,Everyone,Negative,Anywhere,Lashes
+522,Everyone,Negative,Anywhere,No Specific Penalty
+193,Everyone,Negative,Anywhere,Lashes
+180,Men Only,Positive,Anywhere,No Specific Penalty
+205,Men Only,Negative,Anywhere,Death
+39,Everyone,Negative,Anywhere,No Specific Penalty
+562,Men Only,Negative,Israel,No Specific Penalty
+4,Everyone,Positive,Anywhere,No Specific Penalty
+568,Everyone,Negative,Anywhere,No Specific Penalty
+139,Everyone,Negative,Temple,Lashes
+563,Everyone,Negative,Anywhere,No Specific Penalty
+237,Everyone,Negative,Anywhere,No Specific Penalty
+266,Men Only,Negative,Anywhere,Lashes
+172,Everyone,Positive,Anywhere,No Specific Penalty
+334,Everyone,Negative,Israel,Lashes
+38,Everyone,Negative,Anywhere,No Specific Penalty
+330,Misc,Positive,Israel,No Specific Penalty
+1,Men Only,Positive,Anywhere,No Specific Penalty
+55,Men Only,Positive,Israel,No Specific Penalty
+517,Everyone,Negative,Anywhere,Death
+175,Everyone,Positive,Anywhere,No Specific Penalty
+11,Everyone,Negative,Anywhere,Lashes
+361,Everyone,Negative,Anywhere,No Specific Penalty
+435,Everyone,Positive,Anywhere,No Specific Penalty
+352,Everyone,Positive,Anywhere,No Specific Penalty
+268,Men Only,Negative,Anywhere,No Specific Penalty
+52,Everyone,Negative,Israel,Lashes
+114,Men Only,Negative,Temple,No Specific Penalty
+306,Everyone,Positive,Anywhere,No Specific Penalty
+187,Everyone,Positive,Anywhere,No Specific Penalty
+221,Everyone,Negative,Israel,Lashes
+19,Everyone,Negative,Anywhere,Excision
+590,Men Only,Negative,Anywhere,Lashes
+369,Everyone,Negative,Anywhere,Lashes
+348,Everyone,Negative,Israel,No Specific Penalty
+534,Men Only,Negative,Anywhere,No Specific Penalty
+47,Men Only,Positive,Israel,No Specific Penalty
+252,Men Only,Negative,Anywhere,Lashes
+134,Men Only,Positive,Temple,No Specific Penalty
+341,Everyone,Positive,Israel,No Specific Penalty
+538,Everyone,Positive,Anywhere,No Specific Penalty
+418,Everyone,Positive,Anywhere,No Specific Penalty
+497,Misc,Positive,Israel,No Specific Penalty
+15,Everyone,Negative,Temple,Lashes
+584,Everyone,Negative,Anywhere,Lashes
+310,Everyone,Positive,Anywhere,No Specific Penalty
+92,Everyone,Negative,Anywhere,Lashes
+314,Priests,Positive,Temple,No Specific Penalty
+596,Everyone,Negative,Anywhere,No Specific Penalty
+95,Misc,Positive,Israel,No Specific Penalty
+587,Everyone,Positive,Anywhere,No Specific Penalty
+29,Everyone,Negative,Anywhere,Death
+431,Everyone,Positive,Anywhere,No Specific Penalty
+87,Everyone,Negative,Anywhere,No Specific Penalty
+571,Everyone,Negative,Temple,Lashes
+278,Priests,Negative,Temple,Death
+103,Men Only,Positive,Temple,No Specific Penalty
+509,Priests,Positive,Temple,No Specific Penalty
+23,Everyone,Positive,Anywhere,No Specific Penalty
+543,Men Only,Negative,Anywhere,Lashes
+122,Men Only,Positive,Anywhere,No Specific Penalty
+130,Everyone,Positive,Anywhere,No Specific Penalty
+290,Everyone,Negative,Temple,No Specific Penalty
+163,Everyone,Negative,Anywhere,Lashes
+480,Everyone,Negative,Anywhere,No Specific Penalty
+272,Priests,Positive,Temple,No Specific Penalty
+70,Everyone,Negative,Anywhere,Death
+65,Everyone,Negative,Anywhere,No Specific Penalty
+357,Everyone,Positive,Temple,No Specific Penalty
+394,Everyone,Negative,Anywhere,No Specific Penalty
+105,Everyone,Positive,Temple,No Specific Penalty
+513,Everyone,Negative,Anywhere,Lashes
+18,Men Only,Positive,Israel,No Specific Penalty
+501,Misc,Negative,Israel,No Specific Penalty
+167,Everyone,Negative,Temple,Excision
+552,Men Only,Positive,Anywhere,No Specific Penalty
+444,Everyone,Negative,Anywhere,No Specific Penalty
+439,Everyone,Negative,Anywhere,No Specific Penalty
+183,Women,Positive,Temple,No Specific Penalty
+476,Everyone,Positive,Anywhere,No Specific Penalty
+327,Everyone,Negative,Israel,Lashes
+426,Everyone,Negative,Anywhere,No Specific Penalty
+460,Everyone,Negative,Anywhere,No Specific Penalty
+196,Men Only,Negative,Anywhere,Death
+406,Men Only,Positive,Anywhere,No Specific Penalty
+225,Everyone,Negative,Israel,No Specific Penalty
+608,Everyone,Negative,Temple,No Specific Penalty
+548,Everyone,Negative,Israel,Lashes
+208,Everyone,Negative,Anywhere,Death
+365,Men Only,Positive,Temple,No Specific Penalty
+345,Everyone,Negative,Israel,No Specific Penalty
+7,Everyone,Negative,Temple,Lashes
+489,Men Only,Negative,Temple,No Specific Penalty
+398,Everyone,Positive,Temple,No Specific Penalty
+217,Everyone,Negative,Israel,Lashes
+142,Everyone,Negative,Temple,Lashes
+146,Everyone,Positive,Temple,No Specific Penalty
+579,Men Only,Positive,Anywhere,No Specific Penalty
+302,Men Only,Positive,Temple,No Specific Penalty
+274,Priests,Negative,Temple,Lashes
+394,Priests,Positive,Temple,No Specific Penalty
+159,Everyone,Positive,Anywhere,No Specific Penalty
+525,Men Only,Negative,Israel,No Specific Penalty
+200,Men Only,Negative,Anywhere,Death
+468,Everyone,Negative,Anywhere,Lashes
+79,Everyone,Negative,Anywhere,No Specific Penalty
+294,Everyone,Negative,Anywhere,Lashes
+248,Men Only,Negative,Israel,Death
+410,Misc,Positive,Israel,No Specific Penalty
+192,Men Only,Negative,Anywhere,Death
+126,Men Only,Negative,Temple,Lashes
+382,Everyone,Negative,Temple,No Specific Penalty
+96,Everyone,Negative,Temple,Lashes
+456,Everyone,Negative,Anywhere,No Specific Penalty
+83,Men Only,Positive,Anywhere,No Specific Penalty
+118,Men Only,Negative,Temple,Lashes
+337,Everyone,Negative,Anywhere,No Specific Penalty
+259,Everyone,Positive,Anywhere,No Specific Penalty
+612,Men Only,Positive,Israel,No Specific Penalty
+243,Everyone,Positive,Anywhere,No Specific Penalty
+168,Women,Positive,Temple,No Specific Penalty
+575,Everyone,Positive,Anywhere,No Specific Penalty
+282,Everyone,Negative,Israel,No Specific Penalty
+151,Men Only,Negative,Temple,Lashes
+505,Priests,Negative,Israel,No Specific Penalty
+452,Everyone,Negative,Anywhere,Lashes
+448,Everyone,Negative,Anywhere,No Specific Penalty
+240,Everyone,Negative,Anywhere,No Specific Penalty
+230,Everyone,Negative,Anywhere,No Specific Penalty
+390,Everyone,Negative,Temple,Death
+74,Men Only,Negative,Anywhere,No Specific Penalty
+257,Everyone,Positive,Anywhere,No Specific Penalty
+556,Everyone,Negative,Anywhere,No Specific Penalty
+378,Priests,Positive,Temple,No Specific Penalty
+604,Everyone,Positive,Anywhere,No Specific Penalty
+60,Men Only,Positive,Israel,No Specific Penalty
+319,Everyone,Negative,Anywhere,Lashes
+286,Everyone,Positive,Anywhere,No Specific Penalty
+324,Men Only,Positive,Anywhere,No Specific Penalty
+78,Everyone,Positive,Anywhere,No Specific Penalty
+529,Everyone,Negative,Anywhere,Lashes
+374,Everyone,Positive,Anywhere,No Specific Penalty
+493,Everyone,Negative,Anywhere,Lashes
+386,Men Only,Positive,Anywhere,No Specific Penalty
+539,Everyone,Negative,Anywhere,No Specific Penalty
+43,Men Only,Positive,Israel,No Specific Penalty
+298,Everyone,Negative,Anywhere,Lashes
+422,Men Only,Positive,Anywhere,No Specific Penalty
+464,Misc,Positive,Israel,No Specific Penalty
+485,Everyone,Negative,Anywhere,Lashes
+402,Priests,Positive,Temple,No Specific Penalty
+155,Everyone,Positive,Anywhere,No Specific Penalty
+472,Everyone,Negative,Anywhere,Lashes
+599,Men Only,Positive,Anywhere,No Specific Penalty
+109,Everyone,Negative,Anywhere,Excision
+521,Everyone,Negative,Anywhere,No Specific Penalty
+192,Everyone,Positive,Anywhere,No Specific Penalty
+179,Men Only,Positive,Temple,No Specific Penalty
+204,Men Only,Negative,Anywhere,Death
+37,Everyone,Negative,Anywhere,Lashes
+66,Everyone,Positive,Anywhere,No Specific Penalty
+3,Everyone,Negative,Anywhere,Lashes
+567,Men Only,Positive,Israel,No Specific Penalty
+138,Men Only,Positive,Temple,No Specific Penalty
+561,Men Only,Negative,Anywhere,Lashes
+236,Everyone,Negative,Anywhere,No Specific Penalty
+265,Men Only,Negative,Temple,Death
+171,Everyone,Positive,Anywhere,No Specific Penalty
+333,Everyone,Negative,Israel,Lashes
+35,Everyone,Negative,Anywhere,Death
+325,Men Only,Positive,Anywhere,No Specific Penalty
+150,Men Only,Negative,Temple,Lashes
+54,Men Only,Positive,Israel,No Specific Penalty
+516,Everyone,Positive,Anywhere,No Specific Penalty
+174,Everyone,Positive,Anywhere,No Specific Penalty
+10,Everyone,Positive,Anywhere,No Specific Penalty
+360,Everyone,Positive,Anywhere,No Specific Penalty
+434,Everyone,Positive,Anywhere,No Specific Penalty
+351,Everyone,Negative,Anywhere,Lashes
+264,Everyone,Positive,Anywhere,No Specific Penalty
+51,Men Only,Positive,Israel,No Specific Penalty
+113,Everyone,Negative,Anywhere,Lashes
+305,Everyone,Negative,Anywhere,Lashes
+186,Everyone,Negative,Temple,Excision
+218,Everyone,Positive,Israel,No Specific Penalty
+17,Everyone,Negative,Temple,Lashes
+589,Men Only,Negative,Anywhere,Lashes
+368,Everyone,Negative,Anywhere,Lashes
+347,Everyone,Positive,Israel,No Specific Penalty
+533,Men Only,Negative,Anywhere,No Specific Penalty
+46,Men Only,Negative,Anywhere,No Specific Penalty
+251,Men Only,Negative,Anywhere,Lashes
+133,Everyone,Negative,Temple,Lashes
+340,Everyone,Positive,Israel,No Specific Penalty
+532,Men Only,Positive,Israel,No Specific Penalty
+417,Everyone,Positive,Anywhere,No Specific Penalty
+496,Everyone,Negative,Anywhere,No Specific Penalty
+13,Everyone,Negative,Temple,No Specific Penalty
+583,Everyone,Negative,Anywhere,Lashes
+309,Everyone,Negative,Anywhere,Lashes
+91,Men Only,Positive,Temple,No Specific Penalty
+313,Everyone,Positive,Anywhere,No Specific Penalty
+595,Everyone,Negative,Anywhere,No Specific Penalty
+62,Men Only,Negative,Israel,No Specific Penalty
+582,Men Only,Positive,Anywhere,No Specific Penalty
+28,Everyone,Negative,Anywhere,Death
+429,Everyone,Negative,Anywhere,Lashes
+86,Everyone,Negative,Anywhere,No Specific Penalty
+570,Everyone,Negative,Anywhere,No Specific Penalty
+277,Everyone,Negative,Anywhere,Lashes
+101,Everyone,Negative,Temple,Lashes
+508,Everyone,Positive,Israel,No Specific Penalty
+22,Everyone,Positive,Anywhere,No Specific Penalty
+542,Women,Negative,Anywhere,Lashes
+121,Everyone,Positive,Temple,No Specific Penalty
+129,Everyone,Positive,Temple,No Specific Penalty
+289,Everyone,Negative,Temple,No Specific Penalty
+162,Everyone,Negative,Anywhere,Lashes
+479,Everyone,Positive,Anywhere,No Specific Penalty
+269,Everyone,Positive,Anywhere,No Specific Penalty
+69,Everyone,Negative,Anywhere,Lashes
+64,Everyone,Negative,Anywhere,No Specific Penalty
+356,Everyone,Negative,Anywhere,No Specific Penalty
+413,Everyone,Negative,Temple,No Specific Penalty
+102,Men Only,Positive,Temple,No Specific Penalty
+512,Everyone,Negative,Anywhere,Lashes
+14,Everyone,Negative,Temple,No Specific Penalty
+500,Everyone,Negative,Anywhere,No Specific Penalty
+166,Everyone,Positive,Anywhere,No Specific Penalty
+551,Everyone,Negative,Anywhere,Lashes
+443,Everyone,Negative,Anywhere,No Specific Penalty
+438,Everyone,Positive,Temple,No Specific Penalty
+182,Everyone,Positive,Anywhere,No Specific Penalty
+475,Everyone,Negative,Anywhere,No Specific Penalty
+326,Everyone,Negative,Israel,Lashes
+425,Everyone,Positive,Anywhere,No Specific Penalty
+459,Everyone,Negative,Anywhere,No Specific Penalty
+195,Men Only,Negative,Anywhere,Death
+405,Men Only,Positive,Anywhere,No Specific Penalty
+224,Everyone,Negative,Anywhere,Fine
+609,Everyone,Negative,Temple,No Specific Penalty
+547,Everyone,Negative,Anywhere,Lashes
+207,Men Only,Negative,Anywhere,Death
+364,Everyone,Positive,Anywhere,No Specific Penalty
+344,Everyone,Negative,Israel,No Specific Penalty
+6,Everyone,Positive,Temple,No Specific Penalty
+488,Everyone,Positive,Anywhere,No Specific Penalty
+397,Misc,Positive,Temple,No Specific Penalty
+216,Everyone,Positive,Israel,No Specific Penalty
+141,Men Only,Positive,Temple,No Specific Penalty
+145,Everyone,Negative,Temple,Lashes
+578,Everyone,Negative,Anywhere,Lashes
+301,Everyone,Negative,Anywhere,Lashes
+273,Priests,Negative,Temple,Lashes
+393,Everyone,Negative,Israel,No Specific Penalty
+158,Everyone,Positive,Anywhere,No Specific Penalty
+524,Men Only,Positive,Israel,No Specific Penalty
+199,Men Only,Negative,Anywhere,Death
+467,Everyone,Negative,Anywhere,Lashes
+77,Men Only,Positive,Israel,No Specific Penalty
+293,Men Only,Positive,Temple,No Specific Penalty
+247,Everyone,Positive,Israel,No Specific Penalty
+409,Everyone,Negative,Anywhere,Death
+191,Men Only,Negative,Anywhere,Death
+125,Men Only,Negative,Temple,Lashes
+381,Men Only,Positive,Temple,No Specific Penalty
+94,Everyone,Negative,Israel,No Specific Penalty
+455,Everyone,Negative,Anywhere,Lashes
+82,Men Only,Negative,Israel,No Specific Penalty
+117,Men Only,Negative,Temple,No Specific Penalty
+336,Men Only,Positive,Anywhere,No Specific Penalty
+258,Everyone,Negative,Anywhere,No Specific Penalty
+613,Men Only,Negative,Anywhere,No Specific Penalty
+244,Everyone,Negative,Anywhere,Lashes
+441,Everyone,Positive,Temple,No Specific Penalty
+574,Everyone,Negative,Anywhere,No Specific Penalty
+281,Everyone,Negative,Israel,No Specific Penalty
+149,Men Only,Negative,Temple,No Specific Penalty
+504,Priests,Negative,Israel,No Specific Penalty
+451,Everyone,Positive,Anywhere,No Specific Penalty
+447,Everyone,Negative,Anywhere,No Specific Penalty
+239,Everyone,Positive,Anywhere,No Specific Penalty
+229,Everyone,Negative,Anywhere,No Specific Penalty
+389,Priests,Negative,Temple,Death
+73,Everyone,Negative,Anywhere,Lashes
+256,Everyone,Negative,Anywhere,Death
+555,Men Only,Positive,Temple,No Specific Penalty
+377,Everyone,Positive,Temple,No Specific Penalty
+603,Everyone,Positive,Anywhere,No Specific Penalty
+59,Men Only,Positive,Israel,No Specific Penalty
+297,Everyone,Positive,Anywhere,No Specific Penalty
+285,Everyone,Negative,Anywhere,No Specific Penalty
+234,Men Only,Negative,Anywhere,No Specific Penalty
+47,Everyone,Negative,Anywhere,Death
+528,Men Only,Negative,Israel,No Specific Penalty
+373,Everyone,Negative,Anywhere,Lashes
+492,Everyone,Negative,Anywhere,Lashes
+385,Everyone,Positive,Anywhere,No Specific Penalty
+537,Everyone,Positive,Anywhere,No Specific Penalty
+42,Men Only,Positive,Israel,No Specific Penalty
+297,Everyone,Positive,Anywhere,No Specific Penalty
+421,Men Only,Positive,Anywhere,No Specific Penalty
+463,Men Only,Positive,Anywhere,No Specific Penalty
+483,Everyone,Negative,Anywhere,Lashes
+381,Misc,Positive,Temple,No Specific Penalty
+154,Everyone,Negative,Anywhere,Lashes
+471,Everyone,Negative,Anywhere,Lashes
+600,Everyone,Positive,Anywhere,No Specific Penalty
+107,Everyone,Positive,Temple,No Specific Penalty
+520,Misc,Positive,Israel,No Specific Penalty
+211,Women,Negative,Anywhere,Death
+178,Men Only,Positive,Anywhere,No Specific Penalty
+203,Men Only,Negative,Anywhere,Death
+36,Everyone,Negative,Anywhere,Death
+353,Everyone,Positive,Temple,No Specific Penalty
+2,Men Only,Positive,Anywhere,No Specific Penalty
+566,Men Only,Positive,Israel,No Specific Penalty
+137,Everyone,Negative,Temple,Lashes
+560,Men Only,Negative,Anywhere,Lashes
+235,Men Only,Positive,Anywhere,No Specific Penalty
+565,Everyone,Negative,Anywhere,No Specific Penalty
+170,Everyone,Negative,Anywhere,Lashes
+332,Misc,Positive,Israel,No Specific Penalty
+34,Men Only,Negative,Anywhere,Death
+323,Everyone,Negative,Anywhere,Lashes
