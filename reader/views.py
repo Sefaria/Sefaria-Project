@@ -1127,7 +1127,6 @@ def texts_api(request, tref):
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
 
-
         try:
             text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
         except AttributeError as e:
