@@ -114,9 +114,9 @@ LexiconBox.propTypes = {
 
 class LexiconEntry extends Component {
   renderLexiconEntrySenses(content) {
-		var grammar     = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
-		var def         = ('definition' in content) ? content['definition'] : "";
-    var notes       = ('notes' in content) ? (<span className="notes">{content['notes']}</span>) : "";
+    var grammar     = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
+    var def         = ('definition' in content) ? (<span className="def"  dangerouslySetInnerHTML={ {__html: content['definition']}}></span>) : "";
+    var notes       = ('notes' in content) ? (<span className="notes" dangerouslySetInnerHTML={ {__html: content['notes']}}></span>) : "";
     var sensesElems = ('senses' in content) ? content['senses'].map((sense, i) => {
       return <div key={i}>{this.renderLexiconEntrySenses(sense)}</div>;
     }) : "";
@@ -164,7 +164,7 @@ class LexiconEntry extends Component {
     var attribution = this.renderLexiconAttribution();
     return (
         <div className="entry">
-          <div className={headwordClassNames}>{entryHeadHtml}</div>
+          <div className={headwordClassNames}>{entryHeadHtml}{altHeadHtml}</div>
           <div className={definitionClassNames}>{morphologyHtml}<ol className="definition">{senses}</ol></div>
           <div className="attribution">{attribution}</div>
         </div>
