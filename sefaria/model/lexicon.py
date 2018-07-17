@@ -251,7 +251,7 @@ class KleinDictionaryEntry(DictionaryEntry):
 
         if next_line:
             new_content += next_line
-    return [new_content]
+        return [new_content]
 
 
 class LexiconEntrySubClassMapping(object):
