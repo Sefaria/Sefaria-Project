@@ -174,7 +174,7 @@ class SearchResultList extends Component {
             type: "sheet",
             size: this.initialQuerySize,
             field: "content",
-            sort_type: "chronological",
+            sort_type: null,
             exact: true,
             success: function(data) {
                 this.updateRunningQuery("sheet", null, false);

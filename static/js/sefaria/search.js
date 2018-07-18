@@ -149,9 +149,7 @@ class Search {
             inner_query = {
                 "bool": {
                     "must": core_query,
-                    "filter": {
-                        "or": clauses
-                    }
+                    "filter": clauses
                 }
             };
         }
