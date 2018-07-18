@@ -1180,11 +1180,11 @@ def merge_texts(text, sources):
         text = text[0]
     return [text, text_sources]
 
+
 class TextFamilyDelegator(type):
     """
     Metaclass to delegate virtual text records
     """
-
 
     def __call__(cls, *args, **kwargs):
         if len(args) >= 1:
@@ -1613,17 +1613,21 @@ class VirtualTextChunk(AbstractTextRecord):
         self._oref = oref
         self.text = oref.index_node.get_text()   # <- This is where the magic happens
         self._ref_depth = len(self._oref.sections)
-        self._saveable = False  # Can this TextChunk be saved?
+        self._saveable = False
 
         self.lang = lang
         self.is_merged = False
         self.sources = []
+        self._version = Version().load({
+            "title": oref.index_node.parent.lexicon.index_title,
+            "versionTitle": oref.index_node.parent.lexicon.version_title
+        })    # Currently vtitle is thrown out.  There's only one version of each lexicon.
 
     def version(self):
-        return ""
+        return self._version
 
     def version_ids(self):
-        return ["virtualid"]
+        return [self._version._id]
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
@@ -1777,7 +1781,7 @@ class TextFamily(object):
             self.commentary = links if "error" not in links else []
 
         # get list of available versions of this text
-        self.versions = oref.version_list() if not oref.index_node.is_virtual else []
+        self.versions = oref.version_list()
 
         # Adds decoration for the start of each alt structure reference
         if alts:
@@ -3670,6 +3674,10 @@ class Ref(object):
         }
         if lang:
             d.update({"language": lang})
+
+        if self.index_node.is_virtual:
+            d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
+            return d
 
         condition_addr = self.storage_address()
         if not isinstance(self.index_node, JaggedArrayNode):

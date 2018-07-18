@@ -51,11 +51,15 @@ class Lexicon(abst.AbstractMongoRecord):
         'source_url',
         'attribution',
         'attribution_url',
-        'text_categories'
+        'text_categories',
+        'index_title',          # The title of the Index record that corresponds to this Lexicon
+        'version_title',        # The title of the Version record that corresponds to this Lexicon
     ]
+
 
 class Dictionary(Lexicon):
     pass
+
 
 class LexiconEntry(abst.AbstractMongoRecord):
     collection   = 'lexicon_entry'
@@ -251,7 +255,7 @@ class KleinDictionaryEntry(DictionaryEntry):
 
         if next_line:
             new_content += next_line
-    return [new_content]
+        return [new_content]
 
 
 class LexiconEntrySubClassMapping(object):

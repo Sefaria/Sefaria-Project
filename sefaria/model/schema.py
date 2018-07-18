@@ -1521,16 +1521,20 @@ class DictionaryNode(VirtualNode):
         :return:
         """
         super(DictionaryNode, self).__init__(serial, **kwargs)
+
+        from lexicon import LexiconEntrySubClassMapping, Lexicon
+
+        self.lexicon = Lexicon().load({"name": self.lexiconName})
+
         try:
-            from lexicon import LexiconEntrySubClassMapping
             self.dictionaryClass = LexiconEntrySubClassMapping.lexicon_class_map[self.lexiconName]
 
         except KeyError:
-            raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.dictionaryClassName))
+            raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.lexiconName))
+
 
     def _init_defaults(self):
         super(DictionaryNode, self)._init_defaults()
-        self.dictionaryClassName = None
 
     def validate(self):
         super(DictionaryNode, self).validate()
