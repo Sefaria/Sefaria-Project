@@ -1781,7 +1781,7 @@ class TextFamily(object):
             self.commentary = links if "error" not in links else []
 
         # get list of available versions of this text
-        self.versions = oref.version_list() if not oref.index_node.is_virtual else []
+        self.versions = oref.version_list()
 
         # Adds decoration for the start of each alt structure reference
         if alts:
@@ -3674,6 +3674,10 @@ class Ref(object):
         }
         if lang:
             d.update({"language": lang})
+
+        if self.index_node.is_virtual:
+            d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
+            return d
 
         condition_addr = self.storage_address()
         if not isinstance(self.index_node, JaggedArrayNode):
