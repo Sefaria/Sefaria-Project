@@ -55,11 +55,12 @@ before_script:
 
   # Get rid of the conftest that forces a copy of the datastore to a test db
   - rm ./sefaria/conftest.py
+  - cp ./sefaria/.travis.conftest.py ./sefaria/conftest.py
 
   # Copy LC_MESSAGES to Django locale dirs -- for unknown reasons this file is missing on Travis.
   # When Django admin runs `syncdb` it tries to activate the english language from within
   # the Django core files. This is likely related to Travis using virutalenv, may be fixed by upgrading Django.
-  - cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.14/lib/python2.7/site-packages/django/conf/locale/en
+  #- cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.14/lib/python2.7/site-packages/django/conf/locale/en
 
   # Create the user db
   - python manage.py migrate --noinput
@@ -69,7 +70,7 @@ before_script:
   - ./run rebuild_toc.py 
 
   # run the django server, redirecting output to log files
-  - python manage.py runserver --insecure # 2> server.error.log > server.log &
+  - python manage.py runserver --insecure  2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
 
   # Wait for server to come up
