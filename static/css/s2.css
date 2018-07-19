@@ -490,7 +490,7 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
-  height: 50%;
+  height: 100%;
 }
 .textColumn .loadingMessage.base.next.final {
 }
