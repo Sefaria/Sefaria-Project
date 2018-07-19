@@ -4,6 +4,8 @@
 from framework import *
 import basic_tests
 import sys
+import django
+django.setup()
 
 build = sys.argv[1]
 
