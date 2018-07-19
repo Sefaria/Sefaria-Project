@@ -1417,9 +1417,9 @@ class DictionaryEntryNode(TitledTreeNode):
         """
         if title and tref:
             self.title = title
-            reg = regex.compile(regex.escape(title) + self.after_title_delimiter_re  + "(\S[^.]*)(?:\.)?(\d+)?")
-            match = reg.match(tref)
-            self.word = match.group(1) or ""
+            self._ref_regex = regex.compile(regex.escape(title) + self.after_title_delimiter_re  + "(\S\D*)(?:[. ])?(\d+)?")
+            self._match = self._ref_regex.match(tref)
+            self.word = self._match.group(1) or ""
         elif word:
             self.word = word
 
@@ -1449,9 +1449,14 @@ class DictionaryEntryNode(TitledTreeNode):
         else:
             self.word = "Not Found"
 
-    def get_sections(self, tref):
-        reg = regex.compile(regex.escape(self.title) + self.after_title_delimiter_re + "(\S[^.]*)(?:\.)?(\d+)?")
-        s = reg.match(tref).group(2)
+    def has_numeric_continuation(self):
+        return True
+
+    def has_titled_continuation(self):
+        return False
+
+    def get_sections(self):
+        s = self._match.group(2)
         return [int(s)] if s else []
 
     def address_class(self, depth):

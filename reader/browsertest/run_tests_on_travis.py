@@ -1,5 +1,7 @@
 # This script runs all available tests on the remote service, and displays a report
 # It takes the build name as its only command line argument
+import django
+django.setup()
 
 from framework import *
 import basic_tests

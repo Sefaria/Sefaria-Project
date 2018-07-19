@@ -5025,20 +5025,20 @@ span.purim-emoji img{
   display: block;
 }
 
-.readerPanel .sheetItem .en.indented-1,
-.readerPanel .sheetItem .he.indented-1 {
+.readerPanel .sheetItem.indented-1 > .en,
+.readerPanel .sheetItem.indented-1 > .he {
   padding-left:  30px;
   padding-right: 30px;
 }
 
-.readerPanel .sheetItem .en.indented-2,
-.readerPanel .sheetItem .he.indented-2 {
+.readerPanel .sheetItem.indented-2 > .en,
+.readerPanel .sheetItem.indented-2 > .he {
   padding-left:  60px;
   padding-right: 60px;
 }
 
-.readerPanel .sheetItem .en.indented-3,
-.readerPanel .sheetItem .he.indented-3 {
+.readerPanel .sheetItem.indented-3 > .en,
+.readerPanel .sheetItem.indented-3 > .he {
   padding-left:  90px;
   padding-right: 90px;
 }
@@ -5096,17 +5096,6 @@ span.purim-emoji img{
   right: -18px;
 }
 
-.he.forceDisplayOverrideHe,
-.en.forceDisplayOverrideEn,
-.he.forceDisplayOverrideBi,
-.en.forceDisplayOverrideBi
-{
-  display: block !important;
-}
-.en.forceDisplayOverrideHe,
-.he.forceDisplayOverrideEn {
-  display: none !important;
-}
 
 .sheetTocIcon {
   color: #ccc;

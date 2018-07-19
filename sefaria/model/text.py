@@ -867,7 +867,7 @@ class AbstractTextRecord(object):
     """
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span")
-    ALLOWED_ATTRS   = {'span':['class'], 'i': ['data-commentator', 'data-order', 'class', 'data-label'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
+    ALLOWED_ATTRS   = {'span':['class', 'dir'], 'i': ['data-commentator', 'data-order', 'class', 'data-label'], 'img': lambda name, value: name == 'src' and value.startswith("data:image/")}
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -1758,11 +1758,13 @@ class TextFamily(object):
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
-            if wrapLinks:
+            if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
                 from . import LinkSet
-                if c.version_ids() and LinkSet({"generated_by": "add_links_from_text", "source_text_oid": {"$in": c.version_ids()}}).count() > 0:
+                query = oref.ref_regex_query()
+                query.update({"generated_by": "add_links_from_text", "source_text_oid": {"$in": c.version_ids()}})
+                if LinkSet(query).count() > 0:
                     setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
                 else:
                     setattr(self, self.text_attr_map[language], c.text)
@@ -2228,7 +2230,7 @@ class Ref(object):
         except AttributeError:
             if self.index_node.is_virtual:
                 self.index_node = self.index_node.create_dynamic_node(title, base)
-                self.sections = self.index_node.get_sections(base)
+                self.sections = self.index_node.get_sections()
                 self.toSections = self.sections[:]
                 return
 
