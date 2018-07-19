@@ -1417,7 +1417,7 @@ class DictionaryEntryNode(TitledTreeNode):
         """
         if title and tref:
             self.title = title
-            self._ref_regex = regex.compile(regex.escape(title) + self.after_title_delimiter_re  + "(\S\D*)(?:[. ])?(\d+)?")
+            self._ref_regex = regex.compile(u"^" + regex.escape(title) + u"[, _]*(\S[^0-9.]*)(?:[. ](\d+))?$")
             self._match = self._ref_regex.match(tref)
             self.word = self._match.group(1) or ""
         elif word:
