@@ -149,13 +149,17 @@ class Search {
             inner_query = {
                 "bool": {
                     "must": core_query,
-                    "filter": clauses
+                    "filter": {
+                      "bool": {
+                        "should": clauses
+                      }
+                    }
                 }
             };
         }
 
         //after that confusing logic, hopefully inner_query is defined properly
-        if (sort_type == "chronological") {
+        if (sort_type == "chronological" || !sort_type) {
             o['query'] = inner_query;
         } else if (sort_type == "relevance") {
             o['query']['function_score']['query'] = inner_query;
