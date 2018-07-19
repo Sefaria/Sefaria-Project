@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 translation_request.py
 Writes to MongoDB Collection:
