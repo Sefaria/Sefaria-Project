@@ -173,9 +173,17 @@ class JastrowDictionaryEntry(DictionaryEntry):
     
     def as_strings(self):
         new_content = u""
-
-        next_line = u', '.join([u'<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
-
+        next_line = u""
+        
+        for hw in [self.headword] + getattr(self, 'alt_headwords', []):
+            for txt in re.split(ur'([^ I\u0590-\u05fe\'\-\"̇̇…̇̇])', hw):
+                if re.search(ur'[I\u0590-\u05fe\'\-\"̇̇…̇̇]', txt):
+                    next_line += u'<strong dir="rtl">{}</strong>'.format(txt)
+                else:
+                    next_line += txt
+            next_line += u', '
+        next_line = next_line[:-2]
+            
         for field in ['morphology']:
             if field in self.content:
                 next_line += u" " + self.content[field]
