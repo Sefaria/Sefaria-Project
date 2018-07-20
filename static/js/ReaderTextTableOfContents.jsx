@@ -448,7 +448,15 @@ class DictionarySearch extends Component {
   }
   initAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
-      position: {my: "left-12 top+14", at: "left bottom"},
+      position: {
+        my: "left top",
+        at: "left bottom",
+        of: ".dictionaryTocSearchBox"
+      },
+      open: function() {$(".dictionary-toc-autocomplete").width($(".dictionaryTocSearchBox").width());},
+      classes: {
+        "ui-autocomplete": "dictionary-toc-autocomplete"
+      },
       minLength: 1,
       select: function( event, ui ) {
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.

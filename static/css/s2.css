@@ -1663,20 +1663,39 @@ a.readerNavCategory {
 }
 
 .dictionaryTocSearchBox .dictionaryTocSearchButton {
+
 }
 
 .searchBox.dictionaryTocSearchBox .keyboardInputInitiator {
   border: none;
 }
 .dictionaryTocSearchBox input {
-  margin: 0 10px;
+  padding: 0 10px 10px;
   font-size: 17px;
   background-color: transparent;
   border: none;
   width: 100%;
-  height: 18px;
+  height: 16px;
+  margin-bottom: 10px;
 }
 
+
+body .ui-autocomplete.dictionary-toc-autocomplete {
+  margin: 0px 0;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
+  padding: 4px 25px;
+  border-bottom: solid #ccc 1px;
+  font-size: 17px;
+  color: black;
+  cursor: pointer;
+  display: block;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #E9E9E7;
+}
 
 .searchContentFrame h1 {
   direction: ltr;
