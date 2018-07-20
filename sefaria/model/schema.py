@@ -595,7 +595,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"[,.: \r\n]+"  # should be an arg?  \r\n are for html matches
+    after_title_delimiter_re = ur"[,.: \r\n]+(to )?"  # should be an arg?  \r\n are for html matches
     title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -1867,7 +1867,7 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7(?:\u05d9\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
