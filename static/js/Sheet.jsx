@@ -283,27 +283,6 @@ class SheetSource extends Component {
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
 
-      if (this.props.source.options) {
-        var heSourceClasses = classNames({
-            he: 1,
-            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
-            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
-            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
-            this.props.source.options.indented
-        );
-        var enSourceClasses = classNames({
-            en: 1,
-            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
-            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
-            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
-            this.props.source.options.indented
-        );
-      }
-      else {
-          var heSourceClasses = classNames({he:1})
-          var enSourceClasses = classNames({en:1})
-      }
-
       linkCountElement = (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
@@ -313,7 +292,8 @@ class SheetSource extends Component {
           "segment",
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
           this.props.source.text.en == "..." ? "heOnly" : null,
-          this.props.source.text.he == "..." ? "enOnly" : null
+          this.props.source.text.he == "..." ? "enOnly" : null,
+          this.props.source.options ? this.props.source.options.indented : null
       );
 
 
@@ -367,7 +347,8 @@ class SheetComment extends Component {
       var containerClasses = classNames("sheetItem",
           "segment",
           lang == "he" ? "heOnly" : "enOnly",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
       );
 
     return (
@@ -396,7 +377,8 @@ class SheetOutsideText extends Component {
       var containerClasses = classNames("sheetItem",
           "segment",
           lang == "he" ? "heOnly" : "enOnly",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
       )
 
 
@@ -424,8 +406,13 @@ class SheetOutsideBiText extends Component {
   }
 
   render() {
+      var containerClasses = classNames("sheetItem",
+          "segment",
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
+      )
     return (
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
@@ -474,8 +461,13 @@ class SheetMedia extends Component {
   }
 
   render() {
+      var containerClasses = classNames("sheetItem",
+          "segment",
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
+      )
     return (
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
         <div className="segmentNumber sheetSegmentNumber sans">
           <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
           <span className="he"> <span
