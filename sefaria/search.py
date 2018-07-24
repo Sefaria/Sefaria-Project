@@ -400,7 +400,7 @@ class TextIndexer(object):
         cls.create_version_priority_map()
         cls.create_terms_dict()
 
-        versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, cls.get_al_versions()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+        versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, cls.get_all_versions()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
         versions_by_index = {}
         # organizing by index for the merged case
         for v in versions:
