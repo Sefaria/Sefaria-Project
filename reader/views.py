@@ -1235,7 +1235,7 @@ def texts_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def old_text_versions_api_redirect(request, tref, lang, version):
-    url = "/api/texts/{}?v{}={}".format(tref, lang, version)
+    url = u"/api/texts/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
     response['Location'] += "&{}".format(params) if params else ""
