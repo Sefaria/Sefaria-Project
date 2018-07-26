@@ -147,9 +147,9 @@ Number,Who is obligated?,What kind of commandment is this?,Where is one obligate
 146,Everyone,Positive,Temple,No Specific Penalty,מצות שרפת בשר קדש שנטמא,The commandment of burning meat of [sacrifices] that has become impure
 147,Everyone,Negative,Anywhere,Lashes,שלא נאכל חלב,That we not eat forbidden fat (<i>chelev</i>)
 148,Everyone,Negative,Anywhere,Excision,שלא נאכל דם בהמה חיה ועוף,"That we not eat the blood of a [domesticated] beast, a [wild] animal or a bird"
-149,Men,Negative,Temple,No Specific Penalty,שלא יכנסו הכהנים למקדש מגדלי שער,That the priests not enter the Temple with grown hair
-150,Men,Negative,Temple,Lashes,שלא יכנסו הכהנים למקדש קרועי בגדים,That the priests not enter the Temple with torn clothes
-151,Men,Negative,Temple,Lashes,שלא יצאו הכהנים מן המקדש בשעת עבודה,That the priests not go out from the Temple at the time of the service
+149,Priests,Negative,Temple,No Specific Penalty,שלא יכנסו הכהנים למקדש מגדלי שער,That the priests not enter the Temple with grown hair
+150,Priests,Negative,Temple,Lashes,שלא יכנסו הכהנים למקדש קרועי בגדים,That the priests not enter the Temple with torn clothes
+151,Priests,Negative,Temple,Lashes,שלא יצאו הכהנים מן המקדש בשעת עבודה,That the priests not go out from the Temple at the time of the service
 152,Everyone,Negative,Temple,Lashes,שלא להכנס שתויי יין במקדש וכן שלא יורה שתוי,"To not enter the Temple intoxicated, and likewise to not give a ruling intoxicated"
 153,Everyone,Positive,Anywhere,No Specific Penalty,מצות בדיקת סימני בהמה וחיה,The command of checking the signs of a beast or animal
 154,Everyone,Negative,Anywhere,Lashes,שלא לאכל בהמה וחיה טמאה,To not eat an impure beast or animal
