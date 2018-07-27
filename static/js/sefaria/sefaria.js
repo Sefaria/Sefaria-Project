@@ -9,14 +9,15 @@ var extend     = require('extend'),
     $          = require('./sefariaJquery');
                  require('babel-polyfill');
 
-var INBROWSER = (typeof document !== 'undefined');
 
 var Sefaria = Sefaria || {
   _dataLoaded: false,
+  _inBrowser: (typeof document !== "undefined"),
   toc: [],
   books: [],
   booksDict: {},
   recentlyViewed: [],
+
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
@@ -1371,7 +1372,7 @@ Sefaria = extend(Sefaria, {
               {json: JSON.stringify({recentlyViewed: packedRecent})},
               function(data) {} );
     } else {
-      var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
+      var cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
       packedRecent = packedRecent.slice(0, 6);
       cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});
     }
