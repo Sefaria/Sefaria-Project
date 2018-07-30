@@ -81,7 +81,11 @@ def register(request):
                 next = request.POST.get("next", "")
                 return HttpResponseRedirect(next)
             else:
-                next = request.POST.get("next", "/") + "?welcome=to-sefaria"
+                next = request.POST.get("next", "/")
+                if "?" in next:
+                    next += "&welcome=to-sefaria"
+                else:
+                    next += "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
         if request.GET.get('educator', ''):
