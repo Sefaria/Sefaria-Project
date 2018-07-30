@@ -45,7 +45,7 @@ class Test_Ref(object):
                 assert library.all_titles_regex(lang).match(t), u"'{}' doesn't resolve".format(t)
 
     def test_comma(self):
-        assert Ref("Me'or Einayim 24") == Ref("Me'or Einayim, 24")
+        assert Ref("Me'or Einayim, Chayei Sara 24") == Ref("Me'or Einayim, Chayei Sara, 24")
         assert Ref("Genesis 18:24") == Ref("Genesis, 18:24")
 
     def test_padded_ref(self):
