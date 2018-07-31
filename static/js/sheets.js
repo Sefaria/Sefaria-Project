@@ -921,6 +921,11 @@ $(function() {
 
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
+		if (sjs.can_edit) {
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd").off("mouseup")
+				.on("mouseup", sjs.initCKEditor);
+		}
+
 	} else if (sjs.assignment_id) {
 		if (!sjs._uid) {
 			$("#fileControlMsg").hide();
