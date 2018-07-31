@@ -1023,7 +1023,13 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         index = self.get_index()
         leafnodes = index.nodes.get_leaf_nodes()
         for leaf in leafnodes:
-            ja = JaggedTextArray(self.content_node(leaf))
+            try:
+                ja = JaggedTextArray(self.content_node(leaf))
+
+            except AttributeError:
+                assert leaf.is_virtual
+                return leaf.first_child().ref()
+
             indx_array = ja.next_index()
             if indx_array:
                 oref = Ref(_obj={
