@@ -201,7 +201,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
 
         for sense in self.content['senses']:
             if 'senses' in sense:
-                # Start a new segment for the new form
+                # This is where we would start a new segment for the new form
                 new_content += next_line
                 next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
                                                                       sense['grammar']['binyan_form'])
@@ -231,7 +231,7 @@ class KleinDictionaryEntry(DictionaryEntry):
     def as_strings(self):
         new_content = u""
 
-        next_line = u', '.join([u'<strong>{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+        next_line = u', '.join([u'<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
 
         for field in ['morphology']:
             if field in self.content:
@@ -249,7 +249,7 @@ class KleinDictionaryEntry(DictionaryEntry):
 
         for sense in self.content['senses']:
             if 'senses' in sense:
-                # Start a new segment for the new form
+                # This is where we would start a new segment for the new form
                 new_content += next_line
                 next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
                                                                       sense['grammar']['binyan_form'])
@@ -257,10 +257,11 @@ class KleinDictionaryEntry(DictionaryEntry):
                     next_line += u" " + self.get_sense(binyan_sense)
             else:
                 next_line += u" " + self.get_sense(sense)
-                if hasattr(self, 'notes'):
-                    next_line += u" " + self.notes
-                if hasattr(self, 'derivatives'):
-                    next_line += u" " + self.notes
+
+        if hasattr(self, 'notes'):
+            next_line += u" " + self.notes
+        if hasattr(self, 'derivatives'):
+            next_line += u" " + self.derivatives
 
         if next_line:
             new_content += next_line
