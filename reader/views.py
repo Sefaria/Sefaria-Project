@@ -1126,41 +1126,69 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+        multiple = request.GET.get("multiple", False)  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
 
-        try:
-            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
-        except AttributeError as e:
-            oref = oref.default_child_ref()
-            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
-        except NoVersionFoundError as e:
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
+        def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            try:
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            except AttributeError as e:
+                oref = oref.default_child_ref()
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            except NoVersionFoundError as e:
+                return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
 
 
-        # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
-        oref               = oref.padded_ref() if pad else oref
-        try:
-            text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        except AttributeError as e:
-            # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
-            oref = oref.default_child_ref()
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        text["commentary"] = text.get("commentary", [])
-        text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
+            # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
+            oref               = oref.padded_ref() if pad else oref
+            try:
+                text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+                text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            except AttributeError as e:
+                # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
+                oref = oref.default_child_ref()
+                text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+                text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            text["commentary"] = text.get("commentary", [])
+            text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
-        if layer_name:
-            layer = Layer().load({"urlkey": layer_name})
-            if not layer:
-                raise InputError("Layer not found.")
-            layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-            text["layer"]        = layer_content
-            text["layer_name"]   = layer_name
-            text["_loadSourcesFromDiscussion"] = True
+            if layer_name:
+                layer = Layer().load({"urlkey": layer_name})
+                if not layer:
+                    raise InputError("Layer not found.")
+                layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
+                text["layer"]        = layer_content
+                text["layer_name"]   = layer_name
+                text["_loadSourcesFromDiscussion"] = True
+            else:
+                text["layer"] = []
+
+            return text
+
+        if not multiple:
+            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+            return jsonResponse(text, cb)
         else:
-            text["layer"] = []
+            # Return list of many sections
+            target_count = int(multiple)
+            assert target_count != 0
+            direction = "next" if target_count > 0 else "prev"
+            target_count = abs(target_count)
 
-        return jsonResponse(text, cb)
+            current = 0
+            texts = []
+
+            while current < target_count:
+                text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                texts += [text]
+                if not text[direction]:
+                    break
+                oref = Ref(text[direction])
+                current += 1
+
+            return jsonResponse(texts, cb)
 
     if request.method == "POST":
         j = request.POST.get("json")

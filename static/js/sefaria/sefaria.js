@@ -306,7 +306,6 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
-      //wrapLinks:  settings.wrapLinks  || 1
       wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
@@ -315,15 +314,6 @@ Sefaria = extend(Sefaria, {
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
-  /*
-  refreshSegmentCache: function(ref, versionTitle, language) {
-     // versionTitle and language are optional
-     all_5bit_binary_strings = [...Array(32).keys()].map(n => ((pad + (n).toString(2)).slice(-5)))
-      this.textApi(ref, settings, function() {})
-        .always(function() {this.textApi(ref, settings, function() {})}.bind(this))
-        .always()
-  },
-  */
   _versions: {},
   _translateVersions: {},
   versions: function(ref, cb) {
