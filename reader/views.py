@@ -1126,7 +1126,7 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
-        multiple = request.GET.get("multiple", False)  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
@@ -1165,7 +1165,7 @@ def texts_api(request, tref):
 
             return text
 
-        if not multiple:
+        if not multiple or abs(multiple) == 1:
             text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                              alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
             return jsonResponse(text, cb)
