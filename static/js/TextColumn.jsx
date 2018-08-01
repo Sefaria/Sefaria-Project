@@ -255,18 +255,19 @@ class TextColumn extends Component {
   }
   render() {
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
-    var hideTitle = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index).categories[0] == "Dictionary";
+    var isDictionary = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index).categories[0] == "Dictionary";
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={ref}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
-        hideTitle={hideTitle}
+        hideTitle={isDictionary}
         basetext={true}
         withContext={true}
         loadLinks={true}
         prefetchNextPrev={true}
+        prefetchMultiple={isDictionary?40:0}
         showParashahHeaders={true}
         settings={this.props.settings}
         setOption={this.props.setOption}

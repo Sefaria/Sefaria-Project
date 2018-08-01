@@ -313,13 +313,10 @@ Sefaria = extend(Sefaria, {
     return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
       if (Array.isArray(data)) {
           data.map(d => this._saveText(d, settings))
-          if (data.length) {
-              cb(data[0])  // Assumption that we just want to cb on the first element
-          }
       } else {
           this._saveText(data, settings);
-          cb(data);
       }
+      cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
