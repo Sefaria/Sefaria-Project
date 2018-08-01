@@ -512,7 +512,8 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
-#s2.interface-hebrew .readerPanel .readerNavMenu .gridBox,
+.interface-hebrew .readerPanel .readerNavMenu .gridBox,
+.interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;

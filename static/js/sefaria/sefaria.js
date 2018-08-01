@@ -171,7 +171,7 @@ Sefaria = extend(Sefaria, {
     var oRef2 = Sefaria.parseRef(ref2);
 
     for (var i = 0; i < oRef1.sections.length; i++) {
-      
+
       if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
         return true;
       } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
@@ -194,16 +194,16 @@ Sefaria = extend(Sefaria, {
     var isDepth1 = oRef.sections.length == 1;
     var textData = Sefaria.text(ref);
     if (textData) {
-        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref); 
-        return refs;      
+        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref);
+        return refs;
     } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
       // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
       // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the split of the first non-spanning ref.
       var newRef = Sefaria.util.clone(oRef);
       newRef.toSections = newRef.sections;
-      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));        
-      
+      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));
+
     } else {
       var refs  = [];
       var start = oRef.sections[oRef.sections.length-1];
@@ -413,7 +413,7 @@ Sefaria = extend(Sefaria, {
       this._splitTextSection(data, settings);
     }
 
-    if (settings.context) { 
+    if (settings.context) {
       // Save a copy of the data at section level without context flag
       var newData         = Sefaria.util.clone(data);
       newData.ref         = data.sectionRef;
@@ -426,7 +426,7 @@ Sefaria = extend(Sefaria, {
       newSettings.context = 0;
       this._saveText(newData, newSettings);
     }
-    
+
     if (data.isSpanning) {
       const spanningContextSettings = Sefaria.util.clone(settings);
       spanningContextSettings.context = 1;
@@ -440,7 +440,7 @@ Sefaria = extend(Sefaria, {
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
-    // Don't do this for Refs above section level, like "Rashi on Genesis 1", 
+    // Don't do this for Refs above section level, like "Rashi on Genesis 1",
     // since it's impossible to correctly derive next & prev.
     settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
@@ -765,7 +765,7 @@ Sefaria = extend(Sefaria, {
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
-      if (!ref) { 
+      if (!ref) {
         console.log("_saveItemsByRef encountered an item without a ref field:");
         console.log(data[i]);
         continue;
@@ -2085,7 +2085,7 @@ Sefaria.setup = function(data) {
     Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem).filter(function(item) { return !("error" in item); });
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
-    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndex)
+    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)
 };
 Sefaria.setup();
 
