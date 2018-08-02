@@ -177,6 +177,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
         next_line = u""
         
         for hw in [self.headword] + getattr(self, 'alt_headwords', []):
+            hw = re.sub(ur' [\u00B2\u00B3\u2074\u2075\u2076]', '', hw)  # Drop superscripts from presentation
             for txt in re.split(ur'([^ I\u0590-\u05fe\'\-\"̇̇…̇̇])', hw):
                 if re.search(ur'[I\u0590-\u05fe\'\-\"̇̇…̇̇]', txt):
                     next_line += u'<strong dir="rtl">{}</strong>'.format(txt)
