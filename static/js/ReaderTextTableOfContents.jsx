@@ -177,7 +177,7 @@ class ReaderTextTableOfContents extends Component {
     // Text Details
     var details = Sefaria.indexDetails(this.props.title);
     var detailsSection = details ? <TextDetails index={details} narrowPanel={this.props.narrowPanel} /> : null;
-    var isDictionary = !!details.lexiconName;
+    var isDictionary = details && !!details.lexiconName;
 
     if (this.isTextToc()) {
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
