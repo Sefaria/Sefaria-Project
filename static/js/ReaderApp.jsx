@@ -716,7 +716,7 @@ class ReaderApp extends Component {
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
-      this.scrollIntentTimer = null;``
+      this.scrollIntentTimer = null;
     }.bind(this), intentDelay, this._refState());
   }
   updateHistoryState(replace) {
@@ -994,7 +994,7 @@ class ReaderApp extends Component {
       }
     });
     if (this.didPanelRefChange(this.state.panels[n], state)) {
-      this.saveRecentlyViewed(state);
+      this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
     var new_state = {panels: this.state.panels};
@@ -1002,6 +1002,21 @@ class ReaderApp extends Component {
       new_state["defaultPanelSettings"] = Sefaria.util.clone(state.settings);
     }
     this.setState(new_state);
+  }
+  checkPanelScrollIntentAndSaveRecent(state, n) {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+    // console.log("Setting scroll intent check");
+    this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
+    if (this.panelScrollIntentTimer[n]) {
+      clearTimeout(this.panelScrollIntentTimer[n]);
+    }
+    this.panelScrollIntentTimer[n] = window.setTimeout(function(initialState, n){
+      if (!this.didPanelRefChange(initialState, this.state.panels[n])) {
+        this.saveRecentlyViewed(state);
+      }
+      this.panelScrollIntentTimer[n] = null;
+    }.bind(this), intentDelay, state, n);
   }
   didDefaultPanelSettingsChange(state){
     if ("settings" in state){

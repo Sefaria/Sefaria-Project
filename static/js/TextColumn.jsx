@@ -267,7 +267,7 @@ class TextColumn extends Component {
         withContext={true}
         loadLinks={true}
         prefetchNextPrev={true}
-        prefetchMultiple={isDictionary?40:0}
+        prefetchMultiple={isDictionary?20:0}
         showParashahHeaders={true}
         settings={this.props.settings}
         setOption={this.props.setOption}
