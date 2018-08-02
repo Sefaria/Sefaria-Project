@@ -28,7 +28,10 @@ class SearchTextResult extends Component {
         }
     }
     render () {
-        var data = this.props.data;
+        let data = this.props.data[0];
+        if (this.props.data.length > 1) {
+          data.duplicates = this.props.data.slice(1);
+        }
         var s = this.props.data._source;
         const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${s.version.replace(/ /g, "_")}&qh=${this.props.query}`;
 

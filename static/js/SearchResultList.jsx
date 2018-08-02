@@ -245,9 +245,9 @@ class SearchResultList extends Component {
         let newHitsIndex = newHitsObj[currRef];
         if (typeof newHitsIndex != "undefined") {
           newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
-          newHits[newHitsIndex].duplicates.push(hits[i]);
+          newHits[newHitsIndex].insertInOrder(hits[i], (a, b) => a.versionPriority - b.versionPriority);
         } else {
-          newHits.push(hits[i])
+          newHits.push([hits[i]])
           newHitsObj[currRef] = newHits.length - 1;
         }
       }
