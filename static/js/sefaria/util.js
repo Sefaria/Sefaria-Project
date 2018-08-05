@@ -253,14 +253,14 @@ class Util {
             return this; // for testing purposes
         };
 
-        Array.prototype.insertInOrder(element) {
+        Array.prototype.insertInOrder = function(element, comparer) {
           // see https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
           // insert `element` into array so that the array remains sorted, assuming it was sorted to begin with
-          this.splice(this.locationOfSorted(element, array) + 1, 0, element);
+          this.splice(this.locationOfSorted(element, comparer) + 1, 0, element);
           return this;
         };
 
-        Array.prototype.locationOfSorted(element, comparer, start, end) {
+        Array.prototype.locationOfSorted = function(element, comparer, start, end) {
           // https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
           // get index to insert `element` into array so that array remains sorted, assuming it was sorted to begin with
           if (this.length === 0)
