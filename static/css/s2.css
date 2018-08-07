@@ -2138,6 +2138,7 @@ a.readerNavCategory {
 }
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;
+  white-space: nowrap;
 }
 .connectionsPanelHeader .connectionsHeaderTitle {
   text-transform: uppercase;
