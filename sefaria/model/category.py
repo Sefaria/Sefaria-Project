@@ -142,7 +142,7 @@ def toc_serial_to_objects(toc):
     root = TocCategory()
     root.add_primary_titles("TOC", u"שרש")
     for e in toc:
-        root.append(schema.deserialize_tree(e, struct_class=TocCategory, leaf_class=TocTextIndex, children_attr="contents"))
+        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents"))
     return root
 
 
