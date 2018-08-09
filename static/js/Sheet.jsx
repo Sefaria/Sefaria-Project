@@ -181,6 +181,7 @@ class SheetContent extends Component {
 
   handleClick(ref, e) {
     e.preventDefault();
+    e.stopPropagation();
     this.props.onRefClick(ref);
   }
 
