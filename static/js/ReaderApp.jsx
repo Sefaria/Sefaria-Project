@@ -10,6 +10,7 @@ const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
 const {
   InterruptingMessage,
+  CookiesNotification,
 }                   = require('./Misc');
 import Component from 'react-class';
 
@@ -1609,6 +1610,7 @@ class ReaderApp extends Component {
               {header}
               {panels}
               {interruptingMessage}
+              <CookiesNotification />
             </div>);
   }
 }

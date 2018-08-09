@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def data_only(view):
     """
-    Marks processors only need when setting the data JS.
+    Marks processors only needed when setting the data JS.
     Passed in Source Sheets which rely on S1 JS.
     """
     @wraps(view)
