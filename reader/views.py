@@ -3238,6 +3238,39 @@ def random_by_topic_api(request):
     return resp
 
 
+# def search_api(request):
+#     # dict to define request parameters and their default values. None means parameter is required
+#     params = {
+#         "query": None,
+#         "size": 10,
+#         "from": 0,
+#         "type": None,  #
+#         "get_filters": False,
+#         "applied_filters": [],
+#         "field": None,
+#         "sort_type": None,
+#         "exact": False
+#     }
+#     param_vals = {}
+#     for p in params:
+#         param_vals[p] = request.GET.get(p, )
+#     query = request.GET.get("q")
+#     """
+#              query: query string
+#              size: size of result set
+#              from: from what result to start
+#              type: "sheet" or "text"
+#              get_filters: if to fetch initial filters
+#              applied_filters: filter query by these filters
+#              field: field to query in elastic_search
+#              sort_type: chonological or relevance
+#              exact: if query is exact
+#              success: callback on success
+#              error: callback on error
+#     """
+#     size = request.GET.get("size")
+
+
 @ensure_csrf_cookie
 def serve_static(request, page):
     """
