@@ -707,9 +707,7 @@ class CookiesNotification extends Component {
   constructor(props) {
     super(props)
     var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
-    console.log("inBrowser: " + Sefaria._inBrowser);
-    console.log("Show cookie notification: " + showNotification);
-
+    
     this.state = {showNotification: showNotification};
   }
   setCookie() {

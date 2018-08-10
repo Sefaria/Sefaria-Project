@@ -12,7 +12,7 @@ class InterruptingMessage(object):
     self.cookie_name = "%s_%d" % (self.name, self.repetition)
 
   def check_condition(self):
-    """Returns true if this intterupting message should be shown given its conditions"""
+    """Returns true if this interrupting message should be shown given its conditions"""
     
     # Always show to debug
     if self.condition.get("debug", False):
