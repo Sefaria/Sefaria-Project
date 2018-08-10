@@ -142,7 +142,7 @@ input.noselect {
   text-align: inherit;
   margin: 0px 17px 0 17px;
 }
-.header .searchBox input{
+.header .searchBox input {
   background-color: transparent; /*for firefox */
   margin-top: 1px;
 }
@@ -364,17 +364,25 @@ input.noselect {
   opacity: 0.4;
   margin-top: 2px
 }
-.header .readerNavMenuSearchButton,
 .header .readerNavMenuMenuButton {
   margin: 0 8px 0 6px;
   font-size: 17px;
 }
 
-.header .readerNavMenuSearchButton{
-  position:relative;
-  top: -1px;
+.header .readerNavMenuSearchButton {
+  position: relative;
+  margin: 0 10px 0 6px;
+  top: -3px;
+  font-size: 18px;
 }
-
+.interface-hebrew .readerNavMenuSearchButton {
+  margin: 0 6px 0 10px;
+}
+.header .readerNavMenuSearchButton img {
+  height: 19px;
+  opacity: 0.4;
+  vertical-align: middle;
+}
 .header .headerNavContent {
   position: fixed;
   height: 100%;
@@ -3807,26 +3815,32 @@ a .button:hover {
 ::-webkit-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+   color: #000;
 }
 ::-moz-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+   color: #000;
 }
 :-ms-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+   color: #000;
 }
 .interface-hebrew ::-webkit-input-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
+  color: #000;
 }
 .interface-hebrew ::-moz-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
+  color: #000;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
+  color: #000;
 }
 input {
 }
