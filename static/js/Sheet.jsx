@@ -260,7 +260,7 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="sheetMetaDataBox">
-            <div className="title" role="heading" aria-level="1">{this.props.title.stripHtml()}</div>
+            <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml()) ? "rtl" :"ltr"}}>{this.props.title.stripHtml()}</div>
 
             <div className="authorStatement">{this.props.authorStatement}</div>
 
