@@ -191,8 +191,17 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(
             presence_of_element_located((By.CSS_SELECTOR,'.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name, category_name)))
         )
-        e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name,category_name))
-        e.click()
+        i = 0
+        while i < 3:
+            try:
+                e = self.driver.find_element_by_css_selector('.readerNavCategory[data-cat*="{}"], .catLink[data-cats*="{}"]'.format(category_name,category_name))
+                e.click()
+                break
+            except (StaleElementReferenceException, NoSuchElementException) as e:
+                i += 1
+                time.sleep(.25)
+                continue
+
         WebDriverWait(self.driver, TEMPER).until(
             _one_of_any_text_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"),[category_name, category_name.upper()])
         )
@@ -200,10 +209,14 @@ class AbstractTest(object):
 
     def click_toc_text(self, text_name):
         # Assume that text link is already present on screen (or soon will be)
+        selector = '.refLink[data-ref^="{}"]'.format(text_name)
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, '.refLink[data-ref^="{}"]'.format(text_name)))
+            presence_of_element_located((By.CSS_SELECTOR, selector))
         )
-        p1 = self.driver.find_element_by_css_selector('.refLink[data-ref^="{}"]'.format(text_name))
+        WebDriverWait(self.driver, TEMPER).until(
+            element_to_be_clickable((By.CSS_SELECTOR, selector))
+        )
+        p1 = self.driver.find_element_by_css_selector(selector)
         p1.click()
 
         WebDriverWait(self.driver, TEMPER).until(
@@ -442,78 +455,87 @@ class AbstractTest(object):
         return obj_to_return
 
     def click_what_in_sefaria_link(self):
-        self.click_object_by_link_text('What is Sefaria?')
+        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(2) > span:nth-child(1)')
 
     def click_help_link(self):
-        self.click_object_by_link_text('Help')
+        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(3) > span:nth-child(1)')
 
     def click_FAQ_link(self):
-        self.click_object_by_link_text('FAQ')
+        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(4) > span:nth-child(1)')
 
     def click_Team_link(self):
-        self.click_object_by_link_text('Team')
+        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(5) > span:nth-child(1)')
 
     def click_terams_of_use_link(self):
-        self.click_object_by_link_text('Terms of Use')
+        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(6) > span:nth-child(1)')
 
     def click_privacy_policy_link(self):
-        self.click_object_by_link_text('Privacy Policy')
+        self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(7) > span:nth-child(1)')
 
     def click_teach_with_sefaria_link(self):
-        self.click_object_by_link_text('Teach with Sefaria')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(2) > span:nth-child(1)')
 
     def click_source_sheets_link(self):
-        self.click_object_by_link_text('Source Sheets')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(3) > span:nth-child(1)')
 
     def click_visualizations_link(self):
-        self.click_object_by_link_text('Visualizations')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(4) > span:nth-child(1)')
 
     def click_authors_link(self):
-        self.click_object_by_link_text('Authors')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(5) > span:nth-child(1)')
 
     def click_new_additions_link(self):
-        self.click_object_by_link_text('New Additions')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(2) > a:nth-child(6) > span:nth-child(1)')
 
     def click_get_involved_link(self):
-        self.click_object_by_link_text('Get Involved')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(2) > span:nth-child(1)')
 
     def click_API_docs_link(self):
-        self.click_object_by_link_text('API Docs')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(3) > span:nth-child(1)')
 
     def click_fork_us_on_GitHub_link(self):
-        self.click_object_by_link_text('Fork us on GitHub')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(4) > span:nth-child(1)')
 
     def click_download_our_data_link(self):
-        self.click_object_by_link_text('Download our Data')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(3) > a:nth-child(5) > span:nth-child(1)')
 
     def click_donate_link(self):
-        self.click_object_by_link_text('Donate')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(2) > span:nth-child(1)')
 
     def click_supporters_link(self):
-        self.click_object_by_link_text('Supporters')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(3) > span:nth-child(1)')
 
     def click_contribute_link(self):
-        self.click_object_by_link_text('Contribute')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(4) > span:nth-child(1)')
 
     def click_jobs_link(self):
-        self.click_object_by_link_text('Jobs')
+        self.click_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(5) > span:nth-child(1)')
 
-    def click_facebook_link(self):
+    def click_sidebar_facebook_link(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
 
+    def click_facebook_link(self):
+        self.click_object_by_css_selector('.last > a:nth-child(4) > span:nth-child(1)')
+
     def click_twitter_link(self):
+        self.click_object_by_css_selector('.last > a:nth-child(5) > span:nth-child(1)')
+    def click_sidebar_twitter_link(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
 
+
     def click_youtube_link(self):
-        self.click_object_by_link_text('YouTube')
+        self.click_object_by_css_selector('.last > a:nth-child(6) > span:nth-child(1)')
 
     def click_blog_link(self):
-        self.click_object_by_link_text('Blog')
+        self.click_object_by_css_selector('a.outOfAppLink:nth-child(8) > span:nth-child(1)')
 
     def click_forum_link(self):
-        self.click_object_by_link_text('Forum')
+        self.click_object_by_css_selector('a.outOfAppLink:nth-child(9) > span:nth-child(1)')
 
     def click_email_link(self):
+        self.click_object_by_css_selector('a.outOfAppLink:nth-child(10) > span:nth-child(1)')
+
+    def click_sidebar_email_link(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
 
     def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
@@ -641,6 +663,7 @@ class AbstractTest(object):
         return self.get_object_by_css_selector('#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.readerTextToc > div > a').text
 
     def is_aliyot_displayed(self):
+        time.sleep(.5)
         return self.is_object_displayed("#panel-0 > div.readerContent > div > div:nth-child(3) > div.text > div > span:nth-child(4) > div.parashahHeader.aliyah")
 
     def is_aliyot_toggleSet_displayed(self):
@@ -711,6 +734,8 @@ class AbstractTest(object):
         return ret
 
     def click_object_by_link_text(self, link_txt):
+        self.driver.execute_script("scroll(250, 0)")
+        self.driver.execute_script("scroll(0, 250)")
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.LINK_TEXT, link_txt))
         )

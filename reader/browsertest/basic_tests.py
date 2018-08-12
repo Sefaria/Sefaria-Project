@@ -171,10 +171,12 @@ class GoThroughFooterObjectss(AtomicTest):
 
     def body(self):
         self.load_home()
+        time.sleep(1)
         self.click_what_in_sefaria_link()
         self.click_sefaria()
         self.click_help_link()
         self.click_sefaria()
+        time.sleep(3)
         self.click_FAQ_link()
         self.close_tab_and_return_to_prev_tab()
         self.click_sefaria()
@@ -208,8 +210,7 @@ class GoThroughFooterObjectss(AtomicTest):
         self.click_download_our_data_link()
         self.close_tab_and_return_to_prev_tab()
 
-        self.click_sefaria()
-        self.click_donate_link()
+        # self.click_donate_link()
         self.click_sefaria()
         self.click_supporters_link()
         self.click_sefaria()
@@ -253,8 +254,8 @@ class ChangeLanguage(AtomicTest):
         sgmnt_heb = self.get_nth_section_hebrew(1)
         str_eng = sgmnt_eng.text
         str_heb = sgmnt_heb.text
-        assert expected_heb == str_heb
-        assert expected_eng == str_eng
+        assert expected_heb in str_heb
+        assert expected_eng in str_eng
         self.toggle_on_text_settings()
         self.toggle_language_hebrew()
         assert 'hebrew' in self.get_content_language()
@@ -323,7 +324,7 @@ class TextSettings(AtomicTest):
         self.toggle_on_text_settings()
         self.toggle_fontSize_smaller()
         font_size = self.get_font_size()
-        assert font_size == smaller
+        assert abs(font_size-smaller) < 0.2
 
         # self.toggle_text_settings()
         self.toggle_fontSize_larger()
@@ -469,21 +470,21 @@ class SideBarEntries(AtomicTest):
         self.click_resources_on_sidebar()
         self.click_tools_on_sidebar()
         self.click_share_on_sidebar()
-        self.click_facebook_link()
+        self.click_sidebar_facebook_link()
         url1 = self.get_newly_opened_tab_url()
         assert 'facebook.com' in url1
         self.close_tab_and_return_to_prev_tab()
         self.click_resources_on_sidebar()
         self.click_tools_on_sidebar()
         self.click_share_on_sidebar()
-        self.click_twitter_link()
+        self.click_sidebar_twitter_link()
         url1 = self.get_newly_opened_tab_url()
         assert 'twitter.com' in url1
         self.close_tab_and_return_to_prev_tab()
         self.click_resources_on_sidebar()
             # self.click_tools_on_sidebar()     #NOT checking the email option, not to open an email client. Leaving here thoupgh, just in case.
             # self.click_share_on_sidebar()
-            # self.click_email_link()
+            # self.click_email_twitter_link()
             # self.click_resources_on_sidebar()
         # self.click_tools_on_sidebar()
         # self.click_add_translation_on_sidebar()   # Time out. Is this a bug?
