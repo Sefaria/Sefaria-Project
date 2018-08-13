@@ -100,8 +100,8 @@ input.noselect {
   justify-content: space-between;
   align-items: center;
 }
-.headerOnly .headerInner {
-  box-shadow: 0px 1px 3px #D8D8D8;
+.headerOnly .headerInner, .headerInner.boxShadow {
+  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
 }
 .interface-hebrew .headerInner{
   direction: rtl;
@@ -2131,7 +2131,7 @@ a.readerNavCategory {
   z-index: 100;
   height: 60px;
   line-height: 60px;
-  box-shadow: 0px 1px 3px #D8D8D8;
+  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
   background-color: #F9F9F7;
 }
 .sepia .readerControls {
