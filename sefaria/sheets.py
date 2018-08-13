@@ -16,6 +16,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
+from sefaria.model.group import Group, GroupSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import django_cache_decorator
@@ -79,7 +80,14 @@ def get_sheet_for_panel(id=None):
 		sheet["viaOwnerName"]  = viaOwnerData["name"]
 	ownerData = public_user_data(sheet["owner"])
 	sheet["ownerName"]  = ownerData["name"]
+	sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+	if "group" in sheet:
+		group = Group().load({"name": sheet["group"]})
+		try:
+			sheet["groupLogo"] = group.headerUrl
+		except:
+			sheet["groupLogo"] = None
 	return sheet
 
 def user_sheets(user_id, sort_by="date", limit=0, skip=0):
@@ -448,7 +456,7 @@ def get_sheets_for_ref(tref, uid=None):
 	else:
 		query["status"] = "public"
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -484,6 +492,15 @@ def get_sheets_for_ref(tref, uid=None):
 				sheet["viaOwnerName"] = viaOwnerData["name"]
 				sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
+			if "group" in sheet:
+				group = Group().load({"name": sheet["group"]})
+
+				try:
+					sheet["groupLogo"] = group.headerUrl
+				except:
+					sheet["groupLogo"] = None
+
+
 			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
@@ -495,7 +512,8 @@ def get_sheets_for_ref(tref, uid=None):
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
 				"options": 		   sheet["options"],
 				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
-				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"groupLogo" : 	   sheet.get("groupLogo", None),
+			    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
 				"assignerName":	   sheet.get("assignerName", None),
