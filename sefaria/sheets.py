@@ -81,8 +81,13 @@ def get_sheet_for_panel(id=None):
 	ownerData = public_user_data(sheet["owner"])
 	sheet["ownerName"]  = ownerData["name"]
 	sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
-	sheet["groupLogo"] = Group().load({"name": sheet["group"]}).headerUrl if "group" in sheet and sheet["group"] != "None" and sheet["group"] != "" else None
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+	if "group" in sheet:
+		group = Group().load({"name": sheet["group"]})
+		try:
+			sheet["groupLogo"] = group.headerUrl
+		except:
+			sheet["groupLogo"] = None
 	return sheet
 
 def user_sheets(user_id, sort_by="date", limit=0, skip=0):
