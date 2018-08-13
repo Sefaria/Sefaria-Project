@@ -1051,7 +1051,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
         if isinstance(getattr(self, self.text_attr, None), dict):
             nodes = self.get_index().nodes.get_leaf_nodes()
             if remove_html:
-                return JaggedTextArray([AbstractTextRecord.remove_html(self.content_node(node)) for node in nodes])
+                return JaggedTextArray([AbstractTextRecord.remove_html(self.content_node(node)) for node in nodes if not node.is_virtual])
             else:
                 return JaggedTextArray([self.content_node(node) for node in nodes])
         else:
