@@ -705,9 +705,42 @@ SheetAccessIcon.propTypes = {
 };
 
 
+class CookiesNotification extends Component {
+  constructor(props) {
+    super(props)
+    var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
+    
+    this.state = {showNotification: showNotification};
+  }
+  setCookie() {
+    $.cookie("cookiesNotificationAccepted", 1, {path: "/"});
+    this.setState({showNotification: false});
+  }
+  render() {
+    if (!this.state.showNotification) { return null; }
+    return (
+      <div className="cookiesNotification">
+          
+          <div>
+            <span className="int-en">We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+            <span className='int-en button small white' onClick={this.setCookie}>OK</span>
+          </div>   
+          <div>
+            <span className="int-he">אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. לחץ כאן לאישור. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
+            <span className='int-he button small white' onClick={this.setCookie}>כאן</span>
+          </div>
+
+       </div>
+    );
+  }
+}
+
+
+
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
+module.exports.CookiesNotification                       = CookiesNotification;
 module.exports.Dropdown                                  = Dropdown;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
