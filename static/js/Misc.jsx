@@ -725,7 +725,7 @@ class CookiesNotification extends Component {
           </div>   
           <div>
             <span className="int-he">אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. לחץ כאן לאישור. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
-            <span className='int-he button small white'onClick={this.setCookie}>כאן</span>
+            <span className='int-he button small white' onClick={this.setCookie}>כאן</span>
           </div>
 
        </div>
