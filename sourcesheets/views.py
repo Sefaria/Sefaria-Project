@@ -188,7 +188,7 @@ def view_sheet(request, sheet_id):
 	"""
 	View the sheet with sheet_id.
 	"""
-	panel = request.GET.get('panel', '0')
+	panel = request.GET.get('panel', '1')
 
 
 

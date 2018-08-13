@@ -5125,7 +5125,9 @@ span.purim-emoji img{
 }
 
 .oldSheetNotice,
-.oldSheetNotice a {
+.oldSheetNotice a,
+.editSheetNotice,
+.editSheetNotice a {
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;

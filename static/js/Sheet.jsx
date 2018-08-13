@@ -94,8 +94,10 @@ class Sheet extends Component {
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
             group = {sheet.group}
+            editable = {Sefaria._uid == sheet.owner}
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
+            sheetID = {sheet.id}
           />
       )
     }
@@ -270,6 +272,7 @@ class SheetContent extends Component {
 
             <div className="authorStatement">{this.props.authorStatement}</div>
             <div className="groupStatement"><a href={"/groups/"+this.props.group}>{this.props.group}</a></div>
+            {this.props.editable ? <div className="editSheetNotice"><a href={"/sheets/"+this.props.sheetID+"?panel=0"}>Edit Sheet</a></div> : null }
 
         </div>
         <div className="text">
