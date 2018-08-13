@@ -1766,6 +1766,8 @@ def version_status_tree_api(request, lang=None):
                 "path": node_path
             }
             if "category" in x:
+                if "contents" not in x:
+                    continue
                 simple_node["type"] = "category"
                 simple_node["children"] = simplify_toc(x["contents"], node_path)
             elif "title" in x:
