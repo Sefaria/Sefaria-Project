@@ -17,6 +17,8 @@ If you're interested in working on a project you see listed here, please email t
 ### Getting Started
 First clone the Sefaria-Project repository to a directory on your computer, then follow the instructions:
 
+*Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this respository by clicking the "Fork" button above when logged in to GitHub.*
+
 #### Install Python
 Most UNIX systems come with a python interpreter pre-installed. 
 ##### For Windows:
@@ -124,10 +126,9 @@ You can also make it publicly available by specifying 0.0.0.0 for the host:
 
 *Note: Older versions of `Node` and `npm` ran into a file name length limit on Windows OS. This problem should be mitigated in newer versions on Windows 10.*
 
-Node is now required to run the site because we are using [Webpack](https://webpack.js.org/) to bundle our javascript. To install node and npm, see [here](https://nodejs.org/en/download/). On Debian systems you can do:
+Node is now required to run the site because we are using [Webpack](https://webpack.js.org/) to bundle our javascript. To install node and npm, see [here](https://nodejs.org/en/download/). 
 
-    sudo apt-get install nodejs
-    sudo apt-get install npm
+For the common Linux distributions such as Debian, Ubuntu and Linux Mint, you are better off following the instructions [here](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions). They will install both Node and npm. 
 
 Now download the required Javascript libraries and install some global tools for development with the `setup` script (from the project root).
 

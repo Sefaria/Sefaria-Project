@@ -32,7 +32,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -134,7 +134,7 @@ def sefaria_js(request):
     """
     data_js = render_to_string("js/data.js",context={}, request=request)
     webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
-    bundle_path = webpack_files[0]["path"]
+    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
     with open(bundle_path, 'r') as file:
         sefaria_js=file.read()
     attrs = {
@@ -145,15 +145,27 @@ def sefaria_js(request):
     return render(request,"js/sefaria.js", attrs, content_type= "text/javascript")
 
 
-def linker_js(request):
+def linker_js(request,linker_version=None):
     """
     Javascript of Linker plugin.
     """
     attrs = {
-        "book_titles": json.dumps(model.library.full_title_list("en")
-                      + model.library.full_title_list("he"))
+        "book_titles": json.dumps(model.library.citing_title_list("en")
+                      + model.library.citing_title_list("he"))
     }
-    return render(request,"js/linker.js", attrs, content_type= "text/javascript")
+    linker_link = "js/linker.js" if linker_version is None else "js/linker.v"+linker_version+".js"
+
+    return render(request,linker_link, attrs, content_type= "text/javascript")
+
+def old_linker_js(request):
+    """
+    Javascript of Linker plugin.
+    """
+    attrs = {
+        "book_titles": json.dumps(model.library.citing_title_list("en")
+                      + model.library.citing_title_list("he"))
+    }
+    return render(request,"js/linker.v1.js", attrs, content_type= "text/javascript")
 
 
 def title_regex_api(request, titles):
@@ -186,22 +198,37 @@ def bulktext_api(request, refs):
     """
     if request.method == "GET":
         cb = request.GET.get("callback", None)
+        useTextFamily = request.GET.get("useTextFamily", None)
         refs = set(refs.split("|"))
         res = {}
         for tref in refs:
             try:
                 oref = model.Ref(tref)
                 lang = "he" if is_hebrew(tref) else "en"
-                he = model.TextChunk(oref, "he").text
-                en = model.TextChunk(oref, "en").text
-                res[tref] = {
-                    'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
-                    'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
-                    'lang': lang,
-                    'ref': oref.normal(),
-                    'heRef': oref.he_normal(),
-                    'url': oref.url()
-                }
+                if useTextFamily:
+                    text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False)
+                    he = text_fam.he
+                    en = text_fam.text
+                    res[tref] = {
+                        'he': he,
+                        'en': en,
+                        'lang': lang,
+                        'ref': oref.normal(),
+                        'primary_category': text_fam.contents()['primary_category'],
+                        'heRef': oref.he_normal(),
+                        'url': oref.url()
+                    }
+                else:
+                    he = model.TextChunk(oref, "he").text
+                    en = model.TextChunk(oref, "en").text
+                    res[tref] = {
+                        'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
+                        'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
+                        'lang': lang,
+                        'ref': oref.normal(),
+                        'heRef': oref.he_normal(),
+                        'url': oref.url()
+                    }
             except (InputError, ValueError, AttributeError) as e:
                 # referer = request.META.get("HTTP_REFERER", "unknown page")
                 # This chatter fills up the logs.  todo: put in it's own file

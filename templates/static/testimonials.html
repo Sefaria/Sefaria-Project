@@ -30,7 +30,7 @@
     .testimonial-attribution{
         color: #666;
     }
-    .testimonial.highlighted{
+    /*.testimonial.highlighted{
        text-align: center;
        border-bottom: 1px solid #ddd;
        padding-bottom: 16px;
@@ -41,11 +41,11 @@
        margin-right: auto;
        margin-top: 50px;
        margin-bottom: 50px;
-   }
-    .testimonial.highlighted p:first-child{
+   }*/
+    /*.testimonial.highlighted p:first-child{
         font-size: 1.5em;
         font-style: italic;
-    }
+    }*/
     .testimonial.image{
         text-align: center;
         margin-left: auto;
@@ -72,8 +72,23 @@
         margin:auto;
         margin-bottom:50px;
     }
+    .testimonial.audio{
+        text-align: center;
+    }
+    .testimonial-audio{
+        text-align: center;
+        margin:auto;
+    }
+    .testimonial .testimonial-audio-attribution{
+        font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+        color: #666;
+        display:block;
+    }
     .interface-hebrew #testimonialsPage{
         direction:ltr;
+    }
+    .testimonial .testimonial.image{
+        margin-top: 15px;
     }
 
 
@@ -96,6 +111,18 @@ With deep appreciation.
                 Moriah Rosenthal
             </p>
         </div>
+
+        <div class="testimonial section audio">
+            <div class="testimonial-audio">
+                <audio controls>
+                    <source src="{% static "files/testimonial.mp3" %}" />
+                </audio>
+            </div>
+            <span class="testimonial-audio-attribution">
+                Daniel Libenson, founder and president of the Institute for the Next Jewish Future, speaking on the the #TrendingJewish podcast, <a href="https://trendingjewish.fireside.fm/13">Episode 13: Turning the Crisis Narrative on Its Head</a>
+            </span>
+        </div>
+
         <div class="testimonial highlighted section">
             <p>
                 <span class="">
@@ -121,7 +148,8 @@ With deep appreciation.
         </div>
         
         <div class="testimonial image section">
-            <img src="{% static "img/testimonials/Isabella Kestenbaum and Midreshet Lindenbaum.PNG" %}">
+            <img src="{% static "img/testimonials/Isabella Kestenbaum and Midreshet Lindenbaum_c.PNG" %}">
+            <span class="testimonial-photo-caption">“When anyone asks how we finished Masechet Megillah,” Purim 2017, via Instagram</span>
             <span class="testimonial-photo-attribution">Photo courtesy of Isabella Kestenbaum</span>
         </div>
 
@@ -261,7 +289,7 @@ With deep appreciation.
 
         <div class="testimonial section">
             <div class="testimonial-video">
-                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/3JNf0yHA60U?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/5PmBolxgXBY" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
             </div>
             <p>
                 <span class="">
@@ -301,7 +329,7 @@ With deep appreciation.
 
             </p>
             <p class="testimonial-attribution">
-                Dave Yedid, JTS Rabbinical Student
+                Dave Yedid, Rabbinical Student
             </p>
         </div>
 
@@ -472,7 +500,7 @@ With deep appreciation.
             <div class="testimonial image section">
                 <img src="{% static "img/testimonials/Pininsky siyum.jpg" %}">
                 <span class="testimonial-photo-attribution">Photo Courtesy of  Rabbi Tzvi Pittinsky</span>
-        </div>
+            </div>
         </div>
 
         <div class="testimonial highlighted section">
@@ -485,6 +513,36 @@ With deep appreciation.
             <p class="testimonial-attribution">
                 Mike Perkins
             </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    I was just unexpectedly stuck waiting for a train. I opened @SefariaProject and learned an omud gemora (with some rishonim)! Thank you, Sefaria! Incredible!!
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                 Shaul Wertheimer, @RabbiShaul via Twitter
+            </p>
+        </div>
+
+        <div class="testimonial section">
+            <p>
+                <span class="">
+                    Sefaria’s commitment to digital text access for all who seek to take hold of Torah played a pivotal and unparalleled role in my rabbinical school journey. As the first blind woman in the world to become a rabbi, Sefaria’s digital library enabled me to access rabbinic texts with ease for both educational as well as Torah lishma purposes. With much hakarat hatov do I thank Sefaria for the incredible and holy work you are doing.
+                </span>
+
+            </p>
+            <p class="testimonial-attribution">
+                 Rabbi Lauren Tuchman
+            </p>
+        </div>
+
+        <div class="testimonial image section">
+                <img src="{% static "img/testimonials/Noah Bloom.JPG" %}">
+                <span class="testimonial-photo-caption">Note received by Sefaria in May of 2018</span>
+                <span class="testimonial-photo-attribution"></span>
         </div>
 
     </div>

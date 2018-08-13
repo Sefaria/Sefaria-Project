@@ -7,22 +7,27 @@ const $            = require('./sefaria/sefariaJquery'),
 
 $(function() {
   var container = document.getElementById('s2');
+  var loadingPlaceholder = document.getElementById('appLoading');
   var footerContainer = document.getElementById('footer');
   var component;
   DjangoCSRF.init();
+  var renderFunc = ReactDOM.hydrate;
+  if (loadingPlaceholder){
+    renderFunc = ReactDOM.render;
+  }
   if (DJANGO_VARS.inReaderApp) {
     // Rendering a full ReaderApp experience
     Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
-    ReactDOM.render(component, container);
+    renderFunc(component, container);
   
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
     // Rendering just a specifc component to a container
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
-    ReactDOM.render(component, container);
+    renderFunc(component, container);
     if (footerContainer){
-      ReactDOM.render(React.createElement(SefariaReact.Footer), footerContainer);
+      renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
     }
 
   
@@ -51,9 +56,9 @@ $(function() {
       initialPanels: [],
       interfaceLang: DJANGO_VARS.interfaceLang
     });
-    ReactDOM.render(component, container);
+    renderFunc(component, container);
     if (footerContainer){
-      ReactDOM.render(React.createElement(SefariaReact.Footer), footerContainer);
+      renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
     }
   }
 });

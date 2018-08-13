@@ -124,6 +124,7 @@ class SheetMetadata extends Component {
     delete newSheet.dateModified;
     delete newSheet.likes;
     delete newSheet.naturalDateCreated;
+    delete newSheet.groupLogo;
     delete newSheet.promptedToPublish;
     delete newSheet._id;
 
@@ -162,7 +163,8 @@ class SheetMetadata extends Component {
                     <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">Edit Sheet</a> :
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? "Unlike" : "Like"}</a>
                 }
-                    <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+                <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+                <p className="oldSheetNotice"><a href={"/sheets/"+this.props.sheet.id+"?panel=0"}>View this in our old source sheet mode</a></p>
             </div>
             <div className="int-he">
                 {Sefaria._uid == this.props.sheet.owner ?
@@ -170,6 +172,7 @@ class SheetMetadata extends Component {
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? Sefaria._("Unlike") : Sefaria._("Like")}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
+                <p className="oldSheetNotice"><a href={"/sheets/"+this.props.sheet.id+"?panel=0"}>לצפייה בדף המקורות הנוכחי בפורמט הישן</a></p>
             </div>
 
             {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId+"?panel=1"}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}
@@ -182,6 +185,7 @@ class SheetMetadata extends Component {
 
 
   render() {
+      console.log(this.props.sheet)
     var title = this.props.sheet.title;
     var authorStatement;
 
@@ -229,6 +233,9 @@ class SheetMetadata extends Component {
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
+                      <div>
+                          <img src={this.props.sheet.groupLogo} />
+                      </div>
                     <a className="tocCategory" href="/sheets">
                       <span className="en">Sheet</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
@@ -237,12 +244,13 @@ class SheetMetadata extends Component {
                       <span>{title.stripHtml()}</span>
                     </div>
                     <div className="tocDetail authorStatement" dangerouslySetInnerHTML={ {__html: authorStatement} }></div>
+                    <div className="tocDetail authorStatement"><a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a></div>
                     <div className="sheetMeta">
                       <div className="int-en">
                           Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length + this.state.sheetLikeAdjustment : 0 +this.state.sheetLikeAdjustment} Likes
                       </div>
                       <div className="int-he">
-                          <span>נוצר ב{this.props.sheet.naturalDateCreated} · </span>
+                          <span>נוצר {this.props.sheet.naturalDateCreated} · </span>
                           <span>{this.props.sheet.views} צפיות · </span>
                           <span>קיבלת {this.props.sheet.likes ? this.props.sheet.likes.length + this.state.sheetLikeAdjustment : 0 + this.state.sheetLikeAdjustment } לייקים </span>
                       </div>
