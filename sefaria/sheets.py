@@ -26,6 +26,8 @@ import search
 import sys
 import hashlib
 import urllib
+import logging
+logger = logging.getLogger(__name__)
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
@@ -304,8 +306,11 @@ def save_sheet(sheet, user_id, search_override=False):
 
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
-		index_name = search.get_new_and_current_index_names()['current']
-		search.index_sheet(index_name, sheet["id"])
+		try:
+			index_name = search.get_new_and_current_index_names()['current']
+			search.index_sheet(index_name, sheet["id"])
+		except:
+			logger.error("Failed index on " + sheet["id"])
 
 	'''
 	global last_updated
