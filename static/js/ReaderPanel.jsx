@@ -1062,7 +1062,7 @@ class ReaderControls extends Component {
         <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-            { this.props.sheet? <div><img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /><span>{title}</span></div> :
+            { this.props.sheet? <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /><span>{title}</span></div> :
             <div><span className="en">{title}</span>
             <span className="he">{heTitle}</span></div> }
             { title ? (<i className="fa fa-caret-down"></i>) : null }

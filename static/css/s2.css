@@ -1155,13 +1155,18 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .currentSection,
 .readerTextTableOfContents .authorStatement,
-.sheetContent .sheetMetaDataBox .authorStatement {
+.sheetContent .sheetMetaDataBox .authorStatement,
+.sheetContent .sheetMetaDataBox .groupStatement {
   font-size: 17px;
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
+.sheetContent .sheetMetaDataBox .groupStatement a {
+  color: #999;
+}
+
 .readerTextTableOfContents .currentSection .he,
 .readerTextTableOfContents .authorStatement .he,
 .readerTextTableOfContents .sheetMeta .he {
@@ -2648,6 +2653,11 @@ a.readerNavCategory {
 .sheetContent .segment.highlight .segmentNumber .en,
 .sheetContent .segment.highlight .segmentNumber .he {
   background-color: transparent;
+}
+
+.sheetContent .segment.highlight .en div,
+.sheetContent .segment.highlight .he div {
+  background-color: inherit;
 }
 
 
