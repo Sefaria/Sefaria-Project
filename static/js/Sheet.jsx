@@ -326,7 +326,7 @@ class SheetSource extends Component {
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></span>
+            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
           </div> : null }
 
 
@@ -335,7 +335,7 @@ class SheetSource extends Component {
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></span>
+            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
 
 
@@ -371,7 +371,7 @@ class SheetComment extends Component {
             </div>
           }
         <div className={lang}>
-            <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.comment)} }></span>
+            <div dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.comment)} }></div>
         </div>
         <div className="clearFix"></div>
       </div>
@@ -404,7 +404,7 @@ class SheetOutsideText extends Component {
             </div>
           }
         <div className={lang}>
-            <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></span>
+            <div dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></div>
         </div>
         <div className="clearFix"></div>
 
