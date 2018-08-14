@@ -112,14 +112,7 @@ class TextRange extends Component {
       }.bind(this));
     }
   }
-  prefetchData() {
-    // Prefetch additional data (next, prev, links, notes etc) for this ref
-    if (this.dataPrefetched) { return; }
-
-    var data = this.getText();
-    if (!data) { return; }
-
-    // Load links at section level if spanning, so that cache is properly primed with section level refs
+  _prefetchLinksAndNotes(data) {
     var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
     sectionRefs = sectionRefs.map(function(ref) {
       if (ref.indexOf("-") > -1) {
@@ -141,21 +134,37 @@ class TextRange extends Component {
         }
       }
     }
+  }
+  prefetchData() {
+    // Prefetch additional data (next, prev, links, notes etc) for this ref
+    if (this.dataPrefetched) { return; }
+
+    var data = this.getText();
+    if (!data) { return; }
+
+    // Load links at section level if spanning, so that cache is properly primed with section level refs
+    this._prefetchLinksAndNotes(data);
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
        Sefaria.text(data.next, {
          context: 1,
+         multiple: this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null
-       }, function() {});
+       },
+           ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds)
+       );
      }
      if (data.prev) {
        Sefaria.text(data.prev, {
          context: 1,
+         multiple: -this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null
-       }, function() {});
+       },
+           ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds)
+       );
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
@@ -386,6 +395,7 @@ TextRange.propTypes = {
   hideTitle:              PropTypes.bool,
   loadLinks:              PropTypes.bool,
   prefetchNextPrev:       PropTypes.bool,
+  prefetchMultiple:       PropTypes.number,
   lowlight:               PropTypes.bool,
   numberLabel:            PropTypes.number,
   settings:               PropTypes.object,

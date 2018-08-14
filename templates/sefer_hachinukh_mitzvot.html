@@ -411,11 +411,10 @@
                     mitzvah.hasOwnProperty(key) && lookup[key] === mitzvah[key]));
 
                 var i;
-                console.log(path)
                 $("#mitzvahHolder").html("<p>" +  path.join(" → ") + " ("+result.length+")</p><ul></ul>")
 
                 for (i = 0; i < result.length; i++) {
-                    $("#mitzvahHolder ul").append( "<li><a href='/Sefer_HaChinukh."+result[i]["Number"]+"?lang=bi' target='_blank'>Mitzvah Number: "+ result[i]["Number"] + "</a></li>" );
+                    $("#mitzvahHolder ul").append( "<li><a href='/Sefer_HaChinukh."+result[i]["Number"]+"?lang=bi' target='_blank'>"+ result[i]["Number"] + ": " +  result[i]["hedesc"] + " - "+ result[i]["endesc"] + "</a></li>" );
                 }
               });
 
@@ -485,6 +484,21 @@
               .attr("transform", function(d) { return "translate(" + d.x + ")"; });
           category.exit().remove();
           category
+                .on("click.parsets", function(d) {
+                var lookup = {}
+                var path = [d.name]
+                lookup[d.dimension.name] = d.name;
+                const result = data.filter(mitzvah =>
+                    Object.keys(lookup).every(key =>
+                    mitzvah.hasOwnProperty(key) && lookup[key] === mitzvah[key]));
+
+                var i;
+                $("#mitzvahHolder").html("<p>" +  path.join(" → ") + " ("+result.length+")</p><ul></ul>")
+                for (i = 0; i < result.length; i++) {
+                    $("#mitzvahHolder ul").append( "<li><a href='/Sefer_HaChinukh."+result[i]["Number"]+"?lang=bi' target='_blank'>"+ result[i]["Number"] + ": " +  result[i]["hedesc"] + " - "+ result[i]["endesc"] + "</a></li>" );
+                }
+              })
+
               .on("mousemove.parsets", function(d) {
                 ribbon.classed("active", false);
                 if (dragging) return;

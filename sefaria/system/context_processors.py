@@ -29,7 +29,7 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if (request.path in ("/data.js", "/sefaria.js", "/texts") or 
+        if (request.path in ("/data.js", "/sefaria.js", "/texts") or
               request.path.startswith("/sheets/")):
             return view(request)
         else:
@@ -54,7 +54,8 @@ def user_only(view):
 def global_settings(request):
     return {
         "SEARCH_URL":             SEARCH_HOST,
-        "SEARCH_INDEX_NAME":      SEARCH_INDEX_NAME,
+        "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
+        "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
         "GOOGLE_ANALYTICS_CODE":  GOOGLE_ANALYTICS_CODE,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
@@ -103,7 +104,7 @@ def user_and_notifications(request):
             "recentlyViewed": recent,
             "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
         }
-    
+
     profile = UserProfile(id=request.user.id)
     if request.path == "/texts":
         return {
@@ -112,7 +113,7 @@ def user_and_notifications(request):
 
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
-    
+
     interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
     interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
     interrupting_message_json = interrupting_message.json()
@@ -183,4 +184,3 @@ def calendar_links(request):
     else:
         custom = "ashkenazi" # this is default because this is the most complete data set
     return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora, custom=custom))}
-

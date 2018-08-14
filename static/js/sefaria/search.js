@@ -1,8 +1,10 @@
 const $ = require('./sefariaJquery');
 
 class Search {
-    constructor(searchBaseUrl, searchIndex) {
-      this.baseUrl = searchBaseUrl + "/" + searchIndex + "/_search";
+    constructor(searchBaseUrl, searchIndexText, searchIndexSheet) {
+      this.searchIndexText = searchIndexText;
+      this.searchIndexSheet = searchIndexSheet;
+      this.baseUrl = searchBaseUrl;
       this._cache = {}
     }
     cache(key, result) {
@@ -18,7 +20,7 @@ class Search {
          query: query string
          size: size of result set
          from: from what result to start
-         type: null, "sheet" or "text"
+         type: "sheet" or "text"
          get_filters: if to fetch initial filters
          applied_filters: filter query by these filters
          field: field to query in elastic_search
@@ -36,12 +38,13 @@ class Search {
             args.success(cache_result);
             return null;
         }
-        var url = this.baseUrl;
+        const url = `${this.baseUrl}/${args.type == 'text' ? this.searchIndexText : this.searchIndexSheet}/_search`;
         console.log("SERACH URL", url);
         return $.ajax({
-            url: url,
+            url,
             type: 'POST',
             data: req,
+            contentType: "application/json; charset=utf-8",
             crossDomain: true,
             processData: false,
             dataType: 'json',
@@ -61,7 +64,7 @@ class Search {
          applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
          size: int - number of results to request
          from: int - start from result # (skip from - 1 results)
-         type: string - currently either "texts" or "sheets"
+         type: string - currently either "text" or "sheet"
          field: string - which field to query. this essentially changes the exactness of the search. right now, 'exact' or 'naive_lemmatizer'
          sort_type: "relevance", "chronological"
          exact: boolean. true if query should be exact
@@ -118,44 +121,18 @@ class Search {
         var inner_query = {};
         if (get_filters) {
             //Initial, unfiltered query.  Get potential filters.
-            if (type) {
-              inner_query = {
-                  filtered: {
-                      query: core_query,
-                      filter: {type: {value: type}}
-                  }
-              };
-            } else {
-              inner_query = core_query
-
-            }
-
+            inner_query = core_query;
             o['aggs'] = {
                 "category": {
                     "terms": {
                         "field": "path",
-                        "size": 0
-                    }
-                },
-                "type": {
-                    "terms": {
-                        "field": "_type",
-                        "size": 0
+                        "size": 10000,
                     }
                 }
             };
         } else if (!applied_filters || applied_filters.length == 0) {
             // This is identical to above - can be cleaned up into a variable
-            if (type) {
-              inner_query = {
-                  filtered: {
-                      query: core_query,
-                      filter: {type: {value: type}}
-                  }
-              };
-            } else {
-              inner_query = core_query;
-            }
+            inner_query = core_query;
         } else {
             //Filtered query.  Add clauses.  Don't re-request potential filters.
             var clauses = [];
@@ -169,42 +146,20 @@ class Search {
                 });
                 /* Test for Commentary2 as well as Commentary */
             }
-            if (type) {
-                inner_query = {
-                    "filtered": {
-                        "query": core_query,
-                        "filter": {
-                            "bool": {
-                                "must": [
-                                    {"or": clauses},
-                                    {type: {value: type}}
-                                ]
-                            }
-                        }
-                    }
-                };
-            } else {
-                inner_query = {
-                    "filtered": {
-                        "query": core_query,
-                        "filter": {
-                            "or": clauses
-                        }
-                    }
-                };
-            }
-            o['aggs'] = {
-                "type": {
-                    "terms": {
-                        "field": "_type",
-                        "size": 0
+            inner_query = {
+                "bool": {
+                    "must": core_query,
+                    "filter": {
+                      "bool": {
+                        "should": clauses
+                      }
                     }
                 }
             };
         }
 
         //after that confusing logic, hopefully inner_query is defined properly
-        if (sort_type == "chronological") {
+        if (sort_type == "chronological" || !sort_type) {
             o['query'] = inner_query;
         } else if (sort_type == "relevance") {
             o['query']['function_score']['query'] = inner_query;

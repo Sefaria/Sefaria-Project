@@ -512,7 +512,8 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
-#s2.interface-hebrew .readerPanel .readerNavMenu .gridBox,
+.interface-hebrew .readerPanel .readerNavMenu .gridBox,
+.interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
@@ -1147,13 +1148,18 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .currentSection,
 .readerTextTableOfContents .authorStatement,
-.sheetContent .sheetMetaDataBox .authorStatement {
+.sheetContent .sheetMetaDataBox .authorStatement,
+.sheetContent .sheetMetaDataBox .groupStatement {
   font-size: 17px;
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
+.sheetContent .sheetMetaDataBox .groupStatement a {
+  color: #999;
+}
+
 .readerTextTableOfContents .currentSection .he,
 .readerTextTableOfContents .authorStatement .he,
 .readerTextTableOfContents .sheetMeta .he {
@@ -1663,20 +1669,39 @@ a.readerNavCategory {
 }
 
 .dictionaryTocSearchBox .dictionaryTocSearchButton {
+
 }
 
 .searchBox.dictionaryTocSearchBox .keyboardInputInitiator {
   border: none;
 }
 .dictionaryTocSearchBox input {
-  margin: 0 10px;
+  padding: 0 10px 10px;
   font-size: 17px;
   background-color: transparent;
   border: none;
   width: 100%;
-  height: 18px;
+  height: 16px;
+  margin-bottom: 10px;
 }
 
+
+body .ui-autocomplete.dictionary-toc-autocomplete {
+  margin: 0px 0;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
+  padding: 4px 25px;
+  border-bottom: solid #ccc 1px;
+  font-size: 17px;
+  color: black;
+  cursor: pointer;
+  display: block;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #E9E9E7;
+}
 
 .searchContentFrame h1 {
   direction: ltr;
@@ -2164,6 +2189,7 @@ a.readerNavCategory {
 }
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;
+  white-space: nowrap;
 }
 .connectionsPanelHeader .connectionsHeaderTitle {
   text-transform: uppercase;
@@ -2665,6 +2691,11 @@ a.readerNavCategory {
 .sheetContent .segment.highlight .segmentNumber .en,
 .sheetContent .segment.highlight .segmentNumber .he {
   background-color: transparent;
+}
+
+.sheetContent .segment.highlight .en div,
+.sheetContent .segment.highlight .he div {
+  background-color: inherit;
 }
 
 

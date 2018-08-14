@@ -48,6 +48,7 @@ class ReaderApp extends Component {
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
           naturalDateCreated: initialPanel.sheet.naturalDateCreated,
+          groupLogo: initialPanel.sheet.groupLogo,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
@@ -563,7 +564,7 @@ class ReaderApp extends Component {
         hist.title        = Sefaria._r(htitle);
         hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
-        hist.mode         = "Text"
+        hist.mode         = "Text";
         if(Sefaria.titleIsTorah(htitle)){
           hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
         }
@@ -716,7 +717,7 @@ class ReaderApp extends Component {
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
-      this.scrollIntentTimer = null;``
+      this.scrollIntentTimer = null;
     }.bind(this), intentDelay, this._refState());
   }
   updateHistoryState(replace) {
@@ -994,7 +995,7 @@ class ReaderApp extends Component {
       }
     });
     if (this.didPanelRefChange(this.state.panels[n], state)) {
-      this.saveRecentlyViewed(state);
+      this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
     var new_state = {panels: this.state.panels};
@@ -1014,11 +1015,9 @@ class ReaderApp extends Component {
         }
 
       }
-    }else{
+    } else {
       return false;
     }
-
-
   }
   didPanelRefChange(prevPanel, nextPanel) {
     // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
@@ -1247,16 +1246,12 @@ class ReaderApp extends Component {
       this.openTextListAt(n+1, refs);
     }
   }
-
   setSheetHighlight(n, node) {
     // Set the sheetListHighlight for panel `n` to `node`
     node = typeof node === "string" ? [node] : node;
     this.state.panels[n].highlightedNodes = node;
     this.setState({panels: this.state.panels});
     }
-
-
-
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
@@ -1413,9 +1408,26 @@ class ReaderApp extends Component {
       this.setState({panels: [state]});
     }
   }
+  checkPanelScrollIntentAndSaveRecent(state, n) {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+    // console.log("Setting scroll intent check");
+    // console.log("Setting scroll intent for " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
+    this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
+    if (this.panelScrollIntentTimer[n]) {
+      clearTimeout(this.panelScrollIntentTimer[n]);
+    }
+    this.panelScrollIntentTimer[n] = window.setTimeout(function(initialState, n){
+      if (!this.didPanelRefChange(initialState, this.state.panels[n])) {
+        // console.log("Firing recently viewed " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
+        this.saveRecentlyViewed(this.state.panels[n]);
+      }
+      this.panelScrollIntentTimer[n] = null;
+    }.bind(this), intentDelay, state, n);
+  }
   saveRecentlyViewed(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
-    var ref  = panel.refs.slice(-1)[0];
+    var ref  = panel.currentlyVisibleRef || panel.refs.slice(-1)[0];  // Will currentlyVisibleRef ever not be available?
     Sefaria.ref(ref, function(oRef) {
       var previousRecent = Sefaria.recentItemForText(oRef.indexTitle);
       var recentItem = {

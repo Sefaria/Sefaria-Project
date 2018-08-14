@@ -174,7 +174,7 @@ class SearchResultList extends Component {
             type: "sheet",
             size: this.initialQuerySize,
             field: "content",
-            sort_type: "chronological",
+            sort_type: null,
             exact: true,
             success: function(data) {
                 this.updateRunningQuery("sheet", null, false);
@@ -245,12 +245,19 @@ class SearchResultList extends Component {
         let newHitsIndex = newHitsObj[currRef];
         if (typeof newHitsIndex != "undefined") {
           newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
-          newHits[newHitsIndex].duplicates.push(hits[i]);
+          newHits[newHitsIndex].insertInOrder(hits[i], (a, b) => a._source.version_priority - b._source.version_priority);
         } else {
-          newHits.push(hits[i])
+          newHits.push([hits[i]])
           newHitsObj[currRef] = newHits.length - 1;
         }
       }
+      newHits = newHits.map(hit_list => {
+        let hit = hit_list[0];
+        if (hit_list.length > 1) {
+          hit.duplicates = hit_list.slice(1);
+        }
+        return hit;
+      });
       return newHits;
     }
     _buildFilterTree(aggregation_buckets) {
