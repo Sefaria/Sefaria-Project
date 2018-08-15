@@ -1755,11 +1755,13 @@ def version_status_api(request):
     return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]), callback=request.GET.get("callback", None))
 
 
-simplified_toc = None
+
+simplified_toc = {}
 
 def version_status_tree_api(request, lang=None):
     global simplified_toc
-    if not simplified_toc:
+    key = lang or "none"
+    if not simplified_toc.get(key):
         def simplify_toc(toc_node, path):
             simple_nodes = []
             for x in toc_node:
@@ -1787,11 +1789,11 @@ def version_status_tree_api(request, lang=None):
                        } for v in VersionSet(query)]
                 simple_nodes.append(simple_node)
             return simple_nodes
-        simplified_toc = simplify_toc(library.get_toc(), [])
+        simplified_toc[key] = simplify_toc(library.get_toc(), [])
     return jsonResponse({
         "name": "Whole Library" + " ({})".format(lang) if lang else "",
         "path": [],
-        "children": simplified_toc
+        "children": simplified_toc[key]
     }, callback=request.GET.get("callback", None))
 
 
