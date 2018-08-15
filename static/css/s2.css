@@ -473,7 +473,8 @@ input.noselect {
   box-sizing: border-box;
   background-color: inherit;
 }
-.textColumn .loadingMessage.base {
+.textColumn .loadingMessage.base,
+.sheetsInPanel .loadingMessage {
   margin: 30px 0;
   color: #999;
   text-align: center;
