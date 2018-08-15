@@ -272,7 +272,6 @@ class SheetContent extends Component {
 
             <div className="authorStatement">{this.props.authorStatement}</div>
             <div className="groupStatement"><a href={"/groups/"+this.props.group}>{this.props.group}</a></div>
-            {this.props.editable ? <div className="editSheetNotice"><a href={"/sheets/"+this.props.sheetID+"?panel=0"}>Edit Sheet</a></div> : null }
 
         </div>
         <div className="text">
