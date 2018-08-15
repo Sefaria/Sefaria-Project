@@ -14,6 +14,8 @@ import Component from 'react-class';
 class TextColumn extends Component {
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   componentDidMount() {
+  console.log(this.props)
+
     this._isMounted          = true;
     this.$container          = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
@@ -289,7 +291,17 @@ class TextColumn extends Component {
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
-        content.splice(0, 0, (<LoadingMessage message={topSymbol} heMessage={topSymbol} className="base prev" key="prev"/>));
+        var oref = Sefaria.ref(this.props.srefs[0]);
+        var title = oref ? oref.book : "";
+        var heTitle = oref ? oref.heTitle : "";
+
+        content.splice(0, 0, (
+          <div className="bookMetaDataBox">
+              <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{title}</div>
+              <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{heTitle}</div>
+          </div>
+        ));
+
       }
       if (hasNext) {
         content.push((<LoadingMessage className="base next" key="next"/>));
