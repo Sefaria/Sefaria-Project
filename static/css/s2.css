@@ -3785,6 +3785,18 @@ a.button {
 a.button.white {
   color: #333;
 }
+a.button.mini {
+  padding: 5px;
+  font-size: .8em;
+}
+
+.interface-english .userSheetTitle a.button.mini {
+  float: right;
+}
+.interface-hebrew .userSheetTitle a.button.mini {
+  float: left;
+}
+
 .button.white:hover {
 
 }
