@@ -2267,6 +2267,12 @@ a.readerNavCategory {
   direction: rtl;
   min-width: 0;
 }
+.interface-hebrew .readerControls .readerTextToc .readerTextTocBox {
+  padding-left: 23px;
+}
+.interface-english .readerControls .readerTextToc .readerTextTocBox {
+  padding-right: 23px;
+}
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
   vertical-align: middle;
