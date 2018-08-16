@@ -325,19 +325,19 @@ class SheetSource extends Component {
 
         {this.props.source.text ?
           <div className="he">
+            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
-            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
           </div> : null }
 
 
         {this.props.source.text ?
           <div className="en">
+            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
-            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
 
 
