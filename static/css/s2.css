@@ -2268,12 +2268,20 @@ a.readerNavCategory {
   direction: rtl;
   min-width: 0;
 }
-.interface-hebrew .readerControls .readerTextToc .readerTextTocBox {
+.hebrew .readerControls .readerTextToc .readerTextTocBox,
+.interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
+.interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
+  padding-right: 0;
 }
-.interface-english .readerControls .readerTextToc .readerTextTocBox {
+.english .readerControls .readerTextToc .readerTextTocBox.sheetBox,
+.bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-right: 23px;
+  padding-left: 0;
 }
+
+
+
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
   vertical-align: middle;
