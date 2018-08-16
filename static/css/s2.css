@@ -1157,7 +1157,8 @@ a.readerNavCategory {
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.sheetContent .sheetMetaDataBox .groupStatement a {
+.sheetContent .sheetMetaDataBox .groupStatement a,
+.sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
 }
 

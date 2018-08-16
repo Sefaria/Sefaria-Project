@@ -93,6 +93,7 @@ class Sheet extends Component {
             highlightedNodes={this.props.highlightedNodes}
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
+            authorUrl = {sheet.ownerProfileUrl}
             group = {sheet.group}
             editable = {Sefaria._uid == sheet.owner}
             hasSidebar = {this.props.hasSidebar}
@@ -270,7 +271,7 @@ class SheetContent extends Component {
         <div className="sheetMetaDataBox">
             <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml()) ? "rtl" :"ltr"}}>{this.props.title.stripHtml()}</div>
 
-            <div className="authorStatement">{this.props.authorStatement}</div>
+            <div className="authorStatement"><a href={this.props.authorUrl}>{this.props.authorStatement}</a></div>
             <div className="groupStatement"><a href={"/groups/"+this.props.group}>{this.props.group}</a></div>
 
         </div>
