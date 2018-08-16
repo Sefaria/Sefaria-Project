@@ -308,7 +308,7 @@ def deserialize_tree(serial=None, **kwargs):
         except KeyError:
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
 
-    if serial.get(kwargs.get("children_attr", "nodes")):
+    if serial.get(kwargs.get("children_attr", "nodes")) or (kwargs.get("struct_title_attr") and serial.get(kwargs.get("struct_title_attr"))):
         #Structure class - use explicitly defined 'nodeType', code overide 'struct_class', or default SchemaNode
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, **kwargs)

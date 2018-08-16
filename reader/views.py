@@ -49,7 +49,7 @@ from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
-from sefaria.utils.calendars import get_todays_calendar_items, get_keyed_calendar_items, this_weeks_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
@@ -2027,15 +2027,23 @@ def category_api(request, path=None):
 @csrf_exempt
 def calendars_api(request):
     if request.method == "GET":
+        import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
+        try:
+            year = int(request.GET.get("year", None))
+            month = int(request.GET.get("month", None))
+            day = int(request.GET.get("day", None))
+            datetimeobj = datetime.datetime(year, month, day)
+        except Exception as e:
+            datetimeobj = datetime.datetime.now()
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
-            calendars = get_todays_calendar_items(diaspora=diaspora, custom=custom)
-            return jsonResponse(calendars, callback=request.GET.get("callback", None))
+            calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
+            return jsonResponse({"date": datetimeobj.date().isoformat(),"calendar_items": calendars}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json

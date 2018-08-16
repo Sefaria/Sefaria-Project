@@ -69,6 +69,7 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "headword",
         "parent_lexicon",
     ]
+    optional_attrs = ["content"]
 
     def factory(self, lexicon_name):
         pass
