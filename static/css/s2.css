@@ -5184,3 +5184,7 @@ span.purim-emoji img{
   text-decoration: underline;
   color: inherit;
 }
+
+.groupImageContainer img {
+  max-width: 100%;
+}

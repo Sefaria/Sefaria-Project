@@ -233,7 +233,7 @@ class SheetMetadata extends Component {
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
-                      <div>
+                      <div className="groupImageContainer">
                           <img src={this.props.sheet.groupLogo} />
                       </div>
                     <a className="tocCategory" href="/sheets">
