@@ -2,11 +2,8 @@ const $         = require('./sefariaJquery');
 const extend    = require('extend');
 const striptags = require('striptags');
 
-if (typeof document !== 'undefined') {
-  var INBROWSER = true;
-} else {
-  var INBROWSER = false;
-}
+
+var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
     static clone(obj) {

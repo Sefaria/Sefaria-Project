@@ -368,7 +368,7 @@ def delete_sheet_api(request, sheet_id):
 	db.sheets.remove({"id": id})
 
 	try:
-		es_index_name = search.get_new_and_current_index_names()['current']
+		es_index_name = search.get_new_and_current_index_names("sheet")['current']
 		search.delete_sheet(es_index_name, id)
 	except NewConnectionError as e:
 		logger.warn("Failed to connect to elastic search server on sheet delete.")
