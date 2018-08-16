@@ -14,8 +14,6 @@ import Component from 'react-class';
 class TextColumn extends Component {
   // An infinitely scrollable column of text, composed of TextRanges for each section.
   componentDidMount() {
-  console.log(this.props)
-
     this._isMounted          = true;
     this.$container          = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
@@ -138,7 +136,14 @@ class TextColumn extends Component {
     } else if (!this.initialScrollTopSet && (node.scrollHeight > node.clientHeight)) {
       //console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
-      node.scrollTop = 90;
+      var first   = Sefaria.ref(this.props.srefs[0]);
+      var hasPrev = first && first.prev;
+      if (!hasPrev) {
+        node.scrollTop = 0;
+      }
+      else {
+        node.scrollTop = 90;
+      }
       //console.log(node.scrollTop);
       this.initialScrollTopSet = true;
     }

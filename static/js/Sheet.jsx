@@ -323,7 +323,7 @@ class SheetSource extends Component {
           {linkCountElement}
 
 
-        {this.props.source.text ?
+        {this.props.source.text && this.props.source.text.he != "" ?
           <div className="he">
             <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
@@ -332,7 +332,7 @@ class SheetSource extends Component {
           </div> : null }
 
 
-        {this.props.source.text ?
+        {this.props.source.text && this.props.source.text.en != "" ?
           <div className="en">
             <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
