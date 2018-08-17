@@ -1616,24 +1616,34 @@ class VirtualTextChunk(AbstractTextRecord):
     text_attr = "text"
 
     def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
+
         self._oref = oref
-        self.text = oref.index_node.get_text()   # <- This is where the magic happens
         self._ref_depth = len(self._oref.sections)
         self._saveable = False
 
         self.lang = lang
         self.is_merged = False
         self.sources = []
+
+        if lang != oref.index_node.parent.lexicon.version_lang:
+            self.text = []
+            self._version = None
+            # assumption here is that any dictionary is only returned in one language
+            return
+
+        self.text = oref.index_node.get_text()   # <- This is where the magic happens
+
         self._version = Version().load({
             "title": oref.index_node.parent.lexicon.index_title,
-            "versionTitle": oref.index_node.parent.lexicon.version_title
+            "versionTitle": oref.index_node.parent.lexicon.version_title,
+            "language": oref.index_node.parent.lexicon.version_lang
         })    # Currently vtitle is thrown out.  There's only one version of each lexicon.
 
     def version(self):
         return self._version
 
     def version_ids(self):
-        return [self._version._id]
+        return [self._version._id] if self._version else []
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
