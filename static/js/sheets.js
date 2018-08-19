@@ -2729,7 +2729,7 @@ function saveSheet(sheet, reload) {
 			return;
 		} else if (data.id) {
 			if (reload) {
-				window.location = "/sheets/" + data.id+"?panel=0";
+				window.location = "/sheets/" + data.id+"?paper=1";
 			}
 			sjs.current = data;
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
