@@ -1162,6 +1162,15 @@ a.readerNavCategory {
   color: #999;
 }
 
+.sheetContent .sheetMetaDataBox .groupStatement img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin: 2px 5px 0 -21px;
+  position: relative;
+  top: 2px;
+}
+
 .readerTextTableOfContents .currentSection .he,
 .readerTextTableOfContents .authorStatement .he,
 .readerTextTableOfContents .sheetMeta .he {

@@ -272,7 +272,7 @@ class SheetContent extends Component {
             <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml()) ? "rtl" :"ltr"}}>{this.props.title.stripHtml()}</div>
 
             <div className="authorStatement"><a href={this.props.authorUrl}>{this.props.authorStatement}</a></div>
-            <div className="groupStatement"><a href={"/groups/"+this.props.group}>{this.props.group}</a></div>
+            <div className="groupStatement"><img src="/static/img/group.svg" alt="Groups icon" /><a href={"/groups/"+this.props.group}>{this.props.group}</a></div>
 
         </div>
         <div className="text">
