@@ -285,7 +285,16 @@ class SheetContent extends Component {
 
 class SheetSource extends Component {
   sheetSourceClick(event) {
-    this.props.onSegmentClick(this.props.source);
+    if(event.target.tagName.toLowerCase() === 'a') {
+      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
+        window.open(event.target.href, "_blank");
+        event.preventDefault();
+      }
+    }
+
+    else {
+        this.props.onSegmentClick(this.props.source);
+    }
   }
   render() {
     var linkCountElement;
@@ -352,7 +361,16 @@ class SheetSource extends Component {
 
 class SheetComment extends Component {
   sheetSourceClick(event) {
-    this.props.onSegmentClick(this.props.source);
+    if(event.target.tagName.toLowerCase() === 'a') {
+      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
+        window.open(event.target.href, "_blank");
+        event.preventDefault();
+      }
+    }
+
+    else {
+        this.props.onSegmentClick(this.props.source);
+    }
   }
 
   render() {
@@ -384,7 +402,16 @@ class SheetComment extends Component {
 
 class SheetOutsideText extends Component {
   sheetSourceClick(event) {
-    this.props.onSegmentClick(this.props.source);
+    if(event.target.tagName.toLowerCase() === 'a') {
+      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
+        window.open(event.target.href, "_blank");
+        event.preventDefault();
+      }
+    }
+
+    else {
+        this.props.onSegmentClick(this.props.source);
+    }
   }
   render() {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
@@ -418,7 +445,16 @@ class SheetOutsideText extends Component {
 
 class SheetOutsideBiText extends Component {
   sheetSourceClick(event) {
-    this.props.onSegmentClick(this.props.source);
+    if(event.target.tagName.toLowerCase() === 'a') {
+      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
+        window.open(event.target.href, "_blank");
+        event.preventDefault();
+      }
+    }
+
+    else {
+        this.props.onSegmentClick(this.props.source);
+    }
   }
 
   render() {
@@ -448,7 +484,16 @@ class SheetOutsideBiText extends Component {
 
 class SheetMedia extends Component {
   sheetSourceClick(event) {
-    this.props.onSegmentClick(this.props.source);
+    if(event.target.tagName.toLowerCase() === 'a') {
+      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
+        window.open(event.target.href, "_blank");
+        event.preventDefault();
+      }
+    }
+
+    else {
+        this.props.onSegmentClick(this.props.source);
+    }
   }
 
   makeMediaEmbedLink(mediaURL) {
