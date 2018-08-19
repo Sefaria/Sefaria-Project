@@ -538,6 +538,7 @@
                 </div>
             </div>
                 <div class="sheetsMenuBarButtons">
+
                 {% if new_sheet %}
                 <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
                     <i class="fa fa-floppy-o"></i>
@@ -556,6 +557,10 @@
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
                 </a>
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                    <span class="int-en">Online Mode</span>
+                    <span class="int-he">Online Mode</span>
+                </a>
                 {% else %}
                 <a id="likeButton" class="button{% if viewer_is_liker %} liked{% endif %}" role="button">
                     {% if viewer_is_liker %}
@@ -563,6 +568,10 @@
                     {% else %}
                         <span class="int-en">Like</span><span class="int-he">אהבתי</span>
                     {% endif %}
+                </a>
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                    <span class="int-en">Online Mode</span>
+                    <span class="int-he">Online Mode</span>
                 </a>
                 {% endif %}
             </div>

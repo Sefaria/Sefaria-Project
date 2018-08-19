@@ -2072,14 +2072,14 @@ a.userLink{
 	float:left;
 	margin-right: 7px;
 }
-.sheetsEditNavTop #save, .sheetsEditNavTop #share  {
+.sheetsEditNavTop #save, .sheetsEditNavTop #share, .sheetsEditNavTop #onlineMode, .sheetsEditNavTop #likeButton  {
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
 	margin: auto;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
-    margin-bottom: 2px;
+    height: 10px;
     margin-right: 2px;
 
 }
