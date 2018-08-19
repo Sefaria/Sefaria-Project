@@ -107,6 +107,13 @@ class ReaderPanel extends Component {
       var curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
     }
+
+    if (this.state.mode == "Sheet") {
+      var newSettings = this.state.settings
+      newSettings["language"] = this.state.sheet.options.language
+      this.conditionalSetState({ settings: newSettings});
+    }
+
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
