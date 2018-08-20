@@ -49,7 +49,7 @@ from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
 from sefaria.datatype.jagged_array import JaggedArray
-from sefaria.utils.calendars import get_todays_calendar_items, get_keyed_calendar_items, this_weeks_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
@@ -1755,36 +1755,45 @@ def version_status_api(request):
     return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]), callback=request.GET.get("callback", None))
 
 
+
+simplified_toc = {}
+
 def version_status_tree_api(request, lang=None):
-    def simplify_toc(toc_node, path):
-        simple_nodes = []
-        for x in toc_node:
-            node_name = x.get("category", None) or x.get("title", None)
-            node_path = path + [node_name]
-            simple_node = {
-                "name": node_name,
-                "path": node_path
-            }
-            if "category" in x:
-                simple_node["type"] = "category"
-                simple_node["children"] = simplify_toc(x["contents"], node_path)
-            elif "title" in x:
-                query = {"title": x["title"]}
-                if lang:
-                    query["language"] = lang
-                simple_node["type"] = "index"
-                simple_node["children"] = [{
-                       "name": u"{} ({})".format(v.versionTitle, v.language),
-                       "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
-                       "size": v.word_count(),
-                       "type": "version"
-                   } for v in VersionSet(query)]
-            simple_nodes.append(simple_node)
-        return simple_nodes
+    global simplified_toc
+    key = lang or "none"
+    if not simplified_toc.get(key):
+        def simplify_toc(toc_node, path):
+            simple_nodes = []
+            for x in toc_node:
+                node_name = x.get("category", None) or x.get("title", None)
+                node_path = path + [node_name]
+                simple_node = {
+                    "name": node_name,
+                    "path": node_path
+                }
+                if "category" in x:
+                    if "contents" not in x:
+                        continue
+                    simple_node["type"] = "category"
+                    simple_node["children"] = simplify_toc(x["contents"], node_path)
+                elif "title" in x:
+                    query = {"title": x["title"]}
+                    if lang:
+                        query["language"] = lang
+                    simple_node["type"] = "index"
+                    simple_node["children"] = [{
+                           "name": u"{} ({})".format(v.versionTitle, v.language),
+                           "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                           "size": v.word_count(),
+                           "type": "version"
+                       } for v in VersionSet(query)]
+                simple_nodes.append(simple_node)
+            return simple_nodes
+        simplified_toc[key] = simplify_toc(library.get_toc(), [])
     return jsonResponse({
         "name": "Whole Library" + " ({})".format(lang) if lang else "",
         "path": [],
-        "children": simplify_toc(library.get_toc(), [])
+        "children": simplified_toc[key]
     }, callback=request.GET.get("callback", None))
 
 
@@ -1990,15 +1999,23 @@ def category_api(request, path=None):
 @csrf_exempt
 def calendars_api(request):
     if request.method == "GET":
+        import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
+        try:
+            year = int(request.GET.get("year", None))
+            month = int(request.GET.get("month", None))
+            day = int(request.GET.get("day", None))
+            datetimeobj = datetime.datetime(year, month, day)
+        except Exception as e:
+            datetimeobj = datetime.datetime.now()
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
-            calendars = get_todays_calendar_items(diaspora=diaspora, custom=custom)
-            return jsonResponse(calendars, callback=request.GET.get("callback", None))
+            calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
+            return jsonResponse({"date": datetimeobj.date().isoformat(),"calendar_items": calendars}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json

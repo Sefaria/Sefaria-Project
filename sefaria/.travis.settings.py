@@ -5,7 +5,7 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-DEBUG = False
+DEBUG = True
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
