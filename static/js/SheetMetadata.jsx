@@ -246,7 +246,7 @@ class SheetMetadata extends Component {
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
                     <div className="tocTitle" role="heading" aria-level="1">
-                      <span>{title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/,' | ')}</span>
+                      <span>{title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/,' | ').replace(/( \| )$/g,'')}</span>
                     </div>
                     <div className="tocDetail authorStatement" dangerouslySetInnerHTML={ {__html: authorStatement} }></div>
                     <div className="tocDetail authorStatement"><a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a></div>

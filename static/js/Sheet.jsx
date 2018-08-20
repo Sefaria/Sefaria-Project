@@ -284,7 +284,9 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="sheetMetaDataBox">
-            <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>{this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/,' | ')}</div>
+            <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+                {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/,' | ').replace(/( \| )$/g,'')}
+            </div>
 
             <div className="authorStatement"><a href={this.props.authorUrl}>{this.props.authorStatement}</a></div>
             {this.props.group && this.props.group != "" ? <div className="groupStatement"><img src="/static/img/group.svg" alt="Groups icon" /><a href={"/groups/"+this.props.group}>{this.props.group}</a></div> : null}
