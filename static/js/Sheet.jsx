@@ -123,6 +123,7 @@ class SheetContent extends Component {
       var node = ReactDOM.findDOMNode(this).parentNode;
       node.addEventListener("scroll", this.handleScroll);
       this.windowMiddle = $(window).outerHeight() / 2;
+      this.scrollToHighlighted();
   }
 
   componentWillUnmount() {
@@ -152,7 +153,21 @@ class SheetContent extends Component {
 
   }
 
-
+  scrollToHighlighted() {
+    var $container   = $(ReactDOM.findDOMNode(this));
+    var $readerPanel = $container.closest(".readerPanel");
+    var $highlighted = $container.find(".segment.highlight").first();
+    if ($highlighted.length) {
+      this.scrolledToHighlight = true;
+      this.justScrolled = true;
+      var offset = 20;
+      $container.scrollTo($highlighted, 0, {offset: -offset});
+      $highlighted.focus();
+    }
+  }
+    
+    
+    
   cleanHTML(html) {
     html = html.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ');
     var clean = sanitizeHtml(html, {
