@@ -1755,36 +1755,45 @@ def version_status_api(request):
     return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]), callback=request.GET.get("callback", None))
 
 
+
+simplified_toc = {}
+
 def version_status_tree_api(request, lang=None):
-    def simplify_toc(toc_node, path):
-        simple_nodes = []
-        for x in toc_node:
-            node_name = x.get("category", None) or x.get("title", None)
-            node_path = path + [node_name]
-            simple_node = {
-                "name": node_name,
-                "path": node_path
-            }
-            if "category" in x:
-                simple_node["type"] = "category"
-                simple_node["children"] = simplify_toc(x["contents"], node_path)
-            elif "title" in x:
-                query = {"title": x["title"]}
-                if lang:
-                    query["language"] = lang
-                simple_node["type"] = "index"
-                simple_node["children"] = [{
-                       "name": u"{} ({})".format(v.versionTitle, v.language),
-                       "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
-                       "size": v.word_count(),
-                       "type": "version"
-                   } for v in VersionSet(query)]
-            simple_nodes.append(simple_node)
-        return simple_nodes
+    global simplified_toc
+    key = lang or "none"
+    if not simplified_toc.get(key):
+        def simplify_toc(toc_node, path):
+            simple_nodes = []
+            for x in toc_node:
+                node_name = x.get("category", None) or x.get("title", None)
+                node_path = path + [node_name]
+                simple_node = {
+                    "name": node_name,
+                    "path": node_path
+                }
+                if "category" in x:
+                    if "contents" not in x:
+                        continue
+                    simple_node["type"] = "category"
+                    simple_node["children"] = simplify_toc(x["contents"], node_path)
+                elif "title" in x:
+                    query = {"title": x["title"]}
+                    if lang:
+                        query["language"] = lang
+                    simple_node["type"] = "index"
+                    simple_node["children"] = [{
+                           "name": u"{} ({})".format(v.versionTitle, v.language),
+                           "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                           "size": v.word_count(),
+                           "type": "version"
+                       } for v in VersionSet(query)]
+                simple_nodes.append(simple_node)
+            return simple_nodes
+        simplified_toc[key] = simplify_toc(library.get_toc(), [])
     return jsonResponse({
         "name": "Whole Library" + " ({})".format(lang) if lang else "",
         "path": [],
-        "children": simplify_toc(library.get_toc(), [])
+        "children": simplified_toc[key]
     }, callback=request.GET.get("callback", None))
 
 

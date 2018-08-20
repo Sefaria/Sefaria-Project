@@ -26,11 +26,15 @@ import search
 import sys
 import hashlib
 import urllib
+import logging
+logger = logging.getLogger(__name__)
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
 
+import logging
+logger = logging.getLogger(__name__)
 
 
 # Simple cache of the last updated time for sheets
@@ -209,9 +213,9 @@ def order_tags_for_user(tag_counts, uid):
 	tag_order = getattr(profile, "tag_order", None)
 	if tag_order:
 		empty_tags = tag_order[:]
-		tags = [tag_count["tag"] for tag_count in tag_counts]		
+		tags = [tag_count["tag"] for tag_count in tag_counts]
 		empty_tags = [tag for tag in tag_order if tag not in tags]
-		
+
 		for tag in empty_tags:
 			tag_counts.append({"tag": tag, "count": 0})
 		try:
@@ -304,8 +308,11 @@ def save_sheet(sheet, user_id, search_override=False):
 
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
-		index_name = search.get_new_and_current_index_names()['current']
-		search.index_sheet(index_name, sheet["id"])
+		try:
+			index_name = search.get_new_and_current_index_names("sheet")['current']
+			search.index_sheet(index_name, sheet["id"])
+		except:
+			logger.error("Failed index on " + str(sheet["id"]))
 
 	'''
 	global last_updated
@@ -330,7 +337,7 @@ def add_source_to_sheet(id, source, note=None):
 		'outsideBiText' (indicating a bilingual outside text)
 	    'comment' (indicating a comment)
 		'media' (indicating a media object)
-	if string `note` is present, add it as a coment immediately after the source. 
+	if string `note` is present, add it as a coment immediately after the source.
 		pass
 	"""
 	if not is_valid_source(source):
@@ -434,7 +441,7 @@ def update_included_refs(hours=1):
 def get_top_sheets(limit=3):
 	"""
 	Returns 'top' sheets according to some magic heuristic.
-	Currently: return the most recently active sheets with more than 100 views. 
+	Currently: return the most recently active sheets with more than 100 views.
 	"""
 	query = {"status": "public", "views": {"$gte": 100}}
 	return sheet_list(query=query, limit=limit)
@@ -444,7 +451,7 @@ def get_sheets_for_ref(tref, uid=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
-	If `uid` is present return user sheets, otherwise return public sheets. 
+	If `uid` is present return user sheets, otherwise return public sheets.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref

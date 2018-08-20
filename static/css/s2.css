@@ -3802,6 +3802,10 @@ a.button.white {
 a .button:hover {
   text-decoration: none;
 }
+.button.small {
+  padding: 6px 12px;
+  margin: 6px 12px;
+}
 #backToS1 {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   top: 20px;
@@ -5136,4 +5140,23 @@ span.purim-emoji img{
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
+}
+
+.cookiesNotification {
+  position: fixed;
+  z-index: 9999;
+  color: white;
+  background-color: #212E50;
+  border-top: 1px solid #ccc;
+  bottom: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 0;
+  line-height: 1.1;
+  text-align: center;
+}
+.cookiesNotification a {
+  text-decoration: underline;
+  color: inherit;
 }
