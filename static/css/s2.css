@@ -5006,8 +5006,7 @@ span.purim-emoji img{
 .sheetContent .ref {
   cursor: pointer;
   color: #999;
-  font-size: .8em;
-  text-transform: uppercase;
+  font-size: 1em;
 }
 .sheetContent .ref a {
   color: #999;
