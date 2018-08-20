@@ -2119,7 +2119,6 @@ def name_api(request, name):
     try:
         ref = Ref(name)
         inode = ref.index_node
-        assert isinstance(inode, SchemaNode)
 
         completions = [name.capitalize()] + completer.next_steps_from_node(name)
 

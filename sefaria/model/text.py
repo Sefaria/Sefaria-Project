@@ -2246,6 +2246,7 @@ class Ref(object):
         except AttributeError:
             if self.index_node.is_virtual:
                 self.index_node = self.index_node.create_dynamic_node(title, base)
+                self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
                 self.toSections = self.sections[:]
                 return
