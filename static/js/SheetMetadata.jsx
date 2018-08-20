@@ -176,7 +176,7 @@ class SheetMetadata extends Component {
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
 
                 {Sefaria._uid != this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?paper=1"} className="button white" role="button">Paper Mode</a> : null }
+                    <a href={"/sheets/"+this.props.sheet.id+"?paper=1"} className="button white" role="button">תצוגת דפים</a> : null }
 
             </div>
 
