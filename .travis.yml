@@ -11,11 +11,7 @@ services:
   - redis-server
 
 addons:
-  sauce_connect:
-    username: "sefaria"
-    access_key:
-      secure: "QS2L6wVpfCV0tc2mxhaKekTwoQw2z3NjG082mFd4J3xZiwDIOlP9yHmUnF7lkb89kn6/uyf5NOSwE33kvSJB03NIosd0pBRA3bvBf7UGpUiZwE5t2IHyGDMDB+QPW9xZORBhA0fZpPZucyb4EO1WLBqlajZLTEup6um7HaqBI+nsu/7cZJIUkqmMp6qPTaBV8BUDL/ehnXg8jm66+Gb5BAyApx1DU8eugVhEWdvPs3evQTxcQnVOXQtn2VR5A0QHpa6lz5J9tJcd3HVb9oWQ84WkO5LqVRXvpTp/1LNMyJ/v6VL3kxB5Y7pWU+pytaxaBnzV5dYjAv6+0Ea4a2CBqmpcwT1OWNAqgWt3FusMt8HLO374aeHMtPtj7Ou54GuQxJoMBOhe3MbZ55SEkOuqhPVa6FCCYAevAPVlku1XOTgQeMzJeIrZ3/Wv8sx07U2UGwAl+xBKOYRaCOOwWYPKWWsIBPeH1bQD6SqPSuYxbu4iGN/xrakvHHEjRLIjy/iHleMX62ELGpaAqt8Ppzjn5Z0Oh7aG14pyP3dzQy7vgDCIQ7ZFtTSDdPC9PiOSQ5aQkaFL4FU9ElaetHEWqFayghj10sSuSuO8Q+U8arW+wHWEotaZ7dfvhX0fHHSotEye+loIXVHm6bSOq8XPaZqJ+z/djxysmKfxUynIeOX73zY="
-
+  sauce_connect: true
 env:
   PYTHONPATH=$TRAVIS_BUILD_DIR
   DJANGO_SETTINGS_MODULE=sefaria.settings
