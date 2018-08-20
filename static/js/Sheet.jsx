@@ -173,7 +173,7 @@ class SheetContent extends Component {
     var clean = sanitizeHtml(html, {
             allowedTags: [ 'blockquote', 'p', 'a', 'ul', 'ol',
               'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
-              'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre' ],
+              'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup' ],
             allowedAttributes: {
               a: [ 'href', 'name', 'target' ],
               img: [ 'src' ],
