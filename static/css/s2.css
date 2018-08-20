@@ -611,9 +611,6 @@ input.noselect {
   z-index: 101;
   background-color: #F9F9F7;
 }
-.headerNavContent .readerNavMenu.noHeader {
-  border-top: 1px solid #ccc;
-}
 .readerNavMenu .content {
   position: relative;
   box-sizing: border-box;
