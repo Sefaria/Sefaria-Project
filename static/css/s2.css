@@ -2629,6 +2629,14 @@ a.readerNavCategory {
   box-sizing: border-box;
   display: block;
 }
+.heLeft.bilingual .sheetItem.segment.enOnly > .en,
+.heLeft.bilingual .sheetItem.segment.heOnly > .he,
+.heRight.bilingual .sheetItem.segment.enOnly > .en,
+.heRight.bilingual .sheetItem.segment.heOnly > .he {
+  width: 100%;
+  padding-left: 20px;
+  padding-right: 20px;
+}
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he {
   float: right;
