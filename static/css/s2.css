@@ -5007,7 +5007,6 @@ span.purim-emoji img{
   cursor: pointer;
   color: #999;
   font-size: 1em;
-  margin-bottom: 1em;
 
 }
 .sheetContent .ref a {
@@ -5090,9 +5089,6 @@ span.purim-emoji img{
 }
 .sheetsInPanel p {
   margin: 0 0 1em 0;
-}
-.sheetsInPanel p:last-child {
-  margin: 0
 }
 .segmentNumber.sheetSegmentNumber {
   display: block;
