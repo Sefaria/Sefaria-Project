@@ -299,8 +299,8 @@ class SheetSource extends Component {
       var containerClasses = classNames("sheetItem",
           "segment",
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.text.en == "..." ? "heOnly" : null,
-          this.props.source.text.he == "..." ? "enOnly" : null,
+          this.props.source.text.en && this.props.source.text.en == "..." ? "heOnly" : null,
+          this.props.source.text.he && this.props.source.text.he == "..." ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null
       );
 
@@ -321,7 +321,7 @@ class SheetSource extends Component {
           {linkCountElement}
 
 
-        {this.props.source.text ?
+        {this.props.source.text && this.props.source.text.he ?
           <div className="he">
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
@@ -330,7 +330,7 @@ class SheetSource extends Component {
           </div> : null }
 
 
-        {this.props.source.text ?
+        {this.props.source.text && this.props.source.text.en ?
           <div className="en">
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
