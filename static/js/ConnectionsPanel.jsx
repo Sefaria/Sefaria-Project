@@ -34,6 +34,7 @@ class ConnectionsPanel extends Component {
       flashMessage: null,
       currObjectVersions: {en: null, he: null},
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
+      linksLoaded: false, // has the list of refs been loaded
     };
   }
   componentDidMount() {
@@ -73,18 +74,33 @@ class ConnectionsPanel extends Component {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
-    if (this.props.srefs != "sheetRef") {
+    if (this.props.srefs == "sheetRef" ) {
+        this.setState({
+          linksLoaded: true,
+        });
+    }
+    else {
         var ref = this.sectionRef();
         if (!Sefaria.related(ref)) {
             Sefaria.related(ref, function (data) {
                 if (this._isMounted) {
-                    this.forceUpdate();
+                    this.setState({
+                      linksLoaded: true,
+                    });
                 }
             }.bind(this));
+        }
+        else {
+            this.setState({
+              linksLoaded: true,
+            });
         }
     }
   }
   reloadData() {
+    this.setState({
+      linksLoaded: false,
+    });
     Sefaria.clearLinks();
     this.loadData();
   }
@@ -167,11 +183,9 @@ class ConnectionsPanel extends Component {
     }
     return(srefs)
   }
-
   render() {
     var content = null;
-    var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
-    if (!loaded) {
+    if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
     } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Sheets") {
       content = (<div>
