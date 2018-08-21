@@ -5,12 +5,6 @@ body {
   color: #333;
   -webkit-text-size-adjust: 100%;
 }
-body {
-  /* font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif; */
-}
-body .he {
-  /* font-family: "Heebo", sans-serif; */
-}
 *::selection {
   background-color: #D2DCFF;
 }
@@ -23,11 +17,108 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+/* 
+Style Guide Font Hierarchy 
+https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
+*/
+.featureTitle .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 50px;
+  font-weight: normal;
+  color: #000;
+}
+.pageTitle .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: #000;
+}
+.chapterText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
+}
+.sectionTitleText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #666;
+  text-transform: uppercase,
+  letter-spacing: 0.1em;
+}
+.smallText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.systemText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+}
+.contentText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+.featureTitle .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 40px;
+  font-weight: normal;
+  color: #000;
+}
+.pageTitle .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: #000;
+}
+.chapterText .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
+}
+.sectionTitleText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #666;
+  text-transform: uppercase,
+  letter-spacing: 0.1em;
+}
+.smallText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.systemText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+}
+.contentText .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+/* end Style Guide */
 .sans,
 .sans .en,
 #s2 .sans .en,
 .sans .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .sans .he,
 #s2 .sans .he,
@@ -211,7 +302,7 @@ input.noselect {
 }
 .header .notifications {
   display: inline-block;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   line-height: 24px;
   height: 24px;
   width: 24px;
@@ -231,7 +322,7 @@ input.noselect {
   line-height: 1;
 }
 .header .login .en {
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 .header .login .he {
   font-family: "Heebo", sans-serif;
@@ -239,7 +330,7 @@ input.noselect {
 .header .testWarning {
   display: inline-block;
   color: white;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   background-color: #EFB4B6;
   border-radius: 12px;
   font-size: 14px;
@@ -425,7 +516,7 @@ input.noselect {
   background-color: #EFB4B6;
   padding: 14px 20px;
   box-sizing: border-box;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 #globalWarningMessage .close {
  float: right;
@@ -486,7 +577,7 @@ input.noselect {
   text-align: center;
   font-weight: lighter;
   font-style: normal;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
   /*border-bottom: 4px solid #E6E5E6;*/
@@ -503,9 +594,6 @@ input.noselect {
 }
 .he {
   font-size: 120%;
-}
-.int-he {
-  font-size: 110%;
 }
 .int-he .int-he {
   font-size: inherit;
@@ -577,7 +665,7 @@ input.noselect {
 }
 .interface-english .systemPanel .content .int-en {
   display: inline;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .interface-hebrew .systemPanel .content .int-he {
   display: inline;
@@ -806,7 +894,7 @@ h1 .languageToggle .he {
   color: #999;
   font-size: 11px;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -828,7 +916,7 @@ h1 .languageToggle .he {
   line-height: 16px;
 }
 .readerPanel h2 .en, .readerPanel h3 .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerPanel h2 .he, .readerPanel h3 .he {
   font-family: "Heebo", sans-serif;
@@ -873,6 +961,7 @@ a.resourcesLink {
   margin: 0;
   cursor: pointer;
   border-top: 4px solid transparent;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   letter-spacing: 1px;
   height: 46px;
   line-height: 46px;
@@ -911,6 +1000,7 @@ a.readerNavCategory {
   color: #333;
   font-size: 16px;
   border-top: 4px solid transparent;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   width: 100%;
   cursor: pointer;
   min-height: 46px;
@@ -963,7 +1053,7 @@ a.readerNavCategory {
   border-left: 0;
 }
 .readerNavMenu .resourcesLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .resourcesLink .he {
   font-family: "Heebo", sans-serif;
@@ -995,7 +1085,7 @@ a.readerNavCategory {
   text-transform: uppercase;
 }
 .readerNavMenu .siteLinks .siteLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .siteLinks .siteLink .he {
   font-family: "Heebo", sans-serif;
@@ -1119,7 +1209,7 @@ a.readerNavCategory {
   font-size: 14px;
 }
 .readerTextTableOfContents .readerTextToc .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
@@ -1156,7 +1246,7 @@ a.readerNavCategory {
 .sheetContent .sheetMetaDataBox .groupStatement {
   font-size: 17px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
@@ -1177,7 +1267,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 10px;
   margin-bottom: 20px;
   letter-spacing: 1px;
@@ -1359,7 +1449,7 @@ a.readerNavCategory {
   box-sizing: border-box;
 }
 .readerTextTableOfContents .content .sectionLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .sectionLink  .he {
   font-family: "Heebo", sans-serif;
@@ -1383,7 +1473,7 @@ a.readerNavCategory {
   padding-top: 6px;
 }
 .readerTextTableOfContents .content .structToggles .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .structToggles .he {
   font-family: "Heebo", sans-serif;
@@ -1523,7 +1613,7 @@ a.readerNavCategory {
   clear: both;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageHeader {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: .2em;
   color: #999;
@@ -1550,7 +1640,7 @@ a.readerNavCategory {
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-top: 10px;
 }
@@ -1626,7 +1716,7 @@ a.readerNavCategory {
     border-color: #ccc;
     border-radius: 3px;
     color: #333;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .dlVersionSelect option,
 .readerTextTableOfContents .content .dlVersionSelect option{
@@ -1643,7 +1733,7 @@ a.readerNavCategory {
     border: 1px solid #ccc;
     border-radius: 3px;
     color: #ccc;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .versionDownloadButton .downloadButtonInner,
 .readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
@@ -1702,7 +1792,7 @@ a.readerNavCategory {
   display: inline-block;
   font-size: 12px;
   color: #666;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -1724,7 +1814,7 @@ a.readerNavCategory {
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   padding-top: 5px;
 }
@@ -1740,7 +1830,7 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .searchContent .searchFilterToggle .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchContent .searchFilterToggle .he {
   font-family: "Heebo", sans-serif;
@@ -1778,7 +1868,7 @@ a.readerNavCategory {
     display:none;
 }
 .searchContent .searchFilterBoxes li {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
   padding: 15px 0 15px 15px;
   font-size: 14px;
@@ -1858,7 +1948,7 @@ a.readerNavCategory {
   border-collapse: collapse;
 }
 .searchContent .searchSortBox tr {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   padding: 15px;
   font-size: 14px;
   letter-spacing: 1px;
@@ -1966,7 +2056,7 @@ a.readerNavCategory {
 .searchContent .result .version {
   color: #999;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   font-size: 11px;
   margin: 8px 0;
@@ -1974,7 +2064,7 @@ a.readerNavCategory {
 .searchContent .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
@@ -2007,7 +2097,7 @@ a.readerNavCategory {
   height: 100px;
 }
 .searchContent .sheet_result .result_text_box a.owner_name {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
   color: #999;
   text-decoration: none;
@@ -2035,7 +2125,7 @@ a.readerNavCategory {
   width: 98%;
   margin-bottom: 20px;
   text-transform: uppercase;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet {
   display: flex;
@@ -2069,7 +2159,7 @@ a.readerNavCategory {
   margin: auto 14px;
 }
 .readerNavMenu .sheet .sheetAuthor {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
   margin-bottom: 6px;
@@ -2083,7 +2173,7 @@ a.readerNavCategory {
 .readerNavMenu .sheet .sheetViews{
   color: #CCC;
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet:hover .sheetViews{
   display: inline-block ;
@@ -2195,7 +2285,7 @@ a.readerNavCategory {
   align-items: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   color: #666;
   width: 100%;
@@ -2338,7 +2428,7 @@ a.readerNavCategory {
   font-family: "Heebo", sans-serif;
 }
 .interface-english .toggleSet.aliyotTorah, .interface-english .toggleSet .toggle-set-label{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
 }
 .toggleSet .toggle-set-label{
@@ -2428,7 +2518,7 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .toggleOption.smaller, .toggleOption.larger {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toggleOption.smaller {
   font-size: 12px;
@@ -2529,7 +2619,7 @@ a.readerNavCategory {
 }
 
 .parashahHeader .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
 .parashahHeader .he {
   font-family: "Heebo", sans-serif;
@@ -2873,7 +2963,7 @@ a.readerNavCategory {
   vertical-align: top;
 }
 .textRange .actionLinks .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
 .textRange .actionLinks .he {
   font-family: "Heebo", sans-serif;
@@ -3151,7 +3241,7 @@ a.readerNavCategory {
   color: #999;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .categoryFilterGroup a:hover {
   text-decoration: none;
@@ -3205,7 +3295,7 @@ a.readerNavCategory {
 }
 .fullFilterView .categoryFilter.notClickable {
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: transparent;
   padding: 12px 12px 28px;
   cursor: auto;
@@ -3219,7 +3309,7 @@ a.readerNavCategory {
 .showSelectedFilters {
   background-color: #222F4F;
   color: white;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   text-align: center;
   padding: 8px;
@@ -3304,7 +3394,7 @@ a.readerNavCategory {
 .textList .note .noteAuthor {
   color: #999;
   font-size: 15px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin: auto 14px;
 }
 .textList .sheet .sheetTitle {
@@ -3331,7 +3421,7 @@ a.readerNavCategory {
   margin-top: 6px;
   font-size: 13px;
   color: #666;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
 /*.interface-hebrew .textList .sheet .sheetTags {
@@ -3443,7 +3533,7 @@ a.readerNavCategory {
   color: inherit;
 }
 .toolsButton .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
   color: #ccc;
@@ -3465,7 +3555,7 @@ a.readerNavCategory {
   border: 1px solid #F7F7F7;
   box-shadow: none;
   font-size: 18px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding: 20px 26px;
   margin-bottom: 30px;
@@ -3554,7 +3644,7 @@ a.readerNavCategory {
   cursor: pointer;
   font-size: 15px;
   letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
 }
 .connectionsPanel .notePrivateButton.active,
@@ -3586,7 +3676,7 @@ a.readerNavCategory {
   color: #999;
   font-size: 15px;
   cursor: pointer;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .connectionsPanel.textList .note {
   padding: 30px 0;
@@ -3638,7 +3728,7 @@ a.readerNavCategory {
   margin: 0 6px;
 }
 .notificationsPanel .content {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 17px;
   color: #666;
 }
@@ -3653,7 +3743,7 @@ a.readerNavCategory {
   height: auto;
 }
 .systemPanel.readerNavMenu h1 .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .systemPanel.readerNavMenu h1 .he {
   font-family: "Heebo", sans-serif;
@@ -3726,7 +3816,7 @@ a.readerNavCategory {
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #appLoading {
   text-align: center;
@@ -3757,14 +3847,14 @@ a.readerNavCategory {
   display: inline-block;
   color: white;
   background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 16px 24px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
+  padding: 16px 30px;
   margin: 0 2px 6px 2px;
   cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   line-height: 1;
   text-align: center;
@@ -3779,7 +3869,6 @@ a.button {
 .button.white {
   background-color: white;
   color: #333;
-  border: 1px solid #ccc;
 }
 a.button.white {
   color: #333;
@@ -3812,7 +3901,7 @@ a .button:hover {
   margin: 6px 12px;
 }
 #backToS1 {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   top: 20px;
   left: 40px;
   cursor: pointer;
@@ -3885,7 +3974,7 @@ input {
   display: block;
 }
 .lexicon-results .entry .morphology {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   display: block;
 }
@@ -3918,7 +4007,7 @@ input {
   display: block;
 }
 .lexicon-results .attribution a {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
@@ -3978,7 +4067,7 @@ h2.splitHeader .he {
   flex-direction: column;
 }
 .interface-english .sheet.userSheet{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .interface-hebrew .sheet.userSheet{
   font-family: "Heebo", "sans-serif";
@@ -4104,7 +4193,7 @@ h2.splitHeader .he {
   display: block;
   text-align: center;
   font-size: 17px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
   color: #999;
 }
@@ -4165,7 +4254,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 20px;
 }
 .groupMemberListing + .groupMemberListing {
@@ -4455,7 +4544,7 @@ h2.splitHeader .he {
   direction: rtl;
 }
 .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchBox .keyboardInputInitiator {
     opacity: 0;
@@ -4505,7 +4594,7 @@ body #keyboardInputMaster tbody tr td table{
 body #keyboardInputMaster tbody tr td table tbody tr td{
     border: 0.5px solid #eee;
     background: white;
-    font-family: "Heebo","proxima-nova", sans-serif;
+    font-family: "Heebo","Roboto", sans-serif;
     min-width: 15px;
     vertical-align: middle;
     padding: 2px 8px;
@@ -4523,7 +4612,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   position: relative;
 }
 #editGroupPage .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #editGroupPage .int-he {
   font-family: "Heebo", sans-serif;
@@ -4650,7 +4739,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownList .dropdownOption {
   font-size: 16px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   padding: 0 22px;
   margin: 26px 0;
@@ -4833,7 +4922,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: inline-block;
   font-size: 12px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -4879,7 +4968,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .versionDetails,
 .versionsBox .versionDetails {
   font-size: 13px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-bottom: 5px;
   text-align: left;
@@ -5050,7 +5139,7 @@ span.purim-emoji img{
   text-align: center;
   justify-content: center;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -5149,7 +5238,7 @@ span.purim-emoji img{
 .oldSheetNotice,
 .oldSheetNotice a {
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
 }
 

@@ -3,7 +3,7 @@ html {
 
 body {
 	overflow-x: visible;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 }
 body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   	outline: auto;
@@ -592,7 +592,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheetMetadata .metadataOpenDetails {
 	font-size: 14px;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	padding: 35px 0;
 }
 
@@ -620,7 +620,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #s2LikeContainer {
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	color: #666;
 	font-size:12px;
 	height:26px;
@@ -1835,7 +1835,7 @@ line-height: normal;
 	background-color: #f2f2f2;
 	padding: 40px 0 60px 0;
 	text-align: center;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	font-size: 14px;
 	border-top: 1px #ccc solid;
 	border-bottom: 1px #ccc solid;
@@ -2144,12 +2144,12 @@ label[for="sourceSheetShareSelect"] {
 	font-size: 16px;
 	padding: 10px 15px;
     border-radius: 4px;
-	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+	font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 	margin-bottom: 0;
 }
 
 #sheetsContent textarea#sheetSummaryInput::placeholder {
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	color: #999999;
 }
 
@@ -2161,7 +2161,7 @@ label[for="sourceSheetShareSelect"] {
 	width: 100%;
 	font-size: 16px;
     height: 36px;
-	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+	font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 #shareWithOthers {
@@ -2301,7 +2301,7 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 
 #tags input {
     font-size: 16px;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .ui-icon {
@@ -2371,7 +2371,7 @@ a.tagit-close {
 	background-color: #f9f9f7;
 	border-radius: 3px;
 	border: 1px solid #ccc;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 
 }
 
@@ -2482,7 +2482,7 @@ a.tagit-close {
 .highlighterSegment[data-tag]::before {
     content: attr(data-tag) ;
     font-size: 14px;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
     position:absolute;
     z-index: 2;
     white-space:nowrap;

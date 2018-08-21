@@ -1,4 +1,3 @@
-/** font-family: "Heebo", sans-serif; => font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;***/
 .wrapper{
   background-color: #F9F9F7;
 }
@@ -23,23 +22,25 @@
 #register.static .inner {
   width: 302px;
 }
+/*
 .static .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static .int-he {
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif;
 }
+*/
 .static .control-elem, .static .control-elem .int-en{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static .control-elem .int-he {
   font-family: "Heebo", sans-serif;
 }
-.static .control-elem .int-bi{
-  font-family: "proxima-nova", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+.static .control-elem .int-bi {
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
 }
 .static .sans .int-en, .static.sans .int-en, .static .sans {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .static .sans .int-he, .static.sans .int-he  {
   font-family: "Heebo", sans-serif;
@@ -50,15 +51,13 @@
 .interface-hebrew .static .int-en {
   display: none;
 }
-.static h1,
 .static h2,
 .static h3,
 .static h4,
-.static h1 .int-en,
 .static h2 .int-en,
 .static h3 .int-en,
 .static h4 .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .interface-hebrew h1,
 .interface-hebrew h2,
@@ -175,7 +174,7 @@
   margin: auto;
 }
 .static .inner .button {
-  border-radius: 4px;
+  border-radius: 7px;
   padding: 16px 24px;
   cursor: pointer;
   font-size: 15px;
@@ -214,8 +213,7 @@
   margin-bottom: 0;
 }
 #homePage #homeCover {
-  color: white;
-  height: 570px;
+  height: 560px;
   padding: 180px 0;
   background-color: #ADA99B;
   box-sizing: border-box;
@@ -231,51 +229,54 @@
   min-width: 1200px;
   z-index: 0;
 }
-#homePage #homeCover h1 {
+#homePage #homeCover h1.featureTitle {
   color: white;
-  font-weight: normal;
-  font-size: 49px;
   height: 70px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+}
+#homePage #homeCover h1.featureTitle .int-en,
+#homePage #homeCover h1.featureTitle .int-he {
+  color: white;
 }
 #homePage #homeCover .sub {
-  font-size: 22px;
-  font-style: italic;
+  color: white;
+  font-size: 18px;
   margin: 0;
   position: relative;
 }
-#homePage #homeCover .sub .int-he{
-  font-style: normal;
+#homePage #homeCover .sub a {
+  font-size: 18px;
+}
+#homePage #homeCover .sub .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage #homeCover a {
   color: white;
   font-style: normal;
-  font-size: 21px;
   position: relative;
 }
 #homePage #homeCover .button {
   margin-top: 80px;
-  text-transform: uppercase;
-  padding: 16px 34px;
+  padding: 16px 30px;
 }
 #homePage .section {
   overflow: hidden;
   padding: 100px 0;
 }
 #homePage .sectionInner {
-  width: 720px;
+  width: 750px;
   max-width: 94%;
   margin: auto; 
 }
 #homePage .section:nth-child(even) {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 #homePage .section:nth-child(odd) {
   background-color: white;
 }
 #homePage .textBox {
   display: inline-block;
-  width: 350px;
+  width: 380px;
 }
 #homePage .imageBox {
   display: inline-block;
@@ -318,7 +319,7 @@
 }
 #homePage .section a .button {
   display: block;
-  width: 240px;
+  width: 250px;
   margin-bottom: 8px;
   text-align: center;
 }
@@ -347,16 +348,13 @@
   letter-spacing: 1px;
   text-transform: none;
   border: none;
-  color:  #666;
+  color: #000;
 }
 #homePage h2 .int-he{
   font-style: normal;
 }
 #homePage .description {
   margin: 26px 0 34px 0;
-  color: #999;
-  font-size: 17px;
-  font-style: italic;
   line-height: 1.2;
 }
 #homePage .description .int-he{
@@ -473,16 +471,16 @@
   font-size: 16px;
 }
 #homeConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #homeConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #homeConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #homeConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #homeConnect #subscribeMsg {
   margin-top: 40px;
@@ -580,7 +578,7 @@
   color: #333;
 }
 #activityList {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
   padding: 0;
 }
@@ -636,7 +634,7 @@
   padding-bottom: 15px;
 }
 #activityList + a.page-link{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
 }
 .registrationContent {
@@ -672,29 +670,29 @@
   font-size: 16px;
 }
 .registrationContent ::placeholder {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif; 
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif; 
   color: #999;
   font-size: 14px;
 }
 .registrationContent ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
   font-style: normal;
 }
 .registrationContent ::-moz-placeholder { /* Firefox 19+ */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
 }
 .registrationContent :-ms-input-placeholder { /* IE 10+ */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
   font-style: normal;
 }
 .registrationContent :-moz-placeholder { /* Firefox 18- */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
   font-style: normal;
@@ -1164,7 +1162,7 @@ input#id_email{
   padding-top: 10px;
 }
 #personPage #periodNameLine, #personPage #yearLine{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
   text-transform: uppercase;
   color: #aaa;
@@ -1342,7 +1340,7 @@ input#id_email{
   display: block;
   margin-bottom: 20px;
   font-size: 18px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #digitizedBySefaria p {
   margin-bottom: 20px;
@@ -1381,13 +1379,11 @@ input#id_email{
 #legalTabs a.current {
   background-color: white;
 }
-
 #edPage {
   overflow: hidden;
   color: #333;
   background-color: transparent;
 }
-
 #edPage .section {
   margin-bottom: 0;
 }
@@ -1405,17 +1401,24 @@ input#id_email{
   background-position: center;
 }
 #edPage #edCover h1 {
-  color: white;
-  font-weight: normal;
-  font-size: 49px;
   height: 70px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+}
+#edPage #edCover h1.featureTitle .int-en,
+#edPage #edCover h1.featureTitle .int-he {
+  color: white;
+}
+#edPage h1 .int-en, #edPage h2 .int-en{
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #edPage #edCover .sub {
-  font-size: 22px;
-  font-style: italic;
+  color: white;
+  font-size: 18px;
   margin: 0;
   position: relative;
+}
+#edPage #edCover .sub .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #edPage #edCover a {
   color: white;
@@ -1428,25 +1431,24 @@ input#id_email{
   padding: 16px 34px;
   outline: none;
 }
-
 #edPage .section {
   overflow: hidden;
   padding: 100px 0;
 }
 #edPage .sectionInner {
-  width: 720px;
+  width: 750px;
   max-width: 94%;
   margin: auto;
 }
 #edPage .section:nth-child(odd) {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 #edPage .section:nth-child(even) {
   background-color: white;
 }
 #edPage .textBox {
   display: inline-block;
-  width: 350px;
+  width: 380px;
 }
 #edPage .imageBox {
   display: inline-block;
@@ -1504,7 +1506,7 @@ input#id_email{
   margin-right: auto;
 }
 #edPage h1, #edPage h2 {
-    font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #edPage h2 {
   margin: 0 0 12px 0;
@@ -1515,7 +1517,7 @@ input#id_email{
   letter-spacing: 1px;
   text-transform: none;
   border: none;
-  color:  #666;
+  color: #000;
 }
 #edPage h2 img {
   top: 2px;
@@ -1523,9 +1525,6 @@ input#id_email{
 }
 #edPage .description {
   margin: 26px 0 34px 0;
-  color: #999;
-  font-size: 17px;
-  font-style: italic;
   line-height: 1.2;
 }
 #edPage .dedication {
@@ -1566,16 +1565,16 @@ input#id_email{
   font-size: 16px;
 }
 #edConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #edConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #edConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #edConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #edConnect #subscribeMsg {
   margin-top: 40px;
