@@ -165,9 +165,9 @@ class SheetContent extends Component {
       $highlighted.focus();
     }
   }
-    
-    
-    
+
+
+
   cleanHTML(html) {
     html = html.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ');
     var clean = sanitizeHtml(html, {
@@ -350,11 +350,7 @@ class SheetSource extends Component {
           {linkCountElement}
 
 
-<<<<<<< HEAD
-        {this.props.source.text && this.props.source.text.he != "" ?
-=======
-        {this.props.source.text && this.props.source.text.he ?
->>>>>>> master
+        {this.props.source.text && this.props.source.text.he && this.props.source.text.he != "" ?
           <div className="he">
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
@@ -363,11 +359,7 @@ class SheetSource extends Component {
           </div> : null }
 
 
-<<<<<<< HEAD
-        {this.props.source.text && this.props.source.text.en != "" ?
-=======
-        {this.props.source.text && this.props.source.text.en ?
->>>>>>> master
+        {this.props.source.text && this.props.source.text.en && this.props.source.text.en != "" ?
           <div className="en">
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
