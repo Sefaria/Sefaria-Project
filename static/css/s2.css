@@ -2634,8 +2634,8 @@ a.readerNavCategory {
 .heRight.bilingual .sheetItem.segment.enOnly > .en,
 .heRight.bilingual .sheetItem.segment.heOnly > .he {
   width: 100%;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 0;
+  padding-right: 0;
 }
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he {
@@ -4985,6 +4985,7 @@ span.purim-emoji img{
 
 .sheetsInPanel {
   overflow-y: scroll;
+  overflow-x: hidden;
   height: 100%;
   padding: 0 15px;
   box-sizing: border-box;
@@ -5076,15 +5077,7 @@ span.purim-emoji img{
 }
 
 .sheetContent .customSourceTitle {
-  padding: 0 28px;
-  margin: 24px 0;
-  color: #999;
-  text-align: center;
-  justify-content: center;
-  font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: none;
 }
 .sheetsInPanel p {
   margin: 0 0 1em 0;
