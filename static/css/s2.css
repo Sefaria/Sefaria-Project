@@ -5221,3 +5221,9 @@ span.purim-emoji img{
 .groupImageContainer img {
   max-width: 100%;
 }
+
+sup.nechama {
+    margin-right: -35px;
+    position: absolute;
+    text-decoration: none;
+}

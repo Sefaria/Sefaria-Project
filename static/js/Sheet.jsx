@@ -182,6 +182,9 @@ class SheetContent extends Component {
               div: ['style'],
               td: ['colspan'],
             },
+            allowedClasses: {
+             'sup': ['nechama'],
+            },
             allowedStyles: {
               '*': {
                 'color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
