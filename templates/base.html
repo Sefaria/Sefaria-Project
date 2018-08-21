@@ -30,7 +30,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
-    <meta name="twitter:description" content="{{ desc|striptags }}" />
+    <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
     <meta name="twitter:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
 
 

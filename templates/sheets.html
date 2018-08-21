@@ -5,7 +5,8 @@
 
 {% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block soc_description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
