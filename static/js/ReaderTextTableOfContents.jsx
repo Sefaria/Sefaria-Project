@@ -445,6 +445,7 @@ ReaderTextTableOfContents.propTypes = {
 class DictionarySearch extends Component {
   componentDidMount() {
     this.initAutocomplete();
+    this.attachKeyboard();
   }
   initAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
@@ -478,6 +479,12 @@ class DictionarySearch extends Component {
         );
       }.bind(this)
     });
+  }
+  attachKeyboard() {
+    var inputElement = document.querySelector('.dictionaryTocSearchBox .keyboardInput');
+    if (inputElement && (!inputElement.VKI_attached)) {
+      VKI_attach(inputElement);
+    }
   }
   handleSearchButtonClick(event) {
     var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
