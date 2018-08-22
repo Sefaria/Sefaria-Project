@@ -550,13 +550,11 @@ class DictionarySearch extends Component {
         d => {
           var resolvedWord = (d.length > 0) ? d[0][1] : word;
           var ref = this.props.title + ", " + resolvedWord;
-          this.props.close();
           this.props.showBaseText(ref, false, this.props.currVersions);
           }
       )
     } else {
       var ref = this.props.title + ", " + word;
-      this.props.close();
       this.props.showBaseText(ref, false, this.props.currVersions);
     }
   }
