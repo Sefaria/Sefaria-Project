@@ -2193,6 +2193,7 @@ a.readerNavCategory {
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
