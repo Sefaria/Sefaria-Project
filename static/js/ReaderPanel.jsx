@@ -573,12 +573,16 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       var oref  = Sefaria.parseRef(this.state.refs[0]);
       var title = oref && oref.index ? oref.index : "empty";
+      var bookTitle = oref && oref.index ? oref.index  : "";
+      var heBookTitle = oref ? oref.heTitle : "";
       items.push(<TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
           basetext={true}
+          bookTitle={bookTitle}
+          heBookTitle={heBookTitle}
           withContext={true}
           loadLinks={true}
           prefetchNextPrev={true}

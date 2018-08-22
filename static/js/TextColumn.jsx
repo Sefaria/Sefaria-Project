@@ -296,14 +296,11 @@ class TextColumn extends Component {
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
-        var oref = Sefaria.ref(this.props.srefs[0]);
-        var title = oref ? oref.book : "";
-        var heTitle = oref ? oref.heTitle : "";
 
         content.splice(0, 0, (
-          <div className="bookMetaDataBox">
-              <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{title}</div>
-              <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{heTitle}</div>
+          <div className="bookMetaDataBox" key="prev">
+              <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{this.props.bookTitle}</div>
+              <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{this.props.heBookTitle}</div>
           </div>
         ));
 
