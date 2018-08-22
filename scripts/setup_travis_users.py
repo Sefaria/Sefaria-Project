@@ -2,7 +2,7 @@ import os
 import django
 django.setup()
 from django.contrib.auth.models import User
-
+from sefaria.model import UserProfile
 users = User.objects.all()
 user = users[0]
 if user.email == os.environ["SEFARIA_SUPERUSER"]:
@@ -16,3 +16,6 @@ u = User.objects.create_user(os.environ["SEFARIA_TEST_USER"],
 u.first_name = "Testy"
 u.last_name = "McTestUser"
 u.save()
+
+p = UserProfile(id=u.id)
+p.mark_interrupting_message_read('newUserWelcome')
