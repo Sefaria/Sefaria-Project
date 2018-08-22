@@ -22,7 +22,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
+from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -1637,7 +1637,7 @@ class VirtualTextChunk(AbstractTextRecord):
             "title": oref.index_node.parent.lexicon.index_title,
             "versionTitle": oref.index_node.parent.lexicon.version_title,
             "language": oref.index_node.parent.lexicon.version_lang
-        })    # Currently vtitle is thrown out.  There's only one version of each lexicon.
+        }, {"chapter":0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
 
     def version(self):
         return self._version
@@ -2245,6 +2245,7 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
+                # The line below will raise DictionaryEntryNotFound if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
                 self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
@@ -3701,7 +3702,7 @@ class Ref(object):
         condition_addr = self.storage_address()
         if not isinstance(self.index_node, JaggedArrayNode):
             # This will also return versions with no content in this Ref location - since on the version, there is a dictionary present.
-            # We could enter the dictionary and check each array, but it's not clear that it's neccesary.
+            # We could enter the dictionary and check each array, but it's not clear that it's necessary.
             d.update({
                 condition_addr: {"$exists": True}
             })

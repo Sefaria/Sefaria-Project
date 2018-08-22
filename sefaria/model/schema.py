@@ -1403,6 +1403,14 @@ class VirtualNode(TitledTreeNode):
         pass
 
 
+class DictionaryEntryNotFound(InputError):
+    def __init__(self, message, lexicon_name=None, base_title=None, word=None):
+        super(DictionaryEntryNotFound, self).__init__(message)
+        self.lexicon_name = lexicon_name
+        self.base_title = base_title
+        self.word = word
+
+
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
 
@@ -1446,8 +1454,9 @@ class DictionaryEntryNode(TitledTreeNode):
         if self.word:
             self.lexicon_entry = self.parent.dictionaryClass().load({"parent_lexicon": self.parent.lexiconName, "headword": self.word})
             self.has_word_match = bool(self.lexicon_entry)
-        else:
-            self.word = "Not Found"
+
+        if not self.word or not self.has_word_match:
+            raise DictionaryEntryNotFound("Word not found in {}".format(self.parent.full_title()), self.parent.lexiconName, self.parent.full_title(), self.word)
 
     def has_numeric_continuation(self):
         return True
