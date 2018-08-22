@@ -5078,6 +5078,7 @@ span.purim-emoji img{
 
 .sheetContent .customSourceTitle {
   text-transform: none;
+  margin-bottom: 0;
 }
 .sheetsInPanel p {
   margin: 0 0 1em 0;
@@ -5158,13 +5159,13 @@ span.purim-emoji img{
   display: none;
 }
 
-.sheetContent .sheetItem > .he > span {
-  /* some sheet content comes over in a `span` instead of `p` -- this helps to display appropriately. */
+.sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;
-  display: inline-block;
+  display: block;
 }
 
-.sheetContent .sheetItem > .he > span > p:last-child {
+.sheetContent .sheetItem.segment .sourceContentText p:last-child,
+.sheetContent .sheetItem.segment .sourceContentText p:last-child {
   margin-bottom: 0;
 }
 
