@@ -277,7 +277,9 @@ class ToggleOption extends Component {
 
 class ReaderNavigationMenuSearchButton extends Component {
   render() {
-    return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}><i className="fa fa-search"></i></span>);
+    return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
+      <img src="/static/icons/iconmonstr-magnifier-2.svg" />
+    </span>);
   }
 }
 
