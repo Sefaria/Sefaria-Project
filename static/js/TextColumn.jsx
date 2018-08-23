@@ -102,7 +102,7 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
-    //console.log("handle text load");
+    console.log("handle text load");
     this.setScrollPosition();
     this.adjustInfiniteScroll();
   }
@@ -125,7 +125,7 @@ class TextColumn extends Component {
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         node.scrollTop = top;
-        //console.log("total top: " + top)
+        //console.log("After load at top, total top: " + top)
       }
     } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
       //console.log("scroll to highlighted");
@@ -139,6 +139,7 @@ class TextColumn extends Component {
       node.scrollTop = 90;
       //console.log(node.scrollTop);
       this.initialScrollTopSet = true;
+      this.justScrolled = true;
     }
   }
   adjustInfiniteScroll() {

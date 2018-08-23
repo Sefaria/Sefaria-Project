@@ -532,7 +532,7 @@ class TextIndexer(object):
             "version_priority": version_priority if version_priority is not None else 1000,
             "titleVariants": text["titleVariants"],
             "categories": temp_categories,
-            "order": comp_start_date,
+            "order": oref.order_id(),
             "path": "/".join(temp_categories + [cls.curr_index.title]),
             "pagesheetrank": pagerank * sheetrank,
             "comp_date": comp_start_date,
