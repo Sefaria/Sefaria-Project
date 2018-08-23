@@ -23,6 +23,11 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+@font-face {
+    font-family: 'Hebrew Text Font';
+    src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+    unicode-range: U+0590-05FF;
+}
 .sans,
 .sans .en,
 #s2 .sans .en,
@@ -446,7 +451,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
