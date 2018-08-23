@@ -564,6 +564,9 @@ class Util {
                       function (d) { response(d["completions"]); }
                   );
                 },
+                select: function(event, ui) {
+                  this._lookupAndRoute(ui.item.value);
+                }.bind(this),
                 minLength: 3
             });
     };
