@@ -110,7 +110,7 @@ class ReaderPanel extends Component {
 
     if (this.state.mode == "Sheet") {
       var newSettings = this.state.settings
-      newSettings["language"] = this.state.sheet.options.language
+      newSettings["language"] = this.state.sheet.options.language || "bilingual"
       this.conditionalSetState({ settings: newSettings});
     }
 
