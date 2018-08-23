@@ -255,7 +255,7 @@ class TextColumn extends Component {
   }
   render() {
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
-    var isDictionary = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index).categories[0] == "Dictionary";
+    var isDictionary = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index).categories[0] == "Reference";
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
         panelPosition ={this.props.panelPosition}
