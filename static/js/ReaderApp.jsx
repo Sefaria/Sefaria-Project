@@ -490,7 +490,7 @@ class ReaderApp extends Component {
                 hist.mode  = "sheets tag";
               }
               else {
-                hist.url   = "sheets/tags/" + state.navigationSheetTag;
+                hist.url   = "sheets/tags/" + state.navigationSheetTag.replace("#","%23");
                 hist.title = state.navigationSheetTag + " | " + Sefaria._("Sefaria Source Sheets");
                 hist.mode  = "sheets tag";
               }
