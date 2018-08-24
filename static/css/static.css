@@ -1,5 +1,5 @@
 .wrapper{
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .container{
   width: 100%;
@@ -10,26 +10,21 @@
 .static {
   color: #333333;
   font-size: 15px;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static .inner {
   width: 90%;
   max-width: 660px;
   margin: 0 auto;
-  padding: 124px 0 100px;
+  padding: 140px 0 100px;
 }
 #register.static .inner {
   width: 302px;
 }
-/*
-.static .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-}
 .static .int-he {
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif;
 }
-*/
 .static .control-elem, .static .control-elem .int-en{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -75,16 +70,19 @@
   font-weight: lighter;
   letter-spacing: 1px;
   text-align: center;
-  font-size: 26px;
-  margin: 0 0 80px 0;
+  font-size: 30px;
+  margin: 0 0 60px 0;
   height: auto;
+}
+.static h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static h2 {
   font-weight: lighter;
-  font-size: 15px;
-  letter-spacing: 1px;
+  font-size: 16px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #999;
+  color: #666;
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
@@ -333,11 +331,8 @@
 #homePage .section.center .button {
   margin: 0 auto;
 }
-#homePage h1 .int-en, #homePage h2 .int-en{
+#homePage h2 .int-en{
   font-family: "adobe-garamond-pro", Georgia, serif;
-}
-#homePage h1 .int-he, #homePage h2 .int-he{
-  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 #homePage h2 {
   margin: 0 0 12px 0;
@@ -641,12 +636,6 @@
   margin: 1% auto 0;
   width: 320px;
 }
-.registrationContent h1 .int-en{
-  font-family: "adobe-garamond-pro", Georgia, serif;
-}
-.registrationContent h1 .int-he{
-  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}
 .registrationContent label {
   display: none;
 }
@@ -812,11 +801,8 @@ input#id_email{
   margin-bottom: 60px;
 }
 #aboutPage p {
-  font-size: 18px;
+  font-size: 16px;
   margin-bottom: 30px;
-}
-#aboutPage p.first {
-  font-style: italic;
 }
 #aboutPage .year {
   margin-top: 30px;
@@ -906,7 +892,7 @@ input#id_email{
 #teamPage .teamMember .teamEmail {
   color: #999;
 }
-#teamPage .teamMember .teamBio {
+#teamPage .teamMember .teamBio { 
   margin-top: 20px;
   white-space: normal;
 }
@@ -1494,7 +1480,7 @@ input#id_email{
 }
 #edPage .section a .button {
   display: block;
-  width: 242px;
+  width: 280px;
   margin-bottom: 8px;
   text-align: center;
 }

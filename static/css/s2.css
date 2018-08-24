@@ -9,7 +9,7 @@ body {
   background-color: #D2DCFF;
 }
 body.sepia {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 body.dark {
   background-color: #333331;
@@ -396,7 +396,7 @@ input.noselect {
   padding: 18px 15px;
   z-index: 1001;
   border: 1px solid #E6E6E6;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   text-align: center;
   color: #666;
 }
@@ -437,7 +437,7 @@ input.noselect {
   margin-left: -225px;
   left: 50%;
   top: 50%;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   padding: 32px 20px;
   box-sizing: border-box;
   text-align: center;
@@ -667,6 +667,10 @@ input.noselect {
   display: inline;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.interface-english .systemPanel .content h1 .int-en {
+  display: inline;
+  font-family: "adobe-garamond-pro", Georgia;
+}
 .interface-hebrew .systemPanel .content .int-he {
   display: inline;
   font-family: "Heebo", sans-serif;
@@ -697,7 +701,7 @@ input.noselect {
   height: 100%;
   box-sizing: border-box;
   z-index: 101;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .readerNavMenu .content {
   position: relative;
@@ -718,7 +722,7 @@ input.noselect {
   padding: 30px 0px 0px 0px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
-  padding-top: 70px;
+  padding-top: 80px;
 }
 .multiPanel .readerNavMenu.compare .content {
   padding-top: 80px;
@@ -730,7 +734,7 @@ input.noselect {
 .readerNavTop {
   /*position: absolute;*/
   width: 100%;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   height: 58px;
@@ -832,10 +836,10 @@ input.noselect {
 }
 .readerNavMenu h1 {
   text-align: center;
-  color: #333;
+  color: #000;
   height: 70px;
   position: relative;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: lighter;
   letter-spacing: 1px;
   margin: 0 0 10px 0;
@@ -1154,7 +1158,7 @@ a.readerNavCategory {
 .readerNavMenu .readerNavCategoryMenu td,
 .readerSheetsNav .gridBox td {
   background-color: white;
-  border: 3px solid #F9F9F7;
+  border: 3px solid #FBFBFA;
 }
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
@@ -1162,7 +1166,7 @@ a.readerNavCategory {
 @media (max-width: 450px) {
   .readerNavMenu .readerNavCategoryMenu td,
   .readerSheetsNav .gridBox td {
-    border: 4px solid #F9F9F7;
+    border: 4px solid #FBFBFA;
   }
 }
 .readerNavMenu .readerNavCategoryMenu .refLink,
@@ -2219,7 +2223,7 @@ a.readerNavCategory {
   height: 60px;
   line-height: 60px;
   box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .sepia .readerControls {
   background-color: #F3F3F1;
@@ -2407,7 +2411,7 @@ a.readerNavCategory {
   padding: 20px;
   box-sizing: border-box;
   direction: ltr;
-  background: #f9f9f7;
+  background: #FBFBFA;
   border-bottom: 1px solid #ccc;
   z-index: 103;
 }
@@ -2447,7 +2451,7 @@ a.readerNavCategory {
   padding: 4px;
   height: 42px;
   line-height: 34px;
-  background-color: #f9f9f7;
+  background-color: #FBFBFA;
   vertical-align: middle;
 }
 .toggleSet.aliyotTorah .toggleOption{
@@ -3060,7 +3064,7 @@ a.readerNavCategory {
   position: absolute;
   text-align: justify;
   margin: 0 auto;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .sepia .textlist {
   background-color: #F3F3F1;
@@ -3268,7 +3272,7 @@ a.readerNavCategory {
 }
 .fullFilterView {
   border-top: 1px solid #ddd;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   padding: 40px 20px;
 }
 .sepia .fullFilterView {
@@ -3280,7 +3284,7 @@ a.readerNavCategory {
 }
 .fullFilterView td {
   background-color: white;
-  border: 2px solid #F9F9F7;
+  border: 2px solid #FBFBFA;
 }
 .fullFilterView td.empty {
   background-color: transparent;
@@ -3331,10 +3335,10 @@ a.readerNavCategory {
 }
 .textList .texts {
   position: relative;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .sepia .textList .texts {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .dark .textList .texts {
   background-color: #333331;
@@ -3593,7 +3597,7 @@ a.readerNavCategory {
 }
 .confirmAddToSheet {
   text-align: center;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .confirmAddToSheet .message {
   font-size: 18px;
@@ -3730,17 +3734,11 @@ a.readerNavCategory {
 }
 .notificationsPanel .content {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 17px;
-  color: #666;
+  font-size: 16px;
+  color: #000;
 }
 .systemPanel.readerNavMenu h1 {
-  color: #333;
-  position: relative;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  text-align: center;
-  font-size: 26px;
-  margin: 0 0 80px 0;
+  margin: 0 0 40px 0;
   height: auto;
 }
 .systemPanel.readerNavMenu h1 .en {
@@ -3774,7 +3772,7 @@ a.readerNavCategory {
   padding: 5px 0 0;
 }
 .notificationsPanel .notification .date {
-  color: #ccc;
+  color: #999;
   font-size: 13px;
   margin-top: 8px;
 }
@@ -3821,7 +3819,7 @@ a.readerNavCategory {
 }
 #appLoading {
   text-align: center;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   height: 100%;
   color: #666;
 }
@@ -4326,12 +4324,6 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .role.current {
   color: #666;
 }
-.topicsPanel.systemPanel.readerNavMenu h1 {
-  margin: 0 0 30px 0;
-}
-.topicsPanel.systemPanel.readerNavMenu h3 {
-
-}
 .topicsPanel .loadingMessage {
   text-align: center;
 }
@@ -4513,7 +4505,7 @@ h2.splitHeader .he {
   top: 240px;
   width: 330px;
   padding: 20px;
-  background: #F9F9F7;;
+  background: #FBFBFA;;
   border: #ccc 1px solid;
   border-radius: 4px;
   box-shadow: 0px 0px 10px #ccc;
@@ -4562,7 +4554,7 @@ body #keyboardInputMaster {
     opacity: 1;
     top: 53px !important;
     left:70px !important;
-    background-color: #F9F9F7;
+    background-color: #FBFBFA;
     border: 1px solid #ccc;
     padding: 5px;
     box-shadow: none;
