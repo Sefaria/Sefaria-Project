@@ -2689,6 +2689,10 @@ a.readerNavCategory {
   background-color: inherit;
 }
 
+.sheetContent .segment a {
+    color: #000;
+}
+
 
 .readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
