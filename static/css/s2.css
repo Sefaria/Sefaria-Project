@@ -451,7 +451,8 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Frank Ruehl Libre",
+  "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -5218,6 +5219,24 @@ span.purim-emoji img{
   text-align: center;
 }
 .cookiesNotification a {
+  text-decoration: underline;
+  color: inherit;
+}
+.readerMessageBox {
+  z-index: 9999;
+  color: #000;
+  font-size: 16px;
+  background-color: #ededec;
+  border: 1px solid #ccc;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  padding: 10px 0;
+  margin: 40px;
+  line-height: 1.1;
+  text-align: center;
+}
+.readerMessageBox a {
   text-decoration: underline;
   color: inherit;
 }

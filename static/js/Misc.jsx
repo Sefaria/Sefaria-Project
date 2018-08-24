@@ -705,19 +705,35 @@ SheetAccessIcon.propTypes = {
 
 
 class ReaderMessage extends Component {
-  // Message explaining development status with links to send feedback or go back to the old site
+  // Component for determining user feedback on new element
+  constructor(props) {
+    super(props)
+    var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes(this.props.messageName+"Accepted");
+    this.state = {showNotification: showNotification};
+  }
+  setFeedback(status) {
+    Sefaria.track.uiFeedback(this.props.messageName+"Accepted", status);
+    $.cookie((this.props.messageName+"Accepted"), 1, {path: "/"});
+    this.setState({showNotification: false});
+  }
   render() {
+    if (!this.state.showNotification) { return null; }
     return (
-      <div className="testMessageBox">
-        <div className="overlay" onClick={this.props.hide} ></div>
-        <div className="testMessage">
-          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
-          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
-          <div className="button" onClick={null} >Return to Old Sefaria</div>
+      <div className="readerMessageBox">
+        <div className="readerMessage">
+          <div className="int-en">{this.props.message}</div>
+          <div className="button small" role="button" onClick={() => this.setFeedback('Like')}>{this.props.buttonLikeText}</div>
+          <div className="button small" role="button" onClick={() => this.setFeedback('Dislike')}>{this.props.buttonDislikeText}</div>
         </div>
       </div>);
   }
 }
+ReaderMessage.propTypes = {
+  messageName: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
+  buttonLikeText: PropTypes.string.isRequired,
+  buttonDislikeText: PropTypes.string.isRequired,
+};
 
 
 class CookiesNotification extends Component {
@@ -764,6 +780,7 @@ module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
+module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
