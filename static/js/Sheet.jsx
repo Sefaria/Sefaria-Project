@@ -288,7 +288,7 @@ class SheetContent extends Component {
       <div className="sheetContent">
         <div className="sheetMetaDataBox">
             <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
-                {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/,' | ').replace(/( \| )$/g,'')}
+                {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
             </div>
 
             <div className="authorStatement"><a href={this.props.authorUrl}>{this.props.authorStatement}</a></div>
