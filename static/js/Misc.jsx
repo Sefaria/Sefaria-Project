@@ -703,6 +703,23 @@ SheetAccessIcon.propTypes = {
 };
 
 
+
+class ReaderMessage extends Component {
+  // Message explaining development status with links to send feedback or go back to the old site
+  render() {
+    return (
+      <div className="testMessageBox">
+        <div className="overlay" onClick={this.props.hide} ></div>
+        <div className="testMessage">
+          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
+          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
+          <div className="button" onClick={null} >Return to Old Sefaria</div>
+        </div>
+      </div>);
+  }
+}
+
+
 class CookiesNotification extends Component {
   constructor(props) {
     super(props)

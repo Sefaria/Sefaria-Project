@@ -565,7 +565,7 @@ class MySheetsList extends Component {
   render() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
     var content = sheets.length ? sheets.map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -583,7 +583,7 @@ class PublicSheetsList extends Component {
       // My sheets are show already in MySheetList
       return sheet.owner !== Sefaria._uid;
     }).map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -596,7 +596,8 @@ PublicSheetsList.propTypes = {
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e, sheet) {
-    //console.log("Sheet Click Handled");
+      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
+      //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
     } else {

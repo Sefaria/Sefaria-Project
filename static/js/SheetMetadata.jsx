@@ -160,23 +160,23 @@ class SheetMetadata extends Component {
          <div>
             <div className="int-en">
                 {Sefaria._uid == this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?paper=1"} className="button white" role="button">Edit Sheet</a> :
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">Edit Sheet</a> :
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? "Unlike" : "Like"}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
 
                 {Sefaria._uid != this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?paper=1"} className="button white" role="button">View in Editor</a> : null }
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">View in Editor</a> : null }
             </div>
             <div className="int-he">
                 {Sefaria._uid == this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?paper=1"} className="button white" role="button">ערוך</a> :
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">ערוך</a> :
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? Sefaria._("Unlike") : Sefaria._("Like")}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
 
                 {Sefaria._uid != this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?paper=1"} className="button white" role="button">לתצוגת עריכה</a> : null }
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">לתצוגת עריכה</a> : null }
 
             </div>
 

@@ -188,10 +188,10 @@ def view_sheet(request, sheet_id):
 	"""
 	View the sheet with sheet_id.
 	"""
-	paper = request.GET.get('paper', '0')
+	editor = request.GET.get('editor', '0')
 	embed = request.GET.get('embed', '0')
 
-	if paper != '1' and embed !='1':
+	if editor != '1' and embed !='1':
 		return catchall(request, sheet_id, True)
 
 	sheet = get_sheet(sheet_id)
