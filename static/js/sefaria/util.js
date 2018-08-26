@@ -532,7 +532,7 @@ class Util {
 
          new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
-         As currently designed, the object is instantiated, and sets up its own events.
+         The object is instantiated, and sets up its own events.
          It doesn't need to be interacted with from the outside.
          */
 

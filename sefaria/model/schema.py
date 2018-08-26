@@ -1546,7 +1546,6 @@ class DictionaryNode(VirtualNode):
         except KeyError:
             raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.lexiconName))
 
-
     def _init_defaults(self):
         super(DictionaryNode, self)._init_defaults()
 
@@ -1554,10 +1553,16 @@ class DictionaryNode(VirtualNode):
         super(DictionaryNode, self).validate()
 
     def first_child(self):
-        return self.entry_class(self, word=self.firstWord)
+        try:
+            return self.entry_class(self, word=self.firstWord)
+        except DictionaryEntryNotFound:
+            return None
 
     def last_child(self):
-        return self.entry_class(self, word=self.lastWord)
+        try:
+            return self.entry_class(self, word=self.lastWord)
+        except DictionaryEntryNotFound:
+            return None
 
     def serialize(self, **kwargs):
         """

@@ -2847,7 +2847,10 @@ class Ref(object):
                 while True:
                     next_leaf = current_leaf.next_leaf() #next schema/JANode
                     if next_leaf and next_leaf.is_virtual:
-                        return next_leaf.first_child().ref()
+                        if next_leaf.first_child():
+                            return next_leaf.first_child().ref()
+                        else:
+                            return None
                     if next_leaf:
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
                         potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1)
@@ -2880,7 +2883,10 @@ class Ref(object):
                 while True:
                     prev_leaf = current_leaf.prev_leaf()  # prev schema/JANode
                     if prev_leaf and prev_leaf.is_virtual:
-                        return prev_leaf.last_child().ref()
+                        if prev_leaf.last_child():
+                            return prev_leaf.last_child().ref()
+                        else:
+                            return None
                     if prev_leaf:
                         prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
                         potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
