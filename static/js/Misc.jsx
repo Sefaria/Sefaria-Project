@@ -708,7 +708,7 @@ class ReaderMessage extends Component {
   // Component for determining user feedback on new element
   constructor(props) {
     super(props)
-    var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes(this.props.messageName+"Accepted");
+    var showNotification = Sefaria._inBrowser && !document.cookie.includes(this.props.messageName+"Accepted");
     this.state = {showNotification: showNotification};
   }
   setFeedback(status) {
