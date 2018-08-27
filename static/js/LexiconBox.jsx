@@ -155,24 +155,26 @@ class LexiconEntry extends Component {
     var entry = this.props.data;
     var lexicon_dtls = entry['parent_lexicon_details'];
 
+    var sourceContent = <div>
+      <span className="int-en">Source: </span>
+      <span className="int-he">מקור:</span>
+      {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
+    </div>;
+
+    var attributionContent = <div>
+      <span className="int-en">Creator: </span>
+      <span className="int-he">יוצר:</span>
+      {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
+    </div>;
+
     return (
         <div>
-            <span>
-              <a target="_blank"
-                  href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
-                <span className="int-en">Source: </span>
-                <span className="int-he">מקור:</span>
-                {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
-              </a>
-            </span>
-            <span>
-              <a target="_blank"
-                  href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
-                <span className="int-en">Creator: </span>
-                <span className="int-he">יוצר:</span>
-                {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
-              </a>
-            </span>
+          {('source_url' in lexicon_dtls) ?
+            <a target="_blank" href={ lexicon_dtls['source_url'] }>{sourceContent}</a> :
+            sourceContent}
+          {('attribution_url' in lexicon_dtls) ?
+            <a target="_blank" href={ lexicon_dtls['attribution_url'] }>{attributionContent}</a> :
+            attributionContent}
         </div>
     );
   }

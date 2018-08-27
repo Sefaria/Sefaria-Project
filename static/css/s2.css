@@ -3961,10 +3961,9 @@ input {
 .lexicon-results .attribution {
 
 }
-.lexicon-results .attribution a {
+
+.lexicon-results .attribution div {
   display: block;
-}
-.lexicon-results .attribution a {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
