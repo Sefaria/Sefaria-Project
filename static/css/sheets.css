@@ -125,11 +125,9 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 150px auto 56px;
+	margin: 160px auto 56px;
 	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
-
-
 	width:850px;
 	padding:60px 0px;
 
@@ -1694,7 +1692,7 @@ line-height: normal;
     z-index: 21;
     font-size: 16px;
     color: #333;
-    top: 54px;
+    top: 60px;
 }
 
 .sheetsMenuBar, .sheetsEditorControls{

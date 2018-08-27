@@ -255,6 +255,33 @@ class Util {
             return this; // for testing purposes
         };
 
+        Array.prototype.insertInOrder = function(element, comparer) {
+          // see https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
+          // insert `element` into array so that the array remains sorted, assuming it was sorted to begin with
+          this.splice(this.locationOfSorted(element, comparer) + 1, 0, element);
+          return this;
+        };
+
+        Array.prototype.locationOfSorted = function(element, comparer, start, end) {
+          // https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
+          // get index to insert `element` into array so that array remains sorted, assuming it was sorted to begin with
+          if (this.length === 0)
+            return -1;
+
+          start = start || 0;
+          end = end || this.length;
+          const pivot = (start + end) >> 1;  // should be faster than dividing by 2
+
+          const c = comparer(element, this[pivot]);
+          if (end - start <= 1) return c == -1 ? pivot - 1 : pivot;
+
+          switch (c) {
+            case -1: return this.locationOfSorted(element, comparer, start, pivot);
+            case 0: return pivot;
+            case 1: return this.locationOfSorted(element, comparer, pivot, end);
+          };
+        };
+
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {

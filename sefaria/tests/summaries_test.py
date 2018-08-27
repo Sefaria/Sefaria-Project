@@ -41,7 +41,7 @@ class Test_Toc(object):
 
     def recur_toc_integrity(self, toc, depth=0):
         for toc_elem in toc:
-            if 'category' in toc_elem:
+            if 'category' in toc_elem and 'contents' in toc_elem:
                 #verify proper category node (including that it doesnt have a title attr)
                 self.verify_category_node_integrity(toc_elem)
                 self.recur_toc_integrity(toc_elem['contents'], depth+1)
@@ -50,13 +50,17 @@ class Test_Toc(object):
                 self.verify_text_node_integrity(toc_elem)
 
     def verify_category_node_integrity(self, node):
-        # search toc doesn't have 'enComplete' or 'heComplete'
+        # search toc doesn't have 'enComplete' or 'heComplete' empty categories don't have 'contents'
         try:
             assert set(node.keys()) <= {'category', 'heCategory', 'contents', 'enComplete', 'heComplete'}
-            assert {'category', 'heCategory', 'contents'} <= set(node.keys())
+            if getattr(node, 'contents', None):
+                assert {'category', 'heCategory', 'contents'} <= set(node.keys())
+                assert isinstance(node['contents'], list)
+            else:
+                assert {'category', 'heCategory'} <= set(node.keys())
             assert isinstance(node['category'], basestring)
             assert isinstance(node['heCategory'], basestring)
-            assert isinstance(node['contents'], list)
+
         except AssertionError as e:
             print u"Bad category:"
             print node

@@ -4213,7 +4213,7 @@ class Library(object):
         :return:
         """
 
-        index_object_title = index_object.title if isinstance(index_object, Index) else index_object
+        index_object_title = old_title if old_title else (index_object.title if isinstance(index_object, Index) else index_object)
         Ref.remove_index_from_cache(index_object_title)
 
         for lang in self.langs:

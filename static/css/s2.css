@@ -48,7 +48,7 @@ body:not(.user-is-tabbing) *:focus {
 }
 #s2.headerOnly {
   z-index: 1000;
-  height: 54px;
+  height: 60px;
 }
 .readerApp {
   position: absolute;
@@ -77,8 +77,8 @@ input.noselect {
 }
 #panelWrapBox {
   position: absolute;
-  top: 54px;
-  height: calc(100% - 54px);
+  top: 60px;
+  height: calc(100% - 60px);
   box-sizing: border-box;
 }
 #panelWrapBox.wrapBoxScroll {
@@ -95,7 +95,7 @@ input.noselect {
   top: 0;
   left: 0;
   width: 100%;
-  height: 54px;
+  height: 60px;
   background: white;
   z-index: 1001;
   box-sizing: border-box;
@@ -105,8 +105,8 @@ input.noselect {
   justify-content: space-between;
   align-items: center;
 }
-.headerOnly .headerInner {
-  border-bottom: 1px solid #ccc;
+.headerOnly .headerInner, .headerInner.boxShadow {
+  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
 }
 .interface-hebrew .headerInner{
   direction: rtl;
@@ -118,9 +118,9 @@ input.noselect {
 }
 .headerInner .headerHomeSection{
   position: absolute;
-  top: 16px;
+  top: 17px;
   left: 50%;
-  margin-left: -51px;
+  margin-left: -53px;
 }
 .headerInner .headerLinksSection{
   display: flex;
@@ -147,7 +147,7 @@ input.noselect {
   text-align: inherit;
   margin: 0px 17px 0 17px;
 }
-.header .searchBox input{
+.header .searchBox input {
   background-color: transparent; /*for firefox */
   margin-top: 1px;
 }
@@ -167,6 +167,10 @@ input.noselect {
 }
 .header .home {
   margin-top: 1px;
+}
+.header .home img {
+  vertical-align: middle;
+  height: 25px;
 }
 .header .login:first-child{
   margin: auto 30px;
@@ -194,11 +198,6 @@ input.noselect {
   img.keyboardInputInitiator{
     display: none;
   }
-}
-.header .home img {
-  opacity: 0.8;
-  vertical-align: middle;
-  height: 22px;
 }
 .header .accountLinks {
   display: inline-block;
@@ -370,24 +369,32 @@ input.noselect {
   opacity: 0.4;
   margin-top: 2px
 }
-.header .readerNavMenuSearchButton,
 .header .readerNavMenuMenuButton {
   margin: 0 8px 0 6px;
   font-size: 17px;
 }
 
-.header .readerNavMenuSearchButton{
-  position:relative;
-  top: -1px;
+.header .readerNavMenuSearchButton {
+  position: relative;
+  margin: 0 10px 0 6px;
+  top: -3px;
+  font-size: 18px;
 }
-
+.interface-hebrew .readerNavMenuSearchButton {
+  margin: 0 6px 0 10px;
+}
+.header .readerNavMenuSearchButton img {
+  height: 19px;
+  opacity: 0.4;
+  vertical-align: middle;
+}
 .header .headerNavContent {
   position: fixed;
   height: 100%;
   width: 100%;
   box-sizing: border-box;
   top: 0;
-  padding-top: 54px;
+  padding-top: 60px;
   z-index: 1000;
 }
 .ui-autocomplete {
@@ -456,7 +463,7 @@ input.noselect {
 }
 .readerContent {
   width: 100%;
-  height: calc(100% - 58px);
+  height: calc(100% - 60px);
   background-color: inherit;
 }
 .dark .readerContent {
@@ -519,7 +526,8 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu,
-#s2.interface-hebrew .readerPanel .readerNavMenu .gridBox,
+.interface-hebrew .readerPanel .readerNavMenu .gridBox,
+.interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
@@ -609,9 +617,6 @@ input.noselect {
   box-sizing: border-box;
   z-index: 101;
   background-color: #F9F9F7;
-}
-.headerNavContent .readerNavMenu.noHeader {
-  border-top: 1px solid #ccc;
 }
 .readerNavMenu .content {
   position: relative;
@@ -1091,7 +1096,7 @@ a.readerNavCategory {
   top: 0;
   left: 0;
   width: 100%;
-  height: 6px;
+  height: 4px;
   z-index: 101;
 }
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .en {
@@ -2139,9 +2144,9 @@ a.readerNavCategory {
   border-top: 4px solid transparent;
   text-align: center;
   z-index: 100;
-  height: 58px;
-  line-height: 54px;
-  border-bottom: 1px solid #ddd;
+  height: 60px;
+  line-height: 60px;
+  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
   background-color: #F9F9F7;
 }
 .sepia .readerControls {
@@ -2155,11 +2160,13 @@ a.readerNavCategory {
 .dark .readerControls .readerTextToc .readerTextTocBox {
   color: white;
 }
-.readerControls.connectionsHeader.fullPanel  {
-  background-color: #EDEDED;
-}
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.readerControls.connectionsHeader.fullPanel  {
+  background-color: #EDEDED;
 }
 .connectionsPanelHeader .connectionsHeaderTitle {
   text-transform: uppercase;
@@ -2204,6 +2211,7 @@ a.readerNavCategory {
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -3875,26 +3883,32 @@ a .button:hover {
 ::-webkit-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+   color: #000;
 }
 ::-moz-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+   color: #000;
 }
 :-ms-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
+   color: #000;
 }
 .interface-hebrew ::-webkit-input-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
+  color: #000;
 }
 .interface-hebrew ::-moz-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
+  color: #000;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
+  color: #000;
 }
 input {
 }
