@@ -93,8 +93,11 @@ class LexiconBox extends Component {
     }else{
       var entries = this.state.entries;
       content =  entries.filter(e => e['parent_lexicon_details']['text_categories'].length == 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
-            return (<LexiconEntry data={entry} key={i} />)
-          });
+            return (<LexiconEntry 
+                data={entry} 
+                onEntryClick={this.props.onEntryClick}
+                key={i} />)
+          }.bind(this));
       content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
     }
     return (
@@ -108,7 +111,8 @@ class LexiconBox extends Component {
 }
 LexiconBox.propTypes = {
   selectedWords: PropTypes.string,
-  oref:          PropTypes.object
+  oref:          PropTypes.object,
+  onEntryClick:  PropTypes.func
 };
 
 
@@ -130,29 +134,47 @@ class LexiconEntry extends Component {
       </li>
     );
   }
+  getRef() {
+    var ind = this.props.data.parent_lexicon_details.index_title;
+    return ind ? `${ind}, ${this.props.data.headword}`: "";
+
+  }
+  handleClick(event) {
+    if (this.props.onEntryClick) {
+      //Click on the body of the TextRange itself from TextList
+      this.props.onEntryClick(this.getRef());
+      Sefaria.track.event("Reader", "Click Dictionary Entry from Lookup", this.getRef());
+    }
+  }
+  handleKeyPress(event) {
+    if (event.charCode == 13) {
+      this.handleClick(event);
+    }
+  }
   renderLexiconAttribution () {
     var entry = this.props.data;
-		var lexicon_dtls = entry['parent_lexicon_details'];
-        return (
-            <div>
-                <span>
-                  <a target="_blank"
-                      href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
-                    <span className="int-en">Source: </span>
-                    <span className="int-he">מקור:</span>
-                    {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
-                  </a>
-                </span>
-                <span>
-                  <a target="_blank"
-                      href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
-                    <span className="int-en">Creator: </span>
-                    <span className="int-he">יוצר:</span>
-                    {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
-                  </a>
-                </span>
-            </div>
-        );
+    var lexicon_dtls = entry['parent_lexicon_details'];
+
+    return (
+        <div>
+            <span>
+              <a target="_blank"
+                  href={('source_url' in lexicon_dtls) ? lexicon_dtls['source_url'] : ""}>
+                <span className="int-en">Source: </span>
+                <span className="int-he">מקור:</span>
+                {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
+              </a>
+            </span>
+            <span>
+              <a target="_blank"
+                  href={('attribution_url' in lexicon_dtls) ? lexicon_dtls['attribution_url'] : ""}>
+                <span className="int-en">Creator: </span>
+                <span className="int-he">יוצר:</span>
+                {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
+              </a>
+            </span>
+        </div>
+    );
   }
   render() {
     var entry = this.props.data;
@@ -170,7 +192,7 @@ class LexiconEntry extends Component {
     var senses = this.renderLexiconEntrySenses(entry['content']);
     var attribution = this.renderLexiconAttribution();
     return (
-        <div className="entry">
+        <div className="entry" onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.getRef()}>
           <div className={headwordClassNames}>{entryHeadHtml}{altHeadHtml}</div>
           <div className={definitionClassNames}>{morphologyHtml}<ol className="definition">{senses}</ol></div>
           <div className="attribution">{attribution}</div>
@@ -179,7 +201,8 @@ class LexiconEntry extends Component {
   }
 }
 LexiconEntry.propTypes = {
-  data: PropTypes.object.isRequired
+  data: PropTypes.object.isRequired,
+  onEntryClick:  PropTypes.func
 };
 
 

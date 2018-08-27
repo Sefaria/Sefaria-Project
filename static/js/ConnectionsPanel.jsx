@@ -290,12 +290,13 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Lexicon") {
       content = (<LexiconBox
                     selectedWords={this.props.selectedWords}
-                    oref={Sefaria.ref(this.props.srefs[0])} />);
+                    oref={Sefaria.ref(this.props.srefs[0])}
+                    onEntryClick={this.props.onTextClick}
+      />);
 
     } else if (this.props.mode === "Tools") {
-        console.log(this.props.srefs)
-        console.log(this.props.canEditText)
-        console.log(this.props.canEditText)
+        console.log(this.props.srefs);
+        console.log(this.props.canEditText);
       content = (<ToolsList
                     srefs={this.props.srefs}
                     canEditText={this.props.canEditText}

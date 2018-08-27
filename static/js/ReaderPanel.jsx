@@ -244,8 +244,8 @@ class ReaderPanel extends Component {
   }
   handleSheetClick(e,sheet) {
     e.preventDefault();
-    var newSettings = this.state.settings
-    newSettings["language"] = sheet.options.language
+    var newSettings = this.state.settings;
+    newSettings["language"] = sheet.options.language;
     this.conditionalSetState({ mode: "Sheet", sheet: sheet, settings: newSettings});
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
