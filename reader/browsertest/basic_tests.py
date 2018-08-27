@@ -23,6 +23,7 @@ class ReaderSuite(TestSuite):
 
     def setup(self):
         self.load_toc(my_temper=60)
+        self.driver.delete_all_cookies()
         self.set_cookies_cookie()
 
 
@@ -33,6 +34,8 @@ class PageloadSuite(TestSuite):
     every_build = True
 
     def setup(self):
+        self.load_toc(my_temper=60)
+        self.driver.delete_all_cookies()
         self.set_cookies_cookie()
 
 
@@ -451,11 +454,13 @@ class InfiniteScrollUp(AtomicTest):
     every_build = True
 
     def test_up(self, start_ref, prev_segment_ref):
-        self.browse_to_ref(start_ref).scroll_reader_panel_up(100)
+        from urllib import quote_plus
+        self.browse_to_ref(start_ref)
+        self.scroll_reader_panel_up(1000)
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % prev_segment_ref)))
         time.sleep(.5)
         # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
-        assert Ref(start_ref).url() in self.driver.current_url, self.driver.current_url      
+        assert quote_plus(Ref(start_ref).url()) in self.driver.current_url, self.driver.current_url
 
     def body(self):
         # Simple Text
