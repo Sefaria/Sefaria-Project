@@ -725,7 +725,17 @@ def add_source_to_sheet_api(request, sheet_id):
 			source.pop("versionLanguage", None)
 			source["text"] = text
 
+		else:
+			text = {}
+			tc_eng = TextChunk(ref, "en")
+			tc_heb = TextChunk(ref, "he")
 
+
+			if tc_eng:
+				text["en"] = tc_eng.ja().flatten_to_string() if tc_eng.ja().flatten_to_string() != "" else "..."
+			if tc_heb:
+				text["he"] = tc_heb.ja().flatten_to_string() if tc_heb.ja().flatten_to_string() != "" else "..."
+			source["text"] = text
 	note = request.POST.get("note", None)
 	response = add_source_to_sheet(int(sheet_id), source, note=note)
 
