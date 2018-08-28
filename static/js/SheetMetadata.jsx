@@ -266,7 +266,7 @@ class SheetMetadata extends Component {
                     <div className="tocDetails">
                       {details ? <div className="description">{details}</div> : null}
                     </div>
-                    {this.props.sheet.tags.length > 0 ?
+                    {this.props.sheet.tags && this.props.sheet.tags.length > 0 ?
                     <div className="tagsSection">
                         <h2 className="tagsTitle int-en">Tags</h2>
                         <div className="sheetTags int-en">
