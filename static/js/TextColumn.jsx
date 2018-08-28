@@ -136,14 +136,7 @@ class TextColumn extends Component {
     } else if (!this.initialScrollTopSet && (node.scrollHeight > node.clientHeight)) {
       //console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
-      var first   = Sefaria.ref(this.props.srefs[0]);
-      var hasPrev = first && first.prev;
-      if (!hasPrev) {
-        node.scrollTop = 0;
-      }
-      else {
-        node.scrollTop = 90;
-      }
+      node.scrollTop = 90;
       //console.log(node.scrollTop);
       this.initialScrollTopSet = true;
       this.justScrolled = true;
@@ -297,14 +290,7 @@ class TextColumn extends Component {
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
-
-        content.splice(0, 0, (
-          <div className="bookMetaDataBox" key="prev">
-              <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{this.props.bookTitle}</div>
-              <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{this.props.heBookTitle}</div>
-          </div>
-        ));
-
+        content.splice(0, 0, (<LoadingMessage message={topSymbol} heMessage={topSymbol} className="base prev" key="prev"/>));
       }
       if (hasNext) {
         content.push((<LoadingMessage className="base next" key="next"/>));

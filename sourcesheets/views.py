@@ -188,10 +188,11 @@ def view_sheet(request, sheet_id):
 	"""
 	View the sheet with sheet_id.
 	"""
-	editor = request.GET.get('editor', '0')
-	embed = request.GET.get('embed', '0')
+	panel = request.GET.get('panel', '0')
 
-	if editor != '1' and embed !='1':
+
+
+	if panel == '1':
 		return catchall(request, sheet_id, True)
 
 	sheet = get_sheet(sheet_id)
@@ -725,17 +726,7 @@ def add_source_to_sheet_api(request, sheet_id):
 			source.pop("versionLanguage", None)
 			source["text"] = text
 
-		else:
-			text = {}
-			tc_eng = TextChunk(ref, "en")
-			tc_heb = TextChunk(ref, "he")
 
-
-			if tc_eng:
-				text["en"] = tc_eng.ja().flatten_to_string() if tc_eng.ja().flatten_to_string() != "" else "..."
-			if tc_heb:
-				text["he"] = tc_heb.ja().flatten_to_string() if tc_heb.ja().flatten_to_string() != "" else "..."
-			source["text"] = text
 	note = request.POST.get("note", None)
 	response = add_source_to_sheet(int(sheet_id), source, note=note)
 

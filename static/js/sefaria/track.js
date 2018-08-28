@@ -78,9 +78,6 @@ class Track {
     static sheets(action, label) {
         this.event("Sheets", action, label);
     }
-    static uiFeedback(component, likeStatus) {
-        this.event("UI", component, likeStatus);
-    }
     static exploreUrl(url) {
         this.event("Explorer", "Open", url);
         this.pageview(url);

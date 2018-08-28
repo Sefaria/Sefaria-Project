@@ -622,7 +622,7 @@ class ReaderApp extends Component {
         hist.mode     = "SheetAndConnections";
       }
       if (state.mode !== "Header") {
-        hist.lang =  state.settings.language ? state.settings.language.substring(0,2) : "bi";
+        hist.lang =  state.settings.language.substring(0,2);
       }
       histories.push(hist);
     }

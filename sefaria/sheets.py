@@ -287,17 +287,6 @@ def save_sheet(sheet, user_id, search_override=False):
 		sheet["owner"] = user_id
 		sheet["views"] = 1
 
-		#ensure that sheet sources have nodes (primarily for sheets posted via API)
-		nextNode = sheet.get("nextNode", 1)
-		sheet["nextNode"] = nextNode
-		checked_sources = []
-		for source in sheet["sources"]:
-			if "node" not in source:
-				source["node"] = nextNode
-				nextNode += 1
-			checked_sources.append(source)
-		sheet["sources"] = checked_sources
-
 	if status_changed:
 		if sheet["status"] == "public" and "datePublished" not in sheet:
 			# PUBLISH
