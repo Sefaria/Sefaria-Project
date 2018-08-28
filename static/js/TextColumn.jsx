@@ -167,7 +167,7 @@ class TextColumn extends Component {
         refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
-        Sefaria.track.event("Reader", "Infinite Scroll", "Up");
+        // Sefaria.track.event("Reader", "Infinite Scroll", "Up");
       }
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
@@ -181,7 +181,7 @@ class TextColumn extends Component {
       if (data && data.next) {
         refs.push(data.next);
         this.props.updateTextColumn(refs);
-        Sefaria.track.event("Reader", "Infinite Scroll", "Down");
+        // Sefaria.track.event("Reader", "Infinite Scroll", "Down");
       }
     }
   }
