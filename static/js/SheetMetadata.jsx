@@ -160,22 +160,27 @@ class SheetMetadata extends Component {
          <div>
             <div className="int-en">
                 {Sefaria._uid == this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">Edit Sheet</a> :
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">Edit Sheet</a> :
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? "Unlike" : "Like"}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
-                <p className="oldSheetNotice"><a href={"/sheets/"+this.props.sheet.id+"?panel=0"}>View this in our old source sheet mode</a></p>
+
+                {Sefaria._uid != this.props.sheet.owner ?
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">View in Editor</a> : null }
             </div>
             <div className="int-he">
                 {Sefaria._uid == this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?panel=0"} className="button white" role="button">ערוך</a> :
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">ערוך</a> :
                     <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? Sefaria._("Unlike") : Sefaria._("Like")}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
-                <p className="oldSheetNotice"><a href={"/sheets/"+this.props.sheet.id+"?panel=0"}>לצפייה בדף המקורות הנוכחי בפורמט הישן</a></p>
+
+                {Sefaria._uid != this.props.sheet.owner ?
+                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">לתצוגת עריכה</a> : null }
+
             </div>
 
-            {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId+"?panel=1"}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}
+            {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}
          </div>
       )
     }
@@ -196,7 +201,7 @@ class SheetMetadata extends Component {
       authorStatement = "Assigned by <a href='"+this.props.sheet.assignerOwnerProfileUrl + "'>" + this.props.sheet.assignerName +" Completed by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a>";
     }
     else if (this.props.sheet.viaOwnerName) {
-      authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a> based on a <a href='/sheets/"+this.props.sheet.via+"?panel=1'>sheet</a> by <a href='"+ this.props.sheet.viaOwnerProfileUrl + "'>" + this.props.sheet.viaOwnerName+"</a>";
+      authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a> based on a <a href='/sheets/"+this.props.sheet.via+"'>sheet</a> by <a href='"+ this.props.sheet.viaOwnerProfileUrl + "'>" + this.props.sheet.viaOwnerName+"</a>";
     }
     else {
       authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a>";
@@ -233,7 +238,7 @@ class SheetMetadata extends Component {
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
-                      <div>
+                      <div className="groupImageContainer">
                           <img src={this.props.sheet.groupLogo} />
                       </div>
                     <a className="tocCategory" href="/sheets">
@@ -241,7 +246,7 @@ class SheetMetadata extends Component {
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
                     <div className="tocTitle" role="heading" aria-level="1">
-                      <span>{title.stripHtml()}</span>
+                      <span>{title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}</span>
                     </div>
                     <div className="tocDetail authorStatement" dangerouslySetInnerHTML={ {__html: authorStatement} }></div>
                     <div className="tocDetail authorStatement"><a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a></div>

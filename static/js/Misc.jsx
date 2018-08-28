@@ -705,6 +705,39 @@ SheetAccessIcon.propTypes = {
 };
 
 
+
+class ReaderMessage extends Component {
+  // Component for determining user feedback on new element
+  constructor(props) {
+    super(props)
+    var showNotification = Sefaria._inBrowser && !document.cookie.includes(this.props.messageName+"Accepted");
+    this.state = {showNotification: showNotification};
+  }
+  setFeedback(status) {
+    Sefaria.track.uiFeedback(this.props.messageName+"Accepted", status);
+    $.cookie((this.props.messageName+"Accepted"), 1, {path: "/"});
+    this.setState({showNotification: false});
+  }
+  render() {
+    if (!this.state.showNotification) { return null; }
+    return (
+      <div className="readerMessageBox">
+        <div className="readerMessage">
+          <div className="int-en">{this.props.message}</div>
+          <div className="button small" role="button" onClick={() => this.setFeedback('Like')}>{this.props.buttonLikeText}</div>
+          <div className="button small" role="button" onClick={() => this.setFeedback('Dislike')}>{this.props.buttonDislikeText}</div>
+        </div>
+      </div>);
+  }
+}
+ReaderMessage.propTypes = {
+  messageName: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
+  buttonLikeText: PropTypes.string.isRequired,
+  buttonDislikeText: PropTypes.string.isRequired,
+};
+
+
 class CookiesNotification extends Component {
   constructor(props) {
     super(props)
@@ -749,6 +782,7 @@ module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
+module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
