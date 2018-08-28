@@ -85,6 +85,12 @@ class AbstractTest(object):
         pass
         # self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
+    def set_cookies_cookie(self):
+        # set cookie to avoid popup interruption
+        # We now longer set the welcomeToS2LoggedOut message by default.
+        # TODO is this method still needed?
+        self.driver.add_cookie({"name": "cookiesNotificationAccepted", "value": "1"})
+
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
         user = os.environ["SEFARIA_TEST_USER"]
