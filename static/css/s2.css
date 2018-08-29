@@ -3571,7 +3571,8 @@ a.readerNavCategory {
 .connectionsPanel .loadingMessage {
   margin-top: 40px;
 }
-.connectionsPanel textarea.noteText {
+.connectionsPanel textarea.noteText,
+.connectionsPanel textarea.feedbackText {
   width: 100%;
   min-height: 100px;
   border: none;
@@ -5263,4 +5264,32 @@ sup.nechama {
     margin-right: -35px;
     position: absolute;
     text-decoration: none;
+}
+
+.feedbackBox p {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.feedbackBox .button {
+  margin: auto;
+  width: 100%;
+}
+
+.feedbackBox input {
+  padding: 16px 22px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-size: 15px;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #E9E9E9;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.connectionsPanel textarea.feedbackText {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #E9E9E9;
 }

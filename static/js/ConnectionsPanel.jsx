@@ -5,6 +5,7 @@ const {
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
   Note,
+  FeedbackBox,
 }                            = require('./Misc');
 const {
   CategoryFilter,
@@ -325,6 +326,14 @@ class ConnectionsPanel extends Component {
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />);
 
+    } else if (this.props.mode === "Feedback") {
+        console.log('feedback');
+      content = (<FeedbackBox
+                    srefs={this.props.srefs}
+                    url={window.location.href}
+                    currVersions={this.props.currVersions}
+                 />);
+
     } else if (this.props.mode === "Edit Note") {
       content = (<AddNoteBox
                     srefs={this.props.srefs}
@@ -454,6 +463,7 @@ class ResourcesList extends Component {
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
+              <ToolsButton en="Feedback" he="פידבק" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
   }
 }

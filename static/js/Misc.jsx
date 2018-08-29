@@ -705,6 +705,114 @@ SheetAccessIcon.propTypes = {
 };
 
 
+class FeedbackBox extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      type: null,
+      alertmsg: null,
+      feedbackSent: false,
+
+    };
+  }
+  sendFeedback() {
+
+    if (!this.state.type) {
+      this.setState({alertmsg: "Please select a feedback type"});
+      return
+    }
+
+    if (!Sefaria._uid && !this.validateEmail($("#feedbackEmail").val())) {
+      this.setState({alertmsg: "Please enter a valid email address"});
+      return
+    }
+
+    var feedback = {
+        refs: this.props.srefs || null,
+        type: this.state.type,
+        url: this.props.url || null,
+        currVersions: this.props.currVersions,
+        email: $("#feedbackEmail").val() || null,
+        msg: $("#feedbackText").val(),
+        uid: Sefaria._uid || null
+    };
+    var postData = {json: JSON.stringify(feedback)};
+      var url = "/api/send_feedback";
+
+    this.setState({feedbackSent: true});
+
+    $.post(url, postData, function (data) {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            console.log(data)
+            Sefaria.track.event("Tools", "Send Feedback", this.props.url);
+        }
+    }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+        alert("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.");
+    });
+
+  }
+  validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+  }
+  setType(type) {
+    this.setState({type: type});
+  }
+
+
+  render() {
+
+    if (this.state.feedbackSent) {
+        return (
+            <div className="feedbackBox">
+                <p className="int-en">Feedback sent!</p>
+                <p className="int-he">  </p>
+            </div>
+        )
+    }
+    return (
+        <div className="feedbackBox">
+            <p className="int-en">Have some feedback? We would love to hear it.</p>
+            <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
+            
+            {this.state.alertmsg ?  
+                <div>
+                    <p className="int-en">{this.state.alertmsg}</p>
+                    <p className="int-he">{this.state.alertmsg}</p>
+                </div>
+                : null
+            }
+
+
+            <Dropdown
+              options={[
+                        {value: "content_issue",   label: "Report an issue with the text"},
+                        {value: "bug_report",      label: "Report a bug"},
+                        {value: "help_request",    label: "Get help"},
+                        {value: "feature_request", label: "Request a feature"},
+                        {value: "good_vibes",      label: "Give thanks"},
+                        {value: "other",           label: "Other"},
+                      ]}
+              placeholder={"Select Type"}
+              onSelect={this.setType}
+            />
+
+            <textarea className="feedbackText" placeholder="Describe the issue..." id="feedbackText"></textarea>
+
+            {!Sefaria._uid ?
+                <div className="int-en"><input className="sidebarInput noselect" placeholder="Email Address" id="feedbackEmail" /></div>
+                : null }
+
+             <div className="button int-en" role="button" onClick={() => this.sendFeedback()}>Submit</div>
+             <div className="button int-he" role="button" onClick={() => this.sendFeedback()}>שלח</div>
+
+        </div>
+    );
+  }
+}
+
 
 class ReaderMessage extends Component {
   // Component for determining user feedback on new element
@@ -775,6 +883,7 @@ module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
 module.exports.CookiesNotification                       = CookiesNotification;
 module.exports.Dropdown                                  = Dropdown;
+module.exports.FeedbackBox                               = FeedbackBox;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;

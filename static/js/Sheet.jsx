@@ -287,15 +287,6 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-                { this.props.editable ?
-                    <ReaderMessage
-                        messageName="SheetInReaderFeedback"
-                        message="This is the new way to view sheets on Sefaria. You can access the editor mode by clicking on the Sheet title above."
-                        buttonLikeText="Thanks! It looks great."
-                        buttonDislikeText="I miss the old view."
-                    /> : null
-                }
-
         <div className="sheetMetaDataBox">
             <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
                 {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
