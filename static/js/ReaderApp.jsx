@@ -10,6 +10,7 @@ const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
 const {
   InterruptingMessage,
+  CookiesNotification,
 }                   = require('./Misc');
 import Component from 'react-class';
 
@@ -48,6 +49,7 @@ class ReaderApp extends Component {
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
           naturalDateCreated: initialPanel.sheet.naturalDateCreated,
+          groupLogo: initialPanel.sheet.groupLogo,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
@@ -1609,6 +1611,7 @@ class ReaderApp extends Component {
               {header}
               {panels}
               {interruptingMessage}
+              <CookiesNotification />
             </div>);
   }
 }

@@ -514,7 +514,7 @@ class MySheetsPage extends Component {
         this.getMoreSheets();
       }
     }
-
+    /*debugger;*/
     sheets = sheets ? sheets.map(function(sheet) {
       return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);

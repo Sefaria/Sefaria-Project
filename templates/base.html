@@ -5,9 +5,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}{{ title }}{% endblock %}</title>
+    <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
     <meta charset="utf-8">
-    <meta name="description" property="og:description" content="{% block description %}{{ desc }}{% endblock %}">
+    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}">
 
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
@@ -17,7 +17,22 @@
         <meta property="og:type" content="website"/>
     {% endblock %}
 
-    {% block ogimage %}<meta property="og:image" content="{{ STATIC_PREFIX }}img/locale/{{ request.interfaceLang|slice:"0:2" }}/fb-og-image.png" />{% endblock %}
+    {% block ogimage %}
+        <meta property="og:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=facebook" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+    {% endblock %}
+
+    <meta property="og:title" content="{{title|striptags}}" />
+    <meta property="og:url" content="//www.sefaria.org{{ request.path }}" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@sefariaproject" />
+    <meta name="twitter:title" content="{{title|striptags}}" />
+    <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
+    <meta name="twitter:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
+
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">

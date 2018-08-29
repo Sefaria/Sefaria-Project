@@ -5,7 +5,8 @@
 
 {% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block soc_description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
@@ -591,14 +592,28 @@
 	<div id="fileControls">
         <div id="fileControlMsg">
             <span class="int-en">
-                Like this? <a href="/login?next=/sheets/new">Login</a> or <a href="/register?next=/sheets/new">register</a> to create your own source sheet.
+                Like this? <a href="/login?next=/sheets/new">Login</a> or <a href="/register?next=/sheets/new">create an account</a> to build your own source sheet.
             </span>
             <span class="int-he">
                 אוהבים? <a href="/login?next=/sheets/new">התחברו</a> או <a href="/register?next=/sheets/new">הרשמו</a> כדי ליצור דף מקורות משלכם.
             </span>
         </div>
 	</div>
-	{% endif %}
+
+    {% elif not can_edit %}
+
+	<div id="fileControls">
+        <div id="fileControlMsg">
+            <span class="int-en">
+                We're rolling out a <a href="/sheets/{{sheet.id}}?panel=1">new view</a> for sheets. <a href="/sheets/{{sheet.id}}?panel=1">Check it out</a>, and let us know how it looks.
+            </span>
+            <span class="int-he">
+                אנחנו משיקים  <a href="/sheets/{{sheet.id}}?panel=1">מראה חדש</a> בדפי מקורות, <a href="/sheets/{{sheet.id}}?panel=1">בדקו את התכונה החדשה</a> ושתפו אותנו בחוויה שלכם.
+            </span>
+        </div>
+	</div>
+
+    {% endif %}
 
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
