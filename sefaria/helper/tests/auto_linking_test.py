@@ -18,6 +18,173 @@ class Test_AutoLinker(object):
         "Onkelos Genesis": LinkSet({"refs": {"$regex": "^Onkelos Genesis"}, "generated_by": "MatchBaseTextDepthAutoLinker"}).count()
     }
 
+    def test_setup(self):
+        # create dummy indexes: "Delete Me Many to One" and "Delete Me One to One"
+        # ensure dummy index was properly deleted
+        index = Index().load({'title': 'Delete Me Many to One'})
+        if index is not None:
+            ls = LinkSet(Ref("Delete Me Many to One"))
+            ls.delete()
+            index.delete()
+
+        # Build an index with some nodes
+        root = SchemaNode()
+        root.add_title('Delete Me Many to One', 'en', primary=True)
+        root.add_title(u'תמחק אותי הרבה לאחד', 'he', primary=True)
+        root.key = 'Delete Me'
+
+        intro = JaggedArrayNode()
+        intro.add_shared_term("Introduction")
+        intro.add_structure(['Chapter', 'Verse'])
+        intro.depth = 2
+        intro.key = 'intro'
+        root.append(intro)
+
+        default = JaggedArrayNode()
+        default.key = "default"
+        default.default = True
+        default.add_structure(["Chapter", "Verse", "Comment"])
+        root.append(default)
+
+        root.validate()
+
+        index = Index({
+            'schema': root.serialize(),
+            'title': 'Delete Me Many to One',
+            'categories': ['Tanakh'],
+        })
+        index.save()
+
+        # add some text
+        v = Version({
+            "language": "en",
+            "title": "Delete Me Many to One",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "Schema Test",
+            "chapter": root.create_skeleton()
+        }).save()
+
+        p1 = [['intro intro', 'intro'], ['intro'], ['intro', '', 'intro']]
+        chunk = TextChunk(Ref('Delete Me Many to One, Introduction'), 'en', 'Schema Test')
+        chunk.text = p1
+        chunk.save()
+
+        p2 = [[['Default default', 'default']], [['default', 'default!']], [['default', '', 'default']]]
+        chunk = TextChunk(Ref('Delete Me Many to One'), 'en', 'Schema Test')
+        chunk.text = p2
+        chunk.save()
+
+        #"refs": [base_ref, comm_ref], "generated_by": linker._generated_by_string, "type": "commentary", "auto": True
+        # add some links
+        Link({
+            'refs': ['Delete Me Many to One, Introduction 1:1', 'Shabbat 2a:5'],
+            'type': 'commentary',
+            "generated_by": "intro_parser",
+            "auto": True
+        }).save()
+        Link({
+            'refs': ['Delete Me Many to One, Introduction 2:1', 'Delete Me Many to One 2:1:2'],
+            'type': 'commentary',
+            "auto": True,
+            "generated_by": "intro_parser"
+        }).save()
+        Link({
+            'refs': ['Delete Me Many to One 3:1:2', 'Shabbat 2a:1'],
+            'type': 'commentary',
+            "generated_by": "add_commentary_links",
+            "auto": True
+        }).save()
+        Link({
+            'refs': ['Delete Me Many to One 1:1:1', 'Shabbat 2a:5'],
+            'type': 'commentary',
+            "auto": True,
+            "generated_by": "add_commentary_links"
+        }).save()
+        Link({
+            'refs': ['Delete Me Many to One 3:1:3', 'Shabbat 2a:5'],
+            'type': 'commentary',
+            "auto": True,
+            "generated_by": "add_commentary_links"
+        }).save()
+
+        # ensure dummy index was properly deleted
+        index = Index().load({'title': 'Delete Me One to One'})
+        if index is not None:
+            ls = LinkSet(Ref("Delete Me One to One"))
+            ls.delete()
+            index.delete()
+
+        # Build an index with some nodes
+        root = SchemaNode()
+        root.add_title('Delete Me One to One', 'en', primary=True)
+        root.add_title(u'תמחק אותי אחד לאחד', 'he', primary=True)
+        root.key = 'Delete Me'
+
+        intro = JaggedArrayNode()
+        intro.add_shared_term("Introduction")
+        intro.add_structure(['Chapter', 'Verse'])
+        intro.depth = 2
+        intro.key = 'intro'
+        root.append(intro)
+
+        default = JaggedArrayNode()
+        default.key = "default"
+        default.default = True
+        default.add_structure(["Chapter", "Verse"])
+        root.append(default)
+
+        root.validate()
+
+        index = Index({
+            'schema': root.serialize(),
+            'title': 'Delete Me One to One',
+            'categories': ['Tanakh'],
+        })
+        index.save()
+
+        # add some text
+        v = Version({
+            "language": "en",
+            "title": "Delete Me One to One",
+            "versionSource": "http://foobar.com",
+            "versionTitle": "Schema Test",
+            "chapter": root.create_skeleton()
+        }).save()
+
+        p1 = [['intro intro', 'intro'], ['intro'], ['intro', '', 'intro']]
+        chunk = TextChunk(Ref('Delete Me One to One, Introduction'), 'en', 'Schema Test')
+        chunk.text = p1
+        chunk.save()
+
+        p2 = [['Default default', 'default'], ['default', 'default!'], ['default', '', 'default']]
+        chunk = TextChunk(Ref('Delete Me One to One'), 'en', 'Schema Test')
+        chunk.text = p2
+        chunk.save()
+
+        # add some links
+        Link({
+            'refs': ['Delete Me One to One, Introduction 1:1', 'Shabbat 2a:5'],
+            'type': 'None'
+        }).save()
+        Link({
+            'refs': ['Delete Me One to One, Introduction 2:1', 'Delete Me One to One 2:1'],
+            'type': 'None'
+        }).save()
+        Link({
+            'refs': ['Delete Me One to One, Introduction 3', 'Shabbat 2a:5'],
+            'type': 'None'
+        }).save()
+        Link({
+            'refs': ['Delete Me One to One 1:2', 'Shabbat 2a:5'],
+            'type': 'None'
+        }).save()
+        Link({
+            'refs': ['Delete Me One to One 3:3', 'Shabbat 2a:5'],
+            'type': 'None'
+        }).save()
+
+        VersionState("Delete Me One to One").refresh()
+        print 'End of test setup'
 
     def test_rebuild_commentary_links(self):
         #test simple adding links
@@ -53,6 +220,8 @@ class Test_AutoLinker(object):
         tc = TextChunk(Ref(comm_ref), vtitle="test", lang="en")
         tc.text = "Intro first segment text"
         tc.save()
+
+        #new test should work how?  intro should have text and links that don't
 
         # assert that despite adding text to the intro node, the number of links
         # should be exactly as they were before (e.g desired_link_count)
@@ -330,3 +499,18 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
 
+
+    def test_teardown(self):
+        print 'Cleaning Up'
+        ls = LinkSet(Ref("Delete Me Many to One"))
+        ls.delete()
+        ls = LinkSet(Ref("Delete Me One to One"))
+        ls.delete()
+        v = Version().load({'title': 'Delete Me Many to One'})
+        v.delete()
+        v = Version().load({'title': 'Delete Me One to One'})
+        v.delete()
+        i = Index().load({'title': 'Delete Me Many to One'})
+        i.delete()
+        i = Index().load({"title": "Delete Me One to One"})
+        i.delete()
