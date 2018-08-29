@@ -94,7 +94,6 @@ def get_nation_builder_connection():
 
 def send_email(subject, message_html, from_email, to_email):
     msg = EmailMultiAlternatives(subject, message_html, from_email, [to_email])
-    msg.content_subtype = "html"  # Main content is now text/html
     msg.send()
 
     return True

@@ -142,11 +142,11 @@ def generate_feedback(request):
     if fb_type == "content_issue":
         to_email = "content@sefaria.org"
         subject = "Correction from website - " + ' / '.join(refs)
-        message_html = msg + "<br/><br/>" + "refs: " + ' / '.join(refs) + "<br/><br/>" + "versions: " + str(versions)
+        message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions)
     else:
         to_email = "hello@sefaria.org"
         subject = "Feedback from website - " + fb_type.replace("_"," ")
-        message_html = msg + "<br/><br/>" + "URL: " + url
+        message_html = msg + "\n\n" + "URL: " + url
 
 
 
