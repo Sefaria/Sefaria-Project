@@ -12,7 +12,8 @@
 .header,
 #addInterface,
 #fileControls,
-#footer
+#footer,
+.cookiesNotification
 {
 	display: none !important;
 	border: 0;

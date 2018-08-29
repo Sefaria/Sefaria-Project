@@ -61,7 +61,7 @@ SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
 
 # ElasticSearch server
-SEARCH_HOST = "http://localhost:9200"
+SEARCH_HOST = "https://www.sefaria.org/api/search"
 SEARCH_ADMIN = "http://localhost:9200"
 SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
 SEARCH_ADMIN_PW = None
@@ -80,6 +80,7 @@ SEFARIA_DATA_PATH = '{}/data'.format(HOME_DIR)  # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
 
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
+GOOGLE_MAPS_API_KEY = None
 MIXPANEL_CODE = 'you mixpanel code here'
 
 # Integration with a NationBuilder list
@@ -113,6 +114,7 @@ MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
+GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "sefaria/gauth/client_secrets.json"
 
 
 LOGGING = {
