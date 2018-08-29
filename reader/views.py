@@ -481,7 +481,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
-        breadcrumb = "/sheets/"+str(sheet["id"])+"?panel=1"
+        breadcrumb = "/sheets/"+str(sheet["id"])
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
 
 

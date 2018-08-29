@@ -24,6 +24,25 @@ class TextRange extends Component {
     this._isMounted = false;
     window.removeEventListener('resize', this.handleResize);
   }
+  shouldComponentUpdate(nextProps) {
+    if (this.props.sref !== nextProps.sref)                   { return true; }
+    if (!!this.props.filter !== !!nextProps.filter)           { return true; }
+    if (this.props.filter && nextProps.filter &&
+        !this.props.filter.compare(nextProps.filter))         { return true; }
+    if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
+    if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
+    if (nextProps.settings.language !== this.props.settings.language ||
+          nextProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
+          nextProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
+          nextProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
+          nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
+          nextProps.settings.biLayout !== this.props.settings.biLayout ||
+          nextProps.settings.fontSize !== this.props.settings.fontSize ||
+          nextProps.layoutWidth !== this.props.layoutWidth)       { return true; }
+    // lowlight ?
+
+    return false;
+  }
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
@@ -385,6 +404,7 @@ class TextRange extends Component {
     );
   }
 }
+
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
   currVersions:           PropTypes.object.isRequired,
@@ -410,7 +430,7 @@ TextRange.propTypes = {
   onCompareClick:         PropTypes.func,
   onOpenConnectionsClick: PropTypes.func,
   showBaseText:           PropTypes.func,
-  panelsOpen:             PropTypes.number,
+  panelsOpen:             PropTypes.number, // used?
   layoutWidth:            PropTypes.number,
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,

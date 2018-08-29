@@ -23,6 +23,11 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+@font-face {
+    font-family: 'Hebrew Text Font';
+    src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+    unicode-range: U+0590-05FF;
+}
 .sans,
 .sans .en,
 #s2 .sans .en,
@@ -453,7 +458,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "adobe-garamond-pro", "Crimson Text",  "Frank Ruehl Libre", "Taamey Frank", Georgia, serif;
+  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -480,7 +485,8 @@ input.noselect {
   box-sizing: border-box;
   background-color: inherit;
 }
-.textColumn .loadingMessage.base {
+.textColumn .loadingMessage.base,
+.sheetsInPanel .loadingMessage {
   margin: 30px 0;
   color: #999;
   text-align: center;
@@ -1145,7 +1151,8 @@ a.readerNavCategory {
   letter-spacing: 1px;
 }
 .readerTextTableOfContents .tocTitle,
-.sheetContent .title {
+.sheetContent .title,
+.bookMetaDataBox .title {
   text-align: center;
   font-size: 28px;
   line-height: 1.3;
@@ -1160,8 +1167,18 @@ a.readerNavCategory {
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.sheetContent .sheetMetaDataBox .groupStatement a {
+.sheetContent .sheetMetaDataBox .groupStatement a,
+.sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
+}
+
+.sheetContent .sheetMetaDataBox .groupStatement img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin: 2px 5px 0 -21px;
+  position: relative;
+  top: 2px;
 }
 
 .readerTextTableOfContents .currentSection .he,
@@ -2319,6 +2336,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: rtl;
   min-width: 0;
 }
+.hebrew .readerControls .readerTextToc .readerTextTocBox,
+.interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
+.interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
+  padding-left: 23px;
+  padding-right: 0;
+}
+.english .readerControls .readerTextToc .readerTextTocBox.sheetBox,
+.bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox {
+  padding-right: 23px;
+  padding-left: 0;
+}
+
+
+
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
   vertical-align: middle;
@@ -2657,6 +2688,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   display: block;
 }
+.heLeft.bilingual .sheetItem.segment.enOnly > .en,
+.heLeft.bilingual .sheetItem.segment.heOnly > .he,
+.heRight.bilingual .sheetItem.segment.enOnly > .en,
+.heRight.bilingual .sheetItem.segment.heOnly > .he {
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he {
   float: right;
@@ -2702,6 +2741,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .en div,
 .sheetContent .segment.highlight .he div {
   background-color: inherit;
+}
+
+.sheetContent .segment a {
+    color: #000;
 }
 
 
@@ -3831,6 +3874,18 @@ a.button {
 a.button.white {
   color: #333;
 }
+a.button.mini {
+  padding: 5px;
+  font-size: .8em;
+}
+
+.interface-english .userSheetTitle a.button.mini {
+  float: right;
+}
+.interface-hebrew .userSheetTitle a.button.mini {
+  float: left;
+}
+
 .button.white:hover {
 
 }
@@ -4998,6 +5053,7 @@ span.purim-emoji img{
 
 .sheetsInPanel {
   overflow-y: scroll;
+  overflow-x: hidden;
   height: 100%;
   padding: 0 15px;
   box-sizing: border-box;
@@ -5019,8 +5075,7 @@ span.purim-emoji img{
 .sheetContent .ref {
   cursor: pointer;
   color: #999;
-  text-transform: uppercase;
-  font-size: .8em;
+  font-size: 1em;
 }
 .sheetContent .ref a {
   color: #999;
@@ -5090,15 +5145,9 @@ span.purim-emoji img{
 }
 
 .sheetContent .customSourceTitle {
-  padding: 0 28px;
-  margin: 24px 0;
-  color: #999;
-  text-align: center;
-  justify-content: center;
-  font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: none;
+  margin-bottom: 0;
+  margin-top: 40px;
 }
 .sheetsInPanel p {
   margin: 0 0 1em 0;
@@ -5167,13 +5216,25 @@ span.purim-emoji img{
   text-align: center;
 }
 
-.sheetContent .sheetItem > .he > span {
-  /* some sheet content comes over in a `span` instead of `p` -- this helps to display appropriately. */
-  margin-bottom: 18px;
-  display: inline-block;
+.bookMetaDataBox {
+  margin: 40px auto;
+  text-align: center;
 }
 
-.sheetContent .sheetItem > .he > span > p:last-child {
+
+.bilingual .bookMetaDataBox .he,
+.english .bookMetaDataBox .he,
+.hebrew .bookMetaDataBox .en {
+  display: none;
+}
+
+.sheetContent .sheetItem.segment .sourceContentText {
+  margin-bottom: 18px;
+  display: block;
+}
+
+.sheetContent .sheetItem.segment .sourceContentText p:last-child,
+.sheetContent .sheetItem.segment .sourceContentText p:last-child {
   margin-bottom: 0;
 }
 
@@ -5193,7 +5254,9 @@ span.purim-emoji img{
 }
 
 .oldSheetNotice,
-.oldSheetNotice a {
+.oldSheetNotice a,
+.editSheetNotice,
+.editSheetNotice a {
   font-size: 12px;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
@@ -5216,4 +5279,32 @@ span.purim-emoji img{
 .cookiesNotification a {
   text-decoration: underline;
   color: inherit;
+}
+.readerMessageBox {
+  z-index: 9999;
+  color: #000;
+  font-size: 16px;
+  background-color: #ededec;
+  border: 1px solid #ccc;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  padding: 10px 0;
+  margin: 40px;
+  line-height: 1.1;
+  text-align: center;
+}
+.readerMessageBox a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+.groupImageContainer img {
+  max-width: 100%;
+}
+
+sup.nechama {
+    margin-right: -35px;
+    position: absolute;
+    text-decoration: none;
 }

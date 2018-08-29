@@ -2733,7 +2733,7 @@ function saveSheet(sheet, reload) {
 			return;
 		} else if (data.id) {
 			if (reload) {
-				window.location = "/sheets/" + data.id;
+				window.location = "/sheets/" + data.id+"?editor=1";
 			}
 			sjs.current = data;
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
