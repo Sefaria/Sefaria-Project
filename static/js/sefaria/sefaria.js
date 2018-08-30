@@ -1873,7 +1873,20 @@ Sefaria = extend(Sefaria, {
       "Vocalization": "טעמים וניקוד",
       "Vowels": "ניקוד",
       "Show only vowel points": "הצג טקסט עם ניקוד",
-      "Show only consonantal text": "הצג טקסט עיצורי בלבד"
+      "Show only consonantal text": "הצג טקסט עיצורי בלבד",
+      "Email Address" : "כתובת אימייל",
+      "Describe the issue..." : "טקסט המשוב",
+      "Report an issue with the text" : "דיווח על בעיה בטקסט",
+      "Report a bug" : "דיווח על תקלה באתר",
+      "Get help" : "עזרה",
+      "Request a feature": "בקשה להוספת אפשרות באתר",
+      "Give thanks": "תודה",
+      "Other": "אחר",
+      "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
+      "Please select a feedback type": "אנא בחרו סוג משוב",
+      "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
+      "Select Type" : "סוג משוב"
+
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
