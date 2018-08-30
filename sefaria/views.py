@@ -140,7 +140,7 @@ def generate_feedback(request):
         from_email = model.user_profile.UserProfile(id=uid).email
 
     if fb_type == "content_issue":
-        to_email = "content@sefaria.org"
+        to_email = "corrections@sefaria.org"
         subject = "Correction from website - " + ' / '.join(refs)
         message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions)
     else:
