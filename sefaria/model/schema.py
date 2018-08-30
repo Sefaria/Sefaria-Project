@@ -1403,6 +1403,14 @@ class VirtualNode(TitledTreeNode):
         pass
 
 
+class DictionaryEntryNotFound(InputError):
+    def __init__(self, message, lexicon_name=None, base_title=None, word=None):
+        super(DictionaryEntryNotFound, self).__init__(message)
+        self.lexicon_name = lexicon_name
+        self.base_title = base_title
+        self.word = word
+
+
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
 
@@ -1446,8 +1454,9 @@ class DictionaryEntryNode(TitledTreeNode):
         if self.word:
             self.lexicon_entry = self.parent.dictionaryClass().load({"parent_lexicon": self.parent.lexiconName, "headword": self.word})
             self.has_word_match = bool(self.lexicon_entry)
-        else:
-            self.word = "Not Found"
+
+        if not self.word or not self.has_word_match:
+            raise DictionaryEntryNotFound("Word not found in {}".format(self.parent.full_title()), self.parent.lexiconName, self.parent.full_title(), self.word)
 
     def has_numeric_continuation(self):
         return True
@@ -1537,7 +1546,6 @@ class DictionaryNode(VirtualNode):
         except KeyError:
             raise IndexSchemaError("No matching class for {} in DictionaryNode".format(self.lexiconName))
 
-
     def _init_defaults(self):
         super(DictionaryNode, self)._init_defaults()
 
@@ -1545,10 +1553,16 @@ class DictionaryNode(VirtualNode):
         super(DictionaryNode, self).validate()
 
     def first_child(self):
-        return self.entry_class(self, word=self.firstWord)
+        try:
+            return self.entry_class(self, word=self.firstWord)
+        except DictionaryEntryNotFound:
+            return None
 
     def last_child(self):
-        return self.entry_class(self, word=self.lastWord)
+        try:
+            return self.entry_class(self, word=self.lastWord)
+        except DictionaryEntryNotFound:
+            return None
 
     def serialize(self, **kwargs):
         """

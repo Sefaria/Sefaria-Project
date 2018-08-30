@@ -443,8 +443,47 @@ ReaderTextTableOfContents.propTypes = {
 };
 
 class DictionarySearch extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      val: "",
+      timer: null
+    };
+  }
   componentDidMount() {
+    this.attachKeyboard();
     this.initAutocomplete();
+    this.checkIfChanged();
+  }
+  componentWillUnmount() {
+    clearTimeout(this.state.timer);
+  }
+  checkIfChanged() {
+    try {
+      var current = $(ReactDOM.findDOMNode(this)).find("input.search").val();
+    }
+    catch(e) {
+      // The component is unmounted
+      return;
+    }
+    if (this.state.val != current) {
+      $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("search");
+    }
+    this.setState({
+      val: current,
+      timer: setTimeout(
+          () => this.checkIfChanged(),
+          330
+      )
+    });
+
+  }
+  attachKeyboard() {
+    var inputElement = document.querySelector('.dictionaryTocSearchBox .keyboardInput');
+    if (inputElement && (!inputElement.VKI_attached)) {
+      VKI_attach(inputElement);
+    }
   }
   initAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
@@ -453,11 +492,22 @@ class DictionarySearch extends Component {
         at: "left bottom",
         of: ".dictionaryTocSearchBox"
       },
-      open: function() {$(".dictionary-toc-autocomplete").width($(".dictionaryTocSearchBox").width());},
+      open: function(event) {
+        $(".dictionary-toc-autocomplete").width($(".dictionaryTocSearchBox").width());
+      },
+      close: function(event) {
+        this.setState({
+          val: $(ReactDOM.findDOMNode(this)).find("input.search").val()
+        });
+        this.checkIfChanged()
+      }.bind(this),
       classes: {
         "ui-autocomplete": "dictionary-toc-autocomplete"
       },
       minLength: 1,
+      focus: function(event, ui) {
+        clearTimeout(this.state.timer);
+      }.bind(this),
       select: function( event, ui ) {
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.label);
@@ -500,13 +550,11 @@ class DictionarySearch extends Component {
         d => {
           var resolvedWord = (d.length > 0) ? d[0][1] : word;
           var ref = this.props.title + ", " + resolvedWord;
-          this.props.close();
           this.props.showBaseText(ref, false, this.props.currVersions);
           }
       )
     } else {
       var ref = this.props.title + ", " + word;
-      this.props.close();
       this.props.showBaseText(ref, false, this.props.currVersions);
     }
   }

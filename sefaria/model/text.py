@@ -22,7 +22,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
+from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -1621,24 +1621,34 @@ class VirtualTextChunk(AbstractTextRecord):
     text_attr = "text"
 
     def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False):
+
         self._oref = oref
-        self.text = oref.index_node.get_text()   # <- This is where the magic happens
         self._ref_depth = len(self._oref.sections)
         self._saveable = False
 
         self.lang = lang
         self.is_merged = False
         self.sources = []
+
+        if lang != oref.index_node.parent.lexicon.version_lang:
+            self.text = []
+            self._version = None
+            # assumption here is that any dictionary is only returned in one language
+            return
+
+        self.text = oref.index_node.get_text()   # <- This is where the magic happens
+
         self._version = Version().load({
             "title": oref.index_node.parent.lexicon.index_title,
-            "versionTitle": oref.index_node.parent.lexicon.version_title
-        })    # Currently vtitle is thrown out.  There's only one version of each lexicon.
+            "versionTitle": oref.index_node.parent.lexicon.version_title,
+            "language": oref.index_node.parent.lexicon.version_lang
+        }, {"chapter":0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
 
     def version(self):
         return self._version
 
     def version_ids(self):
-        return [self._version._id]
+        return [self._version._id] if self._version else []
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
@@ -2240,7 +2250,9 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
+                # The line below will raise DictionaryEntryNotFound if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
+                self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
                 self.toSections = self.sections[:]
                 return
@@ -2840,7 +2852,10 @@ class Ref(object):
                 while True:
                     next_leaf = current_leaf.next_leaf() #next schema/JANode
                     if next_leaf and next_leaf.is_virtual:
-                        return next_leaf.first_child().ref()
+                        if next_leaf.first_child():
+                            return next_leaf.first_child().ref()
+                        else:
+                            return None
                     if next_leaf:
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
                         potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1)
@@ -2873,7 +2888,10 @@ class Ref(object):
                 while True:
                     prev_leaf = current_leaf.prev_leaf()  # prev schema/JANode
                     if prev_leaf and prev_leaf.is_virtual:
-                        return prev_leaf.last_child().ref()
+                        if prev_leaf.last_child():
+                            return prev_leaf.last_child().ref()
+                        else:
+                            return None
                     if prev_leaf:
                         prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
                         potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
@@ -3695,7 +3713,7 @@ class Ref(object):
         condition_addr = self.storage_address()
         if not isinstance(self.index_node, JaggedArrayNode):
             # This will also return versions with no content in this Ref location - since on the version, there is a dictionary present.
-            # We could enter the dictionary and check each array, but it's not clear that it's neccesary.
+            # We could enter the dictionary and check each array, but it's not clear that it's necessary.
             d.update({
                 condition_addr: {"$exists": True}
             })
@@ -4286,7 +4304,7 @@ class Library(object):
         :return:
         """
 
-        index_object_title = index_object.title if isinstance(index_object, Index) else index_object
+        index_object_title = old_title if old_title else (index_object.title if isinstance(index_object, Index) else index_object)
         Ref.remove_index_from_cache(index_object_title)
 
         for lang in self.langs:

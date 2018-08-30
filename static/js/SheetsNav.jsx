@@ -514,7 +514,7 @@ class MySheetsPage extends Component {
         this.getMoreSheets();
       }
     }
-
+    /*debugger;*/
     sheets = sheets ? sheets.map(function(sheet) {
       return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
@@ -589,6 +589,7 @@ class PrivateSheetListing extends Component {
               <div className="userSheetTitle">
                 <a className="sheetTitle" href={url}>{title}</a>
                 <span className="sheetAccess"><SheetAccessIcon sheet={sheet} /></span>
+                <a class="button white mini" href={url+"?editor=1"}><span class="int-en">Edit Sheet</span><span class="int-he">ערוך</span></a>
               </div>
               <div className="userSheetInfo">
                 <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>

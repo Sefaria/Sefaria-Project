@@ -177,6 +177,11 @@ class Util {
            //}
         };
 
+        String.prototype.stripHtmlKeepLineBreaks = function() {
+            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' '),['br']);
+        };
+
+
         String.prototype.escapeHtml = function() {
             return this.replace(/&/g,'&amp;')
                         .replace(/</g,'&lt;')
@@ -532,7 +537,7 @@ class Util {
 
          new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
-         As currently designed, the object is instantiated, and sets up its own events.
+         The object is instantiated, and sets up its own events.
          It doesn't need to be interacted with from the outside.
          */
 
@@ -564,6 +569,9 @@ class Util {
                       function (d) { response(d["completions"]); }
                   );
                 },
+                select: function(event, ui) {
+                  this._lookupAndRoute(ui.item.value);
+                }.bind(this),
                 minLength: 3
             });
     };

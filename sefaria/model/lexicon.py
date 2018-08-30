@@ -55,6 +55,7 @@ class Lexicon(abst.AbstractMongoRecord):
         'text_categories',
         'index_title',          # The title of the Index record that corresponds to this Lexicon
         'version_title',        # The title of the Version record that corresponds to this Lexicon
+        'version_lang'          # The language of the Version record that corresponds to this Lexicon
     ]
 
 
@@ -333,7 +334,7 @@ class LexiconLookupAggregator(object):
         query_obj = {wform_pkey: input_word}
         if lookup_ref:
             nref = Ref(lookup_ref).normal()
-            query_obj["refs"] = {'$regex': '^{}'.format(nref)}
+            query_obj["refs"] = {'$regex': u'^{}'.format(nref)}
         form = WordForm().load(query_obj)
         if not form and lookup_ref:
             del query_obj["refs"]

@@ -16,6 +16,7 @@ from bson.json_util import dumps
 import p929
 import socket
 import bleach
+from collections import OrderedDict
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
@@ -37,6 +38,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
+from sefaria.model.schema import DictionaryEntryNotFound
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -479,7 +481,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
-        breadcrumb = "/sheets/"+str(sheet["id"])+"?panel=1"
+        breadcrumb = "/sheets/"+str(sheet["id"])
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
 
 
@@ -2119,16 +2121,22 @@ def name_api(request, name):
     try:
         ref = Ref(name)
         inode = ref.index_node
-        assert isinstance(inode, SchemaNode)
 
-        completions = [name.capitalize()] + completer.next_steps_from_node(name)
+        # Find possible dictionary entries.  This feels like a messy way to do this.  Needs a refactor.
+        if inode.is_virtual and inode.parent and getattr(inode.parent, "lexiconName", None) in library._lexicon_auto_completer:
+            base_title = inode.parent.full_title()
+            lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
+            t = [base_title + u", " + t[1] for t in lexicon_ac.items(inode.word)[:LIMIT or None]]
+            completions = list(OrderedDict.fromkeys(t))  # filter out dupes
+        else:
+            completions = [name.capitalize()] + completer.next_steps_from_node(name)
 
-        if LIMIT == 0 or len(completions) < LIMIT:
-            current = {t: 1 for t in completions}
-            additional_results = completer.complete(name, LIMIT)
-            for res in additional_results:
-                if res not in current:
-                    completions += [res]
+            if LIMIT == 0 or len(completions) < LIMIT:
+                current = {t: 1 for t in completions}
+                additional_results = completer.complete(name, LIMIT)
+                for res in additional_results:
+                    if res not in current:
+                        completions += [res]
 
         d = {
             "lang": lang,
@@ -2159,6 +2167,17 @@ def name_api(request, name):
             d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
             d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
             d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+
+    except DictionaryEntryNotFound as e:
+        # A dictionary beginning, but not a valid entry
+        d = {
+            "lang": lang,
+            "is_ref": False,
+        }
+
+        lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
+        t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:LIMIT or None]]
+        d["completions"] = list(OrderedDict.fromkeys(t))  # filter out dupes
 
     except InputError:
         # This is not a Ref
