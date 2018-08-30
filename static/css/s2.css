@@ -2692,22 +2692,19 @@ a.readerNavCategory {
 .sheetContent .segment.highlight .segmentNumber .he {
   background-color: transparent;
 }
-
 .sheetContent .segment.highlight .en div,
 .sheetContent .segment.highlight .he div {
   background-color: inherit;
 }
-
 .sheetContent .segment a {
     color: #000;
 }
-
-
+.sheetContent .segment .sourceContentText a {
+    text-decoration: underline;
+}
 .readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
 }
-
-
 .basetext .segment.highlight .segmentNumber,
 .basetext .segment.highlight .linkCount,
 .sheetContent .segment.highlight .linkCount,
