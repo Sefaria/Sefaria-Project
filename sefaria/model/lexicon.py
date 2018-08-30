@@ -322,33 +322,31 @@ class LexiconLookupAggregator(object):
 
     @classmethod
     def _single_lookup(cls, input_word, lookup_key='form', **kwargs):
-        from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
+        from sefaria.utils.hebrew import is_hebrew, strip_cantillation
         from sefaria.model import Ref
 
         lookup_ref = kwargs.get("lookup_ref", None)
         wform_pkey = lookup_key
         if is_hebrew(input_word):
             input_word = strip_cantillation(input_word)
-            if not has_cantillation(input_word, detect_vowels=True):
-                wform_pkey = 'c_form'
         query_obj = {wform_pkey: input_word}
         if lookup_ref:
             nref = Ref(lookup_ref).normal()
-            query_obj["refs"] = {'$regex': u'^{}'.format(nref)}
-        form = WordForm().load(query_obj)
-        if not form and lookup_ref:
+            query_obj["refs"] = {'$regex': '^{}'.format(nref)}
+        forms = WordFormSet(query_obj)
+        if lookup_ref and forms.count() == 0:
             del query_obj["refs"]
-            form = WordForm().load(query_obj)
-        if form:
+            forms = WordFormSet(query_obj)
+        if forms.count() > 0:
             result = []
             headword_query = []
-            for lookup in form.lookups:
-                headword_query.append({'headword': lookup['headword']})
-                # TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lexicon' in word forms
+            for form in forms:
+                for lookup in form.lookups:
+                    headword_query.append({'headword': lookup['headword']})
+                    # TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lexicon' in word forms
             return headword_query
         else:
             return []
-
 
     @classmethod
     def _ngram_lookup(cls, input_str, **kwargs):
