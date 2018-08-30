@@ -3710,7 +3710,8 @@ a.readerNavCategory {
   line-height: 26px;
 }
 .notificationsPanel a {
-  color: #333;
+  color: #000;
+  text-decoration: underline;
 }
 .notificationsList {
   margin-bottom: 100px;
