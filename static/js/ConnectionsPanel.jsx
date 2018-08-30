@@ -5,6 +5,7 @@ const {
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
   Note,
+  FeedbackBox,
 }                            = require('./Misc');
 const {
   CategoryFilter,
@@ -34,6 +35,7 @@ class ConnectionsPanel extends Component {
       flashMessage: null,
       currObjectVersions: {en: null, he: null},
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
+      linksLoaded: false, // has the list of refs been loaded
     };
   }
   componentDidMount() {
@@ -73,18 +75,33 @@ class ConnectionsPanel extends Component {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
-    if (this.props.srefs != "sheetRef") {
+    if (this.props.srefs == "sheetRef" ) {
+        this.setState({
+          linksLoaded: true,
+        });
+    }
+    else {
         var ref = this.sectionRef();
         if (!Sefaria.related(ref)) {
             Sefaria.related(ref, function (data) {
                 if (this._isMounted) {
-                    this.forceUpdate();
+                    this.setState({
+                      linksLoaded: true,
+                    });
                 }
             }.bind(this));
+        }
+        else {
+            this.setState({
+              linksLoaded: true,
+            });
         }
     }
   }
   reloadData() {
+    this.setState({
+      linksLoaded: false,
+    });
     Sefaria.clearLinks();
     this.loadData();
   }
@@ -167,11 +184,9 @@ class ConnectionsPanel extends Component {
     }
     return(srefs)
   }
-
   render() {
     var content = null;
-    var loaded = this.props.srefs=="sheetRef" ? true : !!Sefaria.related(this.sectionRef());
-    if (!loaded) {
+    if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
     } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Sheets") {
       content = (<div>
@@ -311,6 +326,14 @@ class ConnectionsPanel extends Component {
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />);
 
+    } else if (this.props.mode === "Feedback") {
+        console.log('feedback');
+      content = (<FeedbackBox
+                    srefs={this.props.srefs}
+                    url={window.location.href}
+                    currVersions={this.props.currVersions}
+                 />);
+
     } else if (this.props.mode === "Edit Note") {
       content = (<AddNoteBox
                     srefs={this.props.srefs}
@@ -440,6 +463,7 @@ class ResourcesList extends Component {
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
+              <ToolsButton en="Feedback" he="פידבק" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
   }
 }
@@ -462,6 +486,7 @@ class SheetNodeConnectionTools extends Component {
                 <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
 
                 <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
+                <ToolsButton en="Feedback" he="פידבק" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
   }
 }
@@ -551,7 +576,7 @@ class MySheetsList extends Component {
   render() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
     var content = sheets.length ? sheets.map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -569,7 +594,7 @@ class PublicSheetsList extends Component {
       // My sheets are show already in MySheetList
       return sheet.owner !== Sefaria._uid;
     }).map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -582,7 +607,8 @@ PublicSheetsList.propTypes = {
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e, sheet) {
-    //console.log("Sheet Click Handled");
+      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
+      //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
     } else {
