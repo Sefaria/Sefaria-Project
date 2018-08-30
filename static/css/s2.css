@@ -457,7 +457,7 @@ input.noselect {
 }
 .readerContent {
   width: 100%;
-  height: calc(100% - 58px);
+  height: calc(100% - 60px);
   background-color: inherit;
 }
 .dark .readerContent {
