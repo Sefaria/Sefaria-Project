@@ -63,6 +63,19 @@ class AbstractMongoRecord(object):
             return self
         return None  # used to check for existence of record.
 
+    def load_all_lexicon(self, query, proj=None):
+        res = set()
+        objs = getattr(db, self.collection).find(query, proj)
+        for obj in objs:
+            assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
+                "{} record loaded with unhandled key(s): {}".format(
+                    type(self).__name__,
+                    set(obj.keys()) - set(self._saveable_attr_keys())
+                )
+            for lookup in obj['lookups']:
+                res.add(hashabledict(lookup))
+        return list(res)
+
     # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):
         attrs = self._saveable_attrs()
