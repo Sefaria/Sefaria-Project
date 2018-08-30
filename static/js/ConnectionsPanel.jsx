@@ -486,6 +486,7 @@ class SheetNodeConnectionTools extends Component {
                 <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
 
                 <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
+                <ToolsButton en="Feedback" he="פידבק" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
   }
 }
