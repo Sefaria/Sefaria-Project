@@ -1709,11 +1709,13 @@ class TextFamily(object):
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
-            if wrapLinks:
+            if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
                 from . import LinkSet
-                if c.version_ids() and LinkSet({"generated_by":"add_links_from_text", "source_text_oid": {"$in": c.version_ids()}}).count() > 0:
+                query = oref.ref_regex_query()
+                query.update({"generated_by": "add_links_from_text", "source_text_oid": {"$in": c.version_ids()}})
+                if LinkSet(query).count() > 0:
                     setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
                 else:
                     setattr(self, self.text_attr_map[language], c.text)
@@ -2022,9 +2024,9 @@ class Ref(object):
         self.sections = []
         self.toSections = []
         self.index_node = None
+        self.__init_ref_pointer_vars()
 
         if tref:
-            self.__init_ref_pointer_vars()
             self.orig_tref = self.tref = tref
             self._lang = "he" if is_hebrew(tref) else "en"
             self.__clean_tref()
@@ -2033,11 +2035,8 @@ class Ref(object):
         elif _obj:
             for key, value in _obj.items():
                 setattr(self, key, value)
-            self.__init_ref_pointer_vars()
             self.tref = self.normal()
             self._validate()
-        else:
-            self.__init_ref_pointer_vars()
 
     def __init_ref_pointer_vars(self):
         self._normal = None
@@ -4214,7 +4213,7 @@ class Library(object):
         :return:
         """
 
-        index_object_title = index_object.title if isinstance(index_object, Index) else index_object
+        index_object_title = old_title if old_title else (index_object.title if isinstance(index_object, Index) else index_object)
         Ref.remove_index_from_cache(index_object_title)
 
         for lang in self.langs:
@@ -4655,16 +4654,7 @@ class Library(object):
                 toSections.append(sections[len(sections) - len(toSections) - 1])
             toSections.reverse()
 
-        _obj = {
-            "tref": ref_match.group(),
-            "book": node.full_title("en"),
-            "index_node": node,
-            "index": node.index,
-            "primary_category": node.index.get_primary_category(),
-            "sections": sections,
-            "toSections": toSections
-        }
-        return Ref(_obj=_obj)
+        return Ref(ref_match.group())
 
     def _build_ref_from_string(self, title=None, st=None, lang="en"):
         """
@@ -4736,7 +4726,7 @@ class Library(object):
         if lang == "en":
             return titles_regex.sub(_wrap_ref_match, st)
         else:
-            outer_regex_str = ur"[({].+?[)}]"
+            outer_regex_str = ur"[({\[].+?[)}\]]"
             outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
             return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
 

@@ -921,6 +921,11 @@ $(function() {
 
 	if (sjs.current.id) {
 		buildSheet(sjs.current);
+		if (sjs.can_edit) {
+			$("#title, .comment, .outside, .customTitle, .text .en, .text .he, #author, .contentToAdd").off("mouseup")
+				.on("mouseup", sjs.initCKEditor);
+		}
+
 	} else if (sjs.assignment_id) {
 		if (!sjs._uid) {
 			$("#fileControlMsg").hide();
@@ -3518,6 +3523,9 @@ function showEmebed() {
 
 function showShareModal(){
 	$("#shareWithOthers").show().position({of: window});
+	if (parseInt(($("#shareWithOthers").css("top"))) < 100) {
+		$("#shareWithOthers").css("top", "100px")
+	}
 	$("#overlay").show();
 
 	var suggestedTagsLookup = [];

@@ -84,7 +84,6 @@ class Sheet extends Component {
       content = (<LoadingMessage />);
     }
     else {
-
       content = (
           <SheetContent
             sources={sheet.sources}
@@ -94,7 +93,9 @@ class Sheet extends Component {
             highlightedNodes={this.props.highlightedNodes}
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
+            group = {sheet.group}
             hasSidebar = {this.props.hasSidebar}
+            sheetNumbered = {sheet.options.numbered}
           />
       )
     }
@@ -181,6 +182,7 @@ class SheetContent extends Component {
 
   handleClick(ref, e) {
     e.preventDefault();
+    e.stopPropagation();
     this.props.onRefClick(ref);
   }
 
@@ -198,6 +200,7 @@ class SheetContent extends Component {
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            sheetNumbered={this.props.sheetNumbered}
           />
         )
       }
@@ -211,6 +214,7 @@ class SheetContent extends Component {
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            sheetNumbered={this.props.sheetNumbered}
           />
         )
       }
@@ -224,7 +228,8 @@ class SheetContent extends Component {
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
-          />
+            sheetNumbered={this.props.sheetNumbered}
+         />
         )
       }
 
@@ -237,6 +242,7 @@ class SheetContent extends Component {
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            sheetNumbered={this.props.sheetNumbered}
           />
         )
       }
@@ -249,6 +255,7 @@ class SheetContent extends Component {
             source={source}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            sheetNumbered={this.props.sheetNumbered}
           />
         )
       }
@@ -259,9 +266,10 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <div className="sheetMetaDataBox">
-            <div className="title" role="heading" aria-level="1">{this.props.title.stripHtml()}</div>
+            <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml()) ? "rtl" :"ltr"}}>{this.props.title.stripHtml()}</div>
 
             <div className="authorStatement">{this.props.authorStatement}</div>
+            <div className="groupStatement"><a href={"/groups/"+this.props.group}>{this.props.group}</a></div>
 
         </div>
         <div className="text">
@@ -283,62 +291,51 @@ class SheetSource extends Component {
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
 
-      if (this.props.source.options) {
-        var heSourceClasses = classNames({
-            he: 1,
-            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
-            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
-            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
-            this.props.source.options.indented
-        );
-        var enSourceClasses = classNames({
-            en: 1,
-            forceDisplayOverrideEn: this.props.source.options.sourceLanguage == "english",
-            forceDisplayOverrideHe: this.props.source.options.sourceLanguage == "hebrew",
-            forceDisplayOverrideBi: this.props.source.options.sourceLanguage == "bilingual"},
-            this.props.source.options.indented
-        );
-      }
-      else {
-          var heSourceClasses = classNames({he:1})
-          var enSourceClasses = classNames({en:1})
-      }
-
       linkCountElement = (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>);
 
+      var containerClasses = classNames("sheetItem",
+          "segment",
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.text.en && this.props.source.text.en == "..." ? "heOnly" : null,
+          this.props.source.text.he && this.props.source.text.he == "..." ? "enOnly" : null,
+          this.props.source.options ? this.props.source.options.indented : null
+      );
 
     return (
 
 
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
           {this.props.source.title ? <h3 className="customSourceTitle"><div className="titleBox">{this.props.source.title.stripHtml()}</div></h3> : null}
-        <div className="segmentNumber sheetSegmentNumber sans">
-          <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span
-            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-        </div>
+
+          {this.props.sheetNumbered == 0 ? null :
+            <div className="segmentNumber sheetSegmentNumber sans">
+              <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
+              <span className="he"> <span
+                className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+            </div>
+              }
 
           {linkCountElement}
 
 
-        {this.props.source.text ?
-          <div className={heSourceClasses}>
+        {this.props.source.text && this.props.source.text.he ?
+          <div className="he">
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></span>
+            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
           </div> : null }
 
 
-        {this.props.source.text ?
-          <div className={enSourceClasses}>
+        {this.props.source.text && this.props.source.text.en ?
+          <div className="en">
             <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
-            <span dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></span>
+            <div dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
 
 
@@ -356,16 +353,25 @@ class SheetComment extends Component {
   }
 
   render() {
-    var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
+      var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
+      var containerClasses = classNames("sheetItem",
+          "segment",
+          lang == "he" ? "heOnly" : "enOnly",
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
+      );
+
     return (
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
-        <div className="segmentNumber sheetSegmentNumber sans">
-          <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span
-            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-        </div>
+      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+          {this.props.sheetNumbered == 0 ? null :
+            <div className="segmentNumber sheetSegmentNumber sans">
+              <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
+              <span className="he"> <span
+                className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+            </div>
+          }
         <div className={lang}>
-            <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.comment)} }></span>
+            <div dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.comment)} }></div>
         </div>
         <div className="clearFix"></div>
       </div>
@@ -379,16 +385,26 @@ class SheetOutsideText extends Component {
   }
   render() {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
-    return (
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
-        <div className="segmentNumber sheetSegmentNumber sans">
-          <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span
-            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-        </div>
 
+      var containerClasses = classNames("sheetItem",
+          "segment",
+          lang == "he" ? "heOnly" : "enOnly",
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
+      )
+
+
+    return (
+      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+          {this.props.sheetNumbered == 0 ? null :
+            <div className="segmentNumber sheetSegmentNumber sans">
+              <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
+              <span className="he"> <span
+                className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+            </div>
+          }
         <div className={lang}>
-            <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></span>
+            <div dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></div>
         </div>
         <div className="clearFix"></div>
 
@@ -403,14 +419,20 @@ class SheetOutsideBiText extends Component {
   }
 
   render() {
+      var containerClasses = classNames("sheetItem",
+          "segment",
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
+      )
     return (
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
-        <div className="segmentNumber sheetSegmentNumber sans">
-          <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span
-            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-        </div>
-
+      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+          {this.props.sheetNumbered == 0 ? null :
+            <div className="segmentNumber sheetSegmentNumber sans">
+              <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
+              <span className="he"> <span
+                className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+            </div>
+          }
         <div className="he" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
         <div className="en" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
         <div className="clearFix"></div>
@@ -453,13 +475,20 @@ class SheetMedia extends Component {
   }
 
   render() {
+      var containerClasses = classNames("sheetItem",
+          "segment",
+          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.source.options ? this.props.source.options.indented : null
+      )
     return (
-      <div className={this.props.highlightedNodes == this.props.source.node ? "sheetItem segment highlight" : "sheetItem segment"} onClick={this.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
-        <div className="segmentNumber sheetSegmentNumber sans">
-          <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
-          <span className="he"> <span
-            className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-        </div>
+      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+          {this.props.sheetNumbered == 0 ? null :
+            <div className="segmentNumber sheetSegmentNumber sans">
+              <span className="en"> <span className="segmentNumberInner">{this.props.sourceNum}</span> </span>
+              <span className="he"> <span
+                className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+            </div>
+          }
         <div dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
         <div className="clearFix"></div>
 

@@ -1,0 +1,614 @@
+Number,Who is obligated?,What kind of commandment is this?,Where is one obligated?,What is the penalty for transgressing?,hedesc,endesc
+1,Men,Positive,Anywhere,No Specific Penalty,מצות פריה ורביה,The commandment of procreation
+2,Men,Positive,Anywhere,No Specific Penalty,מצות מילה,The commandment to circumcise
+3,Everyone,Negative,Anywhere,Lashes,שלא לאכל גיד הנשה,Not to eat the sciatic nerve
+4,Everyone,Positive,Anywhere,No Specific Penalty,מצות קדוש החדש,The commandment of sanctifying the new month
+5,Everyone,Positive,Temple,Excision,מצות שחיטת הפסח,The commandment to slaughter the Pesach sacrifice
+6,Everyone,Positive,Temple,No Specific Penalty,מצות אכילת בשר הפסח,The commandment of eating the meat of the Pesach sacrifice
+7,Everyone,Negative,Temple,Lashes,שלא לאכל הפסח נא ומבשל,To not eat the Pesach sacrifice uncooked or boiled
+8,Everyone,Negative,Temple,Lashes,שלא להותיר מבשר הפסח,To not leave from the meat of the Pesach sacrifice
+9,Everyone,Positive,Anywhere,No Specific Penalty,מצות השבתת החמץ,The commandment of disposing of chamets
+10,Everyone,Positive,Anywhere,No Specific Penalty,מצות אכילת מצה,The commandment of eating matsah
+11,Everyone,Negative,Anywhere,Lashes,שלא ימצא חמץ ברשותנו בפסח,That chamets not be found in our possession on Pesach
+12,Everyone,Negative,Anywhere,Lashes,שלא לאכל מכל דבר שיש בו חמץ,To not eat from anything that has chamets in it
+13,Everyone,Negative,Temple,No Specific Penalty,שלא נאכיל מן הפסח לישראל משמד,That we not feed of the Pesach sacrifice to an apostate Jew
+14,Everyone,Negative,Temple,No Specific Penalty,שלא נאכיל מן הפסח לגר ותושב,That we not feed of the Pesach sacrifice to a stranger or a resident
+15,Everyone,Negative,Temple,Lashes,שלא להוציא מבשר הפסח חוצה,Not to take out from the meat of the Pesach offering outside
+16,Everyone,Negative,Temple,Lashes,שלא לשבר עצם מן הפסח,To not break a bone from the Pesach sacrifice
+17,Everyone,Negative,Temple,Lashes,שלא יאכל ערל מן הפסח,That an uncircumcised man not eat from the Pesach sacrifice
+18,Men,Positive,Israel,No Specific Penalty,מצות קדוש בכורות בארץ ישראל,The commandment of sanctifying the first-born in the Land of Israel
+19,Everyone,Negative,Anywhere,Excision,שלא לאכל חמץ בפסח,To not eat chamets (leavened grain products) on Pesach
+20,Everyone,Negative,Anywhere,Lashes,שלא יראה לנו חמץ בפסח,That chamets not be found to us on Pesach
+21,Everyone,Positive,Anywhere,No Specific Penalty,מצות ספור יציאת מצרים,The commandment to recount the exodus from Egypt
+22,Everyone,Positive,Anywhere,No Specific Penalty,מצות פדיון פטר חמור,The commandment of the redemption of a [first-born] donkey
+23,Everyone,Positive,Anywhere,No Specific Penalty,מצות עריפת פטר חמור,The commandment of beheading a [first-born] donkey
+24,Everyone,Negative,Anywhere,Lashes,שלא נלך בשבת חוץ לתחום,That we should not go outside of the boundary (<i>techum</i>) on Shabbat
+25,Everyone,Positive,Anywhere,No Specific Penalty,מצות האמנה במציאות השם,The commandment of belief in God
+26,Everyone,Negative,Anywhere,Death,שלא נאמין באלה בלתי ה' לבדו,That we not believe in a god besides God alone
+27,Everyone,Negative,Anywhere,Lashes,שלא לעשות פסל,To not make a statue
+28,Everyone,Negative,Anywhere,Death,שלא להשתחות לעבודה זרה,To not bow down to idolatry
+29,Everyone,Negative,Anywhere,Death,שלא לעבוד ע''ז במה שדרכה להעבד,To not worship idolatry in that which is its way to be worshiped
+30,Everyone,Negative,Anywhere,Lashes,שלא לשבע לשוא,To not swear in vain
+31,Everyone,Positive,Anywhere,No Specific Penalty,מצות קדוש שבת בדברים,The commandment of the sanctification of Shabbat with words
+32,Everyone,Negative,Anywhere,Death,שלא לעשות מלאכה בשבת,To not do work on Shabbat
+33,Everyone,Positive,Anywhere,No Specific Penalty,מצות כיבוד אב ואם,The commandment to honor father and mother
+34,Men,Negative,Anywhere,Death,שלא להרג נקי,To not kill the innocent
+35,Everyone,Negative,Anywhere,Death,שלא לגלת ערות אשת איש,To not reveal the nakedness of a man's wife
+36,Everyone,Negative,Anywhere,Death,שלא לגנב נפש מישראל,To not steal a soul of Israel
+37,Everyone,Negative,Anywhere,Lashes,שלא להעיד בשקר,To not testify falsely
+38,Everyone,Negative,Anywhere,No Specific Penalty,שלא לחמד,To not covet
+39,Everyone,Negative,Anywhere,No Specific Penalty,שלא לעשות צורת אדם אפילו לנוי,"Not to make the form of a man, even for decoration"
+40,Everyone,Negative,Temple,Lashes,שלא לבנות אבני גזית,To not build [with] hewn stones
+41,Everyone,Negative,Temple,Lashes,שלא לפסע על המזבח,To not take steps on the altar
+42,Men,Positive,Israel,No Specific Penalty,מצות דין עבד עברי,The commandment of the law of a Hebrew slave
+43,Men,Positive,Israel,No Specific Penalty,מצות יעוד של אמה העבריה,The commandment of designation of a Hebrew bondwoman
+44,Men,Positive,Israel,No Specific Penalty,מצות פדיון אמה העבריה,The commandment of redemption of a Hebrew bondwoman
+45,Men,Negative,Anywhere,No Specific Penalty,שלא ימכר אמה עבריה הקונה אותה מיד האב,That the one who acquires the Hebrew bondwoman from the father not sell her
+46,Men,Negative,Anywhere,No Specific Penalty,שלא לגרע שאר כסות ועונה,"Not to reduce her flesh, covering and time period"
+47,Men,Positive,Israel,No Specific Penalty,מצות בית דין להרג בחנק המחיב,The commandment on the court (<i>beit din</i>) to kill with strangulation one who is liable
+48,Everyone,Negative,Anywhere,Death,שלא להכות אב ואם,Not to strike father and mother
+49,Men,Positive,Anywhere,No Specific Penalty,מצות דיני קנסות, The commandment of the laws of penalties
+50,Men,Positive,Israel,No Specific Penalty,מצות בית דין להרג בסיף המחיב,The commandment on the court to kill with the sword one who is liable
+51,Men,Positive,Israel,No Specific Penalty,מצות בית דין לדון נזקי בהמה,The commandment on the court to judge the damages of an animal
+52,Everyone,Negative,Israel,Lashes,שלא לאכול בשר שור הנסקל,Not to eat from the meat of a ox that was stoned
+53,Men,Positive,Israel,No Specific Penalty,מצות בית דין לדון בנזקי הבור,The commandment on the court to judge the damages of a pit
+54,Men,Positive,Israel,No Specific Penalty,מצות בית דין לדון גנב בתשלומין או במיתה,The commandment on the court to judge a thief with repayment or the death penalty
+55,Men,Positive,Israel,No Specific Penalty,מצות בית דין לדון בנזקי הבער,The commandment on the court to judge concerning damages of destruction
+56,Men,Positive,Israel,No Specific Penalty,מצות בית דין לדון בנזקי האש,The commandment on the court to judge damages from fire
+57,Everyone,Positive,Anywhere,No Specific Penalty,מצות בית דין לדון בדין שומר חנם,The commandment on the court to judge the case of an unpaid guardian
+58,Men,Positive,Anywhere,No Specific Penalty,מצות בית דין לדון בדין טוען ונטען,The commandment on the court to judge the case of a plaintiff and a defendant
+59,Men,Positive,Anywhere,No Specific Penalty,מצות בית דין לדון בדין נושא שכר ושוכר,The commandment on the court to judge the case of one who takes a wage and of a renter
+60,Men,Positive,Israel,No Specific Penalty,מצות בית דין לדון בדין השואל,The commandment to judge the case of the borrower
+61,Men,Positive,Israel,No Specific Penalty,מצות בית דין לדון בדין מפתה ,The commandment on the court to judge the case of a seducer
+62,Men,Negative,Israel,No Specific Penalty,שלא להחיות מכשפה,To not keep a witch alive
+63,Everyone,Negative,Anywhere,No Specific Penalty,שלא להונות הגר בדברים,To not oppress the convert with words
+64,Everyone,Negative,Anywhere,No Specific Penalty,שלא להונות הגר בממון,To not oppress the convert regarding money
+65,Everyone,Negative,Anywhere,No Specific Penalty,שלא לענות יתום ואלמנה,To not abuse the orphan and the widow
+66,Everyone,Positive,Anywhere,No Specific Penalty,מצות הלואה לעני,The commandment of lending to the poor person
+67,Everyone,Negative,Anywhere,No Specific Penalty,שלא נתבע חוב מעני שאין לו במה לפרע,That we not demand the debt of a poor person that does not have with what to pay
+68,Everyone,Negative,Anywhere,No Specific Penalty,שלא נשית יד בין לוה למלוה ברבית,That we not give a hand between the borrower and the creditor with interest
+69,Everyone,Negative,Anywhere,Lashes,שלא לקלל הדין,To not curse the judge
+70,Everyone,Negative,Anywhere,Death,לאו דברכת השם,The negative commandment of 'blessing' the Name
+71,Everyone,Negative,Anywhere,Lashes,שלא לקלל הנשיא,To not curse a chieftain (<i>nassi</i>)
+72,Everyone,Negative,Anywhere,No Specific Penalty,שלא להקדים חקי התבואות,To not skip in the laws of produce
+73,Everyone,Negative,Anywhere,Lashes,שלא לאכול טריפה,To not eat a torn animal
+74,Men,Negative,Anywhere,No Specific Penalty,שלא לשמע טענת בעל דין שלא בפני בעל דין חברו,To not hear the claim of a litigant when it is not in front of his fellow litigant
+75,Men,Negative,Anywhere,No Specific Penalty,שלא יעיד בעל עברה,Not to have a sinner testify
+76,Men,Negative,Anywhere,No Specific Penalty,שלא לנטות אחרי רבים בדיני נפשות בשביל אחד,Not to incline after the many in capital punishments because of one
+77,Men,Positive,Israel,No Specific Penalty,שלא ילמד חובה מי שלמד זכות תחלה בדיני נפשות,That the one who advocated innocence at the beginning of capital cases not advocate guilt
+78,Everyone,Positive,Anywhere,No Specific Penalty,מצות הטיה אחרי רבים,The commandment of inclining towards the many
+79,Everyone,Negative,Anywhere,No Specific Penalty,שלא לרחם על עני בדין,To not have mercy upon a poor person in his case
+80,Everyone,Positive,Anywhere,No Specific Penalty,מצות פרוק משא, The commandment of removing a burden
+81,Men,Negative,Anywhere,No Specific Penalty,שלא להטות משפט רשע,To not tip the judgment of an evildoer
+82,Men,Negative,Israel,No Specific Penalty,שלא לחתוך הדין באמד הדעת,To not conclude the judgment by estimation
+83,Men,Negative,Anywhere,No Specific Penalty,שלא לקח שחד,To not take a bribe
+84,Everyone,Positive,Israel,No Specific Penalty,מצות שמטת קרקעות,The commandment of the releasing (<i>shmitat</i>) of lands
+85,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה בשבת,The commandment to rest on Shabbat
+86,Everyone,Negative,Anywhere,No Specific Penalty,שלא לשבע בעבודת אלילים,To not swear by idolatry
+87,Everyone,Negative,Anywhere,No Specific Penalty,שלא להדיח בני ישראל אחר העבודת אלילים,To not entice the Children of Israel towards idolatry
+88,Men,Positive,Temple,No Specific Penalty,מצות חגיגה ברגלים,The commandment of celebration on the festivals
+89,Everyone,Negative,Temple,Lashes,שלא נשחט שה הפסח בארבעה עשר בניסן בעוד החמץ ברשותנו,That we not slaughter the lamb of the Pesach offering on the fourteenth of Nissan while chamets is still in our possession
+90,Men,Negative,Temple,No Specific Penalty,שלא להניח אמורי הפסח לפסל בלינה,To not leave the entrails of the Pesach sacrifice to stay overnight
+91,Men,Positive,Temple,No Specific Penalty,מצות הבאת בכורים,The commandment of bringing the first-fruits
+92,Everyone,Negative,Anywhere,Lashes,שלא לבשל בשר בחלב,To not cook meat in milk
+93,Everyone,Negative,Anywhere,Lashes,שלא לכרת ברית לשבעה עממים וכן לכל עובד עבודת אלילים,To not make a covenant with the seven nations and likewise with any worshiper of idolatry
+94,Everyone,Negative,Israel,No Specific Penalty,שלא לשכן עובדי אלילים בארצנו,To not have worshipers of idols dwell in our land
+95,Miscelaneous,Positive,Israel,No Specific Penalty,מצות בנין בית הבחירה,The commandment of building the Choice House
+96,Everyone,Negative,Temple,Lashes,שלא להוציא בדי הארון ממנו,To not remove the poles of the ark from it
+97,Men,Positive,Temple,No Specific Penalty,מצות סדור לחם הפנים ולבונה,The commandment of arranging the bread of display and the frankincense
+98,Men,Positive,Temple,No Specific Penalty,מצות עריכת נרות במקדש,The commandment of arranging lights in the Temple
+99,Men,Positive,Temple,Death,מצות לבישת בגדי כהנים,The commandment of wearing the priestly clothes
+100,Everyone,Negative,Temple,Lashes,שלא יזח החשן מעל האפוד,That the breastplate not move from on top of the apron
+101,Everyone,Negative,Temple,Lashes,שלא לקרע המעיל של כהנים,To not tear the coat of the priests
+102,Men,Positive,Temple,No Specific Penalty,מצות אכילת בשר חטאת ואשם,The commandment of eating the meat of sin-offerings and guilt-offerings
+103,Men,Positive,Temple,No Specific Penalty,מצות הקטרת קטרת,The commandment of burning the incense
+104,Men,Negative,Temple,No Specific Penalty,שלא להקטיר ולהקריב על מזבח הזהב,To not burn incense and not to bring sacrifices upon the gold altar
+105,Everyone,Positive,Temple,No Specific Penalty,מצות נתינת מחצית השקל בשנה,The commandment of the giving of the half shekel during the year
+106,Men,Positive,Temple,No Specific Penalty,מצות קדוש ידים ורגלים בשעת עבודה,The commandment of sanctifying the hands and the feet at the time of the service
+107,Everyone,Positive,Temple,No Specific Penalty,מצות משיחת כהן גדול ומלכי בית דוד בשמן המשחה,The commandment of anointing the high priest and the kings of the House of David with anointing oil
+108,Men,Negative,Anywhere,Excision,שלא יסוך זר בשמן המשחה,To not rub a foreigner (layman) with anointing oil
+109,Everyone,Negative,Anywhere,Excision,שלא לעשות במתכנת שמן המשחה,To not make [oil] according to the specification of the anointing oil
+110,Everyone,Negative,Anywhere,Excision,שלא לעשות במתכנת הקטרת,To not make [incense] according according to the specification of the incense
+111,Everyone,Negative,Anywhere,Lashes,שלא לאכל ולשתות תקרבת עבודת אלילים,To not eat and drink a gift to idol worship
+112,Everyone,Positive,Israel,No Specific Penalty,מצות שביתת הארץ בשנת השמטה,The commandment of the land resting on the seventh year
+113,Everyone,Negative,Anywhere,Lashes,שלא לאכל בשר בחלב,To not eat meat with milk
+114,Men,Negative,Temple,No Specific Penalty,שלא יעשו בית דין משפט מות בשבת,That the court not administer a death sentence on the Shabbat
+115,Men,Positive,Temple,No Specific Penalty,מצות מעשה העלה,The commandment of the procedure of the burnt-offering
+116,Men,Positive,Temple,No Specific Penalty,מצות קרבן מנחה,The commandment of the meal-offering (<i>mincha</i>)
+117,Men,Negative,Temple,No Specific Penalty,שלא להקריב שאר או דבש,To not offer leaven or honey
+118,Men,Negative,Temple,Lashes,שלא להקריב קרבן בלא מלח,To not offer a sacrifice without salt
+119,Men,Positive,Temple,No Specific Penalty,מצות מליחת הקרבן,The commandment of salting the sacrifice
+120,Men,Positive,Temple,No Specific Penalty,מצות קרבן בית דין אם טעו בהוראה,The commandment of the sacrifice of the court if they erred in instruction
+121,Everyone,Positive,Temple,No Specific Penalty,מצות קרבן חטאת ליחיד ששגג במצות לא תעשה שחיבין עליה כרת,The commandment of a sin-offering for an individual who sinned inadvertently in a commandment for which we are liable excision
+122,Men,Positive,Anywhere,No Specific Penalty,מצות עדות,The commandment of testimony
+123,Everyone,Positive,Temple,No Specific Penalty,מצות קרבן עולה ויורד,The commandment of the sacrifice that varies up and down
+124,Everyone,Negative,Temple,Lashes,שלא להבדיל בחטאת העוף,Not to sever a fowl sin-offering
+125,Men,Negative,Temple,Lashes,שלא לתן שמן זית במנחת חוטא,To not place olive oil in the meal-offering of a sinner
+126,Men,Negative,Temple,Lashes,שלא לתת לבונה במנחת חוטא,To not put frankincense in the meal-offering of a sinner
+127,Everyone,Negative,Temple,Lashes,מצות תוספת חמש לאוכל מן ההקדש או מועל בו,The commandment of the addition of a fifth for one who eats from the consecrated or misappropriates it
+128,Everyone,Positive,Temple,No Specific Penalty,מצות קרבן אשם תלוי,The commandment of the sacrifice of an undetermined guilt-offering
+129,Everyone,Positive,Temple,No Specific Penalty,מצות קרבן אשם ודאי,The commandment of a definite guilt-offering
+130,Everyone,Positive,Anywhere,No Specific Penalty,מצות השבת גזל,The commandment of returning theft
+131,Priests,Positive,Temple,No Specific Penalty,מצות הרמת הדשן,The commandment of the lifting of the ashes
+132,Priests,Positive,Temple,No Specific Penalty,מצות הדלקת אש על המזבח בכל יום,The commandment of lighting fire on the altar every day
+133,Everyone,Negative,Temple,Lashes,שלא לכבות אש מעל המזבח,To not extinguish the fire upon the altar
+134,Men,Positive,Temple,No Specific Penalty,מצות אכילת שירי מנחות,The commandment of eating the remainders of the meal-offering
+135,Everyone,Negative,Temple,Lashes,שלא לעשות שירי מנחות חמץ,To not make the remainders of the meal-offering chamets (leavened)
+136,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מנחה של כהן גדול בכל יום,The commandment of the daily meal-offering of the high priest
+137,Everyone,Negative,Temple,Lashes,שלא לאכול מנחת כהן,To not eat the meal-offering of the priest
+138,Men,Positive,Temple,No Specific Penalty,מצות מעשה החטאת,The commandment of the procedure of the sin-offering
+139,Everyone,Negative,Temple,Lashes,שלא לאכל מבשר חטאות הנעשין בפנים,To not eat from the meat of the sin-offerings processed inside
+140,Men,Positive,Temple,No Specific Penalty,מצות מעשה האשם,The commandment of the procedure of the guilt-offering
+141,Men,Positive,Temple,No Specific Penalty,מצות מעשה זבח השלמים,The commandment of the procedure of the sacrifice of the peace-offerings
+142,Everyone,Negative,Temple,Lashes,שלא להותיר מבשר קרבן התודה,To not leave over meat from the thanksgiving sacrifice
+143,Men,Positive,Temple,No Specific Penalty,מצות שרפת נותר הקדשים,The commandment of the burning of the remnant (<i>notar</i>) of the [sacrifices]
+144,Everyone,Negative,Temple,Excision,שלא לאכל פגול,To not eat <i>piggul</i>
+145,Everyone,Negative,Temple,Lashes,שלא לאכל בשר קדשים שנטמא,To not eat meat of [the sacrifices] that has become impure
+146,Everyone,Positive,Temple,No Specific Penalty,מצות שרפת בשר קדש שנטמא,The commandment of burning meat of [sacrifices] that has become impure
+147,Everyone,Negative,Anywhere,Lashes,שלא נאכל חלב,That we not eat forbidden fat (<i>chelev</i>)
+148,Everyone,Negative,Anywhere,Excision,שלא נאכל דם בהמה חיה ועוף,"That we not eat the blood of a [domesticated] beast, a [wild] animal or a bird"
+149,Priests,Negative,Temple,No Specific Penalty,שלא יכנסו הכהנים למקדש מגדלי שער,That the priests not enter the Temple with grown hair
+150,Priests,Negative,Temple,Lashes,שלא יכנסו הכהנים למקדש קרועי בגדים,That the priests not enter the Temple with torn clothes
+151,Priests,Negative,Temple,Lashes,שלא יצאו הכהנים מן המקדש בשעת עבודה,That the priests not go out from the Temple at the time of the service
+152,Everyone,Negative,Temple,Lashes,שלא להכנס שתויי יין במקדש וכן שלא יורה שתוי,"To not enter the Temple intoxicated, and likewise to not give a ruling intoxicated"
+153,Everyone,Positive,Anywhere,No Specific Penalty,מצות בדיקת סימני בהמה וחיה,The command of checking the signs of a beast or animal
+154,Everyone,Negative,Anywhere,Lashes,שלא לאכל בהמה וחיה טמאה,To not eat an impure beast or animal
+155,Everyone,Positive,Anywhere,No Specific Penalty,מצות בדיקת סימני דגים,The commandment to check the signs of fish
+156,Everyone,Negative,Anywhere,Lashes,שלא לאכל דג טמא,To not eat impure fish
+157,Everyone,Negative,Anywhere,Lashes,שלא לאכל עוף טמא,To not eat impure fowl
+158,Everyone,Positive,Anywhere,No Specific Penalty,מצות בדיקת סימני חגבים,The commandment of checking the signs of grasshoppers
+159,Everyone,Positive,Anywhere,No Specific Penalty,מצות טמאת שמנה שרצים,The commandment of the impurity of the eight swarming creatures
+160,Everyone,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת אכלין,The commandment of the matter of impurity of foods
+161,Everyone,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת נבלה,The commandment of the matter of the impurity of a carcass
+162,Everyone,Negative,Anywhere,Lashes,שלא לאכל שרץ הארץ,To not eat the swarming creature of the ground
+163,Everyone,Negative,Anywhere,Lashes,שלא לאכל מיני שרצים דקים הנולדים בזרעים ובפרות,To not eat species of minute swarming creatures born in seeds and fruits
+164,Everyone,Negative,Anywhere,Lashes,שלא לאכל משרץ המים,To not eat of the swarming creatures of the waters
+165,Everyone,Negative,Anywhere,Lashes,שלא לאכל מן השרצים המתהוים מן העפוש,To not eat of swarming creatures that exist from decay
+166,Everyone,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת יולדת,The commandment of the matter of the impurity of a woman who has given birth
+167,Everyone,Negative,Temple,Excision,שלא יאכל טמא מן הקדשים,That one impure not eat consecrated foods
+168,Women,Positive,Temple,No Specific Penalty,מצות קרבן יולדת,The law of the sacrifice of the woman that has given birth
+169,Everyone,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת מצרע,The commandment of the matter of the impurity of a <i>metsora</i>
+170,Everyone,Negative,Anywhere,Lashes,שלא לגלח שער הנתק,To not shave the hair of the scab
+171,Everyone,Positive,Anywhere,No Specific Penalty,הנהגת המצרע וכל מטמאי אדם בפריעה ופרימה,The practice of wildness and rending of a <i>metsora</i> and all who render a person impure
+172,Everyone,Positive,Anywhere,No Specific Penalty,מצות ענין נגעי בגדים,The commandment of the matter of ailments of clothing
+173,Everyone,Positive,Anywhere,No Specific Penalty,מצות הטהרה מן הצרעת שתהיה במינים ידועים,The commandment of purification from <i>tsaraat</i> that it be with certain species
+174,Everyone,Positive,Anywhere,No Specific Penalty,מצות תגלחת מצרע ביום השביעי,The commandment of shaving the <i>metsora</i> on the seventh day
+175,Everyone,Positive,Anywhere,No Specific Penalty,מצות טבילה לטמאים,The commandment of immersion for the impure
+176,Everyone,Positive,Temple,No Specific Penalty,מצות קרבן מצרע כשיתרפא מצרעתו,The law of the commandment of a <i>metsora</i> when he is healed from his <i>tsaraat</i>
+177,Everyone,Positive,Israel,No Specific Penalty,מצות ענין טמאת בית שיהיה בו נגע,The commandment of the matter of the impurity of a house that has an ailment
+178,Men,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת זב להיות טמא ומטמא,The commandment of the matter of impurity of  a <i>zav</i> (one with a discharge)  to be impure and to render impure
+179,Men,Positive,Temple,No Specific Penalty,מצות קרבן זב כשיתרפא מזובו,The commandment of the sacrifice of the <i>zav</i> when he is healed from his discharge
+180,Men,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת שכבת זרע שהוא טמא ומטמא,"The commandment of the matter of the impurity of semen, which is impure and renders impure"
+181,Everyone,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת נדה שטמאה ומטמאה,"The commandment of the matter of the impurity of the menstruant, that is impure and renders impure"
+182,Everyone,Positive,Anywhere,No Specific Penalty,מצות ענין טמאת זבה שטמאה ומטמאה,"The commandment of the matter of the impurity of the <i>zavah</i> (woman with an irregular discharge), that is impure and renders impure "
+183,Women,Positive,Temple,No Specific Penalty,מצות קרבן זבה כשתתרפא מזובה,The commandment of the sacrifice of the <i>zavah</i> when she is healed from her discharge
+184,Men,Positive,Temple,No Specific Penalty,שלא יכנסו הכהנים בכל עת במקדש וכל שכן זרים,"That the priests not enter at any time into the Temple - and all the more so, non-priests"
+185,Priests,Positive,Temple,No Specific Penalty,מצות עבודת יום הכפורים,The commandment of the service of Yom Kippur
+186,Everyone,Negative,Temple,Excision,שלא לשחט קדשים חוץ לעזרה,Not to slaughter consecrated animals outside of the [Temple] yard
+187,Everyone,Positive,Anywhere,No Specific Penalty,מצות כסוי הדם,The commandment of covering the blood
+188,Everyone,Negative,Anywhere,Lashes,שלא להתחתן באחת מכל העריות,To not marry one of all the sexual prohibitions
+189,Men,Negative,Anywhere,Death,שלא לגלות ערות אב,To not reveal the nakedness of the father
+190,Men,Negative,Anywhere,Excision,שלא לגלות ערות אם,To not reveal the nakedness of the mother
+191,Men,Negative,Anywhere,Death,שלא לגלות ערות אשת אב ואף על פי שאינה אמו,"To not reveal the nakedness of the wife of the father, even though she is not his mother"
+192,Men,Negative,Anywhere,Excision,שלא לגלות ערות אחותו בכל צד שהיא אחותו,"To not reveal the nakedness of his sister, from any angle that she is his sister "
+193,Men,Negative,Anywhere,Death,שלא לגלות ערות בת הבן,To not reveal the nakedness of the daughter of the son
+194,Men,Negative,Anywhere,Death,שלא לגלות ערות בת הבת,To not reveal the nakedness of the daughter of the daughter
+195,Men,Negative,Anywhere,Death,שלא לגלות ערות הבת,To not reveal the nakedness of the daughter
+196,Men,Negative,Anywhere,Death,שלא לגלות ערות אחותו מן האב והיא בת אשת אביו,"To not uncover the nakedness of his sister from the father, and she is the daughter of the wife of the father "
+197,Men,Negative,Anywhere,Death,שלא לגלות ערות אחות אב,To not reveal the nakedness of the sister of the father
+198,Men,Negative,Anywhere,Death,ערות אחות אמך לא תגלה,The nakedness of the sister of your mother you shall not reveal
+199,Men,Negative,Anywhere,Death,ערות אחי אביך לא תגלה,The nakedness of the brother of your father you  shall not reveal
+200,Men,Negative,Anywhere,Death,ערות אשת אחי אביך לא תגלה,"The nakedness of the wife of the brother of your father, you shall not reveal"
+201,Men,Negative,Anywhere,Death,ערות כלתך לא תגלה,The nakedness of your daughter-in-law you shall not reveal
+202,Men,Negative,Anywhere,Death,ערות אשת אחיך לא תגלה,The nakedness of the wife of your brother you shall not reveal
+203,Men,Negative,Anywhere,Death,ערות אשה ובתה לא תגלה,"The nakedness of a woman and her daughter, you shall not reveal"
+204,Men,Negative,Anywhere,Death,ערות אשה ובת בנה,The nakedness of a woman and the daughter of her son
+205,Men,Negative,Anywhere,Death,שלא לגלות ערות אשה ובת בתה,To not reveal the nakedness of a woman and the daughter of her daughter
+206,Men,Negative,Anywhere,Death,ערות אשה ואחותה,The nakedness of a woman and her sister
+207,Men,Negative,Anywhere,Death,שלא לבוא על אשה נדה,To not have intercourse with a menstruant woman
+208,Everyone,Negative,Anywhere,Death,שלא נתן מזרעו למלך,That we should not give from our seed to Molekh
+209,Men,Negative,Anywhere,Death,שלא לבוא על הזכרים,[For a man] to not have intercourse with males
+210,Men,Negative,Anywhere,Death,שלא לשכב עם בהמה,To not lay with a beast
+211,Women,Negative,Anywhere,Death,שלא תשכבנה הנשים עם הבהמות,That women not lay with the beasts
+212,Everyone,Positive,Anywhere,No Specific Penalty,מצות יראת אב ואם,The commandment of the reverence of father and mother
+213,Everyone,Negative,Anywhere,Lashes,שלא לפנות אחר עבודת אלילים לא במחשבה ולא בדבור ולא בהבטה,"To not turn after the worship of idols - not in thought, not in speech and not in vision"
+214,Everyone,Negative,Anywhere,Lashes,שלא לעשות עבודת אלילים לא לעצמו ולא לזולתו,To not make [idols] not for himself and not for those besides him
+215,Everyone,Negative,Temple,Excision,שלא לאכל נותר,To not eat <i>notar</i>
+216,Everyone,Positive,Israel,No Specific Penalty,להניח פאה בשדה,To leave over the corner of the field
+217,Everyone,Negative,Israel,Lashes,שלא לכלות הפאה בשדה,To not finish the corner in the field
+218,Everyone,Positive,Israel,No Specific Penalty,לעזב הלקט בשדה,To leave the gleanings in the field
+219,Everyone,Positive,Israel,No Specific Penalty,שלא לקחת שבלים הנופלים בשעת הקציר,To not take the sheaves that fall at the time of the harvesting
+220,Everyone,Positive,Israel,No Specific Penalty,מצות הנחת פאת הכרם,The commandment of leaving over the corner of the vineyard
+221,Everyone,Negative,Israel,Lashes,שלא לכלות פאת הכרם,To not finish the corner of the vineyard
+222,Everyone,Positive,Israel,No Specific Penalty,מצות הנחת פרט הכרם,The commandment of leaving the <i>peret</i> of the vineyard
+223,Everyone,Negative,Israel,Lashes,שלא ללקט פרט הכרם,To not gather the <i>peret</i> of the vineyard
+224,Everyone,Negative,Israel,Fine,שלא לגנב שום ממון,To not steal any money
+225,Everyone,Negative,Israel,No Specific Penalty,שלא נכחש על ממון שיש מאחר בידינו,That we do not disavow money that is in our hand from another
+226,Everyone,Negative,Anywhere,Lashes,שלא לשבע על כפירת ממון,To not swear about the denial of money
+227,Everyone,Negative,Anywhere,Lashes,שלא לשבע לשקר,To not swear falsely
+228,Everyone,Negative,Anywhere,Lashes,שלא לעשק,To not oppress
+229,Everyone,Negative,Anywhere,No Specific Penalty,שלא לגזל,To not rob
+230,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאחר שכר שכיר,To not delay the wage of a wage worker
+231,Everyone,Negative,Anywhere,Lashes,שלא לקלל אחד מישראל בין איש בין אשה,"To not curse an Israelite, whether a man or a woman"
+232,Everyone,Negative,Anywhere,No Specific Penalty,שלא להכשיל תם בדרך,To not make an innocent one stumble on the way
+233,Men,Negative,Anywhere,No Specific Penalty,שלא לעול המשפט,To not vitiate justice
+234,Men,Negative,Anywhere,No Specific Penalty,שלא לכבד גדול בדין,To not honor a great person in judgement
+235,Men,Positive,Anywhere,No Specific Penalty,מצוה שישפט בצדק,The commandment to judge with righteousness
+236,Everyone,Negative,Anywhere,No Specific Penalty,שלא לרגל,To not spy
+237,Everyone,Negative,Anywhere,No Specific Penalty,שלא לעמד על דם רעים,To not stand over the blood of neighbors
+238,Everyone,Negative,Anywhere,No Specific Penalty,שלא לשנא אחים,To not hate brothers
+239,Everyone,Positive,Anywhere,No Specific Penalty,מצות תוכחה לישראל שאינו נוהג כשורה,The commandment of rebuke to an Israelite who does not behave properly
+240,Everyone,Negative,Anywhere,No Specific Penalty,שלא להלבין פני אדם מישראל,To not whiten the face of an Israelite
+241,Everyone,Negative,Anywhere,No Specific Penalty,שלא לנקם,To not avenge
+242,Everyone,Negative,Anywhere,No Specific Penalty,שלא לנטר,To not begrudge
+243,Everyone,Positive,Anywhere,No Specific Penalty,מצות אהבת ישראל,The commandment of love of Israel
+244,Everyone,Negative,Anywhere,Lashes,שלא להרביע בהמה מין עם שאינו מינו,"To not mate a beast, a specie with not its specie"
+245,Everyone,Negative,Israel,No Specific Penalty,שלא לזרע כלאי זרעים ולא נרכיב אילן בשום מקום בארץ,To not sow seeds of forbidden mixtures and not graft in any place in the Land
+246,Everyone,Negative,Anywhere,Lashes,שלא לאכול ערלה, To not eat <i>orlah</i>
+247,Everyone,Positive,Israel,No Specific Penalty,מצות נטע רבעי,The commandment of the fourth year plant
+248,Men,Negative,Israel,Death,שלא לאכל ולשתות כדרך זולל וסובא,To not eat or to drink in the way of a glutton and a drunkard
+249,Everyone,Negative,Anywhere,Lashes,שלא לנחש,To not divine
+250,Everyone,Negative,Anywhere,Lashes,שלא לעונן,To not soothsay
+251,Men,Negative,Anywhere,Lashes,שלא להקיף פאת הראש,To not encircle the corner of the head
+252,Men,Negative,Anywhere,Lashes,שלא להשחית פאת זקן,To not destroy the corner of the beard
+253,Everyone,Negative,Anywhere,Lashes,שלא נכתב בבשרנו כתבת קעקע,That we not imprint an imprinted tatoo into our flesh
+254,Everyone,Positive,Anywhere,No Specific Penalty,מצות היראה מן המקדש,The commandment of awe for the Temple
+255,Everyone,Negative,Anywhere,Excision,שלא לעשות מעשה אוב,To not do an act of <i>ov</i>
+256,Everyone,Negative,Anywhere,Death,שלא לעשות מעשה ידעוני,To not do an act of <i>yidaaoni</i>
+257,Everyone,Positive,Anywhere,No Specific Penalty,מצות כבוד חכמים,The commandment to honor sages
+258,Everyone,Negative,Anywhere,No Specific Penalty,שלא להונות במדות וכל המדות בכלל,"To not cheat in measures, and all measures are included"
+259,Everyone,Positive,Anywhere,No Specific Penalty,מצות צדוק המאזנים והמשקלים והמדות,"The commandment of having just scales, weights and measures"
+260,Everyone,Negative,Anywhere,Death,שלא לקלל אב ואם,To not curse father and mother
+261,Men,Positive,Israel,No Specific Penalty,מצוה שישרפו מי שיתחיב שרפה,The commandment to burn one who is liable for burning
+262,Everyone,Negative,Anywhere,Lashes,שלא ללכת בחקת הגוים,To not follow the practices of the gentiles
+263,Men,Negative,Anywhere,Lashes,שלא יטמא כהן הדיוט במת זולת בקרובים המבארים בכתוב,That a common priest not become defiled with a dead body except for the relatives elucidated in Scripture
+264,Everyone,Positive,Anywhere,No Specific Penalty,"מצות ענין טמאת הכהנים לקרוביהם, ובכללה שיתאבלו כל אחד מישראל על ששה מקרוביהם הידועים","The commandment of the matter of the impurity of the priests for their relatives, and included in it is that each one in Israel should mourn for their six relatives [the identify of which is] well-known"
+265,Men,Negative,Temple,Death,שלא ישמש כהן טבול יום עד שיעריב שמשו,That a priest who immersed that day (<i>tevul yom</i>) not serve until his sun set
+266,Men,Negative,Anywhere,Lashes,שלא ישא כהן אשה זונה,That a priest not marry a licentious woman (<i>zonah</i>)
+267,Men,Negative,Anywhere,Lashes,שלא ישא כהן אשה חללה,That a priest not marry a profaned woman (<i>challalah</i>)
+268,Men,Negative,Anywhere,No Specific Penalty,שלא ישא כהן גרושה,That a priest not marry a divorcee
+269,Everyone,Positive,Anywhere,No Specific Penalty,מצות קדוש זרע אהרן,The commandment of sanctifying the seed of Aharon
+270,Priests,Negative,Temple,Lashes,שלא יכנס כהן גדול באהל המת,That a high priest not enter the tent of a dead body
+271,Priests,Negative,Temple,Lashes,שלא יטמא כהן גדול בשום טמאה במת,That the high priest not become impure with any impurity
+272,Priests,Positive,Temple,No Specific Penalty,מצות כהן גדול לשא נערה בתולה,The commandment of a high priest to marry a virgin maiden
+273,Priests,Negative,Temple,Lashes,שלא ישא כהן גדול אלמנה,That a high priest not marry a widow
+274,Priests,Negative,Temple,Lashes,שלא יבעל כהן גדול אלמנה,That a high priest not have intercourse with a widow
+275,Priests,Negative,Temple,Lashes,שלא יעבד כהן בעל מום במקדש, That a priest with a blemish not serve in the Temple
+276,Priests,Negative,Temple,Lashes,שלא יעבד כהן בעל מום עובר,That a priest with a transient blemish not serve
+277,Everyone,Negative,Anywhere,Lashes,שלא יכנס בעל מום בהיכל כלו,That one with a blemish not enter the entire sanctuary
+278,Priests,Negative,Temple,Death,שלא יעבד כהן טמא,That an impure priest not serve
+279,Priests,Negative,Temple,Death,שלא יאכל כהן טמא תרומה,That an impure priest not eat priestly tithe
+280,Everyone,Negative,Israel,No Specific Penalty,שלא יאכל שום זר תרומה,That no foreigner eat priestly tithe
+281,Everyone,Negative,Israel,No Specific Penalty,שלא יאכל תושב כהן ושכיר תרומה,That the boarder of a priest and the hired worker not eat priestly tithe
+282,Everyone,Negative,Israel,No Specific Penalty,שלא יאכל ערל תרומה,That an uncircumcised one not eat priestly tithe
+283,Women,Negative,Israel,Lashes,שלא תאכל חללה מן הקדש,That a profaned woman not eat from the holy
+284,Everyone,Negative,Israel,No Specific Penalty,שלא לאכל טבל,To not eat <i>tevel</i>
+285,Everyone,Negative,Anywhere,No Specific Penalty,שלא נקדיש בעלי מומין למזבח,That we not consecrate [animals] with blemishes for the altar
+286,Everyone,Positive,Anywhere,No Specific Penalty,מצות הקרבן להיות תמים,The commandment of the sacrifice being unblemished
+287,Everyone,Negative,Anywhere,No Specific Penalty,שלא נתן מום בקדשים,That we not place a blemish upon consecrated animals
+288,Everyone,Negative,Temple,No Specific Penalty,שלא נזרק דם בעל מום על המזבח,That we not sprinkle blood of an [animal] with a blemish on the altar
+289,Everyone,Negative,Temple,No Specific Penalty,שלא נשחט בעל מום לשם קרבן,That we not slaughter an [animal with a blemish] for the sake of a sacrifice
+290,Everyone,Negative,Temple,No Specific Penalty,שלא נקטיר מאמורי בעלי מומין,That we not incinerate the entrails of [animals] with blemishes
+291,Everyone,Negative,Anywhere,Lashes,שלא לסרס אחד מכל המינים,Not to castrate one of all of the species
+292,Priests,Negative,Israel,No Specific Penalty,שלא להקריב קרבן בעל מום מיד הנכרי,Not to sacrifice a sacrifice that is one with a blemish from the hand of the stranger
+293,Men,Positive,Temple,No Specific Penalty,מצות הקרבן שיהיה משמנה ימים ולמעלה,The commandment of a sacrifice that it be from eight days and above
+294,Everyone,Negative,Anywhere,Lashes,שלא לשחט בהמה ובנה ביום אחד,To not slaughter a beast and its child on one day
+295,Everyone,Negative,Anywhere,No Specific Penalty,שלא לעשות דבר שיתחלל בו שם שמים בין בני אדם,That we not do anything through which the name of the Heavens is profaned among people
+296,Everyone,Positive,Anywhere,No Specific Penalty,מצות קדוש השם,The commandment of sanctification of the Name
+297,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה ביום ראשון של פסח,The commandment of resting on the first day of Pesach
+298,Everyone,Negative,Anywhere,Lashes,שלא לעשות מלאכה ביום ראשון של פסח,To not do work on the first day of Pesach
+299,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף כל שבעת ימי הפסח,The commandment of the additional sacrifices all of the seven days of Pesach
+300,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה בשביעי של פסח,The commandment of resting on the seventh [day] of Pesach
+301,Everyone,Negative,Anywhere,Lashes,שלא לעשות מלאכה ביום שביעי של פסח,To not do work on the seventh day of Pesach
+302,Men,Positive,Temple,No Specific Penalty,מצות קרבן העמר של שעורים,The commandment of the sacrifice of the <i>omer</i> of barley
+303,Everyone,Negative,Anywhere,Lashes,שלא לאכל מתבואה חדשה קדם כלות ששה עשר בניסן,To not eat from the new grain before the end of the sixteenth of Nissan
+304,Everyone,Negative,Anywhere,Lashes,שלא לאכל קלי מתבואה חדשה עד היום ההוא,To not eat roasted grain from the new grain until that day
+305,Everyone,Negative,Anywhere,Lashes,שלא לאכל כרמל מתבואה חדשה עד היום ההוא,To not eat fresh grain from the new grain until that day
+306,Everyone,Positive,Anywhere,No Specific Penalty,מצות ספירת העמר,The commandment of counting the <i>omer</i>
+307,Men,Positive,Temple,No Specific Penalty,מצות קרבן מנחה חדשה מן החטים ביום עצרת,The commandment of the sacrifice of the new meal-offering from wheat on the day of [Shavuot]
+308,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה ממלאכה ביום עצרת,The commandment of resting from work on the day of [Shavuot]
+309,Everyone,Negative,Anywhere,Lashes,שלא לעשות מלאכה ביום חג שבועות,To not do work on the day of the holiday of Shavuot
+310,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה ביום ראש השנה,The commandment of resting on the day of Rosh Hashanah
+311,Everyone,Negative,Anywhere,Lashes,שלא לעשות מלאכה ביום ראשון בתשרי,To not do work on the first day of Tishrei
+312,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף ביום ראש השנה,The commandment of the additional sacrifice on the day of Rosh Hashanah
+313,Everyone,Positive,Anywhere,No Specific Penalty,מצות תענית ביום עשירי בתשרי,The commandment of the fast on the tenth day of Tishrei
+314,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף של יום הכפורים,The commandment of the additional sacrifice of Yom Kippur
+315,Everyone,Negative,Anywhere,Excision,שלא לעשות מלאכה בעשרה בתשרי,To not do work on the tenth of Tishrei
+316,Everyone,Negative,Anywhere,Excision,שלא לאכל ולשתות ביום הכפורים,To not eat and drink on Yom Kippur
+317,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה ממלאכה ביום הכפורים,The commandment of resting from work on Yom Kippur
+318,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה ממלאכה ביום ראשון של חג הסכות,The commandment of resting on the first day of the holiday of Sukkot
+319,Everyone,Negative,Anywhere,Lashes,שלא לעשות מלאכה ביום ראשון של חג הסכות,To not do work on the first day of the holiday of Sukkot
+320,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף בכל יום משבעת ימי הסכות,The commandment of the additional sacrifice on each day of the seven days of Sukkot
+321,Everyone,Positive,Anywhere,No Specific Penalty,מצות שביתה ממלאכה ביום שמיני של סכות,The commandment of resting from work on the eighth day of Sukkot
+322,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף ביום שמיני של סכות שהוא נקרא שמיני עצרת,"The commandment of the additional sacrifice on the eighth day of Sukkot, which is called Shemini Atseret"
+323,Everyone,Negative,Anywhere,Lashes,שלא לעשות מלאכה ביום שמיני עצרת,To not do work on  day of the holiday of Shemini Atseret
+324,Men,Positive,Anywhere,No Specific Penalty,מצות נטילת לולב,The commandment of taking the lulav
+325,Men,Positive,Anywhere,No Specific Penalty,מצות ישיבת סכה,The commandment of sitting in a sukkah (booth)
+326,Everyone,Negative,Israel,Lashes,שלא נעבד האדמה בשנה השביעית,That we not work the land on the seventh year
+327,Everyone,Negative,Israel,Lashes,שלא נעשה עבודה גם באילנות,That we also not do work with the trees
+328,Everyone,Negative,Israel,Lashes,שלא נקצר ספיחים בשנה השביעית,That we not harvest the aftergrowth on the seventh year
+329,Everyone,Negative,Israel,Lashes,שלא נאסף פרות האילן בשביעית כדרך שאוספין אותן בכל שנה,That we not gather the fruit of the trees in the seventh [year] in the manner that we gather them in every year
+330,Miscelaneous,Positive,Israel,No Specific Penalty,מצות ספירת שבע שבתות שנים,The commandment of counting the seven [cycles] of seven years
+331,Miscelaneous,Positive,Israel,No Specific Penalty,מצות תקיעת שופר ביום הכפורים של יובל,The commandment of blowing the shofar on Yom Yippur of the Jubilee
+332,Miscelaneous,Positive,Israel,No Specific Penalty,מצות קדוש שנת היובל,The commandment of the sanctification of the Jubilee year
+333,Everyone,Negative,Israel,Lashes,שלא נעבד הארץ בשנת היובל,That we not work the land on the Jubilee year
+334,Everyone,Negative,Israel,Lashes,שלא נקצר ספיחי תבואות של שנת היובל,To not harvest the aftergrowth of the produce of the Jubilee year
+335,Everyone,Negative,Israel,Lashes,שלא לאסף פרות האילנות בשנת היובל כדרך שאוספים אותן בשאר השנים,To not gather the fruits of the trees on the Jubilee year in the manner that we gather them in other years
+336,Men,Positive,Anywhere,No Specific Penalty,מצות עשית דין בין לוקח ומוכר,The commandment of adjudicating between the buyer and the seller
+337,Everyone,Negative,Anywhere,No Specific Penalty,שלא להונות במקח וממכר,To not mistreat in buying and selling
+338,Everyone,Negative,Anywhere,No Specific Penalty,שלא להונות אחד מישראל בדברים,To not mistreat any Israelite with words
+339,Everyone,Negative,Israel,No Specific Penalty,שלא נמכר שדה בארץ ישראל לצמיתות,That we not sell a field in the Land of Israel in perpetuity
+340,Everyone,Positive,Israel,No Specific Penalty,מצות השבת קרקע לבעליהן ביובל,The commandment of returning land to its owners on the Jubilee
+341,Everyone,Positive,Israel,No Specific Penalty,מצות פדיון בתי ערי חומה עד השלמת שנה,The law of redemption of houses of walled cities until the completion of a year
+342,Everyone,Negative,Israel,No Specific Penalty,שלא לשנות ממגרשי הלוים,To not change the open areas of the Levites
+343,Everyone,Negative,Anywhere,No Specific Penalty,שלא להלוות ברבית לישראל,To not lend with interest to an Israelite
+344,Everyone,Negative,Israel,No Specific Penalty,שלא נעבד בעבד עברי עבדת בזיון כמו עבדת כנעני,"That we not make a Hebrew slave perform demeaning work, like the work of a Canaanite (gentile) slave"
+345,Everyone,Negative,Israel,No Specific Penalty,שלא נמכר עבד עברי על אבן המקח,That we not sell a Hebrew slave upon the auctioning stone
+346,Everyone,Negative,Israel,No Specific Penalty,שלא לעבד בעבד עברי בעבדת פרך,To not make a Hebrew slave perform oppressive work
+347,Everyone,Positive,Israel,No Specific Penalty,מצות עבודה בעבד כנעני לעולם,The commandment of work with a Canaanite slave forever
+348,Everyone,Negative,Israel,No Specific Penalty,שלא להניח לגוי לעבד בעבד עברי הנמכר לו,To not allow a gentile to work a Hebrew slave sold to him
+349,Everyone,Negative,Anywhere,Lashes,שלא נשתחוה על אבן משכית אפילו לשם,"That we not prostrate ourselves on a figured stone, even to God"
+350,Everyone,Positive,Anywhere,No Specific Penalty,מצות מעריך אדם שיתן דמים הקצובים בתורה,The commandment that one who appraises a man give the value delineated in the Torah
+351,Everyone,Negative,Anywhere,Lashes,שלא נמיר הקדשים,To not exchange consecrated things
+352,Everyone,Positive,Anywhere,No Specific Penalty,מצות הממיר בהמת קרבן בבהמה אחרת שתהיינה שתיהן קדש,"The commandment of the one who exchanges the beast of a sacrifice with another beast, such that both of them be consecrated"
+353,Everyone,Positive,Temple,No Specific Penalty,מצות מעריך בהמה שיתן כפי שיעריכנה הכהן,"The commandment of the appraisal of a beast, such that one give according to what the priest appraises"
+354,Everyone,Positive,Anywhere,No Specific Penalty,מצות מעריך בתים שיתן כערך שיעריכנה הכהן ותוספת חמש,"The commandment of appraising houses, such that he give the appraisal that the priest appraises and the addition of a fifth"
+355,Everyone,Positive,Anywhere,No Specific Penalty,מצות מעריך שדה שיתן כערך הקצוב בפרשה,"The commandment of appraising a field, that he give the appraisal specified in the section of the Torah"
+356,Everyone,Negative,Anywhere,No Specific Penalty,שלא לשנות הקדשים מקרבן לקרבן,To not change the consecrated from a sacrifice to a sacrifice
+357,Everyone,Positive,Temple,No Specific Penalty,מצות דין מחרים מנכסיו שהוא לכהנים,"The commandment of the law of one who dedicates from his properties, that it is of the priests"
+358,Everyone,Negative,Temple,No Specific Penalty,שלא ימכר קרקע שהחרימו אותה בעלים אלא תנתן לכהנים,"That owners that dedicated land not sell it, but that it rather be given to the priests"
+359,Everyone,Negative,Temple,No Specific Penalty,שלא יגאל שדה החרם,That a dedicated field not be redeemed
+360,Everyone,Positive,Anywhere,No Specific Penalty,מצות מעשר בהמה טהורה בכל שנה,The commandment of the tithe of pure beasts every year
+361,Everyone,Negative,Anywhere,No Specific Penalty,שלא למכר מעשר בהמה אלא יאכל בירושלים,"To not sell the tithe of beasts, but rather that it be eaten in Jerusalem"
+362,Everyone,Positive,Anywhere,No Specific Penalty,מצות שלוח טמאים חוץ למחנה שכינה,The commandment to send the impure out of the camp of the Divine Presence
+363,Everyone,Negative,Anywhere,No Specific Penalty,שלא יכנס טמא בכל המקדש,That an impure person not enter the entire Temple
+364,Everyone,Positive,Anywhere,No Specific Penalty,מצות ודוי על החטא,The commandment of confession of sin
+365,Men,Positive,Temple,No Specific Penalty,מצות סוטה שיביאנה הבעל אל הכהן ויעשה לה כמשפט הכתוב,The commandment of the suspected adulteress (<i>sotah</i>) for the husband to bring her to the priest and that he do to her according to the statute that is written
+366,Priests,Negative,Temple,No Specific Penalty,שלא נתן שמן בקרבן סוטה,That we not put oil on the <i>sotah</i> sacrifice
+367,Priests,Negative,Temple,No Specific Penalty,שלא לשים לבונה בקרבן סוטה,Not to place frankincense on the <i>sotah</i> sacrifice
+368,Everyone,Negative,Anywhere,Lashes,שלא ישתה הנזיר יין או כל מיני שכר,That the nazirite not drink wine or all types of spirits
+369,Everyone,Negative,Anywhere,Lashes,שלא יאכל הנזיר ענבים לחים,That the nazirite not eat damp grapes
+370,Everyone,Negative,Anywhere,Lashes,שלא יאכל הנזיר צמוקים,That the nazirite not eat raisins
+371,Everyone,Negative,Anywhere,Lashes,שלא יאכל הנזיר גרעיני הענבים,That the nazirite not eat the seeds of the grapes
+372,Everyone,Negative,Anywhere,Lashes,שלא יאכל הנזיר קלפת הענבים,That the nazirite not eat the peel of the grapes
+373,Everyone,Negative,Anywhere,Lashes,שלא יגלח הנזיר שערו,That the nazirite not shave his hair
+374,Everyone,Positive,Anywhere,No Specific Penalty,מצות גדול שער נזיר,The commandment of growing the hair of the nazirite
+375,Everyone,Negative,Anywhere,Lashes,שלא יכנס הנזיר לאהל המת,That the nazirite not enter the tent of a dead body
+376,Everyone,Negative,Anywhere,Lashes,שלא יטמא הנזיר במת ובשאר טמאות,That the nazirite not become impure through a dead body or through other impurities
+377,Everyone,Positive,Temple,No Specific Penalty,מצות גלוח הנזיר והבאת קרבנותיו,The commandment of shaving the nazirite and bringing his sacrifices
+378,Priests,Positive,Temple,No Specific Penalty,מצות ברכת כהנים בכל יום,The commandment of the priestly blessing every day
+379,Priests,Positive,Temple,No Specific Penalty,מצות משא הארון בכתף,The commandment of carrying the Ark on the shoulder
+380,Men,Positive,Temple,No Specific Penalty,מצות פסח שני בארבעה עשר באיר,The commandment of the second Pesach (<i>Pesach Sheni</i>) on the fourteenth of Iyar
+381,Men,Positive,Temple,No Specific Penalty,מצות פסח שני שיאכל על מצות ומרורים,The commandment that the second Pesach (<i>Pesach Sheni</i>) offering be eaten with matsot and maror (bitter herbs)
+382,Everyone,Negative,Temple,No Specific Penalty,שלא להותיר כלום מבשר הפסח שני למחרתו,Not to leave any meat from the <i>Pesach Sheni</i> sacrifice to its morrow
+383,Everyone,Negative,Temple,No Specific Penalty,שלא לשבר עצם מעצמות פסח שני,Not to break a bone from the bones of the <i>Pesach Sheni</i> sacrifice
+384,Priests,Positive,Temple,No Specific Penalty,מצות תקיעת חצוצרות במקדש ובמלחמה,The commandment of blowing the trumpets in the Temple and in war
+385,Everyone,Positive,Anywhere,No Specific Penalty,מצות חלה,The commandment of <i>challah</i> (dough-offering)
+386,Men,Positive,Anywhere,No Specific Penalty,מצות ציצית,The commandment of fringes (<i>tsitsit</i>)
+387,Everyone,Negative,Anywhere,No Specific Penalty,שלא לתור אחר מחשבת הלב וראית העינים,To not wander after the thoughts of the heart and the vision of the eyes
+388,Priests,Positive,Temple,No Specific Penalty,מצות שמירת המקדש,The commandment to guard the Temple
+389,Priests,Negative,Temple,Death,שלא יתעסקו הכהנים בעבודת הלוים ולא הלוים בעבודת כהנים,That the priests not be involved in the service of the the Levites and the Levites in the service of the priests
+390,Everyone,Negative,Temple,Death,שלא יעבד זר במקדש,That a foreigner not serve in the Temple
+391,Priests,Negative,Temple,No Specific Penalty,שלא לבטל שמירת המקדש,To not nullify the guarding of the Temple
+392,Men,Positive,Anywhere,No Specific Penalty,מצות פדיון בכור אדם,The commandment of redeeming the first-born of a man
+393,Everyone,Negative,Israel,No Specific Penalty,שלא לפדות בכור בהמה טהורה,To not redeem the first-born of a pure animal
+394,Priests,Positive,Temple,No Specific Penalty,מצות עבודת הלוים במקדש,The commandment of the service of the Levites in the Temple
+395,Everyone,Positive,Israel,No Specific Penalty,מצות מעשר ראשון,The commandment of the first tithe
+396,Priests,Positive,Israel,No Specific Penalty,מצות הלוים לתת מעשר מן המעשר,The commandment of the Levites to give a tithe from the tithe
+397,Miscelaneous,Positive,Temple,No Specific Penalty,מצות פרה אדמה,The commandment of the red heifer
+398,Everyone,Positive,Temple,No Specific Penalty,מצות טמאה של מת,The commandment of the impurity of a dead body
+399,Everyone,Positive,Temple,No Specific Penalty,מצות מי נדה שמטמאין אדם טהור ומטהרין אדם טמא מטמאת מת בלבד,"The Commandment of the <i>niddah</i> waters which render the pure, impure and only purify someone impure from the impurity of a dead body"
+400,Everyone,Negative,Anywhere,No Specific Penalty,מצות דיני נחלות,The commandment of the laws of inheritance
+401,Miscelaneous,Positive,Temple,No Specific Penalty,מצות תמידין בכל יום,The commandment of the regular [sacrifices] daily
+402,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף של שבת,The commandment of the additional sacrifice of Shabbat
+403,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף בכל חדש וחדש,The commandment of the additional sacrifice on each and every month
+404,Priests,Positive,Temple,No Specific Penalty,מצות קרבן מוסף ביום חג השבועות,The commandment of the additional sacrifice on the day of the festival of Shavouot
+405,Men,Positive,Anywhere,No Specific Penalty,מצות שופר בראש השנה,The commandment of shofar (horn) on Rosh Hashanah
+406,Men,Positive,Anywhere,No Specific Penalty,מצות דין הפרת נדרים,The commandment of the law of the abrogation of vows
+407,Everyone,Negative,Anywhere,No Specific Penalty,שלא נחל דברנו בנדרים,That we not profane our words from vows
+408,Miscelaneous,Positive,Israel,No Specific Penalty,מצות ישראל לתת ערים ללוים לשבת בהן והן קולטות,"The commandment on Israel to give cities within which the Levites may dwell, and they shelter"
+409,Everyone,Negative,Anywhere,Death,שלא להרג מחיב קדם שיעמוד בדין,To not kill someone liable before he is brought to justice
+410,Miscelaneous,Positive,Israel,No Specific Penalty,מצות בית דין לשלוח מכה נפש בשגגה מעירו לערי מקלט ועל הרוצח בעצמו ללכת שם,The commandment on the court to send one who smites a soul inadvertently from his city to the cities of refuge and upon the killer himself to go there
+411,Men,Negative,Temple,No Specific Penalty,שלא יורה העד בדין שהעיד בו בדיני נפשות, That the witness not issue a ruling in the case that he is testifying about in capital punishments
+412,Everyone,Negative,Temple,No Specific Penalty,שלא לקח כפר להציל ממות הרוצח,Not to take ransom to save the murderer from the death penalty
+413,Everyone,Negative,Temple,No Specific Penalty,שלא נקח כפר ממחיב גלות לפטרו מן הגלות,Not to take ransom from one liable for exile to exempt him from exile
+414,Miscelaneous,Negative,Anywhere,No Specific Penalty,שלא למנות דין שאינו יודע בדיני התורה,Not to appoint a judge that that does not know the laws of the Torah
+415,Men,Negative,Anywhere,No Specific Penalty,שלא יירא הדין בדין,That a judge not fear in judgement
+416,Everyone,Negative,Anywhere,No Specific Penalty,שלא להתאוות ממון חברו,Not to desire the money of your friend
+417,Everyone,Positive,Anywhere,No Specific Penalty,מצות אחדות השם,The commandment of the unification of God
+418,Everyone,Positive,Anywhere,No Specific Penalty,מצות אהבת השם,The commandment of loving God
+419,Men,Positive,Anywhere,No Specific Penalty,מצות תלמוד תורה,The commandment of Torah study
+420,Men,Positive,Anywhere,No Specific Penalty,מצות קריאת שמע שחרית וערבית,The law of the recitation of Shema morning and evening
+421,Men,Positive,Anywhere,No Specific Penalty,מצות תפלין של יד,The commandment of the tefillin of the arm
+422,Men,Positive,Anywhere,No Specific Penalty,מצות תפלין של ראש,The commandment of the tefillin of the head
+423,Everyone,Positive,Anywhere,No Specific Penalty,לקבע מזוזה בפתחים,To affix a mezuzah on entrances
+424,Everyone,Negative,Anywhere,No Specific Penalty,שלא לנסות נביא אמת יותר מדאי,To not test a true prophet more than is necessary
+425,Everyone,Positive,Anywhere,No Specific Penalty,מצות הרגת שבעה עממין,The commandment of killing the seven nations
+426,Everyone,Negative,Anywhere,No Specific Penalty,שלא לחן ולרחם על עובד אלילים,To not grace and to have mercy on an idolater
+427,Everyone,Negative,Anywhere,No Specific Penalty,לא להתחתן בעובדי אלילים,To not marry with idolaters
+428,Everyone,Negative,Anywhere,Lashes,שלא להנות מצפוי עבודה זרה ומשמשיה,To not derive benefit from the coverings of idolatry and from its auxiliaries
+429,Everyone,Negative,Anywhere,Lashes,שלא להנות מתקרבת עבודה זרה,To not benefit from an offering to idolatry
+430,Everyone,Positive,Anywhere,No Specific Penalty,לברך את השם אחר אכילת המזון,To bless God after eating food
+431,Everyone,Positive,Anywhere,No Specific Penalty,מצות אהבת הגרים,The commandment of loving the strangers (converts)
+432,Everyone,Positive,Anywhere,No Specific Penalty,מצות יראת השם,The commandment of fearing God
+433,Everyone,Positive,Anywhere,No Specific Penalty,מצות תפילה,The commandment of prayer
+434,Everyone,Positive,Anywhere,No Specific Penalty,להדבק בחכמי התורה,To cling to Torah sages
+435,Everyone,Positive,Anywhere,No Specific Penalty,להשבע בשמו יתברך באמת,"To swear in His name, may He be blessed, truthfully"
+436,Everyone,Positive,Anywhere,No Specific Penalty,לאבד עבודה זרה ומשמשיה,To destroy idolatry and its auxiliaries
+437,Everyone,Negative,Anywhere,Lashes,שלא לאבד דברים שנקרא שמו יתברך עליהם,"Not to destroy things upon which His name, may He be blessed, are called"
+438,Everyone,Positive,Temple,No Specific Penalty,שיביא כל נדריו ברגל ראשון,That one brings all of his vows on the first festival
+439,Everyone,Negative,Anywhere,No Specific Penalty,שלא להקריב קרבן חוץ לעזרה,Not to sacrifice a sacrifice outside of the [Temple] yard
+440,Everyone,Positive,Anywhere,No Specific Penalty,מצוה להקריב כל הקרבנות בבית הבחירה,The commandment to sacrifice all the sacrifices in the Choice House
+441,Everyone,Positive,Temple,No Specific Penalty,לפדות קדשים שנפל בהם מום,To redeem consecrated things upon which a blemish developed
+442,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאכל מעשר שני של דגן חוץ לירושלים,To not eat from the second tithe of grain outside of Jerusalem
+443,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאכל מעשר שני של תירוש חוץ לירושלים,To not eat the second tithe of wine outside of Jerusalem
+444,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאכל מעשר שני של יצהר חוץ לירושלים,To not eat the second tithe of oil outside of Jerusalem
+445,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאכל בכור תמים חוץ לירושלים,To not eat an unblemished first-born [animal] outside of Jerusalem
+446,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאכל קדשי הקדשים חוץ לעזרה,To not eat higher-level consecrated foods (<i>kodshai kodashim</i>) outside of the [Temple] yard
+447,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאכל בשר העולה,To not eat meat of a burnt-offering
+448,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאכל קדשים קלים קדם זריקת דמים,To not eat lower-level consecrated foods (<i>kodashim kalim</i>) before the sprinkling of the bloods
+449,Everyone,Negative,Anywhere,No Specific Penalty,שלא יאכל כהן בכורים קדם הנחתם בעזרה,That the priest not eat the first-fruits (<i>bikkurim</i>) before their placement in the [Temple] yard
+450,Everyone,Negative,Israel,No Specific Penalty,"שלא לעזב הלוי, מלתן לו מתנותיו","To not forsake the Levite, from giving him his gifts"
+451,Everyone,Positive,Anywhere,No Specific Penalty,מצות שחיטה,The commandment of slaughter
+452,Everyone,Negative,Anywhere,Lashes,שלא לאכל אבר מן החי,To not eat a limb from the living
+453,Everyone,Positive,Anywhere,No Specific Penalty,להביא קדשים בבית הבחירה,To bring consecrated things to the Choice House (Temple)
+454,Everyone,Negative,Anywhere,Lashes,שלא להוסיף על המצות ופרושן,To not add to the commandments and their understanding
+455,Everyone,Negative,Anywhere,Lashes,שלא לגרע ממצות התורה,To not subtract from the commandments of the Torah
+456,Everyone,Negative,Anywhere,No Specific Penalty,שלא לשמע ממתנבא בשם עבודה זרה,To not listen to one who prophecies in the name of idolatry
+457,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאהב המסית,To not love the seducer
+458,Everyone,Negative,Anywhere,No Specific Penalty,שלא לעזב שנאתו על המסית,To not leave the hatred towards the seducer
+459,Everyone,Negative,Anywhere,No Specific Penalty,שלא להציל המסית,To not save the seducer
+460,Everyone,Negative,Anywhere,No Specific Penalty,שלא ללמד זכות למסית,Not to advocate innocence for a seducer
+461,Everyone,Negative,Anywhere,No Specific Penalty,שלא למנע מללמד על המסית חובה,Not to refrain from advocating guilt for the seducer
+462,Everyone,Negative,Anywhere,Death,שלא להסית אחד מישראל לעבד עבודה זרה,To not seduce one of Israel to worship idolatry
+463,Men,Positive,Anywhere,No Specific Penalty,מצות חקירת העדים היטב,The commandment of investigating the witnesses well
+464,Miscelaneous,Positive,Israel,No Specific Penalty,שריפת עיר הנדחת ולהרג אנשיה,The burning of an enticed city and to kill its people
+465,Everyone,Negative,Israel,No Specific Penalty,שלא לבנות עיר הנדחת,To not rebuild an enticed city
+466,Everyone,Negative,Israel,No Specific Penalty,שלא להנות בממון עיר הנדחת,To not benefit from the property of an enticed city
+467,Everyone,Negative,Anywhere,Lashes,שלא להתגודד כמו עובדי עבודה זרה,"To not gash ourselves, like the worshipers of idolatry"
+468,Everyone,Negative,Anywhere,Lashes,שלא לקרח על מת,To not make a bald spot for the dead
+469,Everyone,Negative,Anywhere,Lashes,שלא לאכל פסולי המקדשין,To not eat from consecrated [animals] that have been disqualified
+470,Everyone,Positive,Anywhere,No Specific Penalty,לבדק בסימני העוף,To check the signs of a bird
+471,Everyone,Negative,Anywhere,Lashes,שלא לאכל שרץ העוף,To not eat from the flying swarming creatures
+472,Everyone,Negative,Anywhere,Lashes,שלא לאכל מבשר בהמה חיה ועוף שמתו מאליהן,"To not eat from the meat of a [domesticated] beast, a [wild] animal or a bird that has died by itself"
+473,Everyone,Positive,Israel,No Specific Penalty,מצות מעשר שני,The commandment of the second tithe
+474,Everyone,Positive,Israel,No Specific Penalty,להפריש מעשר עני,To separate the poor tithe
+475,Everyone,Negative,Anywhere,No Specific Penalty,שלא לתבע חוב שעברה עליו שביעית,To not claim a debt that the seventh year passed
+476,Everyone,Positive,Anywhere,No Specific Penalty,מצוה לנגש את הנכרי,The commandment to press the foreigner
+477,Everyone,Positive,Anywhere,No Specific Penalty,שישמיט כל הלואותיו בשביעית,That he release all of his loans in the seventh [year]
+478,Everyone,Negative,Anywhere,No Specific Penalty,שלא יאמץ את לבבו על העני,To not steel his heart against the poor
+479,Everyone,Positive,Anywhere,No Specific Penalty,מצות צדקה,The commandment of charity (<i>tsedekah</i>)
+480,Everyone,Negative,Anywhere,No Specific Penalty,שלא נמנע מלהלוות קדם שמטה,To not refrain from lending before the sabbatical year
+481,Everyone,Negative,Temple,No Specific Penalty,שלא לשלח עבד עברי ריקם,To not send a Hebrew slave empty
+482,Everyone,Positive,Temple,No Specific Penalty,להעניק לו בצאתו לחפשי,To endow him upon his leaving to freedom
+483,Everyone,Negative,Anywhere,Lashes,שלא לעבד בקדשים,To not work with consecrated things
+484,Everyone,Negative,Anywhere,No Specific Penalty,שלא לגזז הצמר בקדשים,To not shear the wool of consecrated [animals]
+485,Everyone,Negative,Anywhere,Lashes,שלא לאכל חמץ אחר חצות,To not eat chamets after midday
+486,Everyone,Negative,Temple,No Specific Penalty,שלא להותיר מקרבן חגיגה עד יום שלישי,To not leave over from the festive (<i>chagigah</i>) sacrifice to the third day
+487,Everyone,Negative,Temple,No Specific Penalty,שלא להקריב קרבן פסח בבמת יחיד,To not sacrifice the Pesach sacrifice on the <i>bamah</i> (altar) of an individual
+488,Everyone,Positive,Anywhere,No Specific Penalty,מצוה לשמח ברגלים,The commandment to rejoice on the festivals
+489,Men,Negative,Temple,No Specific Penalty,להראות ברגלים בבית הבחירה,To appear on the festivals in the Choice House
+490,Men,Positive,Temple,No Specific Penalty,שלא נעלה לרגל בלא קרבן,To not go up for the festival without a sacrifice
+491,Miscelaneous,Positive,Israel,No Specific Penalty,למנות שופטים ושוטרים,To appoint judges and officers
+492,Everyone,Negative,Anywhere,Lashes,שלא לטע אשרה,To not plant any tree-idols
+493,Everyone,Negative,Anywhere,Lashes,שלא להקים מצבה,To not erect a <i>matsevah</i>
+494,Everyone,Negative,Temple,Lashes,שלא להקריב קרבן בעל מום עובר,To not offer a sacrifice of [an animal] with a temporary blemish
+495,Everyone,Positive,Israel,No Specific Penalty,לשמע בקול בית דין בכל זמן,To listen to the voice of the court at all times
+496,Everyone,Negative,Anywhere,No Specific Penalty,שלא לסור מדבריהם,To not stray from their words
+497,Miscelaneous,Positive,Israel,No Specific Penalty,למנות מלך מישראל,To appoint a king from Israel
+498,Miscelaneous,Negative,Israel,No Specific Penalty,שלא להקים עלינו מלך נכרי,To not establish a foreign king over us
+499,Miscelaneous,Negative,Israel,No Specific Penalty,שלא ירבה המלך סוסים,That the king not amass many horses
+500,Everyone,Negative,Anywhere,No Specific Penalty,שלא לשכן בארץ מצרים לעולם,To not ever dwell in the Land of Egypt
+501,Miscelaneous,Negative,Israel,No Specific Penalty,שלא ירבה לו המלך נשים,That the king not amass many wives
+502,Miscelaneous,Negative,Israel,No Specific Penalty,שלא ירבה לו המלך כסף וזהב,That the king not amass much silver and gold for himself
+503,Everyone,Positive,Israel,No Specific Penalty,שיכתב המלך ספר תורה שני לעצמו,That the king write a second Torah scroll for himself
+504,Priests,Negative,Israel,No Specific Penalty,שלא ינחל שבט לוי בארץ ישראל,That the tribe of Levi not inherit in the Land of Israel
+505,Priests,Negative,Israel,No Specific Penalty,שלא יקח שבט לוי חלק בבזה,That the tribe of Levi not take a portion in the spoils
+506,Everyone,Positive,Israel,No Specific Penalty,לתת זרוע ולחיים וקבה לכהן,"To give the foreleg, the jaw and the maw to the priest"
+507,Everyone,Negative,Israel,No Specific Penalty,להפריש תרומה גדולה לכהן,To separate the great tithe for the priest
+508,Everyone,Positive,Israel,No Specific Penalty,לתת לכהן ראשית הגז,To give the first shearing to the priest
+509,Priests,Positive,Temple,No Specific Penalty,להיות הכהנים והלוים עובדים במקדש למשמרות,That the priests and the Levites work in the Temple in shifts
+510,Everyone,Negative,Anywhere,Lashes,שלא לקסם,To not engage in clairvoyance
+511,Everyone,Negative,Anywhere,Lashes,שלא לכשף,To not do magic
+512,Everyone,Negative,Anywhere,Lashes,שלא לחבר חבר,To not invoke a charm
+513,Everyone,Negative,Anywhere,Lashes,שלא לשאל בבעל אוב,To not ask a master of <i>ov</i>
+514,Everyone,Negative,Anywhere,Lashes,שלא לשאל בידעוני,To not ask a <i>yidaaoni</i>
+515,Everyone,Negative,Anywhere,Lashes,שלא לדרש אל המתים,To not inquire of the dead
+516,Everyone,Positive,Anywhere,No Specific Penalty,מצוה לשמע אל נביא האמת,The commandment to heed a true prophet
+517,Everyone,Negative,Anywhere,Death,שלא להנבא בשקר,To not prophecy falsely
+518,Everyone,Negative,Anywhere,Death,שלא להתנבא בשם עבודה זרה,To not prophesy in the name of idolatry
+519,Miscelaneous,Negative,Israel,No Specific Penalty,שלא נירא מהריגת נביא השקר,That we not fear from the killing of a false prophet
+520,Miscelaneous,Positive,Israel,No Specific Penalty,מצוה להכין שש ערי מקלט,The commandment to prepare six cities of refuge
+521,Everyone,Negative,Anywhere,No Specific Penalty,שלא לחוס על הרוצח וחובל,To not show pity upon the killer or injurer
+522,Everyone,Negative,Anywhere,No Specific Penalty,שלא להסיג גבול,To not remove a landmark
+523,Men,Negative,Anywhere,No Specific Penalty,שלא יקום דבר העדות בעד אחד,To not establish a matter of testimony with one witness
+524,Men,Positive,Israel,No Specific Penalty,לעשות לעד זומם כאשר זמם,To do to the collusive witness like he colluded
+525,Men,Negative,Israel,No Specific Penalty,שלא לערץ ולפחד במלחמה,To not be terrified or to be afraid in war
+526,Miscelaneous,Positive,Israel,No Specific Penalty,מצוה למשח כהן למלחמה,The commandment to anoint a priest for war
+527,Miscelaneous,Positive,Israel,No Specific Penalty,לשלח שלום לערים שצרים עליהן,To send peace to the cities that we besiege
+528,Men,Negative,Israel,No Specific Penalty,שלא להחיות נשמה משבעה עממין,To not keep alive a soul of the seven nations
+529,Everyone,Negative,Anywhere,Lashes,שלא להשחית אילני מאכל,To not destroy fruit trees
+530,Men,Positive,Israel,No Specific Penalty,לערף את העגלה בנחל,To behead the calf in the riverbed
+531,Everyone,Negative,Israel,Lashes,שלא לעבד ולזרע באותו קרקע,To not work or sow in that land
+532,Men,Positive,Israel,No Specific Penalty,לדון דין יפת תאר ככתוב בתורה,To execute the law of the one of beautiful form (<i>yefat toar</i>) as is written in the Torah
+533,Men,Negative,Anywhere,No Specific Penalty,שלא למכר יפת תאר,To not sell one of beautiful of form
+534,Men,Negative,Anywhere,No Specific Penalty,שלא להעבידה אחר שבעלה,Not to make her serve after he has intercourse with her
+535,Men,Positive,Israel,No Specific Penalty,לתלות המחיב לתלות,To hang one who is liable for hanging
+536,Everyone,Negative,Anywhere,No Specific Penalty,שלא להלין התלוי,To not leave one that is hung overnight
+537,Everyone,Positive,Anywhere,No Specific Penalty,לקברו בו ביום וכן כל המתים,"To bury him on the same day, and so [too] all the dead"
+538,Everyone,Positive,Anywhere,No Specific Penalty,להשיב אבדה לישראל,To return a lost item to an Israelite
+539,Everyone,Negative,Anywhere,No Specific Penalty,שלא להעלים עיניו ממנה,To not avoid his eyes from it
+540,Everyone,Negative,Anywhere,No Specific Penalty,שלא להניח בהמת חברו נופלת תחת משאה,To not leave the beast of his fellow falling under its load
+541,Everyone,Positive,Anywhere,No Specific Penalty,לטען המשא שנפל עם חברו,To load the load that has fallen [together] with his fellow
+542,Women,Negative,Anywhere,Lashes,שלא תלבש אשה עדי איש,That a woman should not wear the adornments of a man
+543,Men,Negative,Anywhere,Lashes,שלא ילבש איש מלבושי אשה,That a man should not wear the clothes of a woman
+544,Everyone,Negative,Anywhere,Lashes,שלא לקח אם על בנים,To not take the mother upon the young
+545,Everyone,Positive,Anywhere,No Specific Penalty,לשלח האם אם לקחה על הבנים,To send away the mother [bird] if he takes it upon the young
+546,Everyone,Positive,Anywhere,No Specific Penalty,מצות מעקה,The commandment of a parapet
+547,Everyone,Negative,Anywhere,Lashes,שלא להניח מכשול,To not leave a stumbling block
+548,Everyone,Negative,Israel,Lashes,שלא לזרע כלאים בכרם,To not plant forbidden mixtures in a vineyard
+549,Everyone,Negative,Israel,Lashes,שלא לאכל כלאי הכרם,To not eat forbidden mixtures of the vineyard
+550,Everyone,Negative,Anywhere,Lashes,שלא לעשות מלאכה בשני מיני בהמות,To not do work with two species of animals
+551,Everyone,Negative,Anywhere,Lashes,שלא ללבש שעטנז,To not wear <i>shaatnez</i>
+552,Men,Positive,Anywhere,No Specific Penalty,לשא אשה בכתבה וקדושין,To marry a woman with a marriage contract and betrothal
+553,Everyone,Positive,Anywhere,No Specific Penalty,מצוה שתשב אשת מוציא שם רע תחתיו לעולם,The commandment that the wife of one who 'puts out a bad name' [about her] dwell with him forever
+554,Men,Negative,Anywhere,Lashes,שלא יגרשנה כל ימיו,That he should not divorce her all of his days
+555,Men,Positive,Temple,No Specific Penalty,מצוה על בית דין לסקל המחוייב,The commandment upon the court to stone the one liable
+556,Everyone,Negative,Anywhere,No Specific Penalty,שלא לענש האנוס בחטא,Not to punish one coerced into a sin
+557,Men,Positive,Anywhere,No Specific Penalty,מצות על האונס שישא אנוסתו,The commandment on the rapist to marry the one he has raped
+558,Everyone,Negative,Anywhere,Lashes,שלא יגרשנה כל ימיו,That he not divorce her all of his days
+559,Men,Negative,Anywhere,No Specific Penalty,שלא ישא סריס בת ישראל,That a eunuch not marry a daughter of Israel
+560,Men,Negative,Anywhere,Lashes,שלא ישא ממזר בת ישראל,That a <i>mamzer</i> (a child born from a forbidden marriage) should not marry a daughter of Israel
+561,Men,Negative,Anywhere,Lashes,שלא יבוא עמוני ומואבי בקהל השם,That an Ammonite or a Moabite not enter the Congregation of the Lord
+562,Men,Negative,Israel,No Specific Penalty,שלא לדרוש שלומם במלחמה,Not to seek their peace in a war
+563,Everyone,Negative,Anywhere,No Specific Penalty,שלא להרחיק אדומי דור שלישי מלבוא בקהל,Not to distance an Edomite of the third generation from coming into the congregation
+564,Everyone,Negative,Anywhere,No Specific Penalty,שלא להרחיק מצרי דור שלישי,To not distance an Egyptian of the third generation
+565,Everyone,Negative,Anywhere,No Specific Penalty,שלא יכנס טמא להר הבית,That one impure should not enter the Temple mount
+566,Men,Positive,Israel,No Specific Penalty,מצוה להתקין מקום להפנות בו,The commandment to set up a place in which to defecate
+567,Men,Positive,Israel,No Specific Penalty,מצוה להתקין יתד לחפר בו,The commandment to set up  a spike to dig with
+568,Everyone,Negative,Anywhere,No Specific Penalty,שלא להסגיר עבד שברח אל אדוניו,Not to turn over a slave that fled from his master
+569,Everyone,Negative,Anywhere,No Specific Penalty,שלא להונות עבד הבורח אלינו מחוצה לארץ,"To not oppress a slave who has fled to us, from outside the Land, to the Land [of Israel]"
+570,Everyone,Negative,Anywhere,No Specific Penalty,שלא לבעול אשה בלא כתבה וקדושין,Not to have sexual relations with a woman without a marriage contract and betrothal
+571,Everyone,Negative,Temple,Lashes,שלא להקריב אתנן זונה ומחיר כלב,Not to bring the fee of a prostitute or the price of a dog
+572,Everyone,Negative,Anywhere,No Specific Penalty,שלא יתן הלוה רבית לישראל,That the borrower not give interest to an Israelite
+573,Everyone,Positive,Anywhere,No Specific Penalty,להלוות לנכרי ברבית,To lend to the gentile with interest
+574,Everyone,Negative,Anywhere,No Specific Penalty,שלא לאחר נדריו יותר משלשה רגלים,Not to delay his vows for more than three festivals
+575,Everyone,Positive,Anywhere,No Specific Penalty,לקים מוצא שפתיו כמו שנדר,"To fulfill what has come out of his lips, as he vowed"
+576,Everyone,Positive,Anywhere,No Specific Penalty,מצוה להניח השכיר לאכול מהמחובר שעושה בו,The commandment to allow the wage-worker to eat from the attached [produce] upon which he is working
+577,Everyone,Negative,Anywhere,No Specific Penalty,שלא יקח הפועל בידו יותר על אכילתו, That the worker not take into his hand more than his eating
+578,Everyone,Negative,Anywhere,Lashes,שלא יאכל הפועל בשעת מלאכה,That the worker not eat during work time
+579,Men,Positive,Anywhere,No Specific Penalty,הרוצה לגרש את אשתו שיגרשנה בגט,That one who wants to divorce his wife divorce her with a bill (<i>get</i>)
+580,Men,Negative,Anywhere,No Specific Penalty,שלא יחזיר גרושתו משנשאת,That he not bring back his ex-wife from when she has married
+581,Men,Negative,Anywhere,No Specific Penalty,שלא יצא החתן מביתו כל השנה אפילו לצרכי צבור,"That a groom should not go out from his home the whole year, even for the needs of the community"
+582,Men,Positive,Anywhere,No Specific Penalty,מצוה שישמח החתן עם אשתו שנה אחת,The commandment that a groom rejoice with his wife for one year
+583,Everyone,Negative,Anywhere,Lashes,שלא ימשכן בחובו כלים שעושים בהם אכל נפש,That we not take as surety vessels in which life-sustaining food (<i>ochel nefesh</i>) is made
+584,Everyone,Negative,Anywhere,Lashes,שלא לתלוש סימני צרעת,To not detach signs of <i>tzaraat</i> (a Biblical skin disease)
+585,Everyone,Negative,Anywhere,Lashes,שלא למשכן בעל חוב בזרוע,To not take surety from a debtor by force
+586,Everyone,Negative,Anywhere,Lashes,שלא למנוע המשכון מבעליו העני,To not prevent surety from its needy owner
+587,Everyone,Positive,Anywhere,No Specific Penalty,להחזיר המשכון לבעלים בעת שצריך לו,To return the surety to the owners at the time that he needs it
+588,Everyone,Positive,Anywhere,No Specific Penalty,לתת שכר שכיר ביומו,To give the wage of a wage-worker on its day
+589,Men,Negative,Anywhere,Lashes,שלא יעיד קרוב זה אל זה,"That a relative not testify, one about the other"
+590,Men,Negative,Anywhere,Lashes,שלא להטות משפט גר ויתום,To not sway the judgement of a stranger or an orphan
+591,Everyone,Negative,Anywhere,No Specific Penalty,שלא למשכן בגד אלמנה,To not take the garment of a widow as surety
+592,Everyone,Positive,Anywhere,No Specific Penalty,להניח לעניים השכחה,To leave what is forgotten to the poor
+593,Everyone,Negative,Israel,No Specific Penalty,שלא ישוב לקחת השכחה,To not go back to take what is forgotten
+594,Men,Positive,Israel,No Specific Penalty,מצוה להלקות לרשע,The commandment to lash the evildoer
+595,Everyone,Negative,Anywhere,No Specific Penalty,שלא להוסיף להכותו,To not increase in flogging him
+596,Everyone,Negative,Anywhere,No Specific Penalty,שלא לחסום בהמה בשעת מלאכתה,To not muzzle an animal at the time of its work
+597,Everyone,Negative,Anywhere,No Specific Penalty,שלא תנשא היבמה לאחר עד שתחלץ,That a levirate wife not marry another until she is released
+598,Men,Positive,Anywhere,No Specific Penalty,מצות יבום,The commandment of levirate marriage
+599,Men,Positive,Anywhere,No Specific Penalty,מצות חליצה,The commandment of release (<i>chalitsah</i>)
+600,Everyone,Positive,Anywhere,No Specific Penalty,מצוה להציל הנרדף בנפשו של רודף,The commandment to save the pursued with the life of the pursuer
+601,Everyone,Negative,Anywhere,No Specific Penalty,שלא לחוס על הרודף,To not have concern about the pursuer
+602,Everyone,Negative,Anywhere,No Specific Penalty,שלא להשהות משקלות ומדות חסרות,To not hold over deficient weights and measures
+603,Everyone,Positive,Anywhere,No Specific Penalty,לזכור מה שעשה לנו עמלק,To remember what Amalek did to us
+604,Everyone,Positive,Anywhere,No Specific Penalty,למחות זרעו מן העולם,To blot out his seed from the world
+605,Everyone,Negative,Anywhere,No Specific Penalty,שלא לשכוח מה שעשה לנו,To not forget what he did to us
+606,Men,Positive,Temple,No Specific Penalty,מצות קריאה על הבכורים,The commandment of recital over the first-fruits
+607,Men,Positive,Temple,No Specific Penalty,מצות ודוי מעשר,The commandment of declaration of tithes
+608,Everyone,Negative,Temple,No Specific Penalty,שלא לאכול מעשר שני באנינות,To not eat the second tithe in bereavement
+609,Everyone,Negative,Temple,No Specific Penalty,שלא לאכול מעשר שני בטמאה,To not eat the second tithe in impurity
+610,Everyone,Negative,Temple,No Specific Penalty,שלא להוציא דמי מעשר שני אלא באכילה ושתיה,To only expend monies of the second tithe for eating and drinking
+611,Everyone,Positive,Anywhere,No Specific Penalty,מצוה ללכת ולהדמות בדרכי השם יתברך,"The commandment to walk in - and make oneself similar through - the ways of God, may He be blessed"
+612,Everyone,Positive,Israel,No Specific Penalty,להקהיל כל ישראל בחג הסכות,To gather all of Israel on the festival of Sukkot
+613,Men,Positive,Anywhere,No Specific Penalty,לכתוב כל אחד ספר תורה לעצמו,For everyone to write a Torah scroll for himself

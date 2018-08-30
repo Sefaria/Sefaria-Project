@@ -23,6 +23,7 @@ class ReaderSuite(TestSuite):
 
     def setup(self):
         self.load_toc(my_temper=60)
+        self.set_cookies_cookie()
 
 
 class PageloadSuite(TestSuite):
@@ -30,6 +31,9 @@ class PageloadSuite(TestSuite):
     Tests that load pages and don't make any assumptions about starting or ending state
     """
     every_build = True
+
+    def setup(self):
+        self.set_cookies_cookie()
 
 
 class DeepReaderSuite(TestSuite):

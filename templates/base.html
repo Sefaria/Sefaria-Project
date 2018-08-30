@@ -5,9 +5,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}{{ title }}{% endblock %}</title>
+    <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
     <meta charset="utf-8">
-    <meta name="description" property="og:description" content="{% block description %}{{ desc }}{% endblock %}">
+    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}">
 
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
@@ -24,13 +24,13 @@
         <meta property="og:image:height" content="630" />
     {% endblock %}
 
-    <meta property="og:title" content="{{title}}" />
+    <meta property="og:title" content="{{title|striptags}}" />
     <meta property="og:url" content="//www.sefaria.org{{ request.path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sefariaproject" />
-    <meta name="twitter:title" content="{{title}}" />
-    <meta name="twitter:description" content="{{ desc }}" />
+    <meta name="twitter:title" content="{{title|striptags}}" />
+    <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
     <meta name="twitter:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
 
 
