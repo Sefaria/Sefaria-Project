@@ -380,6 +380,11 @@ urlpatterns += [
     url(r'^api/file/upload$', sefaria_views.file_upload),
 ]
 
+# Send Feedback
+urlpatterns += [
+    url(r'^api/send_feedback$', sefaria_views.generate_feedback),
+]
+
 # Email Subscribe
 urlpatterns += [
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe),

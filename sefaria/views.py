@@ -30,7 +30,7 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.client.util import jsonResponse, subscribe_to_list
+from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path
 from sefaria.model.user_profile import UserProfile
@@ -123,6 +123,39 @@ def subscribe(request, email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": _("Sorry, there was an error.")})
+
+def generate_feedback(request):
+
+    data = json.loads(request.POST.get('json', {}))
+
+    fb_type = data.get('type', None)
+    refs = data.get('refs', None)
+    url = data.get('url', None)
+    versions = data.get('currVersions', None)
+    uid = data.get('uid', None)
+    from_email = data.get('email', None)
+    msg = data.get('msg', None)
+
+    if not from_email:
+        from_email = model.user_profile.UserProfile(id=uid).email
+
+    if fb_type == "content_issue":
+        to_email = "content@sefaria.org"
+        subject = "Correction from website - " + ' / '.join(refs)
+        message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions)
+    else:
+        to_email = "hello@sefaria.org"
+        subject = "Feedback from website - " + fb_type.replace("_"," ")
+        message_html = msg + "\n\n" + "URL: " + url
+
+
+
+    try:
+        send_email(subject, message_html, from_email, to_email)
+        return jsonResponse({"status": "ok"})
+    except:
+        return jsonResponse({"error": _("Sorry, there was an error.")})
+
 
 
 def data_js(request):

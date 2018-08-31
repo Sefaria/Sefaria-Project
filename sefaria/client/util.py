@@ -91,3 +91,9 @@ def get_nation_builder_connection():
     session = service.get_session(token)
 
     return session
+
+def send_email(subject, message_html, from_email, to_email):
+    msg = EmailMultiAlternatives(subject, message_html, "Sefaria <hello@sefaria.org>", [to_email], reply_to=[from_email])
+    msg.send()
+
+    return True
