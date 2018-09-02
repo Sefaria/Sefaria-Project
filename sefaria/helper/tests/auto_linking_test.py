@@ -51,7 +51,7 @@ class Test_AutoLinker(object):
             'dependence': "Commentary",
             "base_text_titles": ["Genesis"],
             "base_text_mapping": "many_to_one_default_only",
-            'categories': ['Tanakh', 'Torah', "Commentary"],
+            'categories': ['Tanakh', "Commentary"],
         })
         index.save()
 
@@ -69,7 +69,7 @@ class Test_AutoLinker(object):
         chunk.text = p1
         chunk.save()
 
-        p2 = [[['Default default', 'default']], [['default', 'default!']], [['default', '', 'default']]]
+        p2 = [[['Default default']], [['default', 'default!']], [['default', '', 'default']]]
         chunk = TextChunk(Ref('Many to One on Genesis'), 'en', 'Schema Test')
         chunk.text = p2
         chunk.save()
@@ -88,7 +88,13 @@ class Test_AutoLinker(object):
             "generated_by": "intro_parser"
         }).save()
         Link({
-            'refs': ['Many to One on Genesis 3:1:2', 'Genesis 3:1'],
+            'refs': ['Many to One on Genesis 3:1:3', 'Genesis 3:1'],
+            'type': 'commentary',
+            "generated_by": "add_commentary_links",
+            "auto": True
+        }).save()
+        Link({
+            'refs': ['Many to One on Genesis 3:1:1', 'Genesis 3:1'],
             'type': 'commentary',
             "generated_by": "add_commentary_links",
             "auto": True
@@ -100,7 +106,13 @@ class Test_AutoLinker(object):
             "generated_by": "add_commentary_links"
         }).save()
         Link({
-            'refs': ['Many to One on Genesis 3:1:3', 'Genesis 3:1'],
+            'refs': ['Many to One on Genesis 2:1:1', 'Genesis 2:1'],
+            'type': 'commentary',
+            "auto": True,
+            "generated_by": "add_commentary_links"
+        }).save()
+        Link({
+            'refs': ['Many to One on Genesis 2:1:2', 'Genesis 2:1'],
             'type': 'commentary',
             "auto": True,
             "generated_by": "add_commentary_links"
@@ -140,7 +152,7 @@ class Test_AutoLinker(object):
             'dependence': 'Commentary',
             'base_text_titles': ['Genesis'],
             'base_text_mapping': 'one_to_one_default_only',
-            'categories': ['Tanakh', 'Torah', 'Commentary'],
+            'categories': ['Tanakh', 'Commentary'],
         })
         index.save()
 
@@ -158,7 +170,7 @@ class Test_AutoLinker(object):
         chunk.text = p1
         chunk.save()
 
-        p2 = [['Default default', 'default'], ['default', 'default!'], ['default', '', 'default']]
+        p2 = [['Default default'], ['default', 'default!'], ['default', '', 'default']]
         chunk = TextChunk(Ref('One to One on Genesis'), 'en', 'Schema Test')
         chunk.text = p2
         chunk.save()
@@ -177,13 +189,25 @@ class Test_AutoLinker(object):
             "generated_by": "intro_parser"
         }).save()
         Link({
-            'refs': ['One to One on Genesis, Introduction 3', 'Shabbat 2a:5'],
+            'refs': ['One to One on Genesis, Introduction 3:1', 'Shabbat 2a:5'],
             'type': 'commentary',
             "auto": True,
             "generated_by": "intro_parser"
         }).save()
         Link({
-            'refs': ['One to One on Genesis 1:2', 'Genesis 1:2'],
+            'refs': ['One to One on Genesis 1:1', 'Genesis 1:1'],
+            'type': 'commentary',
+            "auto": True,
+            "generated_by": "add_commentary_links"
+        }).save()
+        Link({
+            'refs': ['One to One on Genesis 2:2', 'Genesis 2:2'],
+            'type': 'commentary',
+            "auto": True,
+            "generated_by": "add_commentary_links"
+        }).save()
+        Link({
+            'refs': ['One to One on Genesis 2:1', 'Genesis 2:1'],
             'type': 'commentary',
             "auto": True,
             "generated_by": "add_commentary_links"
@@ -194,11 +218,18 @@ class Test_AutoLinker(object):
             "auto": True,
             "generated_by": "add_commentary_links"
         }).save()
+        Link({
+            'refs': ['One to One on Genesis 3:1', 'Genesis 3:1'],
+            'type': 'commentary',
+            "auto": True,
+            "generated_by": "add_commentary_links"
+        }).save()
 
         VersionState("One to One on Genesis").refresh()
 
-        self.desired_link_counts["Many to One on Genesis"] = self.link_set_lambda("Many to One on Genesis")
-        self.desired_link_counts["One to One on Genesis"] = self.link_set_lambda("One to One on Genesis")
+        link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
+        self.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
+        self.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
         print 'End of test setup'
 
     def test_rebuild_commentary_links(self):
@@ -236,7 +267,7 @@ class Test_AutoLinker(object):
 
 
     def test_rebuild_same_link_content_for_many_to_one_default_only(self):
-        title_ref = 'Many to One on Genesis 3:1:2'
+        title_ref = 'Many to One on Genesis 3:1:3'
         base_ref = "Genesis 3:1"
         linker = Ref("Many to One on Genesis").autolinker()
 
@@ -399,7 +430,7 @@ class Test_AutoLinker(object):
 
 
     def test_refresh_links_with_text_save_one_to_one_default_node(self):
-        title_ref = "One to One on Genesis 1:9"
+        title_ref = "One to One on Genesis 1"
         title = Ref(title_ref).index.title
         base = Ref(title_ref).index.base_text_titles[0]
         desired_link_count = self.desired_link_counts[title]
@@ -414,11 +445,11 @@ class Test_AutoLinker(object):
         assert link_count == desired_link_count
 
         # now add 2 segments to default node and check that exactly 2 more links exist than
-        lang = 'he'
+        lang = 'en'
         vtitle = "test"
         oref = Ref(title_ref)
         stext = TextChunk(oref, lang=lang).text
-        stext += [u"חדש", u"חדש"]
+        stext += [u"new", u"new"]
         tracker.modify_text(1, oref, vtitle, lang, stext)
         link_count = LinkSet(
             {"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
