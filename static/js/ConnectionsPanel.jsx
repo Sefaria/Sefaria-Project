@@ -188,7 +188,7 @@ class ConnectionsPanel extends Component {
     var content = null;
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
-    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Sheets") {
+    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Feedback" && this.props.mode != "Sheets") {
       content = (<div>
                     <SheetNodeConnectionTools
                     multiPanel={this.props.multiPanel}
@@ -327,7 +327,6 @@ class ConnectionsPanel extends Component {
                     setConnectionsMode={this.props.setConnectionsMode} />);
 
     } else if (this.props.mode === "Feedback") {
-        console.log('feedback');
       content = (<FeedbackBox
                     srefs={this.props.srefs}
                     url={window.location.href}

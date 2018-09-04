@@ -398,8 +398,6 @@ class SheetComment extends Component {
   }
 
   render() {
-
-    console.log(this.props)
       var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
       var containerClasses = classNames("sheetItem",
           "segment",
