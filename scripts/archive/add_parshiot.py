@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
 
+import django
+django.setup()
 import sys
 import os
 import csv
@@ -40,6 +42,17 @@ def parse_shabbat_name(ref):
 	return ref[1] if len(ref) > 1 else None
 
 
+def finalize_parasha_entry(parasha):
+	start = model.Ref(parasha["aliyot"][0])
+	end = model.Ref(parasha["aliyot"][6])
+	if end.book != start.book:
+		end = model.Ref(parasha["aliyot"][5])
+	parsha_ref_vars = start._core_dict()
+	parsha_ref_vars['toSections'] = end.toSections
+	parasha["ref"] = model.Ref(_obj=parsha_ref_vars).normal()
+	return deepcopy(parasha)
+
+
 def parse_parashot(parashiot_file, diaspora=False):
 	p=[]
 	print "{}:{}".format(parashiot_file, "Diaspora" if diaspora else "Israel")
@@ -62,14 +75,7 @@ def parse_parashot(parashiot_file, diaspora=False):
 			else:
 				if parasha["date"] is not None and parasha["date"].weekday() == 5: #saturday:
 					# clean up last object
-					start = model.Ref(parasha["aliyot"][0])
-					end   = model.Ref(parasha["aliyot"][6])
-					if end.book != start.book:
-						end = model.Ref(parasha["aliyot"][5])
-					parsha_ref_vars = vars(start)
-					parsha_ref_vars['toSections'] = end.toSections
-					parasha["ref"] = model.Ref(_obj=parsha_ref_vars).normal()
-					p.append(deepcopy(parasha))
+					p.append(finalize_parasha_entry(parasha))
 
 				parasha = {
 					"date": datetime.strptime(row[0], "%d-%b-%Y"),
@@ -77,6 +83,8 @@ def parse_parashot(parashiot_file, diaspora=False):
 					"aliyot": [ parse_span(row[3]) ],
 					"diaspora": diaspora
 				}
+		# last one left over (Nitzavim or Nitzavim-Vayelech)
+		p.append(finalize_parasha_entry(parasha))
 	return p
 
 
