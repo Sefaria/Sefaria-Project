@@ -5193,6 +5193,16 @@ span.purim-emoji img{
   margin-bottom: 0;
 }
 
+.sheetContent .sheetItem.segment .addedBy {
+  margin-top: -20px;
+}
+.interface-english .sheetContent .sheetItem.segment .addedBy {
+  float: left;
+}
+.interface-hebrew .sheetContent .sheetItem.segment .addedBy {
+  float: right;
+}
+
 .youTubeContainer {
   position: relative;
   padding-bottom: 56.25%; /* 16:9 */

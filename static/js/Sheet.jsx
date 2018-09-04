@@ -274,6 +274,7 @@ class SheetContent extends Component {
           <SheetMedia
             key={i}
             sourceNum={i + 1}
+            cleanHTML={this.cleanHTML}
             source={source}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -370,9 +371,12 @@ class SheetSource extends Component {
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
 
-
-
         <div className="clearFix"></div>
+
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
     )
@@ -394,6 +398,8 @@ class SheetComment extends Component {
   }
 
   render() {
+
+    console.log(this.props)
       var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
       var containerClasses = classNames("sheetItem",
           "segment",
@@ -413,6 +419,10 @@ class SheetComment extends Component {
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.comment)} }></div>
         </div>
         <div className="clearFix"></div>
+            {this.props.source.addedBy ?
+                <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+                : null
+            }
       </div>
     )
   }
@@ -453,6 +463,10 @@ class SheetOutsideText extends Component {
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></div>
         </div>
         <div className="clearFix"></div>
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
     )
@@ -489,6 +503,10 @@ class SheetOutsideBiText extends Component {
         <div className="he sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
         <div className="en sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
         <div className="clearFix"></div>
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
     )
@@ -552,6 +570,10 @@ class SheetMedia extends Component {
 
         <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
         <div className="clearFix"></div>
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
 

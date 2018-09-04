@@ -1885,7 +1885,8 @@ Sefaria = extend(Sefaria, {
       "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
       "Please select a feedback type": "אנא בחרו סוג משוב",
       "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
-      "Select Type" : "סוג משוב"
+      "Select Type" : "סוג משוב",
+      "Added by" : "נוסף בידי",
 
   },
   _v: function(inputVar){
