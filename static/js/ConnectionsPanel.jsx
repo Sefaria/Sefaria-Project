@@ -184,11 +184,23 @@ class ConnectionsPanel extends Component {
     }
     return(srefs)
   }
+  showSheetNodeConnectionTools(ref,mode) {
+      var dontShowModes = ["Share","Feedback","Sheets"];
+      if (ref == "sheetRef" && !dontShowModes.includes(mode) ) {
+          return true
+      }
+
+      else {
+          return false
+      }
+
+  }
+
   render() {
     var content = null;
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
-    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Feedback" && this.props.mode != "Sheets") {
+    } else if (this.showSheetNodeConnectionTools(this.props.srefs, this.props.mode)) {
       content = (<div>
                     <SheetNodeConnectionTools
                     multiPanel={this.props.multiPanel}
