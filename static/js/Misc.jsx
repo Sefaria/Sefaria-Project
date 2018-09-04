@@ -718,12 +718,12 @@ class FeedbackBox extends Component {
   sendFeedback() {
 
     if (!this.state.type) {
-      this.setState({alertmsg: "Please select a feedback type"});
+      this.setState({alertmsg: Sefaria._("Please select a feedback type")});
       return
     }
 
     if (!Sefaria._uid && !this.validateEmail($("#feedbackEmail").val())) {
-      this.setState({alertmsg: "Please enter a valid email address"});
+      this.setState({alertmsg: Sefaria._("Please enter a valid email address")});
       return
     }
 
@@ -749,7 +749,7 @@ class FeedbackBox extends Component {
             Sefaria.track.event("Tools", "Send Feedback", this.props.url);
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-        alert("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.");
+        alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
     });
 
   }
@@ -768,7 +768,7 @@ class FeedbackBox extends Component {
         return (
             <div className="feedbackBox">
                 <p className="int-en">Feedback sent!</p>
-                <p className="int-he">  </p>
+                <p className="int-he">משוב נשלח!</p>
             </div>
         )
     }
@@ -776,7 +776,7 @@ class FeedbackBox extends Component {
         <div className="feedbackBox">
             <p className="int-en">Have some feedback? We would love to hear it.</p>
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
-            
+
             {this.state.alertmsg ?  
                 <div>
                     <p className="int-en">{this.state.alertmsg}</p>
@@ -788,26 +788,27 @@ class FeedbackBox extends Component {
 
             <Dropdown
               options={[
-                        {value: "content_issue",   label: "Report an issue with the text"},
-                        {value: "bug_report",      label: "Report a bug"},
-                        {value: "help_request",    label: "Get help"},
-                        {value: "feature_request", label: "Request a feature"},
-                        {value: "good_vibes",      label: "Give thanks"},
-                        {value: "other",           label: "Other"},
+                        {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
+                        {value: "bug_report",      label: Sefaria._("Report a bug")},
+                        {value: "help_request",    label: Sefaria._("Get help")},
+                        {value: "feature_request", label: Sefaria._("Request a feature")},
+                        {value: "good_vibes",      label: Sefaria._("Give thanks")},
+                        {value: "other",           label: Sefaria._("Other")},
                       ]}
-              placeholder={"Select Type"}
+              placeholder={Sefaria._("Select Type")}
               onSelect={this.setType}
             />
 
-            <textarea className="feedbackText" placeholder="Describe the issue..." id="feedbackText"></textarea>
+            <textarea className="feedbackText" placeholder={Sefaria._("Describe the issue...")} id="feedbackText"></textarea>
 
             {!Sefaria._uid ?
-                <div className="int-en"><input className="sidebarInput noselect" placeholder="Email Address" id="feedbackEmail" /></div>
+                <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
                 : null }
 
-             <div className="button int-en" role="button" onClick={() => this.sendFeedback()}>Submit</div>
-             <div className="button int-he" role="button" onClick={() => this.sendFeedback()}>שלח</div>
-
+             <div className="button" role="button" onClick={() => this.sendFeedback()}>
+                 <span className="int-en">Submit</span>
+                 <span className="int-he">שלח</span>
+             </div>
         </div>
     );
   }

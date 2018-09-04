@@ -2737,22 +2737,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .segmentNumber .he {
   background-color: transparent;
 }
-
 .sheetContent .segment.highlight .en div,
 .sheetContent .segment.highlight .he div {
   background-color: inherit;
 }
-
 .sheetContent .segment a {
     color: #000;
 }
-
-
+.sheetContent .segment .sourceContentText a {
+    text-decoration: underline;
+}
 .readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
 }
-
-
 .basetext .segment.highlight .segmentNumber,
 .basetext .segment.highlight .linkCount,
 .sheetContent .segment.highlight .linkCount,
@@ -3758,7 +3755,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 26px;
 }
 .notificationsPanel a {
-  color: #333;
+  color: #000;
+  text-decoration: underline;
 }
 .notificationsList {
   margin-bottom: 100px;
@@ -5237,6 +5235,16 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .sourceContentText p:last-child,
 .sheetContent .sheetItem.segment .sourceContentText p:last-child {
   margin-bottom: 0;
+}
+
+.sheetContent .sheetItem.segment .addedBy {
+  margin-top: -20px;
+}
+.interface-english .sheetContent .sheetItem.segment .addedBy {
+  float: left;
+}
+.interface-hebrew .sheetContent .sheetItem.segment .addedBy {
+  float: right;
 }
 
 .youTubeContainer {
