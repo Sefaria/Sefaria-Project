@@ -595,7 +595,8 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"[,.: \r\n]+(to )?"  # should be an arg?  \r\n are for html matches
+    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to))+"  # should be an arg?  \r\n are for html matches
+    after_address_delimiter_ref = ur"[,.: \r\n]+"
     title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -911,7 +912,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         if not self._addressTypes[0].stop_parsing(lang):
             for i in range(1, self.depth):
                 group = "a{}".format(i) if not kwargs.get("for_js") else None
-                reg += u"(" + self.after_title_delimiter_re + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
+                reg += u"(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
                 if not kwargs.get("strict", False):
                     reg += u"?"
 
@@ -927,7 +928,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             if not self._addressTypes[0].stop_parsing(lang):
                 reg += u"?"
                 for i in range(1, self.depth):
-                    reg += ur"(?:(?:" + self.after_title_delimiter_re + ur")?"
+                    reg += ur"(?:(?:" + self.after_address_delimiter_ref + ur")?"
                     group = "ar{}".format(i) if not kwargs.get("for_js") else None
                     reg += u"(" + self._addressTypes[i].regex(lang, group, **kwargs) + u")"
                     # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
