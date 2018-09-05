@@ -490,7 +490,7 @@ class ReaderApp extends Component {
                 hist.mode  = "sheets tag";
               }
               else {
-                hist.url   = "sheets/tags/" + state.navigationSheetTag;
+                hist.url   = "sheets/tags/" + state.navigationSheetTag.replace("#","%23");
                 hist.title = state.navigationSheetTag + " | " + Sefaria._("Sefaria Source Sheets");
                 hist.mode  = "sheets tag";
               }
@@ -1010,7 +1010,7 @@ class ReaderApp extends Component {
       let defaultSettings = this.getDefaultPanelSettings();
       let defaultKeys = Object.keys(defaultSettings);
       for (let i of defaultKeys) {
-        console.log(i); // logs 3, 5, 7
+        //console.log(i); // logs 3, 5, 7
         if (state.settings[i] != defaultSettings[i]){
           return true;
         }
