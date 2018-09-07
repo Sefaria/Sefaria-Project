@@ -1198,6 +1198,11 @@ a.readerNavCategory {
     float:none;
 }
 
+.authorStatement span p
+ {
+  display: inline-block;
+}
+
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
   color: #999;

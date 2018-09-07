@@ -297,7 +297,9 @@ class SheetContent extends Component {
 
             <div className="authorStatement">
                 <div className="groupListingImageBox imageBox">
-                    <img className="groupListingImage img-circle" src={this.props.authorImage} alt="Author Avatar" />
+                    <a href={this.props.authorUrl}>
+                        <img className="groupListingImage img-circle" src={this.props.authorImage} alt="Author Avatar" />
+                    </a>
                 </div>
                 <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
             </div>
@@ -305,7 +307,9 @@ class SheetContent extends Component {
             {this.props.group && this.props.group != "" ?
                 <div className="groupStatement">
                     <div className="groupListingImageBox imageBox">
-                        <img className="groupListingImage" src={this.props.groupLogo} alt="Group Logo" />
+                        <a href={"/groups/"+this.props.group}>
+                            <img className="groupListingImage img-circle" src={this.props.groupLogo} alt="Group Logo" />
+                        </a>
                     </div>
                     <a href={"/groups/"+this.props.group}>{this.props.group}</a>
                 </div>

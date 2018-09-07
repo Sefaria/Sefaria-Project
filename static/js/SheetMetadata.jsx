@@ -248,7 +248,9 @@ class SheetMetadata extends Component {
 
                     <div className="tocDetail authorStatement">
                         <div className="groupListingImageBox imageBox">
-                            <img className="groupListingImage img-circle" src={this.props.sheet.ownerImageUrl} alt="Author Avatar" />
+                            <a href={this.props.sheet.ownerProfileUrl}>
+                                <img className="groupListingImage img-circle" src={this.props.sheet.ownerImageUrl} alt="Author Avatar" />
+                            </a>
                         </div>
                         <span dangerouslySetInnerHTML={ {__html: authorStatement} }></span>
                     </div>
@@ -256,7 +258,9 @@ class SheetMetadata extends Component {
                     {this.props.sheet.group && this.props.sheet.group != "" ?
                     <div className="tocDetail authorStatement">
                         <div className="groupListingImageBox imageBox">
-                            <img className="groupListingImage" src={this.props.sheet.groupLogo} alt="Group Logo" />
+                            <a href={"/groups/"+this.props.sheet.group}>
+                                <img className="groupListingImage img-circle" src={this.props.sheet.groupLogo} alt="Group Logo" />
+                            </a>
                         </div>
                         <a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a>
                     </div> : null }
