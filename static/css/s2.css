@@ -875,9 +875,6 @@ h1 .languageToggle .he {
 .readerNavMenu h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.readerNavMenu h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
-}
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
     margin-top: 29px;
@@ -934,8 +931,9 @@ h1 .languageToggle .he {
   font-family: "Heebo", sans-serif;
 }
 .readerNavSection h2 {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: normal;
+  letter-spacing: 1px;
   margin-bottom: 24px;
 }
 .readerNavSection {
@@ -958,7 +956,7 @@ a.resourcesLink {
 .readerNavCategories .threeBox td {
 }
 .readerNavCategories a {
-  color: #333;
+  color: #000;
 }
 .readerNavCategories a:hover {
   text-decoration: none;
@@ -968,15 +966,15 @@ a.resourcesLink {
   text-transform: uppercase;
   font-family: "adobe-garamond-pro", Georgia;
   text-align: center;
-  font-size: 15px;
+  font-size: 18px;
   padding: 0 10px;
   margin: 0;
   cursor: pointer;
   border-top: 4px solid transparent;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   letter-spacing: 1px;
-  height: 46px;
-  line-height: 46px;
+  height: 56px;
+  line-height: 56px;
   display: block;
 }
 a.readerNavCategory {
@@ -1009,17 +1007,17 @@ a.readerNavCategory {
   color: black;
   background-color: white;
   text-align: center;
-  color: #333;
-  font-size: 16px;
+  color: #000;
+  font-size: 18px;
   border-top: 4px solid transparent;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   width: 100%;
   cursor: pointer;
-  min-height: 46px;
+  min-height: 56px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
-  padding:  8px 8px;
+  padding: 14px 8px;
 }
 .blockLink:hover {
   color: #333;
@@ -1040,8 +1038,8 @@ a.readerNavCategory {
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
-  font-size: 0.9em;
-  color: #999999;
+  font-size: 13px;
+  color: #999;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1137,23 +1135,30 @@ a.readerNavCategory {
 .readerTextTableOfContents .refLink {
   display: block;
   margin: 0px;
-  padding: 10px 8px;
+  padding: 14px 8px;
   box-sizing: border-box;
-  color: #333;
-  font-size: 16px;
+  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
+  color: #000;
+  font-size: 18px;
   font-weight: 400;
   background-color: white;
   cursor: pointer;
-  vertical-align: middle;
   text-align: center;
   unicode-bidi: plaintext;
 }
+.readerNavCategoryMenu .catLink,
+.readerNavCategoryMenu .refLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.readerNavMenu .catLink
 .readerNavMenu .blockLink:active,
 .readerNavMenu .catLink:active,
 .readerNavMenu .navButton:active,
 .readerNavCategory:active,
 .readerTextTableOfContents .refLink:active {
-  background-color: #f3f3f3;
+  background-color: #ccc;
 }
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
@@ -1163,19 +1168,8 @@ a.readerNavCategory {
     font-size: 14px;
   }
 }
-.readerNavMenu .readerNavCategoryMenu td,
-.readerSheetsNav .gridBox td {
-  background-color: white;
-  border: 3px solid #FBFBFA;
-}
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
-}
-@media (max-width: 450px) {
-  .readerNavMenu .readerNavCategoryMenu td,
-  .readerSheetsNav .gridBox td {
-    border: 4px solid #FBFBFA;
-  }
 }
 .readerNavMenu .readerNavCategoryMenu .refLink,
 .readerNavMenu .readerNavCategoryMenu .catLink {
@@ -3179,7 +3173,11 @@ a.readerNavCategory {
   border-style: hidden;
   border-collapse: collapse;
 }
+.gridBox tr {
+  height: 1px; /* hack to get td contents to 100% height */
+}
 .gridBox td {
+  height: inherit;
   padding: 0;
 }
 @media (max-width: 450px) {
@@ -3778,7 +3776,11 @@ a.readerNavCategory {
 .notificationsPanel .content {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
+  color: #666;
+}
+.notificationsPanel .content a {
   color: #000;
+  text-decoration: underline;
 }
 .systemPanel.readerNavMenu h1 {
   margin: 0 0 40px 0;
@@ -3786,9 +3788,6 @@ a.readerNavCategory {
 }
 .systemPanel.readerNavMenu h1 .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.systemPanel.readerNavMenu h1 .he {
-  font-family: "Heebo", sans-serif;
 }
 .systemPanel.readerNavMenu h1 .button {
   position: absolute;
