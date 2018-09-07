@@ -735,7 +735,7 @@ input.noselect {
   padding-top: 80px;
 }
 .multiPanel .readerNavMenu.compare .content {
-  padding-top: 80px;
+  padding-top: 30px;
 }
 .readerNavMenu .content .contentInner {
   max-width: 660px;
@@ -2227,12 +2227,10 @@ a.readerNavCategory {
 }
 .readerControls {
   position: relative;
-  /* direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
   box-sizing: border-box;
-  border-top: 4px solid transparent;
   text-align: center;
   z-index: 100;
   height: 60px;
@@ -2345,8 +2343,8 @@ a.readerNavCategory {
 .rightButtons .readerOptions,
 .rightButtons .readerNavMenuCloseButton {
   width: 40px;
-  height: 48px;
-  line-height: 48px;
+  height: 56px;
+  line-height: 56px;
   color: #999;
   font-size: 20px;
   display: inline-block;
@@ -3104,14 +3102,15 @@ a.readerNavCategory {
   margin: 0 auto;
   background-color: #FBFBFA;
 }
-.sepia .textlist {
-  background-color: #F3F3F1;
+.textList.marginless .texts,
+.textList.fullPanel.marginless .texts {
+  padding: 0 0 80px 0;
 }
 .dark .textlist {
   background-color: #333331;
 }
 .textList.fullPanel {
-  padding-top: 58px;
+  padding-top: 60px;
   height: 100%;
   box-sizing: border-box;
 }
@@ -3203,9 +3202,6 @@ a.readerNavCategory {
 .topFilters {
   text-transform: none;
 }
-.sepia .topFilters {
-  background-color: #F3F3F1;
-}
 .dark .topFilters {
   background-color: #2D2D2B;
   border-bottom: 1px solid #444;
@@ -3232,7 +3228,7 @@ a.readerNavCategory {
   vertical-align: middle;
 }
 .textList.fullPanel .recentFilterSet {
-  margin: 0 0 12 0;
+  margin: 0 0 12px 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter {
   display: inline-block;
@@ -3267,28 +3263,31 @@ a.readerNavCategory {
 }
 .categoryFilter {
   text-transform: uppercase;
-  padding: 17px 34px;
-  font-size: 17px;
+  padding: 21px 34px;
+  font-size: 18px;
   cursor: pointer;
   line-height: 18px;
-  color: #333;
+  color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
-
 }
 .textFilter {
-  padding: 12px 34px;
-  font-size: 17px;
+  padding: 19px 34px;
+  font-size: 18px;
   line-height: 1.2;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid #E5E5E5;
   display: block;
   cursor: pointer;
   color: #333;
 }
 .connectionsCount {
   color: #999;
+  font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.categoryFilterGroup {
+  border-bottom: 1px solid #E5E5E5;
 }
 .categoryFilterGroup a:hover {
   text-decoration: none;
@@ -3568,12 +3567,15 @@ a.readerNavCategory {
 .toolsButton {
   display: flex;
   justify-content: flex-start;
-  color: #333;
-  border-top: 1px solid #CCC;
+  color: #000;
+  border-top: 1px solid #E5E5E5;
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 0 20px 0;
+  padding: 20px 34px;
+}
+.toolsButton:last-child {
+  border-bottom: 1px solid #E5E5E5;
 }
 .toolsButton:hover {
   text-decoration: none;
@@ -3585,6 +3587,7 @@ a.readerNavCategory {
 .toolsButton .toolsButtonIcon {
   color: #ccc;
   font-size: 22px;
+  margin-top: -3px;
 }
 .toolsButton img.toolsButtonIcon {
   width: 22px;
@@ -3593,7 +3596,7 @@ a.readerNavCategory {
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
-  margin: 0 15px;
+  margin: 0 10px;
 }
 .shareInput {
   width: 100%;

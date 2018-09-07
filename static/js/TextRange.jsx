@@ -173,7 +173,7 @@ class TextRange extends Component {
     var setTop = function() {
       var $elem = $(this);
       var top   = $elem.parent().position().top;
-      $elem.css({top: top});
+      $elem.css({top: top, left: '', right: ''});
       var list = elemsAtPosition[top] || [];
       list.push($elem);
       elemsAtPosition[top] = list;
@@ -181,13 +181,15 @@ class TextRange extends Component {
     $text.find(".linkCount").each(setTop);
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
+    
+    var side = this.props.settings.language == "hebrew" ? "right" : "left";
     var fixCollision = function ($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        var adjust = 8;
-        $elems[0].css({top: "-=" + adjust});
-        $elems[1].css({top: "+=" + adjust});
+        var adjust = 6;
+        $elems[0].css(side, "-=" + adjust);
+        $elems[1].css(side, "+=" + adjust);
       }
     };
     for (var top in elemsAtPosition) {

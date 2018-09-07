@@ -398,7 +398,10 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Shjare"].indexOf(this.props.mode) != -1;
+
+    //marginless = 0;
+    var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
         { this.props.fullPanel ? null :
