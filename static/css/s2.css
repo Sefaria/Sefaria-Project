@@ -3871,10 +3871,6 @@ a.readerNavCategory {
   height: 100%;
   color: #666;
 }
-#appLoading .sefariaLogo {
-  margin-top: 18px;
-  margin-bottom: 2px;
-}
 #appLoading .loadingMessage {
   position: absolute;
   width: 100%;
@@ -3884,6 +3880,7 @@ a.readerNavCategory {
 #appLoading img {
   width: 150px;
   height: 42px;
+  margin-bottom: 6px;
 }
 .emptyDesktop {
   margin-top: 200px;
