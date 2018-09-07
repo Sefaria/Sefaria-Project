@@ -570,7 +570,7 @@ class DictionarySearch extends Component {
   render() {
     var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == 'english'});
 
-    return (<div className = "searchBox dictionaryTocSearchBox">
+    return (<div className = "searchBox dictionaryTocSearchBox ui-front">
       <span className="dictionaryTocSearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
                       <input className={inputClasses}
                              id="searchInput"
