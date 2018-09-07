@@ -466,16 +466,18 @@ input.noselect {
   font-size: 17px;
 }
 
-.header .readerNavMenuSearchButton {
+.readerNavMenuSearchButton {
   position: relative;
   margin: 0 10px 0 6px;
   top: -3px;
-  font-size: 18px;
+}
+.readerNavTop .readerNavMenuSearchButton {
+  top: 0px;
 }
 .interface-hebrew .readerNavMenuSearchButton {
   margin: 0 6px 0 10px;
 }
-.header .readerNavMenuSearchButton img {
+.readerNavMenuSearchButton img {
   height: 19px;
   opacity: 0.4;
   vertical-align: middle;
