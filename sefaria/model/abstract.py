@@ -19,13 +19,6 @@ logging.basicConfig()
 logger = logging.getLogger("abstract")
 logger.setLevel(logging.WARNING)
 
-class hashabledict(dict):
-  def __key(self):
-    return tuple((k,self[k]) for k in sorted(self))
-  def __hash__(self):
-    return hash(self.__key())
-  def __eq__(self, other):
-    return self.__key() == other.__key()
 
 class AbstractMongoRecord(object):
     """
@@ -69,19 +62,6 @@ class AbstractMongoRecord(object):
             self.load_from_dict(obj, True)
             return self
         return None  # used to check for existence of record.
-
-    def load_all_lexicon(self, query, proj=None):
-        res = set()
-        objs = getattr(db, self.collection).find(query, proj)
-        for obj in objs:
-            assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
-                "{} record loaded with unhandled key(s): {}".format(
-                    type(self).__name__,
-                    set(obj.keys()) - set(self._saveable_attr_keys())
-                )
-            for lookup in obj['lookups']:
-                res.add(hashabledict(lookup))
-        return list(res)
 
     # careful that this doesn't defeat itself, if/when a cache catches constructor calls
     def copy(self):

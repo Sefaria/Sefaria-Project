@@ -349,30 +349,6 @@ class LexiconLookupAggregator(object):
             return headword_query
         else:
             return []
-        
-    @classmethod
-    def _multi_lookup(cls, input_word, lookup_key='form', **kwargs):
-        from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
-        from sefaria.model import Ref
-
-        lookup_ref = kwargs.get("lookup_ref", None)
-        wform_pkey = lookup_key
-        if is_hebrew(input_word):
-            input_word = strip_cantillation(input_word)
-            if not has_cantillation(input_word, detect_vowels=True):
-                wform_pkey = 'c_form'
-        query_obj = {wform_pkey: input_word}
-        if lookup_ref:
-            nref = Ref(lookup_ref).normal()
-            query_obj["refs"] = {'$regex': u'^{}'.format(nref)}
-        forms = WordForm().load_all_lexicon(query_obj)
-        if not forms and lookup_ref:
-            del query_obj["refs"]
-            forms = WordForm().load_all_lexicon(query_obj)
-        headword_queries = []
-        for form in forms:
-            headword_queries.append({'headword': form['headword']})
-        return headword_queries
 
     @classmethod
     def _ngram_lookup(cls, input_str, **kwargs):
@@ -389,9 +365,9 @@ class LexiconLookupAggregator(object):
 
     @classmethod
     def lexicon_lookup(cls, input_str, **kwargs):
-        results = cls._multi_lookup(input_str, **kwargs)
+        results = cls._single_lookup(input_str, **kwargs)
         if not results:
-            results = cls._multi_lookup(input_str, lookup_key='c_form', **kwargs)
+            results = cls._single_lookup(input_str, lookup_key='c_form', **kwargs)
         if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results
