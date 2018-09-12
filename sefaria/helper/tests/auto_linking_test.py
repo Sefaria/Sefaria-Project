@@ -15,7 +15,8 @@ class Test_AutoLinker(object):
         'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count(),
     }
 
-    def test_setup(self):
+    @classmethod
+    def setup_class(self):
         # create dummy indexes: "Many to One on Genesis" and "One to One on Genesis"
         # ensure dummy index was properly deleted
         index = Index().load({'title': 'Many to One on Genesis'})
@@ -231,6 +232,22 @@ class Test_AutoLinker(object):
         self.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
         self.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
         print 'End of test setup'
+
+    @classmethod
+    def teardown_class(self):
+        print 'Cleaning Up'
+        ls = LinkSet(Ref("Many to One on Genesis"))
+        ls.delete()
+        ls = LinkSet(Ref("One to One on Genesis"))
+        ls.delete()
+        v = Version().load({'title': 'Many to One on Genesis'})
+        v.delete()
+        v = Version().load({'title': 'One to One on Genesis'})
+        v.delete()
+        i = Index().load({'title': 'Many to One on Genesis'})
+        i.delete()
+        i = Index().load({"title": "One to One on Genesis"})
+        i.delete()
 
     def test_rebuild_commentary_links(self):
         #test simple adding links
@@ -487,17 +504,4 @@ class Test_AutoLinker(object):
         assert link_count == desired_link_count
 
 
-    def test_teardown(self):
-        print 'Cleaning Up'
-        ls = LinkSet(Ref("Many to One on Genesis"))
-        ls.delete()
-        ls = LinkSet(Ref("One to One on Genesis"))
-        ls.delete()
-        v = Version().load({'title': 'Many to One on Genesis'})
-        v.delete()
-        v = Version().load({'title': 'One to One on Genesis'})
-        v.delete()
-        i = Index().load({'title': 'Many to One on Genesis'})
-        i.delete()
-        i = Index().load({"title": "One to One on Genesis"})
-        i.delete()
+
