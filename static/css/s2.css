@@ -4124,6 +4124,10 @@ h2.splitHeader .he {
   float: left;
   margin-right: 20px;
 }
+.sheetMetaDataBox .groupListingImageBox,
+.tocTop .groupListingImageBox {
+  background-color: transparent;
+}
 .groupListingImage {
   height: 100%;
   width: 100%;
