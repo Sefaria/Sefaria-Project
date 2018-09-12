@@ -489,6 +489,9 @@ class Test_Ref(object):
         assert Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4").is_section_level()
         assert not Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4.1").is_section_level()
 
+    def test_word_to(self):
+        assert Ref("Kohelet Rabbah to 6:9") is Ref("Kohelet Rabbah 6.9")
+
 class Test_Cache(object):
     def test_index_flush_from_cache(self):
         r1 = Ref("Genesis 1")

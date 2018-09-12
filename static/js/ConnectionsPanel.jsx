@@ -5,6 +5,7 @@ const {
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
   Note,
+  FeedbackBox,
 }                            = require('./Misc');
 const {
   CategoryFilter,
@@ -187,7 +188,7 @@ class ConnectionsPanel extends Component {
     var content = null;
     if (!this.state.linksLoaded) {
       content = <LoadingMessage />;
-    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Sheets") {
+    } else if (this.props.srefs=="sheetRef" && this.props.mode != "Share" && this.props.mode != "Feedback" && this.props.mode != "Sheets") {
       content = (<div>
                     <SheetNodeConnectionTools
                     multiPanel={this.props.multiPanel}
@@ -326,6 +327,13 @@ class ConnectionsPanel extends Component {
                     closePanel={this.props.closePanel}
                     setConnectionsMode={this.props.setConnectionsMode} />);
 
+    } else if (this.props.mode === "Feedback") {
+      content = (<FeedbackBox
+                    srefs={this.props.srefs}
+                    url={window.location.href}
+                    currVersions={this.props.currVersions}
+                 />);
+
     } else if (this.props.mode === "Edit Note") {
       content = (<AddNoteBox
                     srefs={this.props.srefs}
@@ -455,6 +463,7 @@ class ResourcesList extends Component {
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
+              <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
   }
 }
@@ -477,6 +486,7 @@ class SheetNodeConnectionTools extends Component {
                 <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
 
                 <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
+                <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
   }
 }

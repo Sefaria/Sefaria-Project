@@ -274,6 +274,7 @@ class SheetContent extends Component {
           <SheetMedia
             key={i}
             sourceNum={i + 1}
+            cleanHTML={this.cleanHTML}
             source={source}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -287,15 +288,6 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-                { this.props.editable ?
-                    <ReaderMessage
-                        messageName="SheetInReaderFeedback"
-                        message="This is the new way to view sheets on Sefaria. You can access the editor mode by clicking on the Sheet title above."
-                        buttonLikeText="Thanks! It looks great."
-                        buttonDislikeText="I miss the old view."
-                    /> : null
-                }
-
         <div className="sheetMetaDataBox">
             <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
                 {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
@@ -379,9 +371,12 @@ class SheetSource extends Component {
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
 
-
-
         <div className="clearFix"></div>
+
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
     )
@@ -422,6 +417,10 @@ class SheetComment extends Component {
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.comment)} }></div>
         </div>
         <div className="clearFix"></div>
+            {this.props.source.addedBy ?
+                <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+                : null
+            }
       </div>
     )
   }
@@ -462,6 +461,10 @@ class SheetOutsideText extends Component {
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></div>
         </div>
         <div className="clearFix"></div>
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
     )
@@ -498,6 +501,10 @@ class SheetOutsideBiText extends Component {
         <div className="he sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
         <div className="en sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
         <div className="clearFix"></div>
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
     )
@@ -561,6 +568,10 @@ class SheetMedia extends Component {
 
         <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
         <div className="clearFix"></div>
+        {this.props.source.addedBy ?
+            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            : null
+        }
 
       </div>
 

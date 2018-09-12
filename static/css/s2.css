@@ -2737,22 +2737,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .segmentNumber .he {
   background-color: transparent;
 }
-
 .sheetContent .segment.highlight .en div,
 .sheetContent .segment.highlight .he div {
   background-color: inherit;
 }
-
 .sheetContent .segment a {
     color: #000;
 }
-
-
+.sheetContent .segment .sourceContentText a {
+    text-decoration: underline;
+}
 .readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
 }
-
-
 .basetext .segment.highlight .segmentNumber,
 .basetext .segment.highlight .linkCount,
 .sheetContent .segment.highlight .linkCount,
@@ -3616,7 +3613,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .connectionsPanel .loadingMessage {
   margin-top: 40px;
 }
-.connectionsPanel textarea.noteText {
+.connectionsPanel textarea.noteText,
+.connectionsPanel textarea.feedbackText {
   width: 100%;
   min-height: 100px;
   border: none;
@@ -3757,7 +3755,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 26px;
 }
 .notificationsPanel a {
-  color: #333;
+  color: #000;
+  text-decoration: underline;
 }
 .notificationsList {
   margin-bottom: 100px;
@@ -5238,6 +5237,16 @@ span.purim-emoji img{
   margin-bottom: 0;
 }
 
+.sheetContent .sheetItem.segment .addedBy {
+  margin-top: -20px;
+}
+.interface-english .sheetContent .sheetItem.segment .addedBy {
+  float: left;
+}
+.interface-hebrew .sheetContent .sheetItem.segment .addedBy {
+  float: right;
+}
+
 .youTubeContainer {
   position: relative;
   padding-bottom: 56.25%; /* 16:9 */
@@ -5307,4 +5316,32 @@ sup.nechama {
     margin-right: -35px;
     position: absolute;
     text-decoration: none;
+}
+
+.feedbackBox p {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.feedbackBox .button {
+  margin: auto;
+  width: 100%;
+}
+
+.feedbackBox input {
+  padding: 16px 22px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-size: 15px;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #E9E9E9;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.connectionsPanel textarea.feedbackText {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #E9E9E9;
 }
