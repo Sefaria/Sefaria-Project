@@ -277,7 +277,6 @@ input.noselect {
   .header .accountLinks .login {
     margin-left: 16px;
   }
-
   .header .searchBox input{
     width: 45%;
   }
@@ -293,8 +292,9 @@ input.noselect {
 }
 .header .accountLinks {
   display: inline-block;
-  font-size: 15px;
+  font-size: 16px;
   margin-top: 2px;
+  color: #666;
 }
 .header .account, .header .notifications {
   display: inline-block;
@@ -303,8 +303,6 @@ input.noselect {
 .header .library, .header .account {
   font-size: 24px;
   line-height: 24px;
-}
-.header .library{
 }
 .header .notifications {
   display: inline-block;
@@ -323,7 +321,7 @@ input.noselect {
   background-color: #EFB4B6;
 }
 .header .login {
-  color: #999;
+  color: #666;
   display: inline-block;
   line-height: 1;
 }
@@ -603,7 +601,7 @@ input.noselect {
 .textColumn .loadingMessage.base.next.final {
 }
 .he {
-  font-size: 120%;
+  font-size: 122%;
 }
 .int-he .int-he {
   font-size: inherit;
@@ -920,7 +918,7 @@ h1 .languageToggle .he {
   text-align: center;
   font-size: 15px;
   font-weight: 200;
-  color: #999;
+  color: #666;
   margin-bottom: 20px;
   letter-spacing: 2px;
   height: 16px;
@@ -980,7 +978,7 @@ a.resourcesLink {
   display: block;
 }
 a.readerNavCategory {
-  color: #333;
+  color: #000;
 }
 @media (max-width: 450px) {
   .readerNavCategory {
@@ -1010,7 +1008,7 @@ a.readerNavCategory {
   background-color: white;
   text-align: center;
   color: #000;
-  font-size: 18px;
+  font-size: 16px;
   border-top: 4px solid transparent;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   width: 100%;
@@ -1077,7 +1075,7 @@ a.readerNavCategory {
 .readerNavMenu .resourcesLink img {
   width: 16px;
   height: 16px;
-  opacity: 0.6;
+  opacity: 0.4;
   margin: 0px 5px;
   position: relative;
   top: 2px;
@@ -1647,14 +1645,14 @@ a.readerNavCategory {
 .versionBlock .versionTitle {
   display: block;
   font-size: 18px;
-  color: #333;
+  color: #000;
   unicode-bidi: plaintext;
 }
 .versionBlock a {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  color: #333;
+  color: #000;
 }
 .versionBlock .versionDetails {
   display: inline-block;
@@ -1670,9 +1668,9 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  padding-top: 4px;
-  color: #999;
-  font-size: 15px;
+  padding-top: 10px;
+  color: #666;
+  font-size: 18px;
 }
 .modTools {
   width: 50%;
@@ -1775,7 +1773,7 @@ a.readerNavCategory {
   height: 40px;
 }
 .searchContentFrame h1.englishQuery {
-  font-size: 26px;
+  font-size: 30px;
 }
 .searchContentFrame h1.hebrewQuery {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -1839,7 +1837,7 @@ a.readerNavCategory {
 }
 .searchContent .searchFilterToggle {
   color: #666;
-  font-size: 14px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
@@ -1890,8 +1888,7 @@ a.readerNavCategory {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
   padding: 15px 0 15px 15px;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 16px;
   cursor: pointer;
 }
 .searchContent .searchFilterBoxRow li:hover {
@@ -1969,8 +1966,7 @@ a.readerNavCategory {
 .searchContent .searchSortBox tr {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   padding: 15px;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 16px;
   cursor: pointer;
 }
 .interface-hebrew .searchContent .searchSortBox tr {
@@ -2286,7 +2282,7 @@ a.readerNavCategory {
   box-sizing: border-box;
 }
 .readerControls.connectionsHeader .readerControlsInner {
-  padding: 0 40px 0 40px;
+  padding: 0 34px;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
@@ -2363,7 +2359,7 @@ a.readerNavCategory {
   vertical-align: middle;
 }
 .readerControls .readerTextToc {
-  font-size: 17px;
+  font-size: 18px;
   box-sizing: border-box;
   display: block;
   height: 50px;
@@ -2592,7 +2588,7 @@ a.readerNavCategory {
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
   margin: 24px 0;
-  color: #999;
+  color: #000;
   text-align: center;
   justify-content: center;
   font-weight: lighter;
@@ -2637,19 +2633,15 @@ a.readerNavCategory {
 }
 .parashahHeader {
   text-align: center;
-  color: #8e8e8e;
+  color: #666;
   margin: 32px 0;
   font-size: 18px;
   letter-spacing: 1px;
 }
-.parashahHeader.aliyah{
-  color: #bebebe;
-}
-.parashahHeader.aliyah span{
+.parashahHeader.aliyah span {
   font-size: 16px;
   text-transform: uppercase;
 }
-
 .parashahHeader .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
@@ -2659,11 +2651,11 @@ a.readerNavCategory {
 .bilingual .parashahHeader .en {
   display: none;
 }
-.title + .text .parashahHeader {
-    margin-top: -5px;
+.title + .text span:first-child .parashahHeader {
+  margin-top: -5px;
 }
 .title + .text {
-    margin-top: 0;
+  margin-top: 0;
 }
 .segment {
   cursor: pointer;
@@ -3074,7 +3066,7 @@ a.readerNavCategory {
   width: 20px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img{
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   opacity: 0.4;
   height: 20px;
   width: 20px;
@@ -3082,6 +3074,7 @@ a.readerNavCategory {
 }
 .connectionsPanelHeader .languageToggle img {
   vertical-align: middle;
+  margin-top: -2px;
 }
 .connectionsPanel .flashMessage {
   font-size: 18px;
@@ -3263,7 +3256,7 @@ a.readerNavCategory {
 }
 .categoryFilter {
   text-transform: uppercase;
-  padding: 21px 34px;
+  padding: 19px 34px;
   font-size: 18px;
   cursor: pointer;
   line-height: 18px;
@@ -3586,29 +3579,31 @@ a.readerNavCategory {
 }
 .toolsButton .toolsButtonIcon {
   color: #ccc;
-  font-size: 22px;
-  margin-top: -3px;
+  font-size: 20px;
+  margin-top: -1px;
 }
 .toolsButton img.toolsButtonIcon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   opacity: 0.2;
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
   margin: 0 10px;
 }
+.shareInputBox {
+  padding: 34px;
+}
 .shareInput {
   width: 100%;
   box-sizing: border-box;
   border-radius: 7px;
-  border: 1px solid #F7F7F7;
-  box-shadow: none;
+  border: none;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  color: #666;
   padding: 20px 26px;
-  margin-bottom: 30px;
 }
 .addToSourceSheetBox {
   position: relative;
@@ -3671,9 +3666,10 @@ a.readerNavCategory {
   width: 100%;
   min-height: 100px;
   border: none;
-  border-radius: 4px;
+  border-radius: 7px;
   padding: 20px 25px;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 10px
@@ -3866,16 +3862,17 @@ a.readerNavCategory {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #appLoading {
+  position: fixed;
   text-align: center;
   background-color: #FBFBFA;
   height: 100%;
-  color: #666;
+  width: 100%;
 }
 #appLoading .loadingMessage {
   position: absolute;
-  width: 100%;
-  top: 32%;
-  font-size: 18px;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 #appLoading img {
   width: 150px;
@@ -3997,8 +3994,6 @@ a .button:hover {
   font-style: normal;
   font-family: "Heebo", sans-serif;
   color: #000;
-}
-input {
 }
 .lexicon-content{
   font-size: 15px;
@@ -4294,10 +4289,11 @@ h2.splitHeader .he {
 }
 #groupInvitationInput {
   padding: 14px 30px;
-  width: 492px;
-  border-radius: 4px;
+  width: 472px;
+  border-radius: 7px;
   outline: 0;
-  border: 1px solid #E6e6e6;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border: none;
   margin-right: 10px;
   font-size: 18px;
   position: relative;
@@ -4562,7 +4558,7 @@ h2.splitHeader .he {
   top: 240px;
   width: 330px;
   padding: 20px;
-  background: #FBFBFA;;
+  background: #FBFBFA;
   border: #ccc 1px solid;
   border-radius: 4px;
   box-shadow: 0px 0px 10px #ccc;
@@ -4698,6 +4694,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-radius: 5px;
   border: none;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   color: #333;
 }
 #editGroupPage .hiddenFileInput {
@@ -4748,8 +4745,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownMain {
   background: white;
-  border: 1px solid #E9E9E9;
-  border-radius: 4px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
   padding: 16px 22px;
   font-size: 16px;
   margin-bottom: 10px;
@@ -4761,19 +4758,19 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .dropdown .dropdownOpenButton {
   float: right;
   cursor: pointer;
-  color: #999;
+  color: #666;
   font-size: 18px;
 }
 .dropdown .dropdownListBox {
   position: absolute;
   z-index: 1;
-  margin-top: -12px;
+  margin-top: -14px;
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #E9E9E9;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   background: white;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
 }
 .dropdown .dropdownList {
   color: #999;
@@ -4783,6 +4780,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   max-height: 300px;
   overflow-x: hidden;
   overflow-y: scroll;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
 }
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
@@ -4983,32 +4982,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #333;
 }
 .aboutBox .aboutHeader {
-  color: #999;
+  color: #666;
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
   text-align: initial;
   text-transform: none;
-  font-size: 20px;
+  font-size: 16px;
   border-bottom: solid 1px #CCC;
 }
 .aboutBox .aboutTitle {
   padding: 10px 0 15px 0;
-  font-size: 20px;
+  font-size: 30px;
   color: black;
   display: inline-block;
 }
 .aboutBox .aboutSubtitle {
   font-style: italic;
-  font-size: 15px;
-  color: #999;
+  font-size: 16px;
+  color: #666;
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
-  font-size: 15px;
+  font-size: 18px;
 }
 .aboutBox .versionNotes {
   padding-bottom: 15px;
@@ -5042,9 +5041,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
   text-transform: uppercase;
-  font-size: 20px;
+  font-size: 16px;
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
   padding-left: 20px;
   padding-right: 20px;
+}
+.interface-hebrew .versionsBox .versionLanguage {
+  font-family: "Heebo";
 }
 .versionsBox div:not(:first-child) .versionLanguage {
   padding-top: 25px;
@@ -5381,7 +5386,7 @@ sup.nechama {
 }
 
 .connectionsPanel textarea.feedbackText {
-  border-radius: 4px;
+  border-radius: 7px;
   box-shadow: none;
-  border: 1px solid #E9E9E9;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
 }

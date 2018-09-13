@@ -192,7 +192,7 @@ class ConfirmAddToSheet extends Component {
                 <span className="int-en">Your source has been added.</span>
                 <span className="int-he">הטקסט נוסף בהצלחה לדף המקורות</span>
               </div>
-              <a className="button white squareBorder" href={"/sheets/" + this.props.sheetId} target="_blank">
+              <a className="button white" href={"/sheets/" + this.props.sheetId} target="_blank">
                 <span className="int-en">Go to Source Sheet</span>
                 <span className="int-he">עבור לדף המקורות</span>
               </a>

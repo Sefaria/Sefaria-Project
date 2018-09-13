@@ -113,10 +113,10 @@
   padding: 20px 20px;
   margin: 0;
   cursor: pointer;
-  border-radius: 4px;
-  box-shadow: none;
-  border: 1px solid #bbb;
-  color: #999;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border: none;
+  color: #666;
   font-size: 14px;
   background-color: white;
 }
@@ -337,22 +337,25 @@
 #homePage h2 {
   margin: 0 0 12px 0;
   padding: 0;
-  font-style: italic;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: normal;
   letter-spacing: 1px;
   text-transform: none;
   border: none;
   color: #000;
 }
-#homePage h2 .int-he{
+#homePage h2 .int-he {
   font-style: normal;
 }
 #homePage .description {
   margin: 26px 0 34px 0;
   line-height: 1.2;
 }
-#homePage .description .int-he{
+#homePage .description .int-en,
+#homePage .description .int-he {
+  color: #666;
+}
+#homePage .description .int-he {
   font-style: normal;
 }
 #homePage .dedication {
@@ -385,7 +388,7 @@
   font-size: 16px;
 }
 #homePage a.refLink {
-  color: #333;
+  color: #000;
   font-size: 16px;
   padding: 12px 0px 15px;
 }
@@ -394,9 +397,10 @@
 }
 #homeProgress h3 {
   font-style: normal;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: lighter;
-  color: #999;
+  letter-spacing: 1px;
+  color: #666;
   margin-bottom: 20px;
   border-bottom: none;
 }
@@ -412,7 +416,7 @@
   width: 32.9%;
   padding: 20px 0;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 1px;
   box-sizing: border-box;
 }
@@ -431,7 +435,7 @@
   margin-bottom: 8px;
 }
 #homeProgress .stat .wordCount {
-  font-size: 28px;
+  font-size: 30px;
   margin: 0px 0;
 }
 #homeProgress .stat .int-en {

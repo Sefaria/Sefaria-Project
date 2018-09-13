@@ -1959,6 +1959,9 @@ line-height: normal;
 .inlineAddSourceByttons {
 	display: inline-block;
 }
+.inlineAddSourceByttons .button {
+	padding: 16px 20px;
+}
 .sheetsEditNavTop .button {
 	background-color: #212e50;
 	border-color: #212e50;

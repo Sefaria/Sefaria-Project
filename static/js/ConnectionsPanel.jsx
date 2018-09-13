@@ -274,7 +274,7 @@ class ConnectionsPanel extends Component {
                     setConnectionsMode={this.props.setConnectionsMode}
                     addToSourceSheet={this.props.addToSourceSheet} />
                   { Sefaria._uid ?
-                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth squareBorder">
+                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Sheets</span>
                     <span className="int-he">דפי המקורות שלי</span>
                   </a>
@@ -304,7 +304,7 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
-                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth squareBorder">
+                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Notes</span>
                     <span className="int-he">הרשומות שלי</span>
                   </a>
@@ -398,7 +398,7 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Shjare"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share"].indexOf(this.props.mode) != -1;
 
     //marginless = 0;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
@@ -790,7 +790,9 @@ class ShareBox extends Component {
     var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div>
-        <input className="shareInput" value={this.props.url} />
+        <div className="shareInputBox">
+          <input className="shareInput" value={this.props.url} />
+        </div>
         <ToolsButton en="Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
         <ToolsButton en="Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
         <ToolsButton en="Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />

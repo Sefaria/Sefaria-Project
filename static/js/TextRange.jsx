@@ -165,9 +165,11 @@ class TextRange extends Component {
     this.dataPrefetched = true;
   }
   placeSegmentNumbers() {
-    //console.log("placeSegmentNumbers", this.props.sref);
+    // console.log("placeSegmentNumbers", this.props.sref);
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
+    if (!this.props.basetext) { return; }
+
     var $text  = $(ReactDOM.findDOMNode(this));
     var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
     var setTop = function() {
@@ -187,9 +189,10 @@ class TextRange extends Component {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        var adjust = 6;
-        $elems[0].css(side, "-=" + adjust);
-        $elems[1].css(side, "+=" + adjust);
+        var adjust1 = $elems[0].find(".segmentNumberInner").width();
+        var adjust2 = $elems[1].find(".segmentNumberInner").width();
+        $elems[0].css(side, "-=" + adjust1);
+        $elems[1].css(side, "+=" + adjust2);
       }
     };
     for (var top in elemsAtPosition) {
