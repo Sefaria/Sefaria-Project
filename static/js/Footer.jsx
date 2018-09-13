@@ -194,9 +194,9 @@ class Footer extends Component {
                   <span className="int-he">בלוג</span>
               </a>
               &bull;
-              <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Forum</span>
-                  <span className="int-he">פורום</span>
+              <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Instagram</span>
+                  <span className="int-he">אינסטגרם</span>
 
               </a>
               &bull;
