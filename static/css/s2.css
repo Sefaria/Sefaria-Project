@@ -1170,18 +1170,14 @@ a.readerNavCategory {
   margin-top: 6px;
   letter-spacing: 1px;
 }
+.sheetContent .sheetMetaDataBox .authorStatement,
+.sheetContent .sheetMetaDataBox .groupStatement {
+  margin-top: 16px;
+}
+
 .sheetContent .sheetMetaDataBox .groupStatement a,
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
-}
-
-.sheetContent .sheetMetaDataBox .groupStatement img {
-  width: 16px;
-  height: 16px;
-  opacity: 0.6;
-  margin: 2px 5px 0 -21px;
-  position: relative;
-  top: 2px;
 }
 
 .readerTextTableOfContents .currentSection .he,
@@ -1192,6 +1188,21 @@ a.readerNavCategory {
 
 .readerTextTableOfContents .authorStatement a {
  color: #333;
+}
+
+.authorStatement .imageBox,
+.groupStatement .imageBox {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+    float:none;
+}
+
+.authorStatement span p
+ {
+  display: inline-block;
 }
 
 .readerTextTableOfContents .sheetMeta {
@@ -4115,6 +4126,10 @@ h2.splitHeader .he {
   float: left;
   margin-right: 20px;
 }
+.sheetMetaDataBox .groupListingImageBox,
+.tocTop .groupListingImageBox {
+  background-color: transparent;
+}
 .groupListingImage {
   height: 100%;
   width: 100%;
@@ -5169,7 +5184,7 @@ span.purim-emoji img{
 }
 
 .sheetMetaDataBox {
-  margin: 40px auto;
+  margin: 40px auto 0 auto;
   text-align: center;
 }
 
@@ -5302,4 +5317,8 @@ sup.nechama {
   border-radius: 4px;
   box-shadow: none;
   border: 1px solid #E9E9E9;
+}
+
+.img-circle {
+  border-radius: 50%;
 }
