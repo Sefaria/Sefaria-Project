@@ -1737,7 +1737,7 @@ class AddressTalmud(AddressType):
             reg = ur"("
 
         if lang == "en":
-            reg += ur"\d+[ab]?)"
+            reg += ur"\d+[abᵃᵇ]?)"
         elif lang == "he":
             reg += self.hebrew_number_regex() + ur'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
 
@@ -1751,7 +1751,7 @@ class AddressTalmud(AddressType):
     def toNumber(self, lang, s):
         if lang == "en":
             try:
-                if s[-1] in ["a", "b"]:
+                if s[-1] in ["a", "b", u'ᵃ', u'ᵇ']:
                     amud = s[-1]
                     daf = int(s[:-1])
                 else:
@@ -1765,7 +1765,7 @@ class AddressTalmud(AddressType):
                 raise InputError(u"{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 2
-            if amud == "a":
+            if amud == "a" or amud == u"ᵃ":
                 indx -= 1
             return indx
         elif lang == "he":
