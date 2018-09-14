@@ -50,6 +50,7 @@ def finalize_parasha_entry(parasha):
 	parsha_ref_vars = start._core_dict()
 	parsha_ref_vars['toSections'] = end.toSections
 	parasha["ref"] = model.Ref(_obj=parsha_ref_vars).normal()
+	parasha["haftara"] = {"ashkenazi": parasha["haftara"]}
 	return deepcopy(parasha)
 
 
