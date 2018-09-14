@@ -1152,6 +1152,12 @@ a.readerNavCategory {
   align-items: center;
   justify-content: center;
 }
+.readerNavMenu .blockLink .he,
+.readerNavMenu .catLink .he,
+.readerNavMenu .navButton .he,
+.readerTextTableOfContents .refLink .he {
+  text-align: center;
+}
 .readerNavMenu .catLink
 .readerNavMenu .blockLink:active,
 .readerNavMenu .catLink:active,
@@ -3592,6 +3598,9 @@ a.readerNavCategory {
   color: #ccc;
   font-size: 20px;
   margin-top: -1px;
+}
+.interface-hebrew .toolsButton .toolsButtonIcon {
+  margin-top: 1px;
 }
 .toolsButton img.toolsButtonIcon {
   width: 20px;
