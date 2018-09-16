@@ -30,6 +30,7 @@ from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
 from django import http
+from django.utils import timezone
 
 from sefaria.model import *
 from sefaria.workflows import *
@@ -2008,14 +2009,17 @@ def calendars_api(request):
             day = int(request.GET.get("day", None))
             datetimeobj = datetime.datetime(year, month, day)
         except Exception as e:
-            datetimeobj = datetime.datetime.now()
+            datetimeobj = timezone.localtime(timezone.now())
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
-            return jsonResponse({"date": datetimeobj.date().isoformat(),"calendar_items": calendars}, callback=request.GET.get("callback", None))
+            return jsonResponse({"date": datetimeobj.date().isoformat(),
+                                 "timezone" : timezone.get_current_timezone_name(),
+                                 "calendar_items": calendars},
+                                callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
