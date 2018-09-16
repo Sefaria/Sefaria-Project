@@ -85,12 +85,13 @@ def get_sheet_for_panel(id=None):
 	ownerData = public_user_data(sheet["owner"])
 	sheet["ownerName"]  = ownerData["name"]
 	sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
+	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	if "group" in sheet:
 		group = Group().load({"name": sheet["group"]})
 		try:
-			sheet["groupLogo"] = group.headerUrl
+			sheet["groupLogo"] = group.imageUrl
 		except:
 			sheet["groupLogo"] = None
 	return sheet
@@ -523,7 +524,7 @@ def get_sheets_for_ref(tref, uid=None):
 				group = Group().load({"name": sheet["group"]})
 
 				try:
-					sheet["groupLogo"] = group.headerUrl
+					sheet["groupLogo"] = group.imageUrl
 				except:
 					sheet["groupLogo"] = None
 

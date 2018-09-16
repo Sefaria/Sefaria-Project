@@ -95,7 +95,9 @@ class Sheet extends Component {
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
             authorUrl = {sheet.ownerProfileUrl}
+            authorImage = {sheet.ownerImageUrl}
             group = {sheet.group}
+            groupLogo = {sheet.groupLogo}
             editable = {Sefaria._uid == sheet.owner}
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
@@ -293,8 +295,26 @@ class SheetContent extends Component {
                 {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
             </div>
 
-            <div className="authorStatement"><a href={this.props.authorUrl}>{this.props.authorStatement}</a></div>
-            {this.props.group && this.props.group != "" ? <div className="groupStatement">In the group <a href={"/groups/"+this.props.group}>{this.props.group}</a></div> : null}
+            <div className="authorStatement">
+                <div className="groupListingImageBox imageBox">
+                    <a href={this.props.authorUrl}>
+                        <img className="groupListingImage img-circle" src={this.props.authorImage} alt="Author Avatar" />
+                    </a>
+                </div>
+                <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
+            </div>
+
+            {this.props.group && this.props.group != "" ?
+                <div className="groupStatement">
+                    <div className="groupListingImageBox imageBox">
+                        <a href={"/groups/"+this.props.group}>
+                            <img className="groupListingImage img-circle" src={this.props.groupLogo} alt="Group Logo" />
+                        </a>
+                    </div>
+                    <a href={"/groups/"+this.props.group}>{this.props.group}</a>
+                </div>
+
+                : null}
 
         </div>
         <div className="text">

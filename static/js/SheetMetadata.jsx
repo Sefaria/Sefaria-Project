@@ -238,9 +238,6 @@ class SheetMetadata extends Component {
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
-                      <div className="groupImageContainer">
-                          <img src={this.props.sheet.groupLogo} />
-                      </div>
                     <a className="tocCategory" href="/sheets">
                       <span className="en">Sheet</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
@@ -248,8 +245,25 @@ class SheetMetadata extends Component {
                     <div className="tocTitle" role="heading" aria-level="1">
                       <span>{title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}</span>
                     </div>
-                    <div className="tocDetail authorStatement" dangerouslySetInnerHTML={ {__html: authorStatement} }></div>
-                    <div className="tocDetail authorStatement"><a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a></div>
+
+                    <div className="tocDetail authorStatement">
+                        <div className="groupListingImageBox imageBox">
+                            <a href={this.props.sheet.ownerProfileUrl}>
+                                <img className="groupListingImage img-circle" src={this.props.sheet.ownerImageUrl} alt="Author Avatar" />
+                            </a>
+                        </div>
+                        <span dangerouslySetInnerHTML={ {__html: authorStatement} }></span>
+                    </div>
+
+                    {this.props.sheet.group && this.props.sheet.group != "" ?
+                    <div className="tocDetail authorStatement">
+                        <div className="groupListingImageBox imageBox">
+                            <a href={"/groups/"+this.props.sheet.group}>
+                                <img className="groupListingImage img-circle" src={this.props.sheet.groupLogo} alt="Group Logo" />
+                            </a>
+                        </div>
+                        <a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a>
+                    </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
                           Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · {this.props.sheet.likes ? this.props.sheet.likes.length + this.state.sheetLikeAdjustment : 0 +this.state.sheetLikeAdjustment} Likes

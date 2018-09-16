@@ -68,7 +68,7 @@ def new_sheet(request):
 		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
 		existingAssignment = db.sheets.find_one(query) or []
 		if "id" in existingAssignment:
-			return view_sheet(request,existingAssignment["id"])
+			return view_sheet(request,str(existingAssignment["id"]),True)
 
 		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
 			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
@@ -184,14 +184,14 @@ def make_sheet_class_string(sheet):
 
 
 @ensure_csrf_cookie
-def view_sheet(request, sheet_id):
+def view_sheet(request, sheet_id, editorMode = False):
 	"""
 	View the sheet with sheet_id.
 	"""
 	editor = request.GET.get('editor', '0')
 	embed = request.GET.get('embed', '0')
 
-	if editor != '1' and embed !='1':
+	if editor != '1' and embed !='1' and editorMode is False:
 		return catchall(request, sheet_id, True)
 
 	sheet = get_sheet(sheet_id)
