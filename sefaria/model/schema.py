@@ -1370,6 +1370,11 @@ class VirtualNode(TitledTreeNode):
     entry_class = None
 
     def __init__(self, serial=None, **kwargs):
+        """
+        Abstract superclass for SchemaNodes that are not backed by Versions.
+        :param serial:
+        :param kwargs:
+        """
         super(VirtualNode, self).__init__(serial, **kwargs)
         self.index = kwargs.get("index", None)
 
@@ -1377,20 +1382,6 @@ class VirtualNode(TitledTreeNode):
         super(VirtualNode, self)._init_defaults()
         self.index = None
 
-    """
-    # This is identical to the method on SchemaNode.  Common parent?
-    def ref(self):
-        from . import text
-        d = {
-            "index": self.index,
-            "book": self.full_title("en"),
-            "primary_category": self.index.get_primary_category(),
-            "index_node": self,
-            "sections": [],
-            "toSections": []
-        }
-        return text.Ref(_obj=d)
-    """
     def address(self):
         return self.parent.address()
 
@@ -1417,7 +1408,8 @@ class DictionaryEntryNode(TitledTreeNode):
 
     def __init__(self, parent, title=None, tref=None, word=None):
         """
-        A schema node created on the fly, in memory, to correspond to a dictionary entry
+        A schema node created on the fly, in memory, to correspond to a dictionary entry.
+        Created by a DictionaryNode object.
         Can be instantiated with title+tref or word
         :param parent:
         :param title:
