@@ -63,7 +63,7 @@ class SefariaCloudflareManager(object):
         if not preprocessed:
             current_site = Site.objects.get_current()
             domain = current_site.domain
-            files = ["http://{}/{}".format(domain, path) for path in files]
+            files = ["https://{}/{}".format(domain, path) for path in files]
         url = 'https://api.cloudflare.com/client/v4/zones/%s/purge_cache' % CLOUDFLARE_ZONE
         logger.info("About to purge: {}".format(files))
         payload = {"files": files}
