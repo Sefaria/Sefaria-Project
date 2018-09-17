@@ -45,7 +45,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -265,6 +265,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         sheet["viaOwnerName"] = viaOwnerData["name"]
         sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
+    sheet["sources"] = annotate_user_links(sheet["sources"])
     panel = {
         "sheetID": sheet_id,
         "mode": "Sheet",
@@ -479,7 +480,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
-        breadcrumb = "/sheets/"+str(sheet["id"])+"?panel=1"
+        breadcrumb = "/sheets/"+str(sheet["id"])
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
 
 

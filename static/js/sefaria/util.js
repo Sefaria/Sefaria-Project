@@ -177,6 +177,11 @@ class Util {
            //}
         };
 
+        String.prototype.stripHtmlKeepLineBreaks = function() {
+            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/<p>/g, ' <p>'),['br']);
+        };
+
+
         String.prototype.escapeHtml = function() {
             return this.replace(/&/g,'&amp;')
                         .replace(/</g,'&lt;')
