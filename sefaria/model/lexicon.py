@@ -115,42 +115,49 @@ class DictionaryEntry(LexiconEntry):
             text += sense.get(field, u'')
         return text
 
-    def as_strings(self):
+    def headword_string(self):
+        return u', '.join(
+            [u'<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+
+    def as_strings(self, with_headword=True):
         new_content = u""
+        next_line = u""
 
-        next_line = u', '.join([u'<strong>{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+        if with_headword:
+            next_line = self.headword_string()
 
-        if self.parent_lexicon is 'Jastrow Dictionary':
-            for field in ['morphology']:
-                if field in self.content:
-                    next_line += u" " + self.content[field]
+        for field in ['morphology']:
+            if field in self.content:
+                next_line += u" " + self.content[field]
 
-            lang = u''
-            if hasattr(self, 'language_code'):
-                lang += u" " + self.language_code
-            if hasattr(self, 'language_reference'):
-                if lang:
-                    lang += u' '
-                lang += self.language_reference
+        lang = u''
+        if hasattr(self, 'language_code'):
+            lang += u" " + self.language_code
+        if hasattr(self, 'language_reference'):
             if lang:
-                next_line += lang
+                lang += u' '
+            lang += self.language_reference
+        if lang:
+            next_line += lang
 
-            for sense in self.content['senses']:
-                if 'senses' in sense:
-                    # Start a new segment for the new form
-                    new_content += next_line
-                    next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
-                                                                          sense['grammar']['binyan_form'])
-                    for binyan_sense in sense['senses']:
-                        next_line += u" " + self.get_sense(binyan_sense)
-                else:
-                    next_line += u" " + self.get_sense(sense)
-
-            if next_line:
+        for sense in self.content['senses']:
+            if 'senses' in sense:
+                # This is where we would start a new segment for the new form
                 new_content += next_line
+                next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
+                                                                                            sense['grammar']['binyan_form'])
+                for binyan_sense in sense['senses']:
+                    next_line += u" " + self.get_sense(binyan_sense)
+            else:
+                next_line += u" " + self.get_sense(sense)
 
-            if hasattr(self, 'derivatives'):
-                new_content += u' {}'.format(self.derivatives)
+        if hasattr(self, 'notes'):
+            next_line += u" " + self.notes
+        if hasattr(self, 'derivatives'):
+            next_line += u" " + self.derivatives
+
+        if next_line:
+            new_content += next_line
         return [new_content]
 
 
@@ -173,50 +180,19 @@ class JastrowDictionaryEntry(DictionaryEntry):
         for field in ['definition', 'alternative', 'notes']:
             text += sense.get(field, u'')
         return text
-    
-    def as_strings(self):
-        new_content = u""
-        next_line = u""
-        
+
+    def headword_string(self):
+        line = u""
         for hw in [self.headword] + getattr(self, 'alt_headwords', []):
             hw = re.sub(ur' [\u00B2\u00B3\u2074\u2075\u2076]', '', hw)  # Drop superscripts from presentation
             for txt in re.split(ur'([^ I\u0590-\u05fe\'\-\"̇̇…̇̇])', hw):
                 if re.search(ur'[I\u0590-\u05fe\'\-\"̇̇…̇̇]', txt):
-                    next_line += u'<strong dir="rtl">{}</strong>'.format(txt)
+                    line += u'<strong dir="rtl">{}</strong>'.format(txt)
                 else:
-                    next_line += txt
-            next_line += u', '
-        next_line = next_line[:-2]
-            
-        for field in ['morphology']:
-            if field in self.content:
-                next_line += u" " + self.content[field]
-
-        lang = u''
-        if hasattr(self, 'language_code'):
-            lang += u" " + self.language_code
-        if hasattr(self, 'language_reference'):
-            if lang:
-                lang += u' '
-            lang += self.language_reference
-        if lang:
-            next_line += lang
-
-        for sense in self.content['senses']:
-            if 'senses' in sense:
-                # This is where we would start a new segment for the new form
-                new_content += next_line
-                next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
-                                                                      sense['grammar']['binyan_form'])
-                
-                for binyan_sense in sense['senses']:
-                    next_line += u" " + self.get_sense(binyan_sense)
-            else:
-                next_line += u" " + self.get_sense(sense)
-
-        if next_line:
-            new_content += next_line
-        return [new_content]
+                    line += txt
+            line += u', '
+        line = line[:-2]
+        return line
 
 
 class KleinDictionaryEntry(DictionaryEntry):
@@ -230,45 +206,6 @@ class KleinDictionaryEntry(DictionaryEntry):
         for field in ['definition', 'alternative', 'notes']:
             text += sense.get(field, u'')
         return text
-    
-    def as_strings(self):
-        new_content = u""
-
-        next_line = u', '.join([u'<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
-
-        for field in ['morphology']:
-            if field in self.content:
-                next_line += u" " + self.content[field]
-
-        lang = u''
-        if hasattr(self, 'language_code'):
-            lang += u" " + self.language_code
-        if hasattr(self, 'language_reference'):
-            if lang:
-                lang += u' '
-            lang += self.language_reference
-        if lang:
-            next_line += lang
-
-        for sense in self.content['senses']:
-            if 'senses' in sense:
-                # This is where we would start a new segment for the new form
-                new_content += next_line
-                next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
-                                                                      sense['grammar']['binyan_form'])
-                for binyan_sense in sense['senses']:
-                    next_line += u" " + self.get_sense(binyan_sense)
-            else:
-                next_line += u" " + self.get_sense(sense)
-
-        if hasattr(self, 'notes'):
-            next_line += u" " + self.notes
-        if hasattr(self, 'derivatives'):
-            next_line += u" " + self.derivatives
-
-        if next_line:
-            new_content += next_line
-        return [new_content]
 
 
 class LexiconEntrySubClassMapping(object):

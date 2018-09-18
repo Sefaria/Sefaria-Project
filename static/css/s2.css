@@ -4001,7 +4001,11 @@ input {
 .lexicon-results .entry .morphology {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  display: block;
+  display: inline;
+  margin-right: 5px;
+}
+.lexicon-results .entry .lang-ref {
+
 }
 .lexicon-results .entry .definition-content{
     color: #444;
@@ -4025,6 +4029,8 @@ input {
 	padding-left: 0px;
     margin: 0px;
 }
+.lexicon-results .entry .definition .notes {margin-left: 15px;display: block;}
+.lexicon-results .entry .definition .derivatives {display: block;margin-left: 15px;}
 .lexicon-results .attribution {
 
 }
