@@ -252,6 +252,10 @@ input.noselect {
   vertical-align: 1px;
   margin: 0;
 }
+.header .search.hebrewSearch {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+}
 .search-override {
   border-top: solid 1px #999;
   padding-top: 5px;
@@ -1826,7 +1830,7 @@ a.readerNavCategory {
   border-radius: 12px;
   border: 1px solid #DADADA;
   display: inline-block;
-  font-size: 12px;
+  font-size: 13px;
   color: #666;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
@@ -2092,7 +2096,7 @@ a.readerNavCategory {
   font-weight: lighter;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
-  font-size: 11px;
+  font-size: 13px;
   margin: 8px 0;
 }
 .searchContent .result .similar-trigger-box {
@@ -2272,9 +2276,10 @@ a.readerNavCategory {
 .readerControls.connectionsHeader.fullPanel  {
   background-color: #EDEDED;
 }
-.connectionsPanelHeader .connectionsHeaderTitle {
+.readerControls .connectionsPanelHeader .connectionsHeaderTitle {
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-size: 16px;
   font-weight: lighter;
 }
 .connectionsPanelHeader .connectionsHeaderTitle.active {
@@ -2389,7 +2394,7 @@ a.readerNavCategory {
   min-width: 0; /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
 .readerTextTocHeader.readerTextToc {
-  font-size: 14px;
+  font-size: 16px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
@@ -3281,7 +3286,7 @@ a.readerNavCategory {
   color: #333;
 }
 .connectionsCount {
-  color: #999;
+  color: #666;
   font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
@@ -3641,6 +3646,13 @@ a.readerNavCategory {
   padding: 14px;
   margin: 0;
   float: right;
+}
+.interface-hebrew .addToSourceSheetBox input {
+  width: 47%;
+}
+.interface-hebrew .addToSourceSheetBox .button.small {
+  width: 50%;
+  float: left;
 }
 .addToSourceSheetBox .newSheet {
   border-top: 1px solid #E9E9E9;
@@ -4778,9 +4790,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownOpenButton {
   float: right;
+  margin-left: 6px;
   cursor: pointer;
   color: #666;
   font-size: 18px;
+}
+.interface-hebrew .dropdownOpenButton {
+  float: left;
+  margin-left: 0;
+  margin-right: 6px;
 }
 .dropdown .dropdownListBox {
   position: absolute;
@@ -4868,7 +4886,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
   margin-bottom: 18px;
   font-weight: normal;
-  font-size: 15px;
+  font-size: 16px;
 }
 #footer .section.last {
   float: right;
@@ -4879,7 +4897,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: left;
 }
 #footer .section a {
-  font-size: 15px;
+  font-size: 16px;
   margin: 2px 0;
 }
 #footer .fa {

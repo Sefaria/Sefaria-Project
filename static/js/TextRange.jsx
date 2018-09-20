@@ -185,12 +185,13 @@ class TextRange extends Component {
     $text.find(".segmentNumber").each(setTop).show();
     
     var side = this.props.settings.language == "hebrew" ? "right" : "left";
+    var selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
     var fixCollision = function ($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        var adjust1 = $elems[0].find(".segmentNumberInner").width();
-        var adjust2 = $elems[1].find(".segmentNumberInner").width();
+        var adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
+        var adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
         $elems[0].css(side, "-=" + adjust1);
         $elems[1].css(side, "+=" + adjust2);
       }
