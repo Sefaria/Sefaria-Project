@@ -2,7 +2,6 @@ body {
   padding: 0;
   margin: 0;
   overflow: hidden;
-  color: #333;
   -webkit-text-size-adjust: 100%;
 }
 *::selection {
@@ -212,7 +211,7 @@ input.noselect {
   position: absolute;
   top: 17px;
   left: 50%;
-  margin-left: -53px;
+  margin-left: -46px;
 }
 .headerInner .headerLinksSection{
   display: flex;
@@ -262,7 +261,7 @@ input.noselect {
 }
 .header .home img {
   vertical-align: middle;
-  height: 25px;
+  width: 92px;
 }
 .header .login:first-child{
   margin: auto 30px;
@@ -934,7 +933,7 @@ h1 .languageToggle .he {
   font-size: 16px;
   font-weight: normal;
   letter-spacing: 1px;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 .readerNavSection {
   margin-bottom: 44px;
@@ -957,9 +956,6 @@ a.resourcesLink {
 }
 .readerNavCategories a {
   color: #000;
-}
-.readerNavCategories a:hover {
-  text-decoration: none;
 }
 .readerNavCategory {
   background-color: white;
@@ -1030,11 +1026,10 @@ a.readerNavCategory {
   height: 16px;
   width: 16px;
   opacity: 0.4;
-  vertical-align: -3px;
+  vertical-align: -1px;
 }
-.readerNavMenu .blockLink.calendarLink{
-  /*line-height: 1;
-  padding: 7px 8px;*/
+.resourcesLink {
+  border-radius: 7px;
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
@@ -1138,6 +1133,7 @@ a.readerNavCategory {
   padding: 14px 8px;
   box-sizing: border-box;
   box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
+  border-top: 4px solid transparent;
   color: #000;
   font-size: 18px;
   font-weight: 400;
@@ -1158,13 +1154,18 @@ a.readerNavCategory {
 .readerTextTableOfContents .refLink .he {
   text-align: center;
 }
-.readerNavMenu .catLink
-.readerNavMenu .blockLink:active,
-.readerNavMenu .catLink:active,
-.readerNavMenu .navButton:active,
+.systemPanel .blockLink {
+  padding: 13px 8px 19px;
+  border-radius: 7px;
+}
+.catLink:active,
+.blockLink:active,
+.catLink:active,
+.navButton:active,
 .readerNavCategory:active,
-.readerTextTableOfContents .refLink:active {
-  background-color: #ccc;
+.refLink:active,
+.resourceseLink {
+  background-color: #EDEDED;
 }
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
@@ -1181,6 +1182,7 @@ a.readerNavCategory {
 .readerNavMenu .readerNavCategoryMenu .catLink {
   width: 100%;
   height: 100%;
+  padding: 13px 8px 19px;
 }
 .readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
 .readerNavMenu .catLink.incomplete {
@@ -2054,7 +2056,7 @@ a.readerNavCategory {
   color: #999;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-size: 1.7em;
+  font-size: 18px;
   display: block;
   padding: 20px 0 5px;
 }
@@ -2071,12 +2073,12 @@ a.readerNavCategory {
   display: block;
 }
 .searchContent .text_result .snippet {
-  color: #333;
+  color: #666;
   font-size: 2.3em;
 }
 .searchContent .sheet_result .snippet {
-  color: #999;
-  font-size: 1.6em;
+  color: #666;
+  font-size: 18px;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.4em;
@@ -2131,18 +2133,18 @@ a.readerNavCategory {
 .searchContent .sheet_result .result_text_box a.owner_name {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
-  color: #999;
+  color: #666;
   text-decoration: none;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-size: 1.7em;
+  font-size: 16em;
 }
 .searchContent .sheet_result .result_text_box a.result-title {
   display: block;
   color: #000;
   text-decoration: none;
   letter-spacing: 1px;
-  font-size: 1.7em;
+  font-size: 18px;
   padding: 0;
   margin: 8px 0;
   overflow: hidden;
@@ -2404,13 +2406,9 @@ a.readerNavCategory {
   padding-right: 23px;
   padding-left: 0;
 }
-
-
-
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
   vertical-align: middle;
-  color: #333;
   max-width: 100%;
 }
 .readerControls .readerTextToc .readerTextTocBox a span,
@@ -2650,20 +2648,13 @@ a.readerNavCategory {
 }
 .parashahHeader {
   text-align: center;
-  color: #666;
+  color: #000;
   margin: 32px 0;
   font-size: 18px;
   letter-spacing: 1px;
 }
 .parashahHeader.aliyah span {
-  font-size: 16px;
   text-transform: uppercase;
-}
-.parashahHeader .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", arial, sans-serif;
-}
-.parashahHeader .he {
-  font-family: "Heebo", sans-serif;
 }
 .bilingual .parashahHeader .en {
   display: none;
@@ -3296,7 +3287,7 @@ a.readerNavCategory {
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.categoryFilterGroup {
+.categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
 }
 .categoryFilterGroup a:hover {
@@ -3495,7 +3486,7 @@ a.readerNavCategory {
 .sheetTag.button,
 .sheetTag.button:hover,
 .sheetTag.button:active {
-  background-color: #eee;
+  background-color: #EDEDED;
   border-color: #ccc;
   color: #999;
   font-size: 14px;
@@ -3595,7 +3586,7 @@ a.readerNavCategory {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  color: #ccc;
+  color: #999;
   font-size: 20px;
   margin-top: -1px;
 }
@@ -3605,7 +3596,7 @@ a.readerNavCategory {
 .toolsButton img.toolsButtonIcon {
   width: 20px;
   height: 20px;
-  opacity: 0.2;
+  opacity: 0.4;
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
@@ -3647,7 +3638,7 @@ a.readerNavCategory {
 .addToSourceSheetBox .button.small {
   width: 37%;
   box-sizing: border-box;
-  padding: 12px;
+  padding: 14px;
   margin: 0;
   float: right;
 }
@@ -3818,6 +3809,16 @@ a.readerNavCategory {
   margin: 0;
   line-height: 26px;
 }
+.accountPanel .logoutLink {
+  box-shadow: none;
+  font-size: 16px;
+}
+.accountPanel.systemPanel h1 .logoutLink .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.accountPanel.systemPanel h1 .logoutLink .int-he {
+  font-family: "Heebo", sans-serif;
+}
 .notificationsPanel a {
   color: #000;
   text-decoration: underline;
@@ -3864,7 +3865,6 @@ a.readerNavCategory {
   padding: 5px;
   margin: 8px 0;
 }
-
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
   margin: 8px;
@@ -3910,7 +3910,7 @@ a.readerNavCategory {
   background-color: #212E50;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   border-radius: 7px;
-  padding: 16px 30px;
+  padding: 17px 30px;
   margin: 0 2px 6px 2px;
   cursor: pointer;
   font-size: 16px;
@@ -3938,16 +3938,11 @@ a.button.mini {
   padding: 5px;
   font-size: .8em;
 }
-
 .interface-english .userSheetTitle a.button.mini {
   float: right;
 }
 .interface-hebrew .userSheetTitle a.button.mini {
   float: left;
-}
-
-.button.white:hover {
-
 }
 .button.transparent {
   color: #666;
@@ -4234,16 +4229,16 @@ h2.splitHeader .he {
 }
 .groupListingName {
   display: block;
-  font-size: 24px;
-  color: #666;
+  font-size: 30px;
+  color: #000;
   margin-bottom: 5px;
 }
 .groupListingName:hover {
   color: #333;
 }
 .groupListingDetails {
-  color: #999;
-  font-size: 15px;
+  color: #666;
+  font-size: 16px;
 }
 .groupListingDetailSeparator {
   margin: 8px;
@@ -4267,13 +4262,15 @@ h2.splitHeader .he {
 .groupPage .groupWebsite {
   display: block;
   text-align: center;
-  font-size: 17px;
+  font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
-  color: #999;
+  color: #666;
 }
 .groupPage .groupDescription {
   font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #000;
   text-align: center;
 }
 .groupPage .tabs {
@@ -5023,7 +5020,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .aboutBox .aboutSubtitle {
   font-style: italic;
-  font-size: 16px;
+  font-size: 18px;
   color: #666;
 }
 .aboutBox .aboutSubtitle .he {

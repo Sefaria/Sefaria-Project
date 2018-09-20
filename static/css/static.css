@@ -8,8 +8,7 @@
   direction:rtl;
 }
 .static {
-  color: #333333;
-  font-size: 15px;
+  font-size: 16px;
   background-color: #FBFBFA;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -65,7 +64,6 @@
   font-family: "Heebo", sans-serif;
 }
 .static h1 {
-  color: #333;
   position: relative;
   font-weight: lighter;
   letter-spacing: 1px;
@@ -389,8 +387,14 @@
 }
 #homePage a.refLink {
   color: #000;
-  font-size: 16px;
+  font-size: 18px;
   padding: 12px 0px 15px;
+}
+#homePage a.refLink .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#homePage a.refLink .int-he {
+  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
 }
 #homePage #homeProgress {
   text-align: center;
@@ -403,13 +407,7 @@
   color: #666;
   margin-bottom: 20px;
   border-bottom: none;
-}
-#homeProgress h3 .int-en {
   text-transform: uppercase;
-  font-size: 14px;
-}
-#homeProgress h3 .int-he {
-  font-size: 13px;
 }
 #homeProgress .stat {
   display: inline-block;
