@@ -94,6 +94,12 @@ urlpatterns += [
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
 
+# Calendar Redirects
+urlpatterns += [
+    url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
+    url(r'^daf-yomi$', reader_views.daf_yomi_redirect),
+]
+
 # Texts Add / Edit / Translate
 urlpatterns += [
     url(r'^edit/textinfo/(?P<title>.+)$', reader_views.edit_text_info),
@@ -341,7 +347,6 @@ urlpatterns += [
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
-url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 ]
 

@@ -3197,6 +3197,21 @@ def digitized_by_sefaria(request):
                                 })
 
 
+def parashat_hashavua_redirect(request):
+    """ Redirects to this week's Parashah"""
+    diaspora = request.GET.get("diaspora", "1")
+    calendars = get_keyed_calendar_items(diaspora=diaspora)
+    parashah = calendars["Parashat Hashavua"]
+    return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
+
+
+def daf_yomi_redirect(request):
+    """ Redirects to today's Daf Yomi"""
+    calendars = get_keyed_calendar_items()
+    daf_yomi = calendars["Daf Yomi"]
+    return redirect(iri_to_uri("/" + daf_yomi["url"]), permanent=False)
+
+
 def random_ref():
     """
     Returns a valid random ref within the Sefaria library.
