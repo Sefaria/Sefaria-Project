@@ -14,6 +14,7 @@ except ImportError:
 import regex
 from . import abstract as abst
 
+from sefaria.sheets import get_sheet
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
 
@@ -1568,6 +1569,125 @@ class DictionaryNode(VirtualNode):
         d["firstWord"] = self.firstWord
         d["lastWord"] = self.lastWord
         return d
+
+
+class SheetLibraryNode(VirtualNode):
+    entry_class = SheetNode
+
+
+class SheetNode(TitledTreeNode):
+    def __init__(self, parent, title=None, tref=None):
+        """
+        A schema node created on the fly, in memory, to correspond to a sheet.
+        :param parent:
+        :param title:
+        :param tref:
+        :param word:
+        """
+        assert title and tref
+
+        self.title = title
+        self._ref_regex = regex.compile(u"^" + regex.escape(title) + self.after_title_delimiter_re + u"([0-9]+)(?:" + self.after_address_delimiter_ref + u"|$)")
+        self._match = self._ref_regex.match(tref)
+        self.sheetId = self._match.group(1)
+        if not self.sheetId:
+            raise Exception
+
+        self.sheet_object = get_sheet(self.sheetId)
+        if "error" in self.sheet_object:
+            raise Exception
+
+        super(SheetNode, self).__init__({
+            "titles": [{
+                "lang": "he",
+                "text": self.sheetId,
+                "primary": True
+            },
+            {
+                "lang": "en",
+                "text": self.sheetId,
+                "primary": True
+            }]
+        })
+
+        self.parent = parent
+        self.index = self.parent.index
+        self.sectionNames = ["Source"]
+        self.depth = 1
+        self.addressTypes = ["Integer"]
+        self._addressTypes = [AddressInteger(0)]
+
+    def has_numeric_continuation(self):
+        return True
+
+    def has_titled_continuation(self):
+        return False
+
+    def get_sections(self):
+        # s = self._match.group(2)
+        # return [int(s)] if s else []
+        return []
+
+    def address_class(self, depth):
+        return self._addressTypes[depth]
+
+    def get_text(self):
+        return []
+        # Return depth 1 array of strings from self.sheet_object
+
+    def address(self):
+        return self.parent.address() + [self.sheetId]
+
+    def prev_sibling(self):
+        return None
+
+    def next_sibling(self):
+        return None
+
+    def next_leaf(self):
+        return None
+
+    def prev_leaf(self):
+        return None
+
+    def ref(self):
+        from . import text
+        d = {
+            "index": self.index,
+            "book": self.full_title("en"),
+            "primary_category": self.index.get_primary_category(),
+            "index_node": self,
+            "sections": [],
+            "toSections": []
+        }
+        return text.Ref(_obj=d)
+
+
+"""
+{
+    "title" : "Sheet",
+    "schema" : {
+        "titles" : [
+            {
+                "text" : "דף",
+                "primary" : true,
+                "lang" : "he"
+            },
+            {
+                "text" : "Sheet",
+                "primary" : true,
+                "lang" : "en"
+            }
+        ],
+        nodes: [{
+            "default" : true,
+            "nodeType" : "SheetLibraryNode"
+        }]
+    }
+    "category": ["_unlisted"]    #!!!!!
+}
+
+"""
 
 
 
