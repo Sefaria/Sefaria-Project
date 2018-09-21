@@ -682,7 +682,10 @@ class SheetTagLink extends Component {
     this.props.setSheetTag(this.props.tag);
   }
   render() {
-    return (<a href={`/sheets/tags/${this.props.tag}`} onClick={this.handleTagClick}>{this.props.tag}</a>);
+    return (<a href={`/sheets/tags/${this.props.tag}`} onClick={this.handleTagClick}>
+        <span className="int-en">{this.props.tag}</span>
+        <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)}</span>
+        </a>);
   }
 }
 SheetTagLink.propTypes = {
