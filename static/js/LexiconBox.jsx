@@ -120,6 +120,7 @@ class LexiconEntry extends Component {
   renderLexiconEntrySenses(content) {
     var grammar     = ('grammar' in content) ? '('+ content['grammar']['verbal_stem'] + ')' : "";
     var def         = ('definition' in content) ? (<span className="def"  dangerouslySetInnerHTML={ {__html: content['definition']}}></span>) : "";
+    var alternative = ('alternative' in content) ? (<span className="alternative"  dangerouslySetInnerHTML={ {__html: content['alternative']}}></span>) : "";
     var notes       = ('notes' in content) ? (<span className="notes" dangerouslySetInnerHTML={ {__html: content['notes']}}></span>) : "";
     var sensesElems = ('senses' in content) ? content['senses'].map((sense, i) => {
       return <div key={i}>{this.renderLexiconEntrySenses(sense)}</div>;
@@ -129,6 +130,7 @@ class LexiconEntry extends Component {
       <li className="sense">
         {grammar}
         {def}
+        {alternative}
         {notes}
         {senses}
       </li>
@@ -191,12 +193,24 @@ class LexiconEntry extends Component {
         altHeadHtml = <span className="alt-headwords">{altHeadHtml}</span>;
     }
     var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
+
+    var langHtml = "";
+    if ('language_code' in entry || 'language_reference' in entry) {
+      langHtml = (<span className="lang-ref">
+        {('language_code' in entry) ? entry['language_code'] : ""} 
+        {('language_reference' in entry) ? <span className="language_reference" dangerouslySetInnerHTML={ {__html: entry['definition']}}></span> : ""}
+      </span>);
+    }
+
+    var endnotes = ('notes' in entry) ? <span className="notes" dangerouslySetInnerHTML={ {__html: entry['notes']}}></span> : "";
+    var derivatives = ('derivatives' in entry) ? <span className="derivatives" dangerouslySetInnerHTML={ {__html: entry['derivatives']}}></span> : "";
+
     var senses = this.renderLexiconEntrySenses(entry['content']);
     var attribution = this.renderLexiconAttribution();
     return (
         <div className="entry" onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.getRef()}>
           <div className={headwordClassNames}>{entryHeadHtml}{altHeadHtml}</div>
-          <div className={definitionClassNames}>{morphologyHtml}<ol className="definition">{senses}</ol></div>
+          <div className={definitionClassNames}>{morphologyHtml}{langHtml}<ol className="definition">{senses}{endnotes}{derivatives}</ol></div>
           <div className="attribution">{attribution}</div>
         </div>
     );

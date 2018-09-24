@@ -23,8 +23,9 @@ class ReaderSuite(TestSuite):
 
     def setup(self):
         self.load_toc(my_temper=60)
-        self.driver.delete_all_cookies()
-        self.set_cookies_cookie()
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
 
 
 class PageloadSuite(TestSuite):
@@ -35,8 +36,9 @@ class PageloadSuite(TestSuite):
 
     def setup(self):
         self.load_toc(my_temper=60)
-        self.driver.delete_all_cookies()
-        self.set_cookies_cookie()
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
 
 
 class DeepReaderSuite(TestSuite):

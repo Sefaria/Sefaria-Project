@@ -91,6 +91,11 @@ class AbstractTest(object):
         # TODO is this method still needed?
         self.driver.add_cookie({"name": "cookiesNotificationAccepted", "value": "1", 'path' : '/'})
 
+    def click_accept_cookies(self):
+        elem = self.driver.find_element_by_css_selector(".cookiesNotification .button")
+        if elem:
+            elem.click()
+
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
         user = os.environ["SEFARIA_TEST_USER"]

@@ -227,23 +227,27 @@ class GroupSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
 
     if (sheet.tags === undefined) { sheet.tags = []; }
-    var tagString = sheet.tags.map(function (tag) {
-          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
+    var sheetArr = sheet.tags.filter(function(item, pos) {
+        return sheet.tags.indexOf(item) == pos;
+    });
+    var tagString = sheetArr.map(function (tag) {
+          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={`${sheet.id}-${tag}`}/>);
     }, this);
 
 
     var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});
-    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" :
-                      this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinMessage = this.props.pinned && this.props.isAdmin ? Sefaria._("Pinned Sheet - click to unpin") :
+                      this.props.pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
     var pinButton = <div className={pinButtonClasses} onClick={this.props.isAdmin ? this.props.pinSheet : null}>
                       <img src="/static/img/pin.svg" title={pinMessage} />
                     </div>
+
 
     return (<div className="sheet userSheet">
                 <div className="groupSheetInner">
                   <div className="groupSheetInnerContent"> 
                     <span><a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
-                    <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+                    <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{tagString}</span></div>
                   </div>
                   {pinButton}
                 </div>
