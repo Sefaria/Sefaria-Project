@@ -595,7 +595,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to))+"  # should be an arg?  \r\n are for html matches
+    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to|s\.))+"  # should be an arg?  \r\n are for html matches
     after_address_delimiter_ref = ur"[,.: \r\n]+"
     title_separators = [u", "]
 
