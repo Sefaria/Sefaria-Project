@@ -144,7 +144,7 @@ class DictionaryEntry(LexiconEntry):
             if 'senses' in sense:
                 # This is where we would start a new segment for the new form
                 new_content += next_line
-                next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - {}</strong>'.format(sense['grammar']['verbal_stem'],
+                next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{} - <span dir="rtl">{}</span></strong>'.format(sense['grammar']['verbal_stem'],
                                                                                             sense['grammar']['binyan_form'])
                 for binyan_sense in sense['senses']:
                     next_line += u" " + self.get_sense(binyan_sense)
