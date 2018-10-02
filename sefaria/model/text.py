@@ -2174,7 +2174,7 @@ class Ref(object):
         :return:
         """
         # Split ranges based on '-' symbol, store in `parts` variable
-        parts = [s.strip() for s in self.tref.split("-")]
+        parts = [s.strip() for s in self.tref.split(u"-")]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
         if any([not p for p in parts]):
@@ -2389,17 +2389,17 @@ class Ref(object):
         self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
 
         # 'Shabbat 23a-b'
-        if self.toSections[0] == 'b':
+        if self.toSections[0] == u'b' or self.toSections[0] == u'ᵇ':
             self.toSections[0] = self.sections[0] + 1
 
         # 'Shabbat 24b-25a'
-        elif regex.match("\d+[ab]", self.toSections[0]):
+        elif regex.match(u"\d+[abᵃᵇ]", self.toSections[0]):
             self.toSections[0] = daf_to_section(self.toSections[0])
 
         # 'Shabbat 24b.12-24'
         else:
             delta = len(self.sections) - len(self.toSections)
-            for i in range(delta -1, -1, -1):
+            for i in range(delta - 1, -1, -1):
                 self.toSections.insert(0, self.sections[i])
 
         self.toSections = [int(x) for x in self.toSections]
