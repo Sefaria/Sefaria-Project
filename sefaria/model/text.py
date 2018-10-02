@@ -2173,8 +2173,8 @@ class Ref(object):
         Populate self.index, self.index_node, self.type, self.book, self.sections, self.toSections, ...
         :return:
         """
-        # Split ranges based on '-' symbol, store in `parts` variable
-        parts = [s.strip() for s in self.tref.split(u"-")]
+        # Split ranges based on all '-' symbol, store in `parts` variable
+        parts = [s.strip() for s in re.split(ur"[-\u2010-\u2015]", self.tref)]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
         if any([not p for p in parts]):
