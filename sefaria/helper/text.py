@@ -291,8 +291,9 @@ def replace_roman_numerals(text, allow_lowercase=False):
     be rewritten as "(5:15)". 
     """
     import roman
-    flag  = re.I if allow_lowercase else 0
-    regex = re.compile("([( ])(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([.,] ?)(\d)", flag)
+    flag = re.I if allow_lowercase else 0
+    regex = re.compile(u"([{\[( ^])(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([., $] ?)(\d)?", flag)
+    
     def replace_roman_numerals_in_match(m):
         s = m.group(2)
         s = s.upper()
