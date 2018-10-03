@@ -2173,8 +2173,8 @@ class Ref(object):
         Populate self.index, self.index_node, self.type, self.book, self.sections, self.toSections, ...
         :return:
         """
-        # Split ranges based on '-' symbol, store in `parts` variable
-        parts = [s.strip() for s in self.tref.split("-")]
+        # Split ranges based on all '-' symbol, store in `parts` variable
+        parts = [s.strip() for s in re.split(ur"[-\u2010-\u2015\u05BE]", self.tref)]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
         if any([not p for p in parts]):
@@ -2192,11 +2192,11 @@ class Ref(object):
 
             if self.index_node:
                 title = base[0:l]
-                if base[l - 1] == "." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
+                if base[l - 1] == u"." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
                     title = base[0:l - 1]
                 break
             if new_tref:
-                if l < len(base) and base[l] not in " .":
+                if l < len(base) and base[l] not in u" .":
                     continue
                 # If a term is matched, reinit with the real tref
                 self.__reinit_tref(new_tref)
@@ -2351,7 +2351,7 @@ class Ref(object):
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
                 # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split("[., ]+", parts[1])
+                range_parts = re.split(u"[., ]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
@@ -2362,7 +2362,7 @@ class Ref(object):
                 if self.index_node.addressTypes[0] == "Talmud":
                     self.__parse_talmud_range(parts[1])
                 else:
-                    range_parts = re.split("[.:, ]+", parts[1])
+                    range_parts = re.split(u"[.:, ]+", parts[1])
                     delta = len(self.sections) - len(range_parts)
                     for i in range(delta, len(self.sections)):
                         try:
@@ -2389,17 +2389,17 @@ class Ref(object):
         self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
 
         # 'Shabbat 23a-b'
-        if self.toSections[0] == 'b':
+        if self.toSections[0] == u'b' or self.toSections[0] == u'ᵇ':
             self.toSections[0] = self.sections[0] + 1
 
         # 'Shabbat 24b-25a'
-        elif regex.match("\d+[ab]", self.toSections[0]):
+        elif regex.match(u"\d+[abᵃᵇ]", self.toSections[0]):
             self.toSections[0] = daf_to_section(self.toSections[0])
 
         # 'Shabbat 24b.12-24'
         else:
             delta = len(self.sections) - len(self.toSections)
-            for i in range(delta -1, -1, -1):
+            for i in range(delta - 1, -1, -1):
                 self.toSections.insert(0, self.sections[i])
 
         self.toSections = [int(x) for x in self.toSections]
