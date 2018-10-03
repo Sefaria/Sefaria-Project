@@ -85,11 +85,13 @@ def get_sheet_for_panel(id=None):
 	ownerData = public_user_data(sheet["owner"])
 	sheet["ownerName"]  = ownerData["name"]
 	sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
+	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+	sheet["sources"] = annotate_user_links(sheet["sources"])
 	if "group" in sheet:
 		group = Group().load({"name": sheet["group"]})
 		try:
-			sheet["groupLogo"] = group.headerUrl
+			sheet["groupLogo"] = group.imageUrl
 		except:
 			sheet["groupLogo"] = None
 	return sheet
@@ -150,6 +152,14 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 
 	return [sheet_to_dict(s) for s in sheets]
 
+def annotate_user_links(sources):
+	"""
+	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	"""
+	for source in sources:
+		if "addedBy" in source:
+			source["userLink"] = user_link(source["addedBy"])
+	return sources
 
 def sheet_to_dict(sheet):
 	"""
@@ -286,6 +296,17 @@ def save_sheet(sheet, user_id, search_override=False):
 			sheet["status"] = "unlisted"
 		sheet["owner"] = user_id
 		sheet["views"] = 1
+
+		#ensure that sheet sources have nodes (primarily for sheets posted via API)
+		nextNode = sheet.get("nextNode", 1)
+		sheet["nextNode"] = nextNode
+		checked_sources = []
+		for source in sheet["sources"]:
+			if "node" not in source:
+				source["node"] = nextNode
+				nextNode += 1
+			checked_sources.append(source)
+		sheet["sources"] = checked_sources
 
 	if status_changed:
 		if sheet["status"] == "public" and "datePublished" not in sheet:
@@ -503,7 +524,7 @@ def get_sheets_for_ref(tref, uid=None):
 				group = Group().load({"name": sheet["group"]})
 
 				try:
-					sheet["groupLogo"] = group.headerUrl
+					sheet["groupLogo"] = group.imageUrl
 				except:
 					sheet["groupLogo"] = None
 
