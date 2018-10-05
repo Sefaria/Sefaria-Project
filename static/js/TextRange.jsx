@@ -31,14 +31,16 @@ class TextRange extends Component {
         !this.props.filter.compare(nextProps.filter))         { return true; }
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
-    if (nextProps.settings.language !== this.props.settings.language ||
+    // todo: figure out when and if this component receives settings at all
+    if (nextProps.settings && this.props.settings &&
+        (nextProps.settings.language !== this.props.settings.language ||
           nextProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           nextProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           nextProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
-          nextProps.layoutWidth !== this.props.layoutWidth)       { return true; }
+          nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
     // lowlight ?
 
     return false;
