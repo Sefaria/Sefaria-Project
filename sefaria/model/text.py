@@ -2174,7 +2174,7 @@ class Ref(object):
         :return:
         """
         # Split ranges based on all '-' symbol, store in `parts` variable
-        parts = [s.strip() for s in re.split(ur"[-\u2010-\u2015\u05BE]", self.tref)]
+        parts = [s.strip() for s in re.split(ur"[-\u2010-\u2015]", self.tref)]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
         if any([not p for p in parts]):
