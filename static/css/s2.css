@@ -3993,10 +3993,20 @@ input {
   padding: 1% 0 1% 0;
   margin: auto;
 }
-.lexicon-results .entry .headword {
+.lexicon-results .entry a {
+    font-size: .8em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    color: #333;
+}
+.lexicon-results .entry .headline {
   color: #333;
   font-size: 1.2em;
   display: block;
+}
+.lexicon-results .entry .headwords .headword {
+  display: inline;
 }
 .lexicon-results .entry .morphology {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -4015,7 +4025,7 @@ input {
 }
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
-	padding: 0px;
+    padding-bottom: 10px;
 }
 .lexicon-results .entry .definition ol.senses{
 	padding-left: 0px;
@@ -4029,7 +4039,7 @@ input {
 	padding-left: 0px;
     margin: 0px;
 }
-.lexicon-results .entry .definition .notes {margin-left: 15px;display: block;}
+.lexicon-results .entry .definition .notes {}
 .lexicon-results .entry .definition .derivatives {display: block;margin-left: 15px;}
 .lexicon-results .attribution {
 
