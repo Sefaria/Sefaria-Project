@@ -409,6 +409,7 @@ class TextIndexer(object):
         versions_by_index = {}
         # organizing by index for the merged case
         for v in versions:
+            Ref.clear_cache()  # try to clear Ref cache to save RAM
             key = (v.title, v.language)
             if key in versions_by_index:
                 versions_by_index[key] += [v]
@@ -417,6 +418,7 @@ class TextIndexer(object):
         print "Beginning index of {} versions.".format(len(versions))
         vcount = 0
         total_versions = len(versions)
+        versions = None  # release RAM
         for title, vlist in versions_by_index.items():
             cls.trefs_seen = set()
             cls._bulk_actions = []
