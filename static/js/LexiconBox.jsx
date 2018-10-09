@@ -196,7 +196,7 @@ class LexiconEntry extends Component {
     if ('language_code' in entry || 'language_reference' in entry) {
       langHtml = (<span className="lang-ref">&nbsp;
         {('language_code' in entry) ? entry['language_code'] : ""}
-        {('language_reference' in entry) ? <span className="language_reference" dangerouslySetInnerHTML={ {__html: entry['definition']}}></span> : ""}
+        {('language_reference' in entry) ? <span className="language_reference" dangerouslySetInnerHTML={ {__html: entry['language_reference']}}></span> : ""}
       </span>);
     }
 
