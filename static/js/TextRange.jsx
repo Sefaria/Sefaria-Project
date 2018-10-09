@@ -29,6 +29,8 @@ class TextRange extends Component {
     if (!!this.props.filter !== !!nextProps.filter)           { return true; }
     if (this.props.filter && nextProps.filter &&
         !this.props.filter.compare(nextProps.filter))         { return true; }
+    if (this.props.highlightedRefs && nextProps.highlightedRefs &&
+        !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
     // todo: figure out when and if this component receives settings at all
