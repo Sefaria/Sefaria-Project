@@ -505,7 +505,7 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
-  height: 100%;
+  height: calc(100% - 128px);  /* The 128px here appears to be the minimum needed to keep a line on the screen when scrolling passes loaded content) */
 }
 .textColumn .loadingMessage.base.next.final {
 }
