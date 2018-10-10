@@ -464,7 +464,7 @@ ConnectionsPanel.propTypes = {
 
 
 class ResourcesList extends Component {
-  // A list of Resources in addtion to connections
+  // A list of Resources in addition to connections
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
@@ -474,6 +474,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
+              <ToolsButton en="Dictionaries" he="כלים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
