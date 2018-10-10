@@ -10,15 +10,19 @@ from sefaria.model import *
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-ids = db.sheets.find({"status": "public"}).distinct("id")
+ids = db.sheets.find().distinct("id")
 
 disambiguated_dict = defaultdict(dict)
 with open("./data/sheet_ref_disambiguated.csv", "rb") as fin:
     csv = unicodecsv.DictReader(fin)
     for row in csv:
-        if int(row["Source Num"]) not in disambiguated_dict[int(row["Id"])]:
-            disambiguated_dict[int(row["Id"])][int(row["Source Num"])] = []
-        disambiguated_dict[int(row["Id"])][int(row["Source Num"])] += [{"Old Ref": row["Old Ref"], "New Ref": row["New Ref"]}]
+        try:
+            source_num = int(row["Source Num"])
+        except ValueError:
+            source_num = 12345
+        if source_num not in disambiguated_dict[int(row["Id"])]:
+            disambiguated_dict[int(row["Id"])][source_num] = []
+        disambiguated_dict[int(row["Id"])][source_num] += [{"Old Ref": row["Old Ref"], "New Ref": row["New Ref"]}]
 
 for i, id in enumerate(ids):
     if i % 100 == 0:
