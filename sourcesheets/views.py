@@ -737,6 +737,7 @@ def add_source_to_sheet_api(request, sheet_id):
 				text["he"] = tc_heb.ja().flatten_to_string() if tc_heb.ja().flatten_to_string() != "" else "..."
 			source["text"] = text
 	note = request.POST.get("note", None)
+	source.pop("node", None)
 	response = add_source_to_sheet(int(sheet_id), source, note=note)
 
 	return jsonResponse(response)
