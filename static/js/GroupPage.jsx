@@ -94,7 +94,11 @@ class GroupPage extends Component {
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
         var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
-        return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+        /* TODO this has a very similar structure to SheetTag, maybe merge */
+        return (<div className={classes} onClick={filterThisTag} key={tag.tag}>
+            <span className="int-en">{tag.tag} ({tag.count})</span>
+            <span className="int-he">{Sefaria.hebrewTerm(tag.tag)} (<span className="enInHe">{tag.count}</span>)</span>
+        </div>);
       }.bind(this)) : null;
 
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {

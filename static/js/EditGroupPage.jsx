@@ -31,7 +31,7 @@ class EditGroupPage extends Component {
     var idToField = {
       groupHeader: "headerUrl",
       groupImage: "imageUrl",
-    }
+    };
     var field = idToField[e.target.id];
     var file = e.currentTarget.files[0];
     if (file.size > MAX_IMAGE_SIZE) {
