@@ -880,7 +880,7 @@ class SchemaNode extends Component {
           // ArrayMapNode with only wholeRef
           return <ArrayMapNode schema={node} key={i}/>;
         } else if (node.nodeType == "DictionaryNode") {
-          return <DictionaryNode schema={node}/>;
+          return <DictionaryNode schema={node} key={i}/>;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;

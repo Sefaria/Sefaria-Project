@@ -367,6 +367,9 @@ def add_source_to_sheet(id, source, note=None):
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
 	sheet["dateModified"] = datetime.now().isoformat()
+	nextNode = sheet.get("nextNode", 1)
+	source["node"] = nextNode
+	sheet["nextNode"] = nextNode + 1
 	sheet["sources"].append(source)
 	if note:
 		sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})

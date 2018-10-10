@@ -494,7 +494,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "title":          title,
         "desc":           desc,
         "ldBreadcrumbs":  breadcrumb
-    }, RequestContext(request))
+    })
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
     """
