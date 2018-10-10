@@ -79,7 +79,7 @@ before_script:
   - GET http://localhost:8000/api/name/stam > /dev/null &
 
 script:
- - 'py.test -m "not deep and not failing"'
+ #- 'py.test -m "not deep and not failing"'
  - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}" 2> selenium.error.log; else true; fi;'
 
 after_failure:
