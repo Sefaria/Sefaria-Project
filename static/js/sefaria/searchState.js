@@ -67,4 +67,30 @@ class SearchState {
       sortType,
     });
   }
+
+  isEqual({
+    other,
+    fields,
+  }) {
+    for (let field of fields) {
+      if (this[field] !== other[field]) { return false; }
+    }
+    return true;
+  }
+
+  makeURL(startOfUrlParameters) {
+    return (startOfUrlParameters ? "?" : "&") + ((!!this.appliedFilters && !!this.appliedFilters.length) ? "filters=" + this.appliedFilters.join("|") : "") +
+      "&var=" + (this.field !== this.fieldExact ? "1" : "0") +
+      "&sort=" + (this.sortType === "chronological" ? "c" : "r");
+  }
 }
+
+//appliedSearchFilters
+//searchField
+//searchSortType
+//availableFilters
+//searchFiltersValid
+//filterRegistry
+//searchFieldExact
+//searchFieldBroad
+//orphanSearchFilters

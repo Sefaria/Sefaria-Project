@@ -61,13 +61,15 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
-          appliedSearchFilters: props.initialSearchFilters,
+          searchStateText: new SearchState({
+            appliedFilters: props.initialSearchFilters,
+            field: props.initialSearchField,
+            sortType: props.initialSearchSortType,
+          }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
-          searchField: props.initialSearchField,
-          searchSortType: props.initialSearchSortType,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -92,13 +94,15 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
-          appliedSearchFilters: props.initialSearchFilters,
+          searchStateText: new SearchState({
+            appliedFilters: props.initialSearchFilters,
+            field: props.initialSearchField,
+            sortType: props.initialSearchSortType,
+          }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
-          searchField: props.initialSearchField,
-          searchSortType: props.initialSearchSortType,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -115,9 +119,11 @@ class ReaderApp extends Component {
         bookRef: props.initialBookRef,
         menuOpen: props.initialMenu,
         searchQuery: props.initialQuery,
-        appliedSearchFilters: props.initialSearchFilters,
-        searchField: props.initialSearchField,
-        searchSortType: props.initialSearchSortType,
+        searchStateText: new SearchState({
+          appliedFilters: props.initialSearchFilters,
+          field: props.initialSearchField,
+          sortType: props.initialSearchSortType,
+        }),
         navigationCategories: props.initialNavigationCategories,
         navigationTopic: props.initialTopic,
         sheetsTag: props.initialSheetsTag,
@@ -359,10 +365,7 @@ class ReaderApp extends Component {
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
-          (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
-          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
-          (prev.searchField !== next.searchField) ||
-          (prev.searchSortType !== next.searchSortType) ||
+          (!prev.searchStateText.isEqual({ other: next, fields: ["appliedFilters", "field", "sortType"]})),
           (prev.settings.language != next.settings.language) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah))
 
@@ -466,11 +469,7 @@ class ReaderApp extends Component {
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += Sefaria._("Sefaria Search");
-            hist.url   = "search" + (state.searchQuery ? ("&q=" + query +
-                ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") +
-                "&var=" + (state.searchField !== state.searchFieldExact ? "1" : "0") +
-                "&sort=" + (state.searchSortType === "chronological" ? "c" : "r"))
-                    : "");
+            hist.url   = "search" + (state.searchQuery ? ("&q=" + query + state.searchStateText.makeURL(false) : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -766,15 +765,17 @@ class ReaderApp extends Component {
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
-      appliedSearchFilters:    state.appliedSearchFilters    || [],
-      searchFieldExact:        "exact",
-      searchFieldBroad:        "naive_lemmatizer",
-      searchField:             state.searchField             || "naive_lemmatizer",
-      searchSortType:          state.searchSortType          || "relevance",
-      searchFiltersValid:      state.searchFiltersValid      || false,
-      availableFilters:        state.availableFilters        || [],
-      filterRegistry:          state.filterRegistry          || {},
-      orphanSearchFilters:     state.orphanSearchFilters     || [],
+      searchStateText: new SearchState({
+        appliedFilters:        state.appliedSearchFilters    || [],
+        availableFilters:      state.availableFilters        || [],
+        filterRegistry:        state.filterRegistry          || {},
+        filtersValid:          state.searchFiltersValid      || false,
+        orphanFilters:         state.orphanSearchFilters     || [],
+        fieldExact:            "exact",
+        fieldBroad:            "naive_lemmatizer",
+        field:                 state.searchField             || "naive_lemmatizer",
+        sortType:              state.searchSortType          || "relevance",
+      }),
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
       settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
@@ -932,8 +933,9 @@ class ReaderApp extends Component {
       filterNode.setUnselected(true);
     }
     this.setHeaderState({
-      availableFilters: this.state.header.availableFilters,
-      appliedSearchFilters: this.getAppliedSearchFilters(this.state.header.availableFilters)
+      searchStateText: this.state.header.searchStateText.update({
+        appliedFilters: this.getAppliedSearchFilters(this.state.header.searchStateText.availableFilters)
+      })
     });
   }
   updateSearchFilterInPanel(n, filterNode) {
@@ -943,8 +945,9 @@ class ReaderApp extends Component {
       filterNode.setUnselected(true);
     }
     this.setPanelState(n, {
-      availableFilters: this.state.panels[n].availableFilters,
-      appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[n].availableFilters)
+      searchStateText: this.state.panels[n].searchStateText.update({
+        appliedFilters: this.getAppliedSearchFilters(this.state.panels[n].searchStateText.availableFilters)
+      })
     });
   }
   updateSearchOptionFieldInPanel(n, field) {
