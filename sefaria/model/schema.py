@@ -14,7 +14,6 @@ except ImportError:
 import regex
 from . import abstract as abst
 
-from sefaria.sheets import get_sheet
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
 
@@ -1571,8 +1570,6 @@ class DictionaryNode(VirtualNode):
         return d
 
 
-class SheetLibraryNode(VirtualNode):
-    entry_class = SheetNode
 
 
 class SheetNode(TitledTreeNode):
@@ -1593,8 +1590,8 @@ class SheetNode(TitledTreeNode):
         if not self.sheetId:
             raise Exception
 
-        self.sheet_object = get_sheet(self.sheetId)
-        if "error" in self.sheet_object:
+        self.sheet_object = db.sheets.find_one({"id": int(self.sheetId)})
+        if not self.sheet_object:
             raise Exception
 
         super(SheetNode, self).__init__({
@@ -1632,7 +1629,7 @@ class SheetNode(TitledTreeNode):
         return self._addressTypes[depth]
 
     def get_text(self):
-        return []
+        return ["wut"]
         # Return depth 1 array of strings from self.sheet_object
 
     def address(self):
@@ -1661,6 +1658,10 @@ class SheetNode(TitledTreeNode):
             "toSections": []
         }
         return text.Ref(_obj=d)
+
+
+class SheetLibraryNode(VirtualNode):
+    entry_class = SheetNode
 
 
 """

@@ -206,7 +206,7 @@ class ReaderPanel extends Component {
           this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
         }
         else {
-          this.props.onSegmentClick("sheetRef", source.node)
+          this.props.onSegmentClick("Sheet " + this.state.sheet.id, source.node)
         }
       } else {
           if (source.ref) {
@@ -502,9 +502,6 @@ class ReaderPanel extends Component {
     return data;
   }
   currentBook() {
-    if ("sheetRef" == this.state.refs.slice()) {
-      return "Source Sheet";
-    }
     var data = this.currentData();
     if (data) {
       return data.indexTitle;
@@ -1012,17 +1009,15 @@ class ReaderControls extends Component {
     var title = this.props.currentRef;
     if (title) {
       var oref = Sefaria.ref(title);
-      if (!oref && title != "sheetRef") {
-        // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-        var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
-          if ("error" in data) {
-            this.props.onError(data.error);
-            return;
-          }
-          this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
-        }.bind(this));
-        this.setState({runningQuery: ajaxObj});
-      }
+      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+      var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
+        if ("error" in data) {
+          this.props.onError(data.error);
+          return;
+        }
+        this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
+      }.bind(this));
+      this.setState({runningQuery: ajaxObj});
     }
   }
   componentWillUnmount() {

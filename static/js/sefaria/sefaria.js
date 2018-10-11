@@ -81,6 +81,7 @@ Sefaria = extend(Sefaria, {
 
       if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
+          console.log(Sefaria._parseRef[q])
           return Sefaria._parseRef[q];
       }
 
@@ -2092,7 +2093,7 @@ Sefaria.setup = function(data) {
       Sefaria._partner_role = cookie._partner_role;
     }
     Sefaria._makeBooksDict();
-    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1};  //Todo: Wire this up to the server
+    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Sheet": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
     if (!Sefaria.recentlyViewed) {
         Sefaria.recentlyViewed = [];

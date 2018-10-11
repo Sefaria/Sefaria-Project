@@ -2183,6 +2183,12 @@ class Ref(object):
         base = parts[0]
         title = None
 
+        logger.info("---------------")
+        logger.info(self.tref)
+        logger.info(base)
+        logger.info(self.index_node)
+        logger.info("---------------")
+
         # Remove letter from end of base reference until TitleNode or Term name matched, set `title` variable with matched title
         tndict = library.get_title_node_dict(self._lang)
         termdict = library.get_term_dict(self._lang)
