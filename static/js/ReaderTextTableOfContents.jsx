@@ -403,6 +403,7 @@ class ReaderTextTableOfContents extends Component {
                         interfaceLang={this.props.interfaceLang}
                         close={this.props.close}
                         showBaseText={this.props.showBaseText}
+                        contextSelector=".readerTextTableOfContents"
                         currVersions={this.props.currVersions}/> : ""}
                     <div onClick={this.handleClick}>
                       <TextTableOfContentsNavigation
@@ -956,7 +957,7 @@ class DictionaryNode extends Component {
           </a>
         );
       });
-      return (<div>{sectionLinks}</div>);
+      return (<div className="schema-node-toc"><div className="schema-node-contents"><div className="tocLevel">{sectionLinks}</div></div></div>);
     }
   }
 }

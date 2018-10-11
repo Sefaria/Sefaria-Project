@@ -20,6 +20,11 @@ class DictionarySearch extends Component {
     this.initAutocomplete();
     this.checkIfChanged();
   }
+  /*
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.props.interfaceLang != nextProps.interfaceLang) { return true; }
+    return false;
+  } */
   componentWillUnmount() {
     clearTimeout(this.state.timer);
   }
@@ -44,7 +49,7 @@ class DictionarySearch extends Component {
 
   }
   attachKeyboard() {
-    var inputElement = document.querySelector('.dictionaryTocSearchBox .keyboardInput');
+    var inputElement = document.querySelector(this.props.contextSelector + ' .dictionarySearchBox .keyboardInput');
     if (inputElement && (!inputElement.VKI_attached)) {
       VKI_attach(inputElement);
     }
@@ -54,11 +59,9 @@ class DictionarySearch extends Component {
       position: {
         my: "left top",
         at: "left bottom",
-        of: ".dictionaryTocSearchBox"
+        of: this.props.contextSelector + ' .dictionarySearchBox'
       },
-      open: function(event) {
-        $(".dictionary-toc-autocomplete").width($(".dictionaryTocSearchBox").width());
-      },
+      open: e => $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($(this.props.contextSelector + " .dictionarySearchBox").width()),
       close: function(event) {
         this.setState({
           val: $(ReactDOM.findDOMNode(this)).find("input.search").val()
@@ -66,19 +69,22 @@ class DictionarySearch extends Component {
         this.checkIfChanged()
       }.bind(this),
       classes: {
-        "ui-autocomplete": "dictionary-toc-autocomplete"
+        "ui-autocomplete": "dictionary-toc-autocomplete"  //todo: make unique identifier? 
       },
       minLength: 1,
-      focus: function(event, ui) {
-        clearTimeout(this.state.timer);
-      }.bind(this),
+      focus: e => clearTimeout(this.state.timer),
       select: function( event, ui ) {
+        if (ui.item.value == "__invalid") { return false; }
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.label);
         return false;
       }.bind(this),
 
       source: function(request, response) {
+        if (Sefaria.hebrew.containsEnglish(request.term)) {
+          response([{label: "Invalid entry.  Please type a Hebrew word.", value: "__invalid"}]);
+          return
+        }
         Sefaria.lexiconCompletion(
             request.term,
             this.props.lexiconName,
@@ -134,8 +140,8 @@ class DictionarySearch extends Component {
   render() {
     var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == 'english'});
 
-    return (<div className = "searchBox dictionaryTocSearchBox ui-front">
-      <span className="dictionaryTocSearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
+    return (<div className = "searchBox dictionarySearchBox ui-front">
+      <span className="dictionarySearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
                       <input className={inputClasses}
                              id="searchInput"
                              placeholder={Sefaria._("Search")}
@@ -154,7 +160,8 @@ DictionarySearch.propTypes = {
   interfaceLang:    PropTypes.string,
   close:            PropTypes.func.isRequired,
   showBaseText:     PropTypes.func.isRequired,
-  currVersions:     PropTypes.object.isRequired
+  currVersions:     PropTypes.object.isRequired,
+  contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in. 
 };
 
 module.exports = DictionarySearch;
