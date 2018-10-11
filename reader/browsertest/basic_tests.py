@@ -330,7 +330,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
 class BrowserBackAndForward(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
-    exclude = ['FF/x12', 'Sf/x11'] # Buggy handling of Back button
+    exclude = ['FF/x12', 'FF/x13', 'Sf/x11', 'Sf/x12', 'Sf/x13'] # Buggy handling of Back button
 
     def body(self):
         # Sidebar
