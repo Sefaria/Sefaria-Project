@@ -40,11 +40,14 @@ import sefaria.model.queue as qu
 def init_pagesheetrank_dicts():
     global pagerank_dict, sheetrank_dict
     try:
-        pagerank_dict = {r: v for r, v in json.load(open(STATICFILES_DIRS[0] + "pagerank.json","rb"))}
+        with open(STATICFILES_DIRS[0] + "pagerank.json","rb") as fin:
+            jin = json.load(fin)
+            pagerank_dict = {r: v for r, v in jin}
     except IOError:
         pagerank_dict = {}
     try:
-        sheetrank_dict = json.load(open(STATICFILES_DIRS[0] + "sheetrank.json", "rb"))
+        with open(STATICFILES_DIRS[0] + "sheetrank.json", "rb") as fin:
+            sheetrank_dict = json.load(fin)
     except IOError:
         sheetrank_dict = {}
 
@@ -343,6 +346,14 @@ def put_sheet_mapping():
 class TextIndexer(object):
 
     @classmethod
+    def clear_cache(cls):
+        cls.terms_dict = None
+        cls.version_priority_map = None
+        cls.trefs_seen = None
+        cls._bulk_actions = None
+
+
+    @classmethod
     def create_terms_dict(cls):
         cls.terms_dict = {}
         ts = TermSet()
@@ -364,7 +375,7 @@ class TextIndexer(object):
             elif "title" in mini_toc:
                 title = mini_toc["title"]
                 r = Ref(title)
-                vlist = r.version_list()
+                vlist = cls.get_ref_version_list(r)
                 vpriorities = {
                     u"en": 0,
                     u"he": 0
@@ -375,6 +386,18 @@ class TextIndexer(object):
                     vpriorities[lang] += 1
 
         traverse(toc)
+
+    @staticmethod
+    def get_ref_version_list(oref, tries=0):
+        try:
+            return oref.version_list()
+        except pymongo.errors.AutoReconnect as e:
+            if tries < 200:
+                pytime.sleep(5)
+                return TextIndexer.get_all_versions(oref, tries+1)
+            else:
+                print "get_ref_version_list -- Tried: {} times. Failed :(".format(tries)
+                raise e
 
     @classmethod
     def get_all_versions(cls, tries=0, versions=None, page=0):
@@ -404,12 +427,12 @@ class TextIndexer(object):
         cls.merged = merged
         cls.create_version_priority_map()
         cls.create_terms_dict()
+        Ref.clear_cache()  # try to clear Ref cache to save RAM
 
         versions = sorted(filter(lambda x: (x.title, x.versionTitle, x.language) in cls.version_priority_map, cls.get_all_versions()), key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
         versions_by_index = {}
         # organizing by index for the merged case
         for v in versions:
-            Ref.clear_cache()  # try to clear Ref cache to save RAM
             key = (v.title, v.language)
             if key in versions_by_index:
                 versions_by_index[key] += [v]
@@ -438,7 +461,6 @@ class TextIndexer(object):
     def index_version(cls, version):
         version.walk_thru_contents(cls._cache_action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
 
-
     @classmethod
     def index_ref(cls, index_name, oref, version_title, lang, merged):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
@@ -448,11 +470,10 @@ class TextIndexer(object):
         cls.trefs_seen = set()
         version_priority = 0
         version = None
-        if not merged:
-            for priority, v in enumerate(oref.version_list()):
-                if v['versionTitle'] == version_title:
-                    version_priority = priority
-                    version = v
+        for priority, v in enumerate(cls.get_ref_version_list(oref)):
+            if v['versionTitle'] == version_title:
+                version_priority = priority
+                version = v
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
@@ -701,6 +722,7 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
     if skip == 0:
         create_index(index_names_dict['new'], type)
     if type == 'text' or type == 'merged':
+        TextIndexer.clear_cache()
         TextIndexer.index_all(index_names_dict['new'], merged=merged, debug=debug)
     elif type == 'sheet':
         index_public_sheets(index_names_dict['new'])
