@@ -73,7 +73,15 @@ class SearchState {
     fields,
   }) {
     for (let field of fields) {
-      if (this[field] !== other[field]) { return false; }
+      const thisField = this[field];
+      const otherField = other[field];
+      if (thisField instanceof Array) {
+        if (!(otherField instanceof Array)) { return false; }
+        if (thisField.length !== otherField.length) { return false; }
+        if (!thisField.every((v, i) => v === otherField[i])) { return false; }
+      } else {
+        if (thisField !== otherField) { return false; }
+      }
     }
     return true;
   }
@@ -84,13 +92,65 @@ class SearchState {
       "&sort=" + (this.sortType === "chronological" ? "c" : "r");
   }
 }
+/*ReaderApp
+appliedSearchFilters
+searchField
+searchSortType
+availableFilters
+searchFiltersValid
+filterRegistry
+searchFieldExact
+searchFieldBroad
+orphanSearchFilters
 
-//appliedSearchFilters
-//searchField
-//searchSortType
-//availableFilters
-//searchFiltersValid
-//filterRegistry
-//searchFieldExact
-//searchFieldBroad
-//orphanSearchFilters
+ReaderPanel
+appliedSearchFilters xxx
+availableFilters xxx
+searchFiltersValid xxx
+searchFieldExact xxx
+searchFieldBroad xxx
+searchField xxx
+searchSortType xxx
+
+SearchPage xxx
+appliedFilters
+availableFilters
+filtersValid
+exactField
+broadField
+field
+sortType
+
+SearchResultList
+appliedFilters
+availableFilters
+filtersValid
+exactField
+broadField
+field
+sortType
+
+SearchFilters
+appliedFilters
+availableFilters
+exactField
+broadField
+optionField
+sortType
+
+SearchFilterPanel
+availableFilters xxx
+
+//getAppliedSearchFilters() xxx
+//updateAvailableFiltersInPanel() xxx
+//updateAvailableFiltersInHeader() xxx
+//updateQueryInPanel()
+//updateQueryInHeader()
+//updateSearchFilterInPanel()
+//updateSearchFilterInHeader()
+//updateSearchOptionFieldInPanel()
+//updateSearchOptionFieldInHeader()
+//updateSearchOptionSortInPanel()
+//updateSearchOptionSortInHeader()
+
+*/

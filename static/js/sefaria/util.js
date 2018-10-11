@@ -10,6 +10,15 @@ class Util {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;
 
+        if (obj instanceof SearchState) {
+          return obj.clone();
+        }
+
+        // Handle FilterNode
+        if (obj instanceof FilterNode) {
+          return obj.clone();
+        }
+
         // Handle Date
         if (obj instanceof Date) {
             var copy = new Date();

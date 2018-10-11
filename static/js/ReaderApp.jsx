@@ -385,17 +385,14 @@ class ReaderApp extends Component {
   clonePanel(panel, trimFilters) {
     //Set aside self-referential objects before cloning
     //Todo: Move the multiple instances of this out to a utils file
-    if (panel.availableFilters || panel.filterRegistry) {
-      var savedAttributes = {
-         availableFilters:   panel.availableFilters,
-         searchFiltersValid: panel.searchFiltersValid,
-         filterRegistry:     panel.filterRegistry
-      };
-      panel.searchFiltersValid = false;
-      panel.availableFilters = [];
-      panel.filterRegistry = {};
-      var newPanel = (trimFilters) ? Sefaria.util.clone(panel) : extend(Sefaria.util.clone(panel), savedAttributes);
-      extend(panel, savedAttributes);
+    if (panel.searchStateText.availableFilters || panel.searchStateText.filterRegistry) {
+      const savedSearchState = panel.searchStateText.clone();
+      const newPanel = Sefaria.util.clone(panel);
+      if (trimFilters) {
+        newPanel.searchStateText.filtersValid = false;
+        newPanel.searchStateText.availableFilters = [];
+        newPanel.searchStateText.filterRegistry = {};
+      }
       return newPanel;
     } else {
       return Sefaria.util.clone(panel);
@@ -903,27 +900,31 @@ class ReaderApp extends Component {
     $("#footer").remove();
   }
   updateQueryInHeader(query) {
-    var updates = {searchQuery: query, searchFiltersValid: false};
+    var updates = {searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })};
     this.setHeaderState(updates);
   }
   updateQueryInPanel(n, query) {
-    var updates = {searchQuery: query, searchFiltersValid: false};
+    var updates = {searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })};
     this.setPanelState(n, updates);
   }
-  updateAvailableFiltersInHeader(availableFilters, registry, orphans) {
+  updateAvailableFiltersInHeader(availableFilters, filterRegistry, orphanFilters) {
     this.setHeaderState({
-      availableFilters:    availableFilters,
-      filterRegistry:      registry,
-      orphanSearchFilters: orphans,
-      searchFiltersValid:  true
+      searchStateText: new SearchState({
+        availableFilters,
+        filterRegistry,
+        orphanFilters,
+        filtersValid: true,
+      })
     });
   }
-  updateAvailableFiltersInPanel(n, availableFilters, registry, orphans) {
+  updateAvailableFilters(availableFilters, filterRegistry, orphanFilters, n) {
     this.setPanelState(n, {
-      availableFilters:    availableFilters,
-      filterRegistry:      registry,
-      orphanSearchFilters: orphans,
-      searchFiltersValid:  true
+      searchStateText: new SearchState({
+        availableFilters,
+        filterRegistry,
+        orphanFilters,
+        filtersValid: true,
+      })
     });
   }
   updateSearchFilterInHeader(filterNode) {
@@ -952,24 +953,22 @@ class ReaderApp extends Component {
   }
   updateSearchOptionFieldInPanel(n, field) {
     this.setPanelState(n, {
-      searchField: field,
-      searchFiltersValid:  false
+      searchStateText: searchStateText.update({ field, filtersValid: false })
     });
   }
   updateSearchOptionFieldInHeader(field) {
     this.setHeaderState({
-      searchField: field,
-      searchFiltersValid:  false
+      searchStateText: searchStateText.update({ field, filtersValid: false })
     });
   }
-  updateSearchOptionSortInPanel(n, sort) {
+  updateSearchOptionSortInPanel(n, sortType) {
     this.setPanelState(n, {
-      searchSortType: sort
+      searchStateText: searchStateText.update({ sortType })
     });
   }
-  updateSearchOptionSortInHeader(sort) {
+  updateSearchOptionSortInHeader(sortType) {
     this.setHeaderState({
-      searchSortType: sort
+      searchStateText: searchStateText.update({ sortType })
     });
   }
   getAppliedSearchFilters(availableFilters) {
@@ -1385,10 +1384,10 @@ class ReaderApp extends Component {
   showSearch(query) {
     var panel;
     if (this.props.multiPanel) {
-      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchFiltersValid:  false});
+      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })});
       this.setState({header: panel, panels: []});
     } else {
-      panel = this.makePanelState({menuOpen: "search", searchQuery: query, searchFiltersValid:  false});
+      panel = this.makePanelState({menuOpen: "search", searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })});
       this.setState({panels: [panel]});
     }
   }

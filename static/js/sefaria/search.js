@@ -288,6 +288,20 @@ class FilterNode {
       }
       return results;
   }
+  clone() {
+    const cloned = new FilterNode();
+    cloned.selected = this.selected;
+    cloned.path = this.path;
+    cloned.title = this.title;
+    cloned.heTitle = this.heTitle;
+    cloned.docCount = this.docCount;
+    cloned.children = this.children.map( c => {
+      cloned_child = c.clone();
+      cloned_child.parent = cloned;
+      return cloned_child;
+    });
+    return cloned;
+  }
 }
 
 module.exports.Search = Search;
