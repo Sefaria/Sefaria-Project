@@ -50,7 +50,7 @@ class SearchPage extends Component {
                           <div className="searchContent" style={style}>
                               <SearchResultList
                                 query = { this.props.query }
-                                searchStateText= {this.props.searchStateText}
+                                searchStateText={this.props.searchStateText}
                                 onResultClick={this.props.onResultClick}
                                 updateAppliedFilter = {this.props.updateAppliedFilter}
                                 updateAppliedOptionField={this.props.updateAppliedOptionField}

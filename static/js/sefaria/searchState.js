@@ -9,16 +9,16 @@ class SearchState {
     fieldBroad,
     field,
     sortType,
-  }) {
-    this.appliedFilters   = appliedFilters || [];
+  } = {}) {
+    this.appliedFilters   = appliedFilters   || [];
     this.availableFilters = availableFilters || [];
-    this.filterRegistry   = filterRegistry || {};
-    this.filtersValid     = filtersValid || false;
-    this.orphanFilters    = orphanFilters || [];
-    this.fieldExact       = fieldExact;
-    this.fieldBroad       = fieldBroad;
-    this.field            = field;
-    this.sortType         = sortType;
+    this.filterRegistry   = filterRegistry   || {};
+    this.filtersValid     = filtersValid     || false;
+    this.orphanFilters    = orphanFilters    || [];
+    this.fieldExact       = fieldExact       || "exact";
+    this.fieldBroad       = fieldBroad       || "naive_lemmatizer";
+    this.field            = field            || "naive_lemmatizer";
+    this.sortType         = sortType         || "relevance";
   }
 
   clone() {
@@ -46,15 +46,15 @@ class SearchState {
     field,
     sortType,
   }) {
-    appliedFilters   = appliedFilters   || this.appliedFilters;
-    availableFilters = availableFilters || this.availableFilters;
-    filterRegistry   = filterRegistry   || this.filterRegistry;
-    filtersValid     = filtersValid     || this.fitlersValid;
-    orphanFilters    = orphanFilters    || this.orphanFilters;
-    fieldExact       = fieldExact       || this.fieldExact;
-    fieldBroad       = fieldBroad       || this.fieldBroad;
-    field            = field            || this.field;
-    sortType         = sortType         || this.sortType;
+    appliedFilters   = typeof appliedFilters   === 'undefined' ? this.appliedFilters   : appliedFilters;
+    availableFilters = typeof availableFilters === 'undefined' ? this.availableFilters : availableFilters;
+    filterRegistry   = typeof filterRegistry   === 'undefined' ? this.filterRegistry   : filterRegistry;
+    filtersValid     = typeof filtersValid     === 'undefined' ? this.filtersValid     : filtersValid;
+    orphanFilters    = typeof orphanFilters    === 'undefined' ? this.orphanFilters    : orphanFilters;
+    fieldExact       = typeof fieldExact       === 'undefined' ? this.fieldExact       : fieldExact;
+    fieldBroad       = typeof fieldBroad       === 'undefined' ? this.fieldBroad       : fieldBroad;
+    field            = typeof field            === 'undefined' ? this.field            : field;
+    sortType         = typeof sortType         === 'undefined' ? this.sortType         : sortType;
     return new SearchState({
       appliedFilters,
       availableFilters,
@@ -92,6 +92,8 @@ class SearchState {
       "&sort=" + (this.sortType === "chronological" ? "c" : "r");
   }
 }
+
+module.exports = SearchState;
 /*ReaderApp
 appliedSearchFilters
 searchField
@@ -153,4 +155,6 @@ availableFilters xxx
 //updateSearchOptionSortInPanel()
 //updateSearchOptionSortInHeader()
 
+
+SOMEWHERE ITS NOT RESPECTING URL PARAMETERS!!!! for sort type at least
 */

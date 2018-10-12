@@ -8,6 +8,7 @@ const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
+const SearchState   = require('./sefaria/searchState');
 const {
   InterruptingMessage,
   CookiesNotification,
@@ -466,7 +467,7 @@ class ReaderApp extends Component {
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += Sefaria._("Sefaria Search");
-            hist.url   = "search" + (state.searchQuery ? ("&q=" + query + state.searchStateText.makeURL(false) : "");
+            hist.url   = "search" + (state.searchQuery ? ("&q=" + query + state.searchStateText.makeURL(false)) : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -762,7 +763,7 @@ class ReaderApp extends Component {
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
-      searchStateText: new SearchState({
+      searchStateText:         state.searchStateText         || new SearchState({
         appliedFilters:        state.appliedSearchFilters    || [],
         availableFilters:      state.availableFilters        || [],
         filterRegistry:        state.filterRegistry          || {},
@@ -900,16 +901,23 @@ class ReaderApp extends Component {
     $("#footer").remove();
   }
   updateQueryInHeader(query) {
-    var updates = {searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })};
+    var updates = {searchQuery: query, searchStateText: this.state.header.searchStateText.update({ filtersValid: false })};
     this.setHeaderState(updates);
   }
   updateQueryInPanel(n, query) {
-    var updates = {searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })};
+    var updates = {searchQuery: query, searchStateText: this.state.panels[n].searchStateText.update({ filtersValid: false })};
     this.setPanelState(n, updates);
   }
   updateAvailableFiltersInHeader(availableFilters, filterRegistry, orphanFilters) {
+    const exists = !!this.state.header && !!this.state.header.searchStateText;
     this.setHeaderState({
-      searchStateText: new SearchState({
+      searchStateText: exists ?
+        this.state.header.searchStateText.update({
+          availableFilters,
+          filterRegistry,
+          orphanFilters,
+          filtersValid: true
+        }) : new SearchState({
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -918,8 +926,15 @@ class ReaderApp extends Component {
     });
   }
   updateAvailableFilters(availableFilters, filterRegistry, orphanFilters, n) {
+    const exists = !!this.state.panels[n] && !!this.state.panels[n].searchStateText;
     this.setPanelState(n, {
-      searchStateText: new SearchState({
+      searchStateText: exists ?
+        this.state.panels[n].searchStateText.update({
+          availableFilters,
+          filterRegistry,
+          orphanFilters,
+          filtersValid: true,
+        }) : new SearchState({
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -953,22 +968,22 @@ class ReaderApp extends Component {
   }
   updateSearchOptionFieldInPanel(n, field) {
     this.setPanelState(n, {
-      searchStateText: searchStateText.update({ field, filtersValid: false })
+      searchStateText: this.state.panels[n].searchStateText.update({ field, filtersValid: false })
     });
   }
   updateSearchOptionFieldInHeader(field) {
     this.setHeaderState({
-      searchStateText: searchStateText.update({ field, filtersValid: false })
+      searchStateText: this.state.header.searchStateText.update({ field, filtersValid: false })
     });
   }
   updateSearchOptionSortInPanel(n, sortType) {
     this.setPanelState(n, {
-      searchStateText: searchStateText.update({ sortType })
+      searchStateText: this.state.panels[n].searchStateText.update({ sortType })
     });
   }
   updateSearchOptionSortInHeader(sortType) {
     this.setHeaderState({
-      searchStateText: searchStateText.update({ sortType })
+      searchStateText: this.state.header.searchStateText.update({ sortType })
     });
   }
   getAppliedSearchFilters(availableFilters) {
@@ -1383,11 +1398,13 @@ class ReaderApp extends Component {
   }
   showSearch(query) {
     var panel;
+    const newSearchStateText = (!!this.state.header && !!this.state.header.searchStateText) ? this.state.header.searchStateText.update({ filtersValid: false }) : new SearchState();
+    console.log('showSerach', newSearchStateText);
     if (this.props.multiPanel) {
-      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })});
+      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchStateText: newSearchStateText});
       this.setState({header: panel, panels: []});
     } else {
-      panel = this.makePanelState({menuOpen: "search", searchQuery: query, searchStateText: searchStateText.update({ filtersValid: false })});
+      panel = this.makePanelState({menuOpen: "search", searchQuery: query, searchStateText: newSearchStateText});
       this.setState({panels: [panel]});
     }
   }

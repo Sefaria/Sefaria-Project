@@ -17,21 +17,21 @@ class SearchFilters extends Component {
     this.state = {
       openedCategory: null,
       openedCategoryBooks: [],
-      isExactSearch: props.searchStateText.field === props.searchStateText.exactField
+      isExactSearch: props.searchStateText.field === props.searchStateText.fieldExact
     }
   }
   componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props
     // todo: check for cases when we want to rebuild / not
-    const { field, exactField } = this.props.searchStateText;
+    const { field, fieldExact } = this.props.searchStateText;
     if ((newProps.query != this.props.query)
         || (newProps.searchStateText.availableFilters.length == 0)) {
 
       this.setState({
         openedCategory: null,
         openedCategoryBooks: [],
-        isExactSearch: field === exactField
+        isExactSearch: field === fieldExact
       });
     }
     // todo: logically, we should be unapplying filters as well.
@@ -73,9 +73,9 @@ class SearchFilters extends Component {
   toggleExactSearch() {
     let newExactSearch = !this.state.isExactSearch;
     if (newExactSearch) {
-      this.props.updateAppliedOptionField(this.props.searchStateText.exactField);
+      this.props.updateAppliedOptionField(this.props.searchStateText.fieldExact);
     } else {
-      this.props.updateAppliedOptionField(this.props.searchStateText.broadField);
+      this.props.updateAppliedOptionField(this.props.searchStateText.fieldBroad);
     }
     this.setState({isExactSearch: newExactSearch});
 
@@ -126,7 +126,7 @@ class SearchFilters extends Component {
         query={this.props.query}
         availableFilters={this.props.searchStateText.availableFilters}
         closeBox={this.props.closeFilterView}
-        isExactSearch={this.props.searchStateText.exactField === this.props.searchStateText.field}
+        isExactSearch={this.props.searchStateText.fieldExact === this.props.searchStateText.field}
         handleFocusCategory={this.handleFocusCategory}
         resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
     />);

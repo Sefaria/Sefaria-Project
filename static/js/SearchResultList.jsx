@@ -55,6 +55,7 @@ class SearchResultList extends Component {
         this.updateRunningQuery(type, null, false);
     }
     componentDidMount() {
+        console.log("initial query", this.props.searchStateText);
         this._executeQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
     }
@@ -80,7 +81,6 @@ class SearchResultList extends Component {
       this.setState({displayedUntil: this.state.displayedUntil});
     }
     componentWillReceiveProps(newProps) {
-        const { }
         if(this.props.query != newProps.query) {
            this.setState({
              totals: {"text":0, "sheet":0},
@@ -93,12 +93,14 @@ class SearchResultList extends Component {
            });
            this._executeQueries(newProps)
         }
-        else if (!this.props.searchStateText.isEqual(newProps.searchStateText, { "appliedFilters", "field", "sortType" })) {
+        else if (!this.props.searchStateText.isEqual({ other: newProps.searchStateText, fields: [ "appliedFilters", "field", "sortType" ] })) {
+          console.log("componentWillReceiveProps searchStateText changed", newProps.searchStateText, this.props.searchStateText);
           this._executeQueries(newProps);
         }
         // Execute a second query to apply filters after an initial query which got available filters
         else if ((this.props.searchStateText.filtersValid != newProps.searchStateText.filtersValid) && this.props.searchStateText.appliedFilters.length > 0) {
-           this._executeQueries(newProps);
+          console.log("componentWillReceiveProps filtersValid changed");
+          this._executeQueries(newProps);
         }
     }
     _loadRemainder(type, last, total, currentHits) {
@@ -114,15 +116,16 @@ class SearchResultList extends Component {
       if (last + querySize > this.maxResultSize) {
         querySize = this.maxResultSize - last;
       }
-      const { field, sortType, exactField, appliedFilters } = this.props.searchStateText;
+      const { field, sortType, fieldExact, appliedFilters } = this.props.searchStateText;
+      console.log("CHANGING", field, sortType);
       var query_props = {
         query: this.props.query,
-        type: type,
+        type,
         size: querySize,
         from: last,
         field: type == 'text' ? field : 'content',
-        sort_type,
-        exact: exactField === field,
+        sort_type: type == 'text' ? sortType : null,  // sorting doesn't exist on sheets
+        exact: fieldExact === field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
           var nextHits = currentHits.concat(data.hits.hits);
@@ -158,7 +161,7 @@ class SearchResultList extends Component {
         // If there are no available filters yet, don't apply filters.  Split into two queries:
         // 1) Get all potential filters and counts
         // 2) Apply filters (Triggered from componentWillReceiveProps)
-        const { field, sortType, exactField, appliedFilters, filtersValid } = props.searchStateText;
+        const { field, sortType, fieldExact, appliedFilters, filtersValid } = props.searchStateText;
         var request_applied = filtersValid && appliedFilters;
         var isCompletionStep = !!request_applied || appliedFilters.length == 0;
 
@@ -184,6 +187,7 @@ class SearchResultList extends Component {
             }.bind(this),
             error: this._handle_error
         });
+        console.log("CHANGING 1", field, sortType);
 
         var runningTextQuery = Sefaria.search.execute_query({
             query: props.query,
@@ -193,7 +197,7 @@ class SearchResultList extends Component {
             size: this.initialQuerySize,
             field,
             sort_type: sortType,
-            exact: exactField === field,
+            exact: fieldExact === field,
             success: data => {
                 this.updateRunningQuery("text", null, false);
                 var hitArray = this._process_text_hits(data.hits.hits);

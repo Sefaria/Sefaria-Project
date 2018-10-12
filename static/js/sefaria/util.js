@@ -1,6 +1,8 @@
-const $         = require('./sefariaJquery');
-const extend    = require('extend');
-const striptags = require('striptags');
+const $              = require('./sefariaJquery');
+const extend         = require('extend');
+const striptags      = require('striptags');
+const SearchState    = require('./searchState');
+const { FilterNode } = require('./search');
 
 
 var INBROWSER = (typeof document !== 'undefined');
