@@ -1714,11 +1714,12 @@ a.readerNavCategory {
 .searchTopMatter .filterSortFlexbox {
   display: flex;
   flex-direction: row;
-  align-self: flex-end;
+  margin-bottom: 4px;  /* to vertically align with type-buttons */
 }
 .searchTopMatter .searchButtonsBar {
   display: flex;
   flex-direction: row;
+  align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #CCC;
 }
@@ -1730,7 +1731,6 @@ a.readerNavCategory {
 .searchTopMatter .type-button {
   font-size: 18px;
   color: #999;
-  text-transform: uppercase;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
@@ -1751,7 +1751,6 @@ a.readerNavCategory {
   padding: 0 0 36px 0;
   text-align: center;
   font-size: 12px;
-  height: 64px;
 }
 .readerSheetsNav .type-button {
   padding: 6px 14px;
@@ -1790,7 +1789,6 @@ a.readerNavCategory {
   color: #999;
   font-size: 18px;
   padding: 15px;
-  text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
@@ -1804,6 +1802,9 @@ a.readerNavCategory {
 }
 .searchContent .searchFilterToggle:hover {
   text-decoration: underline;
+}
+.searchContent .searchFilterToggle.active {
+  color: #000;
 }
 .searchContent .searchFilterToggle .en {
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1822,17 +1823,17 @@ a.readerNavCategory {
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-  margin-top: 1px;
-    background: #F9F9F7;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    z-index: 1;
-    border-width: 0 0 0 1px;
-    border-style: solid;
-    border-color: #ccc;
-    box-sizing: border-box;
+  margin-top: 6px;
+  background: #F9F9F7;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 1;
+  border-width: 0 0 1px 0;
+  border-style: solid;
+  border-color: #ccc;
+  box-sizing: border-box;
 }
 .interface-english .searchFilterBoxes {
   right: 0;

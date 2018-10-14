@@ -194,8 +194,9 @@ class SearchFilterPanel extends Component {
     }
   }
   render() {
+    const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.displayFilters });
     return (<div>
-      <div className="searchFilterToggle" tabIndex="0" onClick={this.props.toggleFilterView} onKeyPress={(e) => {e.charCode == 13 ? this.props.toggleFilterView(e):null}}>
+      <div className={ filterTextClasses } tabIndex="0" onClick={this.props.toggleFilterView} onKeyPress={(e) => {e.charCode == 13 ? this.props.toggleFilterView(e):null}}>
         <span className="int-en">Filter</span>
         <span className="int-he">סינון</span>
         {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
@@ -279,8 +280,9 @@ class SearchSortBox extends Component {
   render() {
     var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
     var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
+    const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.visible });
     return (<div>
-      <div className="searchFilterToggle" tabIndex="0" onClick={this.props.toggleSortView} onKeyPress={function(e) {e.charCode == 13 ? this.props.toggleSortView(e):null}.bind(this)}>
+      <div className={ filterTextClasses } tabIndex="0" onClick={this.props.toggleSortView} onKeyPress={function(e) {e.charCode == 13 ? this.props.toggleSortView(e):null}.bind(this)}>
         <span className="int-en">Sort</span>
         <span className="int-he">מיון</span>
         {(this.props.visible) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}

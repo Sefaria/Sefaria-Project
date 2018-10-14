@@ -39,7 +39,7 @@ class Search {
             return null;
         }
         const url = `${this.baseUrl}/${args.type == 'text' ? this.searchIndexText : this.searchIndexSheet}/_search`;
-        //console.log("SERACH URL", url);
+        console.log("SERACH URL", url);
         return $.ajax({
             url,
             type: 'POST',
@@ -165,7 +165,7 @@ class Search {
             o['query']['function_score']['query'] = inner_query;
         }
 
-        //console.log(JSON.stringify(o));
+        console.log(JSON.stringify(o));
         return o;
     }
 }

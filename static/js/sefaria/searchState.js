@@ -87,9 +87,13 @@ class SearchState {
   }
 
   makeURL(startOfUrlParameters) {
-    return (startOfUrlParameters ? "?" : "&") + ((!!this.appliedFilters && !!this.appliedFilters.length) ? "filters=" + this.appliedFilters.join("|") : "") +
+    const url = ((!!this.appliedFilters && !!this.appliedFilters.length) ? "&filters=" + this.appliedFilters.join("|") : "") +
       "&var=" + (this.field !== this.fieldExact ? "1" : "0") +
       "&sort=" + (this.sortType === "chronological" ? "c" : "r");
+    if (startOfUrlParameters) {
+      url.replace(/&/, '?');
+    }
+    return url;
   }
 }
 

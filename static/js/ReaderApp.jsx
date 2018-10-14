@@ -925,7 +925,7 @@ class ReaderApp extends Component {
       })
     });
   }
-  updateAvailableFilters(availableFilters, filterRegistry, orphanFilters, n) {
+  updateAvailableFiltersInPanel(availableFilters, filterRegistry, orphanFilters, n) {
     const exists = !!this.state.panels[n] && !!this.state.panels[n].searchStateText;
     this.setPanelState(n, {
       searchStateText: exists ?
@@ -1399,7 +1399,6 @@ class ReaderApp extends Component {
   showSearch(query) {
     var panel;
     const newSearchStateText = (!!this.state.header && !!this.state.header.searchStateText) ? this.state.header.searchStateText.update({ filtersValid: false }) : new SearchState();
-    console.log('showSerach', newSearchStateText);
     if (this.props.multiPanel) {
       panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchStateText: newSearchStateText});
       this.setState({header: panel, panels: []});

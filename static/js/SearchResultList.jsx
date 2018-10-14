@@ -55,7 +55,6 @@ class SearchResultList extends Component {
         this.updateRunningQuery(type, null, false);
     }
     componentDidMount() {
-        console.log("initial query", this.props.searchStateText);
         this._executeQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
     }
@@ -94,12 +93,10 @@ class SearchResultList extends Component {
            this._executeQueries(newProps)
         }
         else if (!this.props.searchStateText.isEqual({ other: newProps.searchStateText, fields: [ "appliedFilters", "field", "sortType" ] })) {
-          console.log("componentWillReceiveProps searchStateText changed", newProps.searchStateText, this.props.searchStateText);
           this._executeQueries(newProps);
         }
         // Execute a second query to apply filters after an initial query which got available filters
         else if ((this.props.searchStateText.filtersValid != newProps.searchStateText.filtersValid) && this.props.searchStateText.appliedFilters.length > 0) {
-          console.log("componentWillReceiveProps filtersValid changed");
           this._executeQueries(newProps);
         }
     }
@@ -117,7 +114,6 @@ class SearchResultList extends Component {
         querySize = this.maxResultSize - last;
       }
       const { field, sortType, fieldExact, appliedFilters } = this.props.searchStateText;
-      console.log("CHANGING", field, sortType);
       var query_props = {
         query: this.props.query,
         type,
@@ -187,7 +183,6 @@ class SearchResultList extends Component {
             }.bind(this),
             error: this._handle_error
         });
-        console.log("CHANGING 1", field, sortType);
 
         var runningTextQuery = Sefaria.search.execute_query({
             query: props.query,
