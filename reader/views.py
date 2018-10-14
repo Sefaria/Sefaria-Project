@@ -2210,7 +2210,7 @@ def dictionary_completion_api(request, word, lexicon=None):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = int(request.GET.get("limit", 16))
+    LIMIT = int(request.GET.get("limit", 10))
 
     result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)

@@ -7,7 +7,7 @@ SAUCE_MAX_THREADS = 5
 REMOTE_URL = "http://test.sefaria.org"
 LOCAL_URL = "http://localhost:8000"
 
-TEMPER = 10  # default wait time in seconds
+TEMPER = 15  # default wait time in seconds
 # According to http://gs.statcounter.com/#browser_version-ww-monthly-201602-201604-bar
 # According to https://www.browserstack.com/test-on-the-right-mobile-devices
 
@@ -49,7 +49,7 @@ SAUCE_CORE_CAPS = [
 
     {'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '7.1',
      'browserName': 'Chrome', 'appiumVersion': '1.9.1', 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'},
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/7.1'},
 
     {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Simulator",
     'appiumVersion': "1.9.1", 'platformVersion': "12.0", 'deviceOrientation': "portrait",
