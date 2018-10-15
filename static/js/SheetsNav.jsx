@@ -354,7 +354,7 @@ class AllSheetsPage extends Component {
       var sheets = this.state.curSheets;
     }
     sheets = sheets ? sheets.map(function (sheet) {
-      return (<PublicSheetListing sheet={sheet} />);
+      return (<PublicSheetListing sheet={sheet} key={`/sheets/${sheet.id}`} />);
     }) : (<LoadingMessage />);
     return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
