@@ -8,12 +8,12 @@ const { FilterNode } = require('./search');
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    static clone(obj) {
+    static clone(obj, trimFilters) {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;
 
         if (obj instanceof SearchState) {
-          return obj.clone();
+          return obj.clone(trimFilters);
         }
 
         // Handle FilterNode

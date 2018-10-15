@@ -1,5 +1,6 @@
 class SearchState {
   constructor({
+    type,
     appliedFilters,
     availableFilters,
     filterRegistry,
@@ -10,24 +11,40 @@ class SearchState {
     field,
     sortType,
   } = {}) {
+    this.defaultsByType = {
+      text: {
+        fieldExact: 'exact',
+        fieldBroad: 'naive_lemmatizer',
+        field:      'naive_lemmatizer',
+        sortType:   'relevance',
+      },
+      sheet: {
+        fieldExact: null,
+        fieldBroad: null,
+        field: 'content',
+        sortType: 'chronological',
+      },
+    };
+    this.type             = type;  // always required
     this.appliedFilters   = appliedFilters   || [];
     this.availableFilters = availableFilters || [];
     this.filterRegistry   = filterRegistry   || {};
     this.filtersValid     = filtersValid     || false;
     this.orphanFilters    = orphanFilters    || [];
-    this.fieldExact       = fieldExact       || "exact";
-    this.fieldBroad       = fieldBroad       || "naive_lemmatizer";
-    this.field            = field            || "naive_lemmatizer";
-    this.sortType         = sortType         || "relevance";
+    this.fieldExact       = fieldExact       || this.defaultsByType[type].fieldExact;
+    this.fieldBroad       = fieldBroad       || this.defaultsByType[type].fieldBroad;
+    this.field            = field            || this.defaultsByType[type].field;
+    this.sortType         = sortType         || this.defaultsByType[type].sortType;
   }
 
-  clone() {
+  clone(trimFilters) {
     return new SearchState({
-      appliedFilters:   this.appliedFilters,
-      availableFilters: this.availableFilters,
-      filterRegistry:   this.filterRegistry,
-      filtersValid:     this.filtersValid,
-      orphanFilters:    this.orphanFilters,
+      appliedFilters:   Sefaria.util.clone(this.appliedFilters),
+      availableFilters: trimFilters ? [] : Sefaria.util.clone(this.availableFilters),
+      filterRegistry:   trimFilters ? {} : Sefaria.util.clone(this.filterRegistry),
+      filtersValid:     trimFilters ? false : this.filtersValid,
+      orphanFilters:    Sefaria.util.clone(this.orphanFilters),
+      type:             this.type,
       fieldExact:       this.fieldExact,
       fieldBroad:       this.fieldBroad,
       field:            this.field,
@@ -36,6 +53,7 @@ class SearchState {
   }
 
   update({
+    type,
     appliedFilters,
     availableFilters,
     filterRegistry,
@@ -46,6 +64,7 @@ class SearchState {
     field,
     sortType,
   }) {
+    type             = typeof type             === 'undefined' ? this.type             : type;
     appliedFilters   = typeof appliedFilters   === 'undefined' ? this.appliedFilters   : appliedFilters;
     availableFilters = typeof availableFilters === 'undefined' ? this.availableFilters : availableFilters;
     filterRegistry   = typeof filterRegistry   === 'undefined' ? this.filterRegistry   : filterRegistry;
@@ -56,6 +75,7 @@ class SearchState {
     field            = typeof field            === 'undefined' ? this.field            : field;
     sortType         = typeof sortType         === 'undefined' ? this.sortType         : sortType;
     return new SearchState({
+      type,
       appliedFilters,
       availableFilters,
       filterRegistry,
@@ -86,11 +106,13 @@ class SearchState {
     return true;
   }
 
-  makeURL(startOfUrlParameters) {
-    const url = ((!!this.appliedFilters && !!this.appliedFilters.length) ? "&filters=" + this.appliedFilters.join("|") : "") +
-      "&var=" + (this.field !== this.fieldExact ? "1" : "0") +
-      "&sort=" + (this.sortType === "chronological" ? "c" : "r");
-    if (startOfUrlParameters) {
+  makeURL({ prefix, isStart }) {
+    // prefix: string prepended to every parameter. meant to distinguish between different type of searchState URL parameters (e.g. sheet and text)
+    //         oneOf({'t': 'text', 's': sheet, 'g': group, 'u': user})
+    const url = ((!!this.appliedFilters && !!this.appliedFilters.length) ? `&${prefix}filters=` + this.appliedFilters.join('|') : '') +
+      `&${prefix}var=` + (this.field !== this.fieldExact ? '1' : '0') +
+      `&${prefix}sort=` + (this.sortType === 'chronological' ? 'c' : 'r');
+    if (isStart) {
       url.replace(/&/, '?');
     }
     return url;
@@ -160,5 +182,6 @@ availableFilters xxx
 //updateSearchOptionSortInHeader()
 
 
-SOMEWHERE ITS NOT RESPECTING URL PARAMETERS!!!! for sort type at least
+Things to test
+cloning esp. with filters
 */

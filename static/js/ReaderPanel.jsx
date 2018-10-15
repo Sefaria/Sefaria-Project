@@ -84,16 +84,17 @@ class ReaderPanel extends Component {
       sheet:                props.sheet || null,
       sheetID:              null,
       searchQuery:          props.initialQuery || null,
-      searchStateText: new SearchState({
-        fieldExact: "exact",
-        fieldBroad: "naive_lemmatizer",
-        field:              props.initialSearchField || "naive_lemmatizer",
-        sortType:           props.initialSearchSortType || "chronological",
-        availableFilters:   [],
-        appliedFilters:     props.initialAppliedSearchFilters || [],
-        filterRegistry:     {},
-        orphanFilters:      [],
-        filtersValid:       false,
+      textSearchState: new SearchState({
+        type:               'text',
+        field:              props.initialTextSearchField,
+        sortType:           props.initialTextSearchSortType,
+        appliedFilters:     props.initialTextAppliedSearchFilters,
+      }),
+      sheetSearchState: new SearchState({
+        type:               'sheet',
+        field:              props.initialSheetSearchField,
+        sortType:           props.initialSheetSearchSortType,
+        appliedFilters:     props.initialSheetAppliedSearchFilters,
       }),
       selectedWords:        "",
       displaySettingsOpen:  false,
@@ -752,7 +753,8 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
-                    searchStateText={this.state.searchStateText}
+                    textSearchState={this.state.textSearchState}
+                    sheetSearchState={this.state.sheetSearchState}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}

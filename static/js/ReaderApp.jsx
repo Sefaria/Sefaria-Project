@@ -62,10 +62,17 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
-          searchStateText: new SearchState({
-            appliedFilters: props.initialSearchFilters,
-            field: props.initialSearchField,
-            sortType: props.initialSearchSortType,
+          textSearchState: new SearchState({
+            type: 'text',
+            appliedFilters: props.initialTextSearchFilters,
+            field: props.initialTextSearchField,
+            sortType: props.initialTextSearchSortType,
+          }),
+          sheetSearchState: new SearchState({
+            type: 'sheet',
+            appliedFilters: props.initialSheetSearchFilters,
+            field: props.initialSheetSearchField,
+            sortType: props.initialSheetSearchSortType,
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
@@ -95,10 +102,17 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
-          searchStateText: new SearchState({
-            appliedFilters: props.initialSearchFilters,
-            field: props.initialSearchField,
-            sortType: props.initialSearchSortType,
+          textSearchState: new SearchState({
+            type: 'text',
+            appliedFilters: props.initialTextSearchFilters,
+            field: props.initialTextSearchField,
+            sortType: props.initialTextSearchSortType,
+          }),
+          sheetSearchState: new SearchState({
+            type: 'sheet',
+            appliedFilters: props.initialSheetSearchFilters,
+            field: props.initialSheetSearchField,
+            sortType: props.initialSheetSearchSortType,
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
@@ -120,10 +134,17 @@ class ReaderApp extends Component {
         bookRef: props.initialBookRef,
         menuOpen: props.initialMenu,
         searchQuery: props.initialQuery,
-        searchStateText: new SearchState({
-          appliedFilters: props.initialSearchFilters,
-          field: props.initialSearchField,
-          sortType: props.initialSearchSortType,
+        textSearchState: new SearchState({
+          type: 'text',
+          appliedFilters: props.initialTextSearchFilters,
+          field: props.initialTextSearchField,
+          sortType: props.initialTextSearchSortType,
+        }),
+        sheetSearchState: new SearchState({
+          type: 'sheet',
+          appliedFilters: props.initialSheetSearchFilters,
+          field: props.initialSheetSearchField,
+          sortType: props.initialSheetSearchSortType,
         }),
         navigationCategories: props.initialNavigationCategories,
         navigationTopic: props.initialTopic,
@@ -366,7 +387,8 @@ class ReaderApp extends Component {
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
-          (!prev.searchStateText.isEqual({ other: next, fields: ["appliedFilters", "field", "sortType"]})),
+          (!prev.textSearchState.isEqual({ other: next.textSearchState, fields: ["appliedFilters", "field", "sortType"]})),
+          (!prev.sheetSearchState.isEqual({ other: next.sheetSearchState, fields: ["appliedFilters", "field", "sortType"]})),
           (prev.settings.language != next.settings.language) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah))
 
@@ -384,20 +406,7 @@ class ReaderApp extends Component {
     return false;
   }
   clonePanel(panel, trimFilters) {
-    //Set aside self-referential objects before cloning
-    //Todo: Move the multiple instances of this out to a utils file
-    if (panel.searchStateText.availableFilters || panel.searchStateText.filterRegistry) {
-      const savedSearchState = panel.searchStateText.clone();
-      const newPanel = Sefaria.util.clone(panel);
-      if (trimFilters) {
-        newPanel.searchStateText.filtersValid = false;
-        newPanel.searchStateText.availableFilters = [];
-        newPanel.searchStateText.filterRegistry = {};
-      }
-      return newPanel;
-    } else {
-      return Sefaria.util.clone(panel);
-    }
+    return Sefaria.util.clone(panel, trimFilters);
   }
   _getUrlVersionsParams(currVersions, i) {
     if (currVersions) {
@@ -467,7 +476,9 @@ class ReaderApp extends Component {
             var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += Sefaria._("Sefaria Search");
-            hist.url   = "search" + (state.searchQuery ? ("&q=" + query + state.searchStateText.makeURL(false)) : "");
+            hist.url   = "search" + (state.searchQuery ? ("&q=" + query +
+              state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
+              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -763,17 +774,8 @@ class ReaderApp extends Component {
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
-      searchStateText:         state.searchStateText         || new SearchState({
-        appliedFilters:        state.appliedSearchFilters    || [],
-        availableFilters:      state.availableFilters        || [],
-        filterRegistry:        state.filterRegistry          || {},
-        filtersValid:          state.searchFiltersValid      || false,
-        orphanFilters:         state.orphanSearchFilters     || [],
-        fieldExact:            "exact",
-        fieldBroad:            "naive_lemmatizer",
-        field:                 state.searchField             || "naive_lemmatizer",
-        sortType:              state.searchSortType          || "relevance",
-      }),
+      textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
+      sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
       settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
@@ -900,24 +902,43 @@ class ReaderApp extends Component {
     $(".wrapper").remove();
     $("#footer").remove();
   }
+  _getStateAndSetStateForHeaderPanelFuncs(n) {
+    // helper func to avoid code duplication in funcs of type `updateXInHeader` / `updateXInPanel`
+    return {
+      tempState:    (typeof n === 'undefined') ? this.state.header : this.state.panels[n],
+      tempSetState: (typeof n === 'undefined') ? this.setHeaderState : this.setPanelState.bind(n),
+    };
+  }
+  _getSearchStateName(type) { return `${type}SearchState`; }
+  _getSearchState(state, type) { return !!state && state[this._getSearchStateName(type)]; }
   updateQueryInHeader(query) {
-    var updates = {searchQuery: query, searchStateText: this.state.header.searchStateText.update({ filtersValid: false })};
-    this.setHeaderState(updates);
+    this.updateQuery(undefined, query);
   }
-  updateQueryInPanel(n, query) {
-    var updates = {searchQuery: query, searchStateText: this.state.panels[n].searchStateText.update({ filtersValid: false })};
-    this.setPanelState(n, updates);
+  updateQuery(n, query) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const updates = {
+      searchQuery: query,
+      textSearchState: tempState.textSearchState.update({ filtersValid: false }),
+      sheetSearchState: tempState.sheetSearchState.update({ filtersValid: false }),
+    };
+    tempSetState(updates);
   }
-  updateAvailableFiltersInHeader(availableFilters, filterRegistry, orphanFilters) {
-    const exists = !!this.state.header && !!this.state.header.searchStateText;
-    this.setHeaderState({
-      searchStateText: exists ?
-        this.state.header.searchStateText.update({
+  updateAvailableFiltersInHeader(type, availableFilters, filterRegistry, orphanFilters) {
+    this.updateAvailableFilters(undefined, ...arguments);
+  }
+  updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
+    tempSetState({
+      [searchStateName]: !!searchState ?
+        searchState.update({
           availableFilters,
           filterRegistry,
           orphanFilters,
           filtersValid: true
         }) : new SearchState({
+        type,
         availableFilters,
         filterRegistry,
         orphanFilters,
@@ -925,65 +946,44 @@ class ReaderApp extends Component {
       })
     });
   }
-  updateAvailableFiltersInPanel(availableFilters, filterRegistry, orphanFilters, n) {
-    const exists = !!this.state.panels[n] && !!this.state.panels[n].searchStateText;
-    this.setPanelState(n, {
-      searchStateText: exists ?
-        this.state.panels[n].searchStateText.update({
-          availableFilters,
-          filterRegistry,
-          orphanFilters,
-          filtersValid: true,
-        }) : new SearchState({
-        availableFilters,
-        filterRegistry,
-        orphanFilters,
-        filtersValid: true,
-      })
-    });
+  updateSearchFilterInHeader(type, filterNode) {
+    this.updateSearchFilter(undefined, ...arguments);
   }
-  updateSearchFilterInHeader(filterNode) {
+  updateSearchFilter(n, type, filterNode) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
     } else {
       filterNode.setUnselected(true);
     }
-    this.setHeaderState({
-      searchStateText: this.state.header.searchStateText.update({
-        appliedFilters: this.getAppliedSearchFilters(this.state.header.searchStateText.availableFilters)
+    tempSetState({
+      [searchStateName]: searchState.update({
+        appliedFilters: this.getAppliedSearchFilters(searchState.availableFilters)
       })
     });
   }
-  updateSearchFilterInPanel(n, filterNode) {
-    if (filterNode.isUnselected()) {
-      filterNode.setSelected(true);
-    } else {
-      filterNode.setUnselected(true);
-    }
-    this.setPanelState(n, {
-      searchStateText: this.state.panels[n].searchStateText.update({
-        appliedFilters: this.getAppliedSearchFilters(this.state.panels[n].searchStateText.availableFilters)
-      })
+  updateSearchOptionFieldInHeader(type, field) {
+    this.updateSearchOptionField(undefined, ...arguments);
+  }
+  updateSearchOptionField(n, type, field) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
+    tempSetState({
+      [searchStateName]: searchState.update({ field, filtersValid: false })
     });
   }
-  updateSearchOptionFieldInPanel(n, field) {
-    this.setPanelState(n, {
-      searchStateText: this.state.panels[n].searchStateText.update({ field, filtersValid: false })
-    });
+  updateSearchOptionSortInHeader(type, sortType) {
+    this.updateSearchOptionSort(undefined, ...arguments);
   }
-  updateSearchOptionFieldInHeader(field) {
-    this.setHeaderState({
-      searchStateText: this.state.header.searchStateText.update({ field, filtersValid: false })
-    });
-  }
-  updateSearchOptionSortInPanel(n, sortType) {
-    this.setPanelState(n, {
-      searchStateText: this.state.panels[n].searchStateText.update({ sortType })
-    });
-  }
-  updateSearchOptionSortInHeader(sortType) {
-    this.setHeaderState({
-      searchStateText: this.state.header.searchStateText.update({ sortType })
+  updateSearchOptionSort(n, type, sortType) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
+    tempSetState({
+      [searchStateName]: searchState.update({ sortType })
     });
   }
   getAppliedSearchFilters(availableFilters) {
@@ -1396,14 +1396,16 @@ class ReaderApp extends Component {
       this.setState({panels: this.state.panels});
     }
   }
-  showSearch(query) {
-    var panel;
-    const newSearchStateText = (!!this.state.header && !!this.state.header.searchStateText) ? this.state.header.searchStateText.update({ filtersValid: false }) : new SearchState();
+  showSearch(searchQuery) {
+    let panel;
+    const textSearchState =  (!!this.state.header && !!this.state.header.textSearchState)  ? this.state.header.textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
+    const sheetSearchState = (!!this.state.header && !!this.state.header.searchStateSheet) ? this.state.header.searchStateSheet.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
+
     if (this.props.multiPanel) {
-      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchStateText: newSearchStateText});
+      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery, textSearchState, sheetSearchState });
       this.setState({header: panel, panels: []});
     } else {
-      panel = this.makePanelState({menuOpen: "search", searchQuery: query, searchStateText: newSearchStateText});
+      panel = this.makePanelState({menuOpen: "search", searchQuery, textSearchState, sheetSearchState });
       this.setState({panels: [panel]});
     }
   }
@@ -1540,11 +1542,11 @@ class ReaderApp extends Component {
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
-      var updateQueryInPanel             = this.updateQueryInPanel.bind(null, i);
-      var updateAvailableFiltersInPanel  = this.updateAvailableFiltersInPanel.bind(null, i);
-      var updateSearchFilterInPanel      = this.updateSearchFilterInPanel.bind(null, i);
-      var updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(null, i);
-      var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);
+      var updateQuery                    = this.updateQuery.bind(null, i);
+      var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
+      var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
+      var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
+      var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -1588,11 +1590,11 @@ class ReaderApp extends Component {
                       viewExtendedNotes={viewExtendedNotes}
                       backFromExtendedNotes={backFromExtendedNotes}
                       setDefaultOption={this.setDefaultOption}
-                      onQueryChange={updateQueryInPanel}
-                      updateSearchFilter={updateSearchFilterInPanel}
-                      updateSearchOptionField={updateSearchOptionFieldInPanel}
-                      updateSearchOptionSort={updateSearchOptionSortInPanel}
-                      registerAvailableFilters={updateAvailableFiltersInPanel}
+                      onQueryChange={updateQuery}
+                      updateSearchFilter={updateSearchFilter}
+                      updateSearchOptionField={updateSearchOptionField}
+                      updateSearchOptionSort={updateSearchOptionSort}
+                      registerAvailableFilters={updateAvailableFilters}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
@@ -1643,9 +1645,12 @@ ReaderApp.propTypes = {
   initialMenu:                 PropTypes.string,
   initialGroup:                PropTypes.string,
   initialQuery:                PropTypes.string,
-  initialSearchFilters:        PropTypes.array,
-  initialSearchField:          PropTypes.string,
-  initialSearchSortType:       PropTypes.string,
+  initialTextSearchFilters:    PropTypes.array,
+  initialTextSearchField:      PropTypes.string,
+  initialTextSearchSortType:   PropTypes.string,
+  initialSheetSearchFilters:   PropTypes.array,
+  initialSheetSearchField:     PropTypes.string,
+  initialSheetSearchSortType:  PropTypes.string,
   initialSheetsTag:            PropTypes.string,
   initialTopic:                PropTypes.string,
   initialNavigationCategories: PropTypes.array,
@@ -1664,9 +1669,6 @@ ReaderApp.defaultProps = {
   initialMenu:                 null,
   initialGroup:                null,
   initialQuery:                null,
-  initialSearchFilters:        [],
-  initialSearchField:          null,
-  initialSearchSortType:       null,
   initialSheetsTag:            null,
   initialTopic:                null,
   initialNavigationCategories: [],

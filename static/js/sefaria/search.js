@@ -296,7 +296,7 @@ class FilterNode {
     cloned.heTitle = this.heTitle;
     cloned.docCount = this.docCount;
     cloned.children = this.children.map( c => {
-      cloned_child = c.clone();
+      const cloned_child = c.clone();
       cloned_child.parent = cloned;
       return cloned_child;
     });

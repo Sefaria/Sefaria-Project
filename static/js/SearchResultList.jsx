@@ -16,52 +16,65 @@ import Component        from 'react-class';
 
 class SearchResultList extends Component {
     constructor(props) {
-        super(props);
+      super(props);
+      this.types = ['text', 'sheet'];
+      this.initialQuerySize = 100;
+      this.backgroundQuerySize = 1000;
+      this.maxResultSize = 10000;
+      this.resultDisplayStep = 50;
+      this.updateAppliedFilterByTypeMap      = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedFilter.bind(null, k);      return obj; }, {});
+      this.updateAppliedOptionFieldByTypeMap = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionField.bind(null, k); return obj; }, {});
+      this.updateAppliedOptionSortByTypeMap  = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionSort.bind(null, k);  return obj; }, {});
+      this.state = {
+        runningQueries: this._typeObjDefault(null),
+        isQueryRunning: this._typeObjDefault(false),
+        moreToLoad:     this._typeObjDefault(true),
+        totals:         this._typeObjDefault(0),
+        displayedUntil: this._typeObjDefault(50),
+        hits:           this._typeObjDefault([]),
+        activeTab:      this.types[0],
+        error:          false,
+        showOverlay:    false,
+        displayFilters: false,
+        displaySort:    false,
+      }
+    }
 
-        this.initialQuerySize = 100,
-        this.backgroundQuerySize = 1000,
-        this.maxResultSize = 10000,
-        this.resultDisplayStep = 50,
-        this.state = {
-            types: ["text", "sheet"],
-            runningQueries: {"text": null, "sheet": null},
-            isQueryRunning: {"text": false, "sheet": false},
-            moreToLoad: {"text": true, "sheet": true},
-            totals: {"text":0, "sheet":0},
-            displayedUntil: {"text":50, "sheet":50},
-            hits: {"text": [], "sheet": []},
-            activeTab: "text",
-            error: false,
-            showOverlay: false,
-            displayFilters: false,
-            displaySort: false
-        }
-    }
     updateRunningQuery(type, ajax, isLoadingRemainder) {
-        this.state.runningQueries[type] = ajax;
-        this.state.isQueryRunning[type] = !!ajax && !isLoadingRemainder;
-        this.setState({
-          runningQueries: this.state.runningQueries,
-          isQueryRunning: this.state.isQueryRunning
-        });
+      this.state.runningQueries[type] = ajax;
+      this.state.isQueryRunning[type] = !!ajax && !isLoadingRemainder;
+      this.setState({
+        runningQueries: this.state.runningQueries,
+        isQueryRunning: this.state.isQueryRunning
+      });
     }
+
+    _typeObjDefault(defaultValue) {
+      // es6 version of dict comprehension...
+      return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
+    }
+
     _abortRunningQueries() {
-        this.state.types.forEach(t => this._abortRunningQuery(t));
+      this.types.forEach(t => this._abortRunningQuery(t));
     }
+
     _abortRunningQuery(type) {
-        if(this.state.runningQueries[type]) {
-            this.state.runningQueries[type].abort();
-        }
-        this.updateRunningQuery(type, null, false);
+      if(this.state.runningQueries[type]) {
+          this.state.runningQueries[type].abort();
+      }
+      this.updateRunningQuery(type, null, false);
     }
+
     componentDidMount() {
-        this._executeQueries();
+        this._executeAllQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
     }
+
     componentWillUnmount() {
         this._abortRunningQueries();
         $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
     }
+
     handleScroll() {
       var tab = this.state.activeTab;
       if (this.state.displayedUntil[tab] >= this.state.totals[tab]) { return; }
@@ -71,35 +84,52 @@ class SearchResultList extends Component {
         this._extendResultsDisplayed();
       }
     }
+
     _extendResultsDisplayed() {
-      var tab = this.state.activeTab;
-      this.state.displayedUntil[tab] += this.resultDisplayStep;
-      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
-        this.state.displayedUntil[tab] = this.state.totals[tab];
+      const { activeTab } = this.state;
+      this.state.displayedUntil[activeTab] += this.resultDisplayStep;
+      if (this.state.displayedUntil[activeTab] >= this.state.totals[activeTab]) {
+        this.state.displayedUntil[activeTab] = this.state.totals[activeTab];
       }
-      this.setState({displayedUntil: this.state.displayedUntil});
+      this.setState({ displayedUntil: this.state.displayedUntil });
     }
+
     componentWillReceiveProps(newProps) {
-        if(this.props.query != newProps.query) {
-           this.setState({
-             totals: {"text":0, "sheet":0},
-             hits: {"text": [], "sheet": []},
-             moreToLoad: {"text": true, "sheet": true},
-             displayedUntil: {"text":50, "sheet":50},
-             displayFilters: false,
-             displaySort: false,
-             showOverlay: false
-           });
-           this._executeQueries(newProps)
-        }
-        else if (!this.props.searchStateText.isEqual({ other: newProps.searchStateText, fields: [ "appliedFilters", "field", "sortType" ] })) {
-          this._executeQueries(newProps);
-        }
-        // Execute a second query to apply filters after an initial query which got available filters
-        else if ((this.props.searchStateText.filtersValid != newProps.searchStateText.filtersValid) && this.props.searchStateText.appliedFilters.length > 0) {
-          this._executeQueries(newProps);
-        }
+      if(this.props.query != newProps.query) {
+        this.setState({
+          totals: this._typeObjDefault(0),
+          hits: this._typeObjDefault([]),
+          moreToLoad: this._typeObjDefault(true),
+          displayedUntil: this._typeObjDefault(50),
+          displayFilters: false,
+          displaySort: false,
+          showOverlay: false
+        });
+        this._executeAllQueries(newProps);
+      } else {
+        this.types.forEach(t => {
+          if (this._shouldUpdateQuery(this.props, newProps, t)) {
+            this._executeQuery(newProps, t);
+          }
+        })
+      }
     }
+
+    _shouldUpdateQuery(oldProps, newProps, type) {
+      const oldSearchState = this._getSearchState(type, oldProps);
+      const newSearchState = this._getSearchState(type, newProps);
+      return !oldSearchState.isEqual({ other: newSearchState, fields: ['appliedFilters', 'field', 'sortType'] }) ||
+        ((oldSearchState.filtersValid !== newSearchState.filtersValid) && oldSearchState.appliedFilters.length > 0);  // Execute a second query to apply filters after an initial query which got available filters
+    }
+
+    _getSearchState(type, props) {
+      props = props || this.props;
+      if (!props.query) {
+          return;
+      }
+      return props[`${type}SearchState`];
+    }
+
     _loadRemainder(type, last, total, currentHits) {
     // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
       if (last >= total || last >= this.maxResultSize) {
@@ -109,18 +139,20 @@ class SearchResultList extends Component {
         return;
       }
 
-      var querySize = this.backgroundQuerySize;
-      if (last + querySize > this.maxResultSize) {
-        querySize = this.maxResultSize - last;
+      let size = this.backgroundQuerySize;
+      if (last + size > this.maxResultSize) {
+        size = this.maxResultSize - last;
       }
-      const { field, sortType, fieldExact, appliedFilters } = this.props.searchStateText;
-      var query_props = {
+
+      const searchState = this._getSearchState(type);
+      const { field, sortType, fieldExact, appliedFilters } = searchState;
+      let query_props = {
         query: this.props.query,
         type,
-        size: querySize,
+        size,
         from: last,
-        field: type == 'text' ? field : 'content',
-        sort_type: type == 'text' ? sortType : null,  // sorting doesn't exist on sheets
+        field,
+        sort_type: sortType,
         exact: fieldExact === field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: function(data) {
@@ -135,91 +167,69 @@ class SearchResultList extends Component {
           this._loadRemainder(type, last + this.backgroundQuerySize, total, nextHits);
         }.bind(this)
       };
-      if (type == "text") {
-        extend(query_props, {
-          get_filters: false,
-          appliedFilters
-        });
-      }
+      extend(query_props, {
+        get_filters: false,
+        appliedFilters
+      });
 
-      var runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
+      const runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
       this.updateRunningQuery(type, runningLoadRemainderQuery, true);
     }
-    _executeQueries(props) {
-        //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
-        props = props || this.props;
-        if (!props.query) {
-            return;
-        }
 
-        this._abortRunningQueries();
-
-        // If there are no available filters yet, don't apply filters.  Split into two queries:
-        // 1) Get all potential filters and counts
-        // 2) Apply filters (Triggered from componentWillReceiveProps)
-        const { field, sortType, fieldExact, appliedFilters, filtersValid } = props.searchStateText;
-        var request_applied = filtersValid && appliedFilters;
-        var isCompletionStep = !!request_applied || appliedFilters.length == 0;
-
-        var runningSheetQuery = Sefaria.search.execute_query({
-            query: props.query,
-            type: "sheet",
-            size: this.initialQuerySize,
-            field: "content",
-            sort_type: null,
-            exact: true,
-            success: function(data) {
-                this.updateRunningQuery("sheet", null, false);
-                  this.setState({
-                    hits: extend(this.state.hits, {"sheet": data.hits.hits}),
-                    totals: extend(this.state.totals, {"sheet": data.hits.total})
-                  });
-                  Sefaria.track.event("Search", "Query: sheet", props.query, data.hits.total);
-
-                if(isCompletionStep) {
-                  this._loadRemainder("sheet", this.initialQuerySize, data.hits.total, data.hits.hits);
-                }
-
-            }.bind(this),
-            error: this._handle_error
-        });
-
-        var runningTextQuery = Sefaria.search.execute_query({
-            query: props.query,
-            type: "text",
-            get_filters: !filtersValid,
-            applied_filters: request_applied,
-            size: this.initialQuerySize,
-            field,
-            sort_type: sortType,
-            exact: fieldExact === field,
-            success: data => {
-                this.updateRunningQuery("text", null, false);
-                var hitArray = this._process_text_hits(data.hits.hits);
-                this.setState({
-                  hits: extend(this.state.hits, {"text": hitArray}),
-                  totals: extend(this.state.totals, {"text": data.hits.total})
-                });
-                var filter_label = (request_applied && request_applied.length > 0)? (" - " + request_applied.join("|")) : "";
-                var query_label = props.query + filter_label;
-                Sefaria.track.event("Search", "Query: text", query_label, data.hits.total);
-                if (data.aggregations) {
-                  if (data.aggregations.category) {
-                    var ftree = this._buildFilterTree(data.aggregations.category.buckets);
-                    var orphans = this._applyFilters(ftree, this.props.searchStateText.appliedFilters);
-                    this.props.registerAvailableFilters(ftree.availableFilters, ftree.registry, orphans);
-                  }
-                }
-                if(isCompletionStep) {
-                  this._loadRemainder("text", this.initialQuerySize, data.hits.total, hitArray);
-                }
-            },
-            error: this._handle_error
-        });
-
-        this.updateRunningQuery("text", runningTextQuery, false);
-        this.updateRunningQuery("sheet", runningSheetQuery, false);
+    _executeAllQueries(props) {
+      this.types.forEach(t => this._executeQuery(props, t));
     }
+
+    _executeQuery(props, type) {
+      //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
+      props = props || this.props;
+      if (!props.query) {
+          return;
+      }
+      this._abortRunningQuery(type);
+      // If there are no available filters yet, don't apply filters.  Split into two queries:
+      // 1) Get all potential filters and counts
+      // 2) Apply filters (Triggered from componentWillReceiveProps)
+      const searchState = this._getSearchState(type, props);
+      const { field, fieldExact, sortType, filtersValid, appliedFilters } = searchState;
+      const request_applied = filtersValid && appliedFilters;
+      const isCompletionStep = request_applied || appliedFilters.length === 0;
+      const runningQuery = Sefaria.search.execute_query({
+          query: props.query,
+          type,
+          get_filters: !filtersValid,
+          applied_filters: request_applied,
+          size: this.initialQuerySize,
+          field,
+          sort_type: sortType,
+          exact: fieldExact === field,
+          success: data => {
+              this.updateRunningQuery(type, null, false);
+              var hitArray = this._process_text_hits(data.hits.hits);  // TODO need if statement? or will there be similar processing done on sheets?
+              this.setState({
+                hits: extend(this.state.hits, {[type]: hitArray}),
+                totals: extend(this.state.totals, {[type]: data.hits.total}),
+              });
+              var filter_label = (request_applied && request_applied.length > 0)? (" - " + request_applied.join("|")) : "";
+              var query_label = props.query + filter_label;
+              Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total);
+              if (data.aggregations) {
+                if (data.aggregations.category) {  // TODO some of this logic applies to sheet filters
+                  var ftree = this._buildFilterTree(data.aggregations.category.buckets);
+                  var orphans = this._applyFilters(ftree, appliedFilters);
+                  this.props.registerAvailableFilters(type, ftree.availableFilters, ftree.registry, orphans);
+                }
+              }
+              if(isCompletionStep) {
+                this._loadRemainder(type, this.initialQuerySize, data.hits.total, hitArray);
+              }
+          },
+          error: this._handle_error
+      });
+
+      this.updateRunningQuery(type, runningQuery, false);
+    }
+
     _handle_error(jqXHR, textStatus, errorThrown) {
         if (textStatus == "abort") {
             // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
@@ -229,6 +239,7 @@ class SearchResultList extends Component {
         this.setState({error: true});
         this.updateRunningQuery(null, null, false);
     }
+
     _process_text_hits(hits) {
       var newHits = [];
       var newHitsObj = {};  // map ref -> index in newHits
@@ -252,12 +263,13 @@ class SearchResultList extends Component {
       });
       return newHits;
     }
+
     _buildFilterTree(aggregation_buckets) {
       //returns object w/ keys 'availableFilters', 'registry'
       //Add already applied filters w/ empty doc count?
       var rawTree = {};
 
-      this.props.searchStateText.appliedFilters.forEach(
+      this.props.textSearchState.appliedFilters.forEach(
           fkey => this._addAvailableFilter(rawTree, fkey, {"docCount":0})
       );
 
@@ -267,6 +279,7 @@ class SearchResultList extends Component {
       this._aggregate(rawTree);
       return this._build(rawTree);
     }
+
     _addAvailableFilter(rawTree, key, data) {
       //key is a '/' separated key list, data is an arbitrary object
       //Based on http://stackoverflow.com/a/11433067/213042
@@ -311,6 +324,7 @@ class SearchResultList extends Component {
           }
       }
     }
+
     _build(rawTree) {
       //returns dict w/ keys 'availableFilters', 'registry'
       //Aggregate counts, then sort rawTree into filter objects and add Hebrew using Sefaria.toc as reference
@@ -401,6 +415,7 @@ class SearchResultList extends Component {
           }
       }
     }
+
     _applyFilters(ftree, appliedFilters) {
       var orphans = [];  // todo: confirm behavior
       appliedFilters.forEach(path => {
@@ -410,11 +425,12 @@ class SearchResultList extends Component {
       });
       return orphans;
     }
+
     showSheets() {
-      this.setState({"activeTab": "sheet"});
+      this.setState({activeTab: 'sheet'});
     }
     showTexts() {
-      this.setState({"activeTab": "text"});
+      this.setState({activeTab: 'text'});
     }
     showResultsOverlay(shouldShow) {
       //overlay gives opacity to results when either filter box or sort box is open
@@ -468,13 +484,14 @@ class SearchResultList extends Component {
         results              = haveResults ? results : noResultsMessage;
         var searchFilters    = (<SearchFilters
                                   query = {this.props.query}
-                                  searchStateText={this.props.searchStateText}
+                                  textSearchState={this.props.textSearchState}
+                                  sheetSearchState={this.props.sheetSearchState}
                                   total = {this.state.totals["text"] + this.state.totals["sheet"]}
                                   textTotal = {this.state.totals["text"]}
                                   sheetTotal = {this.state.totals["sheet"]}
-                                  updateAppliedFilter = {this.props.updateAppliedFilter}
-                                  updateAppliedOptionField = {this.props.updateAppliedOptionField}
-                                  updateAppliedOptionSort = {this.props.updateAppliedOptionSort}
+                                  updateAppliedFilter      = {this.updateAppliedFilterByTypeMap[this.state.activeTab]}
+                                  updateAppliedOptionField = {this.updateAppliedOptionFieldByTypeMap[this.state.activeTab]}
+                                  updateAppliedOptionSort  = {this.updateAppliedOptionSortByTypeMap[this.state.activeTab]}
                                   isQueryRunning = {this.state.isQueryRunning[tab]}
                                   activeTab = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}
@@ -497,10 +514,11 @@ class SearchResultList extends Component {
     }
 }
 SearchResultList.propTypes = {
-  query:                PropTypes.string,
-  searchStateText:      PropTypes.object,
-  onResultClick:        PropTypes.func,
-  updateAppliedFilter:  PropTypes.func,
+  query:                    PropTypes.string,
+  textSearchState:          PropTypes.object,
+  sheetSearchState:         PropTypes.object,
+  onResultClick:            PropTypes.func,
+  updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func

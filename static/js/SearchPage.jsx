@@ -50,7 +50,8 @@ class SearchPage extends Component {
                           <div className="searchContent" style={style}>
                               <SearchResultList
                                 query = { this.props.query }
-                                searchStateText={this.props.searchStateText}
+                                textSearchState={this.props.textSearchState}
+                                sheetSearchState={this.props.sheetSearchState}
                                 onResultClick={this.props.onResultClick}
                                 updateAppliedFilter = {this.props.updateAppliedFilter}
                                 updateAppliedOptionField={this.props.updateAppliedOptionField}
@@ -71,7 +72,8 @@ class SearchPage extends Component {
 }
 SearchPage.propTypes = {
     query:                    PropTypes.string,
-    searchStateText:          PropTypes.object,
+    textSearchState:          PropTypes.object,
+    sheetSearchState:         PropTypes.object,
     settings:                 PropTypes.object,
     panelsOpen:               PropTypes.number,
     close:                    PropTypes.func,
