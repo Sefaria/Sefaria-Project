@@ -139,7 +139,9 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
-    tags_en, tags_he = make_sheet_tags(sheet)
+    tag_terms_simple = make_sheet_tags(sheet)
+    tags = [t["en"] for t in tag_terms_simple]
+    tags_he_and_en = [u"{}|||{}".format(t["en"], t["he"]) for t in tag_terms_simple]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -149,8 +151,8 @@ def index_sheet(index_name, id):
             "owner_image": pud["imageUrl"],
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
-            "tags": tags_en,
-            "tags_he": tags_he,
+            "tags": tags,
+            "tags_he_and_en": tags_he_and_en,
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "group": sheet.get("group", None),
@@ -185,8 +187,8 @@ def make_sheet_tags(sheet):
             'he': get_primary_title('he', term.titles)
         } for iterm, term in enumerate(tag_terms)
     ]
-    tags_en, tags_he = zip(*tag_terms_simple.values())
-    return tags_en, tags_he
+    #tags_en, tags_he = zip(*tag_terms_simple.values())
+    return tag_terms_simple
 
 def make_sheet_text(sheet, pud):
     """
