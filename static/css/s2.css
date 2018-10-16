@@ -115,9 +115,16 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 /* end Style Guide */
 
 @font-face {
-    font-family: 'Hebrew Text Font';
-    src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
-    unicode-range: U+0590-05FF;
+  /* English content text that may contain Hebrew characters */
+  font-family: 'Hebrew Text Font';
+  src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+  unicode-range: U+0590-05FF;
+}
+@font-face {
+  /* English system text that may contain Hebrew characters */
+  font-family: 'Hebrew System Font';
+  src: local('Heebo'), local('Roboto');
+  unicode-range: U+0590-05FF;
 }
 .sans,
 .sans .en,
@@ -1680,7 +1687,7 @@ a.readerNavCategory {
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-top: 10px;
 }
@@ -2567,6 +2574,9 @@ a.readerNavCategory {
 }
 .toggleOption.smaller, .toggleOption.larger {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .toggleOption.smaller, .interface-hebrew .toggleOption.larger {
+  font-family: "Heebo", sans-serif;
 }
 .toggleOption.smaller {
   font-size: 12px;
@@ -4978,6 +4988,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer a#siteLanguageEnglish,
 #footer a#siteLanguageHebrew {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   color: #666;
   display: inline;
@@ -4988,6 +4999,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-decoration: underline;
 }
 #footer a#siteLanguageHebrew {
+  font-family: "Heebo";
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
