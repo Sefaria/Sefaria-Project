@@ -10,6 +10,7 @@ const { FilterNode }    = require('./sefaria/search');
 const SearchTextResult  = require('./SearchTextResult');
 const SearchSheetResult = require('./SearchSheetResult');
 const SearchFilters     = require('./SearchFilters');
+const SearchState       = require('./sefaria/searchState');
 const PropTypes         = require('prop-types');
 import Component        from 'react-class';
 
@@ -205,19 +206,27 @@ class SearchResultList extends Component {
           exact: fieldExact === field,
           success: data => {
               this.updateRunningQuery(type, null, false);
-              var hitArray = this._process_text_hits(data.hits.hits);  // TODO need if statement? or will there be similar processing done on sheets?
+              const hitArray = this._process_text_hits(data.hits.hits);  // TODO need if statement? or will there be similar processing done on sheets?
               this.setState({
                 hits: extend(this.state.hits, {[type]: hitArray}),
                 totals: extend(this.state.totals, {[type]: data.hits.total}),
               });
-              var filter_label = (request_applied && request_applied.length > 0)? (" - " + request_applied.join("|")) : "";
-              var query_label = props.query + filter_label;
+              const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
+              const query_label = props.query + filter_label;
               Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total);
-              if (data.aggregations) {
-                if (data.aggregations.category) {  // TODO some of this logic applies to sheet filters
-                  var ftree = this._buildFilterTree(data.aggregations.category.buckets);
-                  var orphans = this._applyFilters(ftree, appliedFilters);
-                  this.props.registerAvailableFilters(type, ftree.availableFilters, ftree.registry, orphans);
+
+              const { aggregation_field_array } = SearchState.metadataByType[type];
+              if (data.aggregations) {  // TODO some of this logic applies to sheet filters
+                for (let aggregation of aggregation_field_array) {
+                  if (!!data.aggregations[aggregation]) {
+                    if (type == 'text') {
+                      const ftree = this._buildFilterTree(data.aggregations[aggregation].buckets);
+                      const orphans = this._applyFilters(ftree, appliedFilters);
+                      this.props.registerAvailableFilters(type, ftree.availableFilters, ftree.registry, orphans);
+                    } else {
+                      console.log('aggregation', aggregation, data.aggregations[aggregation].buckets);
+                    }
+                  }
                 }
               }
               if(isCompletionStep) {
@@ -493,7 +502,7 @@ class SearchResultList extends Component {
                                   updateAppliedOptionField = {this.updateAppliedOptionFieldByTypeMap[this.state.activeTab]}
                                   updateAppliedOptionSort  = {this.updateAppliedOptionSortByTypeMap[this.state.activeTab]}
                                   isQueryRunning = {this.state.isQueryRunning[tab]}
-                                  activeTab = {this.state.activeTab}
+                                  type = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}
                                   clickSheetButton = {this.showSheets}
                                   showResultsOverlay = {this.showResultsOverlay}

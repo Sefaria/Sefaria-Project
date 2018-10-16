@@ -11,30 +11,16 @@ class SearchState {
     field,
     sortType,
   } = {}) {
-    this.defaultsByType = {
-      text: {
-        fieldExact: 'exact',
-        fieldBroad: 'naive_lemmatizer',
-        field:      'naive_lemmatizer',
-        sortType:   'relevance',
-      },
-      sheet: {
-        fieldExact: null,
-        fieldBroad: null,
-        field: 'content',
-        sortType: 'chronological',
-      },
-    };
     this.type             = type;  // always required
     this.appliedFilters   = appliedFilters   || [];
     this.availableFilters = availableFilters || [];
     this.filterRegistry   = filterRegistry   || {};
     this.filtersValid     = filtersValid     || false;
     this.orphanFilters    = orphanFilters    || [];
-    this.fieldExact       = fieldExact       || this.defaultsByType[type].fieldExact;
-    this.fieldBroad       = fieldBroad       || this.defaultsByType[type].fieldBroad;
-    this.field            = field            || this.defaultsByType[type].field;
-    this.sortType         = sortType         || this.defaultsByType[type].sortType;
+    this.fieldExact       = fieldExact       || SearchState.metadataByType[type].fieldExact;
+    this.fieldBroad       = fieldBroad       || SearchState.metadataByType[type].fieldBroad;
+    this.field            = field            || SearchState.metadataByType[type].field;
+    this.sortType         = sortType         || SearchState.metadataByType[type].sortType;
   }
 
   clone(trimFilters) {
@@ -118,6 +104,66 @@ class SearchState {
     return url;
   }
 }
+
+SearchState.metadataByType = {
+  text: {
+    fieldExact: 'exact',
+    fieldBroad: 'naive_lemmatizer',
+    field: 'naive_lemmatizer',
+    aggregation_field_array: ['path'],
+    sortType: 'relevance',
+    sortTypeArray: [  // this array defines the sort options available for each search type
+      {
+        type: 'relevance',
+        name: 'Relevance',
+        heName: 'רלוונטיות',
+        field: 'pagesheetrank',
+        sort_method: 'score',  // if sort_method == 'score', it will combine the standard elasticsearch score with `field`
+        score_missing: 0.04,  // this default value comes from the equation used to calculate pagesheetrank. see search.py where this field is created
+      },
+      {
+        type: 'chronological',
+        name: 'Chronological',
+        heName: 'כרונולוגי',
+        fieldArray: ['comp_date', 'order'],  // if sort_method == 'sort', then we need to define fieldArray, which is a list of fields we want to sort on
+        sort_method: 'sort',
+      }
+    ],
+  },
+  sheet: {
+    fieldExact: null,
+    fieldBroad: null,
+    field: 'content',
+    aggregation_field_array: ['group.keyword', 'tags.keyword'],
+    sortType: 'relevance',
+    sortTypeArray: [
+      {
+        type: 'relevance',
+        name: 'Relevance',
+        field: null,
+        sort_method: 'score',
+      },
+      {
+        type: 'dateCreated',
+        name: 'Date Created',
+        fieldArray: ['dateCreated'],
+        sort_method: 'sort',
+      },
+      {
+        type: 'dateModified',
+        name: 'Date Modified',
+        fieldArray: ['dateModified'],
+        sort_method: 'sort',
+      },
+      {
+        type: 'views',
+        name: 'Views',
+        fieldArray: ['views'],
+        sort_method: 'sort',
+      },
+    ],
+  },
+};
 
 module.exports = SearchState;
 /*ReaderApp

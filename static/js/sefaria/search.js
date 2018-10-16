@@ -1,4 +1,5 @@
 const $ = require('./sefariaJquery');
+const SearchState = require('./searchState');
 
 class Search {
     constructor(searchBaseUrl, searchIndexText, searchIndexSheet) {
@@ -24,7 +25,7 @@ class Search {
          get_filters: if to fetch initial filters
          applied_filters: filter query by these filters
          field: field to query in elastic_search
-         sort_type: chonological or relevance
+         sort_type: See SearchState.metadataByType for possible sort types
          exact: if query is exact
          success: callback on success
          error: callback on error
@@ -66,17 +67,12 @@ class Search {
          from: int - start from result # (skip from - 1 results)
          type: string - currently either "text" or "sheet"
          field: string - which field to query. this essentially changes the exactness of the search. right now, 'exact' or 'naive_lemmatizer'
-         sort_type: "relevance", "chronological"
+         sort_type: See SearchState.metadataByType for possible sort types
          exact: boolean. true if query should be exact
          */
 
 
-        var core_query = {
-            "match_phrase": {
-
-            }
-        };
-
+        const core_query = { match_phrase: {} };
         core_query['match_phrase'][field] = {
             "query": query.replace(/(\S)"(\S)/g, '$1\u05f4$2'), //Replace internal quotes with gershaim.
         };
@@ -86,33 +82,29 @@ class Search {
         }
 
         var o = {
-            "from": from,
-            "size": size,
-            /*"_source": {
-              "exclude": [ field ]
-            },*/
-            "highlight": {
-                "pre_tags": ["<b>"],
-                "post_tags": ["</b>"],
-                "fields": {}
+            from,
+            size,
+            highlight: {
+                pre_tags: ['<b>'],
+                post_tags: ['</b>'],
+                fields: {}
             }
         };
 
-        o["highlight"]["fields"][field] = {"fragment_size": 200};
+        o["highlight"]["fields"][field] = {fragment_size: 200};
 
-
-        if (sort_type == "chronological") {
-            o["sort"] = [
-                {"comp_date": {}},
-                {"order": {}}                 // the sort field name is "order"
-            ];
-        } else if (sort_type == "relevance") {
+        // deal with sort_type
+        const { sortTypeArray, aggregation_field_array } = SearchState.metadataByType[type];
+        const { sort_method, fieldArray, field: sort_field, score_missing } = sortTypeArray.find( x => x.type === sort_type );
+        if (sort_method == "sort") {
+            o["sort"] = fieldArray.map( x => { x: {} } );
+        } else if (sort_method == 'score' && !!sort_field) {
 
             o["query"] = {
-                "function_score": {
-                    "field_value_factor": {
-                        "field": "pagesheetrank",
-                        "missing": 0.04     // this default value comes from the equation used to calculate pagesheetrank. see search.py where this field is created
+                function_score: {
+                    field_value_factor: {
+                        field: sort_field,
+                        missing: score_missing,
                     }
                 }
             }
@@ -122,16 +114,18 @@ class Search {
         if (get_filters) {
             //Initial, unfiltered query.  Get potential filters.
             inner_query = core_query;
-            o['aggs'] = {
-                "category": {
-                    "terms": {
-                        "field": "path",
-                        "size": 10000,
-                    }
-                }
-            };
+            o['aggs'] = aggregation_field_array.reduce((obj, a) => 
+              {
+                obj[a] = {
+                  terms: {
+                    field: a,
+                    size: 10000
+                  }
+                };
+                return obj;
+              }, {}
+            );
         } else if (!applied_filters || applied_filters.length == 0) {
-            // This is identical to above - can be cleaned up into a variable
             inner_query = core_query;
         } else {
             //Filtered query.  Add clauses.  Don't re-request potential filters.
@@ -140,18 +134,18 @@ class Search {
 
                 var filterSuffix = applied_filters[i].indexOf("/") != -1 ? ".*" : "/.*"; //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
                 clauses.push({
-                    "regexp": {
-                        "path": RegExp.escape(applied_filters[i]) + filterSuffix
+                    regexp: {
+                        path: RegExp.escape(applied_filters[i]) + filterSuffix
                     }
                 });
                 /* Test for Commentary2 as well as Commentary */
             }
             inner_query = {
-                "bool": {
-                    "must": core_query,
-                    "filter": {
-                      "bool": {
-                        "should": clauses
+                bool: {
+                    must: core_query,
+                    filter: {
+                      bool: {
+                        should: clauses
                       }
                     }
                 }
@@ -159,9 +153,9 @@ class Search {
         }
 
         //after that confusing logic, hopefully inner_query is defined properly
-        if (sort_type == "chronological" || !sort_type) {
+        if (sort_method == 'sort' || !sort_method) {
             o['query'] = inner_query;
-        } else if (sort_type == "relevance") {
+        } else if (sort_method == 'score' && !!sort_field) {
             o['query']['function_score']['query'] = inner_query;
         }
 

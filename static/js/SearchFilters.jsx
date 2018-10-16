@@ -5,6 +5,7 @@ const React      = require('react');
 const ReactDOM   = require('react-dom');
 const Sefaria    = require('./sefaria/sefaria');
 const $          = require('./sefaria/sefariaJquery');
+const SearchState= require('./sefaria/searchState');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
@@ -103,8 +104,8 @@ class SearchFilters extends Component {
 
     var buttons = (
       <div className="type-buttons">
-        {this._type_button("Texts", "טקסטים", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "text"))}
-        {this._type_button("Sheets", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheet"))}
+        {this._type_button("Texts", "טקסטים", this.props.textTotal, this.props.clickTextButton, (this.props.type == "text"))}
+        {this._type_button("Sheets", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.type == "sheet"))}
       </div>
     );
 
@@ -132,6 +133,7 @@ class SearchFilters extends Component {
     />);
 
     var sort_panel = (<SearchSortBox
+          type={this.props.type}
           visible={this.props.displaySort}
           toggleSortView={this.props.toggleSortView}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
@@ -141,12 +143,12 @@ class SearchFilters extends Component {
       <div className="searchTopMatter">
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : null }
-          { (this.props.textSearchState.availableFilters.length > 0 && this.props.activeTab == "text") ? selected_filters : ""}
+          { (this.props.textSearchState.availableFilters.length > 0 && this.props.type == "text") ? selected_filters : ""}
         </div>
         <div className="searchButtonsBar">
           { buttons }
           {
-            (this.props.activeTab == "text") ?
+            (this.props.type == "text") ?
               (<div className="filterSortFlexbox">
                 {filter_panel}
                 {sort_panel}
@@ -168,7 +170,7 @@ SearchFilters.propTypes = {
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort: PropTypes.func,
   isQueryRunning:       PropTypes.bool,
-  activeTab:            PropTypes.string,
+  type:            PropTypes.string,
   clickTextButton:      PropTypes.func,
   clickSheetButton:     PropTypes.func,
   showResultsOverlay:   PropTypes.func,
@@ -270,46 +272,37 @@ class SearchSortBox extends Component {
     if (sortType === this.props.sortType) {
       return;
     }
-    if (this.props.sortType === "chronological") {
-      this.props.updateAppliedOptionSort("relevance");
-    } else {
-      this.props.updateAppliedOptionSort("chronological");
-    }
+    this.props.updateAppliedOptionSort(sortType);
     this.props.toggleSortView();
   }
   //<i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down fa-angle-up"} />
   render() {
-    var chronoClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "chronological"});
-    var releClass = classNames({'filter-title': 1, 'unselected': this.props.sortType !== "relevance"});
     const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.visible });
     return (<div>
       <div className={ filterTextClasses } tabIndex="0" onClick={this.props.toggleSortView} onKeyPress={function(e) {e.charCode == 13 ? this.props.toggleSortView(e):null}.bind(this)}>
         <span className="int-en">Sort</span>
         <span className="int-he">מיון</span>
         {(this.props.visible) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
-
       </div>
       <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
         <table>
           <tbody>
-            <tr  className={releClass} onClick={()=>this.handleClick("relevance")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleClick("relevance") :null}.bind(this)} aria-label="Sort by Relevance">
-              <td>
-                <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="relevance sort selected"/>
-              </td>
-              <td>
-                <span className="int-en">{"Relevance"}</span>
-                <span className="int-he" dir="rtl">{"רלוונטיות"}</span>
-              </td>
-            </tr>
-            <tr className={chronoClass} onClick={()=>this.handleClick("chronological")} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.handleClick("chronological") :null}.bind(this)} aria-label="Sort Chronologically">
-              <td>
-                <img className="searchSortCheck" src="/static/img/check-mark.svg" alt="chronological sort selected"/>
-              </td>
-              <td>
-                <span className="int-en">{"Chronological"}</span>
-                <span className="int-he" dir="rtl">{"כרונולוגי"}</span>
-              </td>
-            </tr>
+            {
+              SearchState.metadataByType[this.props.type].sortTypeArray.map( (sortTypeObj, iSortTypeObj) => {
+                const tempClasses = classNames({'filter-title': 1, unselected: this.props.sortType !== sortTypeObj.type});
+                return (
+                  <tr key={`${this.props.type}|${sortTypeObj.type}`} className={tempClasses} onClick={()=>{ this.handleClick(sortTypeObj.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.handleClick(sortTypeObj.type) : null}} aria-label={`Sort by ${sortTypeObj.name}`}>
+                    <td>
+                      <img className="searchSortCheck" src="/static/img/check-mark.svg" alt={`${sortTypeObj.name} sort selected`}/>
+                    </td>
+                    <td>
+                      <span className="int-en">{sortTypeObj.name}</span>
+                      <span className="int-he" dir="rtl">{sortTypeObj.heName}</span>
+                    </td>
+                  </tr>
+                );
+              })
+            }
           </tbody>
         </table>
       </div>
@@ -317,11 +310,12 @@ class SearchSortBox extends Component {
   }
 }
 SearchSortBox.propTypes = {
+  type:                    PropTypes.string.isRequired,
   visible:                 PropTypes.bool,
   toggleSortView:          PropTypes.func,
   updateAppliedOptionSort: PropTypes.func,
   closeBox:                PropTypes.func,
-  sortType:                PropTypes.oneOf(["chronological", "relevance"])
+  sortType:                PropTypes.string,
 };
 
 
