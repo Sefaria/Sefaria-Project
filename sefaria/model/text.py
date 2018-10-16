@@ -4607,10 +4607,12 @@ class Library(object):
             for title in unique_titles:
                 try:
                     res = self._build_all_refs_from_string(title, st)
+                    refs += res
                 except AssertionError as e:
                     logger.info(u"Skipping Schema Node: {}".format(title))
-                else:
-                    refs += res
+                except TypeError as e:
+                    logger.error(u"Error finding ref for {} in: {}".format(title, st))
+
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
                 title = match.group('title')
@@ -4618,12 +4620,14 @@ class Library(object):
                     continue
                 try:
                     res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
+                    refs += res
                 except AssertionError as e:
                     logger.info(u"Skipping Schema Node: {}".format(title))
                 except InputError as e:
                     logger.info(u"Input Error searching for refs in string: {}".format(e))
-                else:
-                    refs += res
+                except TypeError as e:
+                    logger.error(u"Error finding ref for {} in: {}".format(title, st))
+
         return refs
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False):

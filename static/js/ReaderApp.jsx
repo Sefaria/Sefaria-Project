@@ -741,6 +741,8 @@ class ReaderApp extends Component {
 
     $("title").html(hist.title);
     this.replaceHistory = false;
+
+    this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -834,6 +836,22 @@ class ReaderApp extends Component {
   setWindowWidth() {
     // console.log("Setting window width: " + $(window).outerWidth());
     this.setState({windowWidth: $(window).outerWidth()});
+  }
+  setPaddingForScrollbar() {
+    // Scrollbars take up spacing, causing the centering of panels to be slightly off
+    // compared to the header. This functions sets appropriate padding to compensate.
+    var width = Sefaria.util.getScrollbarWidth();
+    // These are the divs that actually scroll
+    var $container = $(ReactDOM.findDOMNode(this)).find(".content, .textColumn"); 
+    if (this.state.panels.length > 1) {
+      $container.css({paddingRight: "", paddingLeft: ""});
+    } else {
+      if (this.props.interfaceLang == "hebrew") {
+        $container.css({paddingRight: width, paddingLeft: 0});
+      } else {
+        $container.css({paddingRight: 0, paddingLeft: width});
+      }      
+    }
   }
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);

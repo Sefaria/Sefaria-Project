@@ -38,7 +38,7 @@ palette.categoryColors = {
   "Apocrypha":          palette.colors.lightpink,
   "Other":              palette.colors.darkblue,
   "Quoting Commentary": palette.colors.orange,
-  "Sheets":             palette.colors.raspberry,
+  "Sheets":             palette.colors.darkblue,
   "Community":          palette.colors.raspberry,
   "Targum":             palette.colors.lavender,
   "Modern Works":       palette.colors.lightbg,

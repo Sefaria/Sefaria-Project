@@ -194,29 +194,27 @@ class ReaderNavigationMenu extends Component {
       });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
-
-      var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
-      var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
+      var resources = [(<a className="resourcesLink" href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" alt="source sheets icon" />
                         <span className="int-en">Source Sheets</span>
                         <span className="int-he">דפי מקורות</span>
                       </a>),
-                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
+                     (<a className="resourcesLink outOfAppLink" href="/visualizations">
                         <img src="/static/img/visualizations-icon.png" alt="visualization icon" />
                         <span className="int-en">Visualizations</span>
                         <span className="int-he">תרשימים גרפיים</span>
                       </a>),
-                    (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
+                    (<a className="resourcesLink outOfAppLink" href="/people">
                         <img src="/static/img/authors-icon.png" alt="author icon" />
                         <span className="int-en">Authors</span>
                         <span className="int-he">רשימת מחברים</span>
                       </a>),
-                    (<a className="resourcesLink" style={sheetsStyle} href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
+                    (<a className="resourcesLink" href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
                         <img src="/static/img/hashtag-icon.svg" alt="resources icon" />
                         <span className="int-en">Topics</span>
                         <span className="int-he">נושאים</span>
                       </a>),
-                    (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/groups">
+                    (<a className="resourcesLink outOfAppLink" href="/groups">
                         <img src="/static/img/group.svg" alt="Groups icon" />
                         <span className="int-en">Groups</span>
                         <span className="int-he">הקבוצות</span>
