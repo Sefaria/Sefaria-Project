@@ -173,7 +173,7 @@ def make_sheet_text(sheet, pud):
     :param sheet: The sheet record
     :param pud: Public User Database record for the author
     """
-    text = u"Source Sheets / Sources Sheet: " + sheet["title"]
+    text = sheet["title"] + u"\n{}".format(sheet.get("summary", u''))
     if pud.get("name"):
         text += u"\nBy: " + pud["name"]
     text += u"\n"
@@ -253,7 +253,7 @@ def create_index(index_name, type):
     if type == 'text' or type == 'merged':
         put_text_mapping(index_name)
     elif type == 'sheet':
-        put_sheet_mapping()
+        put_sheet_mapping(index_name)
 
 
 def put_text_mapping(index_name):
@@ -322,25 +322,61 @@ def put_text_mapping(index_name):
     index_client.put_mapping(doc_type='text', body=text_mapping, index=index_name)
 
 
-def put_sheet_mapping():
+def put_sheet_mapping(index_name):
     """
     Sets mapping for the sheets document type.
     """
-
-    '''
     sheet_mapping = {
-        "sheet" : {
-            "properties" : {
-
+        'properties': {
+            'owner_name': {
+                'type': 'keyword'
+            },
+            'tags': {
+                'type': 'keyword'
+            },
+            'owner_image': {
+                'type': 'keyword'
+            },
+            'datePublished': {
+                'type': 'date'
+            },
+            'dateCreated': {
+                'type': 'date'
+            },
+            'dateModified': {
+                'type': 'date'
+            },
+            'sheetId': {
+                'type': 'integer'
+            },
+            'group': {
+                'type': 'keyword'
+            },
+            'title': {
+                'type': 'keyword'
+            },
+            'views': {
+                'type': 'integer'
+            },
+            'summary': {
+                'type': 'keyword'
+            },
+            'content': {
+                'type': 'text',
+                'analyzer': 'my_standard'
+            },
+            'version': {
+                'type': 'keyword'
+            },
+            'profile_url': {
+                'type': 'keyword'
+            },
+            'owner_id': {
+                'type': 'integer'
             }
         }
-
     }
-    es.put_mapping(SEARCH_INDEX_NAME, "sheet", sheet_mapping)
-    '''
-
-    # currently a no-op
-    return
+    index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
 
 
 class TextIndexer(object):
