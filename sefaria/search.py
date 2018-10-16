@@ -174,16 +174,16 @@ def make_sheet_tags(sheet):
         return filter(lambda x: x.get(u"primary", False) and x.get(u"lang", u"") == lang, titles)[0][u"text"]
 
     tags = sheet.get('tags', [])
-    tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in sheet.get("tags", [])]
+    tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in tags]
     tag_terms_simple = [
         {
-            'en': tags[i],  # save as en even if it's Hebrew
-            'he': ''
+            'en': tags[iterm],  # save as en even if it's Hebrew
+            'he': u''
         } if term is None else
         {
             'en': get_primary_title('en', term.titles),
             'he': get_primary_title('he', term.titles)
-        } for term in tag_terms
+        } for iterm, term in enumerate(tag_terms)
     ]
     tags_en, tags_he = zip(*tag_terms_simple.values())
     return tags_en, tags_he
@@ -353,9 +353,9 @@ def put_sheet_mapping(index_name):
                 'type': 'keyword'
             },
             'tags': {
-                {
-                    'tag':
-                }
+                'type': 'keyword'
+            },
+            'tags_he': {
                 'type': 'keyword'
             },
             'owner_image': {
