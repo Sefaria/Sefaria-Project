@@ -139,6 +139,7 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
+    tags_en, tags_he = make_sheet_tags(sheet)
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -148,7 +149,8 @@ def index_sheet(index_name, id):
             "owner_image": pud["imageUrl"],
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
-            "tags": sheet.get("tags", []),
+            "tags": tags_en,
+            "tags_he": tags_he,
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "group": sheet.get("group", None),
@@ -166,6 +168,25 @@ def index_sheet(index_name, id):
         print e
         return False
 
+
+def make_sheet_tags(sheet):
+    def get_primary_title(lang, titles):
+        return filter(lambda x: x.get(u"primary", False) and x.get(u"lang", u"") == lang, titles)[0][u"text"]
+
+    tags = sheet.get('tags', [])
+    tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in sheet.get("tags", [])]
+    tag_terms_simple = [
+        {
+            'en': tags[i],  # save as en even if it's Hebrew
+            'he': ''
+        } if term is None else
+        {
+            'en': get_primary_title('en', term.titles),
+            'he': get_primary_title('he', term.titles)
+        } for term in tag_terms
+    ]
+    tags_en, tags_he = zip(*tag_terms_simple.values())
+    return tags_en, tags_he
 
 def make_sheet_text(sheet, pud):
     """
@@ -332,6 +353,9 @@ def put_sheet_mapping(index_name):
                 'type': 'keyword'
             },
             'tags': {
+                {
+                    'tag':
+                }
                 'type': 'keyword'
             },
             'owner_image': {
