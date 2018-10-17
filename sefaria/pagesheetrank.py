@@ -221,7 +221,6 @@ def calculate_pagerank():
     smallest_pr = sorted_ranking[0][1]
     while (sorted_ranking[count][1] - smallest_pr) < 1e-30:
         count += 1
-    removed_rankings = sorted_ranking[:count]
     sorted_ranking = sorted_ranking[count:]
     print "Removing {} low pageranks".format(count)
 
