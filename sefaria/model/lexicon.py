@@ -217,7 +217,9 @@ class LexiconEntrySubClassMapping(object):
         'BDB Augmented Strong': StrongsDictionaryEntry,
         'Rashi Foreign Lexicon': RashiDictionaryEntry,
         'Jastrow Dictionary': JastrowDictionaryEntry,
+        "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
+
     }
 
     @classmethod

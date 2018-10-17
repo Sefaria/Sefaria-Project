@@ -983,7 +983,7 @@ $(function() {
 							scrollSensitivity: 60,
 							helper: function(e,ui) {
 								var helper = $(ui[0]).clone();
-								helper.css({'height': '300px','overflow':'hidden',"background-color":"#f9f9f7","opacity":0.9});
+								helper.css({'height': '300px','overflow':'hidden',"background-color":"#FBFBFA","opacity":0.9});
 								return helper;
 							},
 							sort: function(e,ui) {

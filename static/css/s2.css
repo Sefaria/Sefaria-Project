@@ -2,20 +2,13 @@ body {
   padding: 0;
   margin: 0;
   overflow: hidden;
-  color: #333;
   -webkit-text-size-adjust: 100%;
-}
-body {
-  /* font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif; */
-}
-body .he {
-  /* font-family: "Heebo", sans-serif; */
 }
 *::selection {
   background-color: #D2DCFF;
 }
 body.sepia {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 body.dark {
   background-color: #333331;
@@ -23,16 +16,121 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+/* 
+Style Guide Font Hierarchy 
+https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
+*/
+.featureTitle .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 50px;
+  font-weight: normal;
+  color: #000;
+}
+.pageTitle .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: #000;
+}
+.chapterText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
+}
+.sectionTitleText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #666;
+  text-transform: uppercase,
+  letter-spacing: 0.1em;
+}
+.smallText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.systemText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+}
+.contentText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+.featureTitle .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 40px;
+  font-weight: normal;
+  color: #000;
+}
+.pageTitle .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: #000;
+}
+.chapterText .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
+}
+.sectionTitleText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #666;
+  text-transform: uppercase,
+  letter-spacing: 0.1em;
+}
+.smallText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.systemText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+}
+.contentText .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+/* end Style Guide */
+
 @font-face {
-    font-family: 'Hebrew Text Font';
-    src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
-    unicode-range: U+0590-05FF;
+  /* English content text that may contain Hebrew characters */
+  font-family: 'Hebrew Text Font';
+  src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+  unicode-range: U+0590-05FF;
+}
+@font-face {
+  /* English system text that may contain Hebrew characters */
+  font-family: 'Hebrew System Font';
+  src: local('Heebo'), local('Roboto');
+  unicode-range: U+0590-05FF;
 }
 .sans,
 .sans .en,
 #s2 .sans .en,
 .sans .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .sans .he,
 #s2 .sans .he,
@@ -120,7 +218,7 @@ input.noselect {
   position: absolute;
   top: 17px;
   left: 50%;
-  margin-left: -53px;
+  margin-left: -46px;
 }
 .headerInner .headerLinksSection{
   display: flex;
@@ -161,6 +259,10 @@ input.noselect {
   vertical-align: 1px;
   margin: 0;
 }
+.header .search.hebrewSearch {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+}
 .search-override {
   border-top: solid 1px #999;
   padding-top: 5px;
@@ -170,7 +272,7 @@ input.noselect {
 }
 .header .home img {
   vertical-align: middle;
-  height: 25px;
+  width: 92px;
 }
 .header .login:first-child{
   margin: auto 30px;
@@ -185,7 +287,6 @@ input.noselect {
   .header .accountLinks .login {
     margin-left: 16px;
   }
-
   .header .searchBox input{
     width: 45%;
   }
@@ -201,8 +302,9 @@ input.noselect {
 }
 .header .accountLinks {
   display: inline-block;
-  font-size: 15px;
+  font-size: 16px;
   margin-top: 2px;
+  color: #666;
 }
 .header .account, .header .notifications {
   display: inline-block;
@@ -212,11 +314,9 @@ input.noselect {
   font-size: 24px;
   line-height: 24px;
 }
-.header .library{
-}
 .header .notifications {
   display: inline-block;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   line-height: 24px;
   height: 24px;
   width: 24px;
@@ -231,12 +331,12 @@ input.noselect {
   background-color: #EFB4B6;
 }
 .header .login {
-  color: #999;
+  color: #666;
   display: inline-block;
   line-height: 1;
 }
 .header .login .en {
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 .header .login .he {
   font-family: "Heebo", sans-serif;
@@ -244,7 +344,7 @@ input.noselect {
 .header .testWarning {
   display: inline-block;
   color: white;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   background-color: #EFB4B6;
   border-radius: 12px;
   font-size: 14px;
@@ -310,7 +410,7 @@ input.noselect {
   padding: 18px 15px;
   z-index: 1001;
   border: 1px solid #E6E6E6;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   text-align: center;
   color: #666;
 }
@@ -351,7 +451,7 @@ input.noselect {
   margin-left: -225px;
   left: 50%;
   top: 50%;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   padding: 32px 20px;
   box-sizing: border-box;
   text-align: center;
@@ -432,7 +532,7 @@ input.noselect {
   background-color: #EFB4B6;
   padding: 14px 20px;
   box-sizing: border-box;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 #globalWarningMessage .close {
  float: right;
@@ -494,7 +594,7 @@ input.noselect {
   text-align: center;
   font-weight: lighter;
   font-style: normal;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
   /*border-bottom: 4px solid #E6E5E6;*/
@@ -510,10 +610,7 @@ input.noselect {
 .textColumn .loadingMessage.base.next.final {
 }
 .he {
-  font-size: 120%;
-}
-.int-he {
-  font-size: 110%;
+  font-size: 122%;
 }
 .int-he .int-he {
   font-size: inherit;
@@ -585,7 +682,11 @@ input.noselect {
 }
 .interface-english .systemPanel .content .int-en {
   display: inline;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-english .systemPanel .content h1 .int-en {
+  display: inline;
+  font-family: "adobe-garamond-pro", Georgia;
 }
 .interface-hebrew .systemPanel .content .int-he {
   display: inline;
@@ -617,7 +718,7 @@ input.noselect {
   height: 100%;
   box-sizing: border-box;
   z-index: 101;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .readerNavMenu .content {
   position: relative;
@@ -638,10 +739,10 @@ input.noselect {
   padding: 30px 0px 0px 0px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
-  padding-top: 70px;
+  padding-top: 80px;
 }
 .multiPanel .readerNavMenu.compare .content {
-  padding-top: 80px;
+  padding-top: 30px;
 }
 .readerNavMenu .content .contentInner {
   max-width: 660px;
@@ -650,7 +751,7 @@ input.noselect {
 .readerNavTop {
   /*position: absolute;*/
   width: 100%;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   height: 58px;
@@ -752,10 +853,10 @@ input.noselect {
 }
 .readerNavMenu h1 {
   text-align: center;
-  color: #333;
+  color: #000;
   height: 70px;
   position: relative;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: lighter;
   letter-spacing: 1px;
   margin: 0 0 10px 0;
@@ -782,9 +883,6 @@ h1 .languageToggle .he {
 }
 .readerNavMenu h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
-}
-.readerNavMenu h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -814,7 +912,7 @@ h1 .languageToggle .he {
   color: #999;
   font-size: 11px;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -829,22 +927,23 @@ h1 .languageToggle .he {
   text-align: center;
   font-size: 15px;
   font-weight: 200;
-  color: #999;
+  color: #666;
   margin-bottom: 20px;
   letter-spacing: 2px;
   height: 16px;
   line-height: 16px;
 }
 .readerPanel h2 .en, .readerPanel h3 .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerPanel h2 .he, .readerPanel h3 .he {
   font-family: "Heebo", sans-serif;
 }
 .readerNavSection h2 {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: normal;
-  margin-bottom: 24px;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
 }
 .readerNavSection {
   margin-bottom: 44px;
@@ -866,28 +965,26 @@ a.resourcesLink {
 .readerNavCategories .threeBox td {
 }
 .readerNavCategories a {
-  color: #333;
-}
-.readerNavCategories a:hover {
-  text-decoration: none;
+  color: #000;
 }
 .readerNavCategory {
   background-color: white;
   text-transform: uppercase;
   font-family: "adobe-garamond-pro", Georgia;
   text-align: center;
-  font-size: 15px;
+  font-size: 18px;
   padding: 0 10px;
   margin: 0;
   cursor: pointer;
   border-top: 4px solid transparent;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   letter-spacing: 1px;
-  height: 46px;
-  line-height: 46px;
+  height: 56px;
+  line-height: 56px;
   display: block;
 }
 a.readerNavCategory {
-  color: #333;
+  color: #000;
 }
 @media (max-width: 450px) {
   .readerNavCategory {
@@ -916,16 +1013,17 @@ a.readerNavCategory {
   color: black;
   background-color: white;
   text-align: center;
-  color: #333;
+  color: #000;
   font-size: 16px;
   border-top: 4px solid transparent;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   width: 100%;
   cursor: pointer;
-  min-height: 46px;
+  min-height: 56px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
-  padding:  8px 8px;
+  padding: 14px 8px;
 }
 .blockLink:hover {
   color: #333;
@@ -938,16 +1036,15 @@ a.readerNavCategory {
   height: 16px;
   width: 16px;
   opacity: 0.4;
-  vertical-align: -3px;
+  vertical-align: -1px;
 }
-.readerNavMenu .blockLink.calendarLink{
-  /*line-height: 1;
-  padding: 7px 8px;*/
+.resourcesLink {
+  border-radius: 7px;
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
-  font-size: 0.9em;
-  color: #999999;
+  font-size: 13px;
+  color: #999;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -971,7 +1068,7 @@ a.readerNavCategory {
   border-left: 0;
 }
 .readerNavMenu .resourcesLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .resourcesLink .he {
   font-family: "Heebo", sans-serif;
@@ -983,7 +1080,7 @@ a.readerNavCategory {
 .readerNavMenu .resourcesLink img {
   width: 16px;
   height: 16px;
-  opacity: 0.6;
+  opacity: 0.4;
   margin: 0px 5px;
   position: relative;
   top: 2px;
@@ -1003,7 +1100,7 @@ a.readerNavCategory {
   text-transform: uppercase;
 }
 .readerNavMenu .siteLinks .siteLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .siteLinks .siteLink .he {
   font-family: "Heebo", sans-serif;
@@ -1043,23 +1140,42 @@ a.readerNavCategory {
 .readerTextTableOfContents .refLink {
   display: block;
   margin: 0px;
-  padding: 10px 8px;
+  padding: 14px 8px;
   box-sizing: border-box;
-  color: #333;
-  font-size: 16px;
+  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
+  border-top: 4px solid transparent;
+  color: #000;
+  font-size: 18px;
   font-weight: 400;
   background-color: white;
   cursor: pointer;
-  vertical-align: middle;
   text-align: center;
   unicode-bidi: plaintext;
 }
-.readerNavMenu .blockLink:active,
-.readerNavMenu .catLink:active,
-.readerNavMenu .navButton:active,
+.readerNavCategoryMenu .catLink,
+.readerNavCategoryMenu .refLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.readerNavMenu .blockLink .he,
+.readerNavMenu .catLink .he,
+.readerNavMenu .navButton .he,
+.readerTextTableOfContents .refLink .he {
+  text-align: center;
+}
+.systemPanel .blockLink {
+  padding: 13px 8px 19px;
+  border-radius: 7px;
+}
+.catLink:active,
+.blockLink:active,
+.catLink:active,
+.navButton:active,
 .readerNavCategory:active,
-.readerTextTableOfContents .refLink:active {
-  background-color: #f3f3f3;
+.refLink:active,
+.resourceseLink {
+  background-color: #EDEDED;
 }
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
@@ -1069,24 +1185,14 @@ a.readerNavCategory {
     font-size: 14px;
   }
 }
-.readerNavMenu .readerNavCategoryMenu td,
-.readerSheetsNav .gridBox td {
-  background-color: white;
-  border: 3px solid #F9F9F7;
-}
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
-}
-@media (max-width: 450px) {
-  .readerNavMenu .readerNavCategoryMenu td,
-  .readerSheetsNav .gridBox td {
-    border: 4px solid #F9F9F7;
-  }
 }
 .readerNavMenu .readerNavCategoryMenu .refLink,
 .readerNavMenu .readerNavCategoryMenu .catLink {
   width: 100%;
   height: 100%;
+  padding: 13px 8px 19px;
 }
 .readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
 .readerNavMenu .catLink.incomplete {
@@ -1127,7 +1233,7 @@ a.readerNavCategory {
   font-size: 14px;
 }
 .readerTextTableOfContents .readerTextToc .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
@@ -1165,7 +1271,7 @@ a.readerNavCategory {
 .sheetContent .sheetMetaDataBox .groupStatement {
   font-size: 17px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
@@ -1207,7 +1313,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 10px;
   margin-bottom: 20px;
   letter-spacing: 1px;
@@ -1389,7 +1495,7 @@ a.readerNavCategory {
   box-sizing: border-box;
 }
 .readerTextTableOfContents .content .sectionLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .sectionLink  .he {
   font-family: "Heebo", sans-serif;
@@ -1413,7 +1519,7 @@ a.readerNavCategory {
   padding-top: 6px;
 }
 .readerTextTableOfContents .content .structToggles .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .structToggles .he {
   font-family: "Heebo", sans-serif;
@@ -1553,7 +1659,7 @@ a.readerNavCategory {
   clear: both;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageHeader {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: .2em;
   color: #999;
@@ -1568,19 +1674,19 @@ a.readerNavCategory {
 .versionBlock .versionTitle {
   display: block;
   font-size: 18px;
-  color: #333;
+  color: #000;
   unicode-bidi: plaintext;
 }
 .versionBlock a {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  color: #333;
+  color: #000;
 }
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-top: 10px;
 }
@@ -1591,9 +1697,9 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  padding-top: 4px;
-  color: #999;
-  font-size: 15px;
+  padding-top: 10px;
+  color: #666;
+  font-size: 18px;
 }
 .modTools {
   width: 50%;
@@ -1656,7 +1762,7 @@ a.readerNavCategory {
     border-color: #ccc;
     border-radius: 3px;
     color: #333;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .dlVersionSelect option,
 .readerTextTableOfContents .content .dlVersionSelect option{
@@ -1673,7 +1779,7 @@ a.readerNavCategory {
     border: 1px solid #ccc;
     border-radius: 3px;
     color: #ccc;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .versionDownloadButton .downloadButtonInner,
 .readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
@@ -1743,7 +1849,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
 }
 .searchContentFrame h1.englishQuery {
-  font-size: 26px;
+  font-size: 30px;
 }
 .searchContentFrame h1.hebrewQuery {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -1777,9 +1883,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 12px;
   border: 1px solid #DADADA;
   display: inline-block;
-  font-size: 12px;
+  font-size: 13px;
   color: #666;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -1801,13 +1907,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   padding-top: 5px;
 }
 .searchContent .searchFilterToggle {
   color: #666;
-  font-size: 14px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
@@ -1817,7 +1923,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 .searchContent .searchFilterToggle .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchContent .searchFilterToggle .he {
   font-family: "Heebo", sans-serif;
@@ -1855,11 +1961,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     display:none;
 }
 .searchContent .searchFilterBoxes li {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
   padding: 15px 0 15px 15px;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 16px;
   cursor: pointer;
 }
 .searchContent .searchFilterBoxRow li:hover {
@@ -1935,10 +2040,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-collapse: collapse;
 }
 .searchContent .searchSortBox tr {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   padding: 15px;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 16px;
   cursor: pointer;
 }
 .interface-hebrew .searchContent .searchSortBox tr {
@@ -2009,7 +2113,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-size: 1.7em;
+  font-size: 18px;
   display: block;
   padding: 20px 0 5px;
 }
@@ -2026,12 +2130,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: block;
 }
 .searchContent .text_result .snippet {
-  color: #333;
+  color: #666;
   font-size: 2.3em;
 }
 .searchContent .sheet_result .snippet {
-  color: #999;
-  font-size: 1.6em;
+  color: #666;
+  font-size: 18px;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.4em;
@@ -2043,15 +2147,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .version {
   color: #999;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
-  font-size: 11px;
+  font-size: 13px;
   margin: 8px 0;
 }
 .searchContent .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
@@ -2084,20 +2188,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 100px;
 }
 .searchContent .sheet_result .result_text_box a.owner_name {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   display: block;
-  color: #999;
+  color: #666;
   text-decoration: none;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-size: 1.7em;
+  font-size: 16em;
 }
 .searchContent .sheet_result .result_text_box a.result-title {
   display: block;
   color: #000;
   text-decoration: none;
   letter-spacing: 1px;
-  font-size: 1.7em;
+  font-size: 18px;
   padding: 0;
   margin: 8px 0;
   overflow: hidden;
@@ -2112,7 +2216,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 98%;
   margin-bottom: 20px;
   text-transform: uppercase;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet {
   display: flex;
@@ -2146,7 +2250,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: auto 14px;
 }
 .readerNavMenu .sheet .sheetAuthor {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
   margin-bottom: 6px;
@@ -2160,7 +2264,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerNavMenu .sheet .sheetViews{
   color: #CCC;
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet:hover .sheetViews{
   display: inline-block ;
@@ -2195,18 +2299,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls {
   position: relative;
-  /* direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
   box-sizing: border-box;
-  border-top: 4px solid transparent;
   text-align: center;
   z-index: 100;
   height: 60px;
   line-height: 60px;
   box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .sepia .readerControls {
   background-color: #F3F3F1;
@@ -2227,9 +2329,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls.connectionsHeader.fullPanel  {
   background-color: #EDEDED;
 }
-.connectionsPanelHeader .connectionsHeaderTitle {
+.readerControls .connectionsPanelHeader .connectionsHeaderTitle {
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-size: 16px;
   font-weight: lighter;
 }
 .connectionsPanelHeader .connectionsHeaderTitle.active {
@@ -2256,7 +2359,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
 }
 .readerControls.connectionsHeader .readerControlsInner {
-  padding: 0 40px 0 40px;
+  padding: 0 34px;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
@@ -2273,7 +2376,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   color: #666;
   width: 100%;
@@ -2313,8 +2416,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .rightButtons .readerOptions,
 .rightButtons .readerNavMenuCloseButton {
   width: 40px;
-  height: 48px;
-  line-height: 48px;
+  height: 56px;
+  line-height: 56px;
   color: #999;
   font-size: 20px;
   display: inline-block;
@@ -2333,7 +2436,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: middle;
 }
 .readerControls .readerTextToc {
-  font-size: 17px;
+  font-size: 18px;
   box-sizing: border-box;
   display: block;
   height: 50px;
@@ -2344,7 +2447,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   min-width: 0; /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
 .readerTextTocHeader.readerTextToc {
-  font-size: 14px;
+  font-size: 16px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
@@ -2361,13 +2464,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-right: 23px;
   padding-left: 0;
 }
-
-
-
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
   vertical-align: middle;
-  color: #333;
   max-width: 100%;
 }
 .readerControls .readerTextToc .readerTextTocBox a span,
@@ -2408,7 +2507,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 20px;
   box-sizing: border-box;
   direction: ltr;
-  background: #f9f9f7;
+  background: #FBFBFA;
   border-bottom: 1px solid #ccc;
   z-index: 103;
 }
@@ -2430,7 +2529,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Heebo", sans-serif;
 }
 .interface-english .toggleSet.aliyotTorah, .interface-english .toggleSet .toggle-set-label{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
 }
 .toggleSet .toggle-set-label{
@@ -2448,7 +2547,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 4px;
   height: 42px;
   line-height: 34px;
-  background-color: #f9f9f7;
+  background-color: #FBFBFA;
   vertical-align: middle;
 }
 .toggleSet.aliyotTorah .toggleOption{
@@ -2520,7 +2619,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
 }
 .toggleOption.smaller, .toggleOption.larger {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .toggleOption.smaller, .interface-hebrew .toggleOption.larger {
+  font-family: "Heebo", sans-serif;
 }
 .toggleOption.smaller {
   font-size: 12px;
@@ -2562,7 +2664,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
   margin: 24px 0;
-  color: #999;
+  color: #000;
   text-align: center;
   justify-content: center;
   font-weight: lighter;
@@ -2607,33 +2709,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .parashahHeader {
   text-align: center;
-  color: #8e8e8e;
+  color: #000;
   margin: 32px 0;
   font-size: 18px;
   letter-spacing: 1px;
 }
-.parashahHeader.aliyah{
-  color: #bebebe;
-}
-.parashahHeader.aliyah span{
-  font-size: 16px;
+.parashahHeader.aliyah span {
   text-transform: uppercase;
-}
-
-.parashahHeader .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
-}
-.parashahHeader .he {
-  font-family: "Heebo", sans-serif;
 }
 .bilingual .parashahHeader .en {
   display: none;
 }
-.title + .text .parashahHeader {
-    margin-top: -5px;
+.title + .text span:first-child .parashahHeader {
+  margin-top: -5px;
 }
 .title + .text {
-    margin-top: 0;
+  margin-top: 0;
 }
 .segment {
   cursor: pointer;
@@ -2974,7 +3065,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: top;
 }
 .textRange .actionLinks .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
 .textRange .actionLinks .he {
   font-family: "Heebo", sans-serif;
@@ -3044,7 +3135,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 20px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img{
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   opacity: 0.4;
   height: 20px;
   width: 20px;
@@ -3052,6 +3143,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .connectionsPanelHeader .languageToggle img {
   vertical-align: middle;
+  margin-top: -2px;
 }
 .connectionsPanel .flashMessage {
   font-size: 18px;
@@ -3070,16 +3162,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: absolute;
   text-align: justify;
   margin: 0 auto;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
-.sepia .textlist {
-  background-color: #F3F3F1;
+.textList.marginless .texts,
+.textList.fullPanel.marginless .texts {
+  padding: 0 0 80px 0;
 }
 .dark .textlist {
   background-color: #333331;
 }
 .textList.fullPanel {
-  padding-top: 58px;
+  padding-top: 60px;
   height: 100%;
   box-sizing: border-box;
 }
@@ -3143,7 +3236,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-style: hidden;
   border-collapse: collapse;
 }
+.gridBox tr {
+  height: 1px; /* hack to get td contents to 100% height */
+}
 .gridBox td {
+  height: inherit;
   padding: 0;
 }
 @media (max-width: 450px) {
@@ -3166,9 +3263,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .topFilters {
   text-transform: none;
-}
-.sepia .topFilters {
-  background-color: #F3F3F1;
 }
 .dark .topFilters {
   background-color: #2D2D2B;
@@ -3196,7 +3290,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: middle;
 }
 .textList.fullPanel .recentFilterSet {
-  margin: 0 0 12 0;
+  margin: 0 0 12px 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter {
   display: inline-block;
@@ -3231,28 +3325,31 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .categoryFilter {
   text-transform: uppercase;
-  padding: 17px 34px;
-  font-size: 17px;
+  padding: 19px 34px;
+  font-size: 18px;
   cursor: pointer;
   line-height: 18px;
-  color: #333;
+  color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
-
 }
 .textFilter {
-  padding: 12px 34px;
-  font-size: 17px;
+  padding: 19px 34px;
+  font-size: 18px;
   line-height: 1.2;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid #E5E5E5;
   display: block;
   cursor: pointer;
   color: #333;
 }
 .connectionsCount {
-  color: #999;
+  color: #666;
+  font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.categoryFilterGroup.withBooks {
+  border-bottom: 1px solid #E5E5E5;
 }
 .categoryFilterGroup a:hover {
   text-decoration: none;
@@ -3278,7 +3375,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .fullFilterView {
   border-top: 1px solid #ddd;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   padding: 40px 20px;
 }
 .sepia .fullFilterView {
@@ -3290,7 +3387,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .fullFilterView td {
   background-color: white;
-  border: 2px solid #F9F9F7;
+  border: 2px solid #FBFBFA;
 }
 .fullFilterView td.empty {
   background-color: transparent;
@@ -3306,7 +3403,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .fullFilterView .categoryFilter.notClickable {
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: transparent;
   padding: 12px 12px 28px;
   cursor: auto;
@@ -3320,7 +3417,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .showSelectedFilters {
   background-color: #222F4F;
   color: white;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   text-align: center;
   padding: 8px;
@@ -3341,10 +3438,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .texts {
   position: relative;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .sepia .textList .texts {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .dark .textList .texts {
   background-color: #333331;
@@ -3405,7 +3502,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .note .noteAuthor {
   color: #999;
   font-size: 15px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin: auto 14px;
 }
 .textList .sheet .sheetTitle {
@@ -3432,7 +3529,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 6px;
   font-size: 13px;
   color: #666;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
 /*.interface-hebrew .textList .sheet .sheetTags {
@@ -3450,7 +3547,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetTag.button,
 .sheetTag.button:hover,
 .sheetTag.button:active {
-  background-color: #eee;
+  background-color: #EDEDED;
   border-color: #ccc;
   color: #999;
   font-size: 14px;
@@ -3532,44 +3629,53 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toolsButton {
   display: flex;
   justify-content: flex-start;
-  color: #333;
-  border-top: 1px solid #CCC;
+  color: #000;
+  border-top: 1px solid #E5E5E5;
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 0 20px 0;
+  padding: 20px 34px;
+}
+.toolsButton:last-child {
+  border-bottom: 1px solid #E5E5E5;
 }
 .toolsButton:hover {
   text-decoration: none;
   color: inherit;
 }
 .toolsButton .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  color: #ccc;
-  font-size: 22px;
+  color: #999;
+  font-size: 20px;
+  margin-top: -1px;
+}
+.interface-hebrew .toolsButton .toolsButtonIcon {
+  margin-top: 1px;
 }
 .toolsButton img.toolsButtonIcon {
-  width: 22px;
-  height: 22px;
-  opacity: 0.2;
+  width: 20px;
+  height: 20px;
+  opacity: 0.4;
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
-  margin: 0 15px;
+  margin: 0 10px;
+}
+.shareInputBox {
+  padding: 34px;
 }
 .shareInput {
   width: 100%;
   box-sizing: border-box;
   border-radius: 7px;
-  border: 1px solid #F7F7F7;
-  box-shadow: none;
+  border: none;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
   padding: 20px 26px;
-  margin-bottom: 30px;
 }
 .addToSourceSheetBox {
   position: relative;
@@ -3593,9 +3699,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .addToSourceSheetBox .button.small {
   width: 37%;
   box-sizing: border-box;
-  padding: 12px;
+  padding: 14px;
   margin: 0;
   float: right;
+}
+.interface-hebrew .addToSourceSheetBox input {
+  width: 47%;
+}
+.interface-hebrew .addToSourceSheetBox .button.small {
+  width: 50%;
+  float: left;
 }
 .addToSourceSheetBox .newSheet {
   border-top: 1px solid #E9E9E9;
@@ -3603,7 +3716,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .confirmAddToSheet {
   text-align: center;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .confirmAddToSheet .message {
   font-size: 18px;
@@ -3632,9 +3745,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 100%;
   min-height: 100px;
   border: none;
-  border-radius: 4px;
+  border-radius: 7px;
   padding: 20px 25px;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 10px
@@ -3656,7 +3770,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   font-size: 15px;
   letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
 }
 .connectionsPanel .notePrivateButton.active,
@@ -3688,7 +3802,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
   font-size: 15px;
   cursor: pointer;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .connectionsPanel.textList .note {
   padding: 30px 0;
@@ -3740,25 +3854,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 6px;
 }
 .notificationsPanel .content {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 17px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
   color: #666;
 }
+.notificationsPanel .content a {
+  color: #000;
+  text-decoration: underline;
+}
 .systemPanel.readerNavMenu h1 {
-  color: #333;
-  position: relative;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  text-align: center;
-  font-size: 26px;
-  margin: 0 0 80px 0;
+  margin: 0 0 40px 0;
   height: auto;
 }
 .systemPanel.readerNavMenu h1 .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.systemPanel.readerNavMenu h1 .he {
-  font-family: "Heebo", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .systemPanel.readerNavMenu h1 .button {
   position: absolute;
@@ -3767,6 +3876,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0;
   margin: 0;
   line-height: 26px;
+}
+.accountPanel .logoutLink {
+  box-shadow: none;
+  font-size: 16px;
+}
+.accountPanel.systemPanel h1 .logoutLink .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.accountPanel.systemPanel h1 .logoutLink .int-he {
+  font-family: "Heebo", sans-serif;
 }
 .notificationsPanel a {
   color: #000;
@@ -3786,7 +3905,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 5px 0 0;
 }
 .notificationsPanel .notification .date {
-  color: #ccc;
+  color: #999;
   font-size: 13px;
   margin-top: 8px;
 }
@@ -3814,7 +3933,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 5px;
   margin: 8px 0;
 }
-
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
   margin: 8px;
@@ -3829,27 +3947,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #appLoading {
+  position: fixed;
   text-align: center;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   height: 100%;
-  color: #666;
-}
-#appLoading .sefariaLogo {
-  margin-top: 18px;
-  margin-bottom: 2px;
+  width: 100%;
 }
 #appLoading .loadingMessage {
   position: absolute;
-  width: 100%;
-  top: 32%;
-  font-size: 18px;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 #appLoading img {
   width: 150px;
   height: 42px;
+  margin-bottom: 6px;
 }
 .emptyDesktop {
   margin-top: 200px;
@@ -3860,14 +3976,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   color: white;
   background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 16px 24px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
+  padding: 17px 30px;
   margin: 0 2px 6px 2px;
   cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   line-height: 1;
   text-align: center;
@@ -3882,7 +3998,6 @@ a.button {
 .button.white {
   background-color: white;
   color: #333;
-  border: 1px solid #ccc;
 }
 a.button.white {
   color: #333;
@@ -3891,16 +4006,11 @@ a.button.mini {
   padding: 5px;
   font-size: .8em;
 }
-
 .interface-english .userSheetTitle a.button.mini {
   float: right;
 }
 .interface-hebrew .userSheetTitle a.button.mini {
   float: left;
-}
-
-.button.white:hover {
-
 }
 .button.transparent {
   color: #666;
@@ -3927,7 +4037,7 @@ a .button:hover {
   margin: 6px 12px;
 }
 #backToS1 {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   top: 20px;
   left: 40px;
   cursor: pointer;
@@ -3967,8 +4077,6 @@ a .button:hover {
   font-style: normal;
   font-family: "Heebo", sans-serif;
   color: #000;
-}
-input {
 }
 .lexicon-content{
   font-size: 15px;
@@ -4010,7 +4118,7 @@ input {
   display: inline;
 }
 .lexicon-results .entry .morphology {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   display: inline;
   margin-right: 5px;
@@ -4048,7 +4156,7 @@ input {
 
 .lexicon-results .attribution div {
   display: block;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
@@ -4108,7 +4216,7 @@ h2.splitHeader .he {
   flex-direction: column;
 }
 .interface-english .sheet.userSheet{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .interface-hebrew .sheet.userSheet{
   font-family: "Heebo", "sans-serif";
@@ -4204,16 +4312,16 @@ h2.splitHeader .he {
 }
 .groupListingName {
   display: block;
-  font-size: 24px;
-  color: #666;
+  font-size: 30px;
+  color: #000;
   margin-bottom: 5px;
 }
 .groupListingName:hover {
   color: #333;
 }
 .groupListingDetails {
-  color: #999;
-  font-size: 15px;
+  color: #666;
+  font-size: 16px;
 }
 .groupListingDetailSeparator {
   margin: 8px;
@@ -4237,13 +4345,15 @@ h2.splitHeader .he {
 .groupPage .groupWebsite {
   display: block;
   text-align: center;
-  font-size: 17px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
-  color: #999;
+  color: #666;
 }
 .groupPage .groupDescription {
   font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #000;
   text-align: center;
 }
 .groupPage .tabs {
@@ -4283,10 +4393,11 @@ h2.splitHeader .he {
 }
 #groupInvitationInput {
   padding: 14px 30px;
-  width: 492px;
-  border-radius: 4px;
+  width: 472px;
+  border-radius: 7px;
   outline: 0;
-  border: 1px solid #E6e6e6;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border: none;
   margin-right: 10px;
   font-size: 18px;
   position: relative;
@@ -4299,7 +4410,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 20px;
 }
 .groupMemberListing + .groupMemberListing {
@@ -4369,12 +4480,6 @@ h2.splitHeader .he {
 }
 .groupMemberListingActionsMenu .role.current {
   color: #666;
-}
-.topicsPanel.systemPanel.readerNavMenu h1 {
-  margin: 0 0 30px 0;
-}
-.topicsPanel.systemPanel.readerNavMenu h3 {
-
 }
 .topicsPanel .loadingMessage {
   text-align: center;
@@ -4557,7 +4662,7 @@ h2.splitHeader .he {
   top: 240px;
   width: 330px;
   padding: 20px;
-  background: #F9F9F7;;
+  background: #FBFBFA;
   border: #ccc 1px solid;
   border-radius: 4px;
   box-shadow: 0px 0px 10px #ccc;
@@ -4589,7 +4694,7 @@ h2.splitHeader .he {
   direction: rtl;
 }
 .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchBox .keyboardInputInitiator {
     opacity: 0;
@@ -4606,7 +4711,7 @@ body #keyboardInputMaster {
     opacity: 1;
     /* top: 53px !important; */
     /* left:70px !important; */
-    background-color: #F9F9F7;
+    background-color: #FBFBFA;
     border: 1px solid #ccc;
     padding: 5px;
     box-shadow: none;
@@ -4639,7 +4744,7 @@ body #keyboardInputMaster tbody tr td table{
 body #keyboardInputMaster tbody tr td table tbody tr td{
     border: 0.5px solid #eee;
     background: white;
-    font-family: "Heebo","proxima-nova", sans-serif;
+    font-family: "Heebo","Roboto", sans-serif;
     min-width: 15px;
     vertical-align: middle;
     padding: 2px 8px;
@@ -4657,7 +4762,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   position: relative;
 }
 #editGroupPage .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #editGroupPage .int-he {
   font-family: "Heebo", sans-serif;
@@ -4693,6 +4798,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-radius: 5px;
   border: none;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   color: #333;
 }
 #editGroupPage .hiddenFileInput {
@@ -4743,8 +4849,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownMain {
   background: white;
-  border: 1px solid #E9E9E9;
-  border-radius: 4px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
   padding: 16px 22px;
   font-size: 16px;
   margin-bottom: 10px;
@@ -4755,20 +4861,26 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownOpenButton {
   float: right;
+  margin-left: 6px;
   cursor: pointer;
-  color: #999;
+  color: #666;
   font-size: 18px;
+}
+.interface-hebrew .dropdownOpenButton {
+  float: left;
+  margin-left: 0;
+  margin-right: 6px;
 }
 .dropdown .dropdownListBox {
   position: absolute;
   z-index: 1;
-  margin-top: -12px;
+  margin-top: -14px;
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #E9E9E9;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   background: white;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
 }
 .dropdown .dropdownList {
   color: #999;
@@ -4778,13 +4890,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   max-height: 300px;
   overflow-x: hidden;
   overflow-y: scroll;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
 }
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
 .dropdown .dropdownList .dropdownOption {
   font-size: 16px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   padding: 0 22px;
   margin: 26px 0;
@@ -4843,7 +4957,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
   margin-bottom: 18px;
   font-weight: normal;
-  font-size: 15px;
+  font-size: 16px;
 }
 #footer .section.last {
   float: right;
@@ -4854,7 +4968,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: left;
 }
 #footer .section a {
-  font-size: 15px;
+  font-size: 16px;
   margin: 2px 0;
 }
 #footer .fa {
@@ -4935,6 +5049,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer a#siteLanguageEnglish,
 #footer a#siteLanguageHebrew {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   color: #666;
   display: inline;
@@ -4945,6 +5060,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-decoration: underline;
 }
 #footer a#siteLanguageHebrew {
+  font-family: "Heebo";
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
@@ -4967,7 +5083,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: inline-block;
   font-size: 12px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -4978,32 +5094,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #333;
 }
 .aboutBox .aboutHeader {
-  color: #999;
+  color: #666;
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
   text-align: initial;
   text-transform: none;
-  font-size: 20px;
+  font-size: 16px;
   border-bottom: solid 1px #CCC;
 }
 .aboutBox .aboutTitle {
   padding: 10px 0 15px 0;
-  font-size: 20px;
+  font-size: 30px;
   color: black;
   display: inline-block;
 }
 .aboutBox .aboutSubtitle {
   font-style: italic;
-  font-size: 15px;
-  color: #999;
+  font-size: 18px;
+  color: #666;
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
-  font-size: 15px;
+  font-size: 18px;
 }
 .aboutBox .versionNotes {
   padding-bottom: 15px;
@@ -5013,7 +5129,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .versionDetails,
 .versionsBox .versionDetails {
   font-size: 13px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-bottom: 5px;
   text-align: left;
@@ -5037,9 +5153,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
   text-transform: uppercase;
-  font-size: 20px;
+  font-size: 16px;
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
   padding-left: 20px;
   padding-right: 20px;
+}
+.interface-hebrew .versionsBox .versionLanguage {
+  font-family: "Heebo";
 }
 .versionsBox div:not(:first-child) .versionLanguage {
   padding-top: 25px;
@@ -5178,6 +5300,7 @@ span.purim-emoji img{
 }
 
 .sheetContent .customSourceTitle {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: none;
   margin-bottom: 0;
   margin-top: 40px;
@@ -5301,7 +5424,7 @@ span.purim-emoji img{
 .editSheetNotice,
 .editSheetNotice a {
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
 }
 
@@ -5375,9 +5498,9 @@ sup.nechama {
 }
 
 .connectionsPanel textarea.feedbackText {
-  border-radius: 4px;
+  border-radius: 7px;
   box-shadow: none;
-  border: 1px solid #E9E9E9;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
 }
 
 .img-circle {

@@ -46,11 +46,8 @@ class ReaderPanel extends Component {
       var state = this.clonePanel(props.initialState);
       state["initialAnalyticsTracked"] = false;
       this.state = state;
-
       return;
-
     }
-
 
     // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     this.state = {
@@ -215,11 +212,9 @@ class ReaderPanel extends Component {
       }
     }
   }
-
   handleSheetCitationClick(ref) {
     this.props.onCitationClick(ref);
   }
-
   handleCitationClick(citationRef, textRef) {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef);
