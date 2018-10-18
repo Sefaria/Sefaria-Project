@@ -453,7 +453,7 @@ class ReaderApp extends Component {
           case "sheet meta":
             var sheetTitle = state.sheet.title.stripHtml();
             hist.title = Sefaria._("Sefaria Source Sheets")+": " + sheetTitle;
-            hist.url = i == 0 ? "sheets/"+ state.sheet.id+"." : "sheet&s="+ state.sheet.id;
+            hist.url = i == 0 ? "sheets/"+ state.sheet.id : "sheet&s="+ state.sheet.id;
             hist.mode = "sheet meta";
             break;
           case "extended notes":
@@ -755,7 +755,7 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
-      highlightedNodes:        state.highlightedNodes        || [],
+      highlightedNodes:        state.highlightedNodes        || null,
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
