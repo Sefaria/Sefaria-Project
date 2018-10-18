@@ -139,6 +139,9 @@ def index_sheet(index_name, id):
     if not sheet: return False
 
     pud = public_user_data(sheet["owner"])
+    tag_terms_simple = make_sheet_tags(sheet)
+    tags = [t["en"] for t in tag_terms_simple]
+    tags_he_and_en = [u"{}|||{}".format(t["en"], t["he"]) for t in tag_terms_simple]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -148,7 +151,8 @@ def index_sheet(index_name, id):
             "owner_image": pud["imageUrl"],
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
-            "tags": sheet.get("tags", []),
+            "tags": tags,
+            "tags_he_and_en": tags_he_and_en,
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "group": sheet.get("group", None),
@@ -167,13 +171,32 @@ def index_sheet(index_name, id):
         return False
 
 
+def make_sheet_tags(sheet):
+    def get_primary_title(lang, titles):
+        return filter(lambda x: x.get(u"primary", False) and x.get(u"lang", u"") == lang, titles)[0][u"text"]
+
+    tags = sheet.get('tags', [])
+    tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in tags]
+    tag_terms_simple = [
+        {
+            'en': tags[iterm],  # save as en even if it's Hebrew
+            'he': u''
+        } if term is None else
+        {
+            'en': get_primary_title('en', term.titles),
+            'he': get_primary_title('he', term.titles)
+        } for iterm, term in enumerate(tag_terms)
+    ]
+    #tags_en, tags_he = zip(*tag_terms_simple.values())
+    return tag_terms_simple
+
 def make_sheet_text(sheet, pud):
     """
     Returns a plain text representation of the content of sheet.
     :param sheet: The sheet record
     :param pud: Public User Database record for the author
     """
-    text = u"Source Sheets / Sources Sheet: " + sheet["title"]
+    text = sheet["title"] + u"\n{}".format(sheet.get("summary", u''))
     if pud.get("name"):
         text += u"\nBy: " + pud["name"]
     text += u"\n"
@@ -253,7 +276,7 @@ def create_index(index_name, type):
     if type == 'text' or type == 'merged':
         put_text_mapping(index_name)
     elif type == 'sheet':
-        put_sheet_mapping()
+        put_sheet_mapping(index_name)
 
 
 def put_text_mapping(index_name):
@@ -322,25 +345,64 @@ def put_text_mapping(index_name):
     index_client.put_mapping(doc_type='text', body=text_mapping, index=index_name)
 
 
-def put_sheet_mapping():
+def put_sheet_mapping(index_name):
     """
     Sets mapping for the sheets document type.
     """
-
-    '''
     sheet_mapping = {
-        "sheet" : {
-            "properties" : {
-
+        'properties': {
+            'owner_name': {
+                'type': 'keyword'
+            },
+            'tags': {
+                'type': 'keyword'
+            },
+            'tags_he': {
+                'type': 'keyword'
+            },
+            'owner_image': {
+                'type': 'keyword'
+            },
+            'datePublished': {
+                'type': 'date'
+            },
+            'dateCreated': {
+                'type': 'date'
+            },
+            'dateModified': {
+                'type': 'date'
+            },
+            'sheetId': {
+                'type': 'integer'
+            },
+            'group': {
+                'type': 'keyword'
+            },
+            'title': {
+                'type': 'keyword'
+            },
+            'views': {
+                'type': 'integer'
+            },
+            'summary': {
+                'type': 'keyword'
+            },
+            'content': {
+                'type': 'text',
+                'analyzer': 'my_standard'
+            },
+            'version': {
+                'type': 'keyword'
+            },
+            'profile_url': {
+                'type': 'keyword'
+            },
+            'owner_id': {
+                'type': 'integer'
             }
         }
-
     }
-    es.put_mapping(SEARCH_INDEX_NAME, "sheet", sheet_mapping)
-    '''
-
-    # currently a no-op
-    return
+    index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
 
 
 class TextIndexer(object):
