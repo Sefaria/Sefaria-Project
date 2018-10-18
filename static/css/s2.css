@@ -5291,6 +5291,10 @@ sup.nechama {
     text-decoration: none;
 }
 
+.sheetItem.ref-display-none .ref {
+  display: none;
+}
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
