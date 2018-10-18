@@ -292,17 +292,18 @@ def replace_roman_numerals(text, allow_lowercase=False):
     """
     import roman
     flag = re.I if allow_lowercase else 0
-    regex = re.compile(u"([{\[( ^])(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))([., $] ?)(\d)?", flag)
-    
+    regex = re.compile(u"((^|[{\[( ])[{\[( ]*)(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))($|[., ]+)(\d)?", flag)
+
+
     def replace_roman_numerals_in_match(m):
-        s = m.group(2)
+        s = m.group(3)
         s = s.upper()
         try:
             if s:
-                if m.group(7):    
-                    return u"{}{}:{}".format(m.group(1), roman.fromRoman(s), m.group(7))
+                if m.group(8):    
+                    return u"{}{}:{}".format(m.group(1), roman.fromRoman(s), m.group(8))
                 else:
-                    return u"{}{}{}".format(m.group(1), roman.fromRoman(s), m.group(6))
+                    return u"{}{}{}".format(m.group(1), roman.fromRoman(s), m.group(7))
             else:
                 return m.group(0)
         except:
