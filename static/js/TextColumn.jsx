@@ -102,7 +102,7 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
-    //console.log("handle text load");
+    console.log("handle text load");
     this.setScrollPosition();
     this.adjustInfiniteScroll();
   }
@@ -125,7 +125,7 @@ class TextColumn extends Component {
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         node.scrollTop = top;
-        //console.log("total top: " + top)
+        //console.log("After load at top, total top: " + top)
       }
     } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
       //console.log("scroll to highlighted");
@@ -136,9 +136,17 @@ class TextColumn extends Component {
     } else if (!this.initialScrollTopSet && (node.scrollHeight > node.clientHeight)) {
       //console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
-      node.scrollTop = 90;
+      var first   = Sefaria.ref(this.props.srefs[0]);
+      var hasPrev = first && first.prev;
+      if (!hasPrev) {
+        node.scrollTop = 0;
+      }
+      else {
+        node.scrollTop = 90;
+      }
       //console.log(node.scrollTop);
       this.initialScrollTopSet = true;
+      this.justScrolled = true;
     }
   }
   adjustInfiniteScroll() {
@@ -289,7 +297,14 @@ class TextColumn extends Component {
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
-        content.splice(0, 0, (<LoadingMessage message={topSymbol} heMessage={topSymbol} className="base prev" key="prev"/>));
+
+        content.splice(0, 0, (
+          <div className="bookMetaDataBox" key="prev">
+              <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{this.props.bookTitle}</div>
+              <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{this.props.heBookTitle}</div>
+          </div>
+        ));
+
       }
       if (hasNext) {
         content.push((<LoadingMessage className="base next" key="next"/>));

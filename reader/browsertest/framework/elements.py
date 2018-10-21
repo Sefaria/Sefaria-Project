@@ -85,6 +85,17 @@ class AbstractTest(object):
         pass
         # self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
+    def set_cookies_cookie(self):
+        # set cookie to avoid popup interruption
+        # We now longer set the welcomeToS2LoggedOut message by default.
+        # TODO is this method still needed?
+        self.driver.add_cookie({"name": "cookiesNotificationAccepted", "value": "1", 'path' : '/'})
+
+    def click_accept_cookies(self):
+        elem = self.driver.find_element_by_css_selector(".cookiesNotification .button")
+        if elem:
+            elem.click()
+
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
         user = os.environ["SEFARIA_TEST_USER"]
@@ -123,7 +134,7 @@ class AbstractTest(object):
         el = self.driver.find_element_by_css_selector('.sheets-link')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".sheetsNewButton .button")))
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".userSheet")))
+        #WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".userSheet")))
         #WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, ".loadingMessage")))
         el = self.driver.find_element_by_css_selector(".sheetsNewButton .button")
         el.click()

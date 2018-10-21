@@ -1,5 +1,6 @@
 # This script runs all available tests locally, and displays a report
-
+import django
+django.setup()
 from framework import *
 import basic_tests
 import sys

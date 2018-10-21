@@ -47,19 +47,24 @@ def daf_yomi(datetime_obj):
     """
     date_str = datetime_obj.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
     daf = db.dafyomi.find_one({"date": date_str})
-    rf = model.Ref(daf["daf"] + "a")
-    name =  daf["daf"]
-    daf_num = int(daf["daf"].split(" ")[-1])
-    daf_num_he = encode_hebrew_numeral(daf_num)
-    name_he = u"{} {}".format(rf.he_book(), daf_num_he)
-
-    return [{
-        'title': {'en': 'Daf Yomi', 'he': u'דף יומי'},
-        'displayValue': {'en': name, 'he': name_he},
-        'url': rf.url(),
-        'order': 3,
-        'category': rf.index.get_primary_category()
-    }]
+    daf_str = [daf["daf"]] if isinstance(daf["daf"], basestring) else daf["daf"]
+    daf_yomi = []
+    for d in daf_str:
+        rf = model.Ref(d)
+        if rf.index.get_primary_category() == "Talmud":
+            displayVal = rf.normal()[:-1] #remove the a
+            heDisplayVal = rf.he_normal()[:-2] #remove the alef and the space before it
+        else:
+            displayVal = rf.normal()
+            heDisplayVal = rf.he_normal()
+        daf_yomi.append({
+            'title': {'en': 'Daf Yomi', 'he': u'דף יומי'},
+            'displayValue': {'en': displayVal, 'he': heDisplayVal},
+            'url': rf.url(),
+            'order': 3,
+            'category': rf.index.get_primary_category()
+        })
+    return daf_yomi
 
 @graceful_exception(logger=logger, return_value=[])
 def daily_mishnayot(datetime_obj):

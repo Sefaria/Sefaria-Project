@@ -94,6 +94,12 @@ urlpatterns += [
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
 
+# Calendar Redirects
+urlpatterns += [
+    url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
+    url(r'^daf-yomi$', reader_views.daf_yomi_redirect),
+]
+
 # Texts Add / Edit / Translate
 urlpatterns += [
     url(r'^edit/textinfo/(?P<title>.+)$', reader_views.edit_text_info),
@@ -101,14 +107,10 @@ urlpatterns += [
     url(r'^add/new/?$', reader_views.edit_text),
     url(r'^add/(?P<ref>.+)$', reader_views.edit_text),
     url(r'^translate/(?P<ref>.+)$', reader_views.edit_text),
-    url(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
-    url(r'^edit/(?P<ref>.+)$', reader_views.edit_text),
-]
-
-# JSON Editors
-urlpatterns += [
     url(r'^edit/terms/(?P<term>.+)$', reader_views.terms_editor),
     url(r'^add/terms/(?P<term>.+)$', reader_views.terms_editor),
+    url(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
+    url(r'^edit/(?P<ref>.+)$', reader_views.edit_text),
 ]
 
 # Texts / Index / Links etc API
@@ -348,7 +350,6 @@ urlpatterns += [
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
-url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 ]
 
@@ -379,6 +380,11 @@ urlpatterns += [
 # File Uploads
 urlpatterns += [
     url(r'^api/file/upload$', sefaria_views.file_upload),
+]
+
+# Send Feedback
+urlpatterns += [
+    url(r'^api/send_feedback$', sefaria_views.generate_feedback),
 ]
 
 # Email Subscribe

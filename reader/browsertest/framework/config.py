@@ -7,7 +7,7 @@ SAUCE_MAX_THREADS = 5
 REMOTE_URL = "http://test.sefaria.org"
 LOCAL_URL = "http://localhost:8000"
 
-TEMPER = 10  # default wait time in seconds
+TEMPER = 15  # default wait time in seconds
 # According to http://gs.statcounter.com/#browser_version-ww-monthly-201602-201604-bar
 # According to https://www.browserstack.com/test-on-the-right-mobile-devices
 
@@ -35,25 +35,28 @@ BS_CAPS = [
 ]
 
 SAUCE_CORE_CAPS = [
-    {'browserName': "firefox", 'platform': "macOS 10.12", 'version': "53.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x12'},
+    {'browserName': "firefox", 'platform': "macOS 10.12", 'version': "latest",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x12'},
 
-    {'browserName': "safari", 'platform': "OS X 10.11", 'version': "9.0",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
+    {'browserName': "safari", 'platform': "OS X 10.11", 'version': "latest",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
 
-    # {'browserName': "internet explorer", 'platform': "Windows 10", 'version': "11.103",
-    #     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'IE/w10'},
+    {'browserName': "chrome", 'platform': "Windows 10", 'version': "latest",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
-    # {'browserName': "chrome", 'platform': "Windows 10", 'version': "57.0",
-    #  'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
+    #{'browserName': "firefox", 'platform': "Windows 10", 'version': "latest",
+     #   'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/w10'},
 
-    # {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '6.0',
-    #  'browserName': 'Chrome', 'appiumVersion': '1.6.3', 'deviceOrientation': "portrait",
-    #  'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'},
+    {'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
-    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 6s Simulator",
-    'appiumVersion': "1.6.4", 'platformVersion': "10.3", 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh6s'},
+    {'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '7.1',
+     'browserName': 'Chrome', 'appiumVersion': '1.9.1', 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/7.1'},
+
+    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Simulator",
+    'appiumVersion': "1.9.1", 'platformVersion': "12.0", 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh8'},
 
     #{'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '7.0',
     #'browserName': '', 'appiumVersion': '1.6.4', 'deviceOrientation': "portrait",
@@ -76,6 +79,11 @@ SAUCE_EXTENDED_CAPS = [  # Needs Review!
     {'browserName': 'android', 'platform': 'Linux', 'version': '4.4', 'deviceName': "Google Nexus 7 HD Emulator",
      'deviceOrientation': "portrait",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Nex7/4.4'},
+
+    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Plus Simulator",
+    'appiumVersion': "1.9.1", 'platformVersion': "12.0", 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh8p'},
+
 
 
 ]

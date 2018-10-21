@@ -107,6 +107,13 @@ class ReaderPanel extends Component {
       var curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
     }
+
+    if (this.state.mode == "Sheet") {
+      var newSettings = this.state.settings
+      newSettings["language"] = this.state.sheet.options.language || "bilingual"
+      this.conditionalSetState({ settings: newSettings});
+    }
+
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -566,12 +573,16 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       var oref  = Sefaria.parseRef(this.state.refs[0]);
       var title = oref && oref.index ? oref.index : "empty";
+      var bookTitle = oref && oref.index ? oref.index  : "";
+      var heBookTitle = oref ? oref.heTitle : "";
       items.push(<TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
           basetext={true}
+          bookTitle={bookTitle}
+          heBookTitle={heBookTitle}
           withContext={true}
           loadLinks={true}
           prefetchNextPrev={true}
@@ -1020,7 +1031,7 @@ class ReaderControls extends Component {
     }
   }
   render() {
-    var title  = this.props.sheet ? this.props.sheet.title.stripHtml().replace(/&amp;/g, '&') : this.props.currentRef;
+    var title  = this.props.sheet ? this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ') : this.props.currentRef;
     var heTitle, categoryAttribution;
 
     if (title) {
@@ -1059,10 +1070,11 @@ class ReaderControls extends Component {
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
-        <div className="readerTextTocBox" role="heading" aria-level="1" aria-live="polite">
+        <div className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
             { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
-            { this.props.sheet? <div><img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /><span>{title}</span></div> :
+            { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
+            { this.props.sheet? <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div> :
             <div><span className="en">{title}</span>
             <span className="he">{heTitle}</span></div> }
             { title ? (<i className="fa fa-caret-down"></i>) : null }
