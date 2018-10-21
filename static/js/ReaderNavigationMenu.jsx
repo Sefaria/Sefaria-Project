@@ -197,24 +197,29 @@ class ReaderNavigationMenu extends Component {
 
       var sheetsStyle = {"borderColor": Sefaria.palette.categoryColor("Sheets")};
       var resources = [(<a className="resourcesLink" style={sheetsStyle} href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <img src="/static/img/sheet-icon.png" alt="" />
+                        <img src="/static/img/sheet-icon.png" alt="source sheets icon" />
                         <span className="int-en">Source Sheets</span>
                         <span className="int-he">דפי מקורות</span>
                       </a>),
                      (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/visualizations">
-                        <img src="/static/img/visualizations-icon.png" alt="" />
+                        <img src="/static/img/visualizations-icon.png" alt="visualization icon" />
                         <span className="int-en">Visualizations</span>
                         <span className="int-he">תרשימים גרפיים</span>
                       </a>),
                     (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/people">
-                        <img src="/static/img/authors-icon.png" alt="" />
+                        <img src="/static/img/authors-icon.png" alt="author icon" />
                         <span className="int-en">Authors</span>
                         <span className="int-he">רשימת מחברים</span>
                       </a>),
                     (<a className="resourcesLink" style={sheetsStyle} href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
-                        <img src="/static/img/hashtag-icon.svg" alt="" />
+                        <img src="/static/img/hashtag-icon.svg" alt="resources icon" />
                         <span className="int-en">Topics</span>
                         <span className="int-he">נושאים</span>
+                      </a>),
+                    (<a className="resourcesLink outOfAppLink" style={sheetsStyle} href="/groups">
+                        <img src="/static/img/group.svg" alt="Groups icon" />
+                        <span className="int-en">Groups</span>
+                        <span className="int-he">הקבוצות</span>
                       </a>)
                       ];
       resources = (<div className="readerNavCalendar"><TwoBox content={resources} width={this.width} /></div>);
@@ -224,7 +229,7 @@ class ReaderNavigationMenu extends Component {
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
-                <div className='sefariaLogo'><img src="/static/img/sefaria.svg" alt="Sefaria Logo" /></div>
+                <div className='sefariaLogo'><img src="/static/img/logo.svg" alt="Sefaria Logo" /></div>
                 {this.props.interfaceLang !== "hebrew" ?
                   <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                   : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }

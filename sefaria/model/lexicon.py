@@ -62,8 +62,8 @@ class LexiconEntry(abst.AbstractMongoRecord):
     required_attrs = [
         "headword",
         "parent_lexicon",
-        "content"
     ]
+    optional_attrs = ["content"]
 
     def factory(self, lexicon_name):
         pass
@@ -82,21 +82,38 @@ class DictionaryEntry(LexiconEntry):
         "pronunciation",
         "morphology",
         "language_code",
-        'refs',
+        "refs",
+        "related_words",
+        "number",
+        "language_reference", 
+        "number",
+        "content",
+        "citations",
+        "plural_form",
+        "binyan_form",
+        "alt_headwords",
+        "derivatives",
+        "quotes"
     ]
 
 class StrongsDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["strong_number"]
+    required_attrs = DictionaryEntry.required_attrs + ["content", "strong_number"]
 
 class RashiDictionaryEntry(DictionaryEntry):
-    required_attrs = DictionaryEntry.required_attrs + ["orig_word", "orig_ref", "catane_number"]
+    required_attrs = DictionaryEntry.required_attrs + ["content", "orig_word", "orig_ref", "catane_number"]
 
+class JastrowDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["rid"]
 
+class KleinDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
 
 class LexiconEntrySubClassMapping(object):
     lexicon_class_map = {
-        'BDB Augmented Strong' : StrongsDictionaryEntry,
-        'Rashi Foreign Lexicon' : RashiDictionaryEntry
+        'BDB Augmented Strong': StrongsDictionaryEntry,
+        'Rashi Foreign Lexicon': RashiDictionaryEntry,
+        'Jastrow Dictionary': JastrowDictionaryEntry,
+        'Klein Dictionary': KleinDictionaryEntry,
     }
 
     @classmethod

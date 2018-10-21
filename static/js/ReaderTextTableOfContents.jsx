@@ -11,6 +11,7 @@ const ReactDOM     = require('react-dom');
 const $            = require('./sefaria/sefariaJquery');
 const Sefaria      = require('./sefaria/sefaria');
 const VersionBlock = require('./VersionBlock');
+const ExtendedNotes= require('./ExtendedNotes');
 const classNames   = require('classnames');
 const PropTypes    = require('prop-types');
 import Component   from 'react-class';
@@ -101,7 +102,9 @@ class ReaderTextTableOfContents extends Component {
       versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
       digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
       versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
-      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew
+      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
+      extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
+      extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
     };
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
@@ -153,6 +156,9 @@ class ReaderTextTableOfContents extends Component {
   isVersionPublicDomain(v) {
     return !(v.license && v.license.startsWith("Copyright"));
   }
+  extendedNotesBack(event){
+    return null;
+  }
   render() {
     var title     = this.props.title;
     var index     = Sefaria.index(title);
@@ -190,15 +196,14 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
-        currentVersionElement = (
-          <VersionBlock
-            title={title}
-            version={cv}
-            currVersions={this.props.currVersions}
-            currentRef={this.props.currentRef}
-            showHistory={true}
-            getLicenseMap={this.props.getLicenseMap}
-          />);
+        currentVersionElement = (<VersionBlock
+          title={title}
+          version={cv}
+          currVersions={this.props.currVersions}
+          currentRef={this.props.currentRef}
+          showHistory={true}
+          getLicenseMap={this.props.getLicenseMap}
+          viewExtendedNotes={this.props.viewExtendedNotes}/>);
       }
     }
 
@@ -237,6 +242,7 @@ class ReaderTextTableOfContents extends Component {
               title={this.props.title}
               currentRef={this.props.currentRef}
               getLicenseMap={this.props.getLicenseMap}
+              viewExtendedNotes={this.props.viewExtendedNotes}
             /> : null
           }
         </section>
@@ -303,8 +309,8 @@ class ReaderTextTableOfContents extends Component {
         </div>;
       var formatStrings = {
         none: {english: "File Format", hebrew: "סוג הקובץ"},
-        txt: {english: "File Format", hebrew: "טקסט (עם תיוגים)"},
-        plaintxt: {english: "File Format", hebrew: "טקסט (ללא תיוגים)"}
+        txt: {english: "Text (with Tags)", hebrew: "טקסט (עם תיוגים)"},
+        plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
       };
       var downloadSection = (
         <div className="dlSection">
@@ -356,7 +362,13 @@ class ReaderTextTableOfContents extends Component {
                 </div>
               </div>
               <div className="content">
-                <div className="contentInner">
+                {this.props.mode === "extended notes"
+                  ? <ExtendedNotes
+                    title={this.props.title}
+                    currVersions={this.props.currVersions}
+                    backFromExtendedNotes={this.props.backFromExtendedNotes}
+                  />
+                  :<div className="contentInner">
                   <div className="tocTop">
                     <CategoryAttribution categories={categories} />
                     <a className="tocCategory" href={catUrl}>
@@ -389,13 +401,13 @@ class ReaderTextTableOfContents extends Component {
                       alts={details.alts}
                       defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
                       narrowPanel={this.props.narrowPanel}
-                      title={this.props.title} />
+                      title={this.props.title}/>
 
                   </div>
                   : <LoadingMessage />}
                   {versionSection}
                   {downloadSection}
-                </div>
+                </div>}
               </div>
             </div>);
   }
@@ -413,7 +425,11 @@ ReaderTextTableOfContents.propTypes = {
   showBaseText:     PropTypes.func.isRequired,
   getLicenseMap:    PropTypes.func.isRequired,
   selectVersion:    PropTypes.func,
+  viewExtendedNotes: PropTypes.func,
+  backFromExtendedNotes: PropTypes.func,
   interfaceLang:    PropTypes.string,
+  extendedNotes:    PropTypes.string,
+  extendedNotesHebrew: PropTypes.string
 };
 
 
@@ -680,9 +696,10 @@ class SchemaNode extends Component {
       var content = this.props.schema.nodes.map(function(node, i) {
         if ("nodes" in node || ("refs" in node && node.refs.length)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
+          var path = this.props.refPath + ", " + node.title;
           return (
-            <div className="schema-node-toc" key={i}>
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} role="heading" aria-level="3" tabIndex={0}>
+            <div className="schema-node-toc" data-ref={path} key={i}>
+              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} role="heading" aria-level="3" aria-hidden="true" tabIndex={0}>
                 <span className="he">{node.heTitle} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
                 <span className="en">{node.title} <i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
@@ -794,7 +811,12 @@ class JaggedArrayNodeSection extends Component {
         if (this.props.addressTypes[0] === "Talmud") {
           var enSection = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
-        } else {
+        } else if (this.props.addressTypes[0] === "Year") {
+          var enSection = i + 1241;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
+        }
+        else {
           var enSection = i+1;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
@@ -819,12 +841,17 @@ class JaggedArrayNodeSection extends Component {
     for (var i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
       if (this.props.addressTypes[0] === "Talmud") {
-        var section = Sefaria.hebrew.intToDaf(i);
-        var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-      } else {
-        var section = i+1;
-        var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-      }
+          var section = Sefaria.hebrew.intToDaf(i);
+          var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+        } else if (this.props.addressTypes[0] === "Year") {
+          var section = i + 1241;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
+        }
+        else {
+          var section = i+1;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+        }
       var ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       var link = (
         <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
@@ -862,7 +889,12 @@ class ArrayMapNode extends Component {
         if (this.props.schema.addressTypes[0] === "Talmud") {
           var section = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else {
+        } else if (this.props.schema.addressTypes[0] === "Year") {
+          var section = i + 1241;
+          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
+        }
+        else {
           var section = i+1;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
@@ -923,6 +955,7 @@ class VersionsList extends Component {
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersion}
+        viewExtendedNotes={this.props.viewExtendedNotes}
         key={v.versionTitle + "/" + v.language}
         getLicenseMap={this.props.getLicenseMap}/>
      )
@@ -949,11 +982,12 @@ class VersionsList extends Component {
 }
 VersionsList.propTypes = {
   currVersions: PropTypes.object.isRequired,
-  versionsList: PropTypes.array.isRequired,
-  openVersion:  PropTypes.func.isRequired,
-  title:        PropTypes.string.isRequired,
-  currentRef:   PropTypes.string,
-  getLicenseMap:PropTypes.func.isRequired,
+  versionsList:      PropTypes.array.isRequired,
+  openVersion:       PropTypes.func.isRequired,
+  title:             PropTypes.string.isRequired,
+  currentRef:        PropTypes.string,
+  viewExtendedNotes: PropTypes.func,
+  getLicenseMap:     PropTypes.func.isRequired,
 };
 
 
@@ -1058,6 +1092,71 @@ ReadMoreText.propTypes = {
 ReadMoreText.defaultProps = {
   initialWords: 30
 };
+
+// class ExtendedNotes extends Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
+//   }
+//   getVersionData(versionList){
+//     const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
+//     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
+//     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
+//
+//     if (extendedNotes.english && extendedNotes.hebrew){
+//       this.setState({'extendedNotes': extendedNotes, 'langToggle': true});
+//     }
+//     else if (extendedNotes.english && !extendedNotes.hebrew) {
+//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'english'});
+//     }
+//     else if (extendedNotes.hebrew && !extendedNotes.english) {
+//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'hebrew'});
+//     }
+//     else{
+//       this.props.backFromExtendedNotes();
+//     }
+//   }
+//   componentDidMount() {
+//     // use Sefaria.versions(ref, cb), where cb will invoke setState
+//     Sefaria.versions(this.props.title, this.getVersionData);
+//   }
+//   goBack(event) {
+//     event.preventDefault();
+//     this.props.backFromExtendedNotes();
+//   }
+//   changeLanguage(event) {
+//     event.preventDefault();
+//     if (this.state.notesLanguage==='english') {
+//       this.setState({'notesLanguage': 'hebrew'});
+//     }
+//     else {
+//       this.setState({'notesLanguage': 'english'});
+//     }
+//   }
+//   render() {
+//     let notes = '';
+//     if (this.state.extendedNotes) {
+//       notes = this.state.extendedNotes[this.state.notesLanguage];
+//       if (this.state.notesLanguage==='hebrew' && !notes){
+//         notes = 'לא קיימים רשימות מורחבות בשפה העברית עבור גרסה זו';
+//       }
+//       else if (this.state.notesLanguage==='english' && !notes){
+//         notes = 'Extended notes in English do not exist for this version';
+//       }
+//     }
+//       return <div className="extendedNotes">
+//         <a onClick={this.goBack} href={`${this.props.title}`}>
+//           {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
+//         </a>
+//         {this.state.extendedNotes
+//           ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
+//         : <LoadingMessage/>}
+//         {this.state.langToggle ? <a onClick={this.changeLanguage} href={`${this.props.title}`}>
+//           {this.state.notesLanguage==='english' ? 'עברית' : 'English'}
+//         </a> : ''}
+//       </div>
+//   }
+// }
 
 
 module.exports = ReaderTextTableOfContents;

@@ -8,13 +8,10 @@ cache: pip
 
 services:
   - mongodb
+  - redis-server
 
 addons:
-  sauce_connect:
-    username: "sefaria"
-    access_key:
-      secure: "QS2L6wVpfCV0tc2mxhaKekTwoQw2z3NjG082mFd4J3xZiwDIOlP9yHmUnF7lkb89kn6/uyf5NOSwE33kvSJB03NIosd0pBRA3bvBf7UGpUiZwE5t2IHyGDMDB+QPW9xZORBhA0fZpPZucyb4EO1WLBqlajZLTEup6um7HaqBI+nsu/7cZJIUkqmMp6qPTaBV8BUDL/ehnXg8jm66+Gb5BAyApx1DU8eugVhEWdvPs3evQTxcQnVOXQtn2VR5A0QHpa6lz5J9tJcd3HVb9oWQ84WkO5LqVRXvpTp/1LNMyJ/v6VL3kxB5Y7pWU+pytaxaBnzV5dYjAv6+0Ea4a2CBqmpcwT1OWNAqgWt3FusMt8HLO374aeHMtPtj7Ou54GuQxJoMBOhe3MbZ55SEkOuqhPVa6FCCYAevAPVlku1XOTgQeMzJeIrZ3/Wv8sx07U2UGwAl+xBKOYRaCOOwWYPKWWsIBPeH1bQD6SqPSuYxbu4iGN/xrakvHHEjRLIjy/iHleMX62ELGpaAqt8Ppzjn5Z0Oh7aG14pyP3dzQy7vgDCIQ7ZFtTSDdPC9PiOSQ5aQkaFL4FU9ElaetHEWqFayghj10sSuSuO8Q+U8arW+wHWEotaZ7dfvhX0fHHSotEye+loIXVHm6bSOq8XPaZqJ+z/djxysmKfxUynIeOX73zY="
-
+  sauce_connect: true
 env:
   PYTHONPATH=$TRAVIS_BUILD_DIR
   DJANGO_SETTINGS_MODULE=sefaria.settings
@@ -54,21 +51,22 @@ before_script:
 
   # Get rid of the conftest that forces a copy of the datastore to a test db
   - rm ./sefaria/conftest.py
+  - cp ./sefaria/.travis.conftest.py ./sefaria/conftest.py
 
   # Copy LC_MESSAGES to Django locale dirs -- for unknown reasons this file is missing on Travis.
   # When Django admin runs `syncdb` it tries to activate the english language from within
   # the Django core files. This is likely related to Travis using virutalenv, may be fixed by upgrading Django.
-  - cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.14/lib/python2.7/site-packages/django/conf/locale/en
+  #- cp -R ./locale/en/LC_MESSAGES/ /home/travis/virtualenv/python2.7.14/lib/python2.7/site-packages/django/conf/locale/en
 
   # Create the user db
-  - python manage.py syncdb --noinput
-  - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --noinput
+  - python manage.py migrate --noinput
+  - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --username  $SEFARIA_SUPERUSER --noinput
 
   # Rebuild TOC - TEMP to pass tests involving TOC changes
   - ./run rebuild_toc.py 
 
   # run the django server, redirecting output to log files
-  - python manage.py runserver --insecure 2> server.error.log > server.log &
+  - python manage.py runserver --insecure  2> server.error.log > server.log &
   - python scripts/setup_travis_users.py
 
   # Wait for server to come up

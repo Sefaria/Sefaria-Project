@@ -14,6 +14,7 @@ class Test_Ref(object):
         assert Ref("Exo 3.20")
         assert Ref("Prov.3.21")
         assert Ref("Exo.3.21")
+        assert Ref("1Ch.") == Ref("1 Chronicles")
 
     def test_normal_form_is_identifcal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
@@ -23,6 +24,10 @@ class Test_Ref(object):
     def test_bible_range(self):
         ref = Ref(u"Job.2:3-3:1")
         assert ref.toSections == [3, 1]
+        ref = Ref(u"Jeremiah 7:17\u201318")  # test with unicode dash
+        assert ref.toSections == [7, 18]
+        ref = Ref(u"Jeremiah 7:17\u201118")  # test with unicode dash
+        assert ref.toSections == [7, 18]
 
     def test_short_bible_refs(self):  # this behavior is changed from earlier
         assert Ref(u"Exodus") != Ref(u"Exodus 1")
@@ -40,7 +45,7 @@ class Test_Ref(object):
                 assert library.all_titles_regex(lang).match(t), u"'{}' doesn't resolve".format(t)
 
     def test_comma(self):
-        assert Ref("Me'or Einayim 24") == Ref("Me'or Einayim, 24")
+        assert Ref("Me'or Einayim, Chayei Sara 24") == Ref("Me'or Einayim, Chayei Sara, 24")
         assert Ref("Genesis 18:24") == Ref("Genesis, 18:24")
 
     def test_padded_ref(self):
@@ -151,8 +156,8 @@ class Test_Ref(object):
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5').next_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Karpas 1"
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2"
-        assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2"
-        assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is None
+        assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
+        assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is Ref('Kos Eliyahu on Pesach Haggadah, Barech, Pour Out Thy Wrath 2')
 
 
     def test_prev_ref(self):
@@ -172,7 +177,7 @@ class Test_Ref(object):
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2').prev_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Karpas 1").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2"
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1"
-        assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4"
+        assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Ha Lachma Anya 3").prev_section_ref() is None
 
     def test_next_segment_ref(self):
@@ -522,12 +527,15 @@ class Test_Cache(object):
         r2 = Ref("Ramban on Genesis 1")
         assert r1 is not r2
 
+    '''
+    # Retired.  Since we're dealing with objects, tref will either bleed one way or the other.
+    # Removed last dependencies on tref outside of object init. 
     def test_tref_bleed(self):
         # Insure that instanciating trefs are correct for this instance, and don't bleed through the cache.
         Ref(u'שבת לא')
         r = Ref("Shabbat 31a")
         assert r.tref == "Shabbat 31a"
-
+    '''
 
 class Test_normal_forms(object):
     def test_normal(self):
@@ -794,12 +802,12 @@ class Test_condition_and_projection(object):
         """
 
     def test_projection_complex_section(self):
-        r = Ref(u'Shelah, Bereshit, Torah Ohr')
+        r = Ref(u'Shelah, Torah Shebikhtav, Bereshit, Torah Ohr')
         p = r.part_projection()
         assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
         assert Version.content_attr not in p
-        assert u'chapter.Bereshit.Torah' in p
-        assert p[u'chapter.Bereshit.Torah'] == 1
+        assert u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr' in p
+        assert p[u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == 1
 
     def test_projection_simple_segment_slice(self):
         r = Ref("Exodus 4")
@@ -823,20 +831,20 @@ class Test_condition_and_projection(object):
 
 
     def test_projection_complex_segment_slice(self):
-        r = Ref(u'Shelah, Bereshit, Torah Ohr 52')
+        r = Ref(u'Shelah, Torah Shebikhtav, Bereshit, Torah Ohr 52')
         p = r.part_projection()
         assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
         assert Version.content_attr not in p
-        assert u'chapter.Bereshit.Torah' in p
-        assert p[u'chapter.Bereshit.Torah'] == {"$slice": [51, 1]}
+        assert u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr' in p
+        assert p[u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == {"$slice": [51, 1]}
 
     def test_projection_complex_segment_range_slice(self):
-        r = Ref(u'Shelah, Bereshit, Torah Ohr 50-52')
+        r = Ref(u'Shelah, Torah Shebikhtav, Bereshit, Torah Ohr 50-52')
         p = r.part_projection()
         assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
         assert Version.content_attr not in p
-        assert u'chapter.Bereshit.Torah' in p
-        assert p[u'chapter.Bereshit.Torah'] == {"$slice": [49, 3]}
+        assert u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr' in p
+        assert p[u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == {"$slice": [49, 3]}
 
 
 class Test_set_construction_from_ref(object):

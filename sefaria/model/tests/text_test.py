@@ -221,6 +221,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
 
 def test_index_title_setter():
     title = 'Test Index Name'
+    he_title = u"דוגמא"
     d = {
          "categories" : [
             "Liturgy"
@@ -235,7 +236,7 @@ def test_index_title_setter():
                 },
                 {
                     "lang" : "he",
-                    "text" : "דוגמא",
+                    "text" : he_title,
                     "primary" : True
                 }
             ],
@@ -279,7 +280,17 @@ def test_index_title_setter():
     assert idx.nodes.primary_title("en") == third_title
     assert getattr(idx, 'title') == third_title
     idx.save()
+    # make sure all caches pointing to this index are cleaned up
+    for t in [("en",title),("en",new_title),("he",he_title),("en",new_heb_title)]:
+        assert t[1] not in model.library._index_title_maps[t[0]]
+    assert title not in model.library._index_map
+    assert new_title not in model.library._index_map
     idx.delete()
+    assert title not in model.library._index_map
+    assert new_title not in model.library._index_map
+    assert third_title not in model.library._index_map
+    for t in [("en",title),("en",new_title),("en", third_title),("he",he_title),("en",new_heb_title)]:
+        assert t[1] not in model.library._index_title_maps[t[0]]
 
 
 def test_get_index():
@@ -502,3 +513,21 @@ def test_version_word_count():
 
     #sets
     assert model.VersionSet({"title": {"$regex": "Haggadah"}}).word_count() > 200000
+
+
+def test_version_walk_thru_contents():
+    def action(segment_str, tref, heTref, version):
+        r = model.Ref(tref)
+        tc = model.TextChunk(r, lang=version.language, vtitle=version.versionTitle)
+        assert tc.text == segment_str
+        assert tref == r.normal()
+        assert heTref == r.he_normal()
+
+    test_index_titles = ["Genesis", "Rashi on Shabbat", "Pesach Haggadah", "Orot", "Ramban on Deuteronomy"]
+    for t in test_index_titles:
+        ind = model.library.get_index(t)
+        vs = ind.versionSet()
+        for v in vs:
+            v.walk_thru_contents(action)
+
+

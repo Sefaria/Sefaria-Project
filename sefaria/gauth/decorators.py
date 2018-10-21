@@ -3,7 +3,7 @@ from functools import wraps
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect
-from oauth2client.contrib.django_orm import Storage
+from oauth2client.contrib.django_util.storage import DjangoORMStorage
 
 from sefaria.gauth.models import CredentialsModel
 
@@ -22,7 +22,7 @@ def gauth_required(scope, ajax=False):
         @wraps(func)
         def inner(request, *args, **kwargs):
             # Try grabbing credential from storage
-            storage = Storage(CredentialsModel, 'id',
+            storage = DjangoORMStorage(CredentialsModel, 'id',
                               request.user, 'credential')
             credential = storage.get()
 

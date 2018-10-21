@@ -176,7 +176,10 @@ class AbstractMongoRecord(object):
         :return: dict
         """
         d = self._saveable_attrs()
-        del d[self.id_field]
+        try:
+            del d[self.id_field]
+        except KeyError:
+            pass
         if kwargs.get("with_string_id", False):
             d["_id"] = str(self._id)
         return d

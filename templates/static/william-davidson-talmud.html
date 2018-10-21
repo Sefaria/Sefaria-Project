@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "The William Davidson Talmud" %}{% endblock %}
 
@@ -91,7 +91,7 @@
             </p>
         </div>
 
-        <img id="davidsonPhoto" src="/static/img/william-davidson.jpg" alt="Headshot of William Davidson">
+        <img id="davidsonPhoto" src="{% static 'img/william-davidson.jpg' %}" alt="Headshot of William Davidson">
         <h2>
             <span class="int-en">William Davidson</span>
             <span class="int-he">וויליאם דייוידסון</span>

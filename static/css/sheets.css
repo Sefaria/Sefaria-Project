@@ -125,11 +125,9 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 150px auto 56px;
+	margin: 160px auto 56px;
 	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
-
-
 	width:850px;
 	padding:60px 0px;
 
@@ -495,6 +493,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-style: italic;
 	margin-bottom: 10px;
 	color: #999;
+    padding: 0 80px;
 }
 
 
@@ -1046,11 +1045,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #addParashaToSheetModal .cancel {
-	padding-top: 10px;
+	margin-top: 30px;
 }
 
 #addParashaToSheetModal li {
-	width:150px;
+	width: 150px;
 	display:inline;
 	padding: 2px 0 2px 0;
 	cursor: pointer;
@@ -1693,7 +1692,7 @@ line-height: normal;
     z-index: 21;
     font-size: 16px;
     color: #333;
-    top: 54px;
+    top: 60px;
 }
 
 .sheetsMenuBar, .sheetsEditorControls{
@@ -1960,7 +1959,7 @@ line-height: normal;
 .inlineAddSourceByttons {
 	display: inline-block;
 }
-#sheet .button, .sheetsEditNavTop .button, .modal .button {
+.sheetsEditNavTop .button {
 	background-color: #212e50;
 	border-color: #212e50;
 	padding: 12px 24px;
@@ -2071,14 +2070,14 @@ a.userLink{
 	float:left;
 	margin-right: 7px;
 }
-.sheetsEditNavTop #save, .sheetsEditNavTop #share  {
+.sheetsEditNavTop #save, .sheetsEditNavTop #share, .sheetsEditNavTop #onlineMode, .sheetsEditNavTop #likeButton  {
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
 	margin: auto;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
-    margin-bottom: 2px;
+    height: 10px;
     margin-right: 2px;
 
 }

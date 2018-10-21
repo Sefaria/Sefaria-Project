@@ -77,12 +77,16 @@ class TextList extends Component {
     }
   }
   preloadSingleCommentaryText(filter) {
+    console.log('preloading single commentary')
     // Preload commentary for an entire section of text.
     this.setState({textLoaded: false});
     var commentator       = filter[0];
     var basetext          = this.getSectionRef();
     var commentarySection = Sefaria.commentarySectionRef(commentator, basetext);
-    if (!commentarySection) { return; }
+    if (!commentarySection) {
+      this.setState({waitForText: false});
+      return;
+    }
 
     this.setState({waitForText: true});
     Sefaria.text(commentarySection, {}, function() {
@@ -152,7 +156,7 @@ class TextList extends Component {
       if (this.props.contentLang == "hebrew") {
         var indexA = Sefaria.index(a.index_title);
         var indexB = Sefaria.index(b.index_title);
-        return indexA.heTitle > index.heTitle ? 1 : -1;
+        return indexA.heTitle > indexB.heTitle ? 1 : -1;
       }
       else {
         return a.sourceRef > b.sourceRef ? 1 : -1;

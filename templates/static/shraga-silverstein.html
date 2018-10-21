@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "In Memory of Rabbi Shraga Silverstein" %}{% endblock %}
 
@@ -32,7 +32,7 @@
             <span class="int-he">הרב שרגא סילברסטיין זצ״ל</span>
         </h1>
         <div>
-            <img class="headshot" src="/static/img/shraga-silverstein.jpg" alt="Photo of Rabbi Shraga Silverstein"/>
+            <img class="headshot" src="{% static 'img/shraga-silverstein.jpg' %}" alt="Photo of Rabbi Shraga Silverstein"/>
         </div>
         <div class="section">
             <p>

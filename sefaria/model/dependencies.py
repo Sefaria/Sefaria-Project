@@ -42,13 +42,15 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "t
 def process_version_title_change_in_search(ver, **kwargs):
     from sefaria.local_settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
-        search_index_name = get_new_and_current_index_names()['current']
-        search_index_name_merged = get_new_and_current_index_names(merged=True)['current']
+        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        search_index_name = get_new_and_current_index_names("text")['current']
+        # no reason to deal with merged index since versions don't exist. still leaving this here in case it is necessary
+        # search_index_name_merged = get_new_and_current_index_names("merged")['current']
         text_index = library.get_index(ver.title)
         delete_version(text_index, kwargs.get("old"), ver.language)
-        index_full_version(search_index_name, text_index, kwargs.get("new"), ver.language)
-        index_full_version(search_index_name_merged, text_index, kwargs.get("new"), ver.language)
+        for ref in text_index.all_segment_refs():
+            TextIndexer.index_ref(search_index_name, ref, kwargs.get("new"), ver.language, False)
+            # TextIndexer.index_ref(search_index_name_merged, ref, None, ver.language, True)
 
 
 # Version Title Change
@@ -56,9 +58,6 @@ subscribe(history.process_version_title_change_in_history,              text.Ver
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
 subscribe(cascade(notification.GlobalNotificationSet, "content.version"), text.Version, "attributeChange", "versionTitle")
 
-subscribe(text.process_version_save_in_cache,                           text.Version, "save")
-
-subscribe(text.process_version_delete_in_cache,                         text.Version, "delete")
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", "versionTitle"),   text.Version, "delete")
 
 
@@ -105,11 +104,15 @@ subscribe(group.process_group_delete_in_sheets,                              gro
 
 # Categories
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
-subscribe(category.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
-subscribe(category.rebuild_library_after_category_change,                   category.Category, "delete")
-subscribe(category.rebuild_library_after_category_change,                   category.Category, "save")
+subscribe(text.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
+subscribe(text.rebuild_library_after_category_change,                   category.Category, "delete")
+subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
+
+'''
+# These are contained in the library rebuild, above.
 subscribe(text.reset_simple_term_mapping,                                   category.Category, "delete")
 subscribe(text.reset_simple_term_mapping,                                   category.Category, "save")
+'''
 
 # todo: notes? reviews?
 # todo: Scheme name change in Index

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Sefaria Mobile Apps" %}{% endblock %}
 
@@ -51,7 +51,7 @@
                 </a>
             </div>
             <div class="imageBox">
-                <img src="/static/img/home-mobile.png" alt="Image of Sefaria on mobile phones" />
+                <img src="{% static 'img/home-mobile.png' %}" alt="Image of Sefaria on mobile phones" />
             </div>
         </div>
     </div>    

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Visualizations" %} | {% trans "Sefaria" %}{% endblock %}
 
@@ -23,7 +23,7 @@
                 <span class="int-he">גלו יותר מ-30,000 דוגמאות של ציטוטים תנ״כיים בתלמוד. הגדילו את תצוגת המסך כדי להתמקד בספרים מסוימים, בשורה העליונה והתחתונה.</span>
             </div>
             <a href="/explore">
-                <img src="/static/img/link-explorer.png" class="fullWidth" alt="Link to Sefaria Link Explorer">
+                <img src="{% static 'img/link-explorer.png' %}" class="fullWidth" alt="Link to Sefaria Link Explorer">
             </a>
         </div>
 
@@ -37,7 +37,7 @@
                 <span class="int-he">יותר מ-700 מקורות על ירושלים, מתויגים ומתורגמים - סינון אפשרי לפי נושא, מיקום גאוגרפי, תקופת זמן או דמות.</span>
             </div>
             <a href="/garden/jerusalem">
-                <img src="/static/img/jerusalem-garden.png" class="fullWidth" alt="Link to Sefaria's Jerusalem Garden">
+                <img src="{% static 'img/jerusalem-garden.png' %}" class="fullWidth" alt="Link to Sefaria's Jerusalem Garden">
             </a>
         </div>
 
@@ -51,7 +51,7 @@
                 <span class="int-he">כמה רחב יריעה הטקסט בתורה לעומת זה שבתלמוד? באמצעות תרשים זה ניתן לראות את מספר המילים במקורות, לפי קטגוריות ספריית ספריא (הגדלה מיום ליום!)</span>
             </div>
             <a href="/visualize/library">
-                <img src="/static/img/words-sunburst.png" class="fullWidth" alt="Link to Words Sunburst">
+                <img src="{% static 'img/words-sunburst.png' %}" class="fullWidth" alt="Link to Words Sunburst">
             </a>
         </div>
 
@@ -65,7 +65,7 @@
                 <span class="int-he">גלו את מגוון ספרות השו״ת הזמינה בספריא, בסינון לפי נושא, מיקום גאוגרפי או תקופת זמן.</span>
             </div>
             <a href="/garden/responsa">
-                <img src="/static/img/responsa-anthology.png" class="fullWidth" alt="Link to Responsa Anthology">
+                <img src="{% static 'img/responsa-anthology.png' %}" class="fullWidth" alt="Link to Responsa Anthology">
             </a>
         </div>
 
@@ -80,7 +80,21 @@
                 <span class="int-he">גלו כיצד רש״י מחבר בין פסוקים בתורה בפרשנותו.</span>
             </div>
             <a href="/visualize/links-through-rashi">
-                <img src="/static/img/links-through-rashi.png" class="fullWidth">
+                <img src="{% static 'img/links-through-rashi.png' %}" class="fullWidth">
+            </a>
+        </div>
+
+        <div class="section">
+            <h2>
+               <span class="int-en">Mitzvot in Sefer HaChinukh</span>
+               <span class="int-he">מצוות בספר החינוך</span>
+            </h2>
+            <div class="description">
+                <span class="int-en">Explore how different categories of Mitzvot connect to one another through this parallel sets chart.</span>
+                <span class="int-he">Explore how different categories of Mitzvot connect to one another through this parallel sets chart.</span>
+            </div>
+            <a href="/visualize/sefer-hachinukh-mitzvot">
+                <img src="{% static 'img/sefer-hachinukh-mitzvot.png' %}" class="fullWidth">
             </a>
         </div>
 
@@ -95,7 +109,7 @@
                 <span class="int-he">במקביל ללימודיה במסגרת תואר שני באוניברסיטת קליפורניה בסנטה ברברה, ליז שיין השתמשה בנסיונה מעולם דיגיטציית מקורות מדעי-הרוח ויצרה עזר ויזואלי של מאגר הנתונים של ספריא (אודותיו נכתב במגזין <a target="_blank" href="http://www.wired.com/2014/07/the-network-structure-of-jewish-texts/">Wired</a>).</span>
             </div>
             <a target="_blank" href="https://lizshayne.wordpress.com/2014/06/17/sefaria_in_gephi/">
-                <img src="/static/img/liz-shayne-visualizations.png" class="fullWidth" alt="Link to Liz Shayne's Sefaria Visualization published in Wired">
+                <img src="{% static 'img/liz-shayne-visualizations.png' %}" class="fullWidth" alt="Link to Liz Shayne's Sefaria Visualization published in Wired">
             </a>
         </div>
 
@@ -110,7 +124,7 @@
                 <span class="int-he"></span>
             </div>
             <a href="/visualize/parasha-colors">
-                <img src="/static/img/parasha-colors.png" class="fullWidth">
+                <img src="{% static 'img/parasha-colors.png' %}" class="fullWidth">
             </a>
         </div>
         -->

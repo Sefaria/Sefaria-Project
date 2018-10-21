@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -131,10 +130,6 @@ def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs
             i.save(override_dependencies=True)
 
 
-def rebuild_library_after_category_change(*args, **kwargs):
-    text.library.rebuild(include_toc=True)
-
-
 """ Object Oriented TOC """
 
 
@@ -147,7 +142,7 @@ def toc_serial_to_objects(toc):
     root = TocCategory()
     root.add_primary_titles("TOC", u"שרש")
     for e in toc:
-        root.append(schema.deserialize_tree(e, struct_class=TocCategory, leaf_class=TocTextIndex, children_attr="contents"))
+        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents"))
     return root
 
 
@@ -183,7 +178,7 @@ class TocTree(object):
             node = self._make_index_node(i)
             cat = self.lookup(i.categories)
             if not cat:
-                print u"Failed to find category for {}".format(i.categories)
+                logger.warning(u"Failed to find category for {}".format(i.categories))
                 continue
             cat.append(node)
             vs = self._vs_lookup[i.title]
@@ -317,7 +312,7 @@ class TocTree(object):
             logger.info(u"Did not find TOC node to update: {} - adding.".format(u"/".join(index.categories + [title])))
             cat = self.lookup(index.categories)
             if not cat:
-                print u"Failed to find category for {}".format(index.categories)
+                logger.warning(u"Failed to find category for {}".format(index.categories))
             cat.append(new_node)
 
         self._path_hash[tuple(index.categories + [index.title])] = new_node

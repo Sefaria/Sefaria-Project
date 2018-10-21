@@ -13,7 +13,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.sf_varnish import invalidate_ref, invalidate_linked
+    from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):

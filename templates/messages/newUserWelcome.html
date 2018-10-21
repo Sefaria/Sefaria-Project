@@ -1,3 +1,4 @@
+{% load static %}
 <style>
     #newUserWelcome {
         width: 550px;
@@ -59,7 +60,7 @@
         </span>
     </p>
     <p class="iconic">
-        <img class="icon" src="/static/img/user-64.png" alt="User Icon">
+        <img class="icon" src="{% static 'img/user-64.png' %}" alt="User Icon">
         <span class="int-en">
             In your account (top right), you can access your source sheets, notes, update your profile and more.
         </span>
