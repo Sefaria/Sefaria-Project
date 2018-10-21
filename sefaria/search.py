@@ -437,7 +437,11 @@ class TextIndexer(object):
                     traverse(t)
             elif "title" in mini_toc:
                 title = mini_toc["title"]
-                r = Ref(title)
+                try:
+                    r = Ref(title)
+                except InputError:
+                    print u"Failed to parse ref, {}".format(title)
+                    return
                 vlist = cls.get_ref_version_list(r)
                 vpriorities = {
                     u"en": 0,
