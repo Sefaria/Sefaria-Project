@@ -413,6 +413,7 @@ class TextIndexer(object):
         cls.version_priority_map = None
         cls.trefs_seen = None
         cls._bulk_actions = None
+        cls.best_time_period = None
 
 
     @classmethod
@@ -456,7 +457,7 @@ class TextIndexer(object):
         except pymongo.errors.AutoReconnect as e:
             if tries < 200:
                 pytime.sleep(5)
-                return TextIndexer.get_all_versions(oref, tries+1)
+                return TextIndexer.get_ref_version_list(oref, tries+1)
             else:
                 print "get_ref_version_list -- Tried: {} times. Failed :(".format(tries)
                 raise e
@@ -508,6 +509,7 @@ class TextIndexer(object):
             cls.trefs_seen = set()
             cls._bulk_actions = []
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
+            cls.best_time_period = cls.curr_index.best_time_period()
             for v in vlist:
                 if v.versionTitle == u"Yehoyesh's Yiddish Tanakh Translation [yi]":
                     print "skipping yiddish. we don't like yiddish"
@@ -587,9 +589,9 @@ class TextIndexer(object):
             # Don't bother indexing if there's no content
             return False
 
-        content = bleach.clean(content, strip=True, tags=())
-        content_wo_cant = strip_cantillation(content, strip_vowels=False)
-        content_wo_cant = re.sub(ur'\([^)]+\)', u'', content_wo_cant.strip())  # remove all parens
+        content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
+        content_wo_cant = re.sub(ur'<[^>]+>', u'', content_wo_cant)
+        content_wo_cant = re.sub(ur'\([^)]+\)', u'', content_wo_cant)  # remove all parens
         if len(content_wo_cant) == 0:
             return False
 
@@ -600,7 +602,7 @@ class TextIndexer(object):
         else:
             temp_categories = categories
 
-        tp = cls.curr_index.best_time_period()
+        tp = cls.best_time_period
         if not tp is None:
             comp_start_date = int(tp.start)
         else:
@@ -744,7 +746,6 @@ def get_new_and_current_index_names(type, debug=False):
     index_name_a = "{}-a{}".format(base_index_name_dict[type], '-debug' if debug else '')
     index_name_b = "{}-b{}".format(base_index_name_dict[type], '-debug' if debug else '')
     alias_name = "{}{}".format(base_index_name_dict[type], '-debug' if debug else '')
-
     aliases = index_client.get_alias()
     try:
         a_alias = aliases[index_name_a]['aliases']
