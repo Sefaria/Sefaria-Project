@@ -159,7 +159,7 @@ class SearchResultList extends Component {
         success: function(data) {
           var nextHits = currentHits.concat(data.hits.hits);
           if (type === "text") {
-            nextHits = this._process_text_hits(nextHits);
+            nextHits = Sefaria.search.process_text_hits(nextHits);
           }
 
           this.state.hits[type] = nextHits;
@@ -206,7 +206,7 @@ class SearchResultList extends Component {
           exact: fieldExact === field,
           success: data => {
               this.updateRunningQuery(type, null, false);
-              const hitArray = this._process_text_hits(data.hits.hits);  // TODO need if statement? or will there be similar processing done on sheets?
+              const hitArray = Sefaria.search.process_text_hits(data.hits.hits);  // TODO need if statement? or will there be similar processing done on sheets?
               this.setState({
                 hits: extend(this.state.hits, {[type]: hitArray}),
                 totals: extend(this.state.totals, {[type]: data.hits.total}),
@@ -219,13 +219,15 @@ class SearchResultList extends Component {
               if (data.aggregations) {  // TODO some of this logic applies to sheet filters
                 for (let aggregation of aggregation_field_array) {
                   if (!!data.aggregations[aggregation]) {
+                    let availableFilters, registry, orphans;
                     if (type == 'text') {
-                      const ftree = this._buildFilterTree(data.aggregations[aggregation].buckets);
-                      const orphans = this._applyFilters(ftree, appliedFilters);
-                      this.props.registerAvailableFilters(type, ftree.availableFilters, ftree.registry, orphans);
+                      const { buckets } = data.aggregations[aggregation];
+                      ({ availableFilters, registry, orphans } = Sefaria.search.buildFilterTree(buckets));
+                      orphans = Sefaria.search.applyFilters(ftree, appliedFilters);
                     } else {
-                      console.log('aggregation', aggregation, data.aggregations[aggregation].buckets);
+                      availableFilters = buckets.map( b => new FilterNode)
                     }
+                    this.props.registerAvailableFilters(type, availableFilters, registry, orphans);
                   }
                 }
               }
@@ -248,193 +250,6 @@ class SearchResultList extends Component {
         this.setState({error: true});
         this.updateRunningQuery(null, null, false);
     }
-
-    _process_text_hits(hits) {
-      var newHits = [];
-      var newHitsObj = {};  // map ref -> index in newHits
-      for (var i = 0; i < hits.length; i++) {
-        let currRef = hits[i]._source.ref;
-        let newHitsIndex = newHitsObj[currRef];
-        if (typeof newHitsIndex != "undefined") {
-          newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
-          newHits[newHitsIndex].insertInOrder(hits[i], (a, b) => a._source.version_priority - b._source.version_priority);
-        } else {
-          newHits.push([hits[i]])
-          newHitsObj[currRef] = newHits.length - 1;
-        }
-      }
-      newHits = newHits.map(hit_list => {
-        let hit = hit_list[0];
-        if (hit_list.length > 1) {
-          hit.duplicates = hit_list.slice(1);
-        }
-        return hit;
-      });
-      return newHits;
-    }
-
-    _buildFilterTree(aggregation_buckets) {
-      //returns object w/ keys 'availableFilters', 'registry'
-      //Add already applied filters w/ empty doc count?
-      var rawTree = {};
-
-      this.props.textSearchState.appliedFilters.forEach(
-          fkey => this._addAvailableFilter(rawTree, fkey, {"docCount":0})
-      );
-
-      aggregation_buckets.forEach(
-          f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
-      );
-      this._aggregate(rawTree);
-      return this._build(rawTree);
-    }
-
-    _addAvailableFilter(rawTree, key, data) {
-      //key is a '/' separated key list, data is an arbitrary object
-      //Based on http://stackoverflow.com/a/11433067/213042
-      var keys = key.split("/");
-      var base = rawTree;
-
-      // If a value is given, remove the last name and keep it for later:
-      var lastName = arguments.length === 3 ? keys.pop() : false;
-
-      // Walk the hierarchy, creating new objects where needed.
-      // If the lastName was removed, then the last object is not set yet:
-      var i;
-      for(i = 0; i < keys.length; i++ ) {
-          base = base[ keys[i] ] = base[ keys[i] ] || {};
-      }
-
-      // If a value was given, set it to the last name:
-      if( lastName ) {
-          base = base[ lastName ] = data;
-      }
-
-      // Could return the last object in the hierarchy.
-      // return base;
-    }
-    _aggregate(rawTree) {
-      //Iterates the raw tree to aggregate doc_counts from the bottom up
-      //Nod to http://stackoverflow.com/a/17546800/213042
-      walker("", rawTree);
-      function walker(key, branch) {
-          if (branch !== null && typeof branch === "object") {
-              // Recurse into children
-              $.each(branch, walker);
-              // Do the summation with a hacked object 'reduce'
-              if ((!("docCount" in branch)) || (branch["docCount"] === 0)) {
-                  branch["docCount"] = Object.keys(branch).reduce(function (previous, key) {
-                      if (typeof branch[key] === "object" && "docCount" in branch[key]) {
-                          previous += branch[key].docCount;
-                      }
-                      return previous;
-                  }, 0);
-              }
-          }
-      }
-    }
-
-    _build(rawTree) {
-      //returns dict w/ keys 'availableFilters', 'registry'
-      //Aggregate counts, then sort rawTree into filter objects and add Hebrew using Sefaria.toc as reference
-      //Nod to http://stackoverflow.com/a/17546800/213042
-      var path = [];
-      var filters = [];
-      var registry = {};
-
-      var commentaryNode = new FilterNode();
-
-
-      for(var j = 0; j < Sefaria.search_toc.length; j++) {
-          var b = walk.call(this, Sefaria.search_toc[j]);
-          if (b) filters.push(b);
-
-          // Remove after commentary refactor ?
-          // If there is commentary on this node, add it as a sibling
-          if (commentaryNode.hasChildren()) {
-            var toc_branch = Sefaria.toc[j];
-            var cat = toc_branch["category"];
-            // Append commentary node to result filters, add a fresh one for the next round
-            var docCount = 0;
-            if (rawTree.Commentary && rawTree.Commentary[cat]) { docCount += rawTree.Commentary[cat].docCount; }
-            if (rawTree.Commentary2 && rawTree.Commentary2[cat]) { docCount += rawTree.Commentary2[cat].docCount; }
-            extend(commentaryNode, {
-                "title": cat + " Commentary",
-                "path": "Commentary/" + cat,
-                "heTitle": "מפרשי" + " " + toc_branch["heCategory"],
-                "docCount": docCount
-            });
-            registry[commentaryNode.path] = commentaryNode;
-            filters.push(commentaryNode);
-            commentaryNode = new FilterNode();
-          }
-      }
-
-      return { availableFilters: filters, registry };
-
-      function walk(branch, parentNode) {
-          var node = new FilterNode();
-
-          node["docCount"] = 0;
-
-          if("category" in branch) { // Category node
-
-            path.push(branch["category"]);  // Place this category at the *end* of the path
-            extend(node, {
-              "title": path.slice(-1)[0],
-              "path": path.join("/"),
-              "heTitle": branch["heCategory"]
-            });
-
-            for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk.call(this, branch["contents"][j], node);
-                if (b) node.append(b);
-            }
-          }
-          else if ("title" in branch) { // Text Node
-              path.push(branch["title"]);
-              extend(node, {
-                 "title": path.slice(-1)[0],
-                 "path": path.join("/"),
-                 "heTitle": branch["heTitle"]
-              });
-          }
-
-          try {
-              var rawNode = rawTree;
-              var i;
-
-              for (i = 0; i < path.length; i++) {
-                //For TOC nodes that we don't have results for, we catch the exception below.
-                rawNode = rawNode[path[i]];
-              }
-              node["docCount"] += rawNode.docCount;
-
-
-              // Do we need both of these in the registry?
-              registry[node.getId()] = node;
-              registry[node.path] = node;
-
-              path.pop();
-              return node;
-          }
-          catch (e) {
-            path.pop();
-            return false;
-          }
-      }
-    }
-
-    _applyFilters(ftree, appliedFilters) {
-      var orphans = [];  // todo: confirm behavior
-      appliedFilters.forEach(path => {
-        var node = ftree.registry[path];
-        if (node) { node.setSelected(true); }
-        else { orphans.push(path); }
-      });
-      return orphans;
-    }
-
     showSheets() {
       this.setState({activeTab: 'sheet'});
     }
