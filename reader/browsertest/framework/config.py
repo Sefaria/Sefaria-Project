@@ -44,11 +44,11 @@ SAUCE_CORE_CAPS = [
     {'browserName': "chrome", 'platform': "Windows 10", 'version': "latest",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
-    #{'browserName': "firefox", 'platform': "Windows 10", 'version': "latest",
-     #   'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/w10'},
+    {'browserName': "firefox", 'platform': "Windows 10", 'version': "latest",
+        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/w10'},
 
-    {'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
-        'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
+    #{'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
+    #    'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
     {'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '7.1',
      'browserName': 'Chrome', 'appiumVersion': '1.9.1', 'deviceOrientation': "portrait",
@@ -58,9 +58,6 @@ SAUCE_CORE_CAPS = [
     'appiumVersion': "1.9.1", 'platformVersion': "12.0", 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh8'},
 
-    #{'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '7.0',
-    #'browserName': '', 'appiumVersion': '1.6.4', 'deviceOrientation': "portrait",
-    # 'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/6.0'}
 ]
 
 

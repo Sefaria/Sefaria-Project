@@ -189,7 +189,10 @@ urlpatterns += [
     url(r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
 ]
 
-
+# Search API
+# urlpatterns += [
+#     url(r'^api/search$', reader_views.search_api)
+# ]
 
 # Following API
 urlpatterns += [
