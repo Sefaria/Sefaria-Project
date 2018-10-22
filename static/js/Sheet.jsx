@@ -355,7 +355,8 @@ class SheetSource extends Component {
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
           this.props.source.text && this.props.source.text.en && this.props.source.text.en == "..." ? "heOnly" : null,
           this.props.source.text && this.props.source.text.he && this.props.source.text.he == "..." ? "enOnly" : null,
-          this.props.source.options ? this.props.source.options.indented : null
+          this.props.source.options ? this.props.source.options.indented : null,
+          this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
 
     return (
