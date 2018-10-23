@@ -80,19 +80,20 @@ class SearchFilters extends Component {
     this.setState({isExactSearch: newExactSearch});
 
   }
-  _type_button(en, he, total, on_click, active) {
+  _type_button(en_singular, en_plural, he_singular, he_plural, total, on_click, active) {
     // if (!total) { return "" }
       var total_with_commas = this._add_commas(total);
-      var classes = classNames({"type-button": 1, active});
+      var classes = classNames({"type-button": 1, active: active});
 
-      return (
-        <div className={classes} onClick={on_click} onKeyPress={function(e) {e.charCode == 13 ? on_click(e):null}.bind(this)} role="button" tabIndex="0">
-          <div className="type-button-title">
-            <span className="int-en">{`${en} (${total})`}</span>
-            <span className="int-he">{`${he} (${total})`}</span>
-          </div>
-        </div>
-      );
+      return <div className={classes} onClick={on_click} onKeyPress={function(e) {e.charCode == 13 ? on_click(e):null}.bind(this)} role="button" tabIndex="0">
+      <div className="type-button-total">
+        {total_with_commas}
+      </div>
+      <div className="type-button-title">
+        <span className="int-en">{(total != 1) ? en_plural : en_singular}</span>
+        <span className="int-he">{(total != 1) ? he_plural : he_singular}</span>
+      </div>
+    </div>;
   }
   _add_commas(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -103,8 +104,8 @@ class SearchFilters extends Component {
 
     var buttons = (
       <div className="type-buttons">
-        {this._type_button("Texts", "טקסטים", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "text"))}
-        {this._type_button("Sheets", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheet"))}
+        {this._type_button("Text", "Texts", "מקור", "מקורות", this.props.textTotal, this.props.clickTextButton, (this.props.activeTab == "text"))}
+        {this._type_button("Sheet", "Sheets", "דף מקורות", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.activeTab == "sheet"))}
       </div>
     );
 
@@ -138,22 +139,17 @@ class SearchFilters extends Component {
           closeBox={this.props.closeSortView}
           sortType={this.props.sortType}/>);
     return (
-      <div className="searchTopMatter">
+      <div className={ classNames({searchTopMatter: 1, loading: this.props.isQueryRunning}) }>
         <div className="searchStatusLine">
-          { (this.props.isQueryRunning) ? runningQueryLine : null }
+          { (this.props.isQueryRunning) ? runningQueryLine : buttons }
           { (this.props.availableFilters.length > 0 && this.props.activeTab == "text") ? selected_filters : ""}
         </div>
-        <div className="searchButtonsBar">
-          { buttons }
-          {
-            (this.props.activeTab == "text") ?
-              (<div className="filterSortFlexbox">
-                {filter_panel}
-                {sort_panel}
-              </div>)
-              : null
-          }
-        </div>
+        { ((true || this.props.availableFilters.length > 0) && this.props.activeTab == "text") ?
+            (<div className="filterSortFlexbox">
+              {filter_panel}
+              {sort_panel}
+            </div>)
+            : "" }
       </div>);
   }
 }
