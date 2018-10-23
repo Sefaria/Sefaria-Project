@@ -863,43 +863,45 @@ input#id_email{
   text-align: center;
   padding-bottom: 40px;
 }
+#teamPage .team-members{
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+}
 #teamPage .teamMember, #teamPage .teamBoardMember {
   font-size: 20px;
   line-height: 1.2em;
   display: inline-block;
-  width: 100%;
-  border-bottom: 1px solid  #ddd;
   margin-bottom: 35px;
   padding-bottom: 35px;
-  display: flex;
-  display: -webkit-flex
+  width: 32%;
 }
 #teamPage .teamBoardMember {
   border-bottom: none;
   margin-bottom: 10px;
 }
 #teamPage .teamMember .teamMemberImage {
-  display: inline-block;
+  display: block;
   /*float: left;*/
 }
 #teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
-  display: inline-block;
-  white-space:nowrap;
-  max-width: 65%;
-  margin: 0 20px;
+  display: block;
+  margin: 20px 0px;
+  text-align: start;
 }
 #teamPage .teamBoardMember .teamMemberDetails {
   margin: 0;
 }
 #teamPage .teamMember .teamMemberImage img {
   border: 1px solid #E6E5E6;
-  width: 170px;
-  height: 170px;
+  width: 200px;
+  height: 200px;
   vertical-align:middle;
 }
 #teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
   margin-bottom: 20px;
-  font-size: 25px;
+  font-size: 24px;
   color: #555;
 }
 #teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle {

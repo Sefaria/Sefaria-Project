@@ -42,14 +42,14 @@ class ReaderApp extends Component {
             currVersions:  props.initialPanels[0].currVersions,
             bookRef:       props.initialPanels[0].bookRef
         };
-      } else if (props.initialPath.indexOf("/sheets") !== -1) {
+      } else if (props.initialPath.search(/\/sheets\/\d+/g) !== -1) {
         var mode = props.initialFilter ? "SheetAndConnections" : "Sheet";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
 
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
-          naturalDateCreated: initialPanel.sheet.naturalDateCreated,
-          groupLogo: initialPanel.sheet.groupLogo,
+          naturalDateCreated: initialPanel.sheet && initialPanel.sheet.naturalDateCreated,
+          groupLogo: initialPanel.sheet && initialPanel.sheet.groupLogo,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
@@ -76,7 +76,6 @@ class ReaderApp extends Component {
         if (mode === "SheetAndConnections") {
           panels[0].highlightedRefs = props.initialRefs;
         }
-
       }
       else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";

@@ -61,7 +61,7 @@ SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
 
 # ElasticSearch server
-SEARCH_HOST = "http://localhost:9200"
+SEARCH_HOST = "https://www.sefaria.org/api/search"
 SEARCH_ADMIN = "http://localhost:9200"
 SEARCH_ADMIN_USER = None  # if not None, use these credentials to access SEARCH_ADMIN
 SEARCH_ADMIN_PW = None

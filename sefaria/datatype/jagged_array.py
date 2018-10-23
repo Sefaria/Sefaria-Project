@@ -92,6 +92,9 @@ class JaggedArray(object):
 
         if first_diff_index == N-1:
             #base case
+            if self.sub_array_length(indexes1[:-1]) == 0:
+                # empty section
+                return 0
             return abs(indexes1[-1] - indexes2[-1])
         else:
             #recurse
