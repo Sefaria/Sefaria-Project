@@ -71,7 +71,7 @@ class Group(abst.AbstractMongoRecord):
         from sefaria.sheets import group_sheets, sheet_tag_counts
         contents = super(Group, self).contents()
         if with_content: 
-            contents["sheets"]       = group_sheets(self.name, authenticated)["sheets"]
+            contents["sheets"]       = group_sheets(self, authenticated)["sheets"]
             contents["tags"]         = sheet_tag_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]

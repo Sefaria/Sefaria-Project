@@ -118,15 +118,16 @@ def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0):
 
 
 def group_sheets(group, authenticated):
-    if authenticated == True:
-        query = {"status": {"$in": ["unlisted", "public"]}, "group": group}
-    else:
-        query = {"status": "public", "group": group}
+	islisted = getattr(group, "listed", False)
+	if authenticated == False and islisted:
+		query = {"status": "public", "group": group.name}
+	else:
+		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
 
-    response = {
-        "sheets": sheet_list(query=query, sort=[["title", 1]]),
-    }
-    return response
+	response = {
+		"sheets": sheet_list(query=query, sort=[["title", 1]]),
+	}
+	return response
 
 
 def sheet_list(query=None, sort=None, skip=0, limit=None):
