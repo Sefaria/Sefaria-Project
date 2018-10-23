@@ -1817,3 +1817,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 24px;
   margin: 60px;
 }
+.phone-number{
+  unicode-bidi: plaintext;
+}
