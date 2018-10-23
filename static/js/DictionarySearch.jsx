@@ -12,7 +12,8 @@ class DictionarySearch extends Component {
 
     this.state = {
       val: "",
-      timer: null
+      timer: null,
+      autocomplete: null
     };
   }
   componentDidMount() {
@@ -37,6 +38,13 @@ class DictionarySearch extends Component {
       return;
     }
     if (this.state.val != current) {
+      if (document.getElementById('keyboardInputMaster')) {
+        // If the keyboard is open, place autocomplete results below it
+        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left+15 top-535", at: "left bottom",of: this.props.contextSelector + ' .dictionarySearchBox'});
+      } else {
+        // Otherwise results are below input box
+        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("option", "position", {my: "left top", at: "left bottom", of: this.props.contextSelector + ' .dictionarySearchBox'});
+      }
       $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("search");
     }
     this.setState({
@@ -61,7 +69,15 @@ class DictionarySearch extends Component {
         at: "left bottom",
         of: this.props.contextSelector + ' .dictionarySearchBox'
       },
-      open: e => $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($(this.props.contextSelector + " .dictionarySearchBox").width()),
+      open: function(e) {
+        if (document.getElementById('keyboardInputMaster')) {
+          // If the keyboard is open, set width to width of keyboard
+          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($('#keyboardInputMaster').width()+10);
+        } else {
+          // Otherwise width of input box
+          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($(this.props.contextSelector + " .dictionarySearchBox").width());
+        }
+      }.bind(this),
       close: function(event) {
         this.setState({
           val: $(ReactDOM.findDOMNode(this)).find("input.search").val()
