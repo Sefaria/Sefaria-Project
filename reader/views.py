@@ -3323,7 +3323,13 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
+    cb = request.GET.get("callback", None)
+    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    if len(topics_filtered) == 0:
+        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
+        resp['Content-Type'] = "application/json; charset=utf-8"
+        return resp
+    random_topic = choice(topics_filtered)['tag']
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
@@ -3331,43 +3337,9 @@ def random_by_topic_api(request):
         url = oref.url()
     except Exception:
         return random_by_topic_api(request)
-    cb = request.GET.get("callback", None)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=request.GET.get("callback", None))
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
-
-
-# def search_api(request):
-#     # dict to define request parameters and their default values. None means parameter is required
-#     params = {
-#         "query": None,
-#         "size": 10,
-#         "from": 0,
-#         "type": None,  #
-#         "get_filters": False,
-#         "applied_filters": [],
-#         "field": None,
-#         "sort_type": None,
-#         "exact": False
-#     }
-#     param_vals = {}
-#     for p in params:
-#         param_vals[p] = request.GET.get(p, )
-#     query = request.GET.get("q")
-#     """
-#              query: query string
-#              size: size of result set
-#              from: from what result to start
-#              type: "sheet" or "text"
-#              get_filters: if to fetch initial filters
-#              applied_filters: filter query by these filters
-#              field: field to query in elastic_search
-#              sort_type: chonological or relevance
-#              exact: if query is exact
-#              success: callback on success
-#              error: callback on error
-#     """
-#     size = request.GET.get("size")
 
 
 @ensure_csrf_cookie

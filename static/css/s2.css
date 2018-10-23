@@ -1863,41 +1863,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 30px;
   position: relative;
 }
+.searchContent .searchTopMatter.loading {
+  border-bottom: none;
+}
 .searchTopMatter .filterSortFlexbox {
   display: flex;
-  flex-direction: row;
-  align-self: flex-end;
-}
-.searchTopMatter .searchButtonsBar {
-  display: flex;
-  flex-direction: row;
   justify-content: space-between;
-  border-bottom: 1px solid #CCC;
-}
-.searchTopMatter .type-buttons {
-  display: flex;
-  flex-direction: row;
-  align-self: flex-start;
-}
-.searchTopMatter .type-button {
-  font-size: 18px;
-  color: #999;
-  text-transform: uppercase;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  letter-spacing: 1px;
-  cursor: pointer;
-  padding: 15px;
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-     -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-          user-select: none; /* Non-prefixed version, currently
-                                supported by Chrome and Opera */
-}
-.searchTopMatter .type-button.active {
-  color: #000;
-  border-bottom: 4px solid #CCC;
 }
 .searchContent .searchStatusLine {
   padding: 0 0 36px 0;
@@ -1905,6 +1876,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 12px;
   height: 64px;
 }
+.searchContent .type-button,
 .readerSheetsNav .type-button {
   padding: 6px 14px;
   margin: 5px;
@@ -1921,6 +1893,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerSheetsNav .type-button .he {
   font-family: "Heebo", sans-serif;
 }
+.searchContent .type-button.active,
 .readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
@@ -1939,20 +1912,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-top: 5px;
 }
 .searchContent .searchFilterToggle {
-  color: #999;
-  font-size: 18px;
-  padding: 15px;
+  color: #666;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-     -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-          user-select: none; /* Non-prefixed version, currently
-                                supported by Chrome and Opera */
 }
 .searchContent .searchFilterToggle:hover {
   text-decoration: underline;
@@ -1974,23 +1939,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-  margin-top: 1px;
-    background: #F9F9F7;
+    margin-top: 10px;
+    background: white;
     width: 100%;
     display: flex;
     flex-direction: column;
     position: absolute;
     z-index: 1;
-    border-width: 0 0 0 1px;
-    border-style: solid;
-    border-color: #ccc;
-    box-sizing: border-box;
-}
-.interface-english .searchFilterBoxes {
-  right: 0;
-}
-.interface-hebrew .searchFilterBoxes {
-  left: 0;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    border: 1px solid #ccc;
 }
 
 .searchContent .searchFilterBoxes .searchFilterBoxRow {
