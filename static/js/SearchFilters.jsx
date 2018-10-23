@@ -18,16 +18,16 @@ class SearchFilters extends Component {
     this.state = {
       openedCategory: null,
       openedCategoryBooks: [],
-      isExactSearch: props.textSearchState.field === props.textSearchState.fieldExact
+      isExactSearch: props.searchState.field === props.searchState.fieldExact
     }
   }
   componentWillReceiveProps(newProps) {
     // Save current filters
     // this.props
     // todo: check for cases when we want to rebuild / not
-    const { field, fieldExact } = this.props.textSearchState;
+    const { field, fieldExact } = this.props.searchState;
     if ((newProps.query != this.props.query)
-        || (newProps.textSearchState.availableFilters.length == 0)) {
+        || (newProps.searchState.availableFilters.length == 0)) {
 
       this.setState({
         openedCategory: null,
@@ -54,8 +54,8 @@ class SearchFilters extends Component {
   }
   getSelectedTitles(lang) {
     let results = [];
-    for (let i = 0; i < this.props.textSearchState.availableFilters.length; i++) {
-        results = results.concat(this.props.textSearchState.availableFilters[i].getSelectedTitles(lang));
+    for (let i = 0; i < this.props.searchState.availableFilters.length; i++) {
+        results = results.concat(this.props.searchState.availableFilters[i].getSelectedTitles(lang));
     }
     return results;
   }
@@ -74,9 +74,9 @@ class SearchFilters extends Component {
   toggleExactSearch() {
     let newExactSearch = !this.state.isExactSearch;
     if (newExactSearch) {
-      this.props.updateAppliedOptionField(this.props.textSearchState.fieldExact);
+      this.props.updateAppliedOptionField(this.props.searchState.fieldExact);
     } else {
-      this.props.updateAppliedOptionField(this.props.textSearchState.fieldBroad);
+      this.props.updateAppliedOptionField(this.props.searchState.fieldBroad);
     }
     this.setState({isExactSearch: newExactSearch});
 
@@ -111,10 +111,10 @@ class SearchFilters extends Component {
 
     var selected_filters = (<div className="results-count">
           <span className="int-en">
-            {(!!this.props.textSearchState.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
+            {(!!this.props.searchState.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("en").join(", ")):""}
           </span>
           <span className="int-he">
-            {(!!this.props.textSearchState.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
+            {(!!this.props.searchState.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
           </span>
       </div>);
     var filter_panel = (<SearchFilterPanel
@@ -125,9 +125,9 @@ class SearchFilters extends Component {
         openedCategoryBooks={this.state.openedCategoryBooks}
         updateAppliedFilter={this.props.updateAppliedFilter}
         query={this.props.query}
-        availableFilters={this.props.textSearchState.availableFilters}
+        availableFilters={this.props.searchState.availableFilters}
         closeBox={this.props.closeFilterView}
-        isExactSearch={this.props.textSearchState.fieldExact === this.props.textSearchState.field}
+        isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
         handleFocusCategory={this.handleFocusCategory}
         resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
     />);
@@ -138,31 +138,26 @@ class SearchFilters extends Component {
           toggleSortView={this.props.toggleSortView}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
           closeBox={this.props.closeSortView}
-          sortType={this.props.textSearchState.sortType}/>);
+          sortType={this.props.searchState.sortType}/>);
     return (
       <div className="searchTopMatter">
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : null }
-          { (this.props.textSearchState.availableFilters.length > 0 && this.props.type == "text") ? selected_filters : ""}
+          { (this.props.searchState.availableFilters.length > 0 && this.props.type == "text") ? selected_filters : ""}
         </div>
         <div className="searchButtonsBar">
           { buttons }
-          {
-            (this.props.type == "text") ?
-              (<div className="filterSortFlexbox">
-                {filter_panel}
-                {sort_panel}
-              </div>)
-              : null
-          }
+          <div className="filterSortFlexbox">
+            {filter_panel}
+            {sort_panel}
+          </div>
         </div>
       </div>);
   }
 }
 SearchFilters.propTypes = {
   query:                PropTypes.string,
-  textSearchState:      PropTypes.object,
-  sheetSearchState:     PropTypes.object,
+  searchState:          PropTypes.object,
   total:                PropTypes.number,
   textTotal:            PropTypes.number,
   sheetTotal:           PropTypes.number,

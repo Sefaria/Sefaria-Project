@@ -206,7 +206,8 @@ class SearchResultList extends Component {
           exact: fieldExact === field,
           success: data => {
               this.updateRunningQuery(type, null, false);
-              const hitArray = Sefaria.search.process_text_hits(data.hits.hits);  // TODO need if statement? or will there be similar processing done on sheets?
+              //TODO highlighting not working for sheets
+              const hitArray = type === 'text' ? Sefaria.search.process_text_hits(data.hits.hits) : data.hits.hits;  // TODO need if statement? or will there be similar processing done on sheets?
               this.setState({
                 hits: extend(this.state.hits, {[type]: hitArray}),
                 totals: extend(this.state.totals, {[type]: data.hits.total}),
@@ -215,21 +216,21 @@ class SearchResultList extends Component {
               const query_label = props.query + filter_label;
               Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total);
 
-              const { aggregation_field_array } = SearchState.metadataByType[type];
-              if (data.aggregations) {  // TODO some of this logic applies to sheet filters
+              const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
+              if (data.aggregations) {
+                let availableFilters = [];
+                let registry = {};
+                let orphans = [];
                 for (let aggregation of aggregation_field_array) {
                   if (!!data.aggregations[aggregation]) {
-                    let availableFilters, registry, orphans;
-                    if (type == 'text') {
-                      const { buckets } = data.aggregations[aggregation];
-                      ({ availableFilters, registry, orphans } = Sefaria.search.buildFilterTree(buckets));
-                      orphans = Sefaria.search.applyFilters(ftree, appliedFilters);
-                    } else {
-                      availableFilters = buckets.map( b => new FilterNode)
-                    }
-                    this.props.registerAvailableFilters(type, availableFilters, registry, orphans);
+                    const { buckets } = data.aggregations[aggregation];
+                    const { availableFilters: tempAvailable, registry: tempRegistry, orphans: tempOrphans } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, aggregation);
+                    availableFilters.push(...tempAvailable);  // array concat
+                    registry = extend(registry, tempRegistry)
+                    orphans.push(...tempOrphans);
                   }
                 }
+                this.props.registerAvailableFilters(type, availableFilters, registry, orphans);
               }
               if(isCompletionStep) {
                 this._loadRemainder(type, this.initialQuerySize, data.hits.total, hitArray);
@@ -308,8 +309,7 @@ class SearchResultList extends Component {
         results              = haveResults ? results : noResultsMessage;
         var searchFilters    = (<SearchFilters
                                   query = {this.props.query}
-                                  textSearchState={this.props.textSearchState}
-                                  sheetSearchState={this.props.sheetSearchState}
+                                  searchState={this._getSearchState(this.state.activeTab)}
                                   total = {this.state.totals["text"] + this.state.totals["sheet"]}
                                   textTotal = {this.state.totals["text"]}
                                   sheetTotal = {this.state.totals["sheet"]}

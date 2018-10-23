@@ -111,6 +111,7 @@ SearchState.metadataByType = {
     fieldBroad: 'naive_lemmatizer',
     field: 'naive_lemmatizer',
     aggregation_field_array: ['path'],
+    build_and_apply_filters: 'buildAndApplyTextFilters',
     sortType: 'relevance',
     sortTypeArray: [  // this array defines the sort options available for each search type
       {
@@ -134,7 +135,8 @@ SearchState.metadataByType = {
     fieldExact: null,
     fieldBroad: null,
     field: 'content',
-    aggregation_field_array: ['group.keyword', 'tags.keyword'],
+    aggregation_field_array: ['group', 'tags'],
+    build_and_apply_filters: 'buildAndApplySheetFilters',
     sortType: 'relevance',
     sortTypeArray: [
       {

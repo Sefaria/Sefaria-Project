@@ -25,7 +25,6 @@ class SearchSheetResult extends Component {
     render() {
         var data = this.props.data;
         var s = data._source;
-
         var snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
         snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
 
