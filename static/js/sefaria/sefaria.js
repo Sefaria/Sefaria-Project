@@ -1789,6 +1789,9 @@ Sefaria = extend(Sefaria, {
       "Please select a source sheet.": "אנא בחר דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
       "Source Sheet by" : "דף מקורות מאת",
+      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
+      "Pinned Sheet" : "דף מקורות נעוץ",
+      "Pin Sheet" : "נעיצת דף מקורות",
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",

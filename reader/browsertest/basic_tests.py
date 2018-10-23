@@ -23,8 +23,9 @@ class ReaderSuite(TestSuite):
 
     def setup(self):
         self.load_toc(my_temper=60)
-        self.driver.delete_all_cookies()
-        self.set_cookies_cookie()
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
 
 
 class PageloadSuite(TestSuite):
@@ -35,8 +36,9 @@ class PageloadSuite(TestSuite):
 
     def setup(self):
         self.load_toc(my_temper=60)
-        self.driver.delete_all_cookies()
-        self.set_cookies_cookie()
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
 
 
 class DeepReaderSuite(TestSuite):
@@ -328,7 +330,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
 class BrowserBackAndForward(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
-    exclude = ['FF/x12', 'Sf/x11'] # Buggy handling of Back button
+    exclude = ['FF/x12', 'FF/x13', 'Sf/x11', 'Sf/x12', 'Sf/x13'] # Buggy handling of Back button
 
     def body(self):
         # Sidebar

@@ -492,7 +492,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "title":          title,
         "desc":           desc,
         "ldBreadcrumbs":  breadcrumb
-    }, RequestContext(request))
+    })
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
     """
@@ -3201,6 +3201,21 @@ def digitized_by_sefaria(request):
                                 })
 
 
+def parashat_hashavua_redirect(request):
+    """ Redirects to this week's Parashah"""
+    diaspora = request.GET.get("diaspora", "1")
+    calendars = get_keyed_calendar_items() # TODO Support israel / customs
+    parashah = calendars["Parashat Hashavua"]
+    return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
+
+
+def daf_yomi_redirect(request):
+    """ Redirects to today's Daf Yomi"""
+    calendars = get_keyed_calendar_items()
+    daf_yomi = calendars["Daf Yomi"]
+    return redirect(iri_to_uri("/" + daf_yomi["url"]), permanent=False)
+
+
 def random_ref():
     """
     Returns a valid random ref within the Sefaria library.
@@ -3246,7 +3261,13 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
+    cb = request.GET.get("callback", None)
+    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    if len(topics_filtered) == 0:
+        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
+        resp['Content-Type'] = "application/json; charset=utf-8"
+        return resp
+    random_topic = choice(topics_filtered)['tag']
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
@@ -3254,8 +3275,7 @@ def random_by_topic_api(request):
         url = oref.url()
     except Exception:
         return random_by_topic_api(request)
-    cb = request.GET.get("callback", None)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=request.GET.get("callback", None))
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
