@@ -1630,19 +1630,26 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if lang != oref.index_node.parent.lexicon.version_lang:
+        try:
+
+            if lang != oref.index_node.parent.lexicon.version_lang:
+                self.text = []
+                self._version = None
+                # assumption here is that any dictionary is only returned in one language
+                return
+
+            self.text = oref.index_node.get_text()   # <- This is where the magic happens
+
+            self._version = Version().load({
+                "title": oref.index_node.parent.lexicon.index_title,
+                "versionTitle": oref.index_node.parent.lexicon.version_title,
+                "language": oref.index_node.parent.lexicon.version_lang
+            }, {"chapter":0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
+
+        except:
             self.text = []
             self._version = None
-            # assumption here is that any dictionary is only returned in one language
-            return
 
-        self.text = oref.index_node.get_text()   # <- This is where the magic happens
-
-        self._version = Version().load({
-            "title": oref.index_node.parent.lexicon.index_title,
-            "versionTitle": oref.index_node.parent.lexicon.version_title,
-            "language": oref.index_node.parent.lexicon.version_lang
-        }, {"chapter":0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
 
     def version(self):
         return self._version
@@ -2182,12 +2189,6 @@ class Ref(object):
 
         base = parts[0]
         title = None
-
-        logger.info("---------------")
-        logger.info(self.tref)
-        logger.info(base)
-        logger.info(self.index_node)
-        logger.info("---------------")
 
         # Remove letter from end of base reference until TitleNode or Term name matched, set `title` variable with matched title
         tndict = library.get_title_node_dict(self._lang)
@@ -3713,7 +3714,10 @@ class Ref(object):
             d.update({"language": lang})
 
         if self.index_node.is_virtual:
-            d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
+            try:
+                d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
+            except:
+                pass
             return d
 
         condition_addr = self.storage_address()

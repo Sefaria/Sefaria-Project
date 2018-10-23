@@ -72,6 +72,8 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
+    console.log(this.props.srefs)
+
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
@@ -286,6 +288,7 @@ class ConnectionsPanel extends Component {
                 </div>);
 
     } else if (this.props.mode === "Notes") {
+        console.log(this.props)
       content = (<div>
                   <AddNoteBox
                     srefs={this.props.srefs}
@@ -808,7 +811,8 @@ class AddNoteBox extends Component {
     $(ReactDOM.findDOMNode(this)).find(".noteText").focus();
   }
   saveNote() {
-    var text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
+    console.log(this.props)
+      var text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
     if (!text) { return; }
     var note = {
       text: text,
@@ -816,6 +820,8 @@ class AddNoteBox extends Component {
       type:  "note",
       public: !this.state.isPrivate
     };
+   console.log(note)
+
     if (this.props.noteId) { note._id = this.props.noteId; }
     var postData = { json: JSON.stringify(note) };
     var url = "/api/notes/";

@@ -13,6 +13,7 @@ except ImportError:
 
 import regex
 from . import abstract as abst
+from sefaria.system.database import db
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
@@ -1573,6 +1574,7 @@ class DictionaryNode(VirtualNode):
 
 
 class SheetNode(TitledTreeNode):
+    is_virtual = True
     def __init__(self, parent, title=None, tref=None):
         """
         A schema node created on the fly, in memory, to correspond to a sheet.
@@ -1584,9 +1586,10 @@ class SheetNode(TitledTreeNode):
         assert title and tref
 
         self.title = title
-        self._ref_regex = regex.compile(u"^" + regex.escape(title) + self.after_title_delimiter_re + u"([0-9]+)(?:" + self.after_address_delimiter_ref + u"|$)")
+        self._ref_regex = regex.compile(u"^" + regex.escape(title) + self.after_title_delimiter_re + u"([0-9]+)(?:" + self.after_address_delimiter_ref + u"([0-9]+)|$)")
         self._match = self._ref_regex.match(tref)
         self.sheetId = self._match.group(1)
+        self.nodeId = self._match.group(2)
         if not self.sheetId:
             raise Exception
 
@@ -1621,15 +1624,14 @@ class SheetNode(TitledTreeNode):
         return False
 
     def get_sections(self):
-        # s = self._match.group(2)
-        # return [int(s)] if s else []
-        return []
+        s = self._match.group(2)
+        return [int(s)] if s else []
 
     def address_class(self, depth):
         return self._addressTypes[depth]
 
     def get_text(self):
-        return ["wut"]
+        return [u"test"]
         # Return depth 1 array of strings from self.sheet_object
 
     def address(self):
