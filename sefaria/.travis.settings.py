@@ -116,6 +116,8 @@ GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
 GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "sefaria/gauth/client_secrets.json"
 
+GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
+GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
 LOGGING = {
     'version': 1,
