@@ -170,7 +170,7 @@ class SearchResultList extends Component {
       };
       extend(query_props, {
         get_filters: false,
-        appliedFilters
+        applied_filters: appliedFilters,
       });
 
       const runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
@@ -206,7 +206,6 @@ class SearchResultList extends Component {
           exact: fieldExact === field,
           success: data => {
               this.updateRunningQuery(type, null, false);
-              //TODO highlighting not working for sheets
               const hitArray = type === 'text' ? Sefaria.search.process_text_hits(data.hits.hits) : data.hits.hits;  // TODO need if statement? or will there be similar processing done on sheets?
               this.setState({
                 hits: extend(this.state.hits, {[type]: hitArray}),

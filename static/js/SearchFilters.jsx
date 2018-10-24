@@ -1,4 +1,5 @@
 const {
+  DropdownModal,
   LoadingMessage,
 }                = require('./Misc');
 const React      = require('react');
@@ -117,20 +118,28 @@ class SearchFilters extends Component {
             {(!!this.props.searchState.appliedFilters.length && !!this.props.total)?(this.getSelectedTitles("he").join(", ")):""}
           </span>
       </div>);
-    var filter_panel = (<SearchFilterPanel
+    const filter_panel = (this.props.type === 'text' ?
+      <TextSearchFilterPanel
         toggleFilterView={this.props.toggleFilterView}
         toggleExactSearch={this.toggleExactSearch}
         displayFilters={this.props.displayFilters}
         openedCategory={this.state.openedCategory}
         openedCategoryBooks={this.state.openedCategoryBooks}
         updateAppliedFilter={this.props.updateAppliedFilter}
-        query={this.props.query}
         availableFilters={this.props.searchState.availableFilters}
         closeBox={this.props.closeFilterView}
         isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
         handleFocusCategory={this.handleFocusCategory}
         resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
-    />);
+      /> :
+      <SheetSearchFilterPanel
+        toggleFilterView={this.props.toggleFilterView}
+        displayFilters={this.props.displayFilters}
+        updateAppliedFilter={this.props.updateAppliedFilter}
+        availableFilters={this.props.searchState.availableFilters}
+        closeBox={this.props.closeFilterView}
+      />
+    );
 
     var sort_panel = (<SearchSortBox
           type={this.props.type}
@@ -178,70 +187,118 @@ SearchFilters.propTypes = {
 };
 
 
-class SearchFilterPanel extends Component {
-  componentDidMount() {
-    document.addEventListener('mousedown', this.handleClickOutside, false);
-  }
-  componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside, false);
-  }
-  handleClickOutside(event) {
-    const domNode = ReactDOM.findDOMNode(this);
-    if ((!domNode || !domNode.contains(event.target)) && this.props.displayFilters) {
-      this.props.closeBox();
-    }
-  }
+class SearchDropdownButton extends Component {
   render() {
-    const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.displayFilters });
-    return (<div>
-      <div className={ filterTextClasses } tabIndex="0" onClick={this.props.toggleFilterView} onKeyPress={(e) => {e.charCode == 13 ? this.props.toggleFilterView(e):null}}>
-        <span className="int-en">Filter</span>
-        <span className="int-he">סינון</span>
-        {(this.props.displayFilters) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+    const { isOpen, toggle, enText, heText } = this.props;
+    const filterTextClasses = classNames({ searchFilterToggle: 1, active: isOpen });
+    return (
+      <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
+        <span className="int-en">{enText}</span>
+        <span className="int-he">{heText}</span>
+        {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
       </div>
-      <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
-        <div className="searchFilterBoxRow">
-          <div className="searchFilterCategoryBox">
-          {this.props.availableFilters.map(function(filter) {
-              return (<SearchFilter
-                  filter={filter}
-                  isInFocus={this.props.openedCategory === filter}
-                  focusCategory={this.props.handleFocusCategory}
-                  updateSelected={this.props.updateAppliedFilter}
-                  closeBox={this.props.closeBox}
-                  key={filter.path}/>);
-          }.bind(this))}
-          </div>
-          <div className="searchFilterBookBox">
-          {this.props.openedCategoryBooks.map(function(filter) {
-              return (<SearchFilter
-                  filter={filter}
-                  openedCategory={this.props.openedCategory}
-                  resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
-                  updateSelected={this.props.updateAppliedFilter}
-                  key={filter.path}/>);
-          }.bind(this))}
-          </div>
-        </div>
-        <div className={"searchFilterExactBox"}>
-          <SearchFilterExactBox
-            selected={this.props.isExactSearch}
-            checkBoxClick={this.props.toggleExactSearch}
-            />
-        </div>
-        <div style={{clear: "both"}}/>
-      </div>
-    </div>);
+    )
   }
 }
-SearchFilterPanel.propTypes = {
+SearchDropdownButton.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  toggle: PropTypes.func.isRequired,
+  enText: PropTypes.string.isRequired,
+  heText: PropTypes.string.isRequired,
+}
+
+
+class SheetSearchFilterPanel extends Component {
+  render() {
+    return (
+      <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
+        <SearchDropdownButton
+          isOpen={this.props.displayFilters}
+          toggle={this.props.toggleFilterView}
+          enText={"Filter"}
+          heText={"סינון"}
+        />
+        <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
+          <div className="searchFilterBoxRow">
+            <div className="searchFilterCategoryBox searchFilterSheetBox">
+            {this.props.availableFilters.filter(filter => filter.aggType === 'group').map(filter => (
+                  <SearchFilter
+                    filter={filter}
+                    isInFocus={false}
+                    updateSelected={this.props.updateAppliedFilter}
+                    closeBox={this.props.closeBox}
+                    key={filter.aggKey}
+                  />
+                )
+            )}
+            </div>
+          </div>
+        </div>
+      </DropdownModal>
+    );
+  }
+}
+SheetSearchFilterPanel.propTypes = {
+  toggleFilterView:    PropTypes.func.isRequired,
+  displayFilters:      PropTypes.bool.isRequired,
+  updateAppliedFilter: PropTypes.func.isRequired,
+  availableFilters:    PropTypes.array.isRequired,
+  closeBox:            PropTypes.func.isRequired,
+};
+
+class TextSearchFilterPanel extends Component {
+  render() {
+    return (
+      <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
+        <SearchDropdownButton
+          isOpen={this.props.displayFilters}
+          toggle={this.props.toggleFilterView}
+          enText={"Filter"}
+          heText={"סינון"}
+        />
+        <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
+          <div className="searchFilterBoxRow">
+            <div className="searchFilterCategoryBox">
+            {this.props.availableFilters.map(filter => {
+                return (<SearchFilter
+                    filter={filter}
+                    isInFocus={this.props.openedCategory === filter}
+                    focusCategory={this.props.handleFocusCategory}
+                    updateSelected={this.props.updateAppliedFilter}
+                    closeBox={this.props.closeBox}
+                    key={filter.aggKey}/>);
+            })}
+            </div>
+            <div className="searchFilterBookBox">
+            {this.props.openedCategoryBooks.map(function(filter) {
+                return (<SearchFilter
+                    filter={filter}
+                    openedCategory={this.props.openedCategory}
+                    resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
+                    updateSelected={this.props.updateAppliedFilter}
+                    key={filter.aggKey}/>);
+            }.bind(this))}
+            </div>
+          </div>
+          <div className={"searchFilterExactBox"}>
+            <SearchFilterExactBox
+              selected={this.props.isExactSearch}
+              checkBoxClick={this.props.toggleExactSearch}
+              />
+          </div>
+          <div style={{clear: "both"}}/>
+        </div>
+      </DropdownModal>
+    );
+  }
+}
+TextSearchFilterPanel.propTypes = {
   toggleFilterView:    PropTypes.func,
   displayFilters:      PropTypes.bool,
   availableFilters:    PropTypes.array,
   openedCategory:      PropTypes.object,
   updateAppliedFilter: PropTypes.func,
   openedCategoryBooks: PropTypes.array,
-  query:               PropTypes.string,
   isExactSearch:       PropTypes.bool,
   toggleExactSearch:   PropTypes.func,
   closeBox:            PropTypes.func,
@@ -250,19 +307,6 @@ SearchFilterPanel.propTypes = {
 
 
 class SearchSortBox extends Component {
-  componentDidMount() {
-    document.addEventListener('mousedown', this.handleClickOutside, false);
-  }
-  componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside, false);
-  }
-  handleClickOutside(event) {
-    const domNode = ReactDOM.findDOMNode(this);
-
-    if ((!domNode || !domNode.contains(event.target)) && this.props.visible) {
-      this.props.closeBox();
-    }
-  }
   handleClick(sortType) {
     if (sortType === this.props.sortType) {
       return;
@@ -273,12 +317,13 @@ class SearchSortBox extends Component {
   //<i className={(this.props.visible) ? "fa fa-caret-down fa-angle-down":"fa fa-caret-down fa-angle-up"} />
   render() {
     const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.visible });
-    return (<div>
-      <div className={ filterTextClasses } tabIndex="0" onClick={this.props.toggleSortView} onKeyPress={function(e) {e.charCode == 13 ? this.props.toggleSortView(e):null}.bind(this)}>
-        <span className="int-en">Sort</span>
-        <span className="int-he">מיון</span>
-        {(this.props.visible) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
-      </div>
+    return (<DropdownModal close={this.props.closeBox} isOpen={this.props.visible}>
+      <SearchDropdownButton
+        isOpen={this.props.visible}
+        toggle={this.props.toggleSortView}
+        enText={"Sort"}
+        heText={"מיון"}
+      />
       <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
         <table>
           <tbody>
@@ -301,7 +346,7 @@ class SearchSortBox extends Component {
           </tbody>
         </table>
       </div>
-    </div>);
+    </DropdownModal>);
   }
 }
 SearchSortBox.propTypes = {
@@ -439,14 +484,21 @@ class SearchFilter extends Component {
     }
   }
   render() {
+    const { filter, isInFocus } = this.props;
+    let enTitle = filter.title || filter.heTitle;
+    enTitle = enTitle || '(No Group)';
+    const enTitleIsHe = !filter.title && !!filter.heTitle;
+    let heTitle = filter.heTitle || filter.title;
+    heTitle = heTitle || '(בלי קבוצה)';
+    const heTitleIsEn = !filter.heTitle && !!filter.title;
     return(
       <li onClick={this.handleFocusCategory}>
-        <input type="checkbox" id={this.props.filter.path} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.path} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+this.props.filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}><span></span></label>
-        <span className="int-en"><span className="filter-title">{this.props.filter.title}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
-        <span className="int-he" dir="rtl"><span className="filter-title">{this.props.filter.heTitle}</span> <span className="filter-count">({this.props.filter.docCount})</span></span>
-        {this.props.isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
-        {this.props.isInFocus?<span className="int-he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
+        <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
+        <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.aggKey} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}><span></span></label>
+        <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+        <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+        {isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
+        {isInFocus?<span className="int-he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
       </li>);
   }
 }

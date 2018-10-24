@@ -1984,6 +1984,9 @@ a.readerNavCategory {
   height: 150px;
   overflow-y: auto;
 }
+.searchContent .searchFilterCategoryBox.searchFilterSheetBox {
+  width: 100%;
+}
 .interface-hebrew .searchContent .searchFilterCategoryBox,
 .interface-hebrew .searchContent .searchFilterBookBox {
   /*float: right;*/

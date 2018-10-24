@@ -111,7 +111,8 @@ SearchState.metadataByType = {
     fieldBroad: 'naive_lemmatizer',
     field: 'naive_lemmatizer',
     aggregation_field_array: ['path'],
-    build_and_apply_filters: 'buildAndApplyTextFilters',
+    build_and_apply_filters: 'buildAndApplyTextFilters',  // func name from Search.js
+    make_filter_query: 'makeTextFilterQuery',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [  // this array defines the sort options available for each search type
       {
@@ -128,6 +129,7 @@ SearchState.metadataByType = {
         heName: 'כרונולוגי',
         fieldArray: ['comp_date', 'order'],  // if sort_method == 'sort', then we need to define fieldArray, which is a list of fields we want to sort on
         sort_method: 'sort',
+        direction: 'asc',
       }
     ],
   },
@@ -136,7 +138,8 @@ SearchState.metadataByType = {
     fieldBroad: null,
     field: 'content',
     aggregation_field_array: ['group', 'tags'],
-    build_and_apply_filters: 'buildAndApplySheetFilters',
+    build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
+    make_filter_query: 'makeSheetFilterQuery',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [
       {
@@ -150,18 +153,21 @@ SearchState.metadataByType = {
         name: 'Date Created',
         fieldArray: ['dateCreated'],
         sort_method: 'sort',
+        direction: 'desc',
       },
       {
         type: 'dateModified',
         name: 'Date Modified',
         fieldArray: ['dateModified'],
         sort_method: 'sort',
+        direction: 'desc',
       },
       {
         type: 'views',
         name: 'Views',
         fieldArray: ['views'],
         sort_method: 'sort',
+        direction: 'desc',
       },
     ],
   },

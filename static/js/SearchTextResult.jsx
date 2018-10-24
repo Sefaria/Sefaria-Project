@@ -1,5 +1,4 @@
 const React      = require('react');
-const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
 const classNames = require('classnames');
@@ -27,37 +26,36 @@ class SearchTextResult extends Component {
             this.props.onResultClick(s.ref, {[s.lang]: s.version}, {"highlight": this.props.query}); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
         }
     }
+    get_snippet_markup(data) {
+        var snippet;
+        var field;
+        if (data.highlight) {
+          field = Object.keys(data.highlight)[0]; //there should only be one key
+          snippet = data.highlight[field].join("...");
+        } else {
+          field = "exact";
+          snippet = data._source[field];
+        }
+        // if (data.highlight && data.highlight[field]) {
+
+        // } else {
+        //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
+        // }
+        let lang = Sefaria.hebrew.isHebrew(snippet) ? "he" : "en";
+        snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
+        return {markup:{__html:snippet}, lang: lang};
+    }
     render () {
         var data = this.props.data;
         var s = this.props.data._source;
         const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${s.version.replace(/ /g, "_")}&qh=${this.props.query}`;
 
-        function get_snippet_markup() {
-            var snippet;
-            var field;
-            if (data.highlight) {
-              field = Object.keys(data.highlight)[0]; //there should only be one key
-              snippet = data.highlight[field].join("...");
-            } else {
-              field = "exact";
-              snippet = data._source[field];
-            }
-            // if (data.highlight && data.highlight[field]) {
-
-            // } else {
-            //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
-            // }
-            let lang = Sefaria.hebrew.isHebrew(snippet) ? "he" : "en";
-            snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").html();
-            return {markup:{__html:snippet}, lang: lang};
-        }
-
-        var more_results_caret =
+        const more_results_caret =
             (this.state.duplicatesShown)
             ? <i className="fa fa-caret-down fa-angle-down"></i>
             : <i className="fa fa-caret-down"></i>;
 
-        var more_results_indicator = (!(data.duplicates)) ? "" :
+        const more_results_indicator = (!(data.duplicates)) ? "" :
                 <div className='similar-trigger-box' onClick={this.toggleDuplicates}>
                     <span className='similar-title int-he'>
                         { data.duplicates.length } {(data.duplicates.length > 1) ? " גרסאות נוספות" : " גרסה נוספת"}
@@ -68,7 +66,7 @@ class SearchTextResult extends Component {
                     {more_results_caret}
                 </div>;
 
-        var shown_duplicates = (data.duplicates && this.state.duplicatesShown) ?
+        const shown_duplicates = (data.duplicates && this.state.duplicatesShown) ?
             (<div className='similar-results'>
                     {data.duplicates.filter(result => !!result._source.version).map(function(result) {
                         var key = result._source.ref + "-" + result._source.version;
@@ -81,8 +79,8 @@ class SearchTextResult extends Component {
                         }.bind(this))}
             </div>) : null;
 
-        var snippetMarkup = get_snippet_markup();
-        var snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
+        const snippetMarkup = this.get_snippet_markup(data);
+        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         return (
             <div className="result text_result">
                 <a href={href} onClick={this.handleResultClick}>

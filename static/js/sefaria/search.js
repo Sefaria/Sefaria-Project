@@ -95,10 +95,10 @@ class Search {
         o["highlight"]["fields"][field] = {fragment_size: 200};
 
         // deal with sort_type
-        const { sortTypeArray, aggregation_field_array } = SearchState.metadataByType[type];
-        const { sort_method, fieldArray, field: sort_field, score_missing } = sortTypeArray.find( x => x.type === sort_type );
+        const { sortTypeArray, aggregation_field_array, make_filter_query } = SearchState.metadataByType[type];
+        const { sort_method, fieldArray, field: sort_field, score_missing, direction: sort_direction } = sortTypeArray.find( x => x.type === sort_type );
         if (sort_method == "sort") {
-            o["sort"] = fieldArray.map( x => ({ [x]: {} }) );  // wrap your head around that es6 nonsense
+            o["sort"] = fieldArray.map( x => ({ [x]: { order: sort_direction } }) );  // wrap your head around that es6 nonsense
         } else if (sort_method == 'score' && !!sort_field) {
 
             o["query"] = {
@@ -130,23 +130,12 @@ class Search {
             inner_query = core_query;
         } else {
             //Filtered query.  Add clauses.  Don't re-request potential filters.
-            var clauses = [];
-            for (var i = 0; i < applied_filters.length; i++) {
-
-                var filterSuffix = applied_filters[i].indexOf("/") != -1 ? ".*" : "/.*"; //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
-                clauses.push({
-                    regexp: {
-                        path: RegExp.escape(applied_filters[i]) + filterSuffix
-                    }
-                });
-                /* Test for Commentary2 as well as Commentary */
-            }
             inner_query = {
                 bool: {
                     must: core_query,
                     filter: {
                       bool: {
-                        should: clauses
+                        should: applied_filters.map(this[make_filter_query])
                       }
                     }
                 }
@@ -275,11 +264,11 @@ class Search {
             if (rawTree.Commentary2 && rawTree.Commentary2[cat]) { docCount += rawTree.Commentary2[cat].docCount; }
             extend(commentaryNode, {
                 "title": cat + " Commentary",
-                "path": "Commentary/" + cat,
+                "aggKey": "Commentary/" + cat,
                 "heTitle": "מפרשי" + " " + toc_branch["heCategory"],
                 "docCount": docCount
             });
-            registry[commentaryNode.path] = commentaryNode;
+            registry[commentaryNode.aggKey] = commentaryNode;
             filters.push(commentaryNode);
             commentaryNode = new FilterNode();
           }
@@ -297,7 +286,7 @@ class Search {
             path.push(branch["category"]);  // Place this category at the *end* of the path
             extend(node, {
               "title": path.slice(-1)[0],
-              "path": path.join("/"),
+              "aggKey": path.join("/"),
               "heTitle": branch["heCategory"]
             });
 
@@ -310,7 +299,7 @@ class Search {
               path.push(branch["title"]);
               extend(node, {
                  "title": path.slice(-1)[0],
-                 "path": path.join("/"),
+                 "aggKey": path.join("/"),
                  "heTitle": branch["heTitle"]
               });
           }
@@ -328,7 +317,7 @@ class Search {
 
               // Do we need both of these in the registry?
               registry[node.getId()] = node;
-              registry[node.path] = node;
+              registry[node.aggKey] = node;
 
               path.pop();
               return node;
@@ -342,10 +331,10 @@ class Search {
 
     applyFilters(registry, appliedFilters) {
       var orphans = [];  // todo: confirm behavior
-      appliedFilters.forEach(path => {
-        var node = registry[path];
+      appliedFilters.forEach(aggKey => {
+        var node = registry[aggKey];
         if (node) { node.setSelected(true); }
-        else { orphans.push(path); }
+        else { orphans.push(aggKey); }
       });
       return orphans;
     }
@@ -362,19 +351,37 @@ class Search {
         const isHeb = Sefaria.hebrew.isHebrew(b.key);
         const enTitle = isHeb ? '' : b.key;
         const heTitle = isHeb ? b.key : (aggType === 'group' || !Sefaria.terms[b.key] ? '' : Sefaria.terms[b.key].he);
-        return new FilterNode(enTitle, heTitle, b.doc_count, aggType);
+        const aggKey = enTitle || heTitle;
+        return new FilterNode(enTitle, heTitle, b.doc_count, aggKey, aggType);
       });
       return { availableFilters, registry: {}, orphans: [] };
+    }
+
+    makeTextFilterQuery(aggKey) {
+      return {
+        regexp: {
+          path: RegExp.escape(aggKey) + (aggKey.indexOf("/") != -1 ? ".*" : "/.*")  //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
+        }
+      };
+    }
+
+    makeSheetFilterQuery(aggKey) {
+      return {
+        term: {
+          group: aggKey
+        }
+      };
     }
 
 }
 
 class FilterNode {
   //FilterTree object - for category filters
-  constructor(title, heTitle, docCount, aggType) {
+  constructor(title, heTitle, docCount, aggKey, aggType) {
       this.title = title;
-      this.heTitle = heTitle,
+      this.heTitle = heTitle;
       this.docCount = docCount;
+      this.aggKey = aggKey;
       this.aggType = aggType;
       this.children = [];
       this.parent = null;
@@ -399,7 +406,7 @@ class FilterNode {
       return results;
   }
   getId() {
-      return this.path.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
+      return this.aggKey.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
   }
   isSelected() {
       return (this.selected == 1);
@@ -470,7 +477,7 @@ class FilterNode {
           return [];
       }
       if (this.isSelected()) {
-          return[this.path];
+          return [this.aggKey];
       }
       var results = [];
       for (var i = 0; i < this.children.length; i++) {
@@ -494,7 +501,7 @@ class FilterNode {
   clone() {
     const cloned = new FilterNode();
     cloned.selected = this.selected;
-    cloned.path = this.path;
+    cloned.aggKey = this.aggKey;
     cloned.title = this.title;
     cloned.heTitle = this.heTitle;
     cloned.docCount = this.docCount;

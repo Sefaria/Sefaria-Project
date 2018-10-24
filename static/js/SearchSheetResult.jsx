@@ -22,15 +22,14 @@ class SearchSheetResult extends Component {
           {hitCallback: () => window.location = href}
       );
     }
+    get_snippet_markup(data) {
+      let snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
+      snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
+      return { __html: snippet };
+    }
     render() {
-        var data = this.props.data;
-        var s = data._source;
-        var snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
-        snippet = $("<div>" + snippet.replace(/^[ .,;:!-)\]]+/, "") + "</div>").text();
-
-        function get_version_markup() {
-            return {__html: s.version};
-        }
+        const data = this.props.data;
+        const s = data._source;
         var clean_title = $("<span>" + s.title + "</span>").text();
         var href = "/sheets/" + s.sheetId;
         return (
@@ -39,7 +38,7 @@ class SearchSheetResult extends Component {
               <div className="result_text_box">
                 <a href={s.profile_url} onClick={this.handleProfileClick} className='owner_name'>{s.owner_name}</a>
                 <a className='result-title' href={href} onClick={this.handleSheetClick}>{clean_title}</a>
-                <div className="snippet">{snippet}</div>
+                <div className="snippet" dangerouslySetInnerHTML={this.get_snippet_markup(data)}></div>
               </div>
             </div>
         );
