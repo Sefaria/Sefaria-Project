@@ -210,6 +210,8 @@ SearchDropdownButton.propTypes = {
 
 class SheetSearchFilterPanel extends Component {
   render() {
+    const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
+    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType === 'tags');
     return (
       <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
         <SearchDropdownButton
@@ -221,7 +223,7 @@ class SheetSearchFilterPanel extends Component {
         <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
           <div className="searchFilterBoxRow">
             <div className="searchFilterCategoryBox searchFilterSheetBox">
-            {this.props.availableFilters.filter(filter => filter.aggType === 'group').map(filter => (
+            {groupFilters.map(filter => (
                   <SearchFilter
                     filter={filter}
                     isInFocus={false}
@@ -232,6 +234,11 @@ class SheetSearchFilterPanel extends Component {
                 )
             )}
             </div>
+          </div>
+          <div>
+            {tagFilters.map(tag => (
+              <div key={tag.aggKey}>{tag.aggKey}</div>
+            ))}
           </div>
         </div>
       </DropdownModal>
@@ -401,6 +408,42 @@ SearchFilterExactBox.propTypes = {
   checkBoxClick: PropTypes.func
 };
 
+
+class SearchTagFilter extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {selected: props.filter.selected};
+  }
+  componentWillReceiveProps(newProps) {
+    if (newProps.filter.selected != this.state.selected) {
+      this.setState({selected: newProps.filter.selected});
+    }
+  }
+  handleFilterClick(evt) {
+    //evt.preventDefault();
+    this.props.updateSelected(this.props.filter)
+  }
+  handleKeyPress(e) {
+    if (e.charCode == 13) { // enter
+      this.handleFilterClick(e);
+    }
+  }
+  render() {
+    const { filter } = this.props;
+    let enTitle = filter.title || filter.heTitle;
+    enTitle = enTitle || '(No Tag)';
+    const enTitleIsHe = !filter.title && !!filter.heTitle;
+    let heTitle = filter.heTitle || filter.title;
+    heTitle = heTitle || '(ללא תוית)';
+    const heTitleIsEn = !filter.heTitle && !!filter.title;
+    return (
+      <div className="tag-filter">
+        <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+        <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+      </div>
+    )
+  }
+}
 
 class SearchFilter extends Component {
   constructor(props) {
