@@ -69,7 +69,7 @@ class AccountPanel extends Component {
         <div className="content hasFooter">
           <div className="contentInner">
             <h1>
-              <a href="/logout" className="button transparent">
+              <a href="/logout" className="button transparent logoutLink">
                 <span className="int-en">Log Out</span>
                 <span className="int-he">ניתוק</span>
               </a>
