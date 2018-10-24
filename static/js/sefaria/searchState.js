@@ -78,6 +78,7 @@ class SearchState {
     other,
     fields,
   }) {
+    if (!(other instanceof SearchState)) { return false; }
     for (let field of fields) {
       const thisField = this[field];
       const otherField = other[field];

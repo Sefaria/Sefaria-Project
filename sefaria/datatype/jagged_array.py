@@ -113,7 +113,7 @@ class JaggedArray(object):
                     temp_subarray_indexes[first_diff_index] = i
                     for j in xrange(first_diff_index+1,N):
                         temp_subarray_len = self.sub_array_length(temp_subarray_indexes)
-                        if temp_subarray_len == 0:
+                        if temp_subarray_len == 0 or temp_subarray_len is None:  # it's None if you're asking for length past end of array
                             is_zero_len_section = True
                             break
 

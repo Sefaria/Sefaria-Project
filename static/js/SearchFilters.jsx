@@ -85,7 +85,7 @@ class SearchFilters extends Component {
   _type_button(en, he, total, on_click, active) {
     // if (!total) { return "" }
       var total_with_commas = this._add_commas(total);
-      var classes = classNames({"type-button": 1, active});
+      var classes = classNames({"search-dropdown-button": 1, active});
 
       return (
         <div className={classes} onClick={on_click} onKeyPress={function(e) {e.charCode == 13 ? on_click(e):null}.bind(this)} role="button" tabIndex="0">
@@ -235,9 +235,13 @@ class SheetSearchFilterPanel extends Component {
             )}
             </div>
           </div>
-          <div>
-            {tagFilters.map(tag => (
-              <div key={tag.aggKey}>{tag.aggKey}</div>
+          <div className="tag-filter-outer">
+            {tagFilters.map(filter => (
+              <SearchTagFilter
+                filter={filter}
+                updateSelected={this.props.updateAppliedFilter}
+                key={filter.aggKey}
+              />
             ))}
           </div>
         </div>
@@ -437,12 +441,16 @@ class SearchTagFilter extends Component {
     heTitle = heTitle || '(ללא תוית)';
     const heTitleIsEn = !filter.heTitle && !!filter.title;
     return (
-      <div className="tag-filter">
+      <div className="type-button">
         <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
         <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
       </div>
     )
   }
+}
+SearchTagFilter.propTypes = {
+  updateSelected: PropTypes.func.isRequired,
+  filter:         PropTypes.object.isRequired,
 }
 
 class SearchFilter extends Component {

@@ -1834,7 +1834,7 @@ a.readerNavCategory {
   flex-direction: row;
   align-self: flex-start;
 }
-.searchTopMatter .type-button {
+.searchTopMatter .search-dropdown-button {
   font-size: 18px;
   color: #999;
   font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1849,7 +1849,7 @@ a.readerNavCategory {
           user-select: none; /* Non-prefixed version, currently
                                 supported by Chrome and Opera */
 }
-.searchTopMatter .type-button.active {
+.searchTopMatter .search-dropdown-button.active {
   color: #000;
   border-bottom: 4px solid #CCC;
 }
@@ -1858,6 +1858,7 @@ a.readerNavCategory {
   text-align: center;
   font-size: 12px;
 }
+.searchFilterBoxes .type-button,
 .readerSheetsNav .type-button {
   padding: 6px 14px;
   margin: 5px;
@@ -1870,10 +1871,11 @@ a.readerNavCategory {
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .type-button .he,
+.searchFilterBoxes .type-button .he,
 .readerSheetsNav .type-button .he {
   font-family: "Heebo", sans-serif;
 }
+.searchFilterBoxes .type-button,
 .readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
@@ -1893,6 +1895,8 @@ a.readerNavCategory {
 }
 .searchContent .searchFilterToggle {
   color: #666;
+  margin-left: 5px;
+  margin-right: 5px;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -1929,7 +1933,7 @@ a.readerNavCategory {
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-  margin-top: 6px;
+  margin-top: 24px;
   background: #F9F9F7;
   width: 100%;
   display: flex;
@@ -1946,6 +1950,11 @@ a.readerNavCategory {
 }
 .interface-hebrew .searchFilterBoxes {
   left: 0;
+}
+.searchFilterBoxes .tag-filter-outer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .searchContent .searchFilterBoxes .searchFilterBoxRow {

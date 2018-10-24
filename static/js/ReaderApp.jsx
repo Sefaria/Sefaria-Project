@@ -364,10 +364,16 @@ class ReaderApp extends Component {
       nextPanels = this.state.panels;
     }
 
-    for (var i = 0; i < prevPanels.length; i++) {
+    for (let i = 0; i < prevPanels.length; i++) {
       // Cycle through each panel, compare previous state to next state, looking for differences
-      var prev  = prevPanels[i];
-      var next  = nextPanels[i];
+      const prev  = prevPanels[i];
+      const next  = nextPanels[i];
+      // history does not preserve custom objects
+      const prevTextSearchState = new SearchState(prev.textSearchState);
+      const prevSheetSearchState = new SearchState(prev.sheetSearchState);
+      const nextTextSearchState = new SearchState(next.textSearchState);
+      const nextSheetSearchState = new SearchState(next.sheetSearchState);
+
 
       if (!prev || ! next) { return true; }
 
@@ -386,8 +392,8 @@ class ReaderApp extends Component {
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
-          (!prev.textSearchState.isEqual({ other: next.textSearchState, fields: ["appliedFilters", "field", "sortType"]})),
-          (!prev.sheetSearchState.isEqual({ other: next.sheetSearchState, fields: ["appliedFilters", "field", "sortType"]})),
+          (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})),
+          (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})),
           (prev.settings.language != next.settings.language) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah))
 
@@ -843,7 +849,7 @@ class ReaderApp extends Component {
     // compared to the header. This functions sets appropriate padding to compensate.
     var width = Sefaria.util.getScrollbarWidth();
     // These are the divs that actually scroll
-    var $container = $(ReactDOM.findDOMNode(this)).find(".content, .textColumn"); 
+    var $container = $(ReactDOM.findDOMNode(this)).find(".content, .textColumn");
     if (this.state.panels.length > 1) {
       $container.css({paddingRight: "", paddingLeft: ""});
     } else {
@@ -851,7 +857,7 @@ class ReaderApp extends Component {
         $container.css({paddingRight: width, paddingLeft: 0});
       } else {
         $container.css({paddingRight: 0, paddingLeft: width});
-      }      
+      }
     }
   }
   handleNavigationClick(ref, currVersions, options) {
