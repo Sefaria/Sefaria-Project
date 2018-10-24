@@ -16,10 +16,17 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
-/* 
-Style Guide Font Hierarchy 
+/*
+Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
 */
+.int-he {
+  font-family: "Heebo", sans-serif;
+  direction: rtl;
+}
+.int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
 .featureTitle .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 50px;
@@ -45,7 +52,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-size: 16px;
   font-weight: normal;
   color: #666;
-  text-transform: uppercase,
+  text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 .smallText .int-en {
@@ -60,7 +67,9 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-weight: normal;
   color: #000;
 }
-.contentText .int-en {
+.contentText .int-en,
+.contentText .en,
+.contentText.en {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
   font-weight: normal;
@@ -106,7 +115,9 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-weight: normal;
   color: #000;
 }
-.contentText .int-he {
+.contentText .int-he,
+.contentText .he,
+.contentText.he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 18px;
   font-weight: normal;
@@ -167,10 +178,17 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 input.noselect {
     -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
-.interface-hebrew #panelWrapBox{
+.interface-hebrew .int-en,
+.interface-english .int-he {
+  display: none;
+}
+.interface-hebrew #panelWrapBox,
+.readerApp.interface-hebrew .readerPanel
+{
   direction: rtl;
 }
-.interface-english #panelWrapBox{
+.interface-english #panelWrapBox,
+.readerApp.interface-english .readerPanel {
   direction: ltr;
 }
 #panelWrapBox {
@@ -2063,20 +2081,23 @@ a.readerNavCategory {
 .searchContent .similar-results .result {
   border-top: none;
 }
-.searchContent .result .result-title {
-  color: #999;
+.searchContent .text_result .result-title {
+  color: #666;
   font-weight: lighter;
-  letter-spacing: 1px;
-  font-size: 18px;
-  display: block;
   padding: 20px 0 5px;
+  letter-spacing: 1px;
+  display: block;
+}
+.searchContent .text_result .result-title .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
+}
+.searchContent .text_result .result-title .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
-}
-.readerPanel.english .searchContent .result .result-title .en,
-.readerPanel.hebrew .searchContent .result .result-title .he {
-  display: block;
 }
 .readerPanel.english .searchContent .text_result .snippet.he,
 .readerPanel.hebrew .searchContent .text_result .snippet.en,
@@ -2084,8 +2105,7 @@ a.readerNavCategory {
   display: block;
 }
 .searchContent .text_result .snippet {
-  color: #666;
-  font-size: 2.3em;
+
 }
 .searchContent .sheet_result .snippet {
   color: #666;
@@ -4615,26 +4635,7 @@ h2.splitHeader .he {
   opacity: 0.5;
   float: right;
 }
-/*** Interface lang - merge with static.css? ***/
-.interface-hebrew .int-en {
-  display: none;
-}
-.interface-english .int-he {
-  display: none;
-}
-.readerApp.interface-hebrew .readerPanel {
-  direction: rtl;
-}
-.readerApp.interface-english .readerPanel {
-  direction: ltr;
-}
-.int-he {
-  font-family: "Heebo", sans-serif;
-  direction: rtl;
-}
-.int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
+
 .searchBox .keyboardInputInitiator {
     opacity: 0;
     width: 16px;
@@ -4866,16 +4867,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer.interface-english .int-he, .interface-english #footer .int-he {
   display: none;
 }
+/*
 #footer.interface-english .int-en, .interface-english #footer .int-en {
   display: inline;
 }
+*/
 #footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
   display: inline;
   text-align: right;
 }
+/*
 #footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
   display: none;
 }
+*/
 #footerInner {
   max-width: 1000px;
   margin: 0 auto;
