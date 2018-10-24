@@ -2194,7 +2194,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-size: 16em;
+  font-size: 16px;
 }
 .searchContent .sheet_result .result_text_box a.result-title {
   display: block;
