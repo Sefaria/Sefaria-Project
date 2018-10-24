@@ -181,7 +181,6 @@ def get_links(tref, with_text=True):
                     # Lookup and save top level text, only if we haven't already
                     top_nref = top_oref.normal()
                     if top_nref not in texts:
-                        texts[top_nref] = {}
                         for lang in ("en", "he"):
                             top_nref_tc = TextChunk(top_oref, lang)
                             versionInfoMap = None if not top_nref_tc._versions else {
@@ -205,7 +204,8 @@ def get_links(tref, with_text=True):
                                 license = None
                                 versionTitleInHebrew = None
                             version = top_nref_tc.sources if top_nref_tc.is_merged else (top_nref_tc.version().versionTitle if top_nref_tc._versions else None)
-
+                            if top_nref not in texts:
+                                texts[top_nref] = {}
                             texts[top_nref][lang] = {
                                 'ja': top_nref_tc.ja(),
                                 'version': version,
@@ -233,9 +233,9 @@ def get_links(tref, with_text=True):
                             start_sources = temp_nref_data['ja'].distance([], sections)
                             if sections == toSections:
                                 # simplify for the common case
-                                versions = temp_version[start_sources]
-                                licenses = temp_nref_data['license'][start_sources]
-                                versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources]
+                                versions = temp_version[start_sources] if start_sources < len(temp_version) - 1 else None
+                                licenses = temp_nref_data['license'][start_sources] if start_sources < len(temp_nref_data['license']) - 1 else None
+                                versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources] if start_sources < len(temp_nref_data['versionTitleInHebrew']) - 1 else None
                             else:
                                 end_sources = temp_nref_data['ja'].distance([], toSections)
                                 versions = temp_version[start_sources:end_sources + 1]
