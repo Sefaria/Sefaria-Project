@@ -672,6 +672,13 @@ input#id_email{
 .registrationContent button {
   width: 100%;
 }
+.registrationContent a {
+  display: block;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  font-style: normal;
+}
 .registrationContent a.registration-links{
   margin-top: 20px;
 }
