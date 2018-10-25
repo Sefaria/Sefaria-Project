@@ -670,31 +670,7 @@ input#id_email{
   direction: ltr;
 }
 .registrationContent button {
-  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
-  display: block;
   width: 100%;
-  color: white;
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 12px 0px;
-  margin-top: 30px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.registrationContent button:hover {
-  background-color: #212E50;
-  color: #999;
-}
-.registrationContent a {
-  display: block;
-  text-align: center;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
 }
 .registrationContent a.registration-links{
   margin-top: 20px;
