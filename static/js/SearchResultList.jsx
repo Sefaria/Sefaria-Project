@@ -247,7 +247,7 @@ class SearchResultList extends Component {
           newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
           newHits[newHitsIndex].insertInOrder(hits[i], (a, b) => a._source.version_priority - b._source.version_priority);
         } else {
-          newHits.push([hits[i]])
+          newHits.push([hits[i]]);
           newHitsObj[currRef] = newHits.length - 1;
         }
       }
