@@ -649,6 +649,9 @@ input.noselect {
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
+.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
+  direction: ltr;
+}
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
 .readerPanel.english .readerNavMenu .gridBox{
@@ -1085,6 +1088,14 @@ a.readerNavCategory {
 }
 .hebrew .gridBox td:last-child {
   border-left: 0;
+}
+.hebrew .readerTocResources .gridBox td:first-child {
+  border-left: 0;
+  border-right: 3px solid rgba(0,0,0,0);
+}
+.hebrew .readerTocResources .gridBox td:last-child {
+  border-left: 3px solid rgba(0,0,0,0);
+  border-right: 0;
 }
 .readerNavMenu .resourcesLink .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
