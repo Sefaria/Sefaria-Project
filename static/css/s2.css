@@ -2092,18 +2092,21 @@ a.readerNavCategory {
 .searchContent .similar-results .result {
   border-top: none;
 }
-.searchContent .text_result .result-title {
+.searchContent .text_result .result-title,
+.searchContent .sheet_result .result-title {
   color: #666;
   font-weight: lighter;
   padding: 20px 0 5px;
   letter-spacing: 1px;
   display: block;
 }
-.searchContent .text_result .result-title .int-he {
+.searchContent .text_result .result-title .int-he,
+.searchContent .sheet_result .result-title .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 22px;
 }
-.searchContent .text_result .result-title .int-en {
+.searchContent .text_result .result-title .int-en,
+.searchContent .sheet_result .result-title .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
 }
@@ -2117,14 +2120,6 @@ a.readerNavCategory {
 }
 .searchContent .text_result .snippet {
 
-}
-.searchContent .sheet_result .snippet {
-  color: #666;
-  font-size: 18px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4em;
-  max-height: 2.8em;
 }
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
@@ -2152,10 +2147,10 @@ a.readerNavCategory {
   padding: 0 5px;
 }
 
-.searchContent .text_result .owner_image {
+.searchContent .sheet_result .owner_image {
   height: 30px;
   width: 30px;
-
+  vertical-align:middle;
 }
 
 .searchContent .sheet_result {
@@ -2163,38 +2158,6 @@ a.readerNavCategory {
   margin: 15px 0;
 }
 
-.searchContent .sheet_result .result_img_box {
-  width: 40px;
-  padding-right: 20px;
-  height: 100px;
-  float: left;
-  margin-top: 4px;
-}
-.searchContent .sheet_result .result_text_box {
-  height: 100px;
-}
-.searchContent .sheet_result .result_text_box a.owner_name {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  display: block;
-  color: #666;
-  text-decoration: none;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  font-size: 16px;
-}
-.searchContent .sheet_result .result_text_box a.result-title {
-  display: block;
-  color: #000;
-  text-decoration: none;
-  letter-spacing: 1px;
-  font-size: 18px;
-  padding: 0;
-  margin: 8px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4em;
-  max-height: 2.8em;
-}
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
