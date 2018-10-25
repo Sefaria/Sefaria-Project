@@ -867,7 +867,7 @@ input#id_email{
   display: flex;
   flex-flow: row wrap;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: space-between;
 }
 #teamPage .teamMember, #teamPage .teamBoardMember {
   font-size: 20px;
@@ -875,7 +875,7 @@ input#id_email{
   display: inline-block;
   margin-bottom: 35px;
   padding-bottom: 35px;
-  min-width: 32%;
+  width: 32%;
 }
 #teamPage .teamBoardMember {
   border-bottom: none;
