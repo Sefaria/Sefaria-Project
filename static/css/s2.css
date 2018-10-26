@@ -2110,6 +2110,9 @@ a.readerNavCategory {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
 }
+.searchContent .sheet_result .result-title {
+  font-size: 18px;
+}
 .searchContent .result .result-title:hover {
   text-decoration: underline;
 }
@@ -2122,8 +2125,11 @@ a.readerNavCategory {
 
 }
 .searchContent .sheet_result .snippet {
-    font-family: "adobe-garamond-pro", Georgia, serif;
-    font-size: 18px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+}
+.searchContent .sheet_result .snippet:hover {
+  text-decoration: none;
 }
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
