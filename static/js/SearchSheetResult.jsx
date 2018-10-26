@@ -36,9 +36,11 @@ class SearchSheetResult extends Component {
         var href = "/sheets/" + s.sheetId;
         return (
             <div className='result sheet_result'>
-                <a className='result-title' href={href} onClick={this.handleSheetClick}>{clean_title}
-                <div className="snippet">{snippet}</div></a>
-              <div className="version"><a href={s.profile_url} onClick={this.handleProfileClick}><img className='img-circle owner_image' src={s.owner_image} alt={s.owner_name} /> <a href={s.profile_url} onClick={this.handleProfileClick} className='owner_name'>{s.owner_name}</a></a></div>
+                <a className='result-title' href={href} onClick={this.handleSheetClick}>
+                    <div>{clean_title}</div>
+                    <div className="snippet">{snippet}</div>
+                </a>
+              <a href={s.profile_url} onClick={this.handleProfileClick}><div className="version"><img className='img-circle owner_image' src={s.owner_image} alt={s.owner_name} /><span className='owner_name'>{s.owner_name}</span></div></a>
             </div>
         );
     }

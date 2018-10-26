@@ -2121,6 +2121,10 @@ a.readerNavCategory {
 .searchContent .text_result .snippet {
 
 }
+.searchContent .sheet_result .snippet {
+    font-family: "adobe-garamond-pro", Georgia, serif;
+    font-size: 18px;
+}
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
 }
