@@ -922,7 +922,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
             #TODO However, most false positives will be filtered out in library._get_ref_from_match()
 
-            reg += ur"(?:\s*[-\u2013\u2011]\s*"  # maybe there's a dash (either n or m dash) and a range
+            reg += ur"(?:\s*[-\u2010-\u2015\u05BE]\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += ur"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
@@ -2018,7 +2018,7 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:Chapter|chapter|Perek|perek|s\.|ch\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7(?:\u05d9\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space

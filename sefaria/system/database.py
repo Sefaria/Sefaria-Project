@@ -19,7 +19,7 @@ else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
-        if TEST_DB not in client.database_names():
+        if TEST_DB not in client.list_database_names():
             client.admin.command('copydb',
                                  fromdb=SEFARIA_DB,
                                  todb=TEST_DB)
@@ -78,6 +78,9 @@ def ensure_indices():
     db.sheets.ensure_index("dateModified")
     db.sheets.ensure_index("sources.ref")
     db.sheets.ensure_index("includedRefs")
+    db.sheets.ensure_index("tags")
+    db.sheets.ensure_index("owner")
+    db.sheets.ensure_index("assignment_id")
     db.texts.ensure_index("title")
     db.texts.ensure_index([("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)])
     db.texts.ensure_index([("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)])

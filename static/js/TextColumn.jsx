@@ -18,7 +18,6 @@ class TextColumn extends Component {
     this.$container          = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
     this.windowMiddle        = $(window).outerHeight() / 2;
-    this.setPaddingForScrollbar();
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
@@ -279,19 +278,10 @@ class TextColumn extends Component {
       }
     }
   }
-  setPaddingForScrollbar() {
-    // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center
-    // compared to the header. This functions sets appropriate padding to compensate.
-    var width = Sefaria.util.getScrollbarWidth();
-    if (this.props.interfaceLang == "hebrew") {
-      this.$container.css({paddingRight: width, paddingLeft: 0});
-    } else {
-      this.$container.css({paddingRight: 0, paddingLeft: width});
-    }
-  }
   render() {
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
-    var isDictionary = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index).categories[0] == "Reference";
+    var index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
+    var isDictionary = (index && index.categories[0] == "Reference");
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
         panelPosition ={this.props.panelPosition}

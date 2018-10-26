@@ -31,6 +31,7 @@ from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
 from django import http
+from django.utils import timezone
 
 from sefaria.model import *
 from sefaria.workflows import *
@@ -494,7 +495,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "title":          title,
         "desc":           desc,
         "ldBreadcrumbs":  breadcrumb
-    }, RequestContext(request))
+    })
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
     """
@@ -2039,14 +2040,17 @@ def calendars_api(request):
             day = int(request.GET.get("day", None))
             datetimeobj = datetime.datetime(year, month, day)
         except Exception as e:
-            datetimeobj = datetime.datetime.now()
+            datetimeobj = timezone.localtime(timezone.now())
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
-            return jsonResponse({"date": datetimeobj.date().isoformat(),"calendar_items": calendars}, callback=request.GET.get("callback", None))
+            return jsonResponse({"date": datetimeobj.date().isoformat(),
+                                 "timezone" : timezone.get_current_timezone_name(),
+                                 "calendar_items": calendars},
+                                callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2210,7 +2214,7 @@ def dictionary_completion_api(request, word, lexicon=None):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = int(request.GET.get("limit", 16))
+    LIMIT = int(request.GET.get("limit", 10))
 
     result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
@@ -3263,6 +3267,21 @@ def digitized_by_sefaria(request):
                                 })
 
 
+def parashat_hashavua_redirect(request):
+    """ Redirects to this week's Parashah"""
+    diaspora = request.GET.get("diaspora", "1")
+    calendars = get_keyed_calendar_items() # TODO Support israel / customs
+    parashah = calendars["Parashat Hashavua"]
+    return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
+
+
+def daf_yomi_redirect(request):
+    """ Redirects to today's Daf Yomi"""
+    calendars = get_keyed_calendar_items()
+    daf_yomi = calendars["Daf Yomi"]
+    return redirect(iri_to_uri("/" + daf_yomi["url"]), permanent=False)
+
+
 def random_ref():
     """
     Returns a valid random ref within the Sefaria library.
@@ -3308,7 +3327,13 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
+    cb = request.GET.get("callback", None)
+    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    if len(topics_filtered) == 0:
+        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
+        resp['Content-Type'] = "application/json; charset=utf-8"
+        return resp
+    random_topic = choice(topics_filtered)['tag']
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
@@ -3316,8 +3341,7 @@ def random_by_topic_api(request):
         url = oref.url()
     except Exception:
         return random_by_topic_api(request)
-    cb = request.GET.get("callback", None)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=request.GET.get("callback", None))
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 

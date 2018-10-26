@@ -266,7 +266,7 @@ class ConnectionsPanel extends Component {
                     setConnectionsMode={this.props.setConnectionsMode}
                     addToSourceSheet={this.props.addToSourceSheet} />
                   { Sefaria._uid ?
-                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth squareBorder">
+                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Sheets</span>
                     <span className="int-he">דפי המקורות שלי</span>
                   </a>
@@ -297,7 +297,7 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
-                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth squareBorder">
+                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Notes</span>
                     <span className="int-he">הרשומות שלי</span>
                   </a>
@@ -392,7 +392,10 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var classes = classNames({connectionsPanel: 1, textList: 1, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share"].indexOf(this.props.mode) != -1;
+
+    //marginless = 0;
+    var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
         { this.props.fullPanel ? null :
@@ -457,7 +460,7 @@ ConnectionsPanel.propTypes = {
 
 
 class ResourcesList extends Component {
-  // A list of Resources in addtion to connections
+  // A list of Resources in addition to connections
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
@@ -467,6 +470,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
+              <ToolsButton en="Dictionaries" he="כלים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -781,7 +785,9 @@ class ShareBox extends Component {
     var classes = classNames({textList: 1, fullPanel: this.props.fullPanel});
     return (
       <div>
-        <input className="shareInput" value={this.props.url} />
+        <div className="shareInputBox">
+          <input className="shareInput" value={this.props.url} />
+        </div>
         <ToolsButton en="Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
         <ToolsButton en="Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
         <ToolsButton en="Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />

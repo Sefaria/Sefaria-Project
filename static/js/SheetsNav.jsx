@@ -354,7 +354,7 @@ class AllSheetsPage extends Component {
       var sheets = this.state.curSheets;
     }
     sheets = sheets ? sheets.map(function (sheet) {
-      return (<PublicSheetListing sheet={sheet} />);
+      return (<PublicSheetListing sheet={sheet} key={`/sheets/${sheet.id}`} />);
     }) : (<LoadingMessage />);
     return (<div className="content sheetList hasFooter">
                       <div className="contentInner">
@@ -589,7 +589,7 @@ class PrivateSheetListing extends Component {
               <div className="userSheetTitle">
                 <a className="sheetTitle" href={url}>{title}</a>
                 <span className="sheetAccess"><SheetAccessIcon sheet={sheet} /></span>
-                <a class="button white mini" href={url+"?editor=1"}><span class="int-en">Edit Sheet</span><span class="int-he">ערוך</span></a>
+                <a className="button white mini" href={url+"?editor=1"}><span className="int-en">Edit Sheet</span><span className="int-he">ערוך</span></a>
               </div>
               <div className="userSheetInfo">
                 <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>

@@ -184,23 +184,29 @@ class LexiconEntry extends Component {
     var entry = this.props.data;
     var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
-    var entryHeadHtml =  (<span className="headword">{entry['headword']}</span>);
-    var altHeadHtml = "";
+
+    var headwords = [entry['headword']];
     if ('alt_headwords' in entry) {
-        for (var i = 0; i < entry['alt_headwords'].length; i++) { 
-            altHeadHtml += " " + entry['alt_headwords'][i];
-        }
-        altHeadHtml = <span className="alt-headwords">{altHeadHtml}</span>;
+      headwords = headwords.concat(entry['alt_headwords']);
     }
-    var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">({entry['content']['morphology']})</span>) :"";
+
+    var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">&nbsp;({entry['content']['morphology']})</span>) :"";
 
     var langHtml = "";
     if ('language_code' in entry || 'language_reference' in entry) {
-      langHtml = (<span className="lang-ref">
-        {('language_code' in entry) ? entry['language_code'] : ""} 
-        {('language_reference' in entry) ? <span className="language_reference" dangerouslySetInnerHTML={ {__html: entry['definition']}}></span> : ""}
+      langHtml = (<span className="lang-ref">&nbsp;
+        {('language_code' in entry) ? entry['language_code'] : ""}
+        {('language_reference' in entry) ? <span className="language_reference" dangerouslySetInnerHTML={ {__html: entry['language_reference']}}></span> : ""}
       </span>);
     }
+
+    var entryHeadHtml = (<span className="headline" dir="ltr">
+      {headwords
+          .map((e,i) => <span className="headword" key={i} dir="rtl">{e}</span>)
+          .reduce((prev, curr) => [prev, ', ', curr])}
+      {morphologyHtml}
+      {langHtml}
+      </span>);
 
     var endnotes = ('notes' in entry) ? <span className="notes" dangerouslySetInnerHTML={ {__html: entry['notes']}}></span> : "";
     var derivatives = ('derivatives' in entry) ? <span className="derivatives" dangerouslySetInnerHTML={ {__html: entry['derivatives']}}></span> : "";
@@ -209,8 +215,8 @@ class LexiconEntry extends Component {
     var attribution = this.renderLexiconAttribution();
     return (
         <div className="entry" onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.getRef()}>
-          <div className={headwordClassNames}>{entryHeadHtml}{altHeadHtml}</div>
-          <div className={definitionClassNames}>{morphologyHtml}{langHtml}<ol className="definition">{senses}{endnotes}{derivatives}</ol></div>
+          <div className={headwordClassNames}>{entryHeadHtml}</div>
+          <div className={definitionClassNames}><ol className="definition">{senses}{endnotes}{derivatives}</ol></div>
           <div className="attribution">{attribution}</div>
         </div>
     );

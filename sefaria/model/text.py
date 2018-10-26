@@ -1788,7 +1788,7 @@ class TextFamily(object):
                 #then count how many links came from that version. If any- do the wrapping.
                 from . import LinkSet
                 query = oref.ref_regex_query()
-                query.update({"generated_by": "add_links_from_text", "source_text_oid": {"$in": c.version_ids()}})
+                query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
                 if LinkSet(query).count() > 0:
                     setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
                 else:
@@ -2177,8 +2177,8 @@ class Ref(object):
         Populate self.index, self.index_node, self.type, self.book, self.sections, self.toSections, ...
         :return:
         """
-        # Split ranges based on '-' symbol, store in `parts` variable
-        parts = [s.strip() for s in self.tref.split("-")]
+        # Split ranges based on all '-' symbol, store in `parts` variable
+        parts = [s.strip() for s in re.split(ur"[-\u2010-\u2015]", self.tref)]
         if len(parts) > 2:
             raise InputError(u"Couldn't understand ref '{}' (too many -'s).".format(self.tref))
         if any([not p for p in parts]):
@@ -2196,11 +2196,11 @@ class Ref(object):
 
             if self.index_node:
                 title = base[0:l]
-                if base[l - 1] == "." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
+                if base[l - 1] == u"." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
                     title = base[0:l - 1]
                 break
             if new_tref:
-                if l < len(base) and base[l] not in " .":
+                if l < len(base) and base[l] not in u" .":
                     continue
                 # If a term is matched, reinit with the real tref
                 self.__reinit_tref(new_tref)
@@ -2355,7 +2355,7 @@ class Ref(object):
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
                 # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split("[., ]+", parts[1])
+                range_parts = re.split(u"[., ]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
@@ -2366,7 +2366,7 @@ class Ref(object):
                 if self.index_node.addressTypes[0] == "Talmud":
                     self.__parse_talmud_range(parts[1])
                 else:
-                    range_parts = re.split("[.:, ]+", parts[1])
+                    range_parts = re.split(u"[.:, ]+", parts[1])
                     delta = len(self.sections) - len(range_parts)
                     for i in range(delta, len(self.sections)):
                         try:
@@ -2393,17 +2393,17 @@ class Ref(object):
         self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
 
         # 'Shabbat 23a-b'
-        if self.toSections[0] == 'b':
+        if self.toSections[0] == u'b' or self.toSections[0] == u'ᵇ':
             self.toSections[0] = self.sections[0] + 1
 
         # 'Shabbat 24b-25a'
-        elif regex.match("\d+[ab]", self.toSections[0]):
+        elif regex.match(u"\d+[abᵃᵇ]", self.toSections[0]):
             self.toSections[0] = daf_to_section(self.toSections[0])
 
         # 'Shabbat 24b.12-24'
         else:
             delta = len(self.sections) - len(self.toSections)
-            for i in range(delta -1, -1, -1):
+            for i in range(delta - 1, -1, -1):
                 self.toSections.insert(0, self.sections[i])
 
         self.toSections = [int(x) for x in self.toSections]
@@ -4614,10 +4614,12 @@ class Library(object):
             for title in unique_titles:
                 try:
                     res = self._build_all_refs_from_string(title, st)
+                    refs += res
                 except AssertionError as e:
                     logger.info(u"Skipping Schema Node: {}".format(title))
-                else:
-                    refs += res
+                except TypeError as e:
+                    logger.error(u"Error finding ref for {} in: {}".format(title, st))
+
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
                 title = match.group('title')
@@ -4625,12 +4627,14 @@ class Library(object):
                     continue
                 try:
                     res = self._build_ref_from_string(title, st[match.start():])  # Slice string from title start
+                    refs += res
                 except AssertionError as e:
                     logger.info(u"Skipping Schema Node: {}".format(title))
                 except InputError as e:
                     logger.info(u"Input Error searching for refs in string: {}".format(e))
-                else:
-                    refs += res
+                except TypeError as e:
+                    logger.error(u"Error finding ref for {} in: {}".format(title, st))
+
         return refs
 
     def get_wrapped_refs_string(self, st, lang=None, citing_only=False):

@@ -29,16 +29,20 @@ class TextRange extends Component {
     if (!!this.props.filter !== !!nextProps.filter)           { return true; }
     if (this.props.filter && nextProps.filter &&
         !this.props.filter.compare(nextProps.filter))         { return true; }
+    if (this.props.highlightedRefs && nextProps.highlightedRefs &&
+        !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
     if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
     if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
-    if (nextProps.settings.language !== this.props.settings.language ||
+    // todo: figure out when and if this component receives settings at all
+    if (nextProps.settings && this.props.settings &&
+        (nextProps.settings.language !== this.props.settings.language ||
           nextProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           nextProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           nextProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
-          nextProps.layoutWidth !== this.props.layoutWidth)       { return true; }
+          nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
     // lowlight ?
 
     return false;
@@ -193,15 +197,17 @@ class TextRange extends Component {
     this.dataPrefetched = true;
   }
   placeSegmentNumbers() {
-    //console.log("placeSegmentNumbers", this.props.sref);
+    // console.log("placeSegmentNumbers", this.props.sref);
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
+    if (!this.props.basetext) { return; }
+
     var $text  = $(ReactDOM.findDOMNode(this));
     var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
     var setTop = function() {
       var $elem = $(this);
       var top   = $elem.parent().position().top;
-      $elem.css({top: top});
+      $elem.css({top: top, left: '', right: ''});
       var list = elemsAtPosition[top] || [];
       list.push($elem);
       elemsAtPosition[top] = list;
@@ -209,13 +215,17 @@ class TextRange extends Component {
     $text.find(".linkCount").each(setTop);
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
+    
+    var side = this.props.settings.language == "hebrew" ? "right" : "left";
+    var selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
     var fixCollision = function ($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        var adjust = 8;
-        $elems[0].css({top: "-=" + adjust});
-        $elems[1].css({top: "+=" + adjust});
+        var adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
+        var adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
+        $elems[0].css(side, "-=" + adjust1);
+        $elems[1].css(side, "+=" + adjust2);
       }
     };
     for (var top in elemsAtPosition) {
