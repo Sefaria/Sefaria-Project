@@ -1406,6 +1406,7 @@ class DictionaryEntryNotFound(InputError):
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
+    supported_languages = ["en"]
 
     def __init__(self, parent, title=None, tref=None, word=None):
         """
@@ -1464,6 +1465,12 @@ class DictionaryEntryNode(TitledTreeNode):
 
     def address_class(self, depth):
         return self._addressTypes[depth]
+
+    def get_index_title(self):
+        return self.parent.lexicon.index_title
+
+    def get_version_title(self, lang):
+        return self.parent.lexicon.version_title
 
     def get_text(self):
         if not self.has_word_match:
@@ -1573,6 +1580,8 @@ class DictionaryNode(VirtualNode):
 
 class SheetNode(NumberedTitledTreeNode):
     is_virtual = True
+    supported_languages = ["en", "he"]
+
     def __init__(self, sheet_library_node, title=None, tref=None):
         """
         A node created on the fly, in memory, to correspond to a sheet.
@@ -1616,6 +1625,12 @@ class SheetNode(NumberedTitledTreeNode):
 
     def get_sections(self):
         return self._sections
+
+    def get_index_title(self):
+        return self.index.title
+
+    def get_version_title(self, lang):
+        return "Dummy"
 
     def get_text(self):
         return [u"test"]

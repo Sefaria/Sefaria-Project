@@ -1630,26 +1630,23 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
+        if self.lang not in self._oref.index_node.supported_languages:
+            self.text = []
+            self._version = None
+            return
+
         try:
-
-            if lang != oref.index_node.parent.lexicon.version_lang:
-                self.text = []
-                self._version = None
-                # assumption here is that any dictionary is only returned in one language
-                return
-
-            self.text = oref.index_node.get_text()   # <- This is where the magic happens
-
-            self._version = Version().load({
-                "title": oref.index_node.parent.lexicon.index_title,
-                "versionTitle": oref.index_node.parent.lexicon.version_title,
-                "language": oref.index_node.parent.lexicon.version_lang
-            }, {"chapter":0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
-
+            self.text = self._oref.index_node.get_text()  # <- This is where the magic happens
         except:
             self.text = []
             self._version = None
+            return
 
+        self._version = Version().load({
+            "title": self._oref.index_node.get_index_title(),
+            "versionTitle": self._oref.index_node.get_version_title(self.lang),
+            "language": self.lang
+        }, {"chapter": 0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
 
     def version(self):
         return self._version
