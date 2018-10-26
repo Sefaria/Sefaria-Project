@@ -1667,6 +1667,8 @@ class SheetNode(NumberedTitledTreeNode):
 class SheetLibraryNode(VirtualNode):
     entry_class = SheetNode
 
+    # These tree walking methods are needed, currently, so that VersionState doesn't get upset.
+    # Seems like there must be a better way to do an end run around VersionState
     def create_content(self, callback=None, *args, **kwargs):
         if not callback:
             return None
@@ -1674,6 +1676,9 @@ class SheetLibraryNode(VirtualNode):
 
     def visit_content(self, callback, *contents, **kwargs):
         return self.create_content(callback, *contents, **kwargs)
+
+    def visit_structure(self, callback, content, **kwargs):
+        pass
 
     def serialize(self, **kwargs):
         """
