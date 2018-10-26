@@ -1571,13 +1571,12 @@ class DictionaryNode(VirtualNode):
         return d
 
 
-
-
-class SheetNode(TitledTreeNode):
+class SheetNode(NumberedTitledTreeNode):
     is_virtual = True
-    def __init__(self, parent, title=None, tref=None):
+    def __init__(self, sheet_library_node, title=None, tref=None):
         """
-        A schema node created on the fly, in memory, to correspond to a sheet.
+        A node created on the fly, in memory, to correspond to a sheet.
+        In the case of sheets, the dynamic nodes created present as the root node, with section info.
         :param parent:
         :param title:
         :param tref:
@@ -1586,56 +1585,44 @@ class SheetNode(TitledTreeNode):
         assert title and tref
 
         self.title = title
+        self.parent = None
+        self.depth = 2
+        self.sectionNames = ["Sheet", "Segment"]
+        self.addressTypes = ["Integer", "Integer"]
+        self.index = sheet_library_node.index
+        super(SheetNode, self).__init__(None)
+
+        self._sheetLibraryNode = sheet_library_node
+        self.title_group = sheet_library_node.title_group
+
         self._ref_regex = regex.compile(u"^" + regex.escape(title) + self.after_title_delimiter_re + u"([0-9]+)(?:" + self.after_address_delimiter_ref + u"([0-9]+)|$)")
         self._match = self._ref_regex.match(tref)
-        self.sheetId = self._match.group(1)
-        self.nodeId = self._match.group(2)
+        self.sheetId = int(self._match.group(1))
         if not self.sheetId:
             raise Exception
 
+        self.nodeId = int(self._match.group(2)) if self._match.group(2) else None
+        self._sections = [self.sheetId] + ([self.nodeId] if self.nodeId else [])
+
         self.sheet_object = db.sheets.find_one({"id": int(self.sheetId)})
         if not self.sheet_object:
-            raise Exception
-
-        super(SheetNode, self).__init__({
-            "titles": [{
-                "lang": "he",
-                "text": self.sheetId,
-                "primary": True
-            },
-            {
-                "lang": "en",
-                "text": self.sheetId,
-                "primary": True
-            }]
-        })
-
-        self.parent = parent
-        self.index = self.parent.index
-        self.sectionNames = ["Source"]
-        self.depth = 1
-        self.addressTypes = ["Integer"]
-        self._addressTypes = [AddressInteger(0)]
+            raise InputError
 
     def has_numeric_continuation(self):
-        return True
+        return False  # What about section level?
 
     def has_titled_continuation(self):
         return False
 
     def get_sections(self):
-        s = self._match.group(2)
-        return [int(s)] if s else []
-
-    def address_class(self, depth):
-        return self._addressTypes[depth]
+        return self._sections
 
     def get_text(self):
         return [u"test"]
         # Return depth 1 array of strings from self.sheet_object
 
-    def address(self):
-        return self.parent.address() + [self.sheetId]
+    #def address(self):
+    #    return self.parent.address() + [self.sheetId]
 
     def prev_sibling(self):
         return None
@@ -1656,8 +1643,8 @@ class SheetNode(TitledTreeNode):
             "book": self.full_title("en"),
             "primary_category": self.index.get_primary_category(),
             "index_node": self,
-            "sections": [],
-            "toSections": []
+            "sections": self._sections,
+            "toSections": self._sections[:]
         }
         return text.Ref(_obj=d)
 
@@ -1665,7 +1652,21 @@ class SheetNode(TitledTreeNode):
 class SheetLibraryNode(VirtualNode):
     entry_class = SheetNode
 
+    def create_content(self, callback=None, *args, **kwargs):
+        if not callback:
+            return None
+        return callback(self, *args, **kwargs)
 
+    def visit_content(self, callback, *contents, **kwargs):
+        return self.create_content(callback, *contents, **kwargs)
+
+    def serialize(self, **kwargs):
+        """
+        :return string: serialization of the subtree rooted in this node
+        """
+        d = super(SheetLibraryNode, self).serialize(**kwargs)
+        d["nodeType"] = "SheetLibraryNode"
+        return d
 """
 {
     "title" : "Sheet",

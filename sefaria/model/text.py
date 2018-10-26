@@ -2257,7 +2257,7 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
-                # The line below will raise DictionaryEntryNotFound if no match
+                # The line below will raise InputError (or DictionaryEntryNotFound) if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
                 self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
