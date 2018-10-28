@@ -2,6 +2,7 @@ class SearchState {
   constructor({
     type,
     appliedFilters,
+    appliedFilterAggTypes,
     availableFilters,
     filterRegistry,
     filtersValid,
@@ -13,6 +14,7 @@ class SearchState {
   } = {}) {
     this.type             = type;  // always required
     this.appliedFilters   = appliedFilters   || [];
+    this.appliedFilterAggTypes = appliedFilterAggTypes || [];
     this.availableFilters = availableFilters || [];
     this.filterRegistry   = filterRegistry   || {};
     this.filtersValid     = filtersValid     || false;
@@ -21,11 +23,15 @@ class SearchState {
     this.fieldBroad       = fieldBroad       || SearchState.metadataByType[type].fieldBroad;
     this.field            = field            || SearchState.metadataByType[type].field;
     this.sortType         = sortType         || SearchState.metadataByType[type].sortType;
+    if (this.appliedFilters.length !== this.appliedFilterAggTypes.length) {
+      console.log('difference in appliedFilter lengths!', this.appliedFilters.length, this.appliedFilterAggTypes.length);
+    }
   }
 
   clone(trimFilters) {
     return new SearchState({
       appliedFilters:   Sefaria.util.clone(this.appliedFilters),
+      appliedFilterAggTypes: Sefaria.util.clone(this.appliedFilterAggTypes),
       availableFilters: trimFilters ? [] : Sefaria.util.clone(this.availableFilters),
       filterRegistry:   trimFilters ? {} : Sefaria.util.clone(this.filterRegistry),
       filtersValid:     trimFilters ? false : this.filtersValid,
@@ -41,6 +47,7 @@ class SearchState {
   update({
     type,
     appliedFilters,
+    appliedFilterAggTypes,
     availableFilters,
     filterRegistry,
     filtersValid,
@@ -52,6 +59,7 @@ class SearchState {
   }) {
     type             = typeof type             === 'undefined' ? this.type             : type;
     appliedFilters   = typeof appliedFilters   === 'undefined' ? this.appliedFilters   : appliedFilters;
+    appliedFilterAggTypes = typeof appliedFilterAggTypes === 'undefined' ? this.appliedFilterAggTypes : appliedFilterAggTypes;
     availableFilters = typeof availableFilters === 'undefined' ? this.availableFilters : availableFilters;
     filterRegistry   = typeof filterRegistry   === 'undefined' ? this.filterRegistry   : filterRegistry;
     filtersValid     = typeof filtersValid     === 'undefined' ? this.filtersValid     : filtersValid;
@@ -63,6 +71,7 @@ class SearchState {
     return new SearchState({
       type,
       appliedFilters,
+      appliedFilterAggTypes,
       availableFilters,
       filterRegistry,
       filtersValid,
@@ -96,9 +105,14 @@ class SearchState {
   makeURL({ prefix, isStart }) {
     // prefix: string prepended to every parameter. meant to distinguish between different type of searchState URL parameters (e.g. sheet and text)
     //         oneOf({'t': 'text', 's': sheet, 'g': group, 'u': user})
-    const url = ((!!this.appliedFilters && !!this.appliedFilters.length) ? `&${prefix}filters=` + this.appliedFilters.join('|') : '') +
+    const aggTypes = SearchState.metadataByType[this.type].aggregation_field_array;
+
+    const url = aggTypes.reduce( (accum, aggType) => {
+        const aggTypeFilters = Sefaria.util.zip(this.appliedFilters, this.appliedFilterAggTypes).filter( f => f[1] === aggType).map( x => x[0]);
+        return accum + (aggTypeFilters.length > 0) ? `&${prefix}${aggType}Filters=${aggTypeFilters.join('|')}` : '';
+      }, '') +
       `&${prefix}var=` + (this.field !== this.fieldExact ? '1' : '0') +
-      `&${prefix}sort=` + (this.sortType === 'chronological' ? 'c' : 'r');
+      `&${prefix}sort=${this.sortType}`;
     if (isStart) {
       url.replace(/&/, '?');
     }
@@ -157,13 +171,6 @@ SearchState.metadataByType = {
         direction: 'desc',
       },
       {
-        type: 'dateModified',
-        name: 'Date Modified',
-        fieldArray: ['dateModified'],
-        sort_method: 'sort',
-        direction: 'desc',
-      },
-      {
         type: 'views',
         name: 'Views',
         fieldArray: ['views'],
@@ -175,68 +182,3 @@ SearchState.metadataByType = {
 };
 
 module.exports = SearchState;
-/*ReaderApp
-appliedSearchFilters
-searchField
-searchSortType
-availableFilters
-searchFiltersValid
-filterRegistry
-searchFieldExact
-searchFieldBroad
-orphanSearchFilters
-
-ReaderPanel
-appliedSearchFilters xxx
-availableFilters xxx
-searchFiltersValid xxx
-searchFieldExact xxx
-searchFieldBroad xxx
-searchField xxx
-searchSortType xxx
-
-SearchPage xxx
-appliedFilters
-availableFilters
-filtersValid
-exactField
-broadField
-field
-sortType
-
-SearchResultList
-appliedFilters
-availableFilters
-filtersValid
-exactField
-broadField
-field
-sortType
-
-SearchFilters
-appliedFilters
-availableFilters
-exactField
-broadField
-optionField
-sortType
-
-SearchFilterPanel
-availableFilters xxx
-
-//getAppliedSearchFilters() xxx
-//updateAvailableFiltersInPanel() xxx
-//updateAvailableFiltersInHeader() xxx
-//updateQueryInPanel()
-//updateQueryInHeader()
-//updateSearchFilterInPanel()
-//updateSearchFilterInHeader()
-//updateSearchOptionFieldInPanel()
-//updateSearchOptionFieldInHeader()
-//updateSearchOptionSortInPanel()
-//updateSearchOptionSortInHeader()
-
-
-Things to test
-cloning esp. with filters
-*/

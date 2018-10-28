@@ -146,17 +146,20 @@ class SearchResultList extends Component {
       }
 
       const searchState = this._getSearchState(type);
-      const { field, sortType, fieldExact, appliedFilters } = searchState;
-      let query_props = {
+      const { field, sortType, fieldExact, appliedFilters, appliedFilterAggTypes } = searchState;
+      const query_props = {
         query: this.props.query,
         type,
         size,
         from: last,
         field,
         sort_type: sortType,
+        get_filters: false,
+        applied_filters: appliedFilters,
+        appliedFilterAggTypes,
         exact: fieldExact === field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
-        success: function(data) {
+        success: data => {
           var nextHits = currentHits.concat(data.hits.hits);
           if (type === "text") {
             nextHits = Sefaria.search.process_text_hits(nextHits);
@@ -166,12 +169,8 @@ class SearchResultList extends Component {
 
           this.setState({hits: this.state.hits});
           this._loadRemainder(type, last + this.backgroundQuerySize, total, nextHits);
-        }.bind(this)
+        }
       };
-      extend(query_props, {
-        get_filters: false,
-        applied_filters: appliedFilters,
-      });
 
       const runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
       this.updateRunningQuery(type, runningLoadRemainderQuery, true);
@@ -192,7 +191,7 @@ class SearchResultList extends Component {
       // 1) Get all potential filters and counts
       // 2) Apply filters (Triggered from componentWillReceiveProps)
       const searchState = this._getSearchState(type, props);
-      const { field, fieldExact, sortType, filtersValid, appliedFilters } = searchState;
+      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const isCompletionStep = request_applied || appliedFilters.length === 0;
       const runningQuery = Sefaria.search.execute_query({
@@ -200,6 +199,7 @@ class SearchResultList extends Component {
           type,
           get_filters: !filtersValid,
           applied_filters: request_applied,
+          appliedFilterAggTypes,
           size: this.initialQuerySize,
           field,
           sort_type: sortType,

@@ -209,9 +209,29 @@ SearchDropdownButton.propTypes = {
 
 
 class SheetSearchFilterPanel extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      activeTab: 'groups',
+    }
+  }
+  clickGroupTab(e) {
+    this.changeTab('groups');
+  }
+  clickTagTab(e) {
+    this.changeTab('tags')
+  }
+  changeTab(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({activeTab: tab});
+    }
+  }
   render() {
     const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
     const tagFilters = this.props.availableFilters.filter(filter => filter.aggType === 'tags');
+    const groupTabClasses = classNames({'search-dropdown-button': 1, active: this.state.activeTab === 'groups'});
+    const tagTabClasses = classNames({'search-dropdown-button': 1, active: this.state.activeTab === 'tags'});
+
     return (
       <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
         <SearchDropdownButton
@@ -221,7 +241,17 @@ class SheetSearchFilterPanel extends Component {
           heText={"סינון"}
         />
         <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
-          <div className="searchFilterBoxRow">
+          <div className="searchFilterTabRow">
+            <div className={groupTabClasses} onClick={this.clickGroupTab}>
+              <span className="int-en">Groups</span>
+              <span className="int-he" dir="rtl">קבוצות</span>
+            </div>
+            <div className={tagTabClasses} onClick={this.clickTagTab}>
+              <span className="int-en">Tags</span>
+              <span className="int-he" dir="rtl">תויות</span>
+            </div>
+          </div>
+          { this.state.activeTab === 'groups' ?
             <div className="searchFilterCategoryBox searchFilterSheetBox">
             {groupFilters.map(filter => (
                   <SearchFilter
@@ -233,17 +263,17 @@ class SheetSearchFilterPanel extends Component {
                   />
                 )
             )}
+            </div> :
+            <div className="searchFilterCategoryBox searchFilterSheetBox tag-filter-outer">
+              {tagFilters.map(filter => (
+                <SearchTagFilter
+                  filter={filter}
+                  updateSelected={this.props.updateAppliedFilter}
+                  key={filter.aggKey}
+                />
+              ))}
             </div>
-          </div>
-          <div className="tag-filter-outer">
-            {tagFilters.map(filter => (
-              <SearchTagFilter
-                filter={filter}
-                updateSelected={this.props.updateAppliedFilter}
-                key={filter.aggKey}
-              />
-            ))}
-          </div>
+          }
         </div>
       </DropdownModal>
     );
@@ -423,9 +453,9 @@ class SearchTagFilter extends Component {
       this.setState({selected: newProps.filter.selected});
     }
   }
-  handleFilterClick(evt) {
+  handleClick(evt) {
     //evt.preventDefault();
-    this.props.updateSelected(this.props.filter)
+    this.props.updateSelected(this.props.filter, 'tags')
   }
   handleKeyPress(e) {
     if (e.charCode == 13) { // enter
@@ -440,8 +470,10 @@ class SearchTagFilter extends Component {
     let heTitle = filter.heTitle || filter.title;
     heTitle = heTitle || '(ללא תוית)';
     const heTitleIsEn = !filter.heTitle && !!filter.title;
+
+    const classes = classNames({"type-button": 1, "tag-filter": 1, active: this.state.selected === 1})
     return (
-      <div className="type-button">
+      <div className={classes} onClick={this.handleClick}>
         <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
         <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
       </div>

@@ -25,6 +25,7 @@ class Search {
          type: "sheet" or "text"
          get_filters: if to fetch initial filters
          applied_filters: filter query by these filters
+         appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
          field: field to query in elastic_search
          sort_type: See SearchState.metadataByType for possible sort types
          exact: if query is exact
@@ -34,7 +35,7 @@ class Search {
         if (!args.query) {
             return;
         }
-        var req = JSON.stringify(this.get_query_object(args.query, args.get_filters, args.applied_filters, args.size, args.from, args.type, args.field, args.sort_type, args.exact));
+        var req = JSON.stringify(this.get_query_object(args));
         var cache_result = this.cache(req);
         if (cache_result) {
             args.success(cache_result);
@@ -57,13 +58,25 @@ class Search {
             error: args.error
         });
     }
-    get_query_object(query, get_filters, applied_filters, size, from, type, field, sort_type, exact) {
+    get_query_object({
+      query,
+      get_filters,
+      applied_filters,
+      appliedFilterAggTypes,
+      size,
+      from,
+      type,
+      field,
+      sort_type,
+      exact
+    }) {
         /*
          Only the first argument - "query" - is required.
 
          query: string
          get_filters: boolean
          applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
+         appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
          size: int - number of results to request
          from: int - start from result # (skip from - 1 results)
          type: string - currently either "text" or "sheet"
@@ -135,7 +148,7 @@ class Search {
                     must: core_query,
                     filter: {
                       bool: {
-                        should: applied_filters.map(this[make_filter_query])
+                        should: Sefaria.util.zip([applied_filters, appliedFilterAggTypes]).map( x => this[make_filter_query](x[0], x[1]))
                       }
                     }
                 }
@@ -339,6 +352,22 @@ class Search {
       return orphans;
     }
 
+    getAppliedSearchFilters(availableFilters) {
+      let appliedFilters = [];
+      let appliedFilterAggTypes = [];
+      //results = results.concat(this.orphanFilters);
+      for (let tempFilter of availableFilters) {
+          const tempApplied = tempFilter.getAppliedFilters();
+          const tempAppliedTypes = tempApplied.map( x => tempFilter.aggType );  // assume all child filters have the same type as their parent
+          appliedFilters = appliedFilters.concat(tempApplied);
+          appliedFilterAggTypes = appliedFilterAggTypes.concat(tempAppliedTypes);
+      }
+      return {
+        appliedFilters,
+        appliedFilterAggTypes,
+      };
+    }
+
     buildAndApplyTextFilters(aggregation_buckets, appliedFilters, aggType) {
       const { availableFilters, registry } = this.buildFilterTree(aggregation_buckets, appliedFilters);
       const orphans = this.applyFilters(registry, appliedFilters);
@@ -357,7 +386,8 @@ class Search {
       return { availableFilters, registry: {}, orphans: [] };
     }
 
-    makeTextFilterQuery(aggKey) {
+    makeTextFilterQuery(aggKey, aggType) {
+      // only one aggType for text queries so ignoring aggType param
       return {
         regexp: {
           path: RegExp.escape(aggKey) + (aggKey.indexOf("/") != -1 ? ".*" : "/.*")  //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
@@ -365,14 +395,13 @@ class Search {
       };
     }
 
-    makeSheetFilterQuery(aggKey) {
+    makeSheetFilterQuery(aggKey, aggType) {
       return {
         term: {
-          group: aggKey
+          [aggType]: aggKey
         }
       };
     }
-
 }
 
 class FilterNode {
@@ -516,3 +545,10 @@ class FilterNode {
 
 module.exports.Search = Search;
 module.exports.FilterNode = FilterNode;
+
+/*TODO
+backend
+url params
+display selected filters in header
+make selected filters div constant height (at least dont have it bounce so much)
+*/

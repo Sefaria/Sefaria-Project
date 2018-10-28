@@ -153,7 +153,7 @@ def index_sheet(index_name, id):
             "tags": tags,
             "sheetId": id,
             "summary": sheet.get("summary", None),
-            "group": sheet.get("group", None),
+            "group": sheet.get("group", ''),
             "datePublished": sheet.get("datePublished", None),
             "dateCreated": sheet.get("dateCreated", None),
             "dateModified": sheet.get("dateModified", None),

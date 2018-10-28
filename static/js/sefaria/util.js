@@ -8,6 +8,11 @@ const { FilterNode } = require('./search');
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static zip(rows) {
+      // rows is an array
+      // corrolary to zip in python
+      return rows[0].map((_,c)=>rows.map(row=>row[c]));
+    }
     static clone(obj, trimFilters) {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;

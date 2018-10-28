@@ -65,12 +65,14 @@ class ReaderApp extends Component {
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
+            //TODO appliedFilterAggTypes
             field: props.initialTextSearchField,
             sortType: props.initialTextSearchSortType,
           }),
           sheetSearchState: new SearchState({
             type: 'sheet',
             appliedFilters: props.initialSheetSearchFilters,
+            //TODO appliedFilterAggTypes
             field: props.initialSheetSearchField,
             sortType: props.initialSheetSearchSortType,
           }),
@@ -104,12 +106,14 @@ class ReaderApp extends Component {
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
+            //TODO appliedFilterAggTypes
             field: props.initialTextSearchField,
             sortType: props.initialTextSearchSortType,
           }),
           sheetSearchState: new SearchState({
             type: 'sheet',
             appliedFilters: props.initialSheetSearchFilters,
+            //TODO appliedFilterAggTypes
             field: props.initialSheetSearchField,
             sortType: props.initialSheetSearchSortType,
           }),
@@ -136,12 +140,14 @@ class ReaderApp extends Component {
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters: props.initialTextSearchFilters,
+          //TODO appliedFilterAggTypes
           field: props.initialTextSearchField,
           sortType: props.initialTextSearchSortType,
         }),
         sheetSearchState: new SearchState({
           type: 'sheet',
           appliedFilters: props.initialSheetSearchFilters,
+          //TODO appliedFilterAggTypes
           field: props.initialSheetSearchField,
           sortType: props.initialSheetSearchSortType,
         }),
@@ -982,9 +988,9 @@ class ReaderApp extends Component {
       filterNode.setUnselected(true);
     }
     tempSetState({
-      [searchStateName]: searchState.update({
-        appliedFilters: this.getAppliedSearchFilters(searchState.availableFilters)
-      })
+      [searchStateName]: searchState.update(
+        Sefaria.search.getAppliedSearchFilters(searchState.availableFilters)
+      )
     });
   }
   updateSearchOptionFieldInHeader(type, field) {
@@ -1008,14 +1014,6 @@ class ReaderApp extends Component {
     tempSetState({
       [searchStateName]: searchState.update({ sortType })
     });
-  }
-  getAppliedSearchFilters(availableFilters) {
-    var results = [];
-    //results = results.concat(this.orphanFilters);
-    for (var i = 0; i < availableFilters.length; i++) {
-        results = results.concat(availableFilters[i].getAppliedFilters());
-    }
-    return results;
   }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);

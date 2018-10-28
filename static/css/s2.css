@@ -1875,7 +1875,7 @@ a.readerNavCategory {
 .readerSheetsNav .type-button .he {
   font-family: "Heebo", sans-serif;
 }
-.searchFilterBoxes .type-button,
+.searchFilterBoxes .type-button.active,
 .readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
@@ -1897,8 +1897,7 @@ a.readerNavCategory {
   color: #666;
   margin-left: 5px;
   margin-right: 5px;
-  font-size: 13px;
-  text-transform: uppercase;
+  font-size: 18px;
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
@@ -1933,8 +1932,8 @@ a.readerNavCategory {
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-  margin-top: 24px;
-  background: #F9F9F7;
+  margin-top: 21px;
+  background: #F5F5F5;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -1955,12 +1954,34 @@ a.readerNavCategory {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.searchFilterBoxes .tag-filter {
+  color: #999;
+  background-color: white;
+  border: 0;
+}
+.searchFilterBoxes .tag-filter.active {
+  background-color: #e7e7e7;
 }
 
 .searchContent .searchFilterBoxes .searchFilterBoxRow {
   display: flex;
   flex-direction: row;
   width: 100%;
+}
+.searchFilterBoxes .searchFilterTabRow {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #CCC;
+  padding: 0 15px;
+}
+.searchFilterTabRow .searchFilterTab {
+  font-size: 14px;
+}
+.searchFilterTabRow .searchFilterTab.active {
+  border-bottom: 4px solid #CCC;
 }
 .searchFilterBoxes.hidden{
     display:none;
