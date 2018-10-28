@@ -89,9 +89,9 @@ class ReaderPanel extends Component {
       }),
       sheetSearchState: new SearchState({
         type:               'sheet',
-        field:              props.initialSheetSearchField,
         sortType:           props.initialSheetSearchSortType,
         appliedFilters:     props.initialSheetAppliedSearchFilters,
+        appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
       }),
       selectedWords:        "",
       displaySettingsOpen:  false,

@@ -65,15 +65,13 @@ class ReaderApp extends Component {
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
-            //TODO appliedFilterAggTypes
             field: props.initialTextSearchField,
             sortType: props.initialTextSearchSortType,
           }),
           sheetSearchState: new SearchState({
             type: 'sheet',
             appliedFilters: props.initialSheetSearchFilters,
-            //TODO appliedFilterAggTypes
-            field: props.initialSheetSearchField,
+            appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
             sortType: props.initialSheetSearchSortType,
           }),
           navigationCategories: props.initialNavigationCategories,
@@ -106,15 +104,13 @@ class ReaderApp extends Component {
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
-            //TODO appliedFilterAggTypes
             field: props.initialTextSearchField,
             sortType: props.initialTextSearchSortType,
           }),
           sheetSearchState: new SearchState({
             type: 'sheet',
             appliedFilters: props.initialSheetSearchFilters,
-            //TODO appliedFilterAggTypes
-            field: props.initialSheetSearchField,
+            appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
             sortType: props.initialSheetSearchSortType,
           }),
           navigationCategories: props.initialNavigationCategories,
@@ -140,15 +136,13 @@ class ReaderApp extends Component {
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters: props.initialTextSearchFilters,
-          //TODO appliedFilterAggTypes
           field: props.initialTextSearchField,
           sortType: props.initialTextSearchSortType,
         }),
         sheetSearchState: new SearchState({
           type: 'sheet',
           appliedFilters: props.initialSheetSearchFilters,
-          //TODO appliedFilterAggTypes
-          field: props.initialSheetSearchField,
+          appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
           sortType: props.initialSheetSearchSortType,
         }),
         navigationCategories: props.initialNavigationCategories,

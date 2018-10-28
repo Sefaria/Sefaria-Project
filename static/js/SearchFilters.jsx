@@ -240,7 +240,7 @@ class SheetSearchFilterPanel extends Component {
           enText={"Filter"}
           heText={"סינון"}
         />
-        <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
+        <div key={this.state.activeTab} className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
           <div className="searchFilterTabRow">
             <div className={groupTabClasses} onClick={this.clickGroupTab}>
               <span className="int-en">Groups</span>

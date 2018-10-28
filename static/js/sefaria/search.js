@@ -148,7 +148,7 @@ class Search {
                     must: core_query,
                     filter: {
                       bool: {
-                        should: Sefaria.util.zip([applied_filters, appliedFilterAggTypes]).map( x => this[make_filter_query](x[0], x[1]))
+                        should: Sefaria.util.zip(applied_filters, appliedFilterAggTypes).map( x => this[make_filter_query](x[0], x[1]))
                       }
                     }
                 }
@@ -368,20 +368,21 @@ class Search {
       };
     }
 
-    buildAndApplyTextFilters(aggregation_buckets, appliedFilters, aggType) {
+    buildAndApplyTextFilters(aggregation_buckets, appliedFilters, appliedFilterAggTypes, aggType) {
       const { availableFilters, registry } = this.buildFilterTree(aggregation_buckets, appliedFilters);
       const orphans = this.applyFilters(registry, appliedFilters);
       return { availableFilters, registry, orphans };
     }
 
-    buildAndApplySheetFilters(aggregation_buckets, appliedFilters, aggType) {
-      // TODO apply filters!!
+    buildAndApplySheetFilters(aggregation_buckets, appliedFilters, appliedFilterAggTypes, aggType) {
       const availableFilters = aggregation_buckets.map( b => {
         const isHeb = Sefaria.hebrew.isHebrew(b.key);
         const enTitle = isHeb ? '' : b.key;
         const heTitle = isHeb ? b.key : (aggType === 'group' || !Sefaria.terms[b.key] ? '' : Sefaria.terms[b.key].he);
         const aggKey = enTitle || heTitle;
-        return new FilterNode(enTitle, heTitle, b.doc_count, aggKey, aggType);
+        const filterInd = appliedFilters.indexOf(aggKey);
+        const isSelected = filterInd !== -1 && appliedFilterAggTypes[filterInd] === aggType;
+        return new FilterNode(enTitle, heTitle, b.doc_count, aggKey, aggType, isSelected ? 1 : 0);
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
@@ -406,7 +407,7 @@ class Search {
 
 class FilterNode {
   //FilterTree object - for category filters
-  constructor(title, heTitle, docCount, aggKey, aggType) {
+  constructor(title, heTitle, docCount, aggKey, aggType, selected) {
       this.title = title;
       this.heTitle = heTitle;
       this.docCount = docCount;
@@ -414,7 +415,7 @@ class FilterNode {
       this.aggType = aggType;
       this.children = [];
       this.parent = null;
-      this.selected = 0; //0 - not selected, 1 - selected, 2 - partially selected
+      this.selected = (typeof selected === 'undefined') ? 0 : selected; //0 - not selected, 1 - selected, 2 - partially selected
   }
   append(child) {
       this.children.push(child);

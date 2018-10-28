@@ -223,9 +223,9 @@ class SearchResultList extends Component {
                 for (let aggregation of aggregation_field_array) {
                   if (!!data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
-                    const { availableFilters: tempAvailable, registry: tempRegistry, orphans: tempOrphans } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, aggregation);
+                    const { availableFilters: tempAvailable, registry: tempRegistry, orphans: tempOrphans } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, appliedFilterAggTypes, aggregation);
                     availableFilters.push(...tempAvailable);  // array concat
-                    registry = extend(registry, tempRegistry)
+                    registry = extend(registry, tempRegistry);
                     orphans.push(...tempOrphans);
                   }
                 }

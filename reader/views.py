@@ -441,7 +441,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialPanels":               panels,
         "initialPanelCap":             len(panels),
         "initialQuery":                None,
-        "initialSearchFilters":        None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     })
@@ -549,18 +548,25 @@ def search(request):
     """
     Search or Search Results page.
     """
-    search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
-    initialQuery   = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
-    field          = ("naive_lemmatizer" if request.GET.get("var") == "1" else "exact") if request.GET.get("var") else ""
-    sort           = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
+    text_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("tpathFilters").split("|")) if request.GET.get("tpathFilters") else []
+    sheet_group_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("sgroupFilters").split("|")) if request.GET.get("sgroupFilters", "") else []
+    sheet_tags_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("stagsFilters", "").split("|")) if request.GET.get("stagsFilters", "") else []
+    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(sheet_tags_search_filters)  # i got a tingly feeling writing this
+    initialQuery = urllib.unquote(request.GET.get("q", ""))
+    text_field = ("naive_lemmatizer" if request.GET.get("tvar") == "1" else "exact") if request.GET.get("tvar") else ""
+    text_sort = request.GET.get("tsort", None)
+    sheet_sort = request.GET.get("ssort", None)
 
     props = base_props(request)
     props.update({
         "initialMenu": "search",
         "initialQuery": initialQuery,
-        "initialSearchFilters": search_filters,
-        "initialSearchField": field,
-        "initialSearchSortType": sort,
+        "initialTextSearchFilters": text_search_filters,
+        "initialSheetSearchFilters": (sheet_group_search_filters + sheet_tags_search_filters),
+        "initialSheetSearchFilterAggTypes": sheet_agg_types,
+        "initialTextSearchField": text_field,
+        "initialTextSearchSortType": text_sort,
+        "initialSheetSearchSortType": sheet_sort
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)

@@ -23,9 +23,6 @@ class SearchState {
     this.fieldBroad       = fieldBroad       || SearchState.metadataByType[type].fieldBroad;
     this.field            = field            || SearchState.metadataByType[type].field;
     this.sortType         = sortType         || SearchState.metadataByType[type].sortType;
-    if (this.appliedFilters.length !== this.appliedFilterAggTypes.length) {
-      console.log('difference in appliedFilter lengths!', this.appliedFilters.length, this.appliedFilterAggTypes.length);
-    }
   }
 
   clone(trimFilters) {
@@ -106,10 +103,9 @@ class SearchState {
     // prefix: string prepended to every parameter. meant to distinguish between different type of searchState URL parameters (e.g. sheet and text)
     //         oneOf({'t': 'text', 's': sheet, 'g': group, 'u': user})
     const aggTypes = SearchState.metadataByType[this.type].aggregation_field_array;
-
     const url = aggTypes.reduce( (accum, aggType) => {
-        const aggTypeFilters = Sefaria.util.zip(this.appliedFilters, this.appliedFilterAggTypes).filter( f => f[1] === aggType).map( x => x[0]);
-        return accum + (aggTypeFilters.length > 0) ? `&${prefix}${aggType}Filters=${aggTypeFilters.join('|')}` : '';
+        const aggTypeFilters = aggTypes.length > 1 ? Sefaria.util.zip(this.appliedFilters, this.appliedFilterAggTypes).filter( f => f[1] === aggType).map( x => x[0]) : this.appliedFilters;
+        return accum + (aggTypeFilters.length > 0 ? `&${prefix}${aggType}Filters=${aggTypeFilters.map( f => encodeURIComponent(f)).join('|')}` : '');
       }, '') +
       `&${prefix}var=` + (this.field !== this.fieldExact ? '1' : '0') +
       `&${prefix}sort=${this.sortType}`;
