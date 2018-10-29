@@ -183,17 +183,17 @@ class Footer extends Component {
                 <span className="int-he">טוויטר</span>
 
               </a>
-              &bull;
+              <br />
               <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
                   <span className="int-en">YouTube</span>
                   <span className="int-he">יוטיוב</span>
               </a>
-              <br />
+              &bull;
               <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
                   <span className="int-en">Blog</span>
                   <span className="int-he">בלוג</span>
               </a>
-              &bull;
+              <br />
               <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
                   <span className="int-en">Instagram</span>
                   <span className="int-he">אינסטגרם</span>
