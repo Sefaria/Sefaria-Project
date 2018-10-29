@@ -220,7 +220,7 @@ class ReaderNavigationMenu extends Component {
                         <span className="int-he">הקבוצות</span>
                       </a>)
                       ];
-      resources = (<div className="readerNavCalendar"><TwoBox content={resources} width={this.width} /></div>);
+      resources = (<div className="readerNavCalendar readerTocResources"><TwoBox content={resources} width={this.width} /></div>);
 
 
       var topContent = this.props.home ?
