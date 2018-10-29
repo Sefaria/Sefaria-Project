@@ -7,7 +7,7 @@ import Component      from 'react-class';
 
 class SearchSheetResult extends Component {
     handleSheetClick(e) {
-      var href = e.target.getAttribute("href");
+      var href = e.target.closest('a').getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
       Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
@@ -15,7 +15,7 @@ class SearchSheetResult extends Component {
       );
     }
     handleProfileClick(e) {
-      var href = e.target.getAttribute("href");
+      var href = e.target.closest('a').getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
       Sefaria.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`,
@@ -36,12 +36,11 @@ class SearchSheetResult extends Component {
         var href = "/sheets/" + s.sheetId;
         return (
             <div className='result sheet_result'>
-              <div className="result_img_box"><a href={s.profile_url} onClick={this.handleProfileClick}><img className='owner_image' src={s.owner_image} alt={s.owner_name} /></a></div>
-              <div className="result_text_box">
-                <a href={s.profile_url} onClick={this.handleProfileClick} className='owner_name'>{s.owner_name}</a>
-                <a className='result-title' href={href} onClick={this.handleSheetClick}>{clean_title}</a>
-                <div className="snippet">{snippet}</div>
-              </div>
+                <a href={href} onClick={this.handleSheetClick}>
+                    <div className='result-title'>{clean_title}</div>
+                    <div className="snippet">{snippet}</div>
+                </a>
+              <a href={s.profile_url} onClick={this.handleProfileClick}><div className="version"><img className='img-circle owner_image' src={s.owner_image} alt={s.owner_name} /><span className='owner_name'>{s.owner_name}</span></div></a>
             </div>
         );
     }
