@@ -7,7 +7,7 @@ import Component      from 'react-class';
 
 class SearchSheetResult extends Component {
     handleSheetClick(e) {
-      var href = e.target.getAttribute("href");
+      var href = e.target.closest('a').getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
       Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
@@ -15,7 +15,7 @@ class SearchSheetResult extends Component {
       );
     }
     handleProfileClick(e) {
-      var href = e.target.getAttribute("href");
+      var href = e.target.closest('a').getAttribute("href");
       e.preventDefault();
       var s = this.props.data._source;
       Sefaria.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`,
