@@ -2130,6 +2130,7 @@ a.readerNavCategory {
 .searchContent .sheet_result .snippet {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
+  color: #000;
 }
 .searchContent .sheet_result .snippet:hover {
   text-decoration: none;
