@@ -19,7 +19,7 @@ else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
-        if TEST_DB not in client.database_names():
+        if TEST_DB not in client.list_database_names():
             client.admin.command('copydb',
                                  fromdb=SEFARIA_DB,
                                  todb=TEST_DB)
