@@ -648,6 +648,9 @@ input.noselect {
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
+.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
+  direction: ltr;
+}
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
 .readerPanel.english .readerNavMenu .gridBox{
@@ -1084,6 +1087,14 @@ a.readerNavCategory {
 }
 .hebrew .gridBox td:last-child {
   border-left: 0;
+}
+.hebrew .readerTocResources .gridBox td:first-child {
+  border-left: 0;
+  border-right: 3px solid rgba(0,0,0,0);
+}
+.hebrew .readerTocResources .gridBox td:last-child {
+  border-left: 3px solid rgba(0,0,0,0);
+  border-right: 0;
 }
 .readerNavMenu .resourcesLink .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -2127,20 +2138,29 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .similar-results .result {
   border-top: none;
 }
-.searchContent .text_result .result-title {
+.searchContent .text_result .result-title,
+.searchContent .sheet_result .result-title {
   color: #666;
   font-weight: lighter;
   padding: 20px 0 5px;
   letter-spacing: 1px;
   display: block;
 }
-.searchContent .text_result .result-title .int-he {
+.searchContent .text_result .result-title .int-he,
+.searchContent .sheet_result .result-title .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 22px;
 }
-.searchContent .text_result .result-title .int-en {
+.searchContent .text_result .result-title .int-en,
+.searchContent .sheet_result .result-title .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
+}
+.searchContent .sheet_result .result-title {
+  font-size: 18px;
+}
+.searchContent .sheet_result .owner_name {
+  margin-left: 10px;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
@@ -2154,12 +2174,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 }
 .searchContent .sheet_result .snippet {
-  color: #666;
+  font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4em;
-  max-height: 2.8em;
+  color: #000;
+}
+.searchContent .sheet_result .snippet:hover {
+  text-decoration: none;
 }
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
@@ -2188,8 +2208,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .searchContent .sheet_result .owner_image {
-  height: 40px;
-  width: 40px;
+  height: 30px;
+  width: 30px;
+  vertical-align:middle;
 }
 
 .searchContent .sheet_result {
@@ -2197,38 +2218,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 15px 0;
 }
 
-.searchContent .sheet_result .result_img_box {
-  width: 40px;
-  padding-right: 20px;
-  height: 100px;
-  float: left;
-  margin-top: 4px;
-}
-.searchContent .sheet_result .result_text_box {
-  height: 100px;
-}
-.searchContent .sheet_result .result_text_box a.owner_name {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  display: block;
-  color: #666;
-  text-decoration: none;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  font-size: 16px;
-}
-.searchContent .sheet_result .result_text_box a.result-title {
-  display: block;
-  color: #000;
-  text-decoration: none;
-  letter-spacing: 1px;
-  font-size: 18px;
-  padding: 0;
-  margin: 8px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4em;
-  max-height: 2.8em;
-}
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -4667,6 +4656,9 @@ h2.splitHeader .he {
   display: inline-block;
   padding: 3px 8px;
   cursor: pointer;
+}
+.noteListing .addToSheetButton.he {
+  float: left;
 }
 .noteListing:hover .addToSheetButton {
   visibility: visible;

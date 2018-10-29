@@ -121,6 +121,23 @@
 .static input:focus {
   outline: none;
 }
+.static input::placeholder { /* eventual spec? */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static input::-moz-placeholder { /* Firefox 19+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static input:-ms-input-placeholder { /* IE 10+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.static input:-moz-placeholder { /* Firefox 18- */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+
 .static a {
   color: #333;
 }
@@ -467,18 +484,6 @@
   width: 240px;
   font-size: 16px;
 }
-#homeConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-#homeConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-#homeConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-#homeConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
 #homeConnect #subscribeMsg {
   margin-top: 40px;
   font-size: 20px;
@@ -646,51 +651,16 @@
   height: initial;
   margin: 1% 0px;
   cursor: pointer;
-  border-radius: 4px;
-  box-shadow: none;
-  border: 1px solid #bbb;
   width: 100%;
   box-sizing: border-box;
-  color: #333;
-  font-size: 14px;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
 }
 .registrationContent .helptext {
   font-size: 16px;
-}
-.registrationContent ::placeholder {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif; 
-  color: #999;
-  font-size: 14px;
-}
-.registrationContent ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
-}
-.registrationContent ::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  font-size: 14px;
-}
-.registrationContent :-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
-}
-.registrationContent :-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  font-size: 14px;
-  font-style: normal;
-}
-/* Override Chrome's yellow autofill. Change the white to any color ;) */
-.registrationContent input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  color: #000;
 }
 .interface-hebrew input#id_email::-webkit-input-placeholder {
   text-align: right;
@@ -700,24 +670,7 @@ input#id_email{
   direction: ltr;
 }
 .registrationContent button {
-  all: initial; /*this is an insane hack, seems to work on chrome, firefox and opera. untested on Safari and Edge*/
-  display: block;
   width: 100%;
-  color: white;
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 12px 0px;
-  margin-top: 30px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.registrationContent button:hover {
-  background-color: #212E50;
-  color: #999;
 }
 .registrationContent a {
   display: block;
@@ -1552,18 +1505,6 @@ input#id_email{
   margin: -4px 8px 0 0;
   width: 240px;
   font-size: 16px;
-}
-#edConnect #mailingListEmail::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-#edConnect #mailingListEmail::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-#edConnect #mailingListEmail:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-#edConnect #mailingListEmail:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #edConnect #subscribeMsg {
   margin-top: 40px;
