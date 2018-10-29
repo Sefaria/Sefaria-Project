@@ -4596,6 +4596,9 @@ h2.splitHeader .he {
   padding: 3px 8px;
   cursor: pointer;
 }
+.noteListing .addToSheetButton.he {
+  float: left;
+}
 .noteListing:hover .addToSheetButton {
   visibility: visible;
 }
