@@ -2271,8 +2271,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   unicode-bidi: plaintext;
 }
 .readerNavMenu .sheet .sheetViews{
-  color: #CCC;
-  font-size: 12px;
+  color: #999;
+  font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet:hover .sheetViews{
@@ -3509,8 +3509,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
-  color: #999;
-  font-size: 15px;
+  color: #666;
+  font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin: auto 14px;
 }
@@ -3518,16 +3518,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content: flex-start;
   margin-top: 14px;
-  font-size: 17px;
-  font-style: italic;
+  font-size: 18px;
   text-align: left;
-  color: #333;
+  color: #000;
 }
 .textList .sheet .sheetTitle .sheetIcon {
   width: 14px;
   height: 14px;
   opacity: 0.4;
-  vertical-align: -1px;
+  margin-top: 3px;
 }
 .textList .sheet .sheetTitle .sheetTitleText{
   margin: auto 6px;
@@ -3537,7 +3536,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
-  color: #666;
+  color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
@@ -3693,11 +3692,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 13px 12px;
   margin: 0;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 18px;
   border-radius: 4px;
   box-shadow: none;
   border: 1px solid #E9E9E9;
   width: 60%;
+  height: 50px;
   box-sizing: border-box;
 }
 .addToSourceSheetBox .button {
@@ -3708,7 +3708,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .addToSourceSheetBox .button.small {
   width: 37%;
   box-sizing: border-box;
-  padding: 14px;
+  height: 50px;
+  padding: 17px;
   margin: 0;
   float: right;
 }
@@ -3722,6 +3723,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .addToSourceSheetBox .newSheet {
   border-top: 1px solid #E9E9E9;
   padding: 14px 22px;
+}
+.addToSourceSheetBox .newSheet input::placeholder { /* eventual spec? */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input::-moz-placeholder { /* Firefox 19+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input:-ms-input-placeholder { /* IE 10+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input:-moz-placeholder { /* Firefox 18- */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .confirmAddToSheet {
   text-align: center;
@@ -4890,13 +4906,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   max-height: 150px;
 }
 .dropdown .dropdownList .dropdownOption {
-  font-size: 16px;
+  font-size: 18px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   padding: 0 22px;
   margin: 26px 0;
   border: none;
-  color: #999;
+  color: #666;
 }
 .dropdown .dropdownList .dropdownOption.selected {
   color: #333;

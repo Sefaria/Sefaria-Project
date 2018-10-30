@@ -526,11 +526,7 @@
   height: 200px;
 }
 #profileName {
-  color: #333;
-  height: auto;
   margin: 20px 0 24px;
-  font-weight: lighter;
-  font-size: 40px;
 }
 #profileTagline {
   margin-bottom: 24px;
