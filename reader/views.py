@@ -1269,6 +1269,34 @@ def table_of_contents_api(request):
 def search_filter_table_of_contents_api(request):
     return jsonResponse(library.get_search_filter_toc(), callback=request.GET.get("callback", None))
 
+@catch_error_as_json
+def search_autocomplete_redirecter(request):
+    query = request.GET.get("q", "")
+    completions_dict = get_name_completions(query, 1, False)
+    ref = completions_dict['ref']
+    object_data = completions_dict['object_data']
+    if ref:
+        response = redirect(u'/{}'.format(ref.url()), permanent=False)
+    elif object_data is not None and object_data.get('type', '') == 'Person':
+        response = redirect(u'/person/{}'.format(object_data['key']), permanent=False)
+    elif object_data is not None and object_data.get('type', '') == 'TocCategory':
+        response = redirect(u'/{}'.format(object_data['key']), permanent=False)
+    else:
+        response = redirect(u'/search?q={}'.format(query), permanent=False)
+    return response
+
+
+@catch_error_as_json
+def opensearch_suggestions_api(request):
+    # see here for docs: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.1
+    query = request.GET.get("q", "")
+    completions_dict = get_name_completions(query, 5, False)
+    ret_data = [
+        query,
+        completions_dict["completions"]
+    ]
+    return jsonResponse(ret_data, callback=request.GET.get("callback", None))
+
 
 @catch_error_as_json
 def text_titles_api(request):
@@ -2088,6 +2116,36 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def get_name_completions(name, limit, ref_only):
+    lang = "he" if is_hebrew(name) else "en"
+    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    object_data = None
+    ref = None
+    try:
+        ref = Ref(name)
+        inode = ref.index_node
+        assert isinstance(inode, SchemaNode)
+
+        completions = [name.capitalize()] + completer.next_steps_from_node(name)
+
+        if limit == 0 or len(completions) < limit:
+            current = {t: 1 for t in completions}
+            additional_results = completer.complete(name, limit)
+            for res in additional_results:
+                if res not in current:
+                    completions += [res]
+    except InputError:
+        completions = completer.complete(name, limit)
+        object_data = completer.get_data(name)
+
+    return {
+        "completions": completions,
+        "lang": lang,
+        "object_data": object_data,
+        "ref": ref
+    }
+
+
 @catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
@@ -2096,25 +2154,12 @@ def name_api(request, name):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 16))
     ref_only = request.GET.get("ref_only", False)
-    lang = "he" if is_hebrew(name) else "en"
-
-    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
-    try:
-        ref = Ref(name)
+    completions_dict = get_name_completions(name, LIMIT, ref_only)
+    ref = completions_dict["ref"]
+    if ref:
         inode = ref.index_node
-        assert isinstance(inode, SchemaNode)
-
-        completions = [name.capitalize()] + completer.next_steps_from_node(name)
-
-        if LIMIT == 0 or len(completions) < LIMIT:
-            current = {t: 1 for t in completions}
-            additional_results = completer.complete(name, LIMIT)
-            for res in additional_results:
-                if res not in current:
-                    completions += [res]
-
         d = {
-            "lang": lang,
+            "lang": completions_dict["lang"],
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
@@ -2132,7 +2177,7 @@ def name_api(request, name):
             "toSections": ref.normal_toSections(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
-            "completions": completions[:LIMIT],
+            "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
             # todo: ADD textual completions as well
             "examples": []
         }
@@ -2143,19 +2188,18 @@ def name_api(request, name):
             d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
             d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
 
-    except InputError:
+    else:
         # This is not a Ref
         d = {
-            "lang": lang,
+            "lang": completions_dict["lang"],
             "is_ref": False,
-            "completions": completer.complete(name, LIMIT)
+            "completions": completions_dict["completions"]
         }
 
         # let's see if it's a known name of another sort
-        object_data = completer.get_data(name)
-        if object_data:
-            d["type"] = object_data["type"]
-            d["key"] = object_data["key"]
+        if completions_dict["object_data"]:
+            d["type"] = completions_dict["object_data"]["type"]
+            d["key"] = completions_dict["object_data"]["key"]
 
     return jsonResponse(d)
 

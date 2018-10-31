@@ -5,5 +5,6 @@ Search 3,000 years of Jewish texts in Hebrew and English translation.
 </Description>
 <InputEncoding>UTF-8</InputEncoding>
 <Image width="16" height="16" type="../image/favicon.ico">Sefaria Logo</Image>
-<Url type="text/html" method="get" template="https://www.sefaria.org/search?q={searchTerms}"/>
+<Url type="text/html" method="get" template="http://localhost:8000/search-autocomplete-redirecter?q={searchTerms}"/>
+<Url type="application/x-suggestions+json" method="get" template="http://localhost:8000/api/opensearch-suggestions?q={searchTerms}"/>
 </OpenSearchDescription>
