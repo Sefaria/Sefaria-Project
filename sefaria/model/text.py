@@ -1553,7 +1553,6 @@ class TextChunk(AbstractTextRecord):
 
         return ref_list
 
-
     def find_string(self, regex_str, cleaner=lambda x: x, strict=True):
         """
         Regex search in TextChunk
@@ -1632,27 +1631,28 @@ class VirtualTextChunk(AbstractTextRecord):
 
         if self.lang not in self._oref.index_node.supported_languages:
             self.text = []
-            self._version = None
+            self._versions = []
             return
 
         try:
             self.text = self._oref.index_node.get_text()  # <- This is where the magic happens
         except:
             self.text = []
-            self._version = None
+            self._versions = []
             return
 
-        self._version = Version().load({
+        v = Version().load({
             "title": self._oref.index_node.get_index_title(),
             "versionTitle": self._oref.index_node.get_version_title(self.lang),
             "language": self.lang
         }, {"chapter": 0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
+        self._versions = [v] if v else []
 
     def version(self):
-        return self._version
+        return self._versions[0] if self._versions else None
 
     def version_ids(self):
-        return [self._version._id] if self._version else []
+        return [self._versions[0]._id] if self._versions else []
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
