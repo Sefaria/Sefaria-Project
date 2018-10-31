@@ -80,13 +80,13 @@ class SearchTextResult extends Component {
             </div>) : null;
 
         const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
+        const snippetClasses = classNames({contentText: 1, snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         return (
             <div className="result text_result">
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
-                        <span className="en">{s.ref}</span>
-                        <span className="he">{s.heRef}</span>
+                        <span className="int-en">{s.ref}</span>
+                        <span className="int-he">{s.heRef}</span>
                     </div>
                     <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup} ></div>
                     <div className="version" >{s.version}</div>

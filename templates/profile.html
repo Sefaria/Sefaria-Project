@@ -12,7 +12,7 @@
 		<div id="profileTop">
 			<img id="profileImage" src="{{ profile.gravatar_url }}" alt="User Profile Picture"/>
 
-			<h1 id="profileName" class="sans">{{ profile.first_name }} {{ profile.last_name }}</h1>
+			<h1 id="profileName">{{ profile.first_name }} {{ profile.last_name }}</h1>
 
 			{% if profile.position or profile.organization %}
 			<div id="profileTagline">

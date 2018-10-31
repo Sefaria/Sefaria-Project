@@ -574,7 +574,8 @@ def update_sheet_tags(sheet_id, tags):
 	Sets the tag list for sheet_id to those listed in list 'tags'.
 	"""
 	tags = list(set(tags)) 	# tags list should be unique
-	normalizedTags = [titlecase(tag) for tag in tags]
+	# replace | with - b/c | is a reserved char for search sheet queries when filtering on tags
+	normalizedTags = [titlecase(tag).replace('|','-') for tag in tags]
 	db.sheets.update({"id": sheet_id}, {"$set": {"tags": normalizedTags}})
 
 	return {"status": "ok"}

@@ -113,7 +113,7 @@ class JaggedArray(object):
                     temp_subarray_indexes[first_diff_index] = i
                     for j in xrange(first_diff_index+1,N):
                         temp_subarray_len = self.sub_array_length(temp_subarray_indexes)
-                        if temp_subarray_len == 0 or temp_subarray_len is None:  # it's None if you're asking for length past end of array
+                        if temp_subarray_len == 0 or temp_subarray_len is None:  # it's None when you try to index past list end
                             is_zero_len_section = True
                             break
 
@@ -415,7 +415,7 @@ class JaggedArray(object):
     def normalize(self, terminal_depth=None, _cur=None, depth=1):
         """
         :param terminal_depth: The desired depth before which everything should be arrays
-        :return: Bool if there were any actual modifications made or not. 
+        :return: Bool if there were any actual modifications made or not.
         Normalizes the array so on any given depth, there are either arrays (incl empty) or primitives, not both.
         e.g. [[], ""] becomes [[], []]
         """
