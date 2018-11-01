@@ -40,6 +40,11 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["anchorText"]    = getattr(link, "anchorText", "")
     com["inline_reference"] = getattr(link, "inline_reference", None)
 
+    compDate = getattr(linkRef.index, "compDate", None)
+    if compDate:
+        com["compDate"] = int(compDate)
+        com["compDateErrorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
+
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
     lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
     # Build a decimal comment number based on the last two digits of the section array
