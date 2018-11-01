@@ -801,11 +801,6 @@ input#id_email{
   display: flex;
   flex-flow: row wrap;
   align-items: flex-start;
-}
-#teamPage .team-members{
-  justify-content: space-around;
-}
-#teamPage .board-members{
   justify-content: space-between;
 }
 #teamPage .teamMember, #teamPage .teamBoardMember {
@@ -814,6 +809,8 @@ input#id_email{
   display: inline-block;
   margin-bottom: 35px;
   padding-bottom: 35px;
+  margin-left: auto;
+  margin-right: auto;
   /*width: 32%;*/
 }
 #teamPage .teamMember {
