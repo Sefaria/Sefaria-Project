@@ -959,7 +959,8 @@ class ReaderApp extends Component {
           availableFilters,
           filterRegistry,
           orphanFilters,
-          filtersValid: true
+          filtersValid: true,
+          updateFilterCountsInPlace: true,
         }) : new SearchState({
         type,
         availableFilters,

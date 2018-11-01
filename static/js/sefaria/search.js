@@ -58,6 +58,19 @@ class Search {
             error: args.error
         });
     }
+    get_aggregation_object(aggregation_field_array) {
+      return aggregation_field_array.reduce((obj, a) =>
+        {
+          obj[a] = {
+            terms: {
+              field: a,
+              size: 10000
+            }
+          };
+          return obj;
+        }, {}
+      );
+    }
     get_query_object({
       query,
       get_filters,
@@ -124,35 +137,37 @@ class Search {
             }
         }
 
-        var inner_query = {};
+        let inner_query;
+        if (get_filters || aggregation_field_array.length > 1) {
+          //Initial, unfiltered query.  Get potential filters.
+          //OR
+          //any filtered query where there are more than 1 agg type means you need to re-fetch filters on each filter you add
+          o['aggs'] = this.get_aggregation_object(aggregation_field_array);
+        }
         if (get_filters) {
-            //Initial, unfiltered query.  Get potential filters.
             inner_query = core_query;
-            o['aggs'] = aggregation_field_array.reduce((obj, a) =>
-              {
-                obj[a] = {
-                  terms: {
-                    field: a,
-                    size: 10000
-                  }
-                };
-                return obj;
-              }, {}
-            );
         } else if (!applied_filters || applied_filters.length == 0) {
             inner_query = core_query;
         } else {
-            //Filtered query.  Add clauses.  Don't re-request potential filters.
+            //Filtered query.  Add clauses.
+            const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
             inner_query = {
                 bool: {
                     must: core_query,
                     filter: {
                       bool: {
-                        should: Sefaria.util.zip(applied_filters, appliedFilterAggTypes).map( x => this[make_filter_query](x[0], x[1]))
+                        must: uniqueAggTypes.map( a => ({
+                          bool: {
+                            should: Sefaria.util.zip(applied_filters, appliedFilterAggTypes).filter( x => x[1] === a).map( x => this[make_filter_query](x[0], x[1]))
+                          }
+                        }))
                       }
                     }
                 }
             };
+        }
+        if (!inner_query) {
+
         }
 
         //after that confusing logic, hopefully inner_query is defined properly
@@ -520,7 +535,9 @@ class FilterNode {
           return [];
       }
       if (this.isSelected()) {
-          return[(lang == "en")?this.title:this.heTitle];
+          const enTitle = !!this.title ? this.title : this.heTitle;
+          const heTitle = !!this.heTitle ? this.heTitle : this.title;
+          return[(lang == "en")?enTitle:heTitle];
       }
       var results = [];
       for (var i = 0; i < this.children.length; i++) {

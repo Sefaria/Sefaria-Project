@@ -55,7 +55,6 @@ class SearchFilters extends Component {
   }
   getSelectedTitles(lang) {
     let results = [];
-    console.log(this.props.searchState);
     for (let i = 0; i < this.props.searchState.availableFilters.length; i++) {
         results = results.concat(this.props.searchState.availableFilters[i].getSelectedTitles(lang));
     }
