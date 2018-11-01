@@ -3371,6 +3371,10 @@ def explore(request, book1, book2, lang=None):
     return render(request,'explore.html', template_vars)
 
 
+def visualize_timeline(request):
+    return render(request,'timeline.html', {})
+
+
 def person_page(request, name):
     person = Person().load({"key": name})
 

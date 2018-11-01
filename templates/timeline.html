@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Timeline" %}{% endblock %}
+
+{% block description %}{% trans "" %}{% endblock %}
+
+{% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
+
+{% block head %}
+{%  endblock %}
+
+{% block css %}
+{% endblock %}
+
+{% block content %}
+<div id="timelinePage">
+
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+		var a = document.createElement('ol');
+		if (typeof a.reversed == "undefined") {
+		$("#alertMessage").html('<strong>Warning:</strong> This page uses some features that your browser doesn\'t currently support. <br/>Continue browsing or try one of the latest versions of the following: <a href="http://www.google.com/chrome">Google Chrome</a>, <a href="http://www.firefox.com/">Mozilla Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a>').show();
+		}
+
+</script>
+
+
+<script>
+    var GLOBALS = {
+        interfaceLang: "{{ request.interfaceLang }}"
+    }
+</script>
+<script src="{% static 'bundles/explore/timeline.js' %}"></script>
+
+
+{% endblock %}
