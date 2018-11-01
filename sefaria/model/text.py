@@ -1629,7 +1629,7 @@ class VirtualTextChunk(AbstractTextRecord):
         self.is_merged = False
         self.sources = []
 
-        if lang != oref.index_node.parent.lexicon.version_lang:
+        if self.lang not in self._oref.index_node.supported_languages:
             self.text = []
             self._versions = []
             return
@@ -2254,7 +2254,7 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
-                # The line below will raise DictionaryEntryNotFound if no match
+                # The line below will raise InputError (or DictionaryEntryNotFound) if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
                 self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
@@ -3711,7 +3711,10 @@ class Ref(object):
             d.update({"language": lang})
 
         if self.index_node.is_virtual:
-            d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
+            try:
+                d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
+            except:
+                pass
             return d
 
         condition_addr = self.storage_address()

@@ -13,6 +13,7 @@ except ImportError:
 
 import regex
 from . import abstract as abst
+from sefaria.system.database import db
 
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
@@ -1405,6 +1406,7 @@ class DictionaryEntryNotFound(InputError):
 
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
+    supported_languages = ["en"]
 
     def __init__(self, parent, title=None, tref=None, word=None):
         """
@@ -1463,6 +1465,12 @@ class DictionaryEntryNode(TitledTreeNode):
 
     def address_class(self, depth):
         return self._addressTypes[depth]
+
+    def get_index_title(self):
+        return self.parent.lexicon.index_title
+
+    def get_version_title(self, lang):
+        return self.parent.lexicon.version_title
 
     def get_text(self):
         if not self.has_word_match:
@@ -1568,6 +1576,142 @@ class DictionaryNode(VirtualNode):
         d["firstWord"] = self.firstWord
         d["lastWord"] = self.lastWord
         return d
+
+
+class SheetNode(NumberedTitledTreeNode):
+    is_virtual = True
+    supported_languages = ["en", "he"]
+
+    def __init__(self, sheet_library_node, title=None, tref=None):
+        """
+        A node created on the fly, in memory, to correspond to a sheet.
+        In the case of sheets, the dynamic nodes created present as the root node, with section info.
+        :param parent:
+        :param title:
+        :param tref:
+        :param word:
+        """
+        assert title and tref
+
+        self.title = title
+        self.parent = None
+        self.depth = 2
+        self.sectionNames = ["Sheet", "Segment"]
+        self.addressTypes = ["Integer", "Integer"]
+        self.index = sheet_library_node.index
+        super(SheetNode, self).__init__(None)
+
+        self._sheetLibraryNode = sheet_library_node
+        self.title_group = sheet_library_node.title_group
+
+        self._ref_regex = regex.compile(u"^" + regex.escape(title) + self.after_title_delimiter_re + u"([0-9]+)(?:" + self.after_address_delimiter_ref + u"([0-9]+)|$)")
+        self._match = self._ref_regex.match(tref)
+        self.sheetId = int(self._match.group(1))
+        if not self.sheetId:
+            raise Exception
+
+        self.nodeId = int(self._match.group(2)) if self._match.group(2) else None
+        self._sections = [self.sheetId] + ([self.nodeId] if self.nodeId else [])
+
+        self.sheet_object = db.sheets.find_one({"id": int(self.sheetId)})
+        if not self.sheet_object:
+            raise InputError
+
+    def has_numeric_continuation(self):
+        return False  # What about section level?
+
+    def has_titled_continuation(self):
+        return False
+
+    def get_sections(self):
+        return self._sections
+
+    def get_index_title(self):
+        return self.index.title
+
+    def get_version_title(self, lang):
+        return "Dummy"
+
+    def get_text(self):
+        return [u"test"]
+        # Return depth 1 array of strings from self.sheet_object
+
+    #def address(self):
+    #    return self.parent.address() + [self.sheetId]
+
+    def prev_sibling(self):
+        return None
+
+    def next_sibling(self):
+        return None
+
+    def next_leaf(self):
+        return None
+
+    def prev_leaf(self):
+        return None
+
+    def ref(self):
+        from . import text
+        d = {
+            "index": self.index,
+            "book": self.full_title("en"),
+            "primary_category": self.index.get_primary_category(),
+            "index_node": self,
+            "sections": self._sections,
+            "toSections": self._sections[:]
+        }
+        return text.Ref(_obj=d)
+
+
+class SheetLibraryNode(VirtualNode):
+    entry_class = SheetNode
+
+    # These tree walking methods are needed, currently, so that VersionState doesn't get upset.
+    # Seems like there must be a better way to do an end run around VersionState
+    def create_content(self, callback=None, *args, **kwargs):
+        if not callback:
+            return None
+        return callback(self, *args, **kwargs)
+
+    def visit_content(self, callback, *contents, **kwargs):
+        return self.create_content(callback, *contents, **kwargs)
+
+    def visit_structure(self, callback, content, **kwargs):
+        pass
+
+    def serialize(self, **kwargs):
+        """
+        :return string: serialization of the subtree rooted in this node
+        """
+        d = super(SheetLibraryNode, self).serialize(**kwargs)
+        d["nodeType"] = "SheetLibraryNode"
+        return d
+"""
+{
+    "title" : "Sheet",
+    "schema" : {
+        "titles" : [
+            {
+                "text" : "דף",
+                "primary" : true,
+                "lang" : "he"
+            },
+            {
+                "text" : "Sheet",
+                "primary" : true,
+                "lang" : "en"
+            }
+        ],
+        nodes: [{
+            "default" : true,
+            "nodeType" : "SheetLibraryNode"
+        }]
+    }
+    "category": ["_unlisted"]    #!!!!!
+}
+
+"""
 
 
 

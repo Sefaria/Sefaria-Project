@@ -175,6 +175,8 @@ class TocTree(object):
         # Place Indexes
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
         for i in indx_set:
+            if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
+                continue
             node = self._make_index_node(i)
             cat = self.lookup(i.categories)
             if not cat:

@@ -64,7 +64,7 @@ Sefaria = extend(Sefaria, {
               }
               break;
           }
-          if (book in Sefaria.booksDict) {
+          if (book in Sefaria.booksDict || book == "Sheet") {
               nums = first.slice(i+1);
               break;
           }
@@ -81,6 +81,7 @@ Sefaria = extend(Sefaria, {
 
       if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
+          console.log(Sefaria._parseRef[q])
           return Sefaria._parseRef[q];
       }
 
