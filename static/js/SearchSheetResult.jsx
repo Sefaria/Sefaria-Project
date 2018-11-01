@@ -38,7 +38,15 @@ class SearchSheetResult extends Component {
                     <div className='result-title'>{clean_title}</div>
                     <div className="snippet" dangerouslySetInnerHTML={this.get_snippet_markup(data)}></div>
                 </a>
-              <a href={s.profile_url} onClick={this.handleProfileClick}><div className="version"><img className='img-circle owner_image' src={s.owner_image} alt={s.owner_name} /><span className='owner_name'>{s.owner_name}</span></div></a>
+              <a href={s.profile_url} onClick={this.handleProfileClick}>
+                <div className="version">
+                  <img className='img-circle owner_image' src={s.owner_image} alt={s.owner_name} />
+                  <span className="owner-metadata">
+                    <div className='owner_name'>{s.owner_name}</div>
+                    <div className='tags-views'>{`${s.views} Views${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.join(', ') : ''}`}</div>
+                  </span>
+                </div>
+              </a>
             </div>
         );
     }

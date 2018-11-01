@@ -55,6 +55,7 @@ class SearchFilters extends Component {
   }
   getSelectedTitles(lang) {
     let results = [];
+    console.log(this.props.searchState);
     for (let i = 0; i < this.props.searchState.availableFilters.length; i++) {
         results = results.concat(this.props.searchState.availableFilters[i].getSelectedTitles(lang));
     }
@@ -152,7 +153,7 @@ class SearchFilters extends Component {
       <div className="searchTopMatter">
         <div className="searchStatusLine">
           { (this.props.isQueryRunning) ? runningQueryLine : null }
-          { (this.props.searchState.availableFilters.length > 0 && this.props.type == "text") ? selected_filters : ""}
+          { (this.props.searchState.availableFilters.length > 0) ? selected_filters : ""}
         </div>
         <div className="searchButtonsBar">
           { buttons }

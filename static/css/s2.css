@@ -1888,6 +1888,7 @@ a.readerNavCategory {
   padding: 0 0 36px 0;
   text-align: center;
   font-size: 12px;
+  height: 10px;
 }
 .searchFilterBoxes .type-button,
 .readerSheetsNav .type-button {
@@ -2208,7 +2209,7 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .searchContent .sheet_result .owner_name {
-  margin-left: 10px;
+  padding-bottom: 5px;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
@@ -2239,6 +2240,13 @@ a.readerNavCategory {
   letter-spacing: 1px;
   font-size: 13px;
   margin: 8px 0;
+  display: flex;
+  align-items: center;
+}
+.searchContent .result .version .owner-metadata {
+  display: flex;
+  flex-direction: column;
+  margin: 0 10px;
 }
 .searchContent .result .similar-trigger-box {
   color: #999;

@@ -45,8 +45,6 @@ class SearchPage extends Component {
                           <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
                             &ldquo;{ this.props.query }&rdquo;
                           </h1>
-                          <div className="searchControlsBox">
-                          </div>
                           <div className="searchContent" style={style}>
                               <SearchResultList
                                 query = { this.props.query }
