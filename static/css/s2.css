@@ -1981,11 +1981,12 @@ a.readerNavCategory {
 .interface-hebrew .searchFilterBoxes {
   left: 0;
 }
-.searchFilterBoxes .tag-filter-outer {
+.searchContent .searchFilterBoxes .tag-filter-outer {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding: 20px;
+  height: 160px;
+  padding: 10px 20px;
   box-sizing: border-box;
 }
 .searchFilterBoxes .tag-filter {
@@ -2019,10 +2020,25 @@ a.readerNavCategory {
 }
 .searchContent .searchFilterBoxes li {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  display: block;
+  display: flex;
+  justify-content: space-between;
+  flex: 1 0 45%;  /* see https://stackoverflow.com/questions/29546550/flexbox-4-items-per-row */
   padding: 15px 0 15px 15px;
   font-size: 16px;
   cursor: pointer;
+  line-height: 125%;
+}
+.searchContent .searchFilterBoxes li img {
+  height: 10px;
+  width: 10px;
+  opacity: 0.43;
+  padding: 0 10px;
+}
+.searchContent .searchFilterBoxes .searchFilterExactBox li {
+  justify-content: flex-start;
+}
+.searchContent .searchFilterBoxes li .checkboxAndText {
+  display: flex;
 }
 .searchContent .searchFilterBoxRow li:hover {
   background-color: #e0e0e0;
@@ -2039,7 +2055,6 @@ a.readerNavCategory {
     display:inline-block;
     width: 15px;
     height: 15px;
-    vertical-align: sub;
     cursor:pointer;
     background-image: url(/static/img/checkbox-unchecked.svg);
     background-size: contain;
@@ -2067,8 +2082,8 @@ a.readerNavCategory {
   padding-right: 0;
 }
 .searchFilterBoxes .searchFilterExactBox {
-  border-top: 1px solid #ccc;
-  padding: 5px 0px 5px 0;
+  padding-top: 10px;
+  height: 150px;
 }
 .searchFilterExactBox.hidden {
   display:none;
@@ -2151,6 +2166,8 @@ a.readerNavCategory {
 }
 .searchContent .searchFilterCategoryBox.searchFilterSheetBox {
   width: 100%;
+  display: flex;
+  flex-wrap: wrap;
 }
 .interface-hebrew .searchContent .searchFilterCategoryBox,
 .interface-hebrew .searchContent .searchFilterBookBox {

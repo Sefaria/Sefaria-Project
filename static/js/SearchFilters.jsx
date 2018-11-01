@@ -208,18 +208,32 @@ SearchDropdownButton.propTypes = {
 }
 
 
+class SearchFilterTabRow extends Component {
+  render() {
+    return (
+      <div className="searchFilterTabRow">
+        {this.props.tabs.map( t =>
+          <div key={t.en} className={classNames({'search-dropdown-button': 1, active: this.props.activeTab === t.en})} onClick={() => { this.props.changeTab(t.en); }}>
+            <span className="int-en">{t.en}</span>
+            <span className="int-he" dir="rtl">{t.he}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+}
+SearchFilterTabRow.propTypes = {
+  tabs: PropTypes.array.isRequired,
+  activeTab: PropTypes.string.isRequired,
+  changeTab: PropTypes.func.isRequired,
+}
+
 class SheetSearchFilterPanel extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeTab: 'groups',
+      activeTab: 'Groups',
     }
-  }
-  clickGroupTab(e) {
-    this.changeTab('groups');
-  }
-  clickTagTab(e) {
-    this.changeTab('tags')
   }
   changeTab(tab) {
     if (this.state.activeTab !== tab) {
@@ -229,8 +243,7 @@ class SheetSearchFilterPanel extends Component {
   render() {
     const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
     const tagFilters = this.props.availableFilters.filter(filter => filter.aggType === 'tags');
-    const groupTabClasses = classNames({'search-dropdown-button': 1, active: this.state.activeTab === 'groups'});
-    const tagTabClasses = classNames({'search-dropdown-button': 1, active: this.state.activeTab === 'tags'});
+
 
     return (
       <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
@@ -241,17 +254,12 @@ class SheetSearchFilterPanel extends Component {
           heText={"סינון"}
         />
         <div key={this.state.activeTab} className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
-          <div className="searchFilterTabRow">
-            <div className={groupTabClasses} onClick={this.clickGroupTab}>
-              <span className="int-en">Groups</span>
-              <span className="int-he" dir="rtl">קבוצות</span>
-            </div>
-            <div className={tagTabClasses} onClick={this.clickTagTab}>
-              <span className="int-en">Tags</span>
-              <span className="int-he" dir="rtl">תויות</span>
-            </div>
-          </div>
-          { this.state.activeTab === 'groups' ?
+          <SearchFilterTabRow
+            tabs={[{en: 'Groups', he: 'קבוצות'}, {en: 'Tags', he: 'תויות'}]}
+            activeTab={this.state.activeTab}
+            changeTab={this.changeTab}
+          />
+          { this.state.activeTab === 'Groups' ?
             <div className="searchFilterCategoryBox searchFilterSheetBox">
             {groupFilters.map(filter => (
                   <SearchFilter
@@ -288,6 +296,17 @@ SheetSearchFilterPanel.propTypes = {
 };
 
 class TextSearchFilterPanel extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      activeTab: 'Titles',
+    };
+  }
+  changeTab(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({activeTab: tab});
+    }
+  }
   render() {
     return (
       <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
@@ -298,35 +317,43 @@ class TextSearchFilterPanel extends Component {
           heText={"סינון"}
         />
         <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
-          <div className="searchFilterBoxRow">
-            <div className="searchFilterCategoryBox">
-            {this.props.availableFilters.map(filter => {
-                return (<SearchFilter
-                    filter={filter}
-                    isInFocus={this.props.openedCategory === filter}
-                    focusCategory={this.props.handleFocusCategory}
-                    updateSelected={this.props.updateAppliedFilter}
-                    closeBox={this.props.closeBox}
-                    key={filter.aggKey}/>);
-            })}
-            </div>
-            <div className="searchFilterBookBox">
-            {this.props.openedCategoryBooks.map(function(filter) {
-                return (<SearchFilter
-                    filter={filter}
-                    openedCategory={this.props.openedCategory}
-                    resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
-                    updateSelected={this.props.updateAppliedFilter}
-                    key={filter.aggKey}/>);
-            }.bind(this))}
-            </div>
-          </div>
-          <div className={"searchFilterExactBox"}>
-            <SearchFilterExactBox
-              selected={this.props.isExactSearch}
-              checkBoxClick={this.props.toggleExactSearch}
-              />
-          </div>
+          <SearchFilterTabRow
+            tabs={[{en: 'Titles', he: 'כותרות'}, {en: 'Options', he: 'אופציות'}]}
+            activeTab={this.state.activeTab}
+            changeTab={this.changeTab}
+          />
+          { this.state.activeTab === 'Titles' ?
+            (<div className="searchFilterBoxRow">
+              <div className="searchFilterCategoryBox">
+              {this.props.availableFilters.map(filter => {
+                  return (<SearchFilter
+                      filter={filter}
+                      isInFocus={this.props.openedCategory === filter}
+                      focusCategory={this.props.handleFocusCategory}
+                      updateSelected={this.props.updateAppliedFilter}
+                      closeBox={this.props.closeBox}
+                      key={filter.aggKey}/>);
+              })}
+              </div>
+              <div className="searchFilterBookBox">
+              {this.props.openedCategoryBooks.map(function(filter) {
+                  return (<SearchFilter
+                      filter={filter}
+                      openedCategory={this.props.openedCategory}
+                      resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
+                      updateSelected={this.props.updateAppliedFilter}
+                      key={filter.aggKey}/>);
+              }.bind(this))}
+              </div>
+            </div>) : (
+              <div className={"searchFilterExactBox"}>
+                <SearchFilterExactBox
+                  selected={this.props.isExactSearch}
+                  checkBoxClick={this.props.toggleExactSearch}
+                  />
+              </div>
+            )
+          }
           <div style={{clear: "both"}}/>
         </div>
       </DropdownModal>
@@ -576,12 +603,14 @@ class SearchFilter extends Component {
     const heTitleIsEn = !filter.heTitle && !!filter.title;
     return(
       <li onClick={this.handleFocusCategory}>
-        <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-        <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.aggKey} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}><span></span></label>
-        <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
-        <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
-        {isInFocus?<span className="int-en"><i className="in-focus-arrow fa fa-caret-right"/></span>:""}
-        {isInFocus?<span className="int-he"><i className="in-focus-arrow fa fa-caret-left"/></span>:""}
+        <div className="checkboxAndText">
+          <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
+          <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.aggKey} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}><span></span></label>
+          <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
+          <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
+        </div>
+        {isInFocus?<span className="int-en"><img src="/static/img/arrow-right.png"></img></span>:""}
+        {isInFocus?<span className="int-he"><img src="/static/img/arrow-left.png"></img></span>:""}
       </li>);
   }
 }
