@@ -1617,6 +1617,8 @@ class SheetNode(NumberedTitledTreeNode):
         if not self.sheet_object:
             raise InputError
 
+
+
     def has_numeric_continuation(self):
         return False  # What about section level?
 
@@ -1633,7 +1635,20 @@ class SheetNode(NumberedTitledTreeNode):
         return "Dummy"
 
     def get_text(self):
-        return [u"test"]
+        text = []
+        for source in self.sheet_object.get("sources"):
+            if source.get("text"):
+                text.append(source.get("text"))
+            elif source.get("outsideText"):
+                text.append(source.get("outsideText"))
+            elif source.get("outsideBiText"):
+                text.append(source.get("outsideBiText"))
+            elif source.get("comment"):
+                text.append(source.get("comment"))
+            elif source.get("media"):
+                text.append(source.get("media"))
+
+        return text
         # Return depth 1 array of strings from self.sheet_object
 
     #def address(self):
