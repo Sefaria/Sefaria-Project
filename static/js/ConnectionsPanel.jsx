@@ -72,8 +72,6 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
-    console.log(this.props.srefs)
-
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
@@ -288,7 +286,6 @@ class ConnectionsPanel extends Component {
                 </div>);
 
     } else if (this.props.mode === "Notes") {
-        console.log(this.props)
       content = (<div>
                   <AddNoteBox
                     srefs={this.props.srefs}
@@ -943,6 +940,8 @@ class MyNotes extends Component {
   }
   render() {
     var myNotesData = Sefaria.privateNotes(this.props.srefs);
+    console.log(this.props.srefs)
+    console.log(myNotesData)
     var myNotes = myNotesData ? myNotesData.map(function(note) {
       var editNote = function() {
         this.props.editNote(note);
