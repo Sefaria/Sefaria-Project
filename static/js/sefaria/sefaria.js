@@ -548,8 +548,24 @@ Sefaria = extend(Sefaria, {
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   _indexDetails: {},
+  hasIndexDetails: title => {title in this._indexDetails},
+  getIndexDetails: function(title) {
+    return new Promise((resolve, reject) => {
+        var details = title in this._indexDetails ? this._indexDetails[title] : null;
+        if (details) {
+          resolve(details);
+        } else {
+            var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
+            this._api(url, data => {
+                Sefaria._indexDetails[title] = data;
+                resolve(data);
+            });
+        }
+    });
+  },
   indexDetails: function(title, cb) {
     // Returns detailed index record for `title` which includes info like author and description
+    console.log("The indexDetails method is deprecated.  Please use getIndexDetails.");
     var details = title in this._indexDetails ? this._indexDetails[title] : null;
     if (details) {
       if (cb) {cb(details)}
@@ -618,11 +634,12 @@ Sefaria = extend(Sefaria, {
       callback(result);
     } else if (callback) {
       // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
-      var openApiCalls = Object.keys(Sefaria._apiCallbacks);
+      // todo: Ugly.  Breaks abstraction.
+      var openApiCalls = Object.keys(Sefaria._ajaxObjects);
       var urlPattern = "/api/texts/" + Sefaria.normRef(ref);
       for (var i = 0; i < openApiCalls.length; i++) {
         if (openApiCalls[i].startsWith(urlPattern)) {
-          Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
+          Sefaria._ajaxObjects[openApiCalls[i]].then(callback);
         }
       }
       // If no open calls found, call the texts API.
@@ -1978,10 +1995,17 @@ Sefaria = extend(Sefaria, {
       this.booksDict[this.books[i]] = 1;
     }
   },
-  _apiCallbacks: {},
-  _ajaxObjects: {},
+  _ajaxObjects: {},   // These are jqXHR objects, which implement the Promise interface
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
+    // This method will be deprecated, in favor of _promiseAPI
+    //
+    if (url in this._ajaxObjects) {
+      return this._ajaxObjects[url].then(callback);
+    }
+    return this._promiseAPI(url).then(callback);
+
+    /*
     if (url in this._apiCallbacks) {
       this._apiCallbacks[url].push(callback);
       return this._ajaxObjects[url];
@@ -1997,7 +2021,16 @@ Sefaria = extend(Sefaria, {
       }.bind(this));
       this._ajaxObjects[url] = ajaxobj;
       return ajaxobj;
+    } */
+  },
+  _promiseAPI: function(url) {
+    // Uses same _ajaxObjects as _api
+    // Use built in Promise logic to handle multiple .then()s
+    if (url in this._ajaxObjects) {
+      return this._ajaxObjects[url];
     }
+    this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
+    return this._ajaxObjects[url];
   }
 });
 

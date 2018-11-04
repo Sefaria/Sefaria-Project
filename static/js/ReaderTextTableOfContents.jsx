@@ -28,6 +28,7 @@ class ReaderTextTableOfContents extends Component {
       versionsLoaded: false,
       currentVersion: null,
       showAllVersions: false,
+      indexDetails: null,
       versionsDropDownOpen: false,
       dlVersionTitle: null,
       dlVersionLanguage: null,
@@ -54,10 +55,7 @@ class ReaderTextTableOfContents extends Component {
   }
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
-    var details = Sefaria.indexDetails(this.props.title);
-    if (!details) {
-      Sefaria.indexDetails(this.props.title, () => this.forceUpdate() );
-    }
+    Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
     if (this.isBookToc()) {
       var ref  = this.getDataRef();
       var versions = Sefaria.versions(ref);
@@ -176,9 +174,8 @@ class ReaderTextTableOfContents extends Component {
     var downloadSection = null;
 
     // Text Details
-    var details = Sefaria.indexDetails(this.props.title);
-    var detailsSection = details ? <TextDetails index={details} narrowPanel={this.props.narrowPanel} /> : null;
-    var isDictionary = details && !!details.lexiconName;
+    var detailsSection = this.state.indexDetails ? <TextDetails index={this.state.indexDetails} narrowPanel={this.props.narrowPanel} /> : null;
+    var isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
 
     if (this.isTextToc()) {
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
@@ -395,10 +392,10 @@ class ReaderTextTableOfContents extends Component {
                       {currentVersionElement || (<LoadingMessage />)}
                     </div>
                   : null}
-                  {details ?
+                  {this.state.indexDetails ?
                   <div>
                     { isDictionary ? <DictionarySearch
-                        lexiconName={details.lexiconName}
+                        lexiconName={this.state.indexDetails.lexiconName}
                         title={this.props.title}
                         interfaceLang={this.props.interfaceLang}
                         close={this.props.close}
@@ -407,11 +404,11 @@ class ReaderTextTableOfContents extends Component {
                         currVersions={this.props.currVersions}/> : ""}
                     <div onClick={this.handleClick}>
                       <TextTableOfContentsNavigation
-                        schema={details.schema}
+                        schema={this.state.indexDetails.schema}
                         isDictionary={isDictionary}
                         commentatorList={Sefaria.commentaryList(this.props.title)}
-                        alts={details.alts}
-                        defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
+                        alts={this.state.indexDetails.alts}
+                        defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
                         narrowPanel={this.props.narrowPanel}
                         title={this.props.title}/>
                     </div>

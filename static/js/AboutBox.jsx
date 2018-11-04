@@ -13,7 +13,7 @@ class AboutBox extends Component {
     }
   }
   componentDidMount() {
-    Sefaria.indexDetails(this.props.title, (data) => {
+    Sefaria.getIndexDetails(this.props.title).then(data => {
       this.setState({details: data});
     });
   }
