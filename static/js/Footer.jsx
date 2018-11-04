@@ -42,7 +42,7 @@ class Footer extends Component {
     var currentPath = Sefaria.util.currentPath();
     var currentPathEncoded = encodeURIComponent(currentPath);
     var next = currentPathEncoded ? currentPathEncoded : '?home';
-    var res = (
+    return (
         <div id="footerInner">
           <div className="section">
 
@@ -218,7 +218,6 @@ class Footer extends Component {
           </div>
         </div>
     );
-    return res;
   }
 }
 
