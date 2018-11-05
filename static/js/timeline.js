@@ -9,7 +9,7 @@ var w; // value determined in buildScreen()
 var h = 730 - margin[0] - margin[2];
 
 var svg;
-
+var startingRef = "Shabbat 32a:4";
 
 
 /*****          Hebrew / English Handling              *****/
@@ -30,6 +30,96 @@ function switchToHebrew() { lang = "he"; }
 
 (GLOBALS.interfaceLang == "hebrew") ? switchToHebrew() : switchToEnglish();
 
+/*****                   Currying Data                  *****/
+
+
+
+getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
+
+function partitionLinks(links, year) {
+  // Split array of links into three arrays, based on year
+  // Returns three arrays: [past, future, concurrent]
+
+  let past = [], future = [], concurrent=[];
+  links.forEach(l => {
+      if (!l.compDate) return;
+      let lyear = getDate(l);
+      ((lyear > year) ? future : (lyear < year) ? past : concurrent).push(l);
+  });
+  return [past, future, concurrent];
+}
+
+let _partitionedLinks = {}; // ref: [past, future, concurrent]
+async function getPartitionedLinks(ref, year) {
+    // ref: String (required)
+    // year: Integer (optional.  derived from ref if not provided.)
+    // Returns three arrays: [past, future, concurrent]
+
+    if (ref in _partitionedLinks) return _partitionedLinks[ref];
+
+    let refYear = (year != null) ? year : await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index).then(getDate);
+    if ((!refYear) && (refYear !== 0)) throw "No date for " + ref; 
+
+    let links = await Sefaria.getLinks(ref);
+
+    let partionedLinks = partitionLinks(links, refYear);
+    _partitionedLinks[ref] = partionedLinks;
+    return partionedLinks;
+}
+
+async function getPastLinks(ref, year) {
+    let [past, future, concurrent] = await getPartitionedLinks(ref, year);
+    return past;
+}
+
+async function getFutureLinks(ref, year) {
+    let [past, future, concurrent] = await getPartitionedLinks(ref, year);
+    return future;
+}
+
+async function getConcurrentLinks(ref, year) {
+    let [past, future, concurrent] = await getPartitionedLinks(ref, year);
+    return concurrent;
+}
+
+// Tree Builders
+// These assume any given object has a ref attribute
+// And are called initially with {ref: ref}
+
+async function buildFutureTree(obj) {
+    obj.future = await getFutureLinks(obj.ref, getDate(obj));
+    for (link of obj.future) {
+        await buildFutureTree(link);
+    }
+}
+
+async function buildPastTree(obj) {
+    obj.past = await getPastLinks(obj.ref, getDate(obj));
+    for (link of obj.past) {
+        await buildPastTree(link);
+    }
+}
+
+async function buildConcurrentTree(obj) {
+    obj.concurrent = await getConcurrentLinks(obj.ref, getDate(obj));
+
+    // This one falls into loops, of course.
+    // for (link of obj.concurrent) {
+    //    await buildConcurrentTree(link);
+    //}
+}
+
+async function buildAllTrees(ref) {
+    let obj = {ref: ref};
+    let a = buildFutureTree(obj);
+    let b = buildPastTree(obj);
+    let c = buildConcurrentTree(obj);
+    await a;
+    await b;
+    await c;
+    return obj;
+}
+
 
 /*****         Methods used in screen construction      *****/
 
@@ -38,7 +128,7 @@ function buildScreen() {
 }
 
 
-//Build objects that are present for any starting state - 0, 1, or 2 books
+//Build objects that are present for any starting state
 function buildFrame() {
     w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
     svg = d3.select("#content").append("svg")
