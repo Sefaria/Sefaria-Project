@@ -72,8 +72,7 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
-    console.log(this.props.srefs)
-
+    console.log(this.props.srefs);
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
@@ -288,7 +287,7 @@ class ConnectionsPanel extends Component {
                 </div>);
 
     } else if (this.props.mode === "Notes") {
-        console.log(this.props)
+        console.log(this.props);
       content = (<div>
                   <AddNoteBox
                     srefs={this.props.srefs}
@@ -312,6 +311,7 @@ class ConnectionsPanel extends Component {
                     selectedWords={this.props.selectedWords}
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
+                    onCitationClick={this.props.onCitationClick}
       />);
 
     } else if (this.props.mode === "Tools") {
