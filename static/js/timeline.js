@@ -36,19 +36,6 @@ function switchToHebrew() { lang = "he"; }
 
 getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
 
-function partitionLinks(links, year) {
-  // Split array of links into three arrays, based on year
-  // Returns three arrays: [past, future, concurrent]
-
-  let past = [], future = [], concurrent=[];
-  links.forEach(l => {
-      if (!l.compDate) return;
-      let lyear = getDate(l);
-      ((lyear > year) ? future : (lyear < year) ? past : concurrent).push(l);
-  });
-  return [past, future, concurrent];
-}
-
 let _partitionedLinks = {}; // ref: [past, future, concurrent]
 async function getPartitionedLinks(ref, year) {
     // ref: String (required)
@@ -65,6 +52,19 @@ async function getPartitionedLinks(ref, year) {
     let partionedLinks = partitionLinks(links, refYear);
     _partitionedLinks[ref] = partionedLinks;
     return partionedLinks;
+}
+
+function partitionLinks(links, year) {
+  // Split array of links into three arrays, based on year
+  // Returns three arrays: [past, future, concurrent]
+
+  let past = [], future = [], concurrent=[];
+  links.forEach(l => {
+      if (!l.compDate) return;
+      let lyear = getDate(l);
+      ((lyear > year) ? future : (lyear < year) ? past : concurrent).push(l);
+  });
+  return [past, future, concurrent];
 }
 
 async function getPastLinks(ref, year) {
