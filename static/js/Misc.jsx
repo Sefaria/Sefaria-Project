@@ -852,13 +852,13 @@ ReaderMessage.propTypes = {
 
 class CookiesNotification extends Component {
   constructor(props) {
-    super(props)
-    var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
+    super(props);
+    let showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
     
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/"});
+    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
     this.setState({showNotification: false});
   }
   render() {
