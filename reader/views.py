@@ -253,6 +253,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         highlighted_node = sheet_id.split(".")[1]
         sheet_id = sheet_id.split(".")[0]
 
+    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(int(sheet_id))
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 
