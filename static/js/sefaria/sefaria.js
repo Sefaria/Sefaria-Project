@@ -728,12 +728,36 @@ Sefaria = extend(Sefaria, {
 
   },
   _links: {},
+  /*
+  hasLinks: function(ref) {
+      return ref in this._links;
+  },
+  */
+  getLinks: function(ref) {
+    // When there is an error in the returned data, this calls `reject` rather than returning empty.
+    return new Promise((resolve, reject) => {
+        ref = Sefaria.humanRef(ref);
+        if (ref in this._links) {
+            resolve(this._links[ref]);
+        } else {
+            let url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
+            let p = this._promiseAPI(url)
+                .then(data => {
+                    if ("error" in data) reject(data);
+                    this._saveLinkData(ref, data);
+                    return data;
+                });
+            resolve(p);
+        }
+    });
+  },
   links: function(ref, cb) {
     // Returns a list of links known for `ref`.
     // WARNING: calling this function with spanning refs can cause bad state in cache.
     // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
     // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
     // Fixing this generally on the client side requires more understanding of ref logic.
+    console.log("Method Sefaria.links() is deprecated in favor of Sefaria.getLinks()");
     ref = Sefaria.humanRef(ref);
     if (!cb) {
       return this._links[ref] || [];
