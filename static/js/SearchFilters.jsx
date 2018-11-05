@@ -11,14 +11,19 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
+const noGroupEn = '(No Group)';
+const noGroupHe = '(ללא קבוצה)';
+const noTagsEn = '(No Tag)';
+const noTagsHe = '(ללא תוית)';
 
 class SearchFilters extends Component {
   constructor(props) {
     super(props);
-
+    const hasFilters = props.searchState.availableFilters.length > 0;
+    const openedCategory = hasFilters ? props.searchState.availableFilters[0] : null;
     this.state = {
-      openedCategory: null,
-      openedCategoryBooks: [],
+      openedCategory,
+      openedCategoryBooks: hasFilters ? openedCategory.getLeafNodes() : [],
       isExactSearch: props.searchState.field === props.searchState.fieldExact
     }
   }
@@ -28,11 +33,13 @@ class SearchFilters extends Component {
     // todo: check for cases when we want to rebuild / not
     const { field, fieldExact } = this.props.searchState;
     if ((newProps.query != this.props.query)
-        || (newProps.searchState.availableFilters.length == 0)) {
+        || (newProps.searchState.availableFilters.length !== this.props.searchState.availableFilters.length)) {
 
+      const hasFilters = newProps.searchState.availableFilters.length > 0;
+      const openedCategory = hasFilters ? newProps.searchState.availableFilters[0] : null;
       this.setState({
-        openedCategory: null,
-        openedCategoryBooks: [],
+        openedCategory,
+        openedCategoryBooks: hasFilters ? openedCategory.getLeafNodes() : [],
         isExactSearch: field === fieldExact
       });
     }
@@ -56,7 +63,8 @@ class SearchFilters extends Component {
   getSelectedTitles(lang) {
     let results = [];
     for (let i = 0; i < this.props.searchState.availableFilters.length; i++) {
-        results = results.concat(this.props.searchState.availableFilters[i].getSelectedTitles(lang));
+        const tempSelected = this.props.searchState.availableFilters[i].getSelectedTitles(lang);
+        results = results.concat(tempSelected);
     }
     return results;
   }
@@ -131,6 +139,7 @@ class SearchFilters extends Component {
         isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
         handleFocusCategory={this.handleFocusCategory}
         resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
+        updateLastAppliedAggType={this.props.updateLastAppliedAggType}
       /> :
       <SheetSearchFilterPanel
         toggleFilterView={this.props.toggleFilterView}
@@ -138,6 +147,7 @@ class SearchFilters extends Component {
         updateAppliedFilter={this.props.updateAppliedFilter}
         availableFilters={this.props.searchState.availableFilters}
         closeBox={this.props.closeFilterView}
+        updateLastAppliedAggType={this.props.updateLastAppliedAggType}
       />
     );
 
@@ -173,6 +183,7 @@ SearchFilters.propTypes = {
   updateAppliedFilter:  PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort: PropTypes.func,
+  updateLastAppliedAggType: PropTypes.func,
   isQueryRunning:       PropTypes.bool,
   type:            PropTypes.string,
   clickTextButton:      PropTypes.func,
@@ -266,6 +277,7 @@ class SheetSearchFilterPanel extends Component {
                     filter={filter}
                     isInFocus={false}
                     updateSelected={this.props.updateAppliedFilter}
+                    updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                     closeBox={this.props.closeBox}
                     key={filter.aggKey}
                   />
@@ -277,6 +289,7 @@ class SheetSearchFilterPanel extends Component {
                 <SearchTagFilter
                   filter={filter}
                   updateSelected={this.props.updateAppliedFilter}
+                  updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                   key={filter.aggKey}
                 />
               ))}
@@ -293,6 +306,7 @@ SheetSearchFilterPanel.propTypes = {
   updateAppliedFilter: PropTypes.func.isRequired,
   availableFilters:    PropTypes.array.isRequired,
   closeBox:            PropTypes.func.isRequired,
+  updateLastAppliedAggType: PropTypes.func.isRequired,
 };
 
 class TextSearchFilterPanel extends Component {
@@ -331,19 +345,21 @@ class TextSearchFilterPanel extends Component {
                       isInFocus={this.props.openedCategory === filter}
                       focusCategory={this.props.handleFocusCategory}
                       updateSelected={this.props.updateAppliedFilter}
+                      updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                       closeBox={this.props.closeBox}
                       key={filter.aggKey}/>);
               })}
               </div>
               <div className="searchFilterBookBox">
-              {this.props.openedCategoryBooks.map(function(filter) {
-                  return (<SearchFilter
-                      filter={filter}
-                      openedCategory={this.props.openedCategory}
-                      resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
-                      updateSelected={this.props.updateAppliedFilter}
-                      key={filter.aggKey}/>);
-              }.bind(this))}
+              {this.props.openedCategoryBooks.map(filter => (
+                <SearchFilter
+                  filter={filter}
+                  openedCategory={this.props.openedCategory}
+                  resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
+                  updateSelected={this.props.updateAppliedFilter}
+                  updateLastAppliedAggType={this.props.updateLastAppliedAggType}
+                  key={filter.aggKey}/>
+              ))}
               </div>
             </div>) : (
               <div className={"searchFilterExactBox"}>
@@ -370,7 +386,8 @@ TextSearchFilterPanel.propTypes = {
   isExactSearch:       PropTypes.bool,
   toggleExactSearch:   PropTypes.func,
   closeBox:            PropTypes.func,
-  handleFocusCategory: PropTypes.func
+  handleFocusCategory: PropTypes.func,
+  updateLastAppliedAggType: PropTypes.func.isRequired,
 };
 
 
@@ -482,6 +499,7 @@ class SearchTagFilter extends Component {
   }
   handleClick(evt) {
     //evt.preventDefault();
+    this.props.updateLastAppliedAggType(this.props.filter.aggType);
     this.props.updateSelected(this.props.filter, 'tags')
   }
   handleKeyPress(e) {
@@ -492,10 +510,10 @@ class SearchTagFilter extends Component {
   render() {
     const { filter } = this.props;
     let enTitle = filter.title || filter.heTitle;
-    enTitle = enTitle || '(No Tag)';
+    enTitle = enTitle || noTagsEn;
     const enTitleIsHe = !filter.title && !!filter.heTitle;
     let heTitle = filter.heTitle || filter.title;
-    heTitle = heTitle || '(ללא תוית)';
+    heTitle = heTitle || noTagsHe;
     const heTitleIsEn = !filter.heTitle && !!filter.title;
 
     const classes = classNames({"type-button": 1, "tag-filter": 1, active: this.state.selected === 1})
@@ -509,6 +527,7 @@ class SearchTagFilter extends Component {
 }
 SearchTagFilter.propTypes = {
   updateSelected: PropTypes.func.isRequired,
+  updateLastAppliedAggType: PropTypes.func.isRequired,
   filter:         PropTypes.object.isRequired,
 }
 
@@ -548,6 +567,7 @@ class SearchFilter extends Component {
   }
   handleFilterClick(evt) {
     //evt.preventDefault();
+    this.props.updateLastAppliedAggType(this.props.filter.aggType);
     this.props.updateSelected(this.props.filter)
   }
   handleFocusCategory() {
@@ -596,13 +616,13 @@ class SearchFilter extends Component {
   render() {
     const { filter, isInFocus } = this.props;
     let enTitle = filter.title || filter.heTitle;
-    enTitle = enTitle || '(No Group)';
+    enTitle = enTitle || noGroupEn;
     const enTitleIsHe = !filter.title && !!filter.heTitle;
     let heTitle = filter.heTitle || filter.title;
-    heTitle = heTitle || '(בלי קבוצה)';
+    heTitle = heTitle || noGroupHe;
     const heTitleIsEn = !filter.heTitle && !!filter.title;
     return(
-      <li onClick={this.handleFocusCategory}>
+      <li className={classNames({active: isInFocus})} onClick={this.handleFocusCategory}>
         <div className="checkboxAndText">
           <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
           <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.aggKey} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}><span></span></label>
@@ -618,7 +638,8 @@ SearchFilter.propTypes = {
   filter:         PropTypes.object.isRequired,
   isInFocus:      PropTypes.bool,
   updateSelected: PropTypes.func.isRequired,
-  focusCategory:  PropTypes.func
+  updateLastAppliedAggType: PropTypes.func.isRequired,
+  focusCategory:  PropTypes.func,
 };
 
 

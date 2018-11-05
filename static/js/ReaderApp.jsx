@@ -949,7 +949,7 @@ class ReaderApp extends Component {
   updateAvailableFiltersInHeader(type, availableFilters, filterRegistry, orphanFilters) {
     this.updateAvailableFilters(undefined, ...arguments);
   }
-  updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters) {
+  updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
     const searchState = this._getSearchState(tempState, type);
     const searchStateName = this._getSearchStateName(type);
@@ -960,7 +960,7 @@ class ReaderApp extends Component {
           filterRegistry,
           orphanFilters,
           filtersValid: true,
-          updateFilterCountsInPlace: true,
+          aggregationsToUpdate,
         }) : new SearchState({
         type,
         availableFilters,

@@ -1887,7 +1887,7 @@ a.readerNavCategory {
 .searchContent .searchStatusLine {
   padding: 0 0 36px 0;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   height: 10px;
 }
 .searchFilterBoxes .type-button,
@@ -1971,9 +1971,7 @@ a.readerNavCategory {
   flex-direction: column;
   position: absolute;
   z-index: 1;
-  border-width: 0 0 1px 0;
-  border-style: solid;
-  border-color: #ccc;
+  box-shadow: 0 1px 3px #ccc;
   box-sizing: border-box;
 }
 .interface-english .searchFilterBoxes {
@@ -1986,7 +1984,7 @@ a.readerNavCategory {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  height: 160px;
+  height: 210px;
   padding: 10px 20px;
   box-sizing: border-box;
 }
@@ -2041,6 +2039,7 @@ a.readerNavCategory {
 .searchContent .searchFilterBoxes li .checkboxAndText {
   display: flex;
 }
+.searchContent .searchFilterBoxRow li.active,
 .searchContent .searchFilterBoxRow li:hover {
   background-color: #e0e0e0;
 }
@@ -2084,7 +2083,7 @@ a.readerNavCategory {
 }
 .searchFilterBoxes .searchFilterExactBox {
   padding-top: 10px;
-  height: 150px;
+  height: 200px;
 }
 .searchFilterExactBox.hidden {
   display:none;
@@ -2124,7 +2123,7 @@ a.readerNavCategory {
 .searchContent .searchSortBox tr:hover {
   background-color: #e0e0e0;
 }
-.searchContent .searchSortBox tr:first-child {
+.searchContent .searchSortBox tr:not(:last-child) {
   border-bottom: 1px solid #eee;
 }
 .searchContent .searchSortBox td:not(:first-child) {
@@ -2162,7 +2161,7 @@ a.readerNavCategory {
 .searchContent .searchFilterBookBox {
   padding-top: 10px;
   width: 50%;
-  height: 150px;
+  height: 200px;
   overflow-y: auto;
 }
 .searchContent .searchFilterCategoryBox.searchFilterSheetBox {
@@ -2266,7 +2265,7 @@ a.readerNavCategory {
 .searchContent .sheet_result .owner_image {
   height: 30px;
   width: 30px;
-  vertical-align:middle;
+  align-self: flex-start;
 }
 
 .searchContent .sheet_result {

@@ -53,7 +53,7 @@ class SearchState {
     fieldBroad,
     field,
     sortType,
-    updateFilterCountsInPlace,
+    aggregationsToUpdate,
   }) {
     type             = typeof type             === 'undefined' ? this.type             : type;
     appliedFilters   = typeof appliedFilters   === 'undefined' ? this.appliedFilters   : appliedFilters;
@@ -66,18 +66,10 @@ class SearchState {
     sortType         = typeof sortType         === 'undefined' ? this.sortType         : sortType;
     const tempAvailableFilters = availableFilters;
     const tempFilterRegistry   = typeof filterRegistry   === 'undefined' ? this.filterRegistry   : filterRegistry;
-    if (updateFilterCountsInPlace && this.filtersValid) {
+    if (!!aggregationsToUpdate && this.filtersValid) {
       if (typeof tempAvailableFilters !== 'undefined') {
-        // set all counts to zero by default
-        for (let filter of this.availableFilters) { filter.docCount = 0; }
-        for (let filter of tempAvailableFilters) {
-          const currFilter = this.availableFilters.find( f => f.aggType === filter.aggType && f.aggKey === filter.aggKey);
-          if (!!currFilter) {
-            currFilter.docCount = filter.docCount;
-          }
-        }
-        availableFilters = this.availableFilters;
-        filterRegistry = this.filterRegistry;
+        availableFilters = this.availableFilters.filter( f => aggregationsToUpdate.indexOf(f.aggType) === -1 ).concat(availableFilters);
+        filterRegistry = this.filterRegistry; // TODO there can be an issue that the filter objects in the registry are now not valid. but in practice the filterRegistry is not used in this edge case
       }
     } else {
       availableFilters = typeof tempAvailableFilters === 'undefined' ? this.availableFilters : tempAvailableFilters;

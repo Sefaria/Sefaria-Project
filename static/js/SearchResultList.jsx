@@ -26,6 +26,7 @@ class SearchResultList extends Component {
       this.updateAppliedFilterByTypeMap      = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedFilter.bind(null, k);      return obj; }, {});
       this.updateAppliedOptionFieldByTypeMap = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionField.bind(null, k); return obj; }, {});
       this.updateAppliedOptionSortByTypeMap  = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionSort.bind(null, k);  return obj; }, {});
+      this.lastAppliedAggType = this._typeObjDefault(null);
       this.state = {
         runningQueries: this._typeObjDefault(null),
         isQueryRunning: this._typeObjDefault(false),
@@ -48,6 +49,10 @@ class SearchResultList extends Component {
         runningQueries: this.state.runningQueries,
         isQueryRunning: this.state.isQueryRunning
       });
+    }
+
+    updateLastAppliedAggType(aggType) {
+      this.lastAppliedAggType[this.state.activeTab] = aggType;
     }
 
     _typeObjDefault(defaultValue) {
@@ -157,6 +162,7 @@ class SearchResultList extends Component {
         get_filters: false,
         applied_filters: appliedFilters,
         appliedFilterAggTypes,
+        lastAppliedAggType: this.lastAppliedAggType[type],
         exact: fieldExact === field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: data => {
@@ -200,6 +206,7 @@ class SearchResultList extends Component {
           get_filters: !filtersValid,
           applied_filters: request_applied,
           appliedFilterAggTypes,
+          lastAppliedAggType: this.lastAppliedAggType[type],
           size: this.initialQuerySize,
           field,
           sort_type: sortType,
@@ -216,6 +223,7 @@ class SearchResultList extends Component {
               Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total);
 
               const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
+              const aggregationsToUpdate = aggregation_field_array.filter( a => a !== this.lastAppliedAggType[type]);
               if (data.aggregations) {
                 let availableFilters = [];
                 let registry = {};
@@ -229,7 +237,7 @@ class SearchResultList extends Component {
                     orphans.push(...tempOrphans);
                   }
                 }
-                this.props.registerAvailableFilters(type, availableFilters, registry, orphans);
+                this.props.registerAvailableFilters(type, availableFilters, registry, orphans, aggregationsToUpdate);
               }
               if(isCompletionStep) {
                 this._loadRemainder(type, this.initialQuerySize, data.hits.total, hitArray);
@@ -315,6 +323,7 @@ class SearchResultList extends Component {
                                   updateAppliedFilter      = {this.updateAppliedFilterByTypeMap[this.state.activeTab]}
                                   updateAppliedOptionField = {this.updateAppliedOptionFieldByTypeMap[this.state.activeTab]}
                                   updateAppliedOptionSort  = {this.updateAppliedOptionSortByTypeMap[this.state.activeTab]}
+                                  updateLastAppliedAggType={this.updateLastAppliedAggType}
                                   isQueryRunning = {this.state.isQueryRunning[tab]}
                                   type = {this.state.activeTab}
                                   clickTextButton = {this.showTexts}

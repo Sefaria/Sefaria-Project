@@ -76,6 +76,7 @@ class Search {
       get_filters,
       applied_filters,
       appliedFilterAggTypes,
+      lastAppliedAggType,
       size,
       from,
       type,
@@ -90,6 +91,7 @@ class Search {
          get_filters: boolean
          applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
          appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
+         lastAppliedAggType: the last filter's aggType to be applied. this helps determine which filters to query in the case where there are multiple aggTypes
          size: int - number of results to request
          from: int - start from result # (skip from - 1 results)
          type: string - currently either "text" or "sheet"
@@ -142,7 +144,8 @@ class Search {
           //Initial, unfiltered query.  Get potential filters.
           //OR
           //any filtered query where there are more than 1 agg type means you need to re-fetch filters on each filter you add
-          o['aggs'] = this.get_aggregation_object(aggregation_field_array);
+          console.log('requesting these filters!!!', aggregation_field_array.filter( a => a !== lastAppliedAggType));
+          o['aggs'] = this.get_aggregation_object(aggregation_field_array.filter( a => a !== lastAppliedAggType));
         }
         if (get_filters) {
             inner_query = core_query;
@@ -150,6 +153,8 @@ class Search {
             inner_query = core_query;
         } else {
             //Filtered query.  Add clauses.
+            // AND query (aka must) b/w diff aggTypes
+            // OR query (aka should) b/w aggTypes of same type
             const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
             inner_query = {
                 bool: {
@@ -535,8 +540,16 @@ class FilterNode {
           return [];
       }
       if (this.isSelected()) {
-          const enTitle = !!this.title ? this.title : this.heTitle;
-          const heTitle = !!this.heTitle ? this.heTitle : this.title;
+          let enTitle = !!this.title ? this.title : this.heTitle;
+          let heTitle = !!this.heTitle ? this.heTitle : this.title;
+          if (!enTitle) {
+            if (this.aggType === 'group') { enTitle = '(No Group)'; }
+            if (this.aggType === 'tags') { enTitle = '(No Tag)'; }
+          }
+          if (!heTitle) {
+            if (this.aggType === 'group') { heTitle = '(ללא קבוצה)'; }
+            if (this.aggType === 'tags') { heTitle = '(ללא תוית)'; }
+          }
           return[(lang == "en")?enTitle:heTitle];
       }
       var results = [];
