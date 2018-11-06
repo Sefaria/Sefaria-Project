@@ -96,6 +96,7 @@ class LexiconBox extends Component {
             return (<LexiconEntry 
                 data={entry} 
                 onEntryClick={this.props.onEntryClick}
+                onCitationClick={this.props.onCitationClick}
                 key={i} />)
           }.bind(this));
       content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
@@ -112,7 +113,8 @@ class LexiconBox extends Component {
 LexiconBox.propTypes = {
   selectedWords: PropTypes.string,
   oref:          PropTypes.object,
-  onEntryClick:  PropTypes.func
+  onEntryClick:  PropTypes.func,
+  onCitationClick: PropTypes.func
 };
 
 
@@ -142,7 +144,14 @@ class LexiconEntry extends Component {
 
   }
   handleClick(event) {
-    if (this.props.onEntryClick) {
+    if ($(event.target).hasClass("refLink")) {
+        //Click of citation
+        event.preventDefault();
+        let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+        this.props.onCitationClick(ref, this.props.sref);
+        event.stopPropagation();
+        Sefaria.track.event("Reader", "Citation Link Click", ref);
+    } else if (this.props.onEntryClick) {
       //Click on the body of the TextRange itself from TextList
       this.props.onEntryClick(this.getRef());
       Sefaria.track.event("Reader", "Click Dictionary Entry from Lookup", this.getRef());
@@ -224,7 +233,8 @@ class LexiconEntry extends Component {
 }
 LexiconEntry.propTypes = {
   data: PropTypes.object.isRequired,
-  onEntryClick:  PropTypes.func
+  onEntryClick:  PropTypes.func,
+  onCitationClick: PropTypes.func
 };
 
 

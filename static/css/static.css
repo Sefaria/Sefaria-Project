@@ -797,7 +797,7 @@ input#id_email{
   text-align: center;
   padding-bottom: 40px;
 }
-#teamPage .team-members{
+#teamPage .team-members, #teamPage .board-members{
   display: flex;
   flex-flow: row wrap;
   align-items: flex-start;
@@ -809,11 +809,17 @@ input#id_email{
   display: inline-block;
   margin-bottom: 35px;
   padding-bottom: 35px;
-  width: 32%;
+  margin-left: auto;
+  margin-right: auto;
+  /*width: 32%;*/
+}
+#teamPage .teamMember {
+  flex: 0 0 30%;
 }
 #teamPage .teamBoardMember {
   border-bottom: none;
   margin-bottom: 10px;
+  flex: 0 0 29%;
 }
 #teamPage .teamMember .teamMemberImage {
   display: block;
