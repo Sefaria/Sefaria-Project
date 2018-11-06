@@ -155,7 +155,7 @@ class DictionaryEntry(LexiconEntry):
                     pass
             else:
                 next_line += u" " + self.get_sense(sense)
-
+        
         if hasattr(self, 'notes'):
             next_line += u" " + self.notes
         if hasattr(self, 'derivatives'):
@@ -182,7 +182,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
         text += sense.get('number', u'')
         if text:
             text = u"<b>{}</b> ".format(text)
-        for field in ['definition', 'alternative', 'notes']:
+        for field in ['definition']:
             text += sense.get(field, u'')
         return text
 
