@@ -76,7 +76,7 @@ class Search {
       get_filters,
       applied_filters,
       appliedFilterAggTypes,
-      lastAppliedAggType,
+      aggregationsToUpdate,
       size,
       from,
       type,
@@ -91,7 +91,7 @@ class Search {
          get_filters: boolean
          applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
          appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
-         lastAppliedAggType: the last filter's aggType to be applied. this helps determine which filters to query in the case where there are multiple aggTypes
+         aggregationsToUpdate: array of aggTypes to update in the case when there exist multiple aggTypes for a query type
          size: int - number of results to request
          from: int - start from result # (skip from - 1 results)
          type: string - currently either "text" or "sheet"
@@ -140,12 +140,11 @@ class Search {
         }
 
         let inner_query;
-        if (get_filters || aggregation_field_array.length > 1) {
+        if (get_filters || (aggregation_field_array.length > 1 && aggregationsToUpdate.length > 0)) {
           //Initial, unfiltered query.  Get potential filters.
           //OR
           //any filtered query where there are more than 1 agg type means you need to re-fetch filters on each filter you add
-          console.log('requesting these filters!!!', aggregation_field_array.filter( a => a !== lastAppliedAggType));
-          o['aggs'] = this.get_aggregation_object(aggregation_field_array.filter( a => a !== lastAppliedAggType));
+          o['aggs'] = this.get_aggregation_object(aggregationsToUpdate);
         }
         if (get_filters) {
             inner_query = core_query;
@@ -158,16 +157,16 @@ class Search {
             const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
             inner_query = {
                 bool: {
-                    must: core_query,
-                    filter: {
-                      bool: {
-                        must: uniqueAggTypes.map( a => ({
-                          bool: {
-                            should: Sefaria.util.zip(applied_filters, appliedFilterAggTypes).filter( x => x[1] === a).map( x => this[make_filter_query](x[0], x[1]))
-                          }
-                        }))
-                      }
+                  must: core_query,
+                  filter: {
+                    bool: {
+                      must: uniqueAggTypes.map( a => ({
+                        bool: {
+                          should: Sefaria.util.zip(applied_filters, appliedFilterAggTypes).filter( x => x[1] === a).map( x => this[make_filter_query](x[0], x[1]))
+                        }
+                      }))
                     }
+                  }
                 }
             };
         }
@@ -562,6 +561,7 @@ class FilterNode {
     const cloned = new FilterNode();
     cloned.selected = this.selected;
     cloned.aggKey = this.aggKey;
+    cloned.aggType = this.aggType;
     cloned.title = this.title;
     cloned.heTitle = this.heTitle;
     cloned.docCount = this.docCount;

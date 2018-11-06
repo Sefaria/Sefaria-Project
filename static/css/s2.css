@@ -2168,6 +2168,8 @@ a.readerNavCategory {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
 }
 .interface-hebrew .searchContent .searchFilterCategoryBox,
 .interface-hebrew .searchContent .searchFilterBookBox {

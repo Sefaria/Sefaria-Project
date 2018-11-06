@@ -29,10 +29,10 @@ class SearchState {
     return new SearchState({
       appliedFilters:   Sefaria.util.clone(this.appliedFilters),
       appliedFilterAggTypes: Sefaria.util.clone(this.appliedFilterAggTypes),
-      availableFilters: trimFilters ? [] : Sefaria.util.clone(this.availableFilters),
-      filterRegistry:   trimFilters ? {} : Sefaria.util.clone(this.filterRegistry),
+      availableFilters: trimFilters ? [] : this.availableFilters,
+      filterRegistry:   trimFilters ? {} : this.filterRegistry,
       filtersValid:     trimFilters ? false : this.filtersValid,
-      orphanFilters:    Sefaria.util.clone(this.orphanFilters),
+      orphanFilters:    this.orphanFilters,
       type:             this.type,
       fieldExact:       this.fieldExact,
       fieldBroad:       this.fieldBroad,
@@ -68,8 +68,8 @@ class SearchState {
     const tempFilterRegistry   = typeof filterRegistry   === 'undefined' ? this.filterRegistry   : filterRegistry;
     if (!!aggregationsToUpdate && this.filtersValid) {
       if (typeof tempAvailableFilters !== 'undefined') {
-        availableFilters = this.availableFilters.filter( f => aggregationsToUpdate.indexOf(f.aggType) === -1 ).concat(availableFilters);
-        filterRegistry = this.filterRegistry; // TODO there can be an issue that the filter objects in the registry are now not valid. but in practice the filterRegistry is not used in this edge case
+        availableFilters = this.availableFilters.filter( f => aggregationsToUpdate.indexOf(f.aggType) === -1).concat(availableFilters);
+        filterRegistry = this.filterRegistry;
       }
     } else {
       availableFilters = typeof tempAvailableFilters === 'undefined' ? this.availableFilters : tempAvailableFilters;

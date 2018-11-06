@@ -162,7 +162,7 @@ class SearchResultList extends Component {
         get_filters: false,
         applied_filters: appliedFilters,
         appliedFilterAggTypes,
-        lastAppliedAggType: this.lastAppliedAggType[type],
+        aggregationsToUpdate: [],
         exact: fieldExact === field,
         error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
         success: data => {
@@ -200,13 +200,17 @@ class SearchResultList extends Component {
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const isCompletionStep = request_applied || appliedFilters.length === 0;
+      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
+      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
+      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
+      const aggregationsToUpdate = aggregation_field_array.filter( a => justUnapplied || a !== this.lastAppliedAggType[type]);
       const runningQuery = Sefaria.search.execute_query({
           query: props.query,
           type,
           get_filters: !filtersValid,
           applied_filters: request_applied,
           appliedFilterAggTypes,
-          lastAppliedAggType: this.lastAppliedAggType[type],
+          aggregationsToUpdate,
           size: this.initialQuerySize,
           field,
           sort_type: sortType,
@@ -222,8 +226,6 @@ class SearchResultList extends Component {
               const query_label = props.query + filter_label;
               Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total);
 
-              const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
-              const aggregationsToUpdate = aggregation_field_array.filter( a => a !== this.lastAppliedAggType[type]);
               if (data.aggregations) {
                 let availableFilters = [];
                 let registry = {};

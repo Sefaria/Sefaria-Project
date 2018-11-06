@@ -190,9 +190,7 @@ class ReaderApp extends Component {
         panels.push(panel);
       }
     }
-    panels = panels.map(function(panel) {
-      return this.makePanelState(panel);
-    }.bind(this) );
+    panels = panels.map(panel => this.makePanelState(panel));
 
     var layoutOrientation = (props.interfaceLang == "english") ? "ltr" : "rtl";
 
@@ -726,13 +724,13 @@ class ReaderApp extends Component {
     if (this.scrollIntentTimer) {
       clearTimeout(this.scrollIntentTimer);
     }
-    this.scrollIntentTimer = window.setTimeout(function(initialRefs){
+    this.scrollIntentTimer = window.setTimeout(initialRefs => {
       // console.log("Checking scroll intent");
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
       this.scrollIntentTimer = null;``
-    }.bind(this), intentDelay, this._refState());
+    }, intentDelay, this._refState());
   }
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
@@ -929,7 +927,7 @@ class ReaderApp extends Component {
     // helper func to avoid code duplication in funcs of type `updateXInHeader` / `updateXInPanel`
     return {
       tempState:    (typeof n === 'undefined') ? this.state.header : this.state.panels[n],
-      tempSetState: (typeof n === 'undefined') ? this.setHeaderState : this.setPanelState.bind(n),
+      tempSetState: (typeof n === 'undefined') ? this.setHeaderState : this.setPanelState.bind(this, n),
     };
   }
   _getSearchStateName(type) { return `${type}SearchState`; }
@@ -946,7 +944,7 @@ class ReaderApp extends Component {
     };
     tempSetState(updates);
   }
-  updateAvailableFiltersInHeader(type, availableFilters, filterRegistry, orphanFilters) {
+  updateAvailableFiltersInHeader(type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     this.updateAvailableFilters(undefined, ...arguments);
   }
   updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
@@ -1016,6 +1014,7 @@ class ReaderApp extends Component {
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
+    if (!this.state.panels[n]) { debugger; }
     var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
