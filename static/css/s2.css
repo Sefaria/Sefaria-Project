@@ -2269,6 +2269,7 @@ a.readerNavCategory {
 }
 .searchContent .result .version .owner-metadata {
   display: flex;
+  flex: 1;
   flex-direction: column;
   margin: 0 10px;
 }
