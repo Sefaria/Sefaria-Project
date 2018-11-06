@@ -729,7 +729,7 @@ class ReaderApp extends Component {
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
-      this.scrollIntentTimer = null;``
+      this.scrollIntentTimer = null;
     }, intentDelay, this._refState());
   }
   updateHistoryState(replace) {
