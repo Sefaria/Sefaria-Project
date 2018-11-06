@@ -825,6 +825,8 @@ class NumberedTitledTreeNode(TitledTreeNode):
         }
         """
         super(NumberedTitledTreeNode, self).__init__(serial, **kwargs)
+
+        # Anything else in this __init__ needs to be reflected in JaggedArrayNode.__init__
         self._regexes = {}
         self._init_address_classes()
 
@@ -1065,14 +1067,12 @@ class SchemaNode(TitledTreeNode):
         """
         super(SchemaNode, self).__init__(serial, **kwargs)
         self.index = kwargs.get("index", None)
-        self.concrete_children = [c for c in self.children if not c.is_virtual]
 
     def _init_defaults(self):
         super(SchemaNode, self)._init_defaults()
         self.key = None
         self.checkFirst = None
         self._address = []
-        self.concrete_children = []
 
     def validate(self):
         super(SchemaNode, self).validate()
@@ -1089,6 +1089,9 @@ class SchemaNode(TitledTreeNode):
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
+    def concrete_children(self):
+        return [c for c in self.children if not c.is_virtual]
+
     def create_content(self, callback=None, *args, **kwargs):
         """
         Tree visitor for building content trees based on this Index tree - used for counts and versions
@@ -1096,8 +1099,8 @@ class SchemaNode(TitledTreeNode):
         :param callback:
         :return:
         """
-        if self.concrete_children:
-            return {node.key: node.create_content(callback, *args, **kwargs) for node in self.concrete_children}
+        if self.concrete_children():
+            return {node.key: node.create_content(callback, *args, **kwargs) for node in self.concrete_children()}
         else:
             if not callback:
                 return None
@@ -1123,7 +1126,7 @@ class SchemaNode(TitledTreeNode):
         """
         if self.children:
             dict = {}
-            for node in self.concrete_children:
+            for node in self.concrete_children():
                 # todo: abstract out or put in helper the below reduce
                 c = [tree[node.key] for tree in contents]
                 dict[node.key] = node.visit_content(callback, *c, **kwargs)
@@ -1141,8 +1144,8 @@ class SchemaNode(TitledTreeNode):
         :param kwargs:
         :return:
         """
-        if self.concrete_children:
-            for node in self.concrete_children:
+        if self.concrete_children():
+            for node in self.concrete_children():
                 node.visit_structure(callback, content)
             callback(self, content.content_node(self), **kwargs)
 
@@ -1326,7 +1329,10 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
         SchemaNode.__init__(self, serial, **kwargs)
-        NumberedTitledTreeNode.__init__(self, serial, **kwargs)
+
+        # Below are the elements of NumberedTitledTreeNode that go beyond SchemaNode init.
+        self._regexes = {}
+        self._init_address_classes()
 
     def validate(self):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
