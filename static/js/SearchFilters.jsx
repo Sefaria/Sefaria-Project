@@ -519,8 +519,8 @@ class SearchTagFilter extends Component {
     const classes = classNames({"type-button": 1, "tag-filter": 1, active: this.state.selected === 1})
     return (
       <div className={classes} onClick={this.handleClick}>
-        <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
-        <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+        <span className={classNames({'int-en': 1, 'but-text-is-he': enTitleIsHe})} dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
+        <span className={classNames({'int-he': 1, 'but-text-is-en': heTitleIsEn})} dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span> <span className="filter-count">({filter.docCount})</span></span>
       </div>
     )
   }
@@ -626,8 +626,8 @@ class SearchFilter extends Component {
         <div className="checkboxAndText">
           <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
           <label onClick={this.handleFilterClick} id={"label-for-"+this.props.filter.aggKey} tabIndex="0" onKeyDown={this.handleKeyDown} onKeyPress={this.handleKeyPress} aria-label={"Click enter to toggle search filter for "+filter.title+" and space bar to toggle specific books in this category. Escape exits out of this modal"}><span></span></label>
-          <span className="int-en" dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
-          <span className="int-he" dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
+          <span className={classNames({'int-en': 1, 'but-text-is-he': enTitleIsHe})} dir={enTitleIsHe ? 'rtl' : 'ltr'}><span className="filter-title">{enTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
+          <span className={classNames({'int-he': 1, 'but-text-is-en': heTitleIsEn})} dir={heTitleIsEn ? 'ltr' : 'rtl'}><span className="filter-title">{heTitle}</span>&nbsp;<span className="filter-count">({filter.docCount})</span></span>
         </div>
         {isInFocus?<span className="int-en"><img src="/static/img/arrow-right.png"></img></span>:""}
         {isInFocus?<span className="int-he"><img src="/static/img/arrow-left.png"></img></span>:""}

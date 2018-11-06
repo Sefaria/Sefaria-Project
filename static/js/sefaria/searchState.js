@@ -166,12 +166,14 @@ SearchState.metadataByType = {
       {
         type: 'relevance',
         name: 'Relevance',
+        heName: 'רלוונטיות',
         field: null,
         sort_method: 'score',
       },
       {
         type: 'dateCreated',
         name: 'Date Created',
+        heName: 'תאריך',
         fieldArray: ['dateCreated'],
         sort_method: 'sort',
         direction: 'desc',
@@ -179,6 +181,7 @@ SearchState.metadataByType = {
       {
         type: 'views',
         name: 'Views',
+        heName: 'צפיות',
         fieldArray: ['views'],
         sort_method: 'sort',
         direction: 'desc',

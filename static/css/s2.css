@@ -24,8 +24,16 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
+.int-he.but-text-is-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  direction: ltr;
+}
 .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.int-en.but-text-is-he {
+  font-family: "Heebo", sans-serif;
+  direction: rtl;
 }
 .featureTitle .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -2209,22 +2217,37 @@ a.readerNavCategory {
 .searchContent .sheet_result .result-title {
   font-size: 18px;
 }
+.searchContent .sheet_result .result-title.in-en {
+  direction: ltr;
+  text-align: left;
+}
+.searchContent .sheet_result .result-title.in-he {
+  direction: rtl;
+  text-align: right;
+}
 .searchContent .sheet_result .owner_name {
   padding-bottom: 5px;
+}
+.readerPanel.english .searchContent .sheet_result .owner_name.in-he {
+  direction: rtl;
+  text-align: left;
+}
+.readerPanel.hebrew .searchContent .sheet_result .owner_name.in-en {
+  direction: ltr;
+  text-align: right;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
 }
-.readerPanel.english .searchContent .text_result .snippet.he,
-.readerPanel.hebrew .searchContent .text_result .snippet.en,
-.bilingual .searchContent .text_result .snippet.he {
+.readerPanel.english .searchContent .snippet.he,
+.readerPanel.hebrew .searchContent .snippet.en,
+.bilingual .searchContent .snippet.he {
   display: block;
 }
 .searchContent .text_result .snippet {
 
 }
 .searchContent .sheet_result .snippet {
-  font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
   color: #000;
 }

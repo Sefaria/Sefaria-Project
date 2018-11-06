@@ -41,9 +41,9 @@ class SearchTextResult extends Component {
         // } else {
         //     snippet = s[field];  // We're filtering out content, because it's *huge*, especially on Sheets
         // }
-        let lang = Sefaria.hebrew.isHebrew(snippet) ? "he" : "en";
+        const lang = Sefaria.hebrew.isHebrew(snippet) ? "he" : "en";
         snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
-        return {markup:{__html:snippet}, lang: lang};
+        return { markup:{__html:snippet}, lang };
     }
     render () {
         var data = this.props.data;

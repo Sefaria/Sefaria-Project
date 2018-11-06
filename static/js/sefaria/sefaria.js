@@ -1840,7 +1840,6 @@ Sefaria = extend(Sefaria, {
       //"Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Views": "צפיות",
       "Versions": "גרסאות",
       "Version Open": "גרסה פתוחה",
       "About": "אודות",
