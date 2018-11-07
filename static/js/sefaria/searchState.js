@@ -1,3 +1,5 @@
+const Sefaria       = require('./sefaria');
+
 class SearchState {
   constructor({
     type,
