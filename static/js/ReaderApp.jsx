@@ -366,6 +366,7 @@ class ReaderApp extends Component {
       // Cycle through each panel, compare previous state to next state, looking for differences
       const prev  = prevPanels[i];
       const next  = nextPanels[i];
+      if (!prev || ! next) { return true; }
       // history does not preserve custom objects
       const prevTextSearchState = new SearchState(prev.textSearchState);
       const prevSheetSearchState = new SearchState(prev.sheetSearchState);
@@ -373,7 +374,7 @@ class ReaderApp extends Component {
       const nextSheetSearchState = new SearchState(next.sheetSearchState);
 
 
-      if (!prev || ! next) { return true; }
+
 
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
