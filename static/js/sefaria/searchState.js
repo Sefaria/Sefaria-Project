@@ -1,4 +1,42 @@
-const Sefaria       = require('./sefaria');
+// Hack in these two to stop the crashing
+function s_zip(...rows) {
+  return rows[0].map((_,c)=>rows.map(row=>row[c]));
+}
+function s_clone(obj, trimFilters) {
+    // Handle the 3 simple types, and null or undefined
+    if (null == obj || "object" != typeof obj) return obj;
+
+    if (obj instanceof SearchState) {
+      return obj.clone(trimFilters);
+    }
+
+    // Handle Date
+    if (obj instanceof Date) {
+        var copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+    }
+
+    // Handle Array
+    if (obj instanceof Array) {
+        var copy = [];
+        var len = obj.length;
+        for (var i = 0; i < len; ++i) {
+            copy[i] = this.clone(obj[i]);
+        }
+        return copy;
+    }
+
+    // Handle Object
+    if (obj instanceof Object) {
+        var copy = {};
+        for (var attr in obj) {
+            if (obj.hasOwnProperty(attr)) copy[attr] = this.clone(obj[attr]);
+        }
+        return copy;
+    }
+    throw new Error("Unable to copy obj! Its type isn't supported.");
+}
 
 class SearchState {
   constructor({
@@ -29,8 +67,8 @@ class SearchState {
 
   clone(trimFilters) {
     return new SearchState({
-      appliedFilters:   Sefaria.util.clone(this.appliedFilters),
-      appliedFilterAggTypes: Sefaria.util.clone(this.appliedFilterAggTypes),
+      appliedFilters:   s_clone(this.appliedFilters),
+      appliedFilterAggTypes: s_clone(this.appliedFilterAggTypes),
       availableFilters: trimFilters ? [] : this.availableFilters,
       filterRegistry:   trimFilters ? {} : this.filterRegistry,
       filtersValid:     trimFilters ? false : this.filtersValid,
@@ -116,7 +154,7 @@ class SearchState {
     //         oneOf({'t': 'text', 's': sheet, 'g': group, 'u': user})
     const aggTypes = SearchState.metadataByType[this.type].aggregation_field_array;
     const url = aggTypes.reduce( (accum, aggType) => {
-        const aggTypeFilters = aggTypes.length > 1 ? Sefaria.util.zip(this.appliedFilters, this.appliedFilterAggTypes).filter( f => f[1] === aggType).map( x => x[0]) : this.appliedFilters;
+        const aggTypeFilters = aggTypes.length > 1 ? s_zip(this.appliedFilters, this.appliedFilterAggTypes).filter( f => f[1] === aggType).map( x => x[0]) : this.appliedFilters;
         return accum + (aggTypeFilters.length > 0 ? `&${prefix}${aggType}Filters=${aggTypeFilters.map( f => encodeURIComponent(f)).join('|')}` : '');
       }, '') +
       `&${prefix}var=` + (this.field !== this.fieldExact ? '1' : '0') +
