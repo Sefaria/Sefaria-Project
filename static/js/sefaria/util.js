@@ -1,14 +1,30 @@
-const $         = require('./sefariaJquery');
-const extend    = require('extend');
-const striptags = require('striptags');
+const $              = require('./sefariaJquery');
+const extend         = require('extend');
+const striptags      = require('striptags');
+const SearchState    = require('./searchState');
+const { FilterNode } = require('./search');
 
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    static clone(obj) {
+    static zip(...rows) {
+      // rows is an array
+      // corrolary to zip in python
+      return rows[0].map((_,c)=>rows.map(row=>row[c]));
+    }
+    static clone(obj, trimFilters) {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;
+
+        if (obj instanceof SearchState) {
+          return obj.clone(trimFilters);
+        }
+
+        // Handle FilterNode
+        if (obj instanceof FilterNode) {
+          return obj.clone();
+        }
 
         // Handle Date
         if (obj instanceof Date) {

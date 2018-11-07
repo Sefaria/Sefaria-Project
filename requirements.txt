@@ -9,7 +9,7 @@ BeautifulSoup
 bleach==1.4.2
 rauth
 elasticsearch
-regex
+regex==2018.11.3
 pytest
 mailchimp
 redis

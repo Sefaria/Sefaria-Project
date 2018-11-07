@@ -81,16 +81,19 @@ class ReaderPanel extends Component {
       sheet:                props.sheet || null,
       sheetID:              null,
       searchQuery:          props.initialQuery || null,
-      appliedSearchFilters: props.initialAppliedSearchFilters || [],
-      searchFieldExact:     "exact",
-      searchFieldBroad:     "naive_lemmatizer",
-      searchField:          props.initialSearchField || "naive_lemmatizer",
-      searchSortType:       props.initialSearchSortType || "chronological",
+      textSearchState: new SearchState({
+        type:               'text',
+        field:              props.initialTextSearchField,
+        sortType:           props.initialTextSearchSortType,
+        appliedFilters:     props.initialTextAppliedSearchFilters,
+      }),
+      sheetSearchState: new SearchState({
+        type:               'sheet',
+        sortType:           props.initialSheetSearchSortType,
+        appliedFilters:     props.initialSheetAppliedSearchFilters,
+        appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
+      }),
       selectedWords:        "",
-      searchFiltersValid:   false,
-      availableFilters:     [],
-      filterRegistry:       {},
-      orphanSearchFilters:  [],
       displaySettingsOpen:  false,
       tagSort: "count",
       mySheetSort: "date",
@@ -165,21 +168,8 @@ class ReaderPanel extends Component {
     this.setState({"error": message})
   }
   clonePanel(panel) {
-    // Set aside self-referential objects before cloning
     // Todo: Move the multiple instances of this out to a utils file
-    if (panel.availableFilters || panel.filterRegistry) {
-      var savedAttributes = {
-         availableFilters: panel.availableFilters,
-         searchFiltersValid: panel.searchFiltersValid,
-         filterRegistry: panel.filterRegistry
-      };
-      panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
-      var newpanel = extend(Sefaria.util.clone(panel), savedAttributes);
-      extend(panel, savedAttributes);
-      return newpanel;
-    } else {
-      return Sefaria.util.clone(panel);
-    }
+    return Sefaria.util.clone(panel);
   }
   handleBaseSegmentClick(ref) {
     if (this.state.mode === "TextAndConnections") {
@@ -755,7 +745,8 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
                     query={this.state.searchQuery}
-                    appliedFilters={this.state.appliedSearchFilters}
+                    textSearchState={this.state.textSearchState}
+                    sheetSearchState={this.state.sheetSearchState}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
@@ -767,13 +758,8 @@ class ReaderPanel extends Component {
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
-                    availableFilters={this.state.availableFilters}
-                    filtersValid={this.state.searchFiltersValid}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    exactField={this.state.searchFieldExact}
-                    broadField={this.state.searchFieldBroad}
-                    field={this.state.searchField}
-                    sortType={this.state.searchSortType}/>);
+                  />);
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
@@ -864,7 +850,7 @@ class ReaderPanel extends Component {
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
     if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
-      // Don't allow language toggle on Connections panel in Hebrew Interface. 
+      // Don't allow language toggle on Connections panel in Hebrew Interface.
       classes["hebrew"] = 1;
     } else {
       classes[this.state.settings.language]   = 1;
@@ -939,9 +925,12 @@ ReaderPanel.propTypes = {
   initialHighlightedRefs:      PropTypes.array,
   initialMenu:                 PropTypes.string,
   initialQuery:                PropTypes.string,
-  initialAppliedSearchFilters: PropTypes.array,
-  initialSearchField:          PropTypes.string,
-  initialSearchSortType:       PropTypes.oneOf(["relevance", "chronological"]),
+  initialTextAppliedSearchFilters: PropTypes.array,
+  initialTextSearchField:          PropTypes.string,
+  initialTextSearchSortType:       PropTypes.string,
+  initialSheetAppliedSearchFilters: PropTypes.array,
+  initialSheetSearchField:          PropTypes.string,
+  initialSheetSearchSortType:       PropTypes.string,
   initialSheetsTag:            PropTypes.string,
   initialState:                PropTypes.object, // if present, overrides all props above
   interfaceLang:               PropTypes.string,

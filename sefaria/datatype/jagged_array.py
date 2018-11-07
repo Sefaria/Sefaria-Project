@@ -415,7 +415,7 @@ class JaggedArray(object):
     def normalize(self, terminal_depth=None, _cur=None, depth=1):
         """
         :param terminal_depth: The desired depth before which everything should be arrays
-        :return: Bool if there were any actual modifications made or not. 
+        :return: Bool if there were any actual modifications made or not.
         Normalizes the array so on any given depth, there are either arrays (incl empty) or primitives, not both.
         e.g. [[], ""] becomes [[], []]
         """
