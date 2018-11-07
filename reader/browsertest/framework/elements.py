@@ -271,7 +271,6 @@ class AbstractTest(object):
                 self.open_text_toc_menu(ancestor.ref())
 
         self.click_text_toc_section(section_ref)
-
         return self
 
     @staticmethod
@@ -497,7 +496,7 @@ class AbstractTest(object):
         if query is not None:
             url += "?q={}".format(query)
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-total")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-title")))
         self.set_modal_cookie()
         return self
 

@@ -263,6 +263,7 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
+    this.props.saveRecentlyViewed({ mode: "Text", refs, currVersions })
     this.conditionalSetState({
       mode: "Text",
       refs,
@@ -1111,7 +1112,8 @@ ReaderControls.propTypes = {
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
-  interfaceLang:           PropTypes.string
+  interfaceLang:           PropTypes.string,
+  saveRecentlyViewed:      PropTypes.func.isRequired,
 };
 
 

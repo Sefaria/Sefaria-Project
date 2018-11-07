@@ -230,7 +230,6 @@ class ReaderApp extends Component {
 
     // Set initial page view (deferred from analytics.js instanciation)
     if (!this.state.initialAnalyticsTracked) { this.trackPageview(); }
-
     // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
     if (this.state.panels.length > this.state.panelCap && this.state.panels.length > prevState.panels.length) {
       var elem = document.getElementById("panelWrapBox");
@@ -341,7 +340,6 @@ class ReaderApp extends Component {
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-
     // If there's no history or the number or basic state of panels has changed
     if (!history.state
         || (!history.state.panels && !history.state.header)
@@ -375,7 +373,6 @@ class ReaderApp extends Component {
 
 
 
-
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
@@ -386,13 +383,13 @@ class ReaderApp extends Component {
           (next.mode === "Version Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
-          (next.connectionsMode !== prev.connectionsMoade) ||
+          (next.connectionsMode !== prev.connectionsMode) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
-          (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})),
-          (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})),
+          (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
+          (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah))
 
@@ -1055,6 +1052,9 @@ class ReaderApp extends Component {
   }
   didPanelRefChange(prevPanel, nextPanel) {
     // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
+    if (!prevPanel && !!nextPanel) { return true; }
+    if (!!prevPanel && !nextPanel) { return true; }
+    if (!prevPanel && !nextPanel) { return false; }
     if (nextPanel.menu || nextPanel.mode == "Connections" ||
         !nextPanel.refs || nextPanel.refs.length == 0 ||
         !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
@@ -1632,6 +1632,7 @@ class ReaderApp extends Component {
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
                       translateISOLanguageCode={this.translateISOLanguageCode}
+                      saveRecentlyViewed={this.saveRecentlyViewed}
                     />
                   </div>);
     }
