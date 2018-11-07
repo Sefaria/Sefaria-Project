@@ -1,8 +1,6 @@
 const $              = require('./sefariaJquery');
 const extend         = require('extend');
 const striptags      = require('striptags');
-const SearchState    = require('./searchState');
-const { FilterNode } = require('./search');
 
 
 var INBROWSER = (typeof document !== 'undefined');
@@ -17,13 +15,10 @@ class Util {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;
 
-        if (obj instanceof SearchState) {
+        if (typeof obj.clone === 'function') {
+          // this handles any object with a clone function which currently
+          // includes SearchState and FilterNode
           return obj.clone(trimFilters);
-        }
-
-        // Handle FilterNode
-        if (obj instanceof FilterNode) {
-          return obj.clone();
         }
 
         // Handle Date
