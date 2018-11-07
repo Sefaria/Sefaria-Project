@@ -146,6 +146,8 @@ urlpatterns += [
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
+    url(r'^api/words/completion/(?P<word>.+)/(?P<lexicon>.+)$', reader_views.dictionary_completion_api),
+    #url(r'^api/words/completion/(?P<word>.+)$', reader_views.dictionary_completion_api),   # Search all dicts
     url(r'^api/words/(?P<word>.+)$', reader_views.dictionary_api),
     url(r'^api/notifications/?$', reader_views.notifications_api),
     url(r'^api/notifications/read', reader_views.notifications_read_api),

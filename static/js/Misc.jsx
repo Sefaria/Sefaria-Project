@@ -31,7 +31,7 @@ class DropdownModal extends Component {
 DropdownModal.propTypes = {
   close:   PropTypes.func.isRequired,
   isOpen:  PropTypes.bool.isRequired,
-}
+};
 
 class Link extends Component {
   handleClick(e) {
@@ -50,7 +50,7 @@ Link.propTypes = {
   href:    PropTypes.string.isRequired,
   onClick: PropTypes.func,
   title:   PropTypes.string.isRequired,
-}
+};
 
 
 class GlobalWarningMessage extends Component {
@@ -878,13 +878,13 @@ ReaderMessage.propTypes = {
 
 class CookiesNotification extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
 
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/"});
+    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
     this.setState({showNotification: false});
   }
   render() {

@@ -586,8 +586,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "Frank Ruehl Libre",
-  "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -632,7 +631,7 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
-  height: 100%;
+  height: calc(100% - 128px);  /* The 128px here appears to be the minimum needed to keep a line on the screen when scrolling passes loaded content) */
 }
 .textColumn .loadingMessage.base.next.final {
 }
@@ -1837,6 +1836,53 @@ a.readerNavCategory {
     border-color: #212E50;
     background-color: #212E50;
 }
+
+.dictionarySearchBox {
+  display: flex;
+  justify-content: flex-start;
+  padding-bottom: 5px;
+  border-bottom: #999 solid 1px;
+  color: #999;
+  font-size: 17px;
+  height: 22px;
+}
+
+.dictionarySearchBox .dictionarySearchButton {
+
+}
+
+.searchBox.dictionarySearchBox .keyboardInputInitiator {
+  border: none;
+}
+.dictionarySearchBox input {
+  padding: 0 10px 10px;
+  font-size: 17px;
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  height: 18px;
+  margin-bottom: 10px;
+}
+
+
+body .ui-autocomplete.dictionary-toc-autocomplete {
+  margin: 0px 0;
+  padding: 6px 0 0;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
+  padding: 4px 25px;
+  border-bottom: solid #ccc 1px;
+  font-size: 17px;
+  color: black;
+  cursor: pointer;
+  display: block;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #E9E9E7;
+}
+
 .searchContentFrame h1 {
   direction: ltr;
   height: 40px;
@@ -4208,15 +4254,29 @@ a .button:hover {
   padding: 1% 0 1% 0;
   margin: auto;
 }
-.lexicon-results .entry .headword {
+.lexicon-results .entry a {
+    font-size: .8em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    color: #333;
+}
+.lexicon-results .entry .headline {
   color: #333;
   font-size: 1.2em;
   display: block;
 }
+.lexicon-results .entry .headwords .headword {
+  display: inline;
+}
 .lexicon-results .entry .morphology {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  display: block;
+  display: inline;
+  margin-right: 5px;
+}
+.lexicon-results .entry .lang-ref {
+
 }
 .lexicon-results .entry .definition-content{
     color: #444;
@@ -4226,7 +4286,7 @@ a .button:hover {
 }
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
-	padding: 0px;
+    padding-bottom: 10px;
 }
 .lexicon-results .entry .definition ol.senses{
 	padding-left: 0px;
@@ -4240,13 +4300,14 @@ a .button:hover {
 	padding-left: 0px;
     margin: 0px;
 }
+.lexicon-results .entry .definition .notes {}
+.lexicon-results .entry .definition .derivatives {display: block;margin-left: 15px;}
 .lexicon-results .attribution {
 
 }
-.lexicon-results .attribution a {
+
+.lexicon-results .attribution div {
   display: block;
-}
-.lexicon-results .attribution a {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
@@ -4784,8 +4845,8 @@ h2.splitHeader .he {
 }
 body #keyboardInputMaster {
     opacity: 1;
-    top: 53px !important;
-    left:70px !important;
+    /* top: 53px !important; */
+    /* left:70px !important; */
     background-color: #FBFBFA;
     border: 1px solid #ccc;
     padding: 5px;

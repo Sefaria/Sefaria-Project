@@ -16,6 +16,7 @@ from bson.json_util import dumps
 import p929
 import socket
 import bleach
+from collections import OrderedDict
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
@@ -38,6 +39,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
+from sefaria.model.schema import DictionaryEntryNotFound
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -70,6 +72,7 @@ logger.warn("Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
+library.build_lexicon_auto_completers()
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
@@ -253,6 +256,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         highlighted_node = sheet_id.split(".")[1]
         sheet_id = sheet_id.split(".")[0]
 
+    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(int(sheet_id))
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 
@@ -1133,42 +1137,69 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+
+        def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            try:
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            except AttributeError as e:
+                oref = oref.default_child_ref()
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            except NoVersionFoundError as e:
+                return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
 
 
-        try:
-            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
-        except AttributeError as e:
-            oref = oref.default_child_ref()
-            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
-        except NoVersionFoundError as e:
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
+            # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
+            oref               = oref.padded_ref() if pad else oref
+            try:
+                text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+                text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            except AttributeError as e:
+                # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
+                oref = oref.default_child_ref()
+                text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+                text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            text["commentary"] = text.get("commentary", [])
+            text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
+            if layer_name:
+                layer = Layer().load({"urlkey": layer_name})
+                if not layer:
+                    raise InputError("Layer not found.")
+                layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
+                text["layer"]        = layer_content
+                text["layer_name"]   = layer_name
+                text["_loadSourcesFromDiscussion"] = True
+            else:
+                text["layer"] = []
 
-        # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
-        oref               = oref.padded_ref() if pad else oref
-        try:
-            text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        except AttributeError as e:
-            # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
-            oref = oref.default_child_ref()
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        text["commentary"] = text.get("commentary", [])
-        text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
+            return text
 
-        if layer_name:
-            layer = Layer().load({"urlkey": layer_name})
-            if not layer:
-                raise InputError("Layer not found.")
-            layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-            text["layer"]        = layer_content
-            text["layer_name"]   = layer_name
-            text["_loadSourcesFromDiscussion"] = True
+        if not multiple or abs(multiple) == 1:
+            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+            return jsonResponse(text, cb)
         else:
-            text["layer"] = []
+            # Return list of many sections
+            target_count = int(multiple)
+            assert target_count != 0
+            direction = "next" if target_count > 0 else "prev"
+            target_count = abs(target_count)
 
-        return jsonResponse(text, cb)
+            current = 0
+            texts = []
+
+            while current < target_count:
+                text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                texts += [text]
+                if not text[direction]:
+                    break
+                oref = Ref(text[direction])
+                current += 1
+
+            return jsonResponse(texts, cb)
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -2124,9 +2155,15 @@ def get_name_completions(name, limit, ref_only):
     try:
         ref = Ref(name)
         inode = ref.index_node
-        assert isinstance(inode, SchemaNode)
 
-        completions = [name.capitalize()] + completer.next_steps_from_node(name)
+        # Find possible dictionary entries.  This feels like a messy way to do this.  Needs a refactor.
+        if inode.is_virtual and inode.parent and getattr(inode.parent, "lexiconName", None) in library._lexicon_auto_completer:
+            base_title = inode.parent.full_title()
+            lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
+            t = [base_title + u", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
+            completions = list(OrderedDict.fromkeys(t))  # filter out dupes
+        else:
+            completions = [name.capitalize()] + completer.next_steps_from_node(name)
 
         if limit == 0 or len(completions) < limit:
             current = {t: 1 for t in completions}
@@ -2134,6 +2171,11 @@ def get_name_completions(name, limit, ref_only):
             for res in additional_results:
                 if res not in current:
                     completions += [res]
+    except DictionaryEntryNotFound as e:
+        # A dictionary beginning, but not a valid entry
+        lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
+        t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
+        d["completions"] = list(OrderedDict.fromkeys(t))  # filter out dupes
     except InputError:
         completions = completer.complete(name, limit)
         object_data = completer.get_data(name)
@@ -2202,6 +2244,25 @@ def name_api(request, name):
             d["key"] = completions_dict["object_data"]["key"]
 
     return jsonResponse(d)
+
+
+@catch_error_as_json
+def dictionary_completion_api(request, word, lexicon=None):
+    """
+    Given a dictionary, looks up the word in that dictionary
+    :param request:
+    :param word:
+    :param dictionary:
+    :return:
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    # Number of results to return.  0 indicates no limit
+    LIMIT = int(request.GET.get("limit", 10))
+
+    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    return jsonResponse(result)
 
 
 @catch_error_as_json

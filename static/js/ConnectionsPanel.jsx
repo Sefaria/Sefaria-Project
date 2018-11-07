@@ -72,30 +72,24 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
+    console.log(this.props.srefs);
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
-    if (this.props.srefs == "sheetRef" ) {
+    var ref = this.sectionRef();
+    if (!Sefaria.related(ref)) {
+        Sefaria.related(ref, function (data) {
+            if (this._isMounted) {
+                this.setState({
+                  linksLoaded: true,
+                });
+            }
+        }.bind(this));
+    }
+    else {
         this.setState({
           linksLoaded: true,
         });
-    }
-    else {
-        var ref = this.sectionRef();
-        if (!Sefaria.related(ref)) {
-            Sefaria.related(ref, function (data) {
-                if (this._isMounted) {
-                    this.setState({
-                      linksLoaded: true,
-                    });
-                }
-            }.bind(this));
-        }
-        else {
-            this.setState({
-              linksLoaded: true,
-            });
-        }
     }
   }
   reloadData() {
@@ -147,34 +141,31 @@ class ConnectionsPanel extends Component {
     }
   }
   getCurrentVersions() {
-      if (this.props.srefs != "sheetRef") {
-
-          const data = this.getData((data) => {
-              let currentLanguage = this.props.masterPanelLanguage;
-              if (currentLanguage == "bilingual") {
-                  currentLanguage = "hebrew"
-              }
-              if (!data) {
-                  this.setState({
-                      currObjectVersions: {en: null, he: null},
-                      mainVersionLanguage: currentLanguage,
-                  });
-              }
-              if (currentLanguage == "hebrew" && !data.he.length) {
-                  currentLanguage = "english"
-              }
-              if (currentLanguage == "english" && !data.text.length) {
-                  currentLanguage = "hebrew"
-              }
+      const data = this.getData((data) => {
+          let currentLanguage = this.props.masterPanelLanguage;
+          if (currentLanguage == "bilingual") {
+              currentLanguage = "hebrew"
+          }
+          if (!data) {
               this.setState({
-                  currObjectVersions: {
-                      en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
-                      he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
-                  },
+                  currObjectVersions: {en: null, he: null},
                   mainVersionLanguage: currentLanguage,
               });
+          }
+          if (currentLanguage == "hebrew" && !data.he.length) {
+              currentLanguage = "english"
+          }
+          if (currentLanguage == "english" && !data.text.length) {
+              currentLanguage = "hebrew"
+          }
+          this.setState({
+              currObjectVersions: {
+                  en: (this.props.masterPanelLanguage != "hebrew" && !!data.text.length) ? this.getVersionFromData(data, "en") : null,
+                  he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
+              },
+              mainVersionLanguage: currentLanguage,
           });
-      }
+      });
   }
 
   checkSrefs(srefs) {
@@ -186,7 +177,7 @@ class ConnectionsPanel extends Component {
   }
   showSheetNodeConnectionTools(ref,mode) {
       var dontShowModes = ["Share","Feedback","Sheets"];
-      if (ref == "sheetRef" && !dontShowModes.includes(mode) ) {
+      if (ref.indexOf("Sheet") !== -1 && !dontShowModes.includes(mode) ) {
           return true
       }
 
@@ -279,14 +270,14 @@ class ConnectionsPanel extends Component {
                     <span className="int-he">דפי המקורות שלי</span>
                   </a>
                   : null }
-                  { this.props.srefs[0] != "sheetRef" ?
+                  { this.props.srefs[0].indexOf("Sheet") == -1 ?
                   <MySheetsList
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
                   /> : null }
 
-                  { this.props.srefs[0] != "sheetRef" ?
+                  { this.props.srefs[0].indexOf("Sheet") == -1 ?
                   <PublicSheetsList
                     srefs={this.props.srefs}
                     fullPanel={this.props.fullPanel}
@@ -296,6 +287,7 @@ class ConnectionsPanel extends Component {
                 </div>);
 
     } else if (this.props.mode === "Notes") {
+        console.log(this.props);
       content = (<div>
                   <AddNoteBox
                     srefs={this.props.srefs}
@@ -317,12 +309,14 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Lexicon") {
       content = (<LexiconBox
                     selectedWords={this.props.selectedWords}
-                    oref={Sefaria.ref(this.props.srefs[0])} />);
+                    oref={Sefaria.ref(this.props.srefs[0])}
+                    onEntryClick={this.props.onTextClick}
+                    onCitationClick={this.props.onCitationClick}
+      />);
 
     } else if (this.props.mode === "Tools") {
-        console.log(this.props.srefs)
-        console.log(this.props.canEditText)
-        console.log(this.props.canEditText)
+        console.log(this.props.srefs);
+        console.log(this.props.canEditText);
       content = (<ToolsList
                     srefs={this.props.srefs}
                     canEditText={this.props.canEditText}
@@ -466,7 +460,7 @@ ConnectionsPanel.propTypes = {
 
 
 class ResourcesList extends Component {
-  // A list of Resources in addtion to connections
+  // A list of Resources in addition to connections
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
@@ -476,6 +470,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
+              <ToolsButton en="Dictionaries" he="כלים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -822,7 +817,8 @@ class AddNoteBox extends Component {
     $(ReactDOM.findDOMNode(this)).find(".noteText").focus();
   }
   saveNote() {
-    var text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
+    console.log(this.props)
+      var text = $(ReactDOM.findDOMNode(this)).find(".noteText").val();
     if (!text) { return; }
     var note = {
       text: text,
@@ -830,6 +826,8 @@ class AddNoteBox extends Component {
       type:  "note",
       public: !this.state.isPrivate
     };
+   console.log(note)
+
     if (this.props.noteId) { note._id = this.props.noteId; }
     var postData = { json: JSON.stringify(note) };
     var url = "/api/notes/";
