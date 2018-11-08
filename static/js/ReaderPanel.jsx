@@ -263,7 +263,7 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
-    this.props.saveRecentlyViewed({ mode: "Text", refs, currVersions })
+    this.props.saveRecentlyViewed({ mode: "Text", refs, currVersions });
     this.conditionalSetState({
       mode: "Text",
       refs,
@@ -890,7 +890,10 @@ class ReaderPanel extends Component {
           connectionsCategory={this.state.connectionsCategory}
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
-          interfaceLang={this.props.interfaceLang}/>)}
+          interfaceLang={this.props.interfaceLang}
+          saveRecentlyViewed={this.props.saveRecentlyViewed}
+
+        />)}
 
         {(items.length > 0 && !menu) ?
             <div className="readerContent" style={style}>
@@ -972,6 +975,7 @@ ReaderPanel.propTypes = {
   getLicenseMap:               PropTypes.func.isRequired,
   translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
+  saveRecentlyViewed:          PropTypes.func.isRequired,
 };
 
 
