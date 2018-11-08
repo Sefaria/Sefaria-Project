@@ -890,10 +890,7 @@ class ReaderPanel extends Component {
           connectionsCategory={this.state.connectionsCategory}
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
-          interfaceLang={this.props.interfaceLang}
-          saveRecentlyViewed={this.props.saveRecentlyViewed}
-
-        />)}
+          interfaceLang={this.props.interfaceLang} />)}
 
         {(items.length > 0 && !menu) ?
             <div className="readerContent" style={style}>
@@ -1116,8 +1113,7 @@ ReaderControls.propTypes = {
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
-  interfaceLang:           PropTypes.string,
-  saveRecentlyViewed:      PropTypes.func.isRequired,
+  interfaceLang:           PropTypes.string
 };
 
 
