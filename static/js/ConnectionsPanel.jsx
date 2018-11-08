@@ -146,7 +146,7 @@ class ConnectionsPanel extends Component {
           if (currentLanguage == "bilingual") {
               currentLanguage = "hebrew"
           }
-          if (!data) {
+          if (!data || data.error) {
               this.setState({
                   currObjectVersions: {en: null, he: null},
                   mainVersionLanguage: currentLanguage,
