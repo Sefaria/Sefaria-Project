@@ -151,6 +151,7 @@ class ConnectionsPanel extends Component {
                   currObjectVersions: {en: null, he: null},
                   mainVersionLanguage: currentLanguage,
               });
+              return
           }
           if (currentLanguage == "hebrew" && !data.he.length) {
               currentLanguage = "english"
