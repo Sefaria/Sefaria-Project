@@ -67,7 +67,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
       res.end(html);
       log("Time to complete: %dms", timer.elapsed());
     } else {
-      console.error("ERROR: %s %s", response.statusCode, error);
+      console.error("ERROR: %s %s", response && response.statusCode, error);
       res.end("There was an error accessing /data.js.");
     }
   });
