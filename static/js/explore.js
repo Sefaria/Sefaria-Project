@@ -8,8 +8,8 @@ var margin = [30, 40, 20, 40];
 var w; // value determined in buildScreen()
 var h = 730 - margin[0] - margin[2];
 
-var tanakhOffsetY = 80;
-var bavliOffsetY = 580;
+var topOffsetY = 80;
+var bottomOffsetY = 580;
 
 var bookSpacer = 3;
 var bookHeight = 10;
@@ -29,6 +29,29 @@ var brushes = {};
 var booksJson;  // Initial setup book link info
 var booksFocused = 0; //State of number of books opened
 
+var categories = {
+    "tanakh": {
+        "shapeParam": "Tanakh",
+        "linkCountParam": "Tanakh",
+        "talmudAddressed": false,
+    },
+    "bavli": {
+        "shapeParam": "Talmud/Bavli",
+        "linkCountParam": "Bavli",
+        "talmudAddressed": true,
+    },
+    "yerushalmi": {
+        "shapeParam": "Talmud/Yerushalmi",
+        "linkCountParam": "Yerushalmi",
+        "talmudAddressed": true,
+    },
+    "mishnah": {
+        "shapeParam": "Mishnah",
+        "linkCountParam": "Mishnah",
+        "talmudAddressed": false,
+    },
+};
+
 var twelve = ["Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi"];
 function isTwelve(el) { return twelve.indexOf(el["title"]) > -1; }
 function isNotTwelve(el) { return !isTwelve(el); }
@@ -42,17 +65,17 @@ var pLinkCache = {}; //Cache for precise link queries
 var colors = d3.scale.category10()
 	.domain(["Torah","Prophets","Writings","Seder-Zeraim","Seder-Moed","Seder-Nashim","Seder-Nezikin","Seder-Kodashim","Seder-Tahorot"]);
 
-var currentScheme = "Tanakh";
+var currentScheme = "Top";
 var toggleColor = (function(){
     return function(d){
         var switchedTo = d.collection;
         if (switchedTo == currentScheme)
             return;
-        currentScheme = currentScheme == "Tanakh" ? "Bavli" : "Tanakh";
+        currentScheme = currentScheme == "Top" ? "Bottom" : "Top";
         svg.selectAll(".link") //.transition().duration(250)
-        	.attr("stroke", function(d) { return currentScheme == "Bavli" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
-		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Tanakh" ? "underline" : null);
-		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Tanakh" ? null : "underline");
+        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
+		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? "underline" : null);
+		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? null : "underline");
     }
 })();
 
@@ -74,11 +97,18 @@ function switchToHebrew() { lang = "he"; }
 
 (GLOBALS.interfaceLang == "hebrew") ? switchToHebrew() : switchToEnglish();
 
-var tanakh = [];
-var bavli = [];
+var topBooks = [];
+var bottomBooks = [];
 
-var b = Sefaria.shape("Talmud/Bavli", d => bavli = d);
-var t = Sefaria.shape("Tanakh", d => tanakh = d);
+var topCat = "tanakh";
+//var topCat = "mishnah";
+//var topCat = "bavli";
+var bottomCat = "bavli";
+//var bottomCat = "mishnah";
+//var bottomCat = "yerushalmi";
+
+var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
+var b = Sefaria.shape(categories[bottomCat].shapeParam, d => bottomBooks = d);
 
 $.when(b, t).then(function() {
     buildScreen(GLOBALS.books, "Tanakh");
@@ -90,8 +120,8 @@ $.when(b, t).then(function() {
 
 function buildScreen(openBooks, colorScheme) {
     buildFrame();
-    buildBookCollection(tanakh, "tanakh", "top", tanakhOffsetY, 10);
-    buildBookCollection(bavli, "bavli", "bottom", bavliOffsetY, 0);
+    buildBookCollection(topBooks, topCat, "top", topOffsetY, 10);
+    buildBookCollection(bottomBooks, bottomCat, "bottom", bottomOffsetY, 0);
     buildBookLinks();
 
     if(colorScheme == "Bavli") {
@@ -151,7 +181,7 @@ function buildFrame() {
         .attr("x", 0)
         .attr("y", 55)
         .text(tLabel)
-        .datum({"collection": "tanakh"})
+        .datum({"collection": topCat})
         .on("click", recordCloseBook);
 
     var bLabel = isEnglish() ? '(View all Talmud)' : '(חזרה למבט על כל התלמוד)';
@@ -162,13 +192,13 @@ function buildFrame() {
         .attr("class", "label")
         .attr("x", w/2)
         .style("text-anchor", "middle")
-        .attr("y", bavliOffsetY + 50);
+        .attr("y", bottomOffsetY + 50);
     bottomLabel.append("text")
         .attr("class","back-up")
         .attr("x", 0)
-        .attr("y", bavliOffsetY + 50)
+        .attr("y", bottomOffsetY + 50)
         .text(bLabel)
-        .datum({"collection": "bavli"})
+        .datum({"collection": bottomCat})
         .on("click", recordCloseBook);
 
     // Tanakh / Talmud color switch
@@ -178,11 +208,11 @@ function buildFrame() {
         .append("text");
 
     if (isEnglish()) {
-        toggle.attr("transform", "translate(" + 0 + "," + (bavliOffsetY + 85) + ")");
+        toggle.attr("transform", "translate(" + 0 + "," + (bottomOffsetY + 85) + ")");
     } else {
         toggle
             .style("text-anchor","end")
-            .attr("transform", "translate(" + w + "," + (bavliOffsetY + 85) + ")");
+            .attr("transform", "translate(" + w + "," + (bottomOffsetY + 85) + ")");
     }
 
     var tanakhSwitchLabel = isEnglish() ? "Tanakh" : 'תנ"ך';
@@ -193,7 +223,7 @@ function buildFrame() {
             .attr("id","switch1-1")
             .style("fill", colors("Torah"))
             .style("text-decoration", "underline")
-            .datum({"collection": "Tanakh"})
+            .datum({"collection": topCat})
             .on("click",toggleColor)
             .text(tanakhSwitchLabel);
     toggle.append("tspan").text(" / ");
@@ -201,12 +231,12 @@ function buildFrame() {
             .classed("switch", true)
             .attr("id","switch1-2")
             .style("fill", colors("Seder-Zeraim"))
-            .datum({"collection": "Bavli"})
+            .datum({"collection": bottomCat})
             .on("click",toggleColor)
             .text(talmudSwitchLabel);
 
-	svg.append("g").attr("class", "tanakh").attr("id", "tanakh").classed("collection",true).attr("display","none");
-    svg.append("g").attr("class", "bavli").attr("id", "bavli").classed("collection",true).attr("display","none");
+	svg.append("g").attr("class", topCat).attr("id", topCat).classed("collection",true).attr("display","none");
+    svg.append("g").attr("class", bottomCat).attr("id", bottomCat).classed("collection",true).attr("display","none");
 
     // Tooltips
     tooltip = svg.append("g")
@@ -313,7 +343,6 @@ function rebuildScreen() {
 }
 
 
-
 /*****          Book Collections            *****/
 
 function buildBookCollection(books, klass, position, offset, cnxOffset) {
@@ -329,7 +358,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 	svg.select("#" + klass).selectAll("rect.book").data(books).enter()
 			.append("rect")
                 .attr("id", function (d)  { d.id = toId(d.title); return d.id; })
-                .each(function (d) { d["collection"]  = klass; })
+                .each(function (d) { d["collection"] = klass; d["position"] = position; })
                 .attr("class", function(d) { return klass + " book " + replaceAll(d["section"]," ","-") + " " + d.id } )
                 .attr("y", function(d) { d["y"] = offset; return d["y"]; })
                 .attr("width", function(d) { d["base_width"] = (d["length"] / totalBookLength) * effectiveWidth; return d["base_width"]; })
@@ -420,18 +449,17 @@ function buildBookLabels(bks, klass, position) {
 
 function addAxis(d) {
     var type = d.collection;
-    var orient, ticks, y;
+    var orient = d.position;
+    var ticks, y;
 
-    if(type == "tanakh") {
-        orient = "top";
-        y = tanakhOffsetY + 5;
-        ticks = SefariaD3.integerRefTicks(d.chapters);
-        d.scale = SefariaD3.integerScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
-    } else {
-        orient = "bottom";
-        y = bavliOffsetY + 5;
+    var y = orient == "top" ? topOffsetY + 5 : bottomOffsetY + 5;    
+
+    if(categories[type].talmudAddressed) {
         ticks = SefariaD3.talmudRefTicks(d.chapters);
         d.scale = SefariaD3.talmudScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
+    } else {
+        ticks = SefariaD3.integerRefTicks(d.chapters);
+        d.scale = SefariaD3.integerScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
     }
 
     d.s = SefariaD3.scaleNormalizationFunction(d.scale);
@@ -520,7 +548,6 @@ function brushend() {
 }
 
 
-
 /*****          Book Event Handlers              ******/
 
 function showBookCollections() {
@@ -573,8 +600,8 @@ function buildBookLinks() {
           .attr("stroke-width", function(d) { return d["count"]/10 + "px"})
           .attr("stroke", function(d) { return colors(svg.select("#" + d["book1"]).attr("section")) })
           .attr("d", d3.svg.diagonal()
-                .source(function(d) { return {"x":Number(svg.select("#" + d["book1"]).datum().base_cx), "y": Number(svg.select("#" + d["book1"]).attr("cy"))}; })
-                .target(function(d) { return {"x":Number(svg.select("#" + d["book2"]).datum().base_cx), "y": Number(svg.select("#" + d["book2"]).attr("cy"))}; })
+                .source(function(d) { return {"x":Number(svg.select("#" + toId(d["book1"])).datum().base_cx), "y": Number(svg.select("#" + toId(d["book1"])).attr("cy"))}; })
+                .target(function(d) { return {"x":Number(svg.select("#" + toId(d["book2"])).datum().base_cx), "y": Number(svg.select("#" + toId(d["book2"])).attr("cy"))}; })
             )
           .on("mouseover", mouseover_link)
           .on("mouseout", mouseout_link)
@@ -602,7 +629,8 @@ function buildBookLinks() {
     if (booksJson) {
         renderBookLinks(null, booksJson);
     } else {
-        d3.json('/api/counts/links/Tanakh/Bavli', renderBookLinks);
+        var linkCountUrl = '/api/counts/links/' + categories[topCat].linkCountParam + "/" + categories[bottomCat].linkCountParam;
+        d3.json(linkCountUrl, renderBookLinks);
     }
 }
 
@@ -759,7 +787,7 @@ function closeBook(dCloser) {
     var collectionId = dCloser.collection;
     var closing = svg.select("#" + collectionId + " .open").classed("open", false).on("mouseover", mouseover_book);
 
-    var labelId = collectionId == "tanakh" ? "top-label" : "bottom-label";
+    var labelId = collectionId == topCat ? "top-label" : "bottom-label";
 
     //Resize books
     svg.selectAll("#" + collectionId + " .book")
@@ -901,7 +929,10 @@ function processPreciseLinks(dBook) {
             .attr("display", "none");
     }
 
-    var linkCat = dBook.collection == "tanakh" ? "Bavli" : "Tanakh";
+    //var linkCat = dBook.collection == "tanakh" ? "Bavli" : "Tanakh";
+    var linkCat = dBook.collection == topCat ?
+        categories[bottomCat].linkCountParam :
+        categories[topCat].linkCountParam;
 
     if (dBook.title in pLinkCache) {
         preciseLinkCallback(null, pLinkCache[dBook.title]);
@@ -932,6 +963,7 @@ function replaceAll(str, ol, nw) {
     return str.split(ol).join(nw)
 }
 function toId(title) {
+    title = replaceAll(title, "'", "");
     return replaceAll(title," ","-");
 }
 function toLink(title) {

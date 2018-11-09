@@ -83,6 +83,9 @@ class SD3 {
             if(i.indexOf(":") < 0) {
                 i = i + ":1"; //Make chapter refs point to first verse
             }
+            if(i.indexOf("-") > -1) {
+                i = i.split("-")[0]; // Make ranges point to start only
+            }
             var res = scale(i);
             if (res == undefined) { console.log(i + " -> " + res); }
             return res;
