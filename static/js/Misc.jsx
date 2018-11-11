@@ -72,8 +72,9 @@ class GlobalWarningMessage extends Component {
 class ReaderNavigationMenuSection extends Component {
   render() {
     if (!this.props.content) { return null; }
+    let idstr = this.props.enableAnchor ? "navigation-" + this.props.title.toLowerCase() : "";
     return (
-      <div className="readerNavSection">
+      <div className="readerNavSection" id={idstr}>
 
         {this.props.title ? (<h2>
           <span className="int-en">{this.props.title}</span>
@@ -87,7 +88,11 @@ class ReaderNavigationMenuSection extends Component {
 ReaderNavigationMenuSection.propTypes = {
   title:   PropTypes.string,
   heTitle: PropTypes.string,
-  content: PropTypes.object
+  content: PropTypes.object,
+  enableAnchor: PropTypes.bool
+};
+ReaderNavigationMenuSection.defaultProps = {
+  enableAnchor: false
 };
 
 

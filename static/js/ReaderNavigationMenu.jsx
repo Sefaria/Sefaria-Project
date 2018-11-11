@@ -288,7 +288,7 @@ class ReaderNavigationMenu extends Component {
                   { this.props.compare ? null : title }
                   <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
-                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
+                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} />
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
                   { this.props.multiPanel ? null : siteLinks }
                 </div>
