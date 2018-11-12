@@ -30,7 +30,7 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.client.util import jsonResponse, subscribe_to_list
+from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import NewUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path
 from sefaria.model.user_profile import UserProfile
@@ -123,6 +123,39 @@ def subscribe(request, email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": _("Sorry, there was an error.")})
+
+def generate_feedback(request):
+
+    data = json.loads(request.POST.get('json', {}))
+
+    fb_type = data.get('type', None)
+    refs = data.get('refs', None)
+    url = data.get('url', None)
+    versions = data.get('currVersions', None)
+    uid = data.get('uid', None)
+    from_email = data.get('email', None)
+    msg = data.get('msg', None)
+
+    if not from_email:
+        from_email = model.user_profile.UserProfile(id=uid).email
+
+    if fb_type == "content_issue":
+        to_email = "corrections@sefaria.org"
+        subject = "Correction from website - " + ' / '.join(refs)
+        message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions) + "\n\n" + "URL: " + url
+    else:
+        to_email = "hello@sefaria.org"
+        subject = "Feedback from website - " + fb_type.replace("_"," ")
+        message_html = msg + "\n\n" + "URL: " + url
+
+
+
+    try:
+        send_email(subject, message_html, from_email, to_email)
+        return jsonResponse({"status": "ok"})
+    except:
+        return jsonResponse({"error": _("Sorry, there was an error.")})
+
 
 
 def data_js(request):
@@ -233,7 +266,7 @@ def bulktext_api(request, refs):
                         'heRef': oref.he_normal(),
                         'url': oref.url()
                     }
-            except (InputError, ValueError, AttributeError) as e:
+            except (InputError, ValueError, AttributeError, KeyError) as e:
                 # referer = request.META.get("HTTP_REFERER", "unknown page")
                 # This chatter fills up the logs.  todo: put in it's own file
                 # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
@@ -356,10 +389,12 @@ def rebuild_toc(request):
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
     library.build_ref_auto_completer()
+    library.build_lexicon_auto_completers()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
         server_coordinator.publish_event("library", "build_ref_auto_completer")
+        server_coordinator.publish_event("library", "build_lexicon_auto_completers")
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 

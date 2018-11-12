@@ -94,7 +94,11 @@ class GroupPage extends Component {
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
         var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
-        return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+        /* TODO this has a very similar structure to SheetTag, maybe merge */
+        return (<div className={classes} onClick={filterThisTag} key={tag.tag}>
+            <span className="int-en">{tag.tag} ({tag.count})</span>
+            <span className="int-he">{Sefaria.hebrewTerm(tag.tag)} (<span className="enInHe">{tag.count}</span>)</span>
+        </div>);
       }.bind(this)) : null;
 
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
@@ -227,23 +231,27 @@ class GroupSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
 
     if (sheet.tags === undefined) { sheet.tags = []; }
-    var tagString = sheet.tags.map(function (tag) {
-          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
+    var sheetArr = sheet.tags.filter(function(item, pos) {
+        return sheet.tags.indexOf(item) == pos;
+    });
+    var tagString = sheetArr.map(function (tag) {
+          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={`${sheet.id}-${tag}`}/>);
     }, this);
 
 
     var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});
-    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" :
-                      this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinMessage = this.props.pinned && this.props.isAdmin ? Sefaria._("Pinned Sheet - click to unpin") :
+                      this.props.pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
     var pinButton = <div className={pinButtonClasses} onClick={this.props.isAdmin ? this.props.pinSheet : null}>
                       <img src="/static/img/pin.svg" title={pinMessage} />
                     </div>
+
 
     return (<div className="sheet userSheet">
                 <div className="groupSheetInner">
                   <div className="groupSheetInnerContent"> 
                     <span><a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
-                    <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+                    <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{tagString}</span></div>
                   </div>
                   {pinButton}
                 </div>

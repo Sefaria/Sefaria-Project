@@ -5,7 +5,7 @@ http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
 import string
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 import datrie
 
@@ -36,7 +36,7 @@ splitter = re.compile(ur"[\s,]+")
 class AutoCompleter(object):
     """
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
-    It instanciates objects that provide string completion according to different algorithms.
+    It instantiates objects that provide string completion according to different algorithms.
     """
     def __init__(self, lang, lib, include_people=False, include_categories=False, include_parasha=False, *args, **kwargs):
         """
@@ -243,6 +243,18 @@ class Completions(object):
             else:
                 # todo: Check if this is in there already?
                 self.duplicate_matches += [(k, v)]
+
+
+class LexiconTrie(datrie.Trie):
+    dict_letter_scope = u"\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeff`' \""
+
+    def __init__(self, lexicon_name):
+        super(LexiconTrie, self).__init__(self.dict_letter_scope)
+
+        for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
+            self[hebrew.strip_nikkud(entry.headword)] = entry.headword
+            for ahw in getattr(entry, "alt_headwords", []):
+                self[hebrew.strip_nikkud(ahw)] = entry.headword
 
 
 class TitleTrie(datrie.Trie):

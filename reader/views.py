@@ -16,6 +16,7 @@ from bson.json_util import dumps
 import p929
 import socket
 import bleach
+from collections import OrderedDict
 
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
@@ -30,6 +31,7 @@ from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
 from django import http
+from django.utils import timezone
 
 from sefaria.model import *
 from sefaria.workflows import *
@@ -37,6 +39,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
+from sefaria.model.schema import DictionaryEntryNotFound
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -44,7 +47,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -69,6 +72,7 @@ logger.warn("Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
+library.build_lexicon_auto_completers()
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
@@ -252,6 +256,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         highlighted_node = sheet_id.split(".")[1]
         sheet_id = sheet_id.split(".")[0]
 
+    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(int(sheet_id))
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 
@@ -264,6 +269,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         sheet["viaOwnerName"] = viaOwnerData["name"]
         sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
+    sheet["sources"] = annotate_user_links(sheet["sources"])
     panel = {
         "sheetID": sheet_id,
         "mode": "Sheet",
@@ -439,7 +445,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialPanels":               panels,
         "initialPanelCap":             len(panels),
         "initialQuery":                None,
-        "initialSearchFilters":        None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
     })
@@ -478,7 +483,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
-        breadcrumb = "/sheets/"+str(sheet["id"])+"?panel=1"
+        breadcrumb = "/sheets/"+str(sheet["id"])
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
 
 
@@ -490,7 +495,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "title":          title,
         "desc":           desc,
         "ldBreadcrumbs":  breadcrumb
-    }, RequestContext(request))
+    })
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
     """
@@ -547,18 +552,25 @@ def search(request):
     """
     Search or Search Results page.
     """
-    search_filters = request.GET.get("filters").split("|") if request.GET.get("filters") else []
-    initialQuery   = urllib.unquote(request.GET.get("q")) if request.GET.get("q") else ""
-    field          = ("naive_lemmatizer" if request.GET.get("var") == "1" else "exact") if request.GET.get("var") else ""
-    sort           = ("chronological" if request.GET.get("sort") == "c" else "relevance") if request.GET.get("sort") else ""
+    text_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("tpathFilters").split("|")) if request.GET.get("tpathFilters") else []
+    sheet_group_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("sgroupFilters").split("|")) if request.GET.get("sgroupFilters", "") else []
+    sheet_tags_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("stagsFilters", "").split("|")) if request.GET.get("stagsFilters", "") else []
+    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(sheet_tags_search_filters)  # i got a tingly feeling writing this
+    initialQuery = urllib.unquote(request.GET.get("q", ""))
+    text_field = ("naive_lemmatizer" if request.GET.get("tvar") == "1" else "exact") if request.GET.get("tvar") else ""
+    text_sort = request.GET.get("tsort", None)
+    sheet_sort = request.GET.get("ssort", None)
 
     props = base_props(request)
     props.update({
         "initialMenu": "search",
         "initialQuery": initialQuery,
-        "initialSearchFilters": search_filters,
-        "initialSearchField": field,
-        "initialSearchSortType": sort,
+        "initialTextSearchFilters": text_search_filters,
+        "initialSheetSearchFilters": (sheet_group_search_filters + sheet_tags_search_filters),
+        "initialSheetSearchFilterAggTypes": sheet_agg_types,
+        "initialTextSearchField": text_field,
+        "initialTextSearchSortType": text_sort,
+        "initialSheetSearchSortType": sheet_sort
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -1125,42 +1137,69 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+
+        def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                      alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            try:
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            except AttributeError as e:
+                oref = oref.default_child_ref()
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+            except NoVersionFoundError as e:
+                return {"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
 
-        try:
-            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
-        except AttributeError as e:
-            oref = oref.default_child_ref()
-            text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
-        except NoVersionFoundError as e:
-            return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
+            # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
+            oref               = oref.padded_ref() if pad else oref
+            try:
+                text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
+                text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            except AttributeError as e:
+                # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
+                oref = oref.default_child_ref()
+                text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
+                text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
+            text["commentary"] = text.get("commentary", [])
+            text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
 
+            if layer_name:
+                layer = Layer().load({"urlkey": layer_name})
+                if not layer:
+                    raise InputError("Layer not found.")
+                layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
+                text["layer"]        = layer_content
+                text["layer_name"]   = layer_name
+                text["_loadSourcesFromDiscussion"] = True
+            else:
+                text["layer"] = []
 
-        # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
-        oref               = oref.padded_ref() if pad else oref
-        try:
-            text["next"]       = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"]       = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        except AttributeError as e:
-            # There are edge cases where the TextFamily call above works on a default node, but the next section call here does not.
-            oref = oref.default_child_ref()
-            text["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-        text["commentary"] = text.get("commentary", [])
-        text["sheets"]     = get_sheets_for_ref(tref) if int(request.GET.get("sheets", 0)) else []
+            return text
 
-        if layer_name:
-            layer = Layer().load({"urlkey": layer_name})
-            if not layer:
-                raise InputError("Layer not found.")
-            layer_content        = [format_note_object_for_client(n) for n in layer.all(tref=tref)]
-            text["layer"]        = layer_content
-            text["layer_name"]   = layer_name
-            text["_loadSourcesFromDiscussion"] = True
+        if not multiple or abs(multiple) == 1:
+            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+            return jsonResponse(text, cb)
         else:
-            text["layer"] = []
+            # Return list of many sections
+            target_count = int(multiple)
+            assert target_count != 0
+            direction = "next" if target_count > 0 else "prev"
+            target_count = abs(target_count)
 
-        return jsonResponse(text, cb)
+            current = 0
+            texts = []
+
+            while current < target_count:
+                text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
+                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                texts += [text]
+                if not text[direction]:
+                    break
+                oref = Ref(text[direction])
+                current += 1
+
+            return jsonResponse(texts, cb)
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -1260,6 +1299,34 @@ def table_of_contents_api(request):
 @catch_error_as_json
 def search_filter_table_of_contents_api(request):
     return jsonResponse(library.get_search_filter_toc(), callback=request.GET.get("callback", None))
+
+@catch_error_as_json
+def search_autocomplete_redirecter(request):
+    query = request.GET.get("q", "")
+    completions_dict = get_name_completions(query, 1, False)
+    ref = completions_dict['ref']
+    object_data = completions_dict['object_data']
+    if ref:
+        response = redirect(u'/{}'.format(ref.url()), permanent=False)
+    elif object_data is not None and object_data.get('type', '') == 'Person':
+        response = redirect(u'/person/{}'.format(object_data['key']), permanent=False)
+    elif object_data is not None and object_data.get('type', '') == 'TocCategory':
+        response = redirect(u'/{}'.format(object_data['key']), permanent=False)
+    else:
+        response = redirect(u'/search?q={}'.format(query), permanent=False)
+    return response
+
+
+@catch_error_as_json
+def opensearch_suggestions_api(request):
+    # see here for docs: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Suggestions/1.1
+    query = request.GET.get("q", "")
+    completions_dict = get_name_completions(query, 5, False)
+    ret_data = [
+        query,
+        completions_dict["completions"]
+    ]
+    return jsonResponse(ret_data, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2008,14 +2075,17 @@ def calendars_api(request):
             day = int(request.GET.get("day", None))
             datetimeobj = datetime.datetime(year, month, day)
         except Exception as e:
-            datetimeobj = datetime.datetime.now()
+            datetimeobj = timezone.localtime(timezone.now())
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
-            return jsonResponse({"date": datetimeobj.date().isoformat(),"calendar_items": calendars}, callback=request.GET.get("callback", None))
+            return jsonResponse({"date": datetimeobj.date().isoformat(),
+                                 "timezone" : timezone.get_current_timezone_name(),
+                                 "calendar_items": calendars},
+                                callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2077,6 +2147,47 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def get_name_completions(name, limit, ref_only):
+    lang = "he" if is_hebrew(name) else "en"
+    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
+    object_data = None
+    ref = None
+    try:
+        ref = Ref(name)
+        inode = ref.index_node
+
+        # Find possible dictionary entries.  This feels like a messy way to do this.  Needs a refactor.
+        if inode.is_virtual and inode.parent and getattr(inode.parent, "lexiconName", None) in library._lexicon_auto_completer:
+            base_title = inode.parent.full_title()
+            lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
+            t = [base_title + u", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
+            completions = list(OrderedDict.fromkeys(t))  # filter out dupes
+        else:
+            completions = [name.capitalize()] + completer.next_steps_from_node(name)
+
+        if limit == 0 or len(completions) < limit:
+            current = {t: 1 for t in completions}
+            additional_results = completer.complete(name, limit)
+            for res in additional_results:
+                if res not in current:
+                    completions += [res]
+    except DictionaryEntryNotFound as e:
+        # A dictionary beginning, but not a valid entry
+        lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
+        t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
+        d["completions"] = list(OrderedDict.fromkeys(t))  # filter out dupes
+    except InputError:
+        completions = completer.complete(name, limit)
+        object_data = completer.get_data(name)
+
+    return {
+        "completions": completions,
+        "lang": lang,
+        "object_data": object_data,
+        "ref": ref
+    }
+
+
 @catch_error_as_json
 def name_api(request, name):
     if request.method != "GET":
@@ -2085,25 +2196,12 @@ def name_api(request, name):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 16))
     ref_only = request.GET.get("ref_only", False)
-    lang = "he" if is_hebrew(name) else "en"
-
-    completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
-    try:
-        ref = Ref(name)
+    completions_dict = get_name_completions(name, LIMIT, ref_only)
+    ref = completions_dict["ref"]
+    if ref:
         inode = ref.index_node
-        assert isinstance(inode, SchemaNode)
-
-        completions = [name.capitalize()] + completer.next_steps_from_node(name)
-
-        if LIMIT == 0 or len(completions) < LIMIT:
-            current = {t: 1 for t in completions}
-            additional_results = completer.complete(name, LIMIT)
-            for res in additional_results:
-                if res not in current:
-                    completions += [res]
-
         d = {
-            "lang": lang,
+            "lang": completions_dict["lang"],
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
@@ -2121,7 +2219,7 @@ def name_api(request, name):
             "toSections": ref.normal_toSections(),
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
-            "completions": completions[:LIMIT],
+            "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
             # todo: ADD textual completions as well
             "examples": []
         }
@@ -2132,21 +2230,39 @@ def name_api(request, name):
             d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
             d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
 
-    except InputError:
+    else:
         # This is not a Ref
         d = {
-            "lang": lang,
+            "lang": completions_dict["lang"],
             "is_ref": False,
-            "completions": completer.complete(name, LIMIT)
+            "completions": completions_dict["completions"]
         }
 
         # let's see if it's a known name of another sort
-        object_data = completer.get_data(name)
-        if object_data:
-            d["type"] = object_data["type"]
-            d["key"] = object_data["key"]
+        if completions_dict["object_data"]:
+            d["type"] = completions_dict["object_data"]["type"]
+            d["key"] = completions_dict["object_data"]["key"]
 
     return jsonResponse(d)
+
+
+@catch_error_as_json
+def dictionary_completion_api(request, word, lexicon=None):
+    """
+    Given a dictionary, looks up the word in that dictionary
+    :param request:
+    :param word:
+    :param dictionary:
+    :return:
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    # Number of results to return.  0 indicates no limit
+    LIMIT = int(request.GET.get("limit", 10))
+
+    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    return jsonResponse(result)
 
 
 @catch_error_as_json
@@ -3196,6 +3312,21 @@ def digitized_by_sefaria(request):
                                 })
 
 
+def parashat_hashavua_redirect(request):
+    """ Redirects to this week's Parashah"""
+    diaspora = request.GET.get("diaspora", "1")
+    calendars = get_keyed_calendar_items() # TODO Support israel / customs
+    parashah = calendars["Parashat Hashavua"]
+    return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
+
+
+def daf_yomi_redirect(request):
+    """ Redirects to today's Daf Yomi"""
+    calendars = get_keyed_calendar_items()
+    daf_yomi = calendars["Daf Yomi"]
+    return redirect(iri_to_uri("/" + daf_yomi["url"]), permanent=False)
+
+
 def random_ref():
     """
     Returns a valid random ref within the Sefaria library.
@@ -3241,7 +3372,13 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    random_topic = choice(filter(lambda x: x['count'] > 15, get_topics().list()))['tag']
+    cb = request.GET.get("callback", None)
+    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    if len(topics_filtered) == 0:
+        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
+        resp['Content-Type'] = "application/json; charset=utf-8"
+        return resp
+    random_topic = choice(topics_filtered)['tag']
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
@@ -3249,10 +3386,42 @@ def random_by_topic_api(request):
         url = oref.url()
     except Exception:
         return random_by_topic_api(request)
-    cb = request.GET.get("callback", None)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=request.GET.get("callback", None))
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
+
+
+# def search_api(request):
+#     # dict to define request parameters and their default values. None means parameter is required
+#     params = {
+#         "query": None,
+#         "size": 10,
+#         "from": 0,
+#         "type": None,  #
+#         "get_filters": False,
+#         "applied_filters": [],
+#         "field": None,
+#         "sort_type": None,
+#         "exact": False
+#     }
+#     param_vals = {}
+#     for p in params:
+#         param_vals[p] = request.GET.get(p, )
+#     query = request.GET.get("q")
+#     """
+#              query: query string
+#              size: size of result set
+#              from: from what result to start
+#              type: "sheet" or "text"
+#              get_filters: if to fetch initial filters
+#              applied_filters: filter query by these filters
+#              field: field to query in elastic_search
+#              sort_type: chonological or relevance
+#              exact: if query is exact
+#              success: callback on success
+#              error: callback on error
+#     """
+#     size = request.GET.get("size")
 
 
 @ensure_csrf_cookie

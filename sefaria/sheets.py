@@ -85,11 +85,13 @@ def get_sheet_for_panel(id=None):
 	ownerData = public_user_data(sheet["owner"])
 	sheet["ownerName"]  = ownerData["name"]
 	sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
+	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+	sheet["sources"] = annotate_user_links(sheet["sources"])
 	if "group" in sheet:
 		group = Group().load({"name": sheet["group"]})
 		try:
-			sheet["groupLogo"] = group.headerUrl
+			sheet["groupLogo"] = group.imageUrl
 		except:
 			sheet["groupLogo"] = None
 	return sheet
@@ -116,15 +118,16 @@ def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0):
 
 
 def group_sheets(group, authenticated):
-    if authenticated == True:
-        query = {"status": {"$in": ["unlisted", "public"]}, "group": group}
-    else:
-        query = {"status": "public", "group": group}
+	islisted = getattr(group, "listed", False)
+	if authenticated == False and islisted:
+		query = {"status": "public", "group": group.name}
+	else:
+		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
 
-    response = {
-        "sheets": sheet_list(query=query, sort=[["title", 1]]),
-    }
-    return response
+	response = {
+		"sheets": sheet_list(query=query, sort=[["title", 1]]),
+	}
+	return response
 
 
 def sheet_list(query=None, sort=None, skip=0, limit=None):
@@ -150,6 +153,14 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 
 	return [sheet_to_dict(s) for s in sheets]
 
+def annotate_user_links(sources):
+	"""
+	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	"""
+	for source in sources:
+		if "addedBy" in source:
+			source["userLink"] = user_link(source["addedBy"])
+	return sources
 
 def sheet_to_dict(sheet):
 	"""
@@ -287,6 +298,17 @@ def save_sheet(sheet, user_id, search_override=False):
 		sheet["owner"] = user_id
 		sheet["views"] = 1
 
+		#ensure that sheet sources have nodes (primarily for sheets posted via API)
+		nextNode = sheet.get("nextNode", 1)
+		sheet["nextNode"] = nextNode
+		checked_sources = []
+		for source in sheet["sources"]:
+			if "node" not in source:
+				source["node"] = nextNode
+				nextNode += 1
+			checked_sources.append(source)
+		sheet["sources"] = checked_sources
+
 	if status_changed:
 		if sheet["status"] == "public" and "datePublished" not in sheet:
 			# PUBLISH
@@ -346,6 +368,9 @@ def add_source_to_sheet(id, source, note=None):
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
 	sheet["dateModified"] = datetime.now().isoformat()
+	nextNode = sheet.get("nextNode", 1)
+	source["node"] = nextNode
+	sheet["nextNode"] = nextNode + 1
 	sheet["sources"].append(source)
 	if note:
 		sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
@@ -503,7 +528,7 @@ def get_sheets_for_ref(tref, uid=None):
 				group = Group().load({"name": sheet["group"]})
 
 				try:
-					sheet["groupLogo"] = group.headerUrl
+					sheet["groupLogo"] = group.imageUrl
 				except:
 					sheet["groupLogo"] = None
 
@@ -549,7 +574,8 @@ def update_sheet_tags(sheet_id, tags):
 	Sets the tag list for sheet_id to those listed in list 'tags'.
 	"""
 	tags = list(set(tags)) 	# tags list should be unique
-	normalizedTags = [titlecase(tag) for tag in tags]
+	# replace | with - b/c | is a reserved char for search sheet queries when filtering on tags
+	normalizedTags = [titlecase(tag).replace('|','-') for tag in tags]
 	db.sheets.update({"id": sheet_id}, {"$set": {"tags": normalizedTags}})
 
 	return {"status": "ok"}

@@ -181,17 +181,69 @@ def get_links(tref, with_text=True):
                     # Lookup and save top level text, only if we haven't already
                     top_nref = top_oref.normal()
                     if top_nref not in texts:
-                        texts[top_nref] = {lang: TextChunk(top_oref, lang).ja() for lang in ["he", "en"]}
-                    sections = [i - 1 for i in com_oref.sections[1:]]
-                    toSections = [i - 1 for i in com_oref.toSections[1:]]
-                    for lang, attr in [("he", "he"), ("en", "text")]:
-                        res = texts[top_nref][lang].subarray(sections, toSections).array()
+                        for lang in ("en", "he"):
+                            top_nref_tc = TextChunk(top_oref, lang)
+                            versionInfoMap = None if not top_nref_tc._versions else {
+                                v.versionTitle: {
+                                    'license': getattr(v, 'license', u''),
+                                    'versionTitleInHebrew': getattr(v, 'versionTitleInHebrew', u'')
+                                } for v in top_nref_tc._versions
+                            }
+                            if top_nref_tc.is_merged:
+                                version = top_nref_tc.sources
+                                license = [versionInfoMap[vtitle]['license'] for vtitle in version]
+                                versionTitleInHebrew = [versionInfoMap[vtitle]['versionTitleInHebrew'] for vtitle in version]
+                            elif top_nref_tc._versions:
+                                version_obj = top_nref_tc.version()
+                                version = version_obj.versionTitle
+                                license = versionInfoMap[version]['license']
+                                versionTitleInHebrew = versionInfoMap[version]['versionTitleInHebrew']
+                            else:
+                                # version doesn't exist in this language
+                                version = None
+                                license = None
+                                versionTitleInHebrew = None
+                            version = top_nref_tc.sources if top_nref_tc.is_merged else (top_nref_tc.version().versionTitle if top_nref_tc._versions else None)
+                            if top_nref not in texts:
+                                texts[top_nref] = {}
+                            texts[top_nref][lang] = {
+                                'ja': top_nref_tc.ja(),
+                                'version': version,
+                                'license': license,
+                                'versionTitleInHebrew': versionTitleInHebrew
+                            }
+                    com_sections = [i - 1 for i in com_oref.sections]
+                    com_toSections = [i - 1 for i in com_oref.toSections]
+                    for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")), ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
+                        temp_nref_data = texts[top_nref][lang]
+                        res = temp_nref_data['ja'].subarray(com_sections[1:], com_toSections[1:]).array()
                         if attr not in com:
                             com[attr] = res
                         else:
                             if isinstance(com[attr], basestring):
                                 com[attr] = [com[attr]]
                             com[attr] += res
+                        temp_version = temp_nref_data['version']
+                        if isinstance(temp_version, basestring) or temp_version is None:
+                            com[versionAttr] = temp_version
+                            com[licenseAttr] = temp_nref_data['license']
+                            com[vtitleInHeAttr] = temp_nref_data['versionTitleInHebrew']
+                        else:
+                            # merged. find exact version titles for each segment
+                            start_sources = temp_nref_data['ja'].distance([], com_sections[1:])
+                            if com_sections == com_toSections:
+                                # simplify for the common case
+                                versions = temp_version[start_sources] if start_sources < len(temp_version) - 1 else None
+                                licenses = temp_nref_data['license'][start_sources] if start_sources < len(temp_nref_data['license']) - 1 else None
+                                versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources] if start_sources < len(temp_nref_data['versionTitleInHebrew']) - 1 else None
+                            else:
+                                end_sources = temp_nref_data['ja'].distance([], com_toSections[1:])
+                                versions = temp_version[start_sources:end_sources + 1]
+                                licenses = temp_nref_data['license'][start_sources:end_sources + 1]
+                                versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources:end_sources + 1]
+                            com[versionAttr] = versions
+                            com[licenseAttr] = licenses
+                            com[vtitleInHeAttr] = versionTitlesInHebrew
             links.append(com)
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))

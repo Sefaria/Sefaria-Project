@@ -107,7 +107,7 @@
             'color: #999;' +
             'padding:20px 20px 20px 20px;' +
             'border-top: 1px solid #ddd;' +
-            'background-color: #F9F9F7;' +
+            'background-color: #FBFBFA;' +
             'font-size: 12px;' +
             'display: block;' +
             'font-family: "Helvetica Neue", "Helvetica", sans-serif;' +
@@ -131,7 +131,7 @@
             '#sefaria-linker-header {' +
                 'border-top: 4px solid #ddd;' +
                 'border-bottom: 1px solid #ddd;' +
-                'background-color: #F9F9F7;' +
+                'background-color: #FBFBFA;' +
                 'text-align: center;' +
                 'padding-bottom: 3px;' +
             '}';

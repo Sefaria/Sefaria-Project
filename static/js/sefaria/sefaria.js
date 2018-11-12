@@ -50,10 +50,21 @@ Sefaria = extend(Sefaria, {
       var toSplit = q.split("-");
       var first   = toSplit[0];
 
-      var book, bookOn, index, nums, i;
+      var book, index, nums, i;
       for (i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
-          if (book in Sefaria.booksDict) {
+          if (book in Sefaria.virtualBooksDict) {
+              // todo: This assumes that this is a depth one integer indexed node
+              var numberMatch = first.match(/([\d ]+)$/);
+              if (numberMatch) {
+                  nums = String(+numberMatch[0]);
+                  book = first.slice(0, numberMatch.index)
+              } else {
+                  book = first;
+              }
+              break;
+          }
+          if (book in Sefaria.booksDict || book == "Sheet") {
               nums = first.slice(i+1);
               break;
           }
@@ -70,6 +81,7 @@ Sefaria = extend(Sefaria, {
 
       if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
+          console.log(Sefaria._parseRef[q])
           return Sefaria._parseRef[q];
       }
 
@@ -273,6 +285,7 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
+      multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     var key = this._textKey(ref, settings);
@@ -296,24 +309,19 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
-      //wrapLinks:  settings.wrapLinks  || 1
+      multiple:   settings.multiple   || 0,
       wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
-      this._saveText(data, settings);
+      if (Array.isArray(data)) {
+          data.map(d => this._saveText(d, settings))
+      } else {
+          this._saveText(data, settings);
+      }
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
-  /*
-  refreshSegmentCache: function(ref, versionTitle, language) {
-     // versionTitle and language are optional
-     all_5bit_binary_strings = [...Array(32).keys()].map(n => ((pad + (n).toString(2)).slice(-5)))
-      this.textApi(ref, settings, function() {})
-        .always(function() {this.textApi(ref, settings, function() {})}.bind(this))
-        .always()
-  },
-  */
   _versions: {},
   _translateVersions: {},
   versions: function(ref, cb) {
@@ -347,7 +355,8 @@ Sefaria = extend(Sefaria, {
       commentary: settings.commentary,
       context:    settings.context,
       pad:        settings.pad,
-      wrapLinks:  settings.wrapLinks
+      wrapLinks:  settings.wrapLinks,
+      multiple:   settings.multiple
     });
     var url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + settings.enVersion.replace(/ /g,"_"); }
@@ -652,6 +661,23 @@ Sefaria = extend(Sefaria, {
           }.bind(this)
         });
     }
+  },
+  _lexiconCompletions: {},
+  lexiconCompletion: function(word, lexicon, callback) {
+      word = word.trim();
+      var key = word + "/" + lexicon;
+      if (key in this._lexiconCompletions) {
+          callback(this._lexiconCompletions[key]);
+          return null;
+      }
+      return $.ajax({
+          dataType: "json",
+          url: Sefaria.apiHost + "/api/words/completion/" + word + "/" + lexicon,
+          success: function(data) {
+              this._lexiconCompletions[key] = data;
+              callback(data);
+          }.bind(this)
+      });
   },
   _lexiconLookups: {},
   lexicon: function(words, ref, cb){
@@ -1789,6 +1815,9 @@ Sefaria = extend(Sefaria, {
       "Please select a source sheet.": "אנא בחר דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
       "Source Sheet by" : "דף מקורות מאת",
+      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
+      "Pinned Sheet" : "דף מקורות נעוץ",
+      "Pin Sheet" : "נעיצת דף מקורות",
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
@@ -1837,7 +1866,6 @@ Sefaria = extend(Sefaria, {
       //"Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Views": "צפיות",
       "Versions": "גרסאות",
       "Version Open": "גרסה פתוחה",
       "About": "אודות",
@@ -1873,7 +1901,21 @@ Sefaria = extend(Sefaria, {
       "Vocalization": "טעמים וניקוד",
       "Vowels": "ניקוד",
       "Show only vowel points": "הצג טקסט עם ניקוד",
-      "Show only consonantal text": "הצג טקסט עיצורי בלבד"
+      "Show only consonantal text": "הצג טקסט עיצורי בלבד",
+      "Email Address" : "כתובת אימייל",
+      "Describe the issue..." : "טקסט המשוב",
+      "Report an issue with the text" : "דיווח על בעיה בטקסט",
+      "Report a bug" : "דיווח על תקלה באתר",
+      "Get help" : "עזרה",
+      "Request a feature": "בקשה להוספת אפשרות באתר",
+      "Give thanks": "תודה",
+      "Other": "אחר",
+      "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
+      "Please select a feedback type": "אנא בחרו סוג משוב",
+      "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
+      "Select Type" : "סוג משוב",
+      "Added by" : "נוסף בידי",
+
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -2050,6 +2092,7 @@ Sefaria.setup = function(data) {
       Sefaria._partner_role = cookie._partner_role;
     }
     Sefaria._makeBooksDict();
+    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
     if (!Sefaria.recentlyViewed) {
         Sefaria.recentlyViewed = [];

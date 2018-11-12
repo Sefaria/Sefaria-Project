@@ -2,20 +2,13 @@ body {
   padding: 0;
   margin: 0;
   overflow: hidden;
-  color: #333;
   -webkit-text-size-adjust: 100%;
-}
-body {
-  /* font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif; */
-}
-body .he {
-  /* font-family: "Heebo", sans-serif; */
 }
 *::selection {
   background-color: #D2DCFF;
 }
 body.sepia {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 body.dark {
   background-color: #333331;
@@ -23,11 +16,140 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+/*
+Style Guide Font Hierarchy
+https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
+*/
+.int-he {
+  font-family: "Heebo", sans-serif;
+  direction: rtl;
+}
+.int-he.but-text-is-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  direction: ltr;
+}
+.int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.int-en.but-text-is-he {
+  font-family: "Heebo", sans-serif;
+  direction: rtl;
+}
+.featureTitle .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 50px;
+  font-weight: normal;
+  color: #000;
+}
+.pageTitle .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: #000;
+}
+.chapterText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
+}
+.sectionTitleText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.smallText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.systemText .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+}
+.contentText .int-en,
+.contentText .en,
+.contentText.en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+.featureTitle .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 40px;
+  font-weight: normal;
+  color: #000;
+}
+.pageTitle .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: #000;
+}
+.chapterText .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
+}
+.sectionTitleText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #666;
+  text-transform: uppercase,
+  letter-spacing: 0.1em;
+}
+.smallText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.systemText .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+}
+.contentText .int-he,
+.contentText .he,
+.contentText.he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: normal;
+  color: #000;
+}
+/* end Style Guide */
+
+@font-face {
+  /* English content text that may contain Hebrew characters */
+  font-family: 'Hebrew Text Font';
+  src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+  unicode-range: U+0590-05FF;
+}
+@font-face {
+  /* English system text that may contain Hebrew characters */
+  font-family: 'Hebrew System Font';
+  src: local('Heebo'), local('Roboto');
+  unicode-range: U+0590-05FF;
+}
 .sans,
 .sans .en,
 #s2 .sans .en,
 .sans .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .sans .he,
 #s2 .sans .he,
@@ -64,10 +186,17 @@ body:not(.user-is-tabbing) *:focus {
 input.noselect {
     -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
-.interface-hebrew #panelWrapBox{
+.interface-hebrew .int-en,
+.interface-english .int-he {
+  display: none;
+}
+.interface-hebrew #panelWrapBox,
+.readerApp.interface-hebrew .readerPanel
+{
   direction: rtl;
 }
-.interface-english #panelWrapBox{
+.interface-english #panelWrapBox,
+.readerApp.interface-english .readerPanel {
   direction: ltr;
 }
 #panelWrapBox {
@@ -115,7 +244,7 @@ input.noselect {
   position: absolute;
   top: 17px;
   left: 50%;
-  margin-left: -53px;
+  margin-left: -46px;
 }
 .headerInner .headerLinksSection{
   display: flex;
@@ -156,6 +285,10 @@ input.noselect {
   vertical-align: 1px;
   margin: 0;
 }
+.header .search.hebrewSearch {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+}
 .search-override {
   border-top: solid 1px #999;
   padding-top: 5px;
@@ -165,7 +298,7 @@ input.noselect {
 }
 .header .home img {
   vertical-align: middle;
-  height: 25px;
+  width: 92px;
 }
 .header .login:first-child{
   margin: auto 30px;
@@ -180,7 +313,6 @@ input.noselect {
   .header .accountLinks .login {
     margin-left: 16px;
   }
-
   .header .searchBox input{
     width: 45%;
   }
@@ -196,8 +328,9 @@ input.noselect {
 }
 .header .accountLinks {
   display: inline-block;
-  font-size: 15px;
+  font-size: 16px;
   margin-top: 2px;
+  color: #666;
 }
 .header .account, .header .notifications {
   display: inline-block;
@@ -207,11 +340,9 @@ input.noselect {
   font-size: 24px;
   line-height: 24px;
 }
-.header .library{
-}
 .header .notifications {
   display: inline-block;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   line-height: 24px;
   height: 24px;
   width: 24px;
@@ -226,12 +357,12 @@ input.noselect {
   background-color: #EFB4B6;
 }
 .header .login {
-  color: #999;
+  color: #666;
   display: inline-block;
   line-height: 1;
 }
 .header .login .en {
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 .header .login .he {
   font-family: "Heebo", sans-serif;
@@ -239,7 +370,7 @@ input.noselect {
 .header .testWarning {
   display: inline-block;
   color: white;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   background-color: #EFB4B6;
   border-radius: 12px;
   font-size: 14px;
@@ -305,7 +436,7 @@ input.noselect {
   padding: 18px 15px;
   z-index: 1001;
   border: 1px solid #E6E6E6;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   text-align: center;
   color: #666;
 }
@@ -346,7 +477,7 @@ input.noselect {
   margin-left: -225px;
   left: 50%;
   top: 50%;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   padding: 32px 20px;
   box-sizing: border-box;
   text-align: center;
@@ -369,16 +500,18 @@ input.noselect {
   font-size: 17px;
 }
 
-.header .readerNavMenuSearchButton {
+.readerNavMenuSearchButton {
   position: relative;
   margin: 0 10px 0 6px;
   top: -3px;
-  font-size: 18px;
+}
+.readerNavTop .readerNavMenuSearchButton {
+  top: 0px;
 }
 .interface-hebrew .readerNavMenuSearchButton {
   margin: 0 6px 0 10px;
 }
-.header .readerNavMenuSearchButton img {
+.readerNavMenuSearchButton img {
   height: 19px;
   opacity: 0.4;
   vertical-align: middle;
@@ -425,7 +558,7 @@ input.noselect {
   background-color: #EFB4B6;
   padding: 14px 20px;
   box-sizing: border-box;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 #globalWarningMessage .close {
  float: right;
@@ -453,7 +586,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -480,13 +613,14 @@ input.noselect {
   box-sizing: border-box;
   background-color: inherit;
 }
-.textColumn .loadingMessage.base {
+.textColumn .loadingMessage.base,
+.sheetsInPanel .loadingMessage {
   margin: 30px 0;
   color: #999;
   text-align: center;
   font-weight: lighter;
   font-style: normal;
-  font-family: "proxima-nova", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
   /*border-bottom: 4px solid #E6E5E6;*/
@@ -497,15 +631,12 @@ input.noselect {
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
-  height: 100%;
+  height: calc(100% - 128px);  /* The 128px here appears to be the minimum needed to keep a line on the screen when scrolling passes loaded content) */
 }
 .textColumn .loadingMessage.base.next.final {
 }
 .he {
-  font-size: 120%;
-}
-.int-he {
-  font-size: 110%;
+  font-size: 122%;
 }
 .int-he .int-he {
   font-size: inherit;
@@ -524,6 +655,9 @@ input.noselect {
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
+}
+.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
+  direction: ltr;
 }
 .interface-english .readerPanel .readerNavMenu,
 .readerPanel.english .readerNavSection,
@@ -577,7 +711,11 @@ input.noselect {
 }
 .interface-english .systemPanel .content .int-en {
   display: inline;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-english .systemPanel .content h1 .int-en {
+  display: inline;
+  font-family: "adobe-garamond-pro", Georgia;
 }
 .interface-hebrew .systemPanel .content .int-he {
   display: inline;
@@ -609,7 +747,7 @@ input.noselect {
   height: 100%;
   box-sizing: border-box;
   z-index: 101;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .readerNavMenu .content {
   position: relative;
@@ -630,10 +768,10 @@ input.noselect {
   padding: 30px 0px 0px 0px;
 }
 .multiPanel .readerNavMenu.noHeader .content {
-  padding-top: 70px;
+  padding-top: 80px;
 }
 .multiPanel .readerNavMenu.compare .content {
-  padding-top: 80px;
+  padding-top: 30px;
 }
 .readerNavMenu .content .contentInner {
   max-width: 660px;
@@ -642,7 +780,7 @@ input.noselect {
 .readerNavTop {
   /*position: absolute;*/
   width: 100%;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   height: 58px;
@@ -744,10 +882,10 @@ input.noselect {
 }
 .readerNavMenu h1 {
   text-align: center;
-  color: #333;
+  color: #000;
   height: 70px;
   position: relative;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: lighter;
   letter-spacing: 1px;
   margin: 0 0 10px 0;
@@ -774,9 +912,6 @@ h1 .languageToggle .he {
 }
 .readerNavMenu h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
-}
-.readerNavMenu h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -806,7 +941,7 @@ h1 .languageToggle .he {
   color: #999;
   font-size: 11px;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -821,22 +956,23 @@ h1 .languageToggle .he {
   text-align: center;
   font-size: 15px;
   font-weight: 200;
-  color: #999;
+  color: #666;
   margin-bottom: 20px;
   letter-spacing: 2px;
   height: 16px;
   line-height: 16px;
 }
 .readerPanel h2 .en, .readerPanel h3 .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerPanel h2 .he, .readerPanel h3 .he {
   font-family: "Heebo", sans-serif;
 }
 .readerNavSection h2 {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: normal;
-  margin-bottom: 24px;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
 }
 .readerNavSection {
   margin-bottom: 44px;
@@ -847,6 +983,7 @@ a.resourcesLink {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+  min-height: 60px;
 }
 .readerPanel .recentPanel .recentItem {
   padding: 15px;
@@ -858,28 +995,26 @@ a.resourcesLink {
 .readerNavCategories .threeBox td {
 }
 .readerNavCategories a {
-  color: #333;
-}
-.readerNavCategories a:hover {
-  text-decoration: none;
+  color: #000;
 }
 .readerNavCategory {
   background-color: white;
   text-transform: uppercase;
   font-family: "adobe-garamond-pro", Georgia;
   text-align: center;
-  font-size: 15px;
+  font-size: 18px;
   padding: 0 10px;
   margin: 0;
   cursor: pointer;
   border-top: 4px solid transparent;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   letter-spacing: 1px;
-  height: 46px;
-  line-height: 46px;
+  height: 56px;
+  line-height: 56px;
   display: block;
 }
 a.readerNavCategory {
-  color: #333;
+  color: #000;
 }
 @media (max-width: 450px) {
   .readerNavCategory {
@@ -908,16 +1043,17 @@ a.readerNavCategory {
   color: black;
   background-color: white;
   text-align: center;
-  color: #333;
+  color: #000;
   font-size: 16px;
   border-top: 4px solid transparent;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   width: 100%;
   cursor: pointer;
-  min-height: 46px;
+  min-height: 56px;
   vertical-align: middle;
   margin: 0;
   box-sizing: border-box;
-  padding:  8px 8px;
+  padding: 14px 8px;
 }
 .blockLink:hover {
   color: #333;
@@ -930,16 +1066,15 @@ a.readerNavCategory {
   height: 16px;
   width: 16px;
   opacity: 0.4;
-  vertical-align: -3px;
+  vertical-align: -1px;
 }
-.readerNavMenu .blockLink.calendarLink{
-  /*line-height: 1;
-  padding: 7px 8px;*/
+.resourcesLink {
+  border-radius: 7px;
 }
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
-  font-size: 0.9em;
-  color: #999999;
+  font-size: 13px;
+  color: #999;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -962,8 +1097,16 @@ a.readerNavCategory {
 .hebrew .gridBox td:last-child {
   border-left: 0;
 }
+.hebrew .readerTocResources .gridBox td:first-child {
+  border-left: 0;
+  border-right: 3px solid rgba(0,0,0,0);
+}
+.hebrew .readerTocResources .gridBox td:last-child {
+  border-left: 3px solid rgba(0,0,0,0);
+  border-right: 0;
+}
 .readerNavMenu .resourcesLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .resourcesLink .he {
   font-family: "Heebo", sans-serif;
@@ -975,7 +1118,7 @@ a.readerNavCategory {
 .readerNavMenu .resourcesLink img {
   width: 16px;
   height: 16px;
-  opacity: 0.6;
+  opacity: 0.4;
   margin: 0px 5px;
   position: relative;
   top: 2px;
@@ -995,7 +1138,7 @@ a.readerNavCategory {
   text-transform: uppercase;
 }
 .readerNavMenu .siteLinks .siteLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .siteLinks .siteLink .he {
   font-family: "Heebo", sans-serif;
@@ -1035,23 +1178,43 @@ a.readerNavCategory {
 .readerTextTableOfContents .refLink {
   display: block;
   margin: 0px;
-  padding: 10px 8px;
+  padding: 14px 8px;
   box-sizing: border-box;
-  color: #333;
-  font-size: 16px;
+  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
+  border-top: 4px solid transparent;
+  color: #000;
+  font-size: 18px;
   font-weight: 400;
+  line-height: 23px;
   background-color: white;
   cursor: pointer;
-  vertical-align: middle;
   text-align: center;
   unicode-bidi: plaintext;
 }
-.readerNavMenu .blockLink:active,
-.readerNavMenu .catLink:active,
-.readerNavMenu .navButton:active,
+.readerNavCategoryMenu .catLink,
+.readerNavCategoryMenu .refLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.readerNavMenu .blockLink .he,
+.readerNavMenu .catLink .he,
+.readerNavMenu .navButton .he,
+.readerTextTableOfContents .refLink .he {
+  text-align: center;
+}
+.systemPanel .blockLink {
+  padding: 13px 8px 19px;
+  border-radius: 7px;
+}
+.catLink:active,
+.blockLink:active,
+.catLink:active,
+.navButton:active,
 .readerNavCategory:active,
-.readerTextTableOfContents .refLink:active {
-  background-color: #f3f3f3;
+.refLink:active,
+.resourceseLink {
+  background-color: #EDEDED;
 }
 @media (max-width: 450px) {
   .readerNavMenu .refLink,
@@ -1061,24 +1224,14 @@ a.readerNavCategory {
     font-size: 14px;
   }
 }
-.readerNavMenu .readerNavCategoryMenu td,
-.readerSheetsNav .gridBox td {
-  background-color: white;
-  border: 3px solid #F9F9F7;
-}
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
-}
-@media (max-width: 450px) {
-  .readerNavMenu .readerNavCategoryMenu td,
-  .readerSheetsNav .gridBox td {
-    border: 4px solid #F9F9F7;
-  }
 }
 .readerNavMenu .readerNavCategoryMenu .refLink,
 .readerNavMenu .readerNavCategoryMenu .catLink {
   width: 100%;
   height: 100%;
+  padding: 13px 8px 19px;
 }
 .readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
 .readerNavMenu .catLink.incomplete {
@@ -1119,7 +1272,7 @@ a.readerNavCategory {
   font-size: 14px;
 }
 .readerTextTableOfContents .readerTextToc .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
@@ -1145,7 +1298,8 @@ a.readerNavCategory {
   letter-spacing: 1px;
 }
 .readerTextTableOfContents .tocTitle,
-.sheetContent .title {
+.sheetContent .title,
+.bookMetaDataBox .title {
   text-align: center;
   font-size: 28px;
   line-height: 1.3;
@@ -1156,11 +1310,17 @@ a.readerNavCategory {
 .sheetContent .sheetMetaDataBox .groupStatement {
   font-size: 17px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
-.sheetContent .sheetMetaDataBox .groupStatement a {
+.sheetContent .sheetMetaDataBox .authorStatement,
+.sheetContent .sheetMetaDataBox .groupStatement {
+  margin-top: 16px;
+}
+
+.sheetContent .sheetMetaDataBox .groupStatement a,
+.sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
 }
 
@@ -1174,10 +1334,25 @@ a.readerNavCategory {
  color: #333;
 }
 
+.authorStatement .imageBox,
+.groupStatement .imageBox {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+    float:none;
+}
+
+.authorStatement span p
+ {
+  display: inline-block;
+}
+
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 10px;
   margin-bottom: 20px;
   letter-spacing: 1px;
@@ -1359,7 +1534,7 @@ a.readerNavCategory {
   box-sizing: border-box;
 }
 .readerTextTableOfContents .content .sectionLink .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .sectionLink  .he {
   font-family: "Heebo", sans-serif;
@@ -1383,7 +1558,7 @@ a.readerNavCategory {
   padding-top: 6px;
 }
 .readerTextTableOfContents .content .structToggles .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .content .structToggles .he {
   font-family: "Heebo", sans-serif;
@@ -1523,7 +1698,7 @@ a.readerNavCategory {
   clear: both;
 }
 .readerTextTableOfContents .versionBlocks .versionLanguageHeader {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: .2em;
   color: #999;
@@ -1538,19 +1713,19 @@ a.readerNavCategory {
 .versionBlock .versionTitle {
   display: block;
   font-size: 18px;
-  color: #333;
+  color: #000;
   unicode-bidi: plaintext;
 }
 .versionBlock a {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  color: #333;
+  color: #000;
 }
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-top: 10px;
 }
@@ -1561,9 +1736,9 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  padding-top: 4px;
-  color: #999;
-  font-size: 15px;
+  padding-top: 10px;
+  color: #666;
+  font-size: 18px;
 }
 .modTools {
   width: 50%;
@@ -1626,7 +1801,7 @@ a.readerNavCategory {
     border-color: #ccc;
     border-radius: 3px;
     color: #333;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .dlVersionSelect option,
 .readerTextTableOfContents .content .dlVersionSelect option{
@@ -1643,7 +1818,7 @@ a.readerNavCategory {
     border: 1px solid #ccc;
     border-radius: 3px;
     color: #ccc;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .versionDownloadButton .downloadButtonInner,
 .readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
@@ -1661,12 +1836,59 @@ a.readerNavCategory {
     border-color: #212E50;
     background-color: #212E50;
 }
+
+.dictionarySearchBox {
+  display: flex;
+  justify-content: flex-start;
+  padding-bottom: 5px;
+  border-bottom: #999 solid 1px;
+  color: #999;
+  font-size: 17px;
+  height: 22px;
+}
+
+.dictionarySearchBox .dictionarySearchButton {
+
+}
+
+.searchBox.dictionarySearchBox .keyboardInputInitiator {
+  border: none;
+}
+.dictionarySearchBox input {
+  padding: 0 10px 10px;
+  font-size: 17px;
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  height: 18px;
+  margin-bottom: 10px;
+}
+
+
+body .ui-autocomplete.dictionary-toc-autocomplete {
+  margin: 0px 0;
+  padding: 6px 0 0;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
+  padding: 4px 25px;
+  border-bottom: solid #ccc 1px;
+  font-size: 17px;
+  color: black;
+  cursor: pointer;
+  display: block;
+}
+
+body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
+  background-color: #E9E9E7;
+}
+
 .searchContentFrame h1 {
   direction: ltr;
   height: 40px;
 }
 .searchContentFrame h1.englishQuery {
-  font-size: 26px;
+  font-size: 30px;
 }
 .searchContentFrame h1.hebrewQuery {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -1680,37 +1902,66 @@ a.readerNavCategory {
   margin-bottom: 30px;
   position: relative;
 }
-.searchContent .searchTopMatter.loading {
-  border-bottom: none;
-}
 .searchTopMatter .filterSortFlexbox {
   display: flex;
+  flex-direction: row;
+  margin-bottom: 4px;  /* to vertically align with type-buttons */
+}
+.searchTopMatter .searchButtonsBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid #CCC;
+}
+.searchTopMatter .type-buttons {
+  display: flex;
+  flex-direction: row;
+  align-self: flex-start;
+}
+.searchTopMatter .search-dropdown-button {
+  font-size: 18px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 15px;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+          user-select: none; /* Non-prefixed version, currently
+                                supported by Chrome and Opera */
+}
+.searchTopMatter .search-dropdown-button.active {
+  color: #000;
+  border-bottom: 4px solid #CCC;
 }
 .searchContent .searchStatusLine {
   padding: 0 0 36px 0;
   text-align: center;
-  font-size: 12px;
-  height: 64px;
+  font-size: 13px;
+  height: 10px;
 }
-.searchContent .type-button,
+.searchFilterBoxes .type-button,
 .readerSheetsNav .type-button {
   padding: 6px 14px;
   margin: 5px;
   border-radius: 12px;
   border: 1px solid #DADADA;
   display: inline-block;
-  font-size: 12px;
+  font-size: 13px;
   color: #666;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .type-button .he,
+.searchFilterBoxes .type-button .he,
 .readerSheetsNav .type-button .he {
   font-family: "Heebo", sans-serif;
 }
-.searchContent .type-button.active,
+.searchFilterBoxes .type-button.active,
 .readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
@@ -1724,23 +1975,34 @@ a.readerNavCategory {
 .searchContent .results-count,
 .searchContent .searchStatusLine > .loadingMessage {
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   padding-top: 5px;
 }
 .searchContent .searchFilterToggle {
   color: #666;
-  font-size: 14px;
-  text-transform: uppercase;
+  margin-left: 5px;
+  margin-right: 5px;
+  font-size: 18px;
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+          user-select: none; /* Non-prefixed version, currently
+                                supported by Chrome and Opera */
 }
 .searchContent .searchFilterToggle:hover {
   text-decoration: underline;
 }
+.searchContent .searchFilterToggle.active {
+  color: #000;
+}
 .searchContent .searchFilterToggle .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .searchContent .searchFilterToggle .he {
   font-family: "Heebo", sans-serif;
@@ -1756,17 +2018,37 @@ a.readerNavCategory {
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-    margin-top: 10px;
-    background: white;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    z-index: 1;
-    -webkit-border-radius: 7px;
-    -moz-border-radius: 7px;
-    border-radius: 7px;
-    border: 1px solid #ccc;
+  margin-top: 21px;
+  background: #F5F5F5;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 1;
+  box-shadow: 0 1px 3px #ccc;
+  box-sizing: border-box;
+}
+.interface-english .searchFilterBoxes {
+  right: 0;
+}
+.interface-hebrew .searchFilterBoxes {
+  left: 0;
+}
+.searchContent .searchFilterBoxes .tag-filter-outer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  height: 210px;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+.searchFilterBoxes .tag-filter {
+  color: #999;
+  background-color: white;
+  border: 0;
+}
+.searchFilterBoxes .tag-filter.active {
+  background-color: #e7e7e7;
 }
 
 .searchContent .searchFilterBoxes .searchFilterBoxRow {
@@ -1774,17 +2056,44 @@ a.readerNavCategory {
   flex-direction: row;
   width: 100%;
 }
+.searchFilterBoxes .searchFilterTabRow {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #CCC;
+  padding: 0 15px;
+}
+.searchFilterTabRow .searchFilterTab {
+  font-size: 14px;
+}
+.searchFilterTabRow .searchFilterTab.active {
+  border-bottom: 4px solid #CCC;
+}
 .searchFilterBoxes.hidden{
     display:none;
 }
 .searchContent .searchFilterBoxes li {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  display: block;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  display: flex;
+  justify-content: space-between;
+  flex: 1 0 45%;  /* see https://stackoverflow.com/questions/29546550/flexbox-4-items-per-row */
   padding: 15px 0 15px 15px;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 16px;
   cursor: pointer;
+  line-height: 125%;
 }
+.searchContent .searchFilterBoxes li img {
+  height: 10px;
+  width: 10px;
+  opacity: 0.43;
+  padding: 0 10px;
+}
+.searchContent .searchFilterBoxes .searchFilterExactBox li {
+  justify-content: flex-start;
+}
+.searchContent .searchFilterBoxes li .checkboxAndText {
+  display: flex;
+}
+.searchContent .searchFilterBoxRow li.active,
 .searchContent .searchFilterBoxRow li:hover {
   background-color: #e0e0e0;
 }
@@ -1800,7 +2109,6 @@ a.readerNavCategory {
     display:inline-block;
     width: 15px;
     height: 15px;
-    vertical-align: sub;
     cursor:pointer;
     background-image: url(/static/img/checkbox-unchecked.svg);
     background-size: contain;
@@ -1828,8 +2136,8 @@ a.readerNavCategory {
   padding-right: 0;
 }
 .searchFilterBoxes .searchFilterExactBox {
-  border-top: 1px solid #ccc;
-  padding: 5px 0px 5px 0;
+  padding-top: 10px;
+  height: 200px;
 }
 .searchFilterExactBox.hidden {
   display:none;
@@ -1858,10 +2166,9 @@ a.readerNavCategory {
   border-collapse: collapse;
 }
 .searchContent .searchSortBox tr {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   padding: 15px;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 16px;
   cursor: pointer;
 }
 .interface-hebrew .searchContent .searchSortBox tr {
@@ -1870,7 +2177,7 @@ a.readerNavCategory {
 .searchContent .searchSortBox tr:hover {
   background-color: #e0e0e0;
 }
-.searchContent .searchSortBox tr:first-child {
+.searchContent .searchSortBox tr:not(:last-child) {
   border-bottom: 1px solid #eee;
 }
 .searchContent .searchSortBox td:not(:first-child) {
@@ -1908,8 +2215,15 @@ a.readerNavCategory {
 .searchContent .searchFilterBookBox {
   padding-top: 10px;
   width: 50%;
-  height: 150px;
+  height: 200px;
   overflow-y: auto;
+}
+.searchContent .searchFilterCategoryBox.searchFilterSheetBox {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
 }
 .interface-hebrew .searchContent .searchFilterCategoryBox,
 .interface-hebrew .searchContent .searchFilterBookBox {
@@ -1928,37 +2242,63 @@ a.readerNavCategory {
 .searchContent .similar-results .result {
   border-top: none;
 }
-.searchContent .result .result-title {
-  color: #999;
+.searchContent .text_result .result-title,
+.searchContent .sheet_result .result-title {
+  color: #666;
   font-weight: lighter;
-  letter-spacing: 1px;
-  font-size: 1.7em;
-  display: block;
   padding: 20px 0 5px;
+  letter-spacing: 1px;
+  display: block;
+}
+.searchContent .text_result .result-title .int-he,
+.searchContent .sheet_result .result-title .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
+}
+.searchContent .text_result .result-title .int-en,
+.searchContent .sheet_result .result-title .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+}
+.searchContent .sheet_result .result-title {
+  font-size: 18px;
+}
+.searchContent .sheet_result .result-title.in-en {
+  direction: ltr;
+  text-align: left;
+}
+.searchContent .sheet_result .result-title.in-he {
+  direction: rtl;
+  text-align: right;
+}
+.searchContent .sheet_result .owner_name {
+  padding-bottom: 5px;
+}
+.readerPanel.english .searchContent .sheet_result .owner_name.in-he {
+  direction: rtl;
+  text-align: left;
+}
+.readerPanel.hebrew .searchContent .sheet_result .owner_name.in-en {
+  direction: ltr;
+  text-align: right;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
 }
-.readerPanel.english .searchContent .result .result-title .en,
-.readerPanel.hebrew .searchContent .result .result-title .he {
-  display: block;
-}
-.readerPanel.english .searchContent .text_result .snippet.he,
-.readerPanel.hebrew .searchContent .text_result .snippet.en,
-.bilingual .searchContent .text_result .snippet.he {
+.readerPanel.english .searchContent .snippet.he,
+.readerPanel.hebrew .searchContent .snippet.en,
+.bilingual .searchContent .snippet.he {
   display: block;
 }
 .searchContent .text_result .snippet {
-  color: #333;
-  font-size: 2.3em;
+
 }
 .searchContent .sheet_result .snippet {
-  color: #999;
-  font-size: 1.6em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4em;
-  max-height: 2.8em;
+  font-size: 18px;
+  color: #000;
+}
+.searchContent .sheet_result .snippet:hover {
+  text-decoration: none;
 }
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
@@ -1966,15 +2306,23 @@ a.readerNavCategory {
 .searchContent .result .version {
   color: #999;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
-  font-size: 11px;
+  font-size: 13px;
   margin: 8px 0;
+  display: flex;
+  align-items: center;
+}
+.searchContent .result .version .owner-metadata {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 10px;
 }
 .searchContent .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
@@ -1987,8 +2335,9 @@ a.readerNavCategory {
 }
 
 .searchContent .sheet_result .owner_image {
-  height: 40px;
-  width: 40px;
+  height: 30px;
+  width: 30px;
+  align-self: flex-start;
 }
 
 .searchContent .sheet_result {
@@ -1996,38 +2345,6 @@ a.readerNavCategory {
   margin: 15px 0;
 }
 
-.searchContent .sheet_result .result_img_box {
-  width: 40px;
-  padding-right: 20px;
-  height: 100px;
-  float: left;
-  margin-top: 4px;
-}
-.searchContent .sheet_result .result_text_box {
-  height: 100px;
-}
-.searchContent .sheet_result .result_text_box a.owner_name {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  display: block;
-  color: #999;
-  text-decoration: none;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  font-size: 1.7em;
-}
-.searchContent .sheet_result .result_text_box a.result-title {
-  display: block;
-  color: #000;
-  text-decoration: none;
-  letter-spacing: 1px;
-  font-size: 1.7em;
-  padding: 0;
-  margin: 8px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.4em;
-  max-height: 2.8em;
-}
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -2035,7 +2352,7 @@ a.readerNavCategory {
   width: 98%;
   margin-bottom: 20px;
   text-transform: uppercase;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet {
   display: flex;
@@ -2069,7 +2386,7 @@ a.readerNavCategory {
   margin: auto 14px;
 }
 .readerNavMenu .sheet .sheetAuthor {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   font-size: 14px;
   margin-bottom: 6px;
@@ -2081,9 +2398,9 @@ a.readerNavCategory {
   unicode-bidi: plaintext;
 }
 .readerNavMenu .sheet .sheetViews{
-  color: #CCC;
-  font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavMenu .sheet:hover .sheetViews{
   display: inline-block ;
@@ -2118,18 +2435,16 @@ a.readerNavCategory {
 }
 .readerControls {
   position: relative;
-  /* direction: ltr;*/
   top: 0;
   left: 0;
   width: 100%;
   box-sizing: border-box;
-  border-top: 4px solid transparent;
   text-align: center;
   z-index: 100;
   height: 60px;
   line-height: 60px;
   box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .sepia .readerControls {
   background-color: #F3F3F1;
@@ -2150,9 +2465,10 @@ a.readerNavCategory {
 .readerControls.connectionsHeader.fullPanel  {
   background-color: #EDEDED;
 }
-.connectionsPanelHeader .connectionsHeaderTitle {
+.readerControls .connectionsPanelHeader .connectionsHeaderTitle {
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-size: 16px;
   font-weight: lighter;
 }
 .connectionsPanelHeader .connectionsHeaderTitle.active {
@@ -2179,7 +2495,7 @@ a.readerNavCategory {
   box-sizing: border-box;
 }
 .readerControls.connectionsHeader .readerControlsInner {
-  padding: 0 40px 0 40px;
+  padding: 0 34px;
 }
 .singlePanel .readerControls .readerControlsInner {
   padding: 0 10px;
@@ -2196,7 +2512,7 @@ a.readerNavCategory {
   justify-content: center;
 }
 .readerControls.connectionsHeader .readerTextToc {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   color: #666;
   width: 100%;
@@ -2236,8 +2552,8 @@ a.readerNavCategory {
 .rightButtons .readerOptions,
 .rightButtons .readerNavMenuCloseButton {
   width: 40px;
-  height: 48px;
-  line-height: 48px;
+  height: 56px;
+  line-height: 56px;
   color: #999;
   font-size: 20px;
   display: inline-block;
@@ -2256,7 +2572,7 @@ a.readerNavCategory {
   vertical-align: middle;
 }
 .readerControls .readerTextToc {
-  font-size: 17px;
+  font-size: 18px;
   box-sizing: border-box;
   display: block;
   height: 50px;
@@ -2267,16 +2583,26 @@ a.readerNavCategory {
   min-width: 0; /* see https://css-tricks.com/flexbox-truncated-text/ */
 }
 .readerTextTocHeader.readerTextToc {
-  font-size: 14px;
+  font-size: 16px;
 }
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
   min-width: 0;
 }
+.hebrew .readerControls .readerTextToc .readerTextTocBox,
+.interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
+.interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
+  padding-left: 23px;
+  padding-right: 0;
+}
+.english .readerControls .readerTextToc .readerTextTocBox.sheetBox,
+.bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox {
+  padding-right: 23px;
+  padding-left: 0;
+}
 .readerControls .readerTextToc .readerTextTocBox {
   display: inline-block;
   vertical-align: middle;
-  color: #333;
   max-width: 100%;
 }
 .readerControls .readerTextToc .readerTextTocBox a span,
@@ -2317,7 +2643,7 @@ a.readerNavCategory {
   padding: 20px;
   box-sizing: border-box;
   direction: ltr;
-  background: #f9f9f7;
+  background: #FBFBFA;
   border-bottom: 1px solid #ccc;
   z-index: 103;
 }
@@ -2339,7 +2665,7 @@ a.readerNavCategory {
   font-family: "Heebo", sans-serif;
 }
 .interface-english .toggleSet.aliyotTorah, .interface-english .toggleSet .toggle-set-label{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
 }
 .toggleSet .toggle-set-label{
@@ -2357,7 +2683,7 @@ a.readerNavCategory {
   padding: 4px;
   height: 42px;
   line-height: 34px;
-  background-color: #f9f9f7;
+  background-color: #FBFBFA;
   vertical-align: middle;
 }
 .toggleSet.aliyotTorah .toggleOption{
@@ -2429,7 +2755,10 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .toggleOption.smaller, .toggleOption.larger {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .toggleOption.smaller, .interface-hebrew .toggleOption.larger {
+  font-family: "Heebo", sans-serif;
 }
 .toggleOption.smaller {
   font-size: 12px;
@@ -2471,7 +2800,7 @@ a.readerNavCategory {
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
   margin: 24px 0;
-  color: #999;
+  color: #000;
   text-align: center;
   justify-content: center;
   font-weight: lighter;
@@ -2516,33 +2845,22 @@ a.readerNavCategory {
 }
 .parashahHeader {
   text-align: center;
-  color: #8e8e8e;
+  color: #000;
   margin: 32px 0;
   font-size: 18px;
   letter-spacing: 1px;
 }
-.parashahHeader.aliyah{
-  color: #bebebe;
-}
-.parashahHeader.aliyah span{
-  font-size: 16px;
+.parashahHeader.aliyah span {
   text-transform: uppercase;
-}
-
-.parashahHeader .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
-}
-.parashahHeader .he {
-  font-family: "Heebo", sans-serif;
 }
 .bilingual .parashahHeader .en {
   display: none;
 }
-.title + .text .parashahHeader {
-    margin-top: -5px;
+.title + .text span:first-child .parashahHeader {
+  margin-top: -5px;
 }
 .title + .text {
-    margin-top: 0;
+  margin-top: 0;
 }
 .segment {
   cursor: pointer;
@@ -2611,6 +2929,14 @@ a.readerNavCategory {
   box-sizing: border-box;
   display: block;
 }
+.heLeft.bilingual .sheetItem.segment.enOnly > .en,
+.heLeft.bilingual .sheetItem.segment.heOnly > .he,
+.heRight.bilingual .sheetItem.segment.enOnly > .en,
+.heRight.bilingual .sheetItem.segment.heOnly > .he {
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he {
   float: right;
@@ -2652,18 +2978,19 @@ a.readerNavCategory {
 .sheetContent .segment.highlight .segmentNumber .he {
   background-color: transparent;
 }
-
 .sheetContent .segment.highlight .en div,
 .sheetContent .segment.highlight .he div {
   background-color: inherit;
 }
-
-
+.sheetContent .segment a {
+    color: #000;
+}
+.sheetContent .segment .sourceContentText a {
+    text-decoration: underline;
+}
 .readerPanel.bilingual.stacked .sheetContent .segment.highlight .he {
   padding-bottom: 1px;
 }
-
-
 .basetext .segment.highlight .segmentNumber,
 .basetext .segment.highlight .linkCount,
 .sheetContent .segment.highlight .linkCount,
@@ -2874,7 +3201,7 @@ a.readerNavCategory {
   vertical-align: top;
 }
 .textRange .actionLinks .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", arial, sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", arial, sans-serif;
 }
 .textRange .actionLinks .he {
   font-family: "Heebo", sans-serif;
@@ -2944,7 +3271,7 @@ a.readerNavCategory {
   width: 20px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img{
+.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   opacity: 0.4;
   height: 20px;
   width: 20px;
@@ -2952,6 +3279,7 @@ a.readerNavCategory {
 }
 .connectionsPanelHeader .languageToggle img {
   vertical-align: middle;
+  margin-top: -2px;
 }
 .connectionsPanel .flashMessage {
   font-size: 18px;
@@ -2970,16 +3298,17 @@ a.readerNavCategory {
   position: absolute;
   text-align: justify;
   margin: 0 auto;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
-.sepia .textlist {
-  background-color: #F3F3F1;
+.textList.marginless .texts,
+.textList.fullPanel.marginless .texts {
+  padding: 0 0 80px 0;
 }
 .dark .textlist {
   background-color: #333331;
 }
 .textList.fullPanel {
-  padding-top: 58px;
+  padding-top: 60px;
   height: 100%;
   box-sizing: border-box;
 }
@@ -3043,7 +3372,11 @@ a.readerNavCategory {
   border-style: hidden;
   border-collapse: collapse;
 }
+.gridBox tr {
+  height: 1px; /* hack to get td contents to 100% height */
+}
 .gridBox td {
+  height: inherit;
   padding: 0;
 }
 @media (max-width: 450px) {
@@ -3066,9 +3399,6 @@ a.readerNavCategory {
 }
 .topFilters {
   text-transform: none;
-}
-.sepia .topFilters {
-  background-color: #F3F3F1;
 }
 .dark .topFilters {
   background-color: #2D2D2B;
@@ -3096,7 +3426,7 @@ a.readerNavCategory {
   vertical-align: middle;
 }
 .textList.fullPanel .recentFilterSet {
-  margin: 0 0 12 0;
+  margin: 0 0 12px 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter {
   display: inline-block;
@@ -3131,28 +3461,31 @@ a.readerNavCategory {
 }
 .categoryFilter {
   text-transform: uppercase;
-  padding: 17px 34px;
-  font-size: 17px;
+  padding: 19px 34px;
+  font-size: 18px;
   cursor: pointer;
   line-height: 18px;
-  color: #333;
+  color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
-
 }
 .textFilter {
-  padding: 12px 34px;
-  font-size: 17px;
+  padding: 19px 34px;
+  font-size: 18px;
   line-height: 1.2;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid #E5E5E5;
   display: block;
   cursor: pointer;
   color: #333;
 }
 .connectionsCount {
-  color: #999;
+  color: #666;
+  font-size: 16px;
   font-weight: lighter;
   letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.categoryFilterGroup.withBooks {
+  border-bottom: 1px solid #E5E5E5;
 }
 .categoryFilterGroup a:hover {
   text-decoration: none;
@@ -3178,7 +3511,7 @@ a.readerNavCategory {
 }
 .fullFilterView {
   border-top: 1px solid #ddd;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   padding: 40px 20px;
 }
 .sepia .fullFilterView {
@@ -3190,7 +3523,7 @@ a.readerNavCategory {
 }
 .fullFilterView td {
   background-color: white;
-  border: 2px solid #F9F9F7;
+  border: 2px solid #FBFBFA;
 }
 .fullFilterView td.empty {
   background-color: transparent;
@@ -3206,7 +3539,7 @@ a.readerNavCategory {
 }
 .fullFilterView .categoryFilter.notClickable {
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: transparent;
   padding: 12px 12px 28px;
   cursor: auto;
@@ -3220,7 +3553,7 @@ a.readerNavCategory {
 .showSelectedFilters {
   background-color: #222F4F;
   color: white;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
   text-align: center;
   padding: 8px;
@@ -3241,10 +3574,10 @@ a.readerNavCategory {
 }
 .textList .texts {
   position: relative;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .sepia .textList .texts {
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .dark .textList .texts {
   background-color: #333331;
@@ -3303,25 +3636,24 @@ a.readerNavCategory {
 }
 .textList .sheet .sheetAuthor,
 .textList .note .noteAuthor {
-  color: #999;
-  font-size: 15px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin: auto 14px;
 }
 .textList .sheet .sheetTitle {
   display: flex;
   justify-content: flex-start;
   margin-top: 14px;
-  font-size: 17px;
-  font-style: italic;
+  font-size: 18px;
   text-align: left;
-  color: #333;
+  color: #000;
 }
 .textList .sheet .sheetTitle .sheetIcon {
   width: 14px;
   height: 14px;
   opacity: 0.4;
-  vertical-align: -1px;
+  margin-top: 3px;
 }
 .textList .sheet .sheetTitle .sheetTitleText{
   margin: auto 6px;
@@ -3331,8 +3663,8 @@ a.readerNavCategory {
   flex-flow: row wrap;
   margin-top: 6px;
   font-size: 13px;
-  color: #666;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
 /*.interface-hebrew .textList .sheet .sheetTags {
@@ -3350,7 +3682,7 @@ a.readerNavCategory {
 .sheetTag.button,
 .sheetTag.button:hover,
 .sheetTag.button:active {
-  background-color: #eee;
+  background-color: #EDEDED;
   border-color: #ccc;
   color: #999;
   font-size: 14px;
@@ -3432,44 +3764,53 @@ a.readerNavCategory {
 .toolsButton {
   display: flex;
   justify-content: flex-start;
-  color: #333;
-  border-top: 1px solid #CCC;
+  color: #000;
+  border-top: 1px solid #E5E5E5;
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 0 20px 0;
+  padding: 20px 34px;
+}
+.toolsButton:last-child {
+  border-bottom: 1px solid #E5E5E5;
 }
 .toolsButton:hover {
   text-decoration: none;
   color: inherit;
 }
 .toolsButton .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
-  color: #ccc;
-  font-size: 22px;
+  color: #999;
+  font-size: 20px;
+  margin-top: -1px;
+}
+.interface-hebrew .toolsButton .toolsButtonIcon {
+  margin-top: 1px;
 }
 .toolsButton img.toolsButtonIcon {
-  width: 22px;
-  height: 22px;
-  opacity: 0.2;
+  width: 20px;
+  height: 20px;
+  opacity: 0.4;
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
-  margin: 0 15px;
+  margin: 0 10px;
+}
+.shareInputBox {
+  padding: 34px;
 }
 .shareInput {
   width: 100%;
   box-sizing: border-box;
   border-radius: 7px;
-  border: 1px solid #F7F7F7;
-  box-shadow: none;
+  border: none;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
   padding: 20px 26px;
-  margin-bottom: 30px;
 }
 .addToSourceSheetBox {
   position: relative;
@@ -3478,11 +3819,12 @@ a.readerNavCategory {
   padding: 13px 12px;
   margin: 0;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 18px;
   border-radius: 4px;
   box-shadow: none;
   border: 1px solid #E9E9E9;
   width: 60%;
+  height: 50px;
   box-sizing: border-box;
 }
 .addToSourceSheetBox .button {
@@ -3493,17 +3835,40 @@ a.readerNavCategory {
 .addToSourceSheetBox .button.small {
   width: 37%;
   box-sizing: border-box;
-  padding: 12px;
+  height: 50px;
+  padding: 17px;
   margin: 0;
   float: right;
+}
+.interface-hebrew .addToSourceSheetBox input {
+  width: 47%;
+}
+.interface-hebrew .addToSourceSheetBox .button.small {
+  width: 50%;
+  float: left;
 }
 .addToSourceSheetBox .newSheet {
   border-top: 1px solid #E9E9E9;
   padding: 14px 22px;
 }
+.addToSourceSheetBox .newSheet input::placeholder { /* eventual spec? */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input::-moz-placeholder { /* Firefox 19+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input:-ms-input-placeholder { /* IE 10+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.addToSourceSheetBox .newSheet input:-moz-placeholder { /* Firefox 18- */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
 .confirmAddToSheet {
   text-align: center;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
 }
 .confirmAddToSheet .message {
   font-size: 18px;
@@ -3527,13 +3892,15 @@ a.readerNavCategory {
 .connectionsPanel .loadingMessage {
   margin-top: 40px;
 }
-.connectionsPanel textarea.noteText {
+.connectionsPanel textarea.noteText,
+.connectionsPanel textarea.feedbackText {
   width: 100%;
   min-height: 100px;
   border: none;
-  border-radius: 4px;
+  border-radius: 7px;
   padding: 20px 25px;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   margin-bottom: 10px
@@ -3555,7 +3922,7 @@ a.readerNavCategory {
   cursor: pointer;
   font-size: 15px;
   letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
 }
 .connectionsPanel .notePrivateButton.active,
@@ -3587,7 +3954,7 @@ a.readerNavCategory {
   color: #999;
   font-size: 15px;
   cursor: pointer;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .connectionsPanel.textList .note {
   padding: 30px 0;
@@ -3639,25 +4006,20 @@ a.readerNavCategory {
   margin: 0 6px;
 }
 .notificationsPanel .content {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 17px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
   color: #666;
 }
+.notificationsPanel .content a {
+  color: #000;
+  text-decoration: underline;
+}
 .systemPanel.readerNavMenu h1 {
-  color: #333;
-  position: relative;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  text-align: center;
-  font-size: 26px;
-  margin: 0 0 80px 0;
+  margin: 0 0 40px 0;
   height: auto;
 }
 .systemPanel.readerNavMenu h1 .en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.systemPanel.readerNavMenu h1 .he {
-  font-family: "Heebo", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .systemPanel.readerNavMenu h1 .button {
   position: absolute;
@@ -3667,8 +4029,19 @@ a.readerNavCategory {
   margin: 0;
   line-height: 26px;
 }
+.accountPanel .logoutLink {
+  box-shadow: none;
+  font-size: 16px;
+}
+.accountPanel.systemPanel h1 .logoutLink .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.accountPanel.systemPanel h1 .logoutLink .int-he {
+  font-family: "Heebo", sans-serif;
+}
 .notificationsPanel a {
-  color: #333;
+  color: #000;
+  text-decoration: underline;
 }
 .notificationsList {
   margin-bottom: 100px;
@@ -3684,7 +4057,7 @@ a.readerNavCategory {
   padding: 5px 0 0;
 }
 .notificationsPanel .notification .date {
-  color: #ccc;
+  color: #999;
   font-size: 13px;
   margin-top: 8px;
 }
@@ -3712,7 +4085,6 @@ a.readerNavCategory {
   padding: 5px;
   margin: 8px 0;
 }
-
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
   margin: 8px;
@@ -3727,27 +4099,25 @@ a.readerNavCategory {
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #appLoading {
+  position: fixed;
   text-align: center;
-  background-color: #F9F9F7;
+  background-color: #FBFBFA;
   height: 100%;
-  color: #666;
-}
-#appLoading .sefariaLogo {
-  margin-top: 18px;
-  margin-bottom: 2px;
+  width: 100%;
 }
 #appLoading .loadingMessage {
   position: absolute;
-  width: 100%;
-  top: 32%;
-  font-size: 18px;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 #appLoading img {
   width: 150px;
   height: 42px;
+  margin-bottom: 6px;
 }
 .emptyDesktop {
   margin-top: 200px;
@@ -3758,14 +4128,14 @@ a.readerNavCategory {
   display: inline-block;
   color: white;
   background-color: #212E50;
-  border: 1px solid #212E50;
-  border-radius: 4px;
-  padding: 16px 24px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
+  padding: 17px 30px;
   margin: 0 2px 6px 2px;
   cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   line-height: 1;
   text-align: center;
@@ -3780,13 +4150,19 @@ a.button {
 .button.white {
   background-color: white;
   color: #333;
-  border: 1px solid #ccc;
 }
 a.button.white {
   color: #333;
 }
-.button.white:hover {
-
+a.button.mini {
+  padding: 5px;
+  font-size: .8em;
+}
+.interface-english .userSheetTitle a.button.mini {
+  float: right;
+}
+.interface-hebrew .userSheetTitle a.button.mini {
+  float: left;
 }
 .button.transparent {
   color: #666;
@@ -3813,7 +4189,7 @@ a .button:hover {
   margin: 6px 12px;
 }
 #backToS1 {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   top: 20px;
   left: 40px;
   cursor: pointer;
@@ -3854,8 +4230,6 @@ a .button:hover {
   font-family: "Heebo", sans-serif;
   color: #000;
 }
-input {
-}
 .lexicon-content{
   font-size: 15px;
   padding-bottom: 10px;
@@ -3880,15 +4254,29 @@ input {
   padding: 1% 0 1% 0;
   margin: auto;
 }
-.lexicon-results .entry .headword {
+.lexicon-results .entry a {
+    font-size: .8em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    color: #333;
+}
+.lexicon-results .entry .headline {
   color: #333;
   font-size: 1.2em;
   display: block;
 }
+.lexicon-results .entry .headwords .headword {
+  display: inline;
+}
 .lexicon-results .entry .morphology {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  display: block;
+  display: inline;
+  margin-right: 5px;
+}
+.lexicon-results .entry .lang-ref {
+
 }
 .lexicon-results .entry .definition-content{
     color: #444;
@@ -3898,7 +4286,7 @@ input {
 }
 .lexicon-results .entry .definition li.sense{
 	margin-left: 15px;
-	padding: 0px;
+    padding-bottom: 10px;
 }
 .lexicon-results .entry .definition ol.senses{
 	padding-left: 0px;
@@ -3912,14 +4300,15 @@ input {
 	padding-left: 0px;
     margin: 0px;
 }
+.lexicon-results .entry .definition .notes {}
+.lexicon-results .entry .definition .derivatives {display: block;margin-left: 15px;}
 .lexicon-results .attribution {
 
 }
-.lexicon-results .attribution a {
+
+.lexicon-results .attribution div {
   display: block;
-}
-.lexicon-results .attribution a {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
   font-size: 10px;
 }
@@ -3979,7 +4368,7 @@ h2.splitHeader .he {
   flex-direction: column;
 }
 .interface-english .sheet.userSheet{
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .interface-hebrew .sheet.userSheet{
   font-family: "Heebo", "sans-serif";
@@ -4058,6 +4447,10 @@ h2.splitHeader .he {
   float: left;
   margin-right: 20px;
 }
+.sheetMetaDataBox .groupListingImageBox,
+.tocTop .groupListingImageBox {
+  background-color: transparent;
+}
 .groupListingImage {
   height: 100%;
   width: 100%;
@@ -4071,16 +4464,16 @@ h2.splitHeader .he {
 }
 .groupListingName {
   display: block;
-  font-size: 24px;
-  color: #666;
+  font-size: 30px;
+  color: #000;
   margin-bottom: 5px;
 }
 .groupListingName:hover {
   color: #333;
 }
 .groupListingDetails {
-  color: #999;
-  font-size: 15px;
+  color: #666;
+  font-size: 16px;
 }
 .groupListingDetailSeparator {
   margin: 8px;
@@ -4104,13 +4497,15 @@ h2.splitHeader .he {
 .groupPage .groupWebsite {
   display: block;
   text-align: center;
-  font-size: 17px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
-  color: #999;
+  color: #666;
 }
 .groupPage .groupDescription {
   font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #000;
   text-align: center;
 }
 .groupPage .tabs {
@@ -4150,10 +4545,11 @@ h2.splitHeader .he {
 }
 #groupInvitationInput {
   padding: 14px 30px;
-  width: 492px;
-  border-radius: 4px;
+  width: 472px;
+  border-radius: 7px;
   outline: 0;
-  border: 1px solid #E6e6e6;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border: none;
   margin-right: 10px;
   font-size: 18px;
   position: relative;
@@ -4166,7 +4562,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupMemberListing {
   padding: 24px 0;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 20px;
 }
 .groupMemberListing + .groupMemberListing {
@@ -4236,12 +4632,6 @@ h2.splitHeader .he {
 }
 .groupMemberListingActionsMenu .role.current {
   color: #666;
-}
-.topicsPanel.systemPanel.readerNavMenu h1 {
-  margin: 0 0 30px 0;
-}
-.topicsPanel.systemPanel.readerNavMenu h3 {
-
 }
 .topicsPanel .loadingMessage {
   text-align: center;
@@ -4410,6 +4800,9 @@ h2.splitHeader .he {
   padding: 3px 8px;
   cursor: pointer;
 }
+.noteListing .addToSheetButton.he {
+  float: left;
+}
 .noteListing:hover .addToSheetButton {
   visibility: visible;
 }
@@ -4424,7 +4817,7 @@ h2.splitHeader .he {
   top: 240px;
   width: 330px;
   padding: 20px;
-  background: #F9F9F7;;
+  background: #FBFBFA;
   border: #ccc 1px solid;
   border-radius: 4px;
   box-shadow: 0px 0px 10px #ccc;
@@ -4438,26 +4831,7 @@ h2.splitHeader .he {
   opacity: 0.5;
   float: right;
 }
-/*** Interface lang - merge with static.css? ***/
-.interface-hebrew .int-en {
-  display: none;
-}
-.interface-english .int-he {
-  display: none;
-}
-.readerApp.interface-hebrew .readerPanel {
-  direction: rtl;
-}
-.readerApp.interface-english .readerPanel {
-  direction: ltr;
-}
-.int-he {
-  font-family: "Heebo", sans-serif;
-  direction: rtl;
-}
-.int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-}
+
 .searchBox .keyboardInputInitiator {
     opacity: 0;
     width: 16px;
@@ -4471,9 +4845,9 @@ h2.splitHeader .he {
 }
 body #keyboardInputMaster {
     opacity: 1;
-    top: 53px !important;
-    left:70px !important;
-    background-color: #F9F9F7;
+    /* top: 53px !important; */
+    /* left:70px !important; */
+    background-color: #FBFBFA;
     border: 1px solid #ccc;
     padding: 5px;
     box-shadow: none;
@@ -4506,7 +4880,7 @@ body #keyboardInputMaster tbody tr td table{
 body #keyboardInputMaster tbody tr td table tbody tr td{
     border: 0.5px solid #eee;
     background: white;
-    font-family: "Heebo","proxima-nova", sans-serif;
+    font-family: "Heebo","Roboto", sans-serif;
     min-width: 15px;
     vertical-align: middle;
     padding: 2px 8px;
@@ -4524,7 +4898,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   position: relative;
 }
 #editGroupPage .int-en {
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #editGroupPage .int-he {
   font-family: "Heebo", sans-serif;
@@ -4560,6 +4934,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-radius: 5px;
   border: none;
   box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   color: #333;
 }
 #editGroupPage .hiddenFileInput {
@@ -4610,8 +4985,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownMain {
   background: white;
-  border: 1px solid #E9E9E9;
-  border-radius: 4px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
   padding: 16px 22px;
   font-size: 16px;
   margin-bottom: 10px;
@@ -4622,20 +4997,26 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownOpenButton {
   float: right;
+  margin-left: 6px;
   cursor: pointer;
-  color: #999;
+  color: #666;
   font-size: 18px;
+}
+.interface-hebrew .dropdownOpenButton {
+  float: left;
+  margin-left: 0;
+  margin-right: 6px;
 }
 .dropdown .dropdownListBox {
   position: absolute;
   z-index: 1;
-  margin-top: -12px;
+  margin-top: -14px;
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #E9E9E9;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   background: white;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
 }
 .dropdown .dropdownList {
   color: #999;
@@ -4645,18 +5026,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   max-height: 300px;
   overflow-x: hidden;
   overflow-y: scroll;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
 }
 .singlePanel .dropdown .dropdownList {
   max-height: 150px;
 }
 .dropdown .dropdownList .dropdownOption {
-  font-size: 16px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 18px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   padding: 0 22px;
   margin: 26px 0;
   border: none;
-  color: #999;
+  color: #666;
 }
 .dropdown .dropdownList .dropdownOption.selected {
   color: #333;
@@ -4680,16 +5063,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer.interface-english .int-he, .interface-english #footer .int-he {
   display: none;
 }
+/*
 #footer.interface-english .int-en, .interface-english #footer .int-en {
   display: inline;
 }
+*/
 #footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
   display: inline;
   text-align: right;
 }
+/*
 #footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
   display: none;
 }
+*/
 #footerInner {
   max-width: 1000px;
   margin: 0 auto;
@@ -4710,7 +5097,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
   margin-bottom: 18px;
   font-weight: normal;
-  font-size: 15px;
+  font-size: 16px;
 }
 #footer .section.last {
   float: right;
@@ -4721,7 +5108,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: left;
 }
 #footer .section a {
-  font-size: 15px;
+  font-size: 16px;
   margin: 2px 0;
 }
 #footer .fa {
@@ -4802,6 +5189,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer a#siteLanguageEnglish,
 #footer a#siteLanguageHebrew {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   color: #666;
   display: inline;
@@ -4812,6 +5200,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-decoration: underline;
 }
 #footer a#siteLanguageHebrew {
+  font-family: "Heebo";
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer {
   margin-top: 120px;
@@ -4834,7 +5223,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: inline-block;
   font-size: 12px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -4845,32 +5234,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #333;
 }
 .aboutBox .aboutHeader {
-  color: #999;
+  color: #666;
   padding-bottom: 13px;
   margin: 0;
   margin-bottom: 15px;
   text-align: initial;
   text-transform: none;
-  font-size: 20px;
+  font-size: 16px;
   border-bottom: solid 1px #CCC;
 }
 .aboutBox .aboutTitle {
   padding: 10px 0 15px 0;
-  font-size: 20px;
+  font-size: 30px;
   color: black;
   display: inline-block;
 }
 .aboutBox .aboutSubtitle {
   font-style: italic;
-  font-size: 15px;
-  color: #999;
+  font-size: 18px;
+  color: #666;
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
-  font-size: 15px;
+  font-size: 18px;
 }
 .aboutBox .versionNotes {
   padding-bottom: 15px;
@@ -4880,7 +5269,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .versionDetails,
 .versionsBox .versionDetails {
   font-size: 13px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-bottom: 5px;
   text-align: left;
@@ -4904,9 +5293,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
   text-transform: uppercase;
-  font-size: 20px;
+  font-size: 16px;
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
   padding-left: 20px;
   padding-right: 20px;
+}
+.interface-hebrew .versionsBox .versionLanguage {
+  font-family: "Heebo";
 }
 .versionsBox div:not(:first-child) .versionLanguage {
   padding-top: 25px;
@@ -4953,6 +5348,7 @@ span.purim-emoji img{
 
 .sheetsInPanel {
   overflow-y: scroll;
+  overflow-x: hidden;
   height: 100%;
   padding: 0 15px;
   box-sizing: border-box;
@@ -4974,8 +5370,7 @@ span.purim-emoji img{
 .sheetContent .ref {
   cursor: pointer;
   color: #999;
-  text-transform: uppercase;
-  font-size: .8em;
+  font-size: 1em;
 }
 .sheetContent .ref a {
   color: #999;
@@ -5045,15 +5440,10 @@ span.purim-emoji img{
 }
 
 .sheetContent .customSourceTitle {
-  padding: 0 28px;
-  margin: 24px 0;
-  color: #999;
-  text-align: center;
-  justify-content: center;
-  font-weight: lighter;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: none;
+  margin-bottom: 0;
+  margin-top: 40px;
 }
 .sheetsInPanel p {
   margin: 0 0 1em 0;
@@ -5118,18 +5508,40 @@ span.purim-emoji img{
 }
 
 .sheetMetaDataBox {
+  margin: 40px auto 0 auto;
+  text-align: center;
+}
+
+.bookMetaDataBox {
   margin: 40px auto;
   text-align: center;
 }
 
-.sheetContent .sheetItem > .he > span {
-  /* some sheet content comes over in a `span` instead of `p` -- this helps to display appropriately. */
-  margin-bottom: 18px;
-  display: inline-block;
+
+.bilingual .bookMetaDataBox .he,
+.english .bookMetaDataBox .he,
+.hebrew .bookMetaDataBox .en {
+  display: none;
 }
 
-.sheetContent .sheetItem > .he > span > p:last-child {
+.sheetContent .sheetItem.segment .sourceContentText {
+  margin-bottom: 18px;
+  display: block;
+}
+
+.sheetContent .sheetItem.segment .sourceContentText p:last-child,
+.sheetContent .sheetItem.segment .sourceContentText p:last-child {
   margin-bottom: 0;
+}
+
+.sheetContent .sheetItem.segment .addedBy {
+  margin-top: -20px;
+}
+.interface-english .sheetContent .sheetItem.segment .addedBy {
+  float: left;
+}
+.interface-hebrew .sheetContent .sheetItem.segment .addedBy {
+  float: right;
 }
 
 .youTubeContainer {
@@ -5148,9 +5560,11 @@ span.purim-emoji img{
 }
 
 .oldSheetNotice,
-.oldSheetNotice a {
+.oldSheetNotice a,
+.editSheetNotice,
+.editSheetNotice a {
   font-size: 12px;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
 }
 
@@ -5171,4 +5585,68 @@ span.purim-emoji img{
 .cookiesNotification a {
   text-decoration: underline;
   color: inherit;
+}
+.readerMessageBox {
+  z-index: 9999;
+  color: #000;
+  font-size: 16px;
+  background-color: #ededec;
+  border: 1px solid #ccc;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  padding: 10px 0;
+  margin: 40px;
+  line-height: 1.1;
+  text-align: center;
+}
+.readerMessageBox a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+.groupImageContainer img {
+  max-width: 100%;
+}
+
+sup.nechama {
+    margin-right: -35px;
+    position: absolute;
+    text-decoration: none;
+}
+
+.sheetItem.ref-display-none .ref {
+  display: none;
+}
+
+.feedbackBox p {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.feedbackBox .button {
+  margin: auto;
+  width: 100%;
+}
+
+.feedbackBox input {
+  padding: 16px 22px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-size: 15px;
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid #E9E9E9;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.connectionsPanel textarea.feedbackText {
+  border-radius: 7px;
+  box-shadow: none;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+}
+
+.img-circle {
+  border-radius: 50%;
 }

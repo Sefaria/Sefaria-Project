@@ -189,6 +189,9 @@ GOOGLE_OAUTH2_CLIENT_SECRET = ""
 # This is the field that is actually used
 GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
+GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
+GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
+
 """ to use logging, in any module:
 # import the logging library
 import logging
@@ -291,3 +294,4 @@ LOGGING = {
         },
     }
 }
+

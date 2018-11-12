@@ -44,12 +44,13 @@ def process_version_title_change_in_search(ver, **kwargs):
     if SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
         search_index_name = get_new_and_current_index_names("text")['current']
-        search_index_name_merged = get_new_and_current_index_names("merged")['current']
+        # no reason to deal with merged index since versions don't exist. still leaving this here in case it is necessary
+        # search_index_name_merged = get_new_and_current_index_names("merged")['current']
         text_index = library.get_index(ver.title)
         delete_version(text_index, kwargs.get("old"), ver.language)
         for ref in text_index.all_segment_refs():
             TextIndexer.index_ref(search_index_name, ref, kwargs.get("new"), ver.language, False)
-            TextIndexer.index_ref(search_index_name_merged, ref, None, ver.language, True)
+            # TextIndexer.index_ref(search_index_name_merged, ref, None, ver.language, True)
 
 
 # Version Title Change

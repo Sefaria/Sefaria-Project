@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
+    url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^sheets/?$', reader_views.sheets_list),
     url(r'^sheets/tags/?$', reader_views.sheets_tags_list),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
@@ -94,6 +95,12 @@ urlpatterns += [
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
 
+# Calendar Redirects
+urlpatterns += [
+    url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
+    url(r'^daf-yomi$', reader_views.daf_yomi_redirect),
+]
+
 # Texts Add / Edit / Translate
 urlpatterns += [
     url(r'^edit/textinfo/(?P<title>.+)$', reader_views.edit_text_info),
@@ -101,14 +108,10 @@ urlpatterns += [
     url(r'^add/new/?$', reader_views.edit_text),
     url(r'^add/(?P<ref>.+)$', reader_views.edit_text),
     url(r'^translate/(?P<ref>.+)$', reader_views.edit_text),
-    url(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
-    url(r'^edit/(?P<ref>.+)$', reader_views.edit_text),
-]
-
-# JSON Editors
-urlpatterns += [
     url(r'^edit/terms/(?P<term>.+)$', reader_views.terms_editor),
     url(r'^add/terms/(?P<term>.+)$', reader_views.terms_editor),
+    url(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
+    url(r'^edit/(?P<ref>.+)$', reader_views.edit_text),
 ]
 
 # Texts / Index / Links etc API
@@ -123,6 +126,7 @@ urlpatterns += [
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/search-filter-index/?$', reader_views.search_filter_table_of_contents_api),
+    url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),
     url(r'^api/v2/raw/index/(?P<title>.+)$', reader_views.index_api, {'v2': True, 'raw': True}),
     url(r'^api/v2/index/(?P<title>.+)$', reader_views.index_api, {'v2': True}),
@@ -142,6 +146,8 @@ urlpatterns += [
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
+    url(r'^api/words/completion/(?P<word>.+)/(?P<lexicon>.+)$', reader_views.dictionary_completion_api),
+    #url(r'^api/words/completion/(?P<word>.+)$', reader_views.dictionary_completion_api),   # Search all dicts
     url(r'^api/words/(?P<word>.+)$', reader_views.dictionary_api),
     url(r'^api/notifications/?$', reader_views.notifications_api),
     url(r'^api/notifications/read', reader_views.notifications_read_api),
@@ -185,7 +191,10 @@ urlpatterns += [
     url(r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
 ]
 
-
+# Search API
+# urlpatterns += [
+#     url(r'^api/search$', reader_views.search_api)
+# ]
 
 # Following API
 urlpatterns += [
@@ -345,7 +354,6 @@ urlpatterns += [
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
-url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 ]
 
@@ -376,6 +384,11 @@ urlpatterns += [
 # File Uploads
 urlpatterns += [
     url(r'^api/file/upload$', sefaria_views.file_upload),
+]
+
+# Send Feedback
+urlpatterns += [
+    url(r'^api/send_feedback$', sefaria_views.generate_feedback),
 ]
 
 # Email Subscribe

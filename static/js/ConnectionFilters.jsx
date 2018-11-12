@@ -38,7 +38,7 @@ class CategoryFilter extends Component {
     var color        = Sefaria.palette.categoryColor(this.props.category);
     var style        = {"borderTop": "4px solid " + color};
     var innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
-    var count        = (<span className="enInHe connectionsCount"> ({this.props.count})</span>);
+    var count        = (<span className="connectionsCount"> ({this.props.count})</span>);
     var handleClick  = this.handleClick;
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
     var innerFilter = (
@@ -90,7 +90,7 @@ class TextFilter extends Component {
       var style = {"borderTop": "4px solid " + color};
     }
     var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
-    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="enInHe connectionsCount">&nbsp;({this.props.count})</span>);
+    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="connectionsCount">&nbsp;({this.props.count})</span>);
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     const upperClass = classNames({uppercase: this.props.book === this.props.category});
     return (
