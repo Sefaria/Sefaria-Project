@@ -92,9 +92,11 @@ class AbstractTest(object):
         self.driver.add_cookie({"name": "cookiesNotificationAccepted", "value": "1", 'path' : '/'})
 
     def click_accept_cookies(self):
-        elem = self.driver.find_element_by_css_selector(".cookiesNotification .button")
-        if elem:
+        try:
+            elem = self.driver.find_element_by_css_selector(".cookiesNotification .button")
             elem.click()
+        except NoSuchElementException:
+            pass
 
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
@@ -269,7 +271,6 @@ class AbstractTest(object):
                 self.open_text_toc_menu(ancestor.ref())
 
         self.click_text_toc_section(section_ref)
-
         return self
 
     @staticmethod
@@ -495,7 +496,7 @@ class AbstractTest(object):
         if query is not None:
             url += "?q={}".format(query)
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-total")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-title")))
         self.set_modal_cookie()
         return self
 

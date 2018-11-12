@@ -220,7 +220,7 @@ class ReaderNavigationMenu extends Component {
                         <span className="int-he">הקבוצות</span>
                       </a>)
                       ];
-      resources = (<div className="readerNavCalendar readerTocResources"><TwoBox content={resources} width={this.width} /></div>);
+      resources = (<div className="readerTocResources"><TwoBox content={resources} width={this.width} /></div>);
 
 
       var topContent = this.props.home ?
@@ -288,7 +288,7 @@ class ReaderNavigationMenu extends Component {
                   { this.props.compare ? null : title }
                   <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
-                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} />
+                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} />
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
                   { this.props.multiPanel ? null : siteLinks }
                 </div>

@@ -103,7 +103,8 @@ class DictionaryEntry(LexiconEntry):
         "quotes",
         "prev_hw",
         "next_hw",
-        "notes"
+        "notes",
+        "alternative"
     ]
 
     def get_sense(self, sense):
@@ -154,7 +155,7 @@ class DictionaryEntry(LexiconEntry):
                     pass
             else:
                 next_line += u" " + self.get_sense(sense)
-
+        
         if hasattr(self, 'notes'):
             next_line += u" " + self.notes
         if hasattr(self, 'derivatives'):
@@ -181,7 +182,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
         text += sense.get('number', u'')
         if text:
             text = u"<b>{}</b> ".format(text)
-        for field in ['definition', 'alternative', 'notes']:
+        for field in ['definition']:
             text += sense.get(field, u'')
         return text
 
@@ -204,12 +205,14 @@ class KleinDictionaryEntry(DictionaryEntry):
     
     def get_sense(self, sense):
         text = u''
-        text += sense.get('number', u'')
-        if text:
-            text = u"<b>{}</b> ".format(text)
-        for field in ['definition', 'alternative', 'notes']:
-            text += sense.get(field, u'')
-        return text
+        for field in ['plural_form', 'language_code', 'alternative']:
+            text += sense.get(field, u'') + u' '
+        num = sense.get('number', u'')
+        if num:
+            text += u"<b>{}</b> ".format(num)
+        for field in ['definition', 'notes']:
+            text += sense.get(field, u'') + u' '
+        return text[:-1]
 
 
 class LexiconEntrySubClassMapping(object):
