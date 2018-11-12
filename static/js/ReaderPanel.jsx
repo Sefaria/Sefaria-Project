@@ -972,7 +972,7 @@ ReaderPanel.propTypes = {
   getLicenseMap:               PropTypes.func.isRequired,
   translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
-  saveRecentlyViewed:          PropTypes.func.isRequired,
+  saveRecentlyViewed:          PropTypes.func,
 };
 
 
