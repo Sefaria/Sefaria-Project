@@ -1052,7 +1052,6 @@ Sefaria = extend(Sefaria, {
     return notes;
   },
   privateNotesLoaded: function(refs) {
-      console.log(refs)
     // Returns true if private notes have been loaded for every ref in `refs.
     refs.map(function(ref) {
       if (!(ref in Sefaria._privateNotes)) {

@@ -344,6 +344,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     if sheet == None:
         try:
             primary_ref = oref = Ref(ref)
+            if primary_ref.book == "Sheet":
+                sheet = True
+                ref = str(primary_ref.sections[0])
         except InputError:
             raise Http404
 
