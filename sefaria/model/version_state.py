@@ -154,11 +154,12 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         new_section = None
 
         while current_leaf:
-            r = current_leaf.ref()
-            c = self.state_node(current_leaf).ja("all")
-            new_section = c.next_index([])
-            if new_section:
-                break
+            if not current_leaf.is_virtual:    # todo: handle first entries of virtual nodes
+                r = current_leaf.ref()
+                c = self.state_node(current_leaf).ja("all")
+                new_section = c.next_index([])
+                if new_section:
+                    break
             current_leaf = current_leaf.next_leaf()
 
         if not new_section:
@@ -208,7 +209,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         #This does not account for relative importance/size of children
         #todo: revisit this algorithm when there are texts in the system.
 
-        ckeys = [child.key for child in snode.children]
+        ckeys = [child.key for child in snode.concrete_children()]
         for lkey in self.lang_keys:
             contents[lkey] = {
                 "percentAvailable": sum([contents[ckey][lkey]["percentAvailable"] for ckey in ckeys]) / len(ckeys),

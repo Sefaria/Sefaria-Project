@@ -15,7 +15,9 @@ var palette = {
     lightblue: "#5a99b7",
     lightgreen:"#97b386",
     red:       "#802f3e",
-    teal:      "#00827f"
+    teal:      "#00827f",
+    lightbg:   "#B8D4D3",
+    tan:       "#D4896C"   
   }
 };
 palette.categoryColors = {
@@ -39,8 +41,9 @@ palette.categoryColors = {
   "Sheets":             palette.colors.darkblue,
   "Community":          palette.colors.raspberry,
   "Targum":             palette.colors.lavender,
-  "Modern Works":       palette.colors.raspberry,
-  "Modern Commentary":  palette.colors.raspberry,
+  "Modern Works":       palette.colors.lightbg,
+  "Modern Commentary":  palette.colors.lightbg,
+  "Reference":          palette.colors.tan  
 };
 palette.categoryColor = function(cat) {
   if (cat in palette.categoryColors) {

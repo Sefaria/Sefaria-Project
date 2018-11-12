@@ -34,7 +34,11 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 // another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
-
+// Make sure that we're using the s2 Sefaria utils, and not the s1/utils
+parseRef = Sefaria.parseRef.bind(Sefaria);
+makeRef = Sefaria.makeRef.bind(Sefaria);
+normRef = Sefaria.normRef.bind(Sefaria);
+humanRef = Sefaria.humanRef.bind(Sefaria);
 
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {

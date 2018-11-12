@@ -1,14 +1,25 @@
-const $         = require('./sefariaJquery');
-const extend    = require('extend');
-const striptags = require('striptags');
+const $              = require('./sefariaJquery');
+const extend         = require('extend');
+const striptags      = require('striptags');
 
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    static clone(obj) {
+    static zip(...rows) {
+      // rows is an array
+      // corrolary to zip in python
+      return rows[0].map((_,c)=>rows.map(row=>row[c]));
+    }
+    static clone(obj, trimFilters) {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;
+
+        if (typeof obj.clone === 'function') {
+          // this handles any object with a clone function which currently
+          // includes SearchState and FilterNode
+          return obj.clone(trimFilters);
+        }
 
         // Handle Date
         if (obj instanceof Date) {
@@ -537,7 +548,7 @@ class Util {
 
          new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
-         As currently designed, the object is instantiated, and sets up its own events.
+         The object is instantiated, and sets up its own events.
          It doesn't need to be interacted with from the outside.
          */
 
@@ -569,6 +580,9 @@ class Util {
                       function (d) { response(d["completions"]); }
                   );
                 },
+                select: function(event, ui) {
+                  this._lookupAndRoute(ui.item.value);
+                }.bind(this),
                 minLength: 3
             });
     };

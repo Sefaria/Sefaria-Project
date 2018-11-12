@@ -4,9 +4,6 @@ const $          = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
 
-var fbURL = Sefaria.interfaceLang == "hebrew" ?
-    "https://www.facebook.com/sefaria.org.il" 
-    : "https://www.facebook.com/sefaria.org";
 
 class Footer extends Component {
   constructor(props) {
@@ -41,6 +38,7 @@ class Footer extends Component {
     }
   }
   render() {
+    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     var currentPath = Sefaria.util.currentPath();
     var currentPathEncoded = encodeURIComponent(currentPath);
     var next = currentPathEncoded ? currentPathEncoded : '?home';
@@ -269,6 +267,7 @@ class LikeFollowButtons extends Component {
     }
   }
   render() {
+    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     var lang = Sefaria.interfaceLang.substring(0,2);
     return (<div id="socialButtons">
               <div id="facebookButton">
