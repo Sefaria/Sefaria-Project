@@ -347,7 +347,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             primary_ref = oref = Ref(ref)
             if primary_ref.book == "Sheet":
                 sheet = True
-                ref = str(primary_ref.sections[0])
+                ref = '.'.join(map(str, primary_ref.sections))
         except InputError:
             raise Http404
 

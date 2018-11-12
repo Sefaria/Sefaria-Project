@@ -1640,22 +1640,29 @@ class SheetNode(NumberedTitledTreeNode):
     def get_version_title(self, lang):
         return "Dummy"
 
+    def return_text_from_sheet_source(self, source):
+        if source.get("text"):
+            return (source.get("text"))
+        elif source.get("outsideText"):
+            return (source.get("outsideText"))
+        elif source.get("outsideBiText"):
+            return (source.get("outsideBiText"))
+        elif source.get("comment"):
+            return (source.get("comment"))
+        elif source.get("media"):
+            return (source.get("media"))
+
     def get_text(self):
         text = []
         for source in self.sheet_object.get("sources"):
-            if source.get("text"):
-                text.append(source.get("text"))
-            elif source.get("outsideText"):
-                text.append(source.get("outsideText"))
-            elif source.get("outsideBiText"):
-                text.append(source.get("outsideBiText"))
-            elif source.get("comment"):
-                text.append(source.get("comment"))
-            elif source.get("media"):
-                text.append(source.get("media"))
+            if self.nodeId:
+                if self.nodeId == source.get("node"):
+                    text.append(self.return_text_from_sheet_source(source))
+                    break
+            else:
+                text.append(self.return_text_from_sheet_source(source))
 
         return text
-        # Return depth 1 array of strings from self.sheet_object
 
     #def address(self):
     #    return self.parent.address() + [self.sheetId]
