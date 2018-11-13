@@ -3433,6 +3433,11 @@ def dummy_search_api(request):
                     }
                 }
             ]
+        },
+        "aggregations": {
+            "category": {
+                "buckets": []
+            }
         }
     })
     resp['Content-Type'] = "application/json; charset=utf-8"
