@@ -3390,7 +3390,7 @@ def random_by_topic_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
-
+@csrf_exempt
 def dummy_search_api(request):
     # Thou shalt upgrade thine app or thou shalt not glean the results of search thou seeketh
     # this api is meant to information users of the old search.sefaria.org to upgrade their apps to get search to work again
