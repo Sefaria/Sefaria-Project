@@ -295,14 +295,20 @@ class SheetContent extends Component {
                 {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
             </div>
 
-            <div className="authorStatement">
-                <div className="groupListingImageBox imageBox">
-                    <a href={this.props.authorUrl}>
-                        <img className="groupListingImage img-circle" src={this.props.authorImage} alt="Author Avatar" />
-                    </a>
+
+            {this.props.sheet.group && this.props.sheet.group == "גיליונות נחמה" ? null :
+
+                <div className="authorStatement">
+                    <div className="groupListingImageBox imageBox">
+                        <a href={this.props.authorUrl}>
+                            <img className="groupListingImage img-circle" src={this.props.authorImage}
+                                 alt="Author Avatar"/>
+                        </a>
+                    </div>
+                    <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
                 </div>
-                <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
-            </div>
+
+            }
 
             {this.props.group && this.props.group != "" ?
                 <div className="groupStatement">

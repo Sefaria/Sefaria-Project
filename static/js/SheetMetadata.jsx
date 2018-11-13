@@ -203,6 +203,7 @@ class SheetMetadata extends Component {
     else if (this.props.sheet.viaOwnerName) {
       authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a> based on a <a href='/sheets/"+this.props.sheet.via+"'>sheet</a> by <a href='"+ this.props.sheet.viaOwnerProfileUrl + "'>" + this.props.sheet.viaOwnerName+"</a>";
     }
+
     else {
       authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a>";
     }
@@ -246,14 +247,18 @@ class SheetMetadata extends Component {
                       <span>{title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}</span>
                     </div>
 
-                    <div className="tocDetail authorStatement">
-                        <div className="groupListingImageBox imageBox">
-                            <a href={this.props.sheet.ownerProfileUrl}>
-                                <img className="groupListingImage img-circle" src={this.props.sheet.ownerImageUrl} alt="Author Avatar" />
-                            </a>
-                        </div>
-                        <span dangerouslySetInnerHTML={ {__html: authorStatement} }></span>
-                    </div>
+                      {this.props.sheet.group && this.props.sheet.group == "גיליונות נחמה" ? null :
+
+                          <div className="tocDetail authorStatement">
+                              <div className="groupListingImageBox imageBox">
+                                  <a href={this.props.sheet.ownerProfileUrl}>
+                                      <img className="groupListingImage img-circle" src={this.props.sheet.ownerImageUrl}
+                                           alt="Author Avatar"/>
+                                  </a>
+                              </div>
+                              <span dangerouslySetInnerHTML={{__html: authorStatement}}></span>
+                          </div>
+                      }
 
                     {this.props.sheet.group && this.props.sheet.group != "" ?
                     <div className="tocDetail authorStatement">
