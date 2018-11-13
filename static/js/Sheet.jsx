@@ -296,7 +296,7 @@ class SheetContent extends Component {
             </div>
 
 
-            {this.props.sheet.group && this.props.sheet.group == "גיליונות נחמה" ? null :
+            {this.props.group && this.props.group == "גיליונות נחמה" ? null :
 
                 <div className="authorStatement">
                     <div className="groupListingImageBox imageBox">
