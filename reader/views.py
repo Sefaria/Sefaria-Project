@@ -3391,6 +3391,53 @@ def random_by_topic_api(request):
     return resp
 
 
+def dummy_search_api(request):
+    # Thou shalt upgrade thine app or thou shalt not glean the results of search thou seeketh
+    # this api is meant to information users of the old search.sefaria.org to upgrade their apps to get search to work again
+    resp = jsonResponse({
+        "took": 613,
+        "timed_out": False,
+        "_shards": {
+            "total": 5,
+            "successful": 5,
+            "skipped": 0,
+            "failed": 0
+        },
+        "hits": {
+            "total": 1,
+            "max_score": 1234,
+            "hits": [
+                {
+                    "_index": "merged-c",
+                    "_type": "text",
+                    "_id": "yoyo",
+                    "_score": 1,
+                    "_source": {
+                        "titleVariants": ["Upgrade"],
+                        "path": "Tanakh/Torah/Genesis",
+                        "version_priority": 0,
+                        "content": "Your app is no longer compatible with search. Please upgrade.",
+                        "comp_date": -1400,
+                        "categories": ["Tanakh", "Torah"],
+                        "lang": "en",
+                        "pagesheetrank": 1,
+                        "ref": "Genesis 1:1",
+                        "heRef": u"בראשית א:א",
+                        "version": None,
+                        "order":"A00000100220030"
+                    },
+                    "highlight": {
+                        "content": [
+                            "Your app is no longer compatible with search. Please upgrade."
+                        ]
+                    }
+                }
+            ]
+        }
+    })
+    resp['Content-Type'] = "application/json; charset=utf-8"
+    return resp
+
 # def search_api(request):
 #     # dict to define request parameters and their default values. None means parameter is required
 #     params = {
