@@ -45,7 +45,7 @@ class Test_Ref(object):
                 assert library.all_titles_regex(lang).match(t), u"'{}' doesn't resolve".format(t)
 
     def test_comma(self):
-        assert Ref("Me'or Einayim 24") == Ref("Me'or Einayim, 24")
+        assert Ref("Me'or Einayim, Chayei Sara 24") == Ref("Me'or Einayim, Chayei Sara, 24")
         assert Ref("Genesis 18:24") == Ref("Genesis, 18:24")
 
     def test_padded_ref(self):
@@ -489,6 +489,9 @@ class Test_Ref(object):
         assert Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4").is_section_level()
         assert not Ref("Orot,_Lights_from_Darkness,_Land_of_Israel.4.1").is_section_level()
 
+    def test_word_to(self):
+        assert Ref("Kohelet Rabbah to 6:9") is Ref("Kohelet Rabbah 6.9")
+
 class Test_Cache(object):
     def test_index_flush_from_cache(self):
         r1 = Ref("Genesis 1")
@@ -802,12 +805,12 @@ class Test_condition_and_projection(object):
         """
 
     def test_projection_complex_section(self):
-        r = Ref(u'Shelah, Bereshit, Torah Ohr')
+        r = Ref(u'Shelah, Torah Shebikhtav, Bereshit, Torah Ohr')
         p = r.part_projection()
         assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
         assert Version.content_attr not in p
-        assert u'chapter.Bereshit.Torah' in p
-        assert p[u'chapter.Bereshit.Torah'] == 1
+        assert u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr' in p
+        assert p[u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == 1
 
     def test_projection_simple_segment_slice(self):
         r = Ref("Exodus 4")
@@ -831,20 +834,20 @@ class Test_condition_and_projection(object):
 
 
     def test_projection_complex_segment_slice(self):
-        r = Ref(u'Shelah, Bereshit, Torah Ohr 52')
+        r = Ref(u'Shelah, Torah Shebikhtav, Bereshit, Torah Ohr 52')
         p = r.part_projection()
         assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
         assert Version.content_attr not in p
-        assert u'chapter.Bereshit.Torah' in p
-        assert p[u'chapter.Bereshit.Torah'] == {"$slice": [51, 1]}
+        assert u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr' in p
+        assert p[u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == {"$slice": [51, 1]}
 
     def test_projection_complex_segment_range_slice(self):
-        r = Ref(u'Shelah, Bereshit, Torah Ohr 50-52')
+        r = Ref(u'Shelah, Torah Shebikhtav, Bereshit, Torah Ohr 50-52')
         p = r.part_projection()
         assert all([k in p for k in Version.required_attrs + Version.optional_attrs if k != Version.content_attr])
         assert Version.content_attr not in p
-        assert u'chapter.Bereshit.Torah' in p
-        assert p[u'chapter.Bereshit.Torah'] == {"$slice": [49, 3]}
+        assert u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr' in p
+        assert p[u'chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == {"$slice": [49, 3]}
 
 
 class Test_set_construction_from_ref(object):

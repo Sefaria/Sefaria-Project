@@ -24,6 +24,29 @@ class TextRange extends Component {
     this._isMounted = false;
     window.removeEventListener('resize', this.handleResize);
   }
+  shouldComponentUpdate(nextProps) {
+    if (this.props.sref !== nextProps.sref)                   { return true; }
+    if (!!this.props.filter !== !!nextProps.filter)           { return true; }
+    if (this.props.filter && nextProps.filter &&
+        !this.props.filter.compare(nextProps.filter))         { return true; }
+    if (this.props.highlightedRefs && nextProps.highlightedRefs &&
+        !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
+    if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
+    if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
+    // todo: figure out when and if this component receives settings at all
+    if (nextProps.settings && this.props.settings &&
+        (nextProps.settings.language !== this.props.settings.language ||
+          nextProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
+          nextProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
+          nextProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
+          nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
+          nextProps.settings.biLayout !== this.props.settings.biLayout ||
+          nextProps.settings.fontSize !== this.props.settings.fontSize ||
+          nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
+    // lowlight ?
+
+    return false;
+  }
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
@@ -112,14 +135,7 @@ class TextRange extends Component {
       }.bind(this));
     }
   }
-  prefetchData() {
-    // Prefetch additional data (next, prev, links, notes etc) for this ref
-    if (this.dataPrefetched) { return; }
-
-    var data = this.getText();
-    if (!data) { return; }
-
-    // Load links at section level if spanning, so that cache is properly primed with section level refs
+  _prefetchLinksAndNotes(data) {
     var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
     sectionRefs = sectionRefs.map(function(ref) {
       if (ref.indexOf("-") > -1) {
@@ -141,21 +157,37 @@ class TextRange extends Component {
         }
       }
     }
+  }
+  prefetchData() {
+    // Prefetch additional data (next, prev, links, notes etc) for this ref
+    if (this.dataPrefetched) { return; }
+
+    var data = this.getText();
+    if (!data) { return; }
+
+    // Load links at section level if spanning, so that cache is properly primed with section level refs
+    this._prefetchLinksAndNotes(data);
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
        Sefaria.text(data.next, {
          context: 1,
+         multiple: this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null
-       }, function() {});
+       },
+           ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds)
+       );
      }
      if (data.prev) {
        Sefaria.text(data.prev, {
          context: 1,
+         multiple: -this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null
-       }, function() {});
+       },
+           ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds)
+       );
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
@@ -165,15 +197,17 @@ class TextRange extends Component {
     this.dataPrefetched = true;
   }
   placeSegmentNumbers() {
-    //console.log("placeSegmentNumbers", this.props.sref);
+    // console.log("placeSegmentNumbers", this.props.sref);
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
+    if (!this.props.basetext) { return; }
+
     var $text  = $(ReactDOM.findDOMNode(this));
     var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
     var setTop = function() {
       var $elem = $(this);
       var top   = $elem.parent().position().top;
-      $elem.css({top: top});
+      $elem.css({top: top, left: '', right: ''});
       var list = elemsAtPosition[top] || [];
       list.push($elem);
       elemsAtPosition[top] = list;
@@ -181,13 +215,17 @@ class TextRange extends Component {
     $text.find(".linkCount").each(setTop);
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
+    
+    var side = this.props.settings.language == "hebrew" ? "right" : "left";
+    var selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
     var fixCollision = function ($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        var adjust = 8;
-        $elems[0].css({top: "-=" + adjust});
-        $elems[1].css({top: "+=" + adjust});
+        var adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
+        var adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
+        $elems[0].css(side, "-=" + adjust1);
+        $elems[1].css(side, "+=" + adjust2);
       }
     };
     for (var top in elemsAtPosition) {
@@ -238,7 +276,8 @@ class TextRange extends Component {
     var showNumberLabel    =  data &&
                               data.categories &&
                               data.categories[0] !== "Talmud" &&
-                              data.categories[0] !== "Liturgy";
+                              data.categories[0] !== "Liturgy" &&
+                              data.categories[0] !== "Reference";
 
     var showSegmentNumbers = showNumberLabel && this.props.basetext;
 
@@ -375,6 +414,7 @@ class TextRange extends Component {
     );
   }
 }
+
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
   currVersions:           PropTypes.object.isRequired,
@@ -385,6 +425,7 @@ TextRange.propTypes = {
   hideTitle:              PropTypes.bool,
   loadLinks:              PropTypes.bool,
   prefetchNextPrev:       PropTypes.bool,
+  prefetchMultiple:       PropTypes.number,
   lowlight:               PropTypes.bool,
   numberLabel:            PropTypes.number,
   settings:               PropTypes.object,
@@ -399,7 +440,7 @@ TextRange.propTypes = {
   onCompareClick:         PropTypes.func,
   onOpenConnectionsClick: PropTypes.func,
   showBaseText:           PropTypes.func,
-  panelsOpen:             PropTypes.number,
+  panelsOpen:             PropTypes.number, // used?
   layoutWidth:            PropTypes.number,
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
@@ -425,8 +466,8 @@ class TextSegment extends Component {
   handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
       //Click of citation
-      event.preventDefault();//add prevent default
-      var ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);

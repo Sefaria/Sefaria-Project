@@ -23,6 +23,9 @@ class ReaderSuite(TestSuite):
 
     def setup(self):
         self.load_toc(my_temper=60)
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
 
 
 class PageloadSuite(TestSuite):
@@ -30,6 +33,12 @@ class PageloadSuite(TestSuite):
     Tests that load pages and don't make any assumptions about starting or ending state
     """
     every_build = True
+
+    def setup(self):
+        self.load_toc(my_temper=60)
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
 
 
 class DeepReaderSuite(TestSuite):
@@ -321,7 +330,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
 class BrowserBackAndForward(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
-    exclude = ['FF/x12', 'Sf/x11'] # Buggy handling of Back button
+    exclude = ['FF/x12', 'FF/x13', 'Sf/x11', 'Sf/x12', 'Sf/x13'] # Buggy handling of Back button
 
     def body(self):
         # Sidebar
@@ -447,11 +456,13 @@ class InfiniteScrollUp(AtomicTest):
     every_build = True
 
     def test_up(self, start_ref, prev_segment_ref):
-        self.browse_to_ref(start_ref).scroll_reader_panel_up(100)
+        from urllib import quote_plus
+        self.browse_to_ref(start_ref)
+        self.scroll_reader_panel_up(1000)
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % prev_segment_ref)))
         time.sleep(.5)
         # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
-        assert Ref(start_ref).url() in self.driver.current_url, self.driver.current_url      
+        assert quote_plus(Ref(start_ref).url()) in self.driver.current_url, self.driver.current_url
 
     def body(self):
         # Simple Text

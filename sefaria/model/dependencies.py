@@ -42,13 +42,15 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "t
 def process_version_title_change_in_search(ver, **kwargs):
     from sefaria.local_settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
-        search_index_name = get_new_and_current_index_names()['current']
-        search_index_name_merged = get_new_and_current_index_names(merged=True)['current']
+        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        search_index_name = get_new_and_current_index_names("text")['current']
+        # no reason to deal with merged index since versions don't exist. still leaving this here in case it is necessary
+        # search_index_name_merged = get_new_and_current_index_names("merged")['current']
         text_index = library.get_index(ver.title)
         delete_version(text_index, kwargs.get("old"), ver.language)
-        index_full_version(search_index_name, text_index, kwargs.get("new"), ver.language)
-        index_full_version(search_index_name_merged, text_index, kwargs.get("new"), ver.language)
+        for ref in text_index.all_segment_refs():
+            TextIndexer.index_ref(search_index_name, ref, kwargs.get("new"), ver.language, False)
+            # TextIndexer.index_ref(search_index_name_merged, ref, None, ver.language, True)
 
 
 # Version Title Change

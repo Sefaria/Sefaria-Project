@@ -20,7 +20,7 @@ def get_all_toc_locations(title, toc):
                 #if there is a match, append to this recursion's list of results.
                 results.append(True)
         #category
-        elif 'category' in toc_elem:
+        elif 'category' in toc_elem and 'contents' in toc_elem:
             #first go down the tree
             sub_result = get_all_toc_locations(title, toc_elem['contents'])
             #add the current category name to any already-found results (since at this point we are on our way up from the recursion.

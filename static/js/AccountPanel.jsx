@@ -49,11 +49,11 @@ class AccountPanel extends Component {
     contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
 
     var connectContent = [
-      (<BlockLink interfaceLink={true} target="https://groups.google.com/forum/?fromgroups#!forum/sefaria" title="Forum" heTitle="פורום" />),
       (<BlockLink interfaceLink={true} target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
       (<BlockLink interfaceLink={true} target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),
       (<BlockLink interfaceLink={true} target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
       (<BlockLink interfaceLink={true} target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
+      (<BlockLink interfaceLink={true} target="https://www.instagram.com/sefariaproject/" title="Instagram" heTitle="אינסטגרם" />),
       (<BlockLink interfaceLink={true} target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
@@ -69,7 +69,7 @@ class AccountPanel extends Component {
         <div className="content hasFooter">
           <div className="contentInner">
             <h1>
-              <a href="/logout" className="button transparent">
+              <a href="/logout" className="button transparent logoutLink">
                 <span className="int-en">Log Out</span>
                 <span className="int-he">ניתוק</span>
               </a>

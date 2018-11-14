@@ -88,7 +88,9 @@ var clientConfig = config({
             fs.readdir(path.resolve(buildDir + 'client'), function (err, files) {
                 files.forEach(function (file) {
                     if (!newlyCreatedAssets[file]) {
-                        fs.unlink(path.resolve(buildDir + 'client/' + file));
+                        fs.unlink(path.resolve(buildDir + 'client/' + file), (err) => {
+                          if (err) throw err;
+                        });
                         unlinked.push(file);
                     }
                 });

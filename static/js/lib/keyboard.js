@@ -73,7 +73,7 @@ var VKI_attach, VKI_close;
   this.VKI_size = 4;  // Default keyboard size (1-5)
   this.VKI_sizeAdj = false;  // Allow user to adjust keyboard size
   this.VKI_clearPasswords = false;  // Clear password fields on focus
-  this.VKI_imageURI = "/static/img/aleph.svg";  // If empty string, use imageless mode
+  this.VKI_imageURI = "/static/img/keyboard.svg";  // If empty string, use imageless mode
   this.VKI_clickless = 0;  // 0 = disabled, > 0 = delay in ms
   this.VKI_activeTab = 0;  // Tab moves to next: 1 = element, 2 = keyboard enabled element
   this.VKI_enterSubmit = true;  // Submit forms when Enter is pressed

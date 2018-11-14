@@ -6,12 +6,13 @@ import django
 django.setup()
 
 from sefaria.system.database import db
-from sefaria.model.text import VersionSet
-
+from sefaria.model import *
 
 he     = VersionSet({"language": "he"}).word_count()
 trans  = VersionSet({"language": {"$ne": "he"}}).word_count()
 sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).word_count()
+
+reference = Lexicon().load({"name": "Jastrow Dictionary"}).word_count() + Lexicon().load({"name": "Klein Dictionary"}).word_count()
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
@@ -27,7 +28,7 @@ sheets = db.sheets.count()
 metrics = {
     "timestamp": datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
     "heWords": he,
-    "transWords": trans,
+    "transWords": trans + reference,
     "sctWords": sct,
     "contributors": contributors,
     "links": links,
