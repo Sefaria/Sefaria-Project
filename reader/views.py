@@ -3394,6 +3394,7 @@ def random_by_topic_api(request):
 def dummy_search_api(request):
     # Thou shalt upgrade thine app or thou shalt not glean the results of search thou seeketh
     # this api is meant to information users of the old search.sefaria.org to upgrade their apps to get search to work again
+    were_sorry = u"We're sorry, but your version of the app is no longer compatible with our new search. We recommend you upgrade the Sefaria app to fully enjoy all it has to offer <br> עמכם הסליחה, אך גרסת האפליקציה הנמצאת במכשירכם איננה תואמת את מנוע החיפוש החדש. אנא עדכנו את אפליקצית ספריא להמשך שימוש בחיפוש"
     resp = jsonResponse({
         "took": 613,
         "timed_out": False,
@@ -3410,16 +3411,18 @@ def dummy_search_api(request):
                 {
                     "_index": "merged-c",
                     "_type": "text",
-                    "_id": "yoyo",
+                    "_id": "yoyo [he]",
                     "_score": 1,
                     "_source": {
                         "titleVariants": ["Upgrade"],
                         "path": "Tanakh/Torah/Genesis",
                         "version_priority": 0,
-                        "content": "Your app is no longer compatible with search. Please upgrade.",
+                        "content": were_sorry,
+                        "exact": were_sorry,
+                        "naive_lemmatizer": were_sorry,
                         "comp_date": -1400,
                         "categories": ["Tanakh", "Torah"],
-                        "lang": "en",
+                        "lang": "he",
                         "pagesheetrank": 1,
                         "ref": "Genesis 1:1",
                         "heRef": u"בראשית א:א",
@@ -3428,7 +3431,13 @@ def dummy_search_api(request):
                     },
                     "highlight": {
                         "content": [
-                            "Your app is no longer compatible with search. Please upgrade."
+                            were_sorry
+                        ],
+                        "exact": [
+                            were_sorry
+                        ],
+                        "naive_lemmatizer": [
+                            were_sorry
                         ]
                     }
                 }
