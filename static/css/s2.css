@@ -24,8 +24,16 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
+.int-he.but-text-is-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  direction: ltr;
+}
 .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.int-en.but-text-is-he {
+  font-family: "Heebo", sans-serif;
+  direction: rtl;
 }
 .featureTitle .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -1894,20 +1902,49 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 30px;
   position: relative;
 }
-.searchContent .searchTopMatter.loading {
-  border-bottom: none;
-}
 .searchTopMatter .filterSortFlexbox {
   display: flex;
+  flex-direction: row;
+  margin-bottom: 4px;  /* to vertically align with type-buttons */
+}
+.searchTopMatter .searchButtonsBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid #CCC;
+}
+.searchTopMatter .type-buttons {
+  display: flex;
+  flex-direction: row;
+  align-self: flex-start;
+}
+.searchTopMatter .search-dropdown-button {
+  font-size: 18px;
+  color: #999;
+  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 15px;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+          user-select: none; /* Non-prefixed version, currently
+                                supported by Chrome and Opera */
+}
+.searchTopMatter .search-dropdown-button.active {
+  color: #000;
+  border-bottom: 4px solid #CCC;
 }
 .searchContent .searchStatusLine {
   padding: 0 0 36px 0;
   text-align: center;
-  font-size: 12px;
-  height: 64px;
+  font-size: 13px;
+  height: 10px;
 }
-.searchContent .type-button,
+.searchFilterBoxes .type-button,
 .readerSheetsNav .type-button {
   padding: 6px 14px;
   margin: 5px;
@@ -1920,11 +1957,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchContent .type-button .he,
+.searchFilterBoxes .type-button .he,
 .readerSheetsNav .type-button .he {
   font-family: "Heebo", sans-serif;
 }
-.searchContent .type-button.active,
+.searchFilterBoxes .type-button.active,
 .readerSheetsNav .type-button.active {
   color: #000;
   background-color: white;
@@ -1944,14 +1981,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .searchFilterToggle {
   color: #666;
-  font-size: 14px;
-  text-transform: uppercase;
+  margin-left: 5px;
+  margin-right: 5px;
+  font-size: 18px;
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+     -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+          user-select: none; /* Non-prefixed version, currently
+                                supported by Chrome and Opera */
 }
 .searchContent .searchFilterToggle:hover {
   text-decoration: underline;
+}
+.searchContent .searchFilterToggle.active {
+  color: #000;
 }
 .searchContent .searchFilterToggle .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1970,17 +2018,37 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-right: 5px;
 }
 .searchContent .searchFilterBoxes {
-    margin-top: 10px;
-    background: white;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    z-index: 1;
-    -webkit-border-radius: 7px;
-    -moz-border-radius: 7px;
-    border-radius: 7px;
-    border: 1px solid #ccc;
+  margin-top: 21px;
+  background: #F5F5F5;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 1;
+  box-shadow: 0 1px 3px #ccc;
+  box-sizing: border-box;
+}
+.interface-english .searchFilterBoxes {
+  right: 0;
+}
+.interface-hebrew .searchFilterBoxes {
+  left: 0;
+}
+.searchContent .searchFilterBoxes .tag-filter-outer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  height: 210px;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+.searchFilterBoxes .tag-filter {
+  color: #999;
+  background-color: white;
+  border: 0;
+}
+.searchFilterBoxes .tag-filter.active {
+  background-color: #e7e7e7;
 }
 
 .searchContent .searchFilterBoxes .searchFilterBoxRow {
@@ -1988,16 +2056,44 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-direction: row;
   width: 100%;
 }
+.searchFilterBoxes .searchFilterTabRow {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #CCC;
+  padding: 0 15px;
+}
+.searchFilterTabRow .searchFilterTab {
+  font-size: 14px;
+}
+.searchFilterTabRow .searchFilterTab.active {
+  border-bottom: 4px solid #CCC;
+}
 .searchFilterBoxes.hidden{
     display:none;
 }
 .searchContent .searchFilterBoxes li {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  display: block;
+  display: flex;
+  justify-content: space-between;
+  flex: 1 0 45%;  /* see https://stackoverflow.com/questions/29546550/flexbox-4-items-per-row */
   padding: 15px 0 15px 15px;
   font-size: 16px;
   cursor: pointer;
+  line-height: 125%;
 }
+.searchContent .searchFilterBoxes li img {
+  height: 10px;
+  width: 10px;
+  opacity: 0.43;
+  padding: 0 10px;
+}
+.searchContent .searchFilterBoxes .searchFilterExactBox li {
+  justify-content: flex-start;
+}
+.searchContent .searchFilterBoxes li .checkboxAndText {
+  display: flex;
+}
+.searchContent .searchFilterBoxRow li.active,
 .searchContent .searchFilterBoxRow li:hover {
   background-color: #e0e0e0;
 }
@@ -2013,7 +2109,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     display:inline-block;
     width: 15px;
     height: 15px;
-    vertical-align: sub;
     cursor:pointer;
     background-image: url(/static/img/checkbox-unchecked.svg);
     background-size: contain;
@@ -2041,8 +2136,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-right: 0;
 }
 .searchFilterBoxes .searchFilterExactBox {
-  border-top: 1px solid #ccc;
-  padding: 5px 0px 5px 0;
+  padding-top: 10px;
+  height: 200px;
 }
 .searchFilterExactBox.hidden {
   display:none;
@@ -2082,7 +2177,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchSortBox tr:hover {
   background-color: #e0e0e0;
 }
-.searchContent .searchSortBox tr:first-child {
+.searchContent .searchSortBox tr:not(:last-child) {
   border-bottom: 1px solid #eee;
 }
 .searchContent .searchSortBox td:not(:first-child) {
@@ -2120,8 +2215,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchFilterBookBox {
   padding-top: 10px;
   width: 50%;
-  height: 150px;
+  height: 200px;
   overflow-y: auto;
+}
+.searchContent .searchFilterCategoryBox.searchFilterSheetBox {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
 }
 .interface-hebrew .searchContent .searchFilterCategoryBox,
 .interface-hebrew .searchContent .searchFilterBookBox {
@@ -2161,22 +2263,37 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .sheet_result .result-title {
   font-size: 18px;
 }
+.searchContent .sheet_result .result-title.in-en {
+  direction: ltr;
+  text-align: left;
+}
+.searchContent .sheet_result .result-title.in-he {
+  direction: rtl;
+  text-align: right;
+}
 .searchContent .sheet_result .owner_name {
-  margin-left: 10px;
+  padding-bottom: 5px;
+}
+.readerPanel.english .searchContent .sheet_result .owner_name.in-he {
+  direction: rtl;
+  text-align: left;
+}
+.readerPanel.hebrew .searchContent .sheet_result .owner_name.in-en {
+  direction: ltr;
+  text-align: right;
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
 }
-.readerPanel.english .searchContent .text_result .snippet.he,
-.readerPanel.hebrew .searchContent .text_result .snippet.en,
-.bilingual .searchContent .text_result .snippet.he {
+.readerPanel.english .searchContent .snippet.he,
+.readerPanel.hebrew .searchContent .snippet.en,
+.bilingual .searchContent .snippet.he {
   display: block;
 }
 .searchContent .text_result .snippet {
 
 }
 .searchContent .sheet_result .snippet {
-  font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
   color: #000;
 }
@@ -2193,6 +2310,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   font-size: 13px;
   margin: 8px 0;
+  display: flex;
+  align-items: center;
+}
+.searchContent .result .version .owner-metadata {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 10px;
 }
 .searchContent .result .similar-trigger-box {
   color: #999;
@@ -2212,7 +2337,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .sheet_result .owner_image {
   height: 30px;
   width: 30px;
-  vertical-align:middle;
+  align-self: flex-start;
 }
 
 .searchContent .sheet_result {

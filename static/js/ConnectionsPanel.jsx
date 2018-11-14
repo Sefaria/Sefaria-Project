@@ -72,8 +72,7 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
-    console.log(this.props.srefs)
-
+    console.log(this.props.srefs);
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
@@ -147,11 +146,12 @@ class ConnectionsPanel extends Component {
           if (currentLanguage == "bilingual") {
               currentLanguage = "hebrew"
           }
-          if (!data) {
+          if (!data || data.error) {
               this.setState({
                   currObjectVersions: {en: null, he: null},
                   mainVersionLanguage: currentLanguage,
               });
+              return
           }
           if (currentLanguage == "hebrew" && !data.he.length) {
               currentLanguage = "english"
@@ -288,7 +288,7 @@ class ConnectionsPanel extends Component {
                 </div>);
 
     } else if (this.props.mode === "Notes") {
-        console.log(this.props)
+        console.log(this.props);
       content = (<div>
                   <AddNoteBox
                     srefs={this.props.srefs}
@@ -312,6 +312,7 @@ class ConnectionsPanel extends Component {
                     selectedWords={this.props.selectedWords}
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
+                    onCitationClick={this.props.onCitationClick}
       />);
 
     } else if (this.props.mode === "Tools") {
@@ -470,7 +471,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
-              <ToolsButton en="Dictionaries" he="כלים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
+              <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);

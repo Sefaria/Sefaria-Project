@@ -217,11 +217,11 @@ def get_links(tref, with_text=True):
                                 'license': license,
                                 'versionTitleInHebrew': versionTitleInHebrew
                             }
-                    sections = [i - 1 for i in com_oref.sections[1:]]
-                    toSections = [i - 1 for i in com_oref.toSections[1:]]
+                    com_sections = [i - 1 for i in com_oref.sections]
+                    com_toSections = [i - 1 for i in com_oref.toSections]
                     for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")), ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
                         temp_nref_data = texts[top_nref][lang]
-                        res = temp_nref_data['ja'].subarray(sections, toSections).array()
+                        res = temp_nref_data['ja'].subarray(com_sections[1:], com_toSections[1:]).array()
                         if attr not in com:
                             com[attr] = res
                         else:
@@ -235,14 +235,14 @@ def get_links(tref, with_text=True):
                             com[vtitleInHeAttr] = temp_nref_data['versionTitleInHebrew']
                         else:
                             # merged. find exact version titles for each segment
-                            start_sources = temp_nref_data['ja'].distance([], sections)
-                            if sections == toSections:
+                            start_sources = temp_nref_data['ja'].distance([], com_sections[1:])
+                            if com_sections == com_toSections:
                                 # simplify for the common case
                                 versions = temp_version[start_sources] if start_sources < len(temp_version) - 1 else None
                                 licenses = temp_nref_data['license'][start_sources] if start_sources < len(temp_nref_data['license']) - 1 else None
                                 versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources] if start_sources < len(temp_nref_data['versionTitleInHebrew']) - 1 else None
                             else:
-                                end_sources = temp_nref_data['ja'].distance([], toSections)
+                                end_sources = temp_nref_data['ja'].distance([], com_toSections[1:])
                                 versions = temp_version[start_sources:end_sources + 1]
                                 licenses = temp_nref_data['license'][start_sources:end_sources + 1]
                                 versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources:end_sources + 1]

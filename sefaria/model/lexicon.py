@@ -5,6 +5,7 @@ Writes to MongoDB Collection:
 """
 import re
 from . import abstract as abst
+from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
 
 
@@ -25,7 +26,7 @@ class WordForm(abst.AbstractMongoRecord):
 
     def load(self, query, proj=None):
         if 'form' in query and isinstance(query['form'], basestring):
-            query['form'] = {"$regex" : "^"+query['form']+"$", "$options": "i"}
+            query['form'] = {"$regex": "^"+query['form']+"$", "$options": "i"}
         return super(WordForm, self).load(query, proj=None)
 
 
@@ -57,6 +58,12 @@ class Lexicon(abst.AbstractMongoRecord):
         'version_title',        # The title of the Version record that corresponds to this Lexicon
         'version_lang'          # The language of the Version record that corresponds to this Lexicon
     ]
+
+    def word_count(self):
+        return sum([e.word_count() for e in self.entry_set()])
+
+    def entry_set(self):
+        return LexiconEntrySet({"parent_lexicon": self.name})
 
 
 class Dictionary(Lexicon):
@@ -103,7 +110,8 @@ class DictionaryEntry(LexiconEntry):
         "quotes",
         "prev_hw",
         "next_hw",
-        "notes"
+        "notes",
+        "alternative"
     ]
 
     def get_sense(self, sense):
@@ -118,6 +126,9 @@ class DictionaryEntry(LexiconEntry):
     def headword_string(self):
         return u', '.join(
             [u'<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+
+    def word_count(self):
+        return JaggedTextArray(self.as_strings()).word_count()
 
     def as_strings(self, with_headword=True):
         new_content = u""
@@ -154,7 +165,7 @@ class DictionaryEntry(LexiconEntry):
                     pass
             else:
                 next_line += u" " + self.get_sense(sense)
-
+        
         if hasattr(self, 'notes'):
             next_line += u" " + self.notes
         if hasattr(self, 'derivatives'):
@@ -181,7 +192,7 @@ class JastrowDictionaryEntry(DictionaryEntry):
         text += sense.get('number', u'')
         if text:
             text = u"<b>{}</b> ".format(text)
-        for field in ['definition', 'alternative', 'notes']:
+        for field in ['definition']:
             text += sense.get(field, u'')
         return text
 
@@ -204,12 +215,14 @@ class KleinDictionaryEntry(DictionaryEntry):
     
     def get_sense(self, sense):
         text = u''
-        text += sense.get('number', u'')
-        if text:
-            text = u"<b>{}</b> ".format(text)
-        for field in ['definition', 'alternative', 'notes']:
-            text += sense.get(field, u'')
-        return text
+        for field in ['plural_form', 'language_code', 'alternative']:
+            text += sense.get(field, u'') + u' '
+        num = sense.get('number', u'')
+        if num:
+            text += u"<b>{}</b> ".format(num)
+        for field in ['definition', 'notes']:
+            text += sense.get(field, u'') + u' '
+        return text[:-1]
 
 
 class LexiconEntrySubClassMapping(object):

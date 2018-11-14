@@ -107,7 +107,7 @@ class MultiServerMonitor(MessagingNode):
         if data["obj"] == "library":
 
             if data["method"] == "refresh_index_record_in_cache":
-                title = data["args"][-1]  # Sometimes this is first arg, somethimes second.  Always last.
+                title = data["args"][-1]  # Sometimes this is first arg, sometimes second.  Always last.
                 logger.info("Invalidating {} in Varnish".format(title))
                 invalidate_title(title)
 
