@@ -54,14 +54,24 @@ class SD3 {
 
         var domain = [];
         var section;
+
+        if (typeof chap_lengths == "number") {
+            // Depth 1
+            for (var i = 0; i < chap_lengths; ++i) {
+                domain.push((i+1).toString());
+            }
+            console.log(domain);
+            return domain
+        }
+
         for (var i = 0; i < chap_lengths.length; ++i) {
             if (section_address_type == "talmud") {
                 section = Sefaria.hebrew.intToDaf(i);
-                if (chap_lengths[i] > 0) {
-                    domain.push(section); // To support refs to e.g. "7b"
-                }
             } else {
                 section = i+1;
+            }
+            if (chap_lengths[i] > 0) {
+                domain.push(section); // To support refs to e.g. "7b"
             }
             for (var j = 1; j <= chap_lengths[i]; ++j) {
                 domain.push(section + ":" + j)
@@ -80,9 +90,11 @@ class SD3 {
             scale: the underlying D3 scale function
          */
         return function(i) {
+            /* 
             if(i.indexOf(":") < 0) {
                 i = i + ":1"; //Make chapter refs point to first verse
             }
+            */
             if(i.indexOf("-") > -1) {
                 i = i.split("-")[0]; // Make ranges point to start only
             }
@@ -94,7 +106,6 @@ class SD3 {
 
     static talmudRefTicks(chap_lengths, skip) {
         /*  Returns an array of strings, in Talmud format, to be used as ticks on an Axis.
-
 
             chap_lengths: An array of integers - the number of segments in each sequential sections
                 These are available through `api/shape`.
@@ -125,14 +136,15 @@ class SD3 {
             skip: the number of sections to skip, between ticks
                 If not provided, a default value will be chosen based on the number of sections
          */
-        var last_index = chap_lengths.length;
+        var isDepth1 = typeof chap_lengths == "number";
+        var last_index = isDepth1 ? chap_lengths : chap_lengths.length;
         skip = skip || (last_index < 40) ? 1 :
             (last_index < 90) ? 2 :
                 6;
 
         var ticks = [];
         for (var i = 1; i <= last_index; i = i + skip) {
-            ticks.push(i + ":1");
+            ticks.push(i);
         }
         return ticks;
     }

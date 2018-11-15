@@ -73,8 +73,6 @@ function isNotTwelve(el) { return !isTwelve(el); }
 
 var pLinkCache = {}; //Cache for precise link queries
 
-
-
 /*****          Colors              *****/
 
 var colors = d3.scale.category10()
@@ -88,7 +86,7 @@ var toggleColor = (function(){
             return;
         currentScheme = currentScheme == "Top" ? "Bottom" : "Top";
         svg.selectAll(".link") //.transition().duration(250)
-        	.attr("stroke", function(d) { console.log(d); return currentScheme == "Bottom" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
+        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
 		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? "underline" : null);
 		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? null : "underline");
     }
@@ -118,11 +116,11 @@ var bottomBooks = [];
 var topCat = "tanakh";
 //var topCat = "mishnah";
 //var topCat = "bavli";
-var bottomCat = "bavli";
+//var bottomCat = "bavli";
 //var bottomCat = "mishnah";
 //var bottomCat = "yerushalmi";
 //var bottomCat = "tosefta";
-//var bottomCat = "mishnehTorah";
+var bottomCat = "mishnehTorah";
 
 
 var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
@@ -400,7 +398,6 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .on("click", recordOpenBook);
 
     svg.selectAll("#" + klass + " .book")
-            .filter(isTwelve)
             .on("mouseover.tooltip", function() { bookTooltip.style("display", null); })
             .on("mouseout.tooltip", function() { bookTooltip.style("display", "none"); })
             .on("mousemove.tooltip", function(d) {
