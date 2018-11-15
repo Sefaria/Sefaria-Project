@@ -129,7 +129,7 @@ var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
 var b = Sefaria.shape(categories[bottomCat].shapeParam, d => bottomBooks = d);
 
 $.when(b, t).then(function() {
-    buildScreen(GLOBALS.books, "Tanakh");
+    buildScreen(GLOBALS.books, "Top");
     replaceHistory();
 });
 
@@ -142,9 +142,9 @@ function buildScreen(openBooks, colorScheme) {
     buildBookCollection(bottomBooks, bottomCat, "bottom", bottomOffsetY, 0);
     buildBookLinks();
 
-    if(colorScheme == "Bavli") {
-        currentScheme = "Tanakh";
-        toggleColor({"collection": "Bavli"});
+    if(colorScheme == "Bottom") {
+        currentScheme = "Top";
+        toggleColor({"collection": bottomCat});
     }
 
     if (openBooks.length == 0) {
