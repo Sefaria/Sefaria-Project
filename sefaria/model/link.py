@@ -290,7 +290,7 @@ def get_link_counts(cat1, cat2):
             re2 = r"^{} \d".format(title2)
             links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
             if links.count():
-                result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
+                result.append({"book1": title1.replace(" ","-").replace("'", ""), "book2": title2.replace(" ", "-").replace("'", ""), "count": links.count()})
 
     link_counts[key] = result
     return result
@@ -372,7 +372,7 @@ def get_book_link_collection(book, cat):
         l1 = re.match(link_re, link.refs[0])
         l2 = re.match(link_re, link.refs[1])
         ret.append({
-            "r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
-            "r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}
+            "r1": {"title": l1.group("title").replace(" ", "-").replace("'", ""), "loc": l1.group("loc")},
+            "r2": {"title": l2.group("title").replace(" ", "-").replace("'", ""), "loc": l2.group("loc")}
         })
     return ret

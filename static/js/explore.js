@@ -50,6 +50,17 @@ var categories = {
         "linkCountParam": "Mishnah",
         "talmudAddressed": false,
     },
+    "tosefta": {
+        "shapeParam": "Tanaitic/Tosefta",
+        "linkCountParam": "Tosefta",
+        "talmudAddressed": false,
+    },
+    "midrashRabbah": {
+        "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
+        "linkCountParam": "Midrash Rabbah",
+        "talmudAddressed": false,
+    }
+
 };
 
 var twelve = ["Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi"];
@@ -68,12 +79,12 @@ var colors = d3.scale.category10()
 var currentScheme = "Top";
 var toggleColor = (function(){
     return function(d){
-        var switchedTo = d.collection;
+        var switchedTo = d.collection == topCat ? "Top" : "Bottom";
         if (switchedTo == currentScheme)
             return;
         currentScheme = currentScheme == "Top" ? "Bottom" : "Top";
         svg.selectAll(".link") //.transition().duration(250)
-        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
+        	.attr("stroke", function(d) { console.log(d); return currentScheme == "Bottom" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
 		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? "underline" : null);
 		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? null : "underline");
     }
@@ -103,9 +114,11 @@ var bottomBooks = [];
 var topCat = "tanakh";
 //var topCat = "mishnah";
 //var topCat = "bavli";
-var bottomCat = "bavli";
-//var bottomCat = "mishnah";
+//var bottomCat = "bavli";
+var bottomCat = "mishnah";
 //var bottomCat = "yerushalmi";
+//var bottomCat = "tosefta";
+
 
 var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
 var b = Sefaria.shape(categories[bottomCat].shapeParam, d => bottomBooks = d);
@@ -526,13 +539,13 @@ function brushmove() {
   svg.selectAll(".preciseLink")
     .classed("selected", function(d) {
 
-              if ((!brushes.hasOwnProperty("tanakh") || brushes.tanakh == null )) {
-                  return (brushes["bavli"].extent()[0] <= d.sourcex && d.sourcex <= brushes["bavli"].extent()[1])
-              } else if (!brushes.hasOwnProperty("bavli") || brushes.bavli == null ) {
-                return (brushes["tanakh"].extent()[0] <= d.targetx && d.targetx <= brushes["tanakh"].extent()[1])
+              if ((!brushes.hasOwnProperty(topCat) || brushes[topCat] == null )) {
+                  return (brushes[bottomCat].extent()[0] <= d.sourcex && d.sourcex <= brushes[bottomCat].extent()[1])
+              } else if (!brushes.hasOwnProperty(bottomCat) || brushes.bavli == null ) {
+                return (brushes[topCat].extent()[0] <= d.targetx && d.targetx <= brushes[topCat].extent()[1])
               } else { // 2 brushes
-                return  ((brushes["bavli"].empty() && !brushes["bavli"]["b_active"]) || (brushes["bavli"].extent()[0] <= d.sourcex && d.sourcex <= brushes["bavli"].extent()[1]))
-                  && ((brushes["tanakh"].empty() && !brushes["tanakh"]["b_active"]) || (brushes["tanakh"].extent()[0] <= d.targetx && d.targetx <= brushes["tanakh"].extent()[1]))
+                return  ((brushes[bottomCat].empty() && !brushes[bottomCat]["b_active"]) || (brushes[bottomCat].extent()[0] <= d.sourcex && d.sourcex <= brushes[bottomCat].extent()[1]))
+                  && ((brushes[topCat].empty() && !brushes[topCat]["b_active"]) || (brushes[topCat].extent()[0] <= d.targetx && d.targetx <= brushes[topCat].extent()[1]))
               }
           });
 }
@@ -541,8 +554,8 @@ function brushend() {
   d3.event.target["b_active"] = false
   svg.classed("selecting",
       (
-        (brushes.hasOwnProperty("tanakh") && brushes.tanakh != null && !brushes["tanakh"].empty()) ||
-        (brushes.hasOwnProperty("bavli") && brushes.bavli != null && !brushes["bavli"].empty())
+        (brushes.hasOwnProperty(topCat) && brushes[topCat] != null && !brushes[topCat].empty()) ||
+        (brushes.hasOwnProperty(bottomCat) && brushes[bottomCat] != null && !brushes[bottomCat].empty())
       )
   );
 }
@@ -1009,7 +1022,7 @@ function _getHistory() {
     var talmudOpen = false;
     var tanakhOpen = false;
 
-    svg.select("#tanakh .open.book").each(function(d) {
+    svg.select("#" + topCat + " .open.book").each(function(d) {
         tanakhOpen = true;
         openIds.push(d.id);
         url += "/" + d.id;
@@ -1017,7 +1030,7 @@ function _getHistory() {
         title += isEnglish() ? d.title : d.heTitle;
     });
 
-    svg.select("#bavli .open.book").each(function(d) {
+    svg.select("#" + bottomCat + " .open.book").each(function(d) {
         talmudOpen = true;
         openIds.push(d.id);
         url += "/" + d.id;
