@@ -59,8 +59,12 @@ var categories = {
         "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
         "linkCountParam": "Midrash Rabbah",
         "talmudAddressed": false,
-    }
-
+    },
+    "mishnehTorah": {
+        "shapeParam": "Halakhah/Mishneh Torah",
+        "linkCountParam": "Mishneh Torah",
+        "talmudAddressed": false,
+    },
 };
 
 var twelve = ["Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi"];
@@ -114,10 +118,11 @@ var bottomBooks = [];
 var topCat = "tanakh";
 //var topCat = "mishnah";
 //var topCat = "bavli";
-//var bottomCat = "bavli";
-var bottomCat = "mishnah";
+var bottomCat = "bavli";
+//var bottomCat = "mishnah";
 //var bottomCat = "yerushalmi";
 //var bottomCat = "tosefta";
+//var bottomCat = "mishnehTorah";
 
 
 var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
@@ -372,7 +377,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 			.append("rect")
                 .attr("id", function (d)  { d.id = toId(d.title); return d.id; })
                 .each(function (d) { d["collection"] = klass; d["position"] = position; })
-                .attr("class", function(d) { return klass + " book " + replaceAll(d["section"]," ","-") + " " + d.id } )
+                .attr("class", function(d) { return klass + " book " + toId(d["section"]) + " " + d.id } )
                 .attr("y", function(d) { d["y"] = offset; return d["y"]; })
                 .attr("width", function(d) { d["base_width"] = (d["length"] / totalBookLength) * effectiveWidth; return d["base_width"]; })
                 .attr("height", bookHeight)
@@ -388,7 +393,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                     return d["base_x"]; })
                 .attr("cx", function(d) { d["base_cx"] = Number(this.getAttribute("x")) + Number(this.getAttribute("width")) / 2; return d["base_cx"]; })
                 .attr("cy", function(d) {  return Number(this.getAttribute("y")) + cnxOffset; })
-                .attr("section", function(d) { return replaceAll(d["section"]," ","-") })
+                .attr("section", function(d) { return toId(d["section"]) })
                 .each(addAxis)
                 .on("mouseover", mouseover_book)
                 .on("mouseout", mouseout_book)
@@ -410,6 +415,8 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 
 function buildBookLabels(bks, klass, position) {
 
+    //debugger;
+
     var anchor = "start";
     var offset = 0;
     var dx = "-.8em";
@@ -429,7 +436,7 @@ function buildBookLabels(bks, klass, position) {
     svg.select("#" + klass)
         .selectAll("text.title").data(bks).enter()
             .append("text")
-                .attr("class", function(d) { d.id = toId(d.title); return "title " + replaceAll(d["section"]," ","-") + " " + d["id"] } )
+                .attr("class", function(d) { d.id = toId(d.title); return "title " + toId(d["section"]) + " " + d["id"] } )
                 .text(function(d) {
                         return isEnglish() ? d["title"] : d["heTitle"];
                     })
@@ -625,7 +632,7 @@ function buildBookLinks() {
               var xPosition = d3.mouse(this)[0];
               var yPosition = d3.mouse(this)[1] - 65;
               if(isEnglish()) {
-                tooltip.select("#text1").text(replaceAll(d["book1"],"-"," ") + " - " + replaceAll(d["book2"],"-"," "));
+                tooltip.select("#text1").text(fromId(d["book1"]) + " - " + fromId(d["book2"]));
                 tooltip.select("#text2").text(d["count"] + " connections");
                 xPosition = d3.mouse(this)[0];
                 yPosition = d3.mouse(this)[1] - 65;
@@ -788,7 +795,7 @@ function openBook(dFocused) {
     svg.select("#" + labelId).transition().duration(1000)
             .style("display","block")
         .select(".label")
-            .attr("class","label " + replaceAll(dBook.section," ","-"))
+            .attr("class","label " + toId(dBook.section))
             .text(isEnglish() ? dBook.title : dBook.heTitle);
     svg.selectAll("#toggle").attr("display", "none");
 }
@@ -897,8 +904,8 @@ function processPreciseLinks(dBook) {
                     if(isEnglish()) {
                         xPosition = d3.mouse(this)[0];
                         yPosition = d3.mouse(this)[1] - 65;
-                        tooltip.select("#text1").text(replaceAll(d["r1"]["title"],"-"," ") + " " + d["r1"]["loc"]);
-                        tooltip.select("#text2").text(replaceAll(d["r2"]["title"],"-"," ") + " " + d["r2"]["loc"]);
+                        tooltip.select("#text1").text(fromId(d["r1"]["title"]) + " " + d["r1"]["loc"]);
+                        tooltip.select("#text2").text(fromId(d["r2"]["title"]) + " " + d["r2"]["loc"]);
                     } else {
                         xPosition = d3.mouse(this)[0] - 130;
                         yPosition = d3.mouse(this)[1] - 65;
@@ -976,10 +983,21 @@ function replaceAll(str, ol, nw) {
     return str.split(ol).join(nw)
 }
 function toId(title) {
-    title = replaceAll(title, "'", "");
-    return replaceAll(title," ","-");
+    title = replaceAll(title, "'", "-aa-");
+    title = replaceAll(title, ",", "-c-");
+    return replaceAll(title, " ","-");
+}
+function fromId(title) {
+    title = replaceAll(title, "-aa-", "'");
+    title = replaceAll(title, "-c-", ",");
+    return replaceAll(title, "-", " ");
+}
+function fromIdtoUrl(title) {
+    title = fromId(title);
+    return replaceAll(title, " ", "-")
 }
 function toLink(title) {
+    title = fromId(title);
     return title.split("-").join("_").split(" ").join("_");
 }
 
@@ -1025,7 +1043,7 @@ function _getHistory() {
     svg.select("#" + topCat + " .open.book").each(function(d) {
         tanakhOpen = true;
         openIds.push(d.id);
-        url += "/" + d.id;
+        url += "/" + fromIdtoUrl(d.id);
         title += " ";
         title += isEnglish() ? d.title : d.heTitle;
     });
@@ -1033,7 +1051,7 @@ function _getHistory() {
     svg.select("#" + bottomCat + " .open.book").each(function(d) {
         talmudOpen = true;
         openIds.push(d.id);
-        url += "/" + d.id;
+        url += "/" + fromIdtoUrl(d.id);
         title += tanakhOpen ? isEnglish() ? " & " : " ו" : " ";
         title += isEnglish() ? d.title : d.heTitle;
     });
