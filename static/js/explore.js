@@ -35,6 +35,11 @@ var categories = {
         "linkCountParam": "Tanakh",
         "talmudAddressed": false,
     },
+    "torah": {
+        "shapeParam": "Tanakh/Torah",
+        "linkCountParam": "Torah",
+        "talmudAddressed": false,        
+    },
     "bavli": {
         "shapeParam": "Talmud/Bavli",
         "linkCountParam": "Bavli",
@@ -113,7 +118,8 @@ function switchToHebrew() { lang = "he"; }
 var topBooks = [];
 var bottomBooks = [];
 
-var topCat = "tanakh";
+//var topCat = "tanakh";
+var topCat = "torah";
 //var topCat = "mishnah";
 //var topCat = "bavli";
 //var bottomCat = "bavli";
@@ -293,18 +299,16 @@ function buildFrame() {
       .style("display", "none");
     bookTooltip.append("rect")
       .attr("width", 70)
-      .attr("height", 20)
-      .attr("rx", 15)
-      .attr("ry", 15)
+      .attr("height", 30)
+      .attr("rx", 14)
+      .attr("ry", 14)
       .attr("fill", "white")
       .style("opacity", 1)
       .style("stroke", "#17becf");
     bookTooltip.append("text")
-      .attr("x", 35)
-      .attr("dy", 14)
-      .style("text-anchor", "middle")
-      .attr("font-size", "12px");
-
+      .attr("x", 15)
+      .attr("dy", 20)
+      .attr("font-size", "16px");
 }
 
 
@@ -398,13 +402,16 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .on("click", recordOpenBook);
 
     svg.selectAll("#" + klass + " .book")
-            .on("mouseover.tooltip", function() { bookTooltip.style("display", null); })
+            .on("mouseover.tooltip", function() { 
+                bookTooltip.style("display", null); })
             .on("mouseout.tooltip", function() { bookTooltip.style("display", "none"); })
             .on("mousemove.tooltip", function(d) {
               var xPosition = d3.mouse(this)[0];
-              var yPosition = d3.mouse(this)[1] - 25;
-              bookTooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+              var yPosition = d3.mouse(this)[1] - 35;
               bookTooltip.select("text").text(isEnglish() ? d.title : d.heTitle);
+              var bbox = bookTooltip.select("text").node().getBBox();
+              bookTooltip.select("rect").attr("width", bbox.width + 30); 
+              bookTooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
             });
 
     buildBookLabels(books, klass, position);
