@@ -597,7 +597,8 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
     
-    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to)|(?:\u05D5?\u05D1?(\u05E1\u05D5\u05E3|\u05E8\u05D9\u05E9)))+"  # should be an arg?  \r\n are for html matches
+    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to|\u05D5?\u05D1?(\u05E1\u05D5\u05E3|\u05E8\u05D9\u05E9)))+"  # should be an arg?  \r\n are for html matches
+    
     after_address_delimiter_ref = ur"[,.: \r\n]+"
     title_separators = [u", "]
 
