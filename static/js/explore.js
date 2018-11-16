@@ -397,6 +397,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .attr("cx", function(d) { d["base_cx"] = Number(this.getAttribute("x")) + Number(this.getAttribute("width")) / 2; return d["base_cx"]; })
                 .attr("cy", function(d) {  return Number(this.getAttribute("y")) + cnxOffset; })
                 .attr("section", function(d) { return toId(d["section"]) })
+                .attr("fill", function(d) { return colors(svg.select("#" + d.id).attr("section")); })
                 .each(addAxis)
                 .on("mouseover", mouseover_book)
                 .on("mouseout", mouseout_book)
@@ -446,6 +447,7 @@ function buildBookLabels(bks, klass, position) {
                         return isEnglish() ? d["title"] : d["heTitle"];
                     })
                 .style("text-anchor", anchor)
+                .attr("fill", function(d) { return colors(svg.select("#" + d.id).attr("section")); })
                 .attr("x", function(d) {
                     return Number(svg.select("#" + d["id"]).attr("cx"))
                 })
@@ -463,7 +465,10 @@ function buildBookLabels(bks, klass, position) {
 
     if (klass == "tanakh") {
         var twelveText = isEnglish() ? "The Twelve Prophets" : "תרי עשר";
-        var twelveNode = svg.select("#" + klass).append("text").attr("class", "title twelve Prophets").text(twelveText)
+        var twelveNode = svg.select("#" + klass).append("text")
+            .attr("class", "title twelve Prophets")
+            .attr("fill", function(d) { return colors("Prophets"); })
+            .text(twelveText)
         if(isEnglish()) {
             twelveNode.attr("x", Number(svg.select("#Hosea").attr("cx"))).attr("y", Number(svg.select("#Hosea").attr("y")) - 12)
         } else {
