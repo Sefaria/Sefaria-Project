@@ -415,7 +415,7 @@ class ReaderTextTableOfContents extends Component {
                   </div>
                   : <LoadingMessage />}
                   {versionSection}
-                  {downloadSection}
+                  {isDictionary ? "" : downloadSection}
                 </div>}
               </div>
             </div>);
