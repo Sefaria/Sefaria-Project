@@ -118,15 +118,16 @@ function switchToHebrew() { lang = "he"; }
 var topBooks = [];
 var bottomBooks = [];
 
-//var topCat = "tanakh";
-var topCat = "torah";
+var topCat = "tanakh";
+//var topCat = "torah";
 //var topCat = "mishnah";
 //var topCat = "bavli";
-//var bottomCat = "bavli";
+
+var bottomCat = "bavli";
 //var bottomCat = "mishnah";
 //var bottomCat = "yerushalmi";
 //var bottomCat = "tosefta";
-var bottomCat = "mishnehTorah";
+//var bottomCat = "mishnehTorah";
 
 
 var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
@@ -552,7 +553,7 @@ function brushmove() {
 
               if ((!brushes.hasOwnProperty(topCat) || brushes[topCat] == null )) {
                   return (brushes[bottomCat].extent()[0] <= d.sourcex && d.sourcex <= brushes[bottomCat].extent()[1])
-              } else if (!brushes.hasOwnProperty(bottomCat) || brushes.bavli == null ) {
+              } else if (!brushes.hasOwnProperty(bottomCat) || brushes[bottomCat] == null ) {
                 return (brushes[topCat].extent()[0] <= d.targetx && d.targetx <= brushes[topCat].extent()[1])
               } else { // 2 brushes
                 return  ((brushes[bottomCat].empty() && !brushes[bottomCat]["b_active"]) || (brushes[bottomCat].extent()[0] <= d.sourcex && d.sourcex <= brushes[bottomCat].extent()[1]))
