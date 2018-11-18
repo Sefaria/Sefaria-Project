@@ -34,7 +34,7 @@ function switchToHebrew() { lang = "he"; }
 
 
 
-getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
+let getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
 
 let _partitionedLinks = {}; // ref: [past, future, concurrent]
 async function getPartitionedLinks(ref, year) {
@@ -212,5 +212,5 @@ function pushHistory() {
 
 function _getHistory() {
     var url = "...";
-    var title = isEnglish()?"":'';
-
+    var title = isEnglish() ? "" : '';
+}

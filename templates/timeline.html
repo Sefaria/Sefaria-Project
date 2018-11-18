@@ -8,6 +8,7 @@
 {% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
 
 {% block head %}
+<script src="https://d3js.org/d3.v5.min.js"></script>
 {%  endblock %}
 
 {% block css %}
@@ -34,7 +35,7 @@
         interfaceLang: "{{ request.interfaceLang }}"
     }
 </script>
-<script src="{% static 'bundles/explore/timeline.js' %}"></script>
+<script src="{% static 'bundles/timeline/timeline.js' %}"></script>
 
 
 {% endblock %}
