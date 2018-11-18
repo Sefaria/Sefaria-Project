@@ -2535,10 +2535,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
+  display: flex;
+  flex-direction: row;
   text-align: left;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
+  display: flex;
+  flex-direction: row;
   text-align: right;
 }
 /* icons need a little nudge in flipped hebrew mode */
@@ -2548,7 +2552,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .leftButtons {
   margin-right: 2px;
 }
-
+.leftButtons .saveButton,
+.rightButtons .saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 40px;
+  height: 56px;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.saveButton img {
+  height: 20px;
+}
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,

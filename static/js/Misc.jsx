@@ -361,12 +361,34 @@ class ReaderNavigationMenuDisplaySettingsButton extends Component {
               aria-haspopup="true"
               style={style}
               onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+              onKeyPress={e => {e.charCode == 13 ? this.props.onClick(e):null}}>
                 <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} />
             </div>);
   }
 }
 ReaderNavigationMenuDisplaySettingsButton.propTypes = {
+  onClick: PropTypes.func,
+  placeholder: PropTypes.bool,
+}
+
+
+class ReaderNavigationMenuSavedButton extends Component {
+  render() {
+    const style = this.props.placeholder ? {visibility: 'hidden'} : {};
+    return (
+      <div
+        className="saveButton"
+        role="button"
+        style={style}
+        onClick={this.props.onClick}
+        onKeyPress={e => {e.charCode == 13 ? this.props.onClick(e):null}}
+      >
+          <img src="/static/img/star.png" alt="Save this text" />
+      </div>
+    );
+  }
+}
+ReaderNavigationMenuSavedButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
 }
@@ -931,6 +953,7 @@ module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
+module.exports.ReaderNavigationMenuSavedButton           = ReaderNavigationMenuSavedButton;
 module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
 module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;

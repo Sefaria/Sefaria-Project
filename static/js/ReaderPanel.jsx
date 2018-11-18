@@ -30,6 +30,7 @@ const {
 const {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,
+  ReaderNavigationMenuSavedButton,
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryColorLine,
   CategoryAttribution,
@@ -1070,9 +1071,11 @@ class ReaderControls extends Component {
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
+          <ReaderNavigationMenuSavedButton onClick={()=>{}} placeholder={true}/>
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
+          <ReaderNavigationMenuSavedButton onClick={()=>{console.log("SAVE ME!");}} />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
