@@ -596,8 +596,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    
-    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to)|ו?ב?(סוף|ריש))+"  # should be an arg?  \r\n are for html matches
+    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to))+"  # should be an arg?  \r\n are for html matches
     after_address_delimiter_ref = ur"[,.: \r\n]+"
     title_separators = [u", "]
 
@@ -1624,6 +1623,8 @@ class SheetNode(NumberedTitledTreeNode):
         if not self.sheet_object:
             raise InputError
 
+
+
     def has_numeric_continuation(self):
         return False  # What about section level?
 
@@ -1639,9 +1640,29 @@ class SheetNode(NumberedTitledTreeNode):
     def get_version_title(self, lang):
         return "Dummy"
 
+    def return_text_from_sheet_source(self, source):
+        if source.get("text"):
+            return (source.get("text"))
+        elif source.get("outsideText"):
+            return (source.get("outsideText"))
+        elif source.get("outsideBiText"):
+            return (source.get("outsideBiText"))
+        elif source.get("comment"):
+            return (source.get("comment"))
+        elif source.get("media"):
+            return (source.get("media"))
+
     def get_text(self):
-        return [u"test"]
-        # Return depth 1 array of strings from self.sheet_object
+        text = []
+        for source in self.sheet_object.get("sources"):
+            if self.nodeId:
+                if self.nodeId == source.get("node"):
+                    text.append(self.return_text_from_sheet_source(source))
+                    break
+            else:
+                text.append(self.return_text_from_sheet_source(source))
+
+        return text
 
     #def address(self):
     #    return self.parent.address() + [self.sheetId]
@@ -1870,7 +1891,7 @@ class AddressTalmud(AddressType):
     """
     section_patterns = {
         "en": None,
-        "he": ur"(\u05d1?\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
+        "he": ur"(\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
     }
 
     def _core_regex(self, lang, group_id=None):
