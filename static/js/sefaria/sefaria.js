@@ -1784,6 +1784,7 @@ Sefaria = extend(Sefaria, {
     // Returns a string translating `name` into Hebrew.
     var categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
+      "Modern Commentary":    "פרשנות מודרנית",
       "Sheets":               "דפי מקורות",
       "Notes":                "הערות",
       "Community":            "קהילה"

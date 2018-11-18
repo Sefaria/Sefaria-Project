@@ -66,7 +66,7 @@ class SearchResultList extends Component {
 
     _abortRunningQuery(type) {
       if(this.state.runningQueries[type]) {
-          this.state.runningQueries[type].abort();
+          this.state.runningQueries[type].abort();  //todo: make work with promises
       }
       this.updateRunningQuery(type, null, false);
     }
@@ -77,7 +77,7 @@ class SearchResultList extends Component {
     }
 
     componentWillUnmount() {
-        this._abortRunningQueries();
+        this._abortRunningQueries();  // todo: make this work w/ promises
         $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
     }
 
