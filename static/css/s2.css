@@ -1037,6 +1037,9 @@ a.readerNavCategory {
   margin-bottom: 30px;
   margin-top: -8px;
 }
+.userDataButtons {
+  margin-bottom: 44px;
+}
 .blockLink,
 .readerNavMenu .resourcesLink {
   display: inline-block;
@@ -1213,7 +1216,7 @@ a.readerNavCategory {
 .navButton:active,
 .readerNavCategory:active,
 .refLink:active,
-.resourceseLink {
+.resourceseLink {  /* likely a typo in this word but not sure if this this still applies */
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {

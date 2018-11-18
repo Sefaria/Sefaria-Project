@@ -246,28 +246,18 @@ class ReaderNavigationMenu extends Component {
               </div>);
       topContent = this.props.hideNavHeader ? null : topContent;
 
+      let topUserData = [
+        <a href="/texts/recent" className="resourcesLink" onClick={this.props.setCategories.bind(null, ["recent"])}>
+          <span className="en"><img src="/static/img/star.png" alt="" /> Saved</span>
+          <span className="he">שמורים <img src="/static/img/star.png" alt=""  /></span>
+        </a>,
+        <a href="/texts/recent" className="resourcesLink" onClick={this.props.setCategories.bind(null, ["recent"])}>
+          <span className="en"><img src="/static/img/clock.png" alt="" /> History</span>
+          <span className="he">היסטוריה <img src="/static/img/clock.png" alt=""  /></span>
+        </a>
+      ];
+      topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);
 
-      var nRecent = this.width < 500 ? 4 : 6;
-      var recentlyViewed = Sefaria.recentlyViewed;
-      var hasMore = recentlyViewed.length > nRecent;
-      recentlyViewed = recentlyViewed.slice(0, hasMore ? nRecent-1 : nRecent)
-        .map(function(item) {
-          return (<TextBlockLink
-                    sref={item.ref}
-                    heRef={item.heRef}
-                    book={item.book}
-                    currVersions={item.currVersions}
-                    showSections={true}
-                    recentItem={true} />)
-          });
-      if (hasMore) {
-        recentlyViewed.push(
-          <a href="/texts/recent" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.props.setCategories.bind(null, ["recent"])}>
-            <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
-            <span className="he">עוד <img src="/static/img/arrow-left.png" alt=""  /></span>
-          </a>);
-      }
-      recentlyViewed = recentlyViewed.length ? <TwoOrThreeBox content={recentlyViewed} width={this.width} /> : null;
 
       var title = (<h1>
                     { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
@@ -286,7 +276,7 @@ class ReaderNavigationMenu extends Component {
               <div className={contentClasses}>
                 <div className="contentInner">
                   { this.props.compare ? null : title }
-                  <ReaderNavigationMenuSection title="Recent" heTitle="נצפו לאחרונה" content={recentlyViewed} />
+                  { topUserData }
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} />
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
