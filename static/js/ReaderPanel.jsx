@@ -193,7 +193,7 @@ class ReaderPanel extends Component {
           this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
         }
         else {
-          this.props.onSegmentClick("Sheet " + this.state.sheet.id+"."+source.node, source.node)
+          this.props.onSegmentClick("Sheet " + this.state.sheet.id+":"+source.node, source.node)
         }
       } else {
           if (source.ref) {
@@ -263,7 +263,7 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
-    this.props.saveRecentlyViewed({ mode: "Text", refs, currVersions })
+    this.props.saveRecentlyViewed({ mode: "Text", refs, currVersions });
     this.conditionalSetState({
       mode: "Text",
       refs,
@@ -890,7 +890,7 @@ class ReaderPanel extends Component {
           connectionsCategory={this.state.connectionsCategory}
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
-          interfaceLang={this.props.interfaceLang}/>)}
+          interfaceLang={this.props.interfaceLang} />)}
 
         {(items.length > 0 && !menu) ?
             <div className="readerContent" style={style}>
@@ -972,6 +972,7 @@ ReaderPanel.propTypes = {
   getLicenseMap:               PropTypes.func.isRequired,
   translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
+  saveRecentlyViewed:          PropTypes.func,
 };
 
 
@@ -1112,8 +1113,7 @@ ReaderControls.propTypes = {
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
-  interfaceLang:           PropTypes.string,
-  saveRecentlyViewed:      PropTypes.func.isRequired,
+  interfaceLang:           PropTypes.string
 };
 
 

@@ -734,8 +734,12 @@ class ReaderApp extends Component {
     if (!this.shouldHistoryUpdate()) {
       return;
     }
-    var currentUrl = (window.location.pathname + window.location.search);
-    var hist       = this.makeHistoryState();
+    let currentUrl = (window.location.pathname + window.location.search);
+    let hist       = this.makeHistoryState();
+    if(window.location.hash.length){
+      currentUrl += window.location.hash;
+      hist.url += window.location.hash;
+    }
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       //console.log("Replace History - " + hist.url);
@@ -1653,7 +1657,7 @@ class ReaderApp extends Component {
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
-    classDict[interfaceLangClass] = true
+    classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
     return (<div className={classes}>
               {header}

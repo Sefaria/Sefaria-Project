@@ -345,6 +345,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     if sheet == None:
         try:
             primary_ref = oref = Ref(ref)
+            if primary_ref.book == "Sheet":
+                sheet = True
+                ref = '.'.join(map(str, primary_ref.sections))
         except InputError:
             raise Http404
 
@@ -1147,7 +1150,7 @@ def texts_api(request, tref):
                 oref = oref.default_child_ref()
                 text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
             except NoVersionFoundError as e:
-                return jsonResponse({"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}, callback=request.GET.get("callback", None))
+                return {"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
 
             # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?

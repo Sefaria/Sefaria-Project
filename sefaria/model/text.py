@@ -1578,13 +1578,14 @@ class TextChunk(AbstractTextRecord):
         return matches
 
 
-    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True):
+    def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True, ret_ja=False):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
 
         tokenizer: f(str)->list(str) - function to split up text
         strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
+        :param ret_ja: True if you want to return the flattened ja
         :return: (list,list) - index_list (0 based index of start word of each segment ref as compared with the text chunk ref), ref_list
         """
         #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
@@ -1608,7 +1609,10 @@ class TextChunk(AbstractTextRecord):
                 else:
                     ref_list = ref_list[:len(ind_list)]
 
-        return ind_list, ref_list, total_len
+        if ret_ja:
+            return ind_list, ref_list, total_len, text_list
+        else:
+            return ind_list, ref_list, total_len
 
 
 class VirtualTextChunk(AbstractTextRecord):
