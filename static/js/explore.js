@@ -31,43 +31,66 @@ var booksFocused = 0; //State of number of books opened
 
 var categories = {
     "tanakh": {
+        "title": "Tanakh",
+        "heTitle": 'תנ"ך',
         "shapeParam": "Tanakh",
         "linkCountParam": "Tanakh",
         "talmudAddressed": false,
     },
     "torah": {
+        "title": "Torah",
+        "heTitle": 'תורה',
         "shapeParam": "Tanakh/Torah",
         "linkCountParam": "Torah",
         "talmudAddressed": false,        
     },
     "bavli": {
+        "title": "Talmud",
+        "heTitle": "תלמוד",
         "shapeParam": "Talmud/Bavli",
         "linkCountParam": "Bavli",
         "talmudAddressed": true,
     },
     "yerushalmi": {
+        "title": "Jerusalem Talmud",
+        "heTitle": "תלמוד ירושלמי",
         "shapeParam": "Talmud/Yerushalmi",
         "linkCountParam": "Yerushalmi",
         "talmudAddressed": true,
     },
     "mishnah": {
+        "title": "Mishnah",
+        "heTitle": "משנה",
         "shapeParam": "Mishnah",
         "linkCountParam": "Mishnah",
         "talmudAddressed": false,
     },
     "tosefta": {
+        "title": "Tosefta",
+        "heTitle": "תוספתא",
         "shapeParam": "Tanaitic/Tosefta",
         "linkCountParam": "Tosefta",
         "talmudAddressed": false,
     },
     "midrashRabbah": {
+        "title": "Midrash Rabbah",
+        "heTitle": "מדרש רבה",
         "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
         "linkCountParam": "Midrash Rabbah",
         "talmudAddressed": false,
     },
     "mishnehTorah": {
+        "title": "Mishneh Torah",
+        "heTitle": "משנה תורה",
         "shapeParam": "Halakhah/Mishneh Torah",
         "linkCountParam": "Mishneh Torah",
+        "talmudAddressed": false,
+    },
+    "shulchanArukh": {
+        "title": "Shulcha Arukh",
+        "heTitle": "שולחן ערוך",
+        "shapeParam": "Halakhah/Shulchan Arukh",
+        "linkCountParam": "Shulchan Arukh",
         "talmudAddressed": false,
     },
 };
@@ -183,12 +206,12 @@ function buildFrame() {
       .append("g")
         .attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
 
-    svg.append("svg:desc").text("This SVG displays visually the connections between Talmud and Tanakh that can be found throughout our site");
+    svg.append("svg:desc").text("This SVG displays visually the connections between " + categories[bottomCat].title + " and " + categories[topCat].title + " that can be found throughout our site");
     links = svg.append("g").attr("id","links").attr("display","none");
     plinks = svg.append("g").attr("id","plinks");
 
         // Titles and labels
-    var TopTitle = isEnglish() ? "Connections between Talmud and Tanakh" : 'חיבורים בין התלמוד והתנ"ך';
+    var TopTitle = isEnglish() ? "Connections between " + categories[bottomCat].title + " and " + categories[topCat].title  : 'חיבורים בין ה' + categories[bottomCat].heTitle + ' ו' + categories[topCat].heTitle ;
     svg.append("a")
         .attr("xlink:href", "/explore")
       .append("text")
@@ -198,7 +221,7 @@ function buildFrame() {
         .style("text-anchor", "middle")
         .text(TopTitle);
 
-    var tLabel = isEnglish() ? '(View all Tanakh)' : '(חזרה למבט על כל התנ״ך)';
+    var tLabel = isEnglish() ? '(View all ' + categories[topCat].title + ')' : '(חזרה למבט על כל ה' + categories[topCat].heTitle + ')';
     var topLabel = svg.append("g")
         .attr("id", "top-label")
         .style("display", "none");
@@ -215,7 +238,7 @@ function buildFrame() {
         .datum({"collection": topCat})
         .on("click", recordCloseBook);
 
-    var bLabel = isEnglish() ? '(View all Talmud)' : '(חזרה למבט על כל התלמוד)';
+    var bLabel = isEnglish() ? '(View all ' + categories[bottomCat].title + ')' : '(חזרה למבט על כל ה' + categories[bottomCat].heTitle + ')';
     var bottomLabel = svg.append("g")
         .attr("id", "bottom-label")
         .style("display", "none");
@@ -232,7 +255,7 @@ function buildFrame() {
         .datum({"collection": bottomCat})
         .on("click", recordCloseBook);
 
-    // Tanakh / Talmud color switch
+    // Top / Bottom color switch
     var toggle = svg.append("g")
         .attr("id","toggle")
         .attr("display", "none")
@@ -246,8 +269,8 @@ function buildFrame() {
             .attr("transform", "translate(" + w + "," + (bottomOffsetY + 85) + ")");
     }
 
-    var tanakhSwitchLabel = isEnglish() ? "Tanakh" : 'תנ"ך';
-    var talmudSwitchLabel = isEnglish() ? "Talmud" : 'תלמוד';
+    var topSwitchLabel = isEnglish() ? categories[topCat].title : categories[topCat].heTitle;
+    var bottomSwitchLabel = isEnglish() ? categories[bottomCat].title : categories[bottomCat].heTitle;
     toggle.append("tspan").text(isEnglish() ? "Color by: " : ' צבע לפי ');
     toggle.append("tspan")
             .classed("switch", true)
@@ -256,7 +279,7 @@ function buildFrame() {
             .style("text-decoration", "underline")
             .datum({"collection": topCat})
             .on("click",toggleColor)
-            .text(tanakhSwitchLabel);
+            .text(topSwitchLabel);
     toggle.append("tspan").text(" / ");
     toggle.append("tspan")
             .classed("switch", true)
@@ -264,7 +287,7 @@ function buildFrame() {
             .style("fill", colors("Seder-Zeraim"))
             .datum({"collection": bottomCat})
             .on("click",toggleColor)
-            .text(talmudSwitchLabel);
+            .text(bottomSwitchLabel);
 
 	svg.append("g").attr("class", topCat).attr("id", topCat).classed("collection",true).attr("display","none");
     svg.append("g").attr("class", bottomCat).attr("id", bottomCat).classed("collection",true).attr("display","none");
@@ -383,7 +406,6 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 	var currentLeft = 0; //used for LTR
 	var previousLeft = w + bookSpacer; //used for RTL
 	var totalBookLength = totalBookLengths(books);
-
 	svg.select("#" + klass).selectAll("rect.book").data(books).enter()
 			.append("rect")
                 .attr("id", function (d)  { d.id = toId(d.title); return d.id; })
@@ -560,7 +582,7 @@ function brushstart() {
 }
 
 function brushmove() {
-  //We are assuming that source is Bavli and target is Tanakh
+  //We are assuming that source is bottom and target is top
   svg.selectAll(".preciseLink")
     .classed("selected", function(d) {
 
@@ -732,7 +754,7 @@ function openBook(dFocused) {
 	var previousLeft = w + shrunkBookSpacer; // For RTL
 	var currentLeft = 0;  // For LTR
 
-    var labelId = dBook.collection == "tanakh" ? "top-label" : "bottom-label";
+    var labelId = dBook.collection == topCat ? "top-label" : "bottom-label";
     booksFocused++;
 
     book
@@ -967,7 +989,6 @@ function processPreciseLinks(dBook) {
             .attr("display", "none");
     }
 
-    //var linkCat = dBook.collection == "tanakh" ? "Bavli" : "Tanakh";
     var linkCat = dBook.collection == topCat ?
         categories[bottomCat].linkCountParam :
         categories[topCat].linkCountParam;
@@ -1033,7 +1054,7 @@ function changePageTitle(title) {
 function replaceHistory() {
     var args = _getHistory();
 
-    console.log("replaceHistory",args.object, args.title, args.url);
+    //console.log("replaceHistory",args.object, args.title, args.url);
 
     changePageTitle(args.object.title);
     history.replaceState(args.object, args.argtitle, args.url);
@@ -1044,7 +1065,7 @@ function replaceHistory() {
 function pushHistory() {
     var args = _getHistory();
 
-    console.log("pushHistory",args.object, args.title, args.url);
+    //console.log("pushHistory",args.object, args.title, args.url);
     Sefaria.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
@@ -1097,7 +1118,7 @@ function _getHistory() {
     }
 
     var urlVars = Sefaria.util.getUrlVars();
-    if ("cats") {
+    if ("cats" in urlVars) {
         url += ("?cats=" + urlVars.cats);
     }
 
