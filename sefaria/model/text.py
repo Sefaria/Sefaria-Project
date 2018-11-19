@@ -786,7 +786,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
     def get_primary_category(self):
-        if self.is_dependant_text() and len(self.categories) >= 2:
+        if self.is_dependant_text() and self.dependence.capitalize() in self.categories:
             return self.dependence.capitalize()
         else:
             return self.categories[0]
