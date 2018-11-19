@@ -373,6 +373,16 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 
 
 class ReaderNavigationMenuSavedButton extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      selected: false,
+    };
+  }
+  onClick(e) {
+    this.setState({selected: !this.state.selected})
+    this.props.onClick(e);
+  }
   render() {
     const style = this.props.placeholder ? {visibility: 'hidden'} : {};
     return (
@@ -380,10 +390,13 @@ class ReaderNavigationMenuSavedButton extends Component {
         className="saveButton"
         role="button"
         style={style}
-        onClick={this.props.onClick}
+        onClick={this.onClick}
         onKeyPress={e => {e.charCode == 13 ? this.props.onClick(e):null}}
       >
-          <img src="/static/img/star.png" alt="Save this text" />
+          { this.state.selected ?
+            <img src="/static/img/filled-star.png" alt="Remove from saved texts" /> :
+            <img src="/static/img/star.png" alt="Save this text" />
+          }
       </div>
     );
   }
