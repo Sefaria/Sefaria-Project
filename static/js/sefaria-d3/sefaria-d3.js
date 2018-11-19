@@ -60,7 +60,6 @@ class SD3 {
             for (var i = 0; i < chap_lengths; ++i) {
                 domain.push((i+1).toString());
             }
-            console.log(domain);
             return domain
         }
 

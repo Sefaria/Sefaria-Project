@@ -118,17 +118,25 @@ function switchToHebrew() { lang = "he"; }
 var topBooks = [];
 var bottomBooks = [];
 
-var topCat = "tanakh";
-//var topCat = "torah";
-//var topCat = "mishnah";
-//var topCat = "bavli";
 
-var bottomCat = "bavli";
-//var bottomCat = "mishnah";
-//var bottomCat = "yerushalmi";
-//var bottomCat = "tosefta";
-//var bottomCat = "mishnehTorah";
+var urlVars = Sefaria.util.getUrlVars();
+console.log(urlVars)
 
+if ("cats" in urlVars) {
+    var topCat = urlVars.cats.split("|")[0];
+    var bottomCat = urlVars.cats.split("|")[1];
+} else {
+    var topCat = "tanakh";
+    //var topCat = "torah";
+    //var topCat = "mishnah";
+    //var topCat = "bavli";
+
+    var bottomCat = "bavli";
+    //var bottomCat = "mishnah";
+    //var bottomCat = "yerushalmi
+    //var bottomCat = "tosefta";";
+    //var bottomCat = "mishnehTorah";
+}
 
 var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
 var b = Sefaria.shape(categories[bottomCat].shapeParam, d => bottomBooks = d);
@@ -1025,7 +1033,7 @@ function changePageTitle(title) {
 function replaceHistory() {
     var args = _getHistory();
 
-    //console.log("replaceHistory",args.object, args.title, args.url);
+    console.log("replaceHistory",args.object, args.title, args.url);
 
     changePageTitle(args.object.title);
     history.replaceState(args.object, args.argtitle, args.url);
@@ -1036,7 +1044,7 @@ function replaceHistory() {
 function pushHistory() {
     var args = _getHistory();
 
-    //console.log("pushHistory",args.object, args.title, args.url);
+    console.log("pushHistory",args.object, args.title, args.url);
     Sefaria.track.exploreUrl(args.url);
     changePageTitle(args.object.title);
     history.pushState(args.object, args.argtitle, args.url);
@@ -1086,6 +1094,11 @@ function _getHistory() {
         } else {
             title += " Connections";
         }
+    }
+
+    var urlVars = Sefaria.util.getUrlVars();
+    if ("cats") {
+        url += ("?cats=" + urlVars.cats);
     }
 
     return {
