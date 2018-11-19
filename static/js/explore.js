@@ -682,6 +682,10 @@ function buildBookLinks() {
                 xPosition = d3.mouse(this)[0] - 170;
                 yPosition = d3.mouse(this)[1] - 65;
               }
+              var bbox1 = tooltip.select("#text1").node().getBBox();
+              var bbox2 = tooltip.select("#text2").node().getBBox();
+              var width = bbox1.width > bbox2.width ? bbox1.width : bbox2.width;
+              tooltip.select("rect").attr("width", width + 30); 
               tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
           });
     }
@@ -886,7 +890,6 @@ function closeBook(dCloser) {
             .on("click", recordOpenBook);
 
     svg.selectAll("#" + collectionId + " .book")
-        .filter(isTwelve)
         .on("mouseover.tooltip", function() { bookTooltip.style("display", null); })
         .on("mouseout.tooltip", function() { bookTooltip.style("display", "none"); });
 
@@ -952,6 +955,10 @@ function processPreciseLinks(dBook) {
                         tooltip.select("#text1").text(d["r1"]["loc"] + " " + svg.select("#" + d["r1"]["title"]).datum().heTitle);
                         tooltip.select("#text2").text(svg.select("#" + d["r2"]["title"]).datum().heTitle + " " + d["r2"]["loc"]);
                     }
+                    var bbox1 = tooltip.select("#text1").node().getBBox();
+                    var bbox2 = tooltip.select("#text2").node().getBBox();
+                    var width = bbox1.width > bbox2.width ? bbox1.width : bbox2.width;
+                    tooltip.select("rect").attr("width", width + 30); 
                     tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                 });
 
