@@ -1,19 +1,19 @@
-var d3 = require('d3');
-var Sefaria = require('sefaria');
-var SefariaD3 = require("./sefaria-d3/sefaria-d3");
-var $ = require("./sefaria/sefariaJquery");
+let d3 = require("d3");
+let Sefaria = require('sefaria');
+let SefariaD3 = require("./sefaria-d3/sefaria-d3");
+let $ = require("./sefaria/sefariaJquery");
 
 /*****          Layout              *****/
-var margin = [30, 40, 20, 40];
-var w; // value determined in buildScreen()
-var h = 730 - margin[0] - margin[2];
+let margin = [30, 40, 20, 40];
+let w = 920; // real value determined in buildScreen()
+let h = 730 - margin[0] - margin[2];
 
-var svg;
-var startingRef = "Shabbat 32a:4";
+let svg;
+let startingRef = "Shabbat 32a:4";
 
 
 /*****          Hebrew / English Handling              *****/
-var lang;
+let lang;
 
 function isHebrew() { return lang == "he"; }
 function isEnglish() { return lang == "en"; }
@@ -24,7 +24,6 @@ function switchToHebrew() { lang = "he"; }
 
 /*****          Initial screen construction            *****/
 /*  GLOBALS Defined in template, with attributes:
-        books: List of books loaded initially
         interfaceLang
 */
 
@@ -88,14 +87,14 @@ async function getConcurrentLinks(ref, year) {
 
 async function buildFutureTree(obj) {
     obj.future = await getFutureLinks(obj.ref, getDate(obj));
-    for (link of obj.future) {
+    for (let link of obj.future) {
         await buildFutureTree(link);
     }
 }
 
 async function buildPastTree(obj) {
     obj.past = await getPastLinks(obj.ref, getDate(obj));
-    for (link of obj.past) {
+    for (let link of obj.past) {
         await buildPastTree(link);
     }
 }
@@ -109,7 +108,18 @@ async function buildConcurrentTree(obj) {
     //}
 }
 
-async function buildAllTrees(ref) {
+async function buildRawTrees(ref) {
+    // Returns an object:
+    // {
+    //    ref: ref,
+    //    past: [],
+    //    future: [],
+    //    concurrent: []
+    // }
+    // With each list being a list of ref objects.
+    // "past" refs may have a "past" attributes with a list of refs, and recursing
+    // "future" refs may have a "future" attribute with a list of refs, and recursing
+
     let obj = {ref: ref};
     let a = buildFutureTree(obj);
     let b = buildPastTree(obj);
@@ -119,6 +129,35 @@ async function buildAllTrees(ref) {
     await c;
     return obj;
 }
+
+function buildHierarchies(trees) {
+    // Do we end up with a file of future data on the past tree, and vice versa?
+
+    trees.pastHierarchy = d3.hierarchy(trees, d => d["past"]);
+    trees.futureHierarchy = d3.hierarchy(trees, d => d["future"]);
+    return trees;
+
+    // Get the date ranges
+    // p.earliestDate = 2000;
+    // f.latestDate = -2000;
+    // p.each(d => {p.earliestDate = getDate(d.data) < p.earliestDate ? getDate(d.data) : p.earliestDate});
+    // f.each(d => {f.latestDate = getDate(d.data) > f.latestDate ? getDate(d.data) : f.latestDate});
+
+
+}
+
+
+
+/*****         Draw Tree                                *****/
+
+buildScreen();
+buildAxis();
+buildRawTrees(startingRef)
+    .then(buildHierarchies);
+
+
+
+
 
 
 /*****         Methods used in screen construction      *****/
@@ -140,17 +179,28 @@ function buildFrame() {
     svg.append("svg:desc").text("This SVG displays visually ...");
 
         // Titles and labels
-    var TopTitle = isEnglish() ? "Connections ..." : 'חיבורים ...';
+    let TopTitle = isEnglish() ? "Influence over Time" : 'השפעה לאורך זמן';
     svg.append("a")
         .attr("xlink:href", "/visualize/timeline")
       .append("text")
         .attr("id","page-title")
         .attr("x", w/2)
-        .attr("y", 16)
+        .attr("y", 46)
         .style("text-anchor", "middle")
         .text(TopTitle);
 }
 
+function buildAxis(trees) {
+    // Set up the timescale
+    let timeScale = d3.scaleLinear()
+        .domain([-1500, 2050])
+        .range([0, w]);
+
+    let axis = d3.axisTop(timeScale);
+    svg.append("g")
+        .attr("transform", "translate(0,80)")
+        .call(axis);
+}
 
 /*****     Listeners to handle popstate and to rebuild on screen resize     *****/
 
