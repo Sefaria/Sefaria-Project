@@ -39,6 +39,7 @@ class TextRange extends Component {
           nextProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           nextProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           nextProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
+          nextProps.settings.vowels !== this.props.settings.vowels ||
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
