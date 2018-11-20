@@ -114,6 +114,27 @@ class UserProfile(object):
 				if k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == []:
 					self.__dict__[k] = v
 
+	def add_saved(saved_items):
+		"""
+		:param saved_items: list of saved items to add to self.saved
+		"""
+		# validate
+		required_fields = ["ref", "heRef", "category"]
+		optional_fields = ["versionTitle", "heVersionTitle"]
+		all_fields = required_fields + optional_fields
+		assert isinstance(saved_items, list)
+		for saved in saved_items:
+			assert isinstance(saved, dict)
+			for r in required_fields:
+				assert r in saved
+			for k, v in saved.items():
+				assert k in all_fields
+		self.saved += saved_items
+		d = self.to_DICT()
+		if self._id:
+			d["_id"] = self._id
+		db.profiles.save(d)
+
 	def save(self):
 		"""
 		Save profile to DB, updated Django User object if needed

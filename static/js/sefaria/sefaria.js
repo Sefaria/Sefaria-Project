@@ -1384,6 +1384,22 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
+  saveSavedItem: savedItem => {
+    return new Promise((resolve, reject)) => {
+      if (Sefaria._uid) {
+        $.post(`${Sefaria.apiHost}/api/profile/saved`,
+          { savedItems: JSON.stringify([savedItem])}
+        ).done(response => {
+          Sefaria.saved.unshift(savedItem);
+          resolve(response);
+        }).fail((jqXHR, textStatus, errorThrown) => {
+          reject(errorThrown);
+        })
+      } else {
+        reject('notSignedIn');
+      }
+    }
+  },
   saveRecentItem: function(recentItem) {
     var recent = Sefaria.recentlyViewed;
     if (recent.length && recent[0].ref == recentItem.ref) { return; }

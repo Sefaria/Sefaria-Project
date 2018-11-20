@@ -2844,6 +2844,28 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@catch_error_as_json
+def profile_saved_api(request):
+    """
+    API for adding a saved item to profile
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
+    if request.method == "POST":
+        saved_items_str = request.POST.get("savedItems", None)
+        if not saved_items_str:
+            return jsonResponse({"error": "Must include `savedItems` field"})
+        saved_items = json.loads(saved_items_str)
+        profile = UserProfile(id=request.user.id)
+        try:
+            profile.add_saved(saved_items)
+        except AssertionError as e:
+            return jsonResponse({"error": repr(e)})
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def profile_redirect(request, uid, page=1):
     """"
     Redirect to the profile of the logged in user.
