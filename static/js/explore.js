@@ -85,6 +85,7 @@ var categories = {
         "shapeParam": "Halakhah/Mishneh Torah",
         "linkCountParam": "Mishneh Torah",
         "talmudAddressed": false,
+        "labelBySection": true,
     },
     "shulchanArukh": {
         "title": "Shulcha Arukh",
@@ -143,7 +144,6 @@ var bottomBooks = [];
 
 
 var urlVars = Sefaria.util.getUrlVars();
-console.log(urlVars)
 
 if ("cats" in urlVars) {
     var topCat = urlVars.cats.split("|")[0];
@@ -451,7 +451,12 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 
 function buildBookLabels(bks, klass, position) {
 
-    //debugger;
+    var cat = position == "top" ? topCat : bottomCat;
+    
+    if (categories[cat].labelBySection) {
+        buildBookLabelsBySection(bks, klass, position);
+        return;
+    }
 
     var anchor = "start";
     var offset = 0;
@@ -506,6 +511,57 @@ function buildBookLabels(bks, klass, position) {
         }
     }
 }
+
+function buildBookLabelsBySection(bks, klass, position) {
+
+    var anchor = "start";
+    var offset = 0;
+    var dx = "-.8em";
+    var dy = "-.8em";
+
+    if (position == "bottom") {
+        anchor = "end";
+        offset = bookHeight * 2;
+        dx = "0";
+        dy = "0";
+    }
+
+    var prevSection = null;
+    var sections = [];
+    for (var i = 0; i < bks.length; i++) {
+        if (prevSection != bks[i].section) {
+            sections.push({section: bks[i].section, firstId: toId(bks[i].title)});
+        }
+        sections[sections.length-1].lastId = toId(bks[i].title);
+        prevSection = bks[i].section;
+    }
+
+    svg.select("#" + klass)
+        .selectAll("text.title").data(sections).enter()
+            .append("text")
+                .attr("class", function(d) { return "title " + toId(d["section"])} )
+                .text(function(d) {
+                        return isEnglish() ? d["section"] : Sefaria.terms[d["section"]].he;
+                    })
+                .style("text-anchor", anchor)
+                .attr("fill", function(d) { return colors(toId(d["section"])); })
+                .attr("x", function(d) {
+                    var firstX = Number(svg.select("#" + d["firstId"]).attr("cx"));
+                    var lastX = Number(svg.select("#" + d["lastId"]).attr("cx"))
+                    return isEnglish() ? firstX + (lastX-firstX)/2 :
+                        lastX + (firstX-lastX)/2;
+                })
+                .attr("y", function(d) {
+                    return Number(svg.select("#" + d["firstId"]).attr("y")) + offset
+                })
+                .attr("dx", dx)
+                .attr("dy", dy)
+                .attr("transform", function(d) {
+                    return "rotate(-35, " + this.getAttribute("x") + "," + this.getAttribute("y") + ")";
+                });
+}
+
+
 
 function addAxis(d) {
     var type = d.collection;
