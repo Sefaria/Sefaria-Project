@@ -87,6 +87,7 @@ async function getConcurrentLinks(ref, year) {
 
 async function buildFutureTree(obj) {
     obj.future = await getFutureLinks(obj.ref, getDate(obj));
+    obj.past = await getPastLinks(obj.ref, getDate(obj)); // For secondary links
     for (let link of obj.future) {
         await buildFutureTree(link);
     }
@@ -94,6 +95,7 @@ async function buildFutureTree(obj) {
 
 async function buildPastTree(obj) {
     obj.past = await getPastLinks(obj.ref, getDate(obj));
+    obj.future = await getFutureLinks(obj.ref, getDate(obj));  // For secondary links
     for (let link of obj.past) {
         await buildPastTree(link);
     }
@@ -130,18 +132,69 @@ async function buildRawTrees(ref) {
     return obj;
 }
 
-function buildHierarchies(trees) {
-    // Do we end up with a file of future data on the past tree, and vice versa?
+function buildNetwork(trees) {
+    // Do we end up with a pile of future data on the past tree, and vice versa?
+
+    trees.additionalLinks = [];  // List of pairs: [early ref, later ref]
+    trees.refLookup = {};
+    trees.refLookup[trees.ref] = trees;
+
+    // Walk the past tree
+    //   Build up a dict of nodes in the space
+    //   Remove any duplicate nodes, and add that connection to additionalLinks
+    function trimPast(node) {
+        if (!node.past) return;
+        node.past.forEach((e,i,a) => {
+            if (e.ref in trees.refLookup) {
+                trees.additionalLinks.push([e.ref, node.ref]);
+                delete a[i];
+            } else {
+                trees.refLookup[e.ref] = e;
+            }
+        });
+        node.past = node.past.filter(a => a);
+        node.past.forEach(trimPast);
+    }
+    // As above, with future tree
+    function trimFuture(node) {
+        if (!node.future) return;
+        node.future.forEach((e,i,a) => {
+            if (e.ref in trees.refLookup) {
+                trees.additionalLinks.push([node.ref, e.ref]);
+                delete a[i];
+            } else {
+                trees.refLookup[e.ref] = e;
+            }
+        });
+        node.future = node.future.filter(a => a);
+        node.future.forEach(trimFuture);
+    }
+
+    // Walk the past tree, looking at future pointing links.
+    //   Add any connection to additionalLinks
+    //   (Shouldn't need to do this in both directions)
+    function addAdditionalLinks(node)  {
+        if (!node.past) return;
+        node.past.forEach((e,i,a) => {
+            e.future.forEach(f => {
+                if (f.ref in trees.refLookup) {
+                    trees.additionalLinks.push([e.ref, f.ref]);
+                }
+            });
+        });
+        node.past.forEach(addAdditionalLinks);
+    }
+
+    trimPast(trees);
+    trimFuture(trees);
+    addAdditionalLinks(trees);
+
 
     trees.pastHierarchy = d3.hierarchy(trees, d => d["past"]);
     trees.futureHierarchy = d3.hierarchy(trees, d => d["future"]);
-    return trees;
 
-    // Get the date ranges
-    // p.earliestDate = 2000;
-    // f.latestDate = -2000;
-    // p.each(d => {p.earliestDate = getDate(d.data) < p.earliestDate ? getDate(d.data) : p.earliestDate});
-    // f.each(d => {f.latestDate = getDate(d.data) > f.latestDate ? getDate(d.data) : f.latestDate});
+
+    return trees;
 
 
 }
@@ -153,7 +206,8 @@ function buildHierarchies(trees) {
 buildScreen();
 buildAxis();
 buildRawTrees(startingRef)
-    .then(buildHierarchies);
+    .then(buildNetwork)
+    .then(console.log);
 
 
 
