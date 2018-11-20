@@ -193,7 +193,7 @@ class ReaderPanel extends Component {
           this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
         }
         else {
-          this.props.onSegmentClick("Sheet " + this.state.sheet.id+"."+source.node, source.node)
+          this.props.onSegmentClick("Sheet " + this.state.sheet.id+":"+source.node, source.node)
         }
       } else {
           if (source.ref) {
@@ -1008,7 +1008,7 @@ class ReaderControls extends Component {
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
-      this.state.runningQuery.abort();
+      this.state.runningQuery.abort();  //todo: make work with promises
     }
   }
   render() {
