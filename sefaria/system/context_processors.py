@@ -109,6 +109,7 @@ def user_and_notifications(request):
     if request.path == "/texts":
         return {
             "recentlyViewed": profile.recentlyViewed,
+            "saved": profile.saved,
         }
 
     notifications = profile.recent_notifications()
@@ -124,6 +125,7 @@ def user_and_notifications(request):
         "notifications_html": notifications.to_HTML(),
         "notifications_count": profile.unread_notification_count(),
         "recentlyViewed": profile.recentlyViewed,
+        "saved": profile.saved,
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
         "partner_role": profile.partner_role,

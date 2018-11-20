@@ -49,6 +49,7 @@ class UserProfile(object):
 		self.id                    = id    # user ID
 		self.slug                  = ""
 		self.recentlyViewed        = []
+		self.saved                 = []
 		self.position              = ""
 		self.organization          = ""
 		self.jewish_education      = []
@@ -238,6 +239,7 @@ class UserProfile(object):
 			"id":                    self.id,
 			"slug":                  self.slug,
 			"recentlyViewed":        self.recentlyViewed,
+            "saved":                 self.saved,
 			"position":              self.position,
 			"organization":          self.organization,
 			"jewish_education":      self.jewish_education,
