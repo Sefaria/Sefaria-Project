@@ -2178,7 +2178,7 @@ def get_name_completions(name, limit, ref_only):
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
-        d["completions"] = list(OrderedDict.fromkeys(t))  # filter out dupes
+        completions = list(OrderedDict.fromkeys(t))  # filter out dupes
     except InputError:
         completions = completer.complete(name, limit)
         object_data = completer.get_data(name)

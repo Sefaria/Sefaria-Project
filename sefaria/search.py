@@ -519,10 +519,21 @@ class TextIndexer(object):
                 vcount += 1
             bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
 
-
     @classmethod
-    def index_version(cls, version):
-        version.walk_thru_contents(cls._cache_action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
+    def index_version(cls, version, tries=0):
+        try:
+            version.walk_thru_contents(cls._cache_action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
+        except pymongo.errors.AutoReconnect as e:
+            # Adding this because there is a mongo call for dictionary words in walk_thru_contents()
+            if tries < 200:
+                pytime.sleep(5)
+                print u"Retrying {}. Try {}".format(version.title, tries)
+                cls.index_version(version, tries+1)
+            else:
+                print u"Tried {} times to get {}. I have failed you...".format(tries, version.title)
+                raise e
+        except StopIteration:
+            print u"Could not find dictionary node in {}".format(version.title)
 
     @classmethod
     def index_ref(cls, index_name, oref, version_title, lang, merged):
