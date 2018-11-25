@@ -8,9 +8,12 @@ let margin = [30, 40, 20, 40];
 let w = 920; // real value determined in buildScreen()
 let h = 730 - margin[0] - margin[2];
 
-let svg;
-let startingRef = "Shabbat 32a:4";
+let svg, timeScale, s, t;
 
+const urlParams = new URLSearchParams(window.location.search);
+let startingRef = urlParams.get('ref');
+startingRef = startingRef || "Shabbat 32a:4";
+console.log(startingRef);
 
 /*****          Hebrew / English Handling              *****/
 let lang;
@@ -123,6 +126,9 @@ async function buildRawTrees(ref) {
     // "future" refs may have a "future" attribute with a list of refs, and recursing
 
     let obj = {ref: ref};
+    let i = await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index);
+    obj.compDate = i.compDate;
+    obj.errorMargin = i.errorMargin;
     let a = buildFutureTree(obj);
     let b = buildPastTree(obj);
     let c = buildConcurrentTree(obj);
@@ -189,14 +195,121 @@ function buildNetwork(trees) {
     trimFuture(trees);
     addAdditionalLinks(trees);
 
-
     trees.pastHierarchy = d3.hierarchy(trees, d => d["past"]);
     trees.futureHierarchy = d3.hierarchy(trees, d => d["future"]);
 
+    return trees;
+}
+
+function layoutTrees(trees) {
+
+    let lh = h - 100; //we translate down 100 when rendering.
+
+    let pt = d3.tree().size([w/2, lh])(trees.pastHierarchy);
+    let ft = d3.tree().size([w/2, lh])(trees.futureHierarchy);
+    // Reset x according to date
+    pt.each(n => {n.y = s(n.data)});
+    ft.each(n => {n.y = s(n.data)});
+
+    // Reset root y to center;
+    pt.y = s(pt.data);
+   ft.y = s(ft.data);
+    pt.x = lh/2;
+    ft.x = lh/2;
+
+    pt.each(n => {trees.refLookup[n.data.ref] = n});
+    ft.each(n => {trees.refLookup[n.data.ref] = n});
+    trees.refLookup[pt.ref] = pt;
+
+    trees.pastTree = pt;
+    trees.futureTree = ft;
+    trees.placedLinks = trees.additionalLinks.map(ls => ({
+            source: trees.refLookup[ls[0]],
+            target: trees.refLookup[ls[1]]
+        }));
 
     return trees;
+}
 
+function renderTrees(trees) {
+    const g = svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+      .attr("transform", `translate(0,100)`);
 
+  const link = g.append("g")
+    .attr("fill", "none")
+    .attr("stroke", "#555")
+    .attr("stroke-opacity", 0.4)
+    .attr("stroke-width", 1.5);
+
+  link.selectAll("path.past")
+    .data(trees.pastTree.links())
+    .enter().append("path")
+      .attr("class", "past")
+      .attr("d", d3.linkHorizontal()
+          .x(d => d.y)
+          .y(d => d.x));
+
+  link.selectAll("path.future")
+    .data(trees.futureTree.links())
+    .enter().append("path")
+      .attr("class", "future")
+      .attr("d", d3.linkHorizontal()
+          .x(d => d.y)
+          .y(d => d.x));
+
+  link.selectAll("path.additional")
+    .data(trees.placedLinks)
+    .enter().append("path")
+      .attr("class", "additional")
+      .attr("d", d3.linkHorizontal()
+          .x(d => d.y)
+          .y(d => d.x));
+
+  const futurenode = g.append("g")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-width", 3)
+    .selectAll("g.future")
+    .data(trees.futureTree.descendants().reverse())
+    .enter().append("g")
+      .attr("class", "future")
+      .attr("transform", d => `translate(${d.y},${d.x})`);
+
+    futurenode.append("circle")
+      .attr("fill", d => d.children ? "#555" : "#999")
+      .attr("r", 2.5);
+
+    futurenode.append("text")
+      .attr("dy", "0.31em")
+      .attr("x", d => d.children ? -6 : 6)
+      .attr("text-anchor", d => d.children ? "end" : "start")
+      .text(d => d.data.ref)
+    .clone(true).lower()
+      .attr("stroke", "white");
+
+  const pastnode = g.append("g")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-width", 3)
+    .selectAll("g.future")
+    .data(trees.pastTree.descendants().reverse())
+    .enter().append("g")
+      .attr("class", "past")
+      .attr("transform", d => `translate(${d.y},${d.x})`);
+
+    pastnode.append("circle")
+      .attr("fill", d => d.children ? "#555" : "#999")
+      .attr("r", 2.5);
+
+    pastnode.append("text")
+      .attr("dy", "0.31em")
+      .attr("x", d => d.children ? -6 : 6)
+      .attr("text-anchor", d => d.children ? "end" : "start")
+      .text(d => d.data.ref)
+    .clone(true).lower()
+      .attr("stroke", "white");
+
+  return trees;
 }
 
 
@@ -204,13 +317,6 @@ function buildNetwork(trees) {
 /*****         Draw Tree                                *****/
 
 buildScreen();
-buildAxis();
-buildRawTrees(startingRef)
-    .then(buildNetwork)
-    .then(console.log);
-
-
-
 
 
 
@@ -218,8 +324,17 @@ buildRawTrees(startingRef)
 
 function buildScreen() {
     buildFrame();
+    curryAndRenderData();
 }
 
+
+function curryAndRenderData() {
+    buildRawTrees(startingRef)
+        .then(buildNetwork)
+        .then(layoutTrees)
+        .then(renderTrees)
+        .then(console.log);
+}
 
 //Build objects that are present for any starting state
 function buildFrame() {
@@ -242,19 +357,18 @@ function buildFrame() {
         .attr("y", 46)
         .style("text-anchor", "middle")
         .text(TopTitle);
-}
 
-function buildAxis(trees) {
-    // Set up the timescale
-    let timeScale = d3.scaleLinear()
-        .domain([-1500, 2050])
-        .range([0, w]);
+    timeScale = d3.scaleLinear()
+    .domain([-1500, 2050])
+    .range([0, w]);
+    s = n => timeScale(getDate(n));
 
     let axis = d3.axisTop(timeScale);
     svg.append("g")
         .attr("transform", "translate(0,80)")
         .call(axis);
 }
+
 
 /*****     Listeners to handle popstate and to rebuild on screen resize     *****/
 
@@ -282,7 +396,6 @@ function handleStateChange(event) {
 
 //Rebuild screen geometry, without state change
 function rebuildScreen() {
-
     d3.selectAll("svg").remove();
     buildScreen();
 }
