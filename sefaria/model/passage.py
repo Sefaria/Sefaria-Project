@@ -22,7 +22,7 @@ class Passage(abst.AbstractMongoRecord):
 
     def _normalize(self):
         super(Passage, self)._normalize()
-        self.refList = [r.normal for r in self.ref().range_list()]
+        self.refList = [r.normal() for r in self.ref().range_list()]
         if type == "Mishnah":
             pass
             # Look up mishnah-in-talmud links for this mishnah, get the Mishnah location and put in sameAs
