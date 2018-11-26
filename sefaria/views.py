@@ -275,6 +275,34 @@ def bulktext_api(request, refs):
         return resp
 
 
+def passages_api(request, refs):
+    """
+    Returns a dictionary, mapping the refs in the request to the sugya that they're a part of.
+
+    :param request:
+    :param refs:
+    :return:
+    """
+    if request.method == "GET":
+        response = {}
+        cb = request.GET.get("callback", None)
+        refs = set(refs.split("|"))
+
+        for tref in refs:
+            try:
+                oref = Ref(tref)
+                p = Passage().load({"ref_list": oref.normal()})
+                if p:
+                    response[tref] = p.full_ref
+                else:
+                    response[tref] = oref.normal()
+            except InputError:
+                response[tref] = tref  # is this the best thing to do?  It passes junk along...
+
+        resp = jsonResponse(response, cb)
+        return resp
+
+
 @login_required
 def file_upload(request, resize_image=True):
     from PIL import Image
