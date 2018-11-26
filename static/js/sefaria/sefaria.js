@@ -1425,6 +1425,15 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
+  getPassages: function(refs) {
+      // refs: list of ref strings
+      // resolves to dictionary mapping ref to sugya ref
+    return new Promise((resolve, reject) => {
+        let url = Sefaria.apiHost + "/api/passages/" + refs.join("|");
+        let p = this._promiseAPI(url);
+        resolve(p);
+    });
+  },
   saveRecentItem: function(recentItem) {
     var recent = Sefaria.recentlyViewed;
     if (recent.length && recent[0].ref == recentItem.ref) { return; }
