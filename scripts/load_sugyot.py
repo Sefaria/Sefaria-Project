@@ -17,4 +17,4 @@ for f in os.listdir("../data/sugyot"):
             sugyot.next()
             for row in sugyot:
                 (ref,type) = row
-                Passage({"fullRef":ref, "type":type}).save()
+                Passage({"full_ref":ref, "type":type}).save()
