@@ -1,7 +1,7 @@
 var extend     = require('extend'),
     param      = require('querystring').stringify,
     striptags  = require('striptags'),
-    { Search } = require('./search'),
+    Search     = require('./search'),
     palette    = require('./palette'),
     Track      = require('./track'),
     Hebrew     = require('./hebrew'),
