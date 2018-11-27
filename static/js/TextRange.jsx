@@ -318,6 +318,8 @@ class TextRange extends Component {
                 <TextSegment
 
             sref={segment.ref}
+            enLangCode={this.props.currVersions.en && this.props.currVersions.en.match(/.+\[([a-z][a-z])\]$/g) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.en)[1] : 'en'}
+            heLangCode={this.props.currVersions.he && this.props.currVersions.he.match(/.+\[([a-z][a-z])\]$/g) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.he)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
@@ -546,8 +548,8 @@ class TextSegment extends Component {
       <div tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <p className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
-        <p className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
+        <p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
+        <p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
         <div className="clearFix"></div>
       </div>
     );
