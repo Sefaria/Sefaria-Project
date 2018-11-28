@@ -547,7 +547,7 @@ class TreeNode(object):
         return new_node
 
     def all_children(self):
-        return self.traverse_to_list(lambda n, i: [n])[1:]
+        return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
 
     def get_leaf_nodes_to_depth(self, max_depth = None):
         """
@@ -793,8 +793,10 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     def __str__(self):
         return self.full_title("en")
 
-    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + self.full_title("en") + "')"
+    def __repr__(self):
+        # Wanted to use orig_tref, but repr can not include Unicode
+        # add `repr` around `full_title()` in case there's unicode in the output
+        return self.__class__.__name__ + "(" + repr(self.full_title("en")) + ")"
 
 
 """
@@ -1384,6 +1386,7 @@ class VirtualNode(TitledTreeNode):
         """
         super(VirtualNode, self).__init__(serial, **kwargs)
         self.index = kwargs.get("index", None)
+        self._all_children = None  # pulling up all children for a vnode is potentially very expensive. keep them in cache
 
     def _init_defaults(self):
         super(VirtualNode, self)._init_defaults()
@@ -1577,9 +1580,16 @@ class DictionaryNode(VirtualNode):
             return None
 
     def all_children(self):
-        lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
-        for lexicon_entry in lexicon_entry_set:
-            yield self.entry_class(self, lexicon_entry=lexicon_entry)
+        if self._all_children is None:
+            self._all_children = []
+            lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
+            for lexicon_entry in lexicon_entry_set:
+                child = self.entry_class(self, lexicon_entry=lexicon_entry)
+                self._all_children += [child]
+                yield child
+        else:
+            for c in self._all_children:
+                yield c
 
     def serialize(self, **kwargs):
         """

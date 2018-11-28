@@ -1103,7 +1103,7 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
 
                 if is_virtual_node:
                     curr_ref = Ref(tref)
-                    vnode = next(x for x in curr_ref.index_node.all_children() if x.nodeType == n.get(u"nodeType", u"") and x.firstWord == n[u"firstWord"])
+                    vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == n.get(u"nodeType", u"") and x.firstWord == n[u"firstWord"])
                     for vchild in vnode.all_children():
                         vstring = u" ".join(vchild.get_text())
                         vref = vchild.ref()
@@ -3646,13 +3646,13 @@ class Ref(object):
         try:
             base = library.category_id_dict()[key]
             if self.index.is_complex():
-                base += format(self.index.nodes.get_child_order(self.index_node), '03')
-            res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
+                base += unicode(format(self.index.nodes.get_child_order(self.index_node), '03'))
+            res = reduce(lambda x, y: x + unicode(format(y, '04')), self.sections, base)
             if self.is_range():
-                res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
+                res = reduce(lambda x, y: x + unicode(format(y, '04')), self.toSections, res + u"-")
             return res
         except Exception as e:
-            logger.warning("Failed to execute order_id for {} : {}".format(self, e))
+            logger.warning(u"Failed to execute order_id for {} : {}".format(self, e))
             return "Z"
 
     """ Methods for working with Versions and VersionSets """

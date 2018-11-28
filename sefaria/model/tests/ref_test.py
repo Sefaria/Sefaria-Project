@@ -860,6 +860,7 @@ class Test_set_construction_from_ref(object):
 
 class Test_Order_Id(object):
     def test_order_id_processes(self):
+        assert Ref(u"Klein Dictionary, א").order_id()
         assert Ref("Shabbat 17b").order_id()
         assert Ref("Job 15:13").order_id()
         assert Ref("Shabbat 12a:14").order_id()
@@ -873,6 +874,15 @@ class Test_Order_Id(object):
 
     def test_ordering_of_complex_texts(self):
         assert Ref("Meshech Hochma, Vaera 2").order_id() > Ref("Meshech Hochma, Shemot 6").order_id()
+
+    def test_ordering_of_dictionary(self):
+        i = library.get_index("Klein Dictionary")
+        children = i.nodes.all_children()
+        first = children[0].ref().order_id()
+        second = children[1].ref().order_id()
+        last = children[-1].ref().order_id()
+        assert first < second
+        assert second < last
 
 '''
 class Test_ref_manipulations():
