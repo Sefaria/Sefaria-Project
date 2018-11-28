@@ -38,7 +38,7 @@ function switchToHebrew() { lang = "he"; }
 
 let getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
 
-let _partitionedLinks = {}; // ref: [past, future, concurrent]
+let _partitionedLinks = {}; // cache.  ref: [past, future, concurrent]
 async function getPartitionedLinks(ref, year) {
     // ref: String (required)
     // year: Integer (optional.  derived from ref if not provided.)
@@ -49,11 +49,30 @@ async function getPartitionedLinks(ref, year) {
     let refYear = (year != null) ? year : await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index).then(getDate);
     if ((!refYear) && (refYear !== 0)) throw "No date for " + ref; 
 
-    let links = await Sefaria.getLinks(ref);
+    let links = await Sefaria.getLinks(ref).then(refineLinks);
 
     let partionedLinks = partitionLinks(links, refYear);
     _partitionedLinks[ref] = partionedLinks;
     return partionedLinks;
+}
+
+async function refineLinks(alllinks) {
+    // Remove items that we never want to show
+    const mainlinks = alllinks.filter(l => l.category !== "Reference");
+
+    // Expand links to include full passages
+    const refs = mainlinks.filter(l => l.category === "Talmud").map(l => l.ref);
+    if (refs.length) {
+        const passageRefs = await Sefaria.getPassages(refs);
+        mainlinks.forEach(l => {
+            l.ref = passageRefs[l.ref] || l.ref
+        }); // Most of these will stay the same.
+    }
+
+    // Bundle later commentary
+    // todo
+
+    return mainlinks
 }
 
 function partitionLinks(links, year) {
@@ -90,7 +109,6 @@ async function getConcurrentLinks(ref, year) {
 
 async function buildFutureTree(obj) {
     obj.future = await getFutureLinks(obj.ref, getDate(obj));
-    obj.past = await getPastLinks(obj.ref, getDate(obj)); // For secondary links
     for (let link of obj.future) {
         await buildFutureTree(link);
     }
@@ -129,6 +147,7 @@ async function buildRawTrees(ref) {
     let i = await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index);
     obj.compDate = i.compDate;
     obj.errorMargin = i.errorMargin;
+    obj.category = i.category;
     let a = buildFutureTree(obj);
     let b = buildPastTree(obj);
     let c = buildConcurrentTree(obj);
@@ -136,6 +155,11 @@ async function buildRawTrees(ref) {
     await b;
     await c;
     return obj;
+}
+
+async function getPassage(ref) {
+    let res = await Sefaria.getPassages([ref]);
+    return res[ref];
 }
 
 function buildNetwork(trees) {
@@ -208,17 +232,17 @@ function layoutTrees(trees) {
     let pt = d3.tree().size([w/2, lh])(trees.pastHierarchy);
     let ft = d3.tree().size([w/2, lh])(trees.futureHierarchy);
     // Reset x according to date
-    pt.each(n => {n.y = s(n.data)});
-    ft.each(n => {n.y = s(n.data)});
+    pt.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); trees.refLookup[n.data.ref] = n; });
+    ft.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); trees.refLookup[n.data.ref] = n; });
 
     // Reset root y to center;
     pt.y = s(pt.data);
-   ft.y = s(ft.data);
+    ft.y = s(ft.data);
     pt.x = lh/2;
     ft.x = lh/2;
+    pt.color = Sefaria.palette.categoryColor(pt.data.category);
+    ft.color = Sefaria.palette.categoryColor(ft.data.category);
 
-    pt.each(n => {trees.refLookup[n.data.ref] = n});
-    ft.each(n => {trees.refLookup[n.data.ref] = n});
     trees.refLookup[pt.ref] = pt;
 
     trees.pastTree = pt;
@@ -232,6 +256,7 @@ function layoutTrees(trees) {
 }
 
 function renderTrees(trees) {
+    // debugger;
     const g = svg.append("g")
       .attr("font-family", "sans-serif")
       .attr("font-size", 10)
@@ -239,7 +264,6 @@ function renderTrees(trees) {
 
   const link = g.append("g")
     .attr("fill", "none")
-    .attr("stroke", "#555")
     .attr("stroke-opacity", 0.4)
     .attr("stroke-width", 1.5);
 
@@ -247,6 +271,7 @@ function renderTrees(trees) {
     .data(trees.pastTree.links())
     .enter().append("path")
       .attr("class", "past")
+      .attr("stroke", d => d.source.color)
       .attr("d", d3.linkHorizontal()
           .x(d => d.y)
           .y(d => d.x));
@@ -255,6 +280,7 @@ function renderTrees(trees) {
     .data(trees.futureTree.links())
     .enter().append("path")
       .attr("class", "future")
+      .attr("stroke", d => d.target.color)
       .attr("d", d3.linkHorizontal()
           .x(d => d.y)
           .y(d => d.x));
@@ -263,6 +289,7 @@ function renderTrees(trees) {
     .data(trees.placedLinks)
     .enter().append("path")
       .attr("class", "additional")
+      .attr("stroke", d => d.target.color)
       .attr("d", d3.linkHorizontal()
           .x(d => d.y)
           .y(d => d.x));
@@ -329,7 +356,8 @@ function buildScreen() {
 
 
 function curryAndRenderData() {
-    buildRawTrees(startingRef)
+    getPassage(startingRef)
+        .then(buildRawTrees)
         .then(buildNetwork)
         .then(layoutTrees)
         .then(renderTrees)

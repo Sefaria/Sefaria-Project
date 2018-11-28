@@ -288,6 +288,7 @@ def passages_api(request, refs):
         cb = request.GET.get("callback", None)
         refs = set(refs.split("|"))
 
+        # todo: Use PassageSet, so that it can be packaged as one query
         for tref in refs:
             try:
                 oref = Ref(tref)
