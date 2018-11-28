@@ -1467,6 +1467,12 @@ class DictionaryEntryNode(TitledTreeNode):
         if not self.word or not self.has_word_match:
             raise DictionaryEntryNotFound("Word not found in {}".format(self.parent.full_title()), self.parent.lexiconName, self.parent.full_title(), self.word)
 
+    def __eq__(self, other):
+        return self.address() == other.address()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def has_numeric_continuation(self):
         return True
 
