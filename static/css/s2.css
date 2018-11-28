@@ -5529,6 +5529,10 @@ span.purim-emoji img{
   display: block;
 }
 
+.sourceContentText.centeredSheetContent {
+  text-align: center;
+}
+
 .sheetContent .sheetItem.segment .sourceContentText p:last-child,
 .sheetContent .sheetItem.segment .sourceContentText p:last-child {
   margin-bottom: 0;

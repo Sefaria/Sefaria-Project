@@ -153,7 +153,7 @@ TopicPage.propTypes = {
 
 class TopicSource extends Component {
   render() {
-    var openSource = this.props.showBaseText.bind(null, this.props.sref);
+    //var openSource = this.props.showBaseText.bind(null, this.props.sref); THIS WAS CAUSING A BUG
     var openSourceWithSheets = null; //this.props.showBaseText.bind(null, this.props.sref, true, null, null, ["Sheets"])
     var title = this.props.count + " Sheets tagged " + this.props.topic + " include this source."
     var buttons = <a
@@ -166,7 +166,7 @@ class TopicSource extends Component {
               <TextRange
                 sref={this.props.sref}
                 titleButtons={buttons}
-                onRangeClick={openSource} />
+                onRangeClick={this.props.showBaseText} />
             </div>);  }
 }
 TopicSource.propTypes = {

@@ -14,7 +14,7 @@ except ImportError:
 import regex
 from . import abstract as abst
 from sefaria.system.database import db
-
+from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
 
@@ -1414,7 +1414,7 @@ class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
     supported_languages = ["en"]
 
-    def __init__(self, parent, title=None, tref=None, word=None):
+    def __init__(self, parent, title=None, tref=None, word=None, lexicon_entry=None):
         """
         A schema node created on the fly, in memory, to correspond to a dictionary entry.
         Created by a DictionaryNode object.
@@ -1423,6 +1423,7 @@ class DictionaryEntryNode(TitledTreeNode):
         :param title:
         :param tref:
         :param word:
+        :param lexicon_entry: LexiconEntry. if you pass this param and dont pass title, tref or word, then this will bootstrap the DictionaryEntryNode and avoid an extra mongo call
         """
         if title and tref:
             self.title = title
@@ -1431,6 +1432,10 @@ class DictionaryEntryNode(TitledTreeNode):
             self.word = self._match.group(1) or ""
         elif word:
             self.word = word
+        elif lexicon_entry:
+            self.lexicon_entry = lexicon_entry
+            self.has_word_match = bool(self.lexicon_entry)
+            self.word = self.lexicon_entry.headword
 
         super(DictionaryEntryNode, self).__init__({
             "titles": [{
@@ -1570,6 +1575,11 @@ class DictionaryNode(VirtualNode):
             return self.entry_class(self, word=self.lastWord)
         except DictionaryEntryNotFound:
             return None
+
+    def all_children(self):
+        lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
+        for lexicon_entry in lexicon_entry_set:
+            yield self.entry_class(self, lexicon_entry=lexicon_entry)
 
     def serialize(self, **kwargs):
         """
