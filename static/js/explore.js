@@ -88,7 +88,7 @@ var categories = {
         "labelBySection": true,
     },
     "shulchanArukh": {
-        "title": "Shulcha Arukh",
+        "title": "Shulchan Arukh",
         "heTitle": "שולחן ערוך",
         "shapeParam": "Halakhah/Shulchan Arukh",
         "linkCountParam": "Shulchan Arukh",
@@ -97,7 +97,7 @@ var categories = {
 };
 
 var twelve = ["Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi"];
-function isTwelve(el) { return twelve.indexOf(el["title"]) > -1; }
+function isTwelve(el) { return twelve.indexOf(el["book"]) > -1; }
 function isNotTwelve(el) { return !isTwelve(el); }
 
 var pLinkCache = {}; //Cache for precise link queries
@@ -408,7 +408,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 	var totalBookLength = totalBookLengths(books);
 	svg.select("#" + klass).selectAll("rect.book").data(books).enter()
 			.append("rect")
-                .attr("id", function (d)  { d.id = toId(d.title); return d.id; })
+                .attr("id", function (d)  { d.id = toId(d.book); return d.id; })
                 .each(function (d) { d["collection"] = klass; d["position"] = position; })
                 .attr("class", function(d) { return klass + " book " + toId(d["section"]) + " " + d.id } )
                 .attr("y", function(d) { d["y"] = offset; return d["y"]; })
@@ -440,7 +440,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
             .on("mousemove.tooltip", function(d) {
               var xPosition = d3.mouse(this)[0];
               var yPosition = d3.mouse(this)[1] - 35;
-              bookTooltip.select("text").text(isEnglish() ? d.title : d.heTitle);
+              bookTooltip.select("text").text(isEnglish() ? d.book : d.heBook);
               var bbox = bookTooltip.select("text").node().getBBox();
               bookTooltip.select("rect").attr("width", bbox.width + 30); 
               bookTooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
@@ -477,9 +477,9 @@ function buildBookLabels(bks, klass, position) {
     svg.select("#" + klass)
         .selectAll("text.title").data(bks).enter()
             .append("text")
-                .attr("class", function(d) { d.id = toId(d.title); return "title " + toId(d["section"]) + " " + d["id"] } )
+                .attr("class", function(d) { d.id = toId(d.book); return "title " + toId(d["section"]) + " " + d["id"] } )
                 .text(function(d) {
-                        return isEnglish() ? d["title"] : d["heTitle"];
+                        return isEnglish() ? d["book"] : d["hebook"];
                     })
                 .style("text-anchor", anchor)
                 .attr("fill", function(d) { return colors(svg.select("#" + d.id).attr("section")); })
@@ -530,9 +530,9 @@ function buildBookLabelsBySection(bks, klass, position) {
     var sections = [];
     for (var i = 0; i < bks.length; i++) {
         if (prevSection != bks[i].section) {
-            sections.push({section: bks[i].section, firstId: toId(bks[i].title)});
+            sections.push({section: bks[i].section, firstId: toId(bks[i].book)});
         }
-        sections[sections.length-1].lastId = toId(bks[i].title);
+        sections[sections.length-1].lastId = toId(bks[i].book);
         prevSection = bks[i].section;
     }
 
@@ -896,7 +896,7 @@ function openBook(dFocused) {
             .style("display","block")
         .select(".label")
             .attr("class","label " + toId(dBook.section))
-            .text(isEnglish() ? dBook.title : dBook.heTitle);
+            .text(isEnglish() ? dBook.book : dBook.heBook);
     svg.selectAll("#toggle").attr("display", "none");
 }
 
@@ -964,8 +964,8 @@ function closeBook(dCloser) {
 function processPreciseLinks(dBook) {
 
     function preciseLinkCallback (error, json) {
-        if (!(dBook.title in pLinkCache)) {
-            pLinkCache[dBook.title] = json;
+        if (!(dBook.book in pLinkCache)) {
+            pLinkCache[dBook.book] = json;
         }
 
         //We are assuming that r1 is Bavli and r2 is Tanakh
@@ -1056,10 +1056,10 @@ function processPreciseLinks(dBook) {
         categories[bottomCat].linkCountParam :
         categories[topCat].linkCountParam;
 
-    if (dBook.title in pLinkCache) {
-        preciseLinkCallback(null, pLinkCache[dBook.title]);
+    if (dBook.book in pLinkCache) {
+        preciseLinkCallback(null, pLinkCache[dBook.book]);
     } else {
-        d3.json('/api/links/bare/' + dBook.title + '/' + linkCat, preciseLinkCallback);
+        d3.json('/api/links/bare/' + dBook.book + '/' + linkCat, preciseLinkCallback);
     }
 }
 
@@ -1147,7 +1147,7 @@ function _getHistory() {
         openIds.push(d.id);
         url += "/" + fromIdtoUrl(d.id);
         title += " ";
-        title += isEnglish() ? d.title : d.heTitle;
+        title += isEnglish() ? d.book : d.heBook;
     });
 
     svg.select("#" + bottomCat + " .open.book").each(function(d) {
@@ -1155,7 +1155,7 @@ function _getHistory() {
         openIds.push(d.id);
         url += "/" + fromIdtoUrl(d.id);
         title += tanakhOpen ? isEnglish() ? " & " : " ו" : " ";
-        title += isEnglish() ? d.title : d.heTitle;
+        title += isEnglish() ? d.book : d.heBook;
     });
     if (isHebrew()) {
         if(talmudOpen && !tanakhOpen) {

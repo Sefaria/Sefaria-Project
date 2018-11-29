@@ -1502,7 +1502,6 @@ def shape_api(request, title):
     The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
     If depth == 0, descends to end of tree
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
-
     """
 
     def _simple_shape(snode):
@@ -1511,12 +1510,46 @@ def shape_api(request, title):
 
         return {
             "section": snode.index.categories[-1],
-            "heTitle": snode.primary_title("he"),
-            "title": snode.primary_title("en"),
+            "heTitle": snode.full_title("he"),
+            "title": snode.full_title("en"),
             "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
             "chapters": shape,
             "book": snode.index.title,
+            "heBook": snode.index.get_title(lang="he"),
         }
+
+    def _collapse_book_leaf_shapes(leaf_shapes):
+        """Groups leaf node shapes for a single book into one object so that resulting list corresponds 1:1 to books"""
+        if type(leaf_shapes) != list:
+            return leaf_shapes
+
+        results = []
+        prev_shape = None
+        complex_book_in_progress = None
+
+        for shape in leaf_shapes:
+            if prev_shape and prev_shape["book"] != shape["book"]:
+                if complex_book_in_progress:
+                    results.append(complex_book_in_progress)
+                    complex_book_in_progress = None
+                else:
+                    results.append(prev_shape)
+            elif prev_shape:
+                complex_book_in_progress = complex_book_in_progress or {
+                    "isComplex": True,
+                    "section": prev_shape["section"],
+                    "length": prev_shape["length"],
+                    "chapters": [prev_shape],
+                    "book": prev_shape["book"],
+                    "heBook": prev_shape["heBook"],               
+                }
+                complex_book_in_progress["chapters"].append(shape)
+                complex_book_in_progress["length"] += shape["length"]
+            prev_shape = shape
+
+        results.append(complex_book_in_progress or prev_shape)
+
+        return results
 
     title = title.replace("_", " ")
 
@@ -1547,6 +1580,7 @@ def shape_api(request, title):
 
                 res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
 
+        res = _collapse_book_leaf_shapes(res)
         return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
