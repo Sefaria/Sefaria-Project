@@ -290,14 +290,10 @@ def get_link_counts(cat1, cat2):
             re2 = r"^{} \d".format(title2)
             links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
             if links.count():
-                result.append({"book1": cssClassFriendly(title1), "book2": cssClassFriendly(title2), "count": links.count()})
+                result.append({"book1": title1, "book2": title2, "count": links.count()})
 
     link_counts[key] = result
     return result
-
-
-def cssClassFriendly(string):
-    return string.replace(" ", "-").replace("'", "-aa-").replace(",", "-c-")
 
 
 # todo: check vis-a-vis commentary refactor
@@ -376,7 +372,7 @@ def get_book_link_collection(book, cat):
         l1 = re.match(link_re, link.refs[0])
         l2 = re.match(link_re, link.refs[1])
         ret.append({
-            "r1": {"title": cssClassFriendly(l1.group("title")), "loc": l1.group("loc")},
-            "r2": {"title": cssClassFriendly(l2.group("title")), "loc": l2.group("loc")}
+            "r1": {"title": l1.group("title"), "loc": l1.group("loc")},
+            "r2": {"title": l2.group("title"), "loc": l2.group("loc")}
         })
     return ret

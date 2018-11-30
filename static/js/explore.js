@@ -115,7 +115,7 @@ var toggleColor = (function(){
             return;
         currentScheme = currentScheme == "Top" ? "Bottom" : "Top";
         svg.selectAll(".link") //.transition().duration(250)
-        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? colors(svg.select("#" + d["book2"]).attr("section")) : colors(svg.select("#" + d["book1"]).attr("section"))  });
+        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? colors(selectBook(d.book2).attr("section")) : colors(selectBook(d.book1).attr("section"))  });
 		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? "underline" : null);
 		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? null : "underline");
     }
@@ -173,6 +173,7 @@ $.when(b, t).then(function() {
 /*****         Methods used in screen construction      *****/
 
 function buildScreen(openBooks, colorScheme) {
+    
     buildFrame();
     buildBookCollection(topBooks, topCat, "top", topOffsetY, 10);
     buildBookCollection(bottomBooks, bottomCat, "bottom", bottomOffsetY, 0);
@@ -427,7 +428,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .attr("cx", function(d) { d["base_cx"] = Number(this.getAttribute("x")) + Number(this.getAttribute("width")) / 2; return d["base_cx"]; })
                 .attr("cy", function(d) {  return Number(this.getAttribute("y")) + cnxOffset; })
                 .attr("section", function(d) { return toId(d["section"]) })
-                .attr("fill", function(d) { return colors(svg.select("#" + d.id).attr("section")); })
+                .attr("fill", function(d) { return colors(selectBook(d.id).attr("section")); })
                 .each(addAxis)
                 .on("mouseover", mouseover_book)
                 .on("mouseout", mouseout_book)
@@ -482,12 +483,12 @@ function buildBookLabels(bks, klass, position) {
                         return isEnglish() ? d["book"] : d["hebook"];
                     })
                 .style("text-anchor", anchor)
-                .attr("fill", function(d) { return colors(svg.select("#" + d.id).attr("section")); })
+                .attr("fill", function(d) { return colors(selectBook(d.id).attr("section")); })
                 .attr("x", function(d) {
-                    return Number(svg.select("#" + d["id"]).attr("cx"))
+                    return Number(selectBook(d.id).attr("cx"))
                 })
                 .attr("y", function(d) {
-                    return Number(svg.select("#" + d["id"]).attr("y")) + offset
+                    return Number(selectBook(d.id).attr("y")) + offset
                 })
                 .attr("dx", dx)
                 .attr("dy", dy)
@@ -546,13 +547,13 @@ function buildBookLabelsBySection(bks, klass, position) {
                 .style("text-anchor", anchor)
                 .attr("fill", function(d) { return colors(toId(d["section"])); })
                 .attr("x", function(d) {
-                    var firstX = Number(svg.select("#" + d["firstId"]).attr("cx"));
-                    var lastX = Number(svg.select("#" + d["lastId"]).attr("cx"))
+                    var firstX = Number(selectBook(d.firstId).attr("cx"));
+                    var lastX = Number(selectBook(d.lastId).attr("cx"));
                     return isEnglish() ? firstX + (lastX-firstX)/2 :
                         lastX + (firstX-lastX)/2;
                 })
                 .attr("y", function(d) {
-                    return Number(svg.select("#" + d["firstId"]).attr("y")) + offset
+                    return Number(selectBook(d.firstId).attr("y")) + offset
                 })
                 .attr("dx", dx)
                 .attr("dy", dy)
@@ -677,11 +678,11 @@ function mouseover_book(d) {
     svg.select(".title." + d.id)
             .classed("active",true);
     svg.selectAll(".link")
-            .filter(function (p) { return d.id ==  p["book1"] || d.id ==  p["book2"] })
+            .filter(function (p) { return d.book ==  p["book1"] || d.id ==  p["book2"] })
             .classed("active", true)
             .each(moveToFront);
     svg.selectAll(".preciseLink")
-            .filter(function (p) { return d.id ==  p["r1"]["title"] || d.id ==  p["r2"]["title"] })
+            .filter(function (p) { return d.book ==  p["r1"]["title"] || d.id ==  p["r2"]["title"] })
             .classed("active", true)
             .each(moveToFront);
 }
@@ -714,10 +715,10 @@ function buildBookLinks() {
            //.each(function(d) { if (!(d.book1 && d.book2 && svg.select("#" + d["book1"]).datum().base_cx && svg.select("#" + d["book2"]).datum().base_cx && svg.select("#" + d["book1"]).attr("cy") && svg.select("#" + d["book2"]).attr("cy") )) {console.log(d);}})
           .attr("class", "link")
           .attr("stroke-width", function(d) { return d["count"]/10 + "px"})
-          .attr("stroke", function(d) { return colors(svg.select("#" + d["book1"]).attr("section")) })
+          .attr("stroke", function(d) { return colors(svg.select("#" + toId(d["book1"])).attr("section")) })
           .attr("d", d3.svg.diagonal()
-                .source(function(d) { return {"x":Number(svg.select("#" + toId(d["book1"])).datum().base_cx), "y": Number(svg.select("#" + toId(d["book1"])).attr("cy"))}; })
-                .target(function(d) { return {"x":Number(svg.select("#" + toId(d["book2"])).datum().base_cx), "y": Number(svg.select("#" + toId(d["book2"])).attr("cy"))}; })
+                .source(function(d) { return {"x":Number(selectBook(d.book1).datum().base_cx), "y": Number(selectBook(d.book1).attr("cy"))}; })
+                .target(function(d) { return {"x":Number(selectBook(d.book2).datum().base_cx), "y": Number(selectBook(d.book2).attr("cy"))}; })
             )
           .on("mouseover", mouseover_link)
           .on("mouseout", mouseout_link)
@@ -733,7 +734,7 @@ function buildBookLinks() {
                 xPosition = d3.mouse(this)[0];
                 yPosition = d3.mouse(this)[1] - 65;
               } else {
-                tooltip.select("#text1").text(svg.select("#" + d["book1"]).datum().heTitle + " - " + svg.select("#" + d["book2"]).datum().heTitle);
+                tooltip.select("#text1").text(selectBook(d.book1).datum().heTitle + " - " + selectBook(d.book2).datum().heTitle);
                 tooltip.select("#text2").text(d["count"] + " :קשרים");
                 xPosition = d3.mouse(this)[0] - 170;
                 yPosition = d3.mouse(this)[1] - 65;
@@ -795,8 +796,8 @@ function recordCloseBook(dCloser) {
 }
 
 function recordOpenBookLink(d) {
-    var b1 = svg.select("#" + d["book1"]).datum();
-    var b2 = svg.select("#" + d["book2"]).datum();
+    var b1 = selectBook(d.book1).datum();
+    var b2 = selectBook(d.book2).datum();
     openBook(b1);
     openBook(b2);
     pushHistory();
@@ -975,7 +976,7 @@ function processPreciseLinks(dBook) {
 
         //Todo: avoid the server call, and just get the intersection from the existing cached json of the other book
         if(otherBook) {
-            var otherTitle = otherBook.id;
+            var otherTitle = otherBook.book;
             function isInIntersection(el) {
                 return (el[otherBookRef]["title"] == otherTitle);
             }
@@ -992,7 +993,7 @@ function processPreciseLinks(dBook) {
                 .attr("target","_blank")
                 .classed("preciseLinkA", true)
             .append("path")
-                .attr("class", function(d) { return "preciseLink " + d["r1"]["title"] + " " + d["r2"]["title"]; })
+                .attr("class", function(d) { return "preciseLink " + toId(d["r1"]["title"]) + " " + toId(d["r2"]["title"]); })
                 .on("mouseover", mouseover_plink)
                 .on("mouseout", mouseout_plink)
                 .on("mouseover.tooltip", function() { tooltip.style("display", null); })
@@ -1003,13 +1004,13 @@ function processPreciseLinks(dBook) {
                     if(isEnglish()) {
                         xPosition = d3.mouse(this)[0];
                         yPosition = d3.mouse(this)[1] - 65;
-                        tooltip.select("#text1").text(fromId(d["r1"]["title"]) + " " + d["r1"]["loc"]);
-                        tooltip.select("#text2").text(fromId(d["r2"]["title"]) + " " + d["r2"]["loc"]);
+                        tooltip.select("#text1").text(d["r1"]["title"] + " " + d["r1"]["loc"]);
+                        tooltip.select("#text2").text(d["r2"]["title"] + " " + d["r2"]["loc"]);
                     } else {
                         xPosition = d3.mouse(this)[0] - 130;
                         yPosition = d3.mouse(this)[1] - 65;
-                        tooltip.select("#text1").text(d["r1"]["loc"] + " " + svg.select("#" + d["r1"]["title"]).datum().heTitle);
-                        tooltip.select("#text2").text(svg.select("#" + d["r2"]["title"]).datum().heTitle + " " + d["r2"]["loc"]);
+                        tooltip.select("#text1").text(d["r1"]["loc"] + " " + selectBook(d["r1"]["title"]).datum().heBook);
+                        tooltip.select("#text2").text(selectBook(d["r2"]["title"]).datum().heBook + " " + d["r2"]["loc"]);
                     }
                     var bbox1 = tooltip.select("#text1").node().getBBox();
                     var bbox2 = tooltip.select("#text2").node().getBBox();
@@ -1025,21 +1026,21 @@ function processPreciseLinks(dBook) {
                       if(otherBook && this.getAttribute("stroke")) { // link was already shown, leave it.  Second condition is needed for when two books open before first callback is called.
                           return this.getAttribute("stroke");
                       } else { // Color by opposing scheme
-                          return colors(svg.select("#" + d[otherBookRef]["title"]).attr("section"))
+                          return colors(selectBook(d[otherBookRef]["title"]).attr("section"));
                       }
                 })
                 .attr("d", d3.svg.diagonal()
                     .source(function (d) {
-                      d.sourcex = Number(svg.select("#" + d["r1"]["title"]).datum().s(d["r1"]["loc"]));
-                      d.sourcey = Number(svg.select("#" + d["r1"]["title"]).attr("cy"));
+                      d.sourcex = Number(selectBook(d["r1"]["title"]).datum().s(d["r1"]["loc"]));
+                      d.sourcey = Number(selectBook(d["r1"]["title"]).attr("cy"));
                       return {
                           "x": d.sourcex,
                           "y": d.sourcey
                       };
                     })
                     .target(function (d) {
-                      d.targetx = Number(svg.select("#" + d["r2"]["title"]).datum().s(d["r2"]["loc"]));
-                      d.targety = Number(svg.select("#" + d["r2"]["title"]).attr("cy"));
+                      d.targetx = Number(selectBook(d["r2"]["title"]).datum().s(d["r2"]["loc"]));
+                      d.targety = Number(selectBook(d["r2"]["title"]).attr("cy"));
                       return {
                           "x": d.targetx,
                           "y": d.targety
@@ -1076,15 +1077,22 @@ function mouseout_plink(d) {
 
 /*****          Utils                *****/
 
+function selectBook(book) {
+    // selects a book by ID, accounting for encoding CSS friendly characters
+    return svg.select("#" + toId(book));
+} 
+
 function moveToFront() {
 	this.parentNode.appendChild(this);
 }
 
-//These next three, and how they're used with the various data ins and outs, are a bit of a mess.
+//These next five, and how they're used with the various data ins and outs, are a bit of a mess.
+
 function replaceAll(str, ol, nw) {
     return str.split(ol).join(nw)
 }
 function toId(title) {
+    if (!title) { debugger; }
     title = replaceAll(title, "'", "-aa-");
     title = replaceAll(title, ",", "-c-");
     return replaceAll(title, " ","-");
