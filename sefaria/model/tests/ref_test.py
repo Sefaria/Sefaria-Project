@@ -880,9 +880,9 @@ class Test_Order_Id(object):
         children = i.nodes.all_children()
         first = children[0].ref().order_id()
         second = children[1].ref().order_id()
-        last = children[-1].ref().order_id()
+        third = children[2].ref().order_id()
         assert first < second
-        assert second < last
+        assert second < third
 
 '''
 class Test_ref_manipulations():

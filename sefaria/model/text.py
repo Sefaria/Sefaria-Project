@@ -3646,7 +3646,9 @@ class Ref(object):
         try:
             base = library.category_id_dict()[key]
             if self.index.is_complex():
-                base += unicode(format(self.index.nodes.get_child_order(self.index_node), '03'))
+                child_order = self.index.nodes.get_child_order(self.index_node)
+                base += unicode(format(child_order, '03')) if isinstance(child_order, int) else child_order
+
             res = reduce(lambda x, y: x + unicode(format(y, '04')), self.sections, base)
             if self.is_range():
                 res = reduce(lambda x, y: x + unicode(format(y, '04')), self.toSections, res + u"-")

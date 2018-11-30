@@ -588,6 +588,8 @@ class TreeNode(object):
         :param child: TreeNode
         :return: Integer
         """
+        if child.parent.is_virtual:
+            return child.parent.get_child_order(child)
         return self.all_children().index(child) + 1
 
 
@@ -1386,7 +1388,6 @@ class VirtualNode(TitledTreeNode):
         """
         super(VirtualNode, self).__init__(serial, **kwargs)
         self.index = kwargs.get("index", None)
-        self._all_children = None  # pulling up all children for a vnode is potentially very expensive. keep them in cache
 
     def _init_defaults(self):
         super(VirtualNode, self)._init_defaults()
@@ -1586,16 +1587,9 @@ class DictionaryNode(VirtualNode):
             return None
 
     def all_children(self):
-        if self._all_children is None:
-            self._all_children = []
-            lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
-            for lexicon_entry in lexicon_entry_set:
-                child = self.entry_class(self, lexicon_entry=lexicon_entry)
-                self._all_children += [child]
-                yield child
-        else:
-            for c in self._all_children:
-                yield c
+        lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
+        for lexicon_entry in lexicon_entry_set:
+            yield self.entry_class(self, lexicon_entry=lexicon_entry)
 
     def serialize(self, **kwargs):
         """
@@ -1608,6 +1602,15 @@ class DictionaryNode(VirtualNode):
         d["firstWord"] = self.firstWord
         d["lastWord"] = self.lastWord
         return d
+
+    def get_child_order(self, child):
+        if isinstance(child, DictionaryEntryNode):
+            if hasattr(child.lexicon_entry, "rid"):
+                return unicode(child.lexicon_entry.rid)
+            else:
+                return child.word
+        else:
+            return u""
 
 
 class SheetNode(NumberedTitledTreeNode):
