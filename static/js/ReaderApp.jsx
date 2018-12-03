@@ -8,6 +8,7 @@ const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
+const SearchState   = require('./sefaria/searchState');
 const {
   InterruptingMessage,
   CookiesNotification,
@@ -42,14 +43,14 @@ class ReaderApp extends Component {
             currVersions:  props.initialPanels[0].currVersions,
             bookRef:       props.initialPanels[0].bookRef
         };
-      } else if (props.initialPath.indexOf("/sheets") !== -1) {
+      } else if (props.initialPath.search(/\/sheets\/\d+/g) !== -1) {
         var mode = props.initialFilter ? "SheetAndConnections" : "Sheet";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
 
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
-          naturalDateCreated: initialPanel.sheet.naturalDateCreated,
-          groupLogo: initialPanel.sheet.groupLogo,
+          naturalDateCreated: initialPanel.sheet && initialPanel.sheet.naturalDateCreated,
+          groupLogo: initialPanel.sheet && initialPanel.sheet.groupLogo,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
@@ -61,13 +62,22 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
-          appliedSearchFilters: props.initialSearchFilters,
+          textSearchState: new SearchState({
+            type: 'text',
+            appliedFilters: props.initialTextSearchFilters,
+            field: props.initialTextSearchField,
+            sortType: props.initialTextSearchSortType,
+          }),
+          sheetSearchState: new SearchState({
+            type: 'sheet',
+            appliedFilters: props.initialSheetSearchFilters,
+            appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
+            sortType: props.initialSheetSearchSortType,
+          }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
-          searchField: props.initialSearchField,
-          searchSortType: props.initialSearchSortType,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -76,7 +86,6 @@ class ReaderApp extends Component {
         if (mode === "SheetAndConnections") {
           panels[0].highlightedRefs = props.initialRefs;
         }
-
       }
       else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
@@ -92,13 +101,22 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
-          appliedSearchFilters: props.initialSearchFilters,
+          textSearchState: new SearchState({
+            type: 'text',
+            appliedFilters: props.initialTextSearchFilters,
+            field: props.initialTextSearchField,
+            sortType: props.initialTextSearchSortType,
+          }),
+          sheetSearchState: new SearchState({
+            type: 'sheet',
+            appliedFilters: props.initialSheetSearchFilters,
+            appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
+            sortType: props.initialSheetSearchSortType,
+          }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
-          searchField: props.initialSearchField,
-          searchSortType: props.initialSearchSortType,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -115,9 +133,18 @@ class ReaderApp extends Component {
         bookRef: props.initialBookRef,
         menuOpen: props.initialMenu,
         searchQuery: props.initialQuery,
-        appliedSearchFilters: props.initialSearchFilters,
-        searchField: props.initialSearchField,
-        searchSortType: props.initialSearchSortType,
+        textSearchState: new SearchState({
+          type: 'text',
+          appliedFilters: props.initialTextSearchFilters,
+          field: props.initialTextSearchField,
+          sortType: props.initialTextSearchSortType,
+        }),
+        sheetSearchState: new SearchState({
+          type: 'sheet',
+          appliedFilters: props.initialSheetSearchFilters,
+          appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
+          sortType: props.initialSheetSearchSortType,
+        }),
         navigationCategories: props.initialNavigationCategories,
         navigationTopic: props.initialTopic,
         sheetsTag: props.initialSheetsTag,
@@ -163,9 +190,7 @@ class ReaderApp extends Component {
         panels.push(panel);
       }
     }
-    panels = panels.map(function(panel) {
-      return this.makePanelState(panel);
-    }.bind(this) );
+    panels = panels.map(panel => this.makePanelState(panel));
 
     var layoutOrientation = (props.interfaceLang == "english") ? "ltr" : "rtl";
 
@@ -205,7 +230,6 @@ class ReaderApp extends Component {
 
     // Set initial page view (deferred from analytics.js instanciation)
     if (!this.state.initialAnalyticsTracked) { this.trackPageview(); }
-
     // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
     if (this.state.panels.length > this.state.panelCap && this.state.panels.length > prevState.panels.length) {
       var elem = document.getElementById("panelWrapBox");
@@ -245,6 +269,17 @@ class ReaderApp extends Component {
     // console.log(state);
     if (state) {
       this.justPopped = true;
+      // history does not preserve custom objects
+      const h = state.header;
+      if (!!h) {
+        h.textSearchState = h.textSearchState && new SearchState(h.textSearchState);
+        h.sheetSearchState = h.sheetSearchState && new SearchState(h.sheetSearchState);
+      }
+      if (state.panels) {
+        for (let p of state.panels) {
+          p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
+        }
+      }
       this.setState(state);
       this.setContainerMode();
     }
@@ -316,7 +351,6 @@ class ReaderApp extends Component {
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-
     // If there's no history or the number or basic state of panels has changed
     if (!history.state
         || (!history.state.panels && !history.state.header)
@@ -337,12 +371,18 @@ class ReaderApp extends Component {
       nextPanels = this.state.panels;
     }
 
-    for (var i = 0; i < prevPanels.length; i++) {
+    for (let i = 0; i < prevPanels.length; i++) {
       // Cycle through each panel, compare previous state to next state, looking for differences
-      var prev  = prevPanels[i];
-      var next  = nextPanels[i];
-
+      const prev  = prevPanels[i];
+      const next  = nextPanels[i];
       if (!prev || ! next) { return true; }
+      // history does not preserve custom objects
+      const prevTextSearchState = new SearchState(prev.textSearchState);
+      const prevSheetSearchState = new SearchState(prev.sheetSearchState);
+      const nextTextSearchState = new SearchState(next.textSearchState);
+      const nextSheetSearchState = new SearchState(next.sheetSearchState);
+
+
 
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
@@ -354,15 +394,13 @@ class ReaderApp extends Component {
           (next.mode === "Version Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
-          (next.connectionsMode !== prev.connectionsMoade) ||
+          (next.connectionsMode !== prev.connectionsMode) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
-          (prev.appliedSearchFilters && next.appliedSearchFilters && (prev.appliedSearchFilters.length !== next.appliedSearchFilters.length)) ||
-          (prev.appliedSearchFilters && next.appliedSearchFilters && !(prev.appliedSearchFilters.compare(next.appliedSearchFilters))) ||
-          (prev.searchField !== next.searchField) ||
-          (prev.searchSortType !== next.searchSortType) ||
+          (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
+          (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah))
 
@@ -380,23 +418,7 @@ class ReaderApp extends Component {
     return false;
   }
   clonePanel(panel, trimFilters) {
-    //Set aside self-referential objects before cloning
-    //Todo: Move the multiple instances of this out to a utils file
-    if (panel.availableFilters || panel.filterRegistry) {
-      var savedAttributes = {
-         availableFilters:   panel.availableFilters,
-         searchFiltersValid: panel.searchFiltersValid,
-         filterRegistry:     panel.filterRegistry
-      };
-      panel.searchFiltersValid = false;
-      panel.availableFilters = [];
-      panel.filterRegistry = {};
-      var newPanel = (trimFilters) ? Sefaria.util.clone(panel) : extend(Sefaria.util.clone(panel), savedAttributes);
-      extend(panel, savedAttributes);
-      return newPanel;
-    } else {
-      return Sefaria.util.clone(panel);
-    }
+    return Sefaria.util.clone(panel, trimFilters);
   }
   _getUrlVersionsParams(currVersions, i) {
     if (currVersions) {
@@ -467,10 +489,8 @@ class ReaderApp extends Component {
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += Sefaria._("Sefaria Search");
             hist.url   = "search" + (state.searchQuery ? ("&q=" + query +
-                ((!!state.appliedSearchFilters && !!state.appliedSearchFilters.length) ? "&filters=" + state.appliedSearchFilters.join("|") : "") +
-                "&var=" + (state.searchField !== state.searchFieldExact ? "1" : "0") +
-                "&sort=" + (state.searchSortType === "chronological" ? "c" : "r"))
-                    : "");
+              state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
+              state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";
             break;
           case "sheets":
@@ -565,7 +585,7 @@ class ReaderApp extends Component {
         hist.title        = Sefaria._r(htitle);
         hist.url          = Sefaria.normRef(htitle);
         hist.currVersions = state.currVersions;
-        hist.mode         = "Text"
+        hist.mode         = "Text";
         if(Sefaria.titleIsTorah(htitle)){
           hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
         }
@@ -713,20 +733,24 @@ class ReaderApp extends Component {
     if (this.scrollIntentTimer) {
       clearTimeout(this.scrollIntentTimer);
     }
-    this.scrollIntentTimer = window.setTimeout(function(initialRefs){
+    this.scrollIntentTimer = window.setTimeout(initialRefs => {
       // console.log("Checking scroll intent");
       if (initialRefs.compare(this._refState())) {
         this.trackPageview();
       }
-      this.scrollIntentTimer = null;``
-    }.bind(this), intentDelay, this._refState());
+      this.scrollIntentTimer = null;
+    }, intentDelay, this._refState());
   }
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
     }
-    var currentUrl = (window.location.pathname + window.location.search);
-    var hist       = this.makeHistoryState();
+    let currentUrl = (window.location.pathname + window.location.search);
+    let hist       = this.makeHistoryState();
+    if(window.location.hash.length){
+      currentUrl += window.location.hash;
+      hist.url += window.location.hash;
+    }
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       //console.log("Replace History - " + hist.url);
@@ -742,6 +766,8 @@ class ReaderApp extends Component {
 
     $("title").html(hist.title);
     this.replaceHistory = false;
+
+    this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -766,15 +792,8 @@ class ReaderApp extends Component {
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
-      appliedSearchFilters:    state.appliedSearchFilters    || [],
-      searchFieldExact:        "exact",
-      searchFieldBroad:        "naive_lemmatizer",
-      searchField:             state.searchField             || "naive_lemmatizer",
-      searchSortType:          state.searchSortType          || "relevance",
-      searchFiltersValid:      state.searchFiltersValid      || false,
-      availableFilters:        state.availableFilters        || [],
-      filterRegistry:          state.filterRegistry          || {},
-      orphanSearchFilters:     state.orphanSearchFilters     || [],
+      textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
+      sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
       settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
@@ -835,6 +854,22 @@ class ReaderApp extends Component {
   setWindowWidth() {
     // console.log("Setting window width: " + $(window).outerWidth());
     this.setState({windowWidth: $(window).outerWidth()});
+  }
+  setPaddingForScrollbar() {
+    // Scrollbars take up spacing, causing the centering of panels to be slightly off
+    // compared to the header. This functions sets appropriate padding to compensate.
+    var width = Sefaria.util.getScrollbarWidth();
+    // These are the divs that actually scroll
+    var $container = $(ReactDOM.findDOMNode(this)).find(".content, .textColumn");
+    if (this.state.panels.length > 1) {
+      $container.css({paddingRight: "", paddingLeft: ""});
+    } else {
+      if (this.props.interfaceLang == "hebrew") {
+        $container.css({paddingRight: width, paddingLeft: 0});
+      } else {
+        $container.css({paddingRight: 0, paddingLeft: width});
+      }
+    }
   }
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
@@ -901,81 +936,90 @@ class ReaderApp extends Component {
     $(".wrapper").remove();
     $("#footer").remove();
   }
+  _getStateAndSetStateForHeaderPanelFuncs(n) {
+    // helper func to avoid code duplication in funcs of type `updateXInHeader` / `updateXInPanel`
+    return {
+      tempState:    (typeof n === 'undefined') ? this.state.header : this.state.panels[n],
+      tempSetState: (typeof n === 'undefined') ? this.setHeaderState : this.setPanelState.bind(this, n),
+    };
+  }
+  _getSearchStateName(type) { return `${type}SearchState`; }
+  _getSearchState(state, type) { return !!state && state[this._getSearchStateName(type)]; }
   updateQueryInHeader(query) {
-    var updates = {searchQuery: query, searchFiltersValid: false};
-    this.setHeaderState(updates);
+    this.updateQuery(undefined, query);
   }
-  updateQueryInPanel(n, query) {
-    var updates = {searchQuery: query, searchFiltersValid: false};
-    this.setPanelState(n, updates);
+  updateQuery(n, query) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const updates = {
+      searchQuery: query,
+      textSearchState: tempState.textSearchState.update({ filtersValid: false }),
+      sheetSearchState: tempState.sheetSearchState.update({ filtersValid: false }),
+    };
+    tempSetState(updates);
   }
-  updateAvailableFiltersInHeader(availableFilters, registry, orphans) {
-    this.setHeaderState({
-      availableFilters:    availableFilters,
-      filterRegistry:      registry,
-      orphanSearchFilters: orphans,
-      searchFiltersValid:  true
+  updateAvailableFiltersInHeader(type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
+    this.updateAvailableFilters(undefined, ...arguments);
+  }
+  updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
+    tempSetState({
+      [searchStateName]: !!searchState ?
+        searchState.update({
+          availableFilters,
+          filterRegistry,
+          orphanFilters,
+          filtersValid: true,
+          aggregationsToUpdate,
+        }) : new SearchState({
+        type,
+        availableFilters,
+        filterRegistry,
+        orphanFilters,
+        filtersValid: true,
+      })
     });
   }
-  updateAvailableFiltersInPanel(n, availableFilters, registry, orphans) {
-    this.setPanelState(n, {
-      availableFilters:    availableFilters,
-      filterRegistry:      registry,
-      orphanSearchFilters: orphans,
-      searchFiltersValid:  true
-    });
+  updateSearchFilterInHeader(type, filterNode) {
+    this.updateSearchFilter(undefined, ...arguments);
   }
-  updateSearchFilterInHeader(filterNode) {
+  updateSearchFilter(n, type, filterNode) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
     } else {
       filterNode.setUnselected(true);
     }
-    this.setHeaderState({
-      availableFilters: this.state.header.availableFilters,
-      appliedSearchFilters: this.getAppliedSearchFilters(this.state.header.availableFilters)
+    tempSetState({
+      [searchStateName]: searchState.update(
+        Sefaria.search.getAppliedSearchFilters(searchState.availableFilters)
+      )
     });
   }
-  updateSearchFilterInPanel(n, filterNode) {
-    if (filterNode.isUnselected()) {
-      filterNode.setSelected(true);
-    } else {
-      filterNode.setUnselected(true);
-    }
-    this.setPanelState(n, {
-      availableFilters: this.state.panels[n].availableFilters,
-      appliedSearchFilters: this.getAppliedSearchFilters(this.state.panels[n].availableFilters)
+  updateSearchOptionFieldInHeader(type, field) {
+    this.updateSearchOptionField(undefined, ...arguments);
+  }
+  updateSearchOptionField(n, type, field) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
+    tempSetState({
+      [searchStateName]: searchState.update({ field, filtersValid: false })
     });
   }
-  updateSearchOptionFieldInPanel(n, field) {
-    this.setPanelState(n, {
-      searchField: field,
-      searchFiltersValid:  false
-    });
+  updateSearchOptionSortInHeader(type, sortType) {
+    this.updateSearchOptionSort(undefined, ...arguments);
   }
-  updateSearchOptionFieldInHeader(field) {
-    this.setHeaderState({
-      searchField: field,
-      searchFiltersValid:  false
+  updateSearchOptionSort(n, type, sortType) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const searchState = this._getSearchState(tempState, type);
+    const searchStateName = this._getSearchStateName(type);
+    tempSetState({
+      [searchStateName]: searchState.update({ sortType })
     });
-  }
-  updateSearchOptionSortInPanel(n, sort) {
-    this.setPanelState(n, {
-      searchSortType: sort
-    });
-  }
-  updateSearchOptionSortInHeader(sort) {
-    this.setHeaderState({
-      searchSortType: sort
-    });
-  }
-  getAppliedSearchFilters(availableFilters) {
-    var results = [];
-    //results = results.concat(this.orphanFilters);
-    for (var i = 0; i < availableFilters.length; i++) {
-        results = results.concat(availableFilters[i].getAppliedFilters());
-    }
-    return results;
   }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -983,6 +1027,7 @@ class ReaderApp extends Component {
     //console.log(state)
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
+    if (!this.state.panels[n]) { debugger; }
     var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
     var next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
@@ -996,7 +1041,7 @@ class ReaderApp extends Component {
       }
     });
     if (this.didPanelRefChange(this.state.panels[n], state)) {
-      this.saveRecentlyViewed(state);
+      this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
     var new_state = {panels: this.state.panels};
@@ -1016,14 +1061,15 @@ class ReaderApp extends Component {
         }
 
       }
-    }else{
+    } else {
       return false;
     }
-
-
   }
   didPanelRefChange(prevPanel, nextPanel) {
     // Returns true if nextPanel represents a change in current ref (including version change) from prevPanel.
+    if (!prevPanel && !!nextPanel) { return true; }
+    if (!!prevPanel && !nextPanel) { return true; }
+    if (!prevPanel && !nextPanel) { return false; }
     if (nextPanel.menu || nextPanel.mode == "Connections" ||
         !nextPanel.refs || nextPanel.refs.length == 0 ||
         !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
@@ -1249,16 +1295,12 @@ class ReaderApp extends Component {
       this.openTextListAt(n+1, refs);
     }
   }
-
   setSheetHighlight(n, node) {
     // Set the sheetListHighlight for panel `n` to `node`
     node = typeof node === "string" ? [node] : node;
     this.state.panels[n].highlightedNodes = node;
     this.setState({panels: this.state.panels});
     }
-
-
-
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     var connectionsPanel = this.state.panels[n];
@@ -1379,13 +1421,16 @@ class ReaderApp extends Component {
       this.setState({panels: this.state.panels});
     }
   }
-  showSearch(query) {
-    var panel;
+  showSearch(searchQuery) {
+    let panel;
+    const textSearchState =  (!!this.state.header && !!this.state.header.textSearchState)  ? this.state.header.textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
+    const sheetSearchState = (!!this.state.header && !!this.state.header.searchStateSheet) ? this.state.header.searchStateSheet.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
+
     if (this.props.multiPanel) {
-      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery: query, searchFiltersValid:  false});
+      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery, textSearchState, sheetSearchState });
       this.setState({header: panel, panels: []});
     } else {
-      panel = this.makePanelState({menuOpen: "search", searchQuery: query, searchFiltersValid:  false});
+      panel = this.makePanelState({menuOpen: "search", searchQuery, textSearchState, sheetSearchState });
       this.setState({panels: [panel]});
     }
   }
@@ -1415,9 +1460,26 @@ class ReaderApp extends Component {
       this.setState({panels: [state]});
     }
   }
+  checkPanelScrollIntentAndSaveRecent(state, n) {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+    // console.log("Setting scroll intent check");
+    // console.log("Setting scroll intent for " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
+    this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
+    if (this.panelScrollIntentTimer[n]) {
+      clearTimeout(this.panelScrollIntentTimer[n]);
+    }
+    this.panelScrollIntentTimer[n] = window.setTimeout(function(initialState, n){
+      if (!this.didPanelRefChange(initialState, this.state.panels[n])) {
+        // console.log("Firing recently viewed " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
+        this.saveRecentlyViewed(this.state.panels[n]);
+      }
+      this.panelScrollIntentTimer[n] = null;
+    }.bind(this), intentDelay, state, n);
+  }
   saveRecentlyViewed(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
-    var ref  = panel.refs.slice(-1)[0];
+    var ref  = panel.currentlyVisibleRef || panel.refs.slice(-1)[0];  // Will currentlyVisibleRef ever not be available?
     Sefaria.ref(ref, function(oRef) {
       var previousRecent = Sefaria.recentItemForText(oRef.indexTitle);
       var recentItem = {
@@ -1522,11 +1584,11 @@ class ReaderApp extends Component {
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
-      var updateQueryInPanel             = this.updateQueryInPanel.bind(null, i);
-      var updateAvailableFiltersInPanel  = this.updateAvailableFiltersInPanel.bind(null, i);
-      var updateSearchFilterInPanel      = this.updateSearchFilterInPanel.bind(null, i);
-      var updateSearchOptionFieldInPanel = this.updateSearchOptionFieldInPanel.bind(null, i);
-      var updateSearchOptionSortInPanel  = this.updateSearchOptionSortInPanel.bind(null, i);
+      var updateQuery                    = this.updateQuery.bind(null, i);
+      var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
+      var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
+      var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
+      var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -1570,11 +1632,11 @@ class ReaderApp extends Component {
                       viewExtendedNotes={viewExtendedNotes}
                       backFromExtendedNotes={backFromExtendedNotes}
                       setDefaultOption={this.setDefaultOption}
-                      onQueryChange={updateQueryInPanel}
-                      updateSearchFilter={updateSearchFilterInPanel}
-                      updateSearchOptionField={updateSearchOptionFieldInPanel}
-                      updateSearchOptionSort={updateSearchOptionSortInPanel}
-                      registerAvailableFilters={updateAvailableFiltersInPanel}
+                      onQueryChange={updateQuery}
+                      updateSearchFilter={updateSearchFilter}
+                      updateSearchOptionField={updateSearchOptionField}
+                      updateSearchOptionSort={updateSearchOptionSort}
+                      registerAvailableFilters={updateAvailableFilters}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
@@ -1585,6 +1647,7 @@ class ReaderApp extends Component {
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
                       translateISOLanguageCode={this.translateISOLanguageCode}
+                      saveRecentlyViewed={this.saveRecentlyViewed}
                     />
                   </div>);
     }
@@ -1605,7 +1668,7 @@ class ReaderApp extends Component {
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
-    classDict[interfaceLangClass] = true
+    classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
     return (<div className={classes}>
               {header}
@@ -1625,9 +1688,12 @@ ReaderApp.propTypes = {
   initialMenu:                 PropTypes.string,
   initialGroup:                PropTypes.string,
   initialQuery:                PropTypes.string,
-  initialSearchFilters:        PropTypes.array,
-  initialSearchField:          PropTypes.string,
-  initialSearchSortType:       PropTypes.string,
+  initialTextSearchFilters:    PropTypes.array,
+  initialTextSearchField:      PropTypes.string,
+  initialTextSearchSortType:   PropTypes.string,
+  initialSheetSearchFilters:   PropTypes.array,
+  initialSheetSearchField:     PropTypes.string,
+  initialSheetSearchSortType:  PropTypes.string,
   initialSheetsTag:            PropTypes.string,
   initialTopic:                PropTypes.string,
   initialNavigationCategories: PropTypes.array,
@@ -1646,9 +1712,6 @@ ReaderApp.defaultProps = {
   initialMenu:                 null,
   initialGroup:                null,
   initialQuery:                null,
-  initialSearchFilters:        [],
-  initialSearchField:          null,
-  initialSearchSortType:       null,
   initialSheetsTag:            null,
   initialTopic:                null,
   initialNavigationCategories: [],

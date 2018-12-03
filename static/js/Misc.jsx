@@ -7,6 +7,32 @@ const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
 
+class DropdownModal extends Component {
+  componentDidMount() {
+    document.addEventListener('mousedown', this.handleClickOutside, false);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
+  }
+  handleClickOutside(event) {
+    const domNode = ReactDOM.findDOMNode(this);
+    if ((!domNode || !domNode.contains(event.target)) && this.props.isOpen) {
+      this.props.close();
+    }
+  }
+  render() {
+    return (
+      <div>
+        { this.props.children }
+      </div>
+    );
+  }
+}
+DropdownModal.propTypes = {
+  close:   PropTypes.func.isRequired,
+  isOpen:  PropTypes.bool.isRequired,
+};
+
 class Link extends Component {
   handleClick(e) {
     e.preventDefault();
@@ -24,7 +50,7 @@ Link.propTypes = {
   href:    PropTypes.string.isRequired,
   onClick: PropTypes.func,
   title:   PropTypes.string.isRequired,
-}
+};
 
 
 class GlobalWarningMessage extends Component {
@@ -46,8 +72,9 @@ class GlobalWarningMessage extends Component {
 class ReaderNavigationMenuSection extends Component {
   render() {
     if (!this.props.content) { return null; }
+    let idstr = this.props.enableAnchor ? "navigation-" + this.props.title.toLowerCase() : "";
     return (
-      <div className="readerNavSection">
+      <div className="readerNavSection" id={idstr}>
 
         {this.props.title ? (<h2>
           <span className="int-en">{this.props.title}</span>
@@ -61,7 +88,11 @@ class ReaderNavigationMenuSection extends Component {
 ReaderNavigationMenuSection.propTypes = {
   title:   PropTypes.string,
   heTitle: PropTypes.string,
-  content: PropTypes.object
+  content: PropTypes.object,
+  enableAnchor: PropTypes.bool
+};
+ReaderNavigationMenuSection.defaultProps = {
+  enableAnchor: false
 };
 
 
@@ -780,7 +811,7 @@ class FeedbackBox extends Component {
             <p className="int-en">Have some feedback? We would love to hear it.</p>
             <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
-            {this.state.alertmsg ?  
+            {this.state.alertmsg ?
                 <div>
                     <p className="int-en">{this.state.alertmsg}</p>
                     <p className="int-he">{this.state.alertmsg}</p>
@@ -852,24 +883,24 @@ ReaderMessage.propTypes = {
 
 class CookiesNotification extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
-    
+
     this.state = {showNotification: showNotification};
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/"});
+    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
     this.setState({showNotification: false});
   }
   render() {
     if (!this.state.showNotification) { return null; }
     return (
       <div className="cookiesNotification">
-          
+
           <div>
             <span className="int-en">We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
-          </div>   
+          </div>
           <div>
             <span className="int-he">אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. לחץ כאן לאישור. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
             <span className='int-he button small white' onClick={this.setCookie}>כאן</span>
@@ -887,6 +918,7 @@ module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
 module.exports.CookiesNotification                       = CookiesNotification;
 module.exports.Dropdown                                  = Dropdown;
+module.exports.DropdownModal                             = DropdownModal;
 module.exports.FeedbackBox                               = FeedbackBox;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;

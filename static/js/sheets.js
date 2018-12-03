@@ -34,7 +34,11 @@ sjs.current.nextNode = sjs.current.nextNode || 1;
 // another user updates the currently loaded sheet. 
 sjs.lastEdit = null;
 
-
+// Make sure that we're using the s2 Sefaria utils, and not the s1/utils
+parseRef = Sefaria.parseRef.bind(Sefaria);
+makeRef = Sefaria.makeRef.bind(Sefaria);
+normRef = Sefaria.normRef.bind(Sefaria);
+humanRef = Sefaria.humanRef.bind(Sefaria);
 
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
@@ -979,7 +983,7 @@ $(function() {
 							scrollSensitivity: 60,
 							helper: function(e,ui) {
 								var helper = $(ui[0]).clone();
-								helper.css({'height': '300px','overflow':'hidden',"background-color":"#f9f9f7","opacity":0.9});
+								helper.css({'height': '300px','overflow':'hidden',"background-color":"#FBFBFA","opacity":0.9});
 								return helper;
 							},
 							sort: function(e,ui) {

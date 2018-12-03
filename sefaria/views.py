@@ -266,7 +266,7 @@ def bulktext_api(request, refs):
                         'heRef': oref.he_normal(),
                         'url': oref.url()
                     }
-            except (InputError, ValueError, AttributeError) as e:
+            except (InputError, ValueError, AttributeError, KeyError) as e:
                 # referer = request.META.get("HTTP_REFERER", "unknown page")
                 # This chatter fills up the logs.  todo: put in it's own file
                 # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
@@ -389,10 +389,12 @@ def rebuild_toc(request):
 def rebuild_auto_completer(request):
     library.build_full_auto_completer()
     library.build_ref_auto_completer()
+    library.build_lexicon_auto_completers()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
         server_coordinator.publish_event("library", "build_ref_auto_completer")
+        server_coordinator.publish_event("library", "build_lexicon_auto_completers")
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 

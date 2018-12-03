@@ -34,12 +34,12 @@ def main():
     # end = ALL for all books.
     ALL = 100000  # very large number (more than number of indexes)
     start = 0
-    end = 300
+    end = 30
     test_word = 'water'
     DESCRIPTION = '{}-{}'.format(start, end)
 
     ####### parse lib words #########
-    parse_lib_to_json(start, end)
+    OfflineTextIndexer.parse_lib_to_json(start, end)
 
     ####### get ref_strs from json files ########
     #get_from_json(test_word)
@@ -116,31 +116,31 @@ class OfflineTextIndexer(object):
         TextIndexer.index_all("", True, for_es=False, action=OfflineTextIndexer.index_segment)
         # after it's done there's likely an extra section that hasn't been indexed
         cls.index_section(cls.curr_title, cls.section_ref, cls.curr_section_text)
-
-        indexes = library.all_index_records()
-        indexes = indexes[start:end]
-        print("Running on {} indexes".format(len(indexes)))
-        last_time = time.time()
-        for i, index in enumerate(indexes):
-            title = index.title
-            print(i, str(dt.now().time()), index.title, time.time() - last_time)
-            last_time = time.time()
-            sys.stdout.flush()
-            ref_num_min_N_title.append((ref_num, title,))
-            try:
-                section_refs = index.all_section_refs()
-                for section_ref in section_refs:
-                        # remove the title from the section_ref
-                        ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref.normal())
-                        ref_num_2_full_name.append(section_ref.normal())
-                        ref_num_2_part.append(ref_part)
-                        add_words(section_ref, words_2_ref_nums, ref_num)
-                        ref_num += 1
-            except InputError as e:
-                print('ERROR', e)
-        print('saving to json...')
-        save(REF_NUM_MIN_N_TITLE, ref_num_min_N_title)
-        save(REF_NUM_2_PART, ref_num_2_part)
+        #
+        # indexes = library.all_index_records()
+        # indexes = indexes[start:end]
+        # print("Running on {} indexes".format(len(indexes)))
+        # last_time = time.time()
+        # for i, index in enumerate(indexes):
+        #     title = index.title
+        #     print(i, str(dt.now().time()), index.title, time.time() - last_time)
+        #     last_time = time.time()
+        #     sys.stdout.flush()
+        #     ref_num_min_N_title.append((ref_num, title,))
+        #     try:
+        #         section_refs = index.all_section_refs()
+        #         for section_ref in section_refs:
+        #                 # remove the title from the section_ref
+        #                 ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref.normal())
+        #                 ref_num_2_full_name.append(section_ref.normal())
+        #                 ref_num_2_part.append(ref_part)
+        #                 add_words(section_ref, words_2_ref_nums, ref_num)
+        #                 ref_num += 1
+        #     except InputError as e:
+        #         print('ERROR', e)
+        # print('saving to json...')
+        # save(REF_NUM_MIN_N_TITLE, ref_num_min_N_title)
+        # save(REF_NUM_2_PART, ref_num_2_part)
 
         # convert sets to lists for json
         words_2_ref_nums = {key: sorted(list(value)) for key, value in words_2_ref_nums.iteritems()}

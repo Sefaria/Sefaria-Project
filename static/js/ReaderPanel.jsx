@@ -46,11 +46,8 @@ class ReaderPanel extends Component {
       var state = this.clonePanel(props.initialState);
       state["initialAnalyticsTracked"] = false;
       this.state = state;
-
       return;
-
     }
-
 
     // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     this.state = {
@@ -84,16 +81,19 @@ class ReaderPanel extends Component {
       sheet:                props.sheet || null,
       sheetID:              null,
       searchQuery:          props.initialQuery || null,
-      appliedSearchFilters: props.initialAppliedSearchFilters || [],
-      searchFieldExact:     "exact",
-      searchFieldBroad:     "naive_lemmatizer",
-      searchField:          props.initialSearchField || "naive_lemmatizer",
-      searchSortType:       props.initialSearchSortType || "chronological",
+      textSearchState: new SearchState({
+        type:               'text',
+        field:              props.initialTextSearchField,
+        sortType:           props.initialTextSearchSortType,
+        appliedFilters:     props.initialTextAppliedSearchFilters,
+      }),
+      sheetSearchState: new SearchState({
+        type:               'sheet',
+        sortType:           props.initialSheetSearchSortType,
+        appliedFilters:     props.initialSheetAppliedSearchFilters,
+        appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
+      }),
       selectedWords:        "",
-      searchFiltersValid:   false,
-      availableFilters:     [],
-      filterRegistry:       {},
-      orphanSearchFilters:  [],
       displaySettingsOpen:  false,
       tagSort: "count",
       mySheetSort: "date",
@@ -168,21 +168,8 @@ class ReaderPanel extends Component {
     this.setState({"error": message})
   }
   clonePanel(panel) {
-    // Set aside self-referential objects before cloning
     // Todo: Move the multiple instances of this out to a utils file
-    if (panel.availableFilters || panel.filterRegistry) {
-      var savedAttributes = {
-         availableFilters: panel.availableFilters,
-         searchFiltersValid: panel.searchFiltersValid,
-         filterRegistry: panel.filterRegistry
-      };
-      panel.availableFilters = panel.searchFiltersValid = panel.filterRegistry = null;
-      var newpanel = extend(Sefaria.util.clone(panel), savedAttributes);
-      extend(panel, savedAttributes);
-      return newpanel;
-    } else {
-      return Sefaria.util.clone(panel);
-    }
+    return Sefaria.util.clone(panel);
   }
   handleBaseSegmentClick(ref) {
     if (this.state.mode === "TextAndConnections") {
@@ -206,7 +193,7 @@ class ReaderPanel extends Component {
           this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
         }
         else {
-          this.props.onSegmentClick("sheetRef", source.node)
+          this.props.onSegmentClick("Sheet " + this.state.sheet.id+":"+source.node, source.node)
         }
       } else {
           if (source.ref) {
@@ -215,11 +202,9 @@ class ReaderPanel extends Component {
       }
     }
   }
-
   handleSheetCitationClick(ref) {
     this.props.onCitationClick(ref);
   }
-
   handleCitationClick(citationRef, textRef) {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef);
@@ -251,8 +236,8 @@ class ReaderPanel extends Component {
   }
   handleSheetClick(e,sheet) {
     e.preventDefault();
-    var newSettings = this.state.settings
-    newSettings["language"] = sheet.options.language
+    var newSettings = this.state.settings;
+    newSettings["language"] = sheet.options.language;
     this.conditionalSetState({ mode: "Sheet", sheet: sheet, settings: newSettings});
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
@@ -278,6 +263,7 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
+    this.props.saveRecentlyViewed({ mode: "Text", refs, currVersions });
     this.conditionalSetState({
       mode: "Text",
       refs,
@@ -502,9 +488,6 @@ class ReaderPanel extends Component {
     return data;
   }
   currentBook() {
-    if ("sheetRef" == this.state.refs.slice()) {
-      return "Source Sheet";
-    }
     var data = this.currentData();
     if (data) {
       return data.indexTitle;
@@ -762,8 +745,10 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
+                    key={"searchPage"}
                     query={this.state.searchQuery}
-                    appliedFilters={this.state.appliedSearchFilters}
+                    textSearchState={this.state.textSearchState}
+                    sheetSearchState={this.state.sheetSearchState}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
@@ -775,13 +760,8 @@ class ReaderPanel extends Component {
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
-                    availableFilters={this.state.availableFilters}
-                    filtersValid={this.state.searchFiltersValid}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    exactField={this.state.searchFieldExact}
-                    broadField={this.state.searchFieldBroad}
-                    field={this.state.searchField}
-                    sortType={this.state.searchSortType}/>);
+                  />);
 
     } else if (this.state.menuOpen === "sheets") {
       var menu = (<SheetsNav
@@ -872,7 +852,7 @@ class ReaderPanel extends Component {
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
     if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
-      // Don't allow language toggle on Connections panel in Hebrew Interface. 
+      // Don't allow language toggle on Connections panel in Hebrew Interface.
       classes["hebrew"] = 1;
     } else {
       classes[this.state.settings.language]   = 1;
@@ -911,7 +891,7 @@ class ReaderPanel extends Component {
           connectionsCategory={this.state.connectionsCategory}
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
-          interfaceLang={this.props.interfaceLang}/>)}
+          interfaceLang={this.props.interfaceLang} />)}
 
         {(items.length > 0 && !menu) ?
             <div className="readerContent" style={style}>
@@ -947,9 +927,12 @@ ReaderPanel.propTypes = {
   initialHighlightedRefs:      PropTypes.array,
   initialMenu:                 PropTypes.string,
   initialQuery:                PropTypes.string,
-  initialAppliedSearchFilters: PropTypes.array,
-  initialSearchField:          PropTypes.string,
-  initialSearchSortType:       PropTypes.oneOf(["relevance", "chronological"]),
+  initialTextAppliedSearchFilters: PropTypes.array,
+  initialTextSearchField:          PropTypes.string,
+  initialTextSearchSortType:       PropTypes.string,
+  initialSheetAppliedSearchFilters: PropTypes.array,
+  initialSheetSearchField:          PropTypes.string,
+  initialSheetSearchSortType:       PropTypes.string,
   initialSheetsTag:            PropTypes.string,
   initialState:                PropTypes.object, // if present, overrides all props above
   interfaceLang:               PropTypes.string,
@@ -990,6 +973,7 @@ ReaderPanel.propTypes = {
   getLicenseMap:               PropTypes.func.isRequired,
   translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
+  saveRecentlyViewed:          PropTypes.func,
 };
 
 
@@ -1012,17 +996,15 @@ class ReaderControls extends Component {
     var title = this.props.currentRef;
     if (title) {
       var oref = Sefaria.ref(title);
-      if (!oref && title != "sheetRef") {
-        // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-        var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
-          if ("error" in data) {
-            this.props.onError(data.error);
-            return;
-          }
-          this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
-        }.bind(this));
-        this.setState({runningQuery: ajaxObj});
-      }
+      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
+      var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
+        if ("error" in data) {
+          this.props.onError(data.error);
+          return;
+        }
+        this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
+      }.bind(this));
+      this.setState({runningQuery: ajaxObj});
     }
   }
   componentWillUnmount() {

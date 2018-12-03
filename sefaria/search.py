@@ -141,7 +141,6 @@ def index_sheet(index_name, id):
     pud = public_user_data(sheet["owner"])
     tag_terms_simple = make_sheet_tags(sheet)
     tags = [t["en"] for t in tag_terms_simple]
-    tags_he_and_en = [u"{}|||{}".format(t["en"], t["he"]) for t in tag_terms_simple]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -152,13 +151,12 @@ def index_sheet(index_name, id):
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
             "tags": tags,
-            "tags_he_and_en": tags_he_and_en,
             "sheetId": id,
             "summary": sheet.get("summary", None),
-            "group": sheet.get("group", None),
+            "group": sheet.get("group", ''),
             "datePublished": sheet.get("datePublished", None),
             "dateCreated": sheet.get("dateCreated", None),
-            "dateModified": sheet.get("dateCreated", None),
+            "dateModified": sheet.get("dateModified", None),
             "views": sheet.get("views", 0)
         }
         es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
@@ -357,9 +355,6 @@ def put_sheet_mapping(index_name):
             'tags': {
                 'type': 'keyword'
             },
-            'tags_he': {
-                'type': 'keyword'
-            },
             'owner_image': {
                 'type': 'keyword'
             },
@@ -526,7 +521,6 @@ class TextIndexer(object):
             if for_es:
                 bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
 
-
     @classmethod
     def index_version(cls, version, tries=0, action=None):
         if not action:
@@ -550,6 +544,7 @@ class TextIndexer(object):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
         cls.merged = merged
         cls.index_name = index_name
+        cls.best_time_period = cls.curr_index.best_time_period()
         cls.curr_index = oref.index
         cls.trefs_seen = set()
         version_priority = 0

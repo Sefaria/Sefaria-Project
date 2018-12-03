@@ -120,7 +120,8 @@ MIDDLEWARE = [
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
-    'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware'
+    'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
+    #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
@@ -146,7 +147,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'anymail',
     'webpack_loader',
-    'django_user_agents'
+    'django_user_agents',
+    #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
