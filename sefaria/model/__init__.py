@@ -13,7 +13,7 @@ import abstract
 
 # not sure why we have to do this now - it wasn't previously required
 import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, \
-    translation_request, lexicon, place, person, time, garden, group
+    translation_request, lexicon, place, person, timeperiod, garden, group
 
 from history import History, HistorySet, log_add, log_delete, log_update, log_text
 from schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
@@ -31,7 +31,7 @@ from following import FollowRelationship, FollowersSet, FolloweesSet
 from user_profile import UserProfile, annotate_user_list
 from group import Group, GroupSet
 from version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
-from time import TimePeriod, TimePeriodSet
+from timeperiod import TimePeriod, TimePeriodSet
 from lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, JastrowDictionaryEntry, KleinDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
 from place import Place, PlaceSet
 from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
