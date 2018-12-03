@@ -1,1 +1,8 @@
-null
+{
+	"title": "תמכו בספריא",
+	"text": ["הספריה של ספריא פתוחה לכולם וכעת נגישה יותר מתמיד. עם זאת, נוכל להמשיך ולטפח את לימוד התורה רק בעזרת תמיכתכם."],
+	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile",
+	"buttonText": "לתרומה",
+	"name": "holidayDonation-2018-1",
+	"schemaVersion": 1
+}
