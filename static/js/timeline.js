@@ -4,11 +4,13 @@ let SefariaD3 = require("./sefaria-d3/sefaria-d3");
 let $ = require("./sefaria/sefariaJquery");
 
 /*****          Layout              *****/
-let margin = [30, 40, 20, 40];
+let margin = [60, 40, 20, 40];
 let w = 920; // real value determined in buildScreen()
 let h = 730 - margin[0] - margin[2];
+let textBox_height = 200;
+let graphBox_height = h - textBox_height;
 
-let svg, timeScale, s, t;
+let svg, timeScale, s, t, textBox, graphBox;
 
 const urlParams = new URLSearchParams(window.location.search);
 let startingRef = urlParams.get('ref');
@@ -68,13 +70,24 @@ async function refineLinks(alllinks) {
             l.ref = passageRefs[l.ref] || l.ref
         }); // Most of these will stay the same.
     }
-
-    // Bundle later commentary
-    // todo
-
     return mainlinks
 }
 
+function sortLinks(a1,b1) {
+    const a = a1.data;
+    const b = b1.data;
+    if (a.index_title == b.index_title) {
+        return a.commentaryNum - b.commentaryNum;
+    }
+    if (isHebrew()) {
+        var indexA = Sefaria.index(a.index_title);
+        var indexB = Sefaria.index(b.index_title);
+        return indexA.heTitle > indexB.heTitle ? 1 : -1;
+    }
+    else {
+        return a.sourceRef > b.sourceRef ? 1 : -1;
+    }
+}
 function partitionLinks(links, year) {
   // Split array of links into three arrays, based on year
   // Returns three arrays: [past, future, concurrent]
@@ -112,6 +125,13 @@ async function buildFutureTree(obj) {
     for (let link of obj.future) {
         await buildFutureTree(link);
     }
+
+    // Remove dangling commentary branches
+    // If an link has category "Commentary" and no future oriented links leave it off the chart.
+    // (we don't know how it contributes to anything downstream)
+    //debugger;
+    obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
+    //debugger;
 }
 
 async function buildPastTree(obj) {
@@ -219,18 +239,15 @@ function buildNetwork(trees) {
     trimFuture(trees);
     addAdditionalLinks(trees);
 
-    trees.pastHierarchy = d3.hierarchy(trees, d => d["past"]);
-    trees.futureHierarchy = d3.hierarchy(trees, d => d["future"]);
+    trees.pastHierarchy = d3.hierarchy(trees, d => d["past"]).sort(sortLinks);
+    trees.futureHierarchy = d3.hierarchy(trees, d => d["future"]).sort(sortLinks);
 
     return trees;
 }
 
 function layoutTrees(trees) {
-
-    let lh = h - 100; //we translate down 100 when rendering.
-
-    let pt = d3.tree().size([w/2, lh])(trees.pastHierarchy);
-    let ft = d3.tree().size([w/2, lh])(trees.futureHierarchy);
+    let pt = d3.tree().size([w/2, graphBox_height])(trees.pastHierarchy);
+    let ft = d3.tree().size([w/2, graphBox_height])(trees.futureHierarchy);
     // Reset x according to date
     pt.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); trees.refLookup[n.data.ref] = n; });
     ft.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); trees.refLookup[n.data.ref] = n; });
@@ -238,8 +255,8 @@ function layoutTrees(trees) {
     // Reset root y to center;
     pt.y = s(pt.data);
     ft.y = s(ft.data);
-    pt.x = lh/2;
-    ft.x = lh/2;
+    pt.x = graphBox_height/2;
+    ft.x = graphBox_height/2;
     pt.color = Sefaria.palette.categoryColor(pt.data.category);
     ft.color = Sefaria.palette.categoryColor(ft.data.category);
 
@@ -257,10 +274,10 @@ function layoutTrees(trees) {
 
 function renderTrees(trees) {
     // debugger;
-    const g = svg.append("g")
+    const g = graphBox.append("g")
       .attr("font-family", "sans-serif")
       .attr("font-size", 10)
-      .attr("transform", `translate(0,100)`);
+      .attr("transform", `translate(0,10)`);
 
   const link = g.append("g")
     .attr("fill", "none")
@@ -367,15 +384,24 @@ function curryAndRenderData() {
 //Build objects that are present for any starting state
 function buildFrame() {
     w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
+    textBox = d3.select("#content").append("div")
+        .attr("id", "textBox")
+        .style("height", textBox_height + "px")
+        .style("width", w - 400 + "px")
+        .style("margin", `${margin[0]}px auto`)
+      .append("span")
+        .attr("id", 'textSpan');
     svg = d3.select("#content").append("svg")
         .attr("width", w + margin[1] + margin[3] - 16)
-        .attr("height", h + margin[0] + margin[2])
-      .append("g")
-        .attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
-
+        .attr("height", graphBox_height + 150);  // todo: 150 is slop becuase I'm too lazy to sit and do arithmetic
     svg.append("svg:desc").text("This SVG displays visually ...");
+    graphBox = svg.append("g")
+        // .attr("height", graphBox_height)
+        .attr("transform", "translate(" + margin[3] + ", 0)");
 
-        // Titles and labels
+
+    /*
+    // Titles and labels
     let TopTitle = isEnglish() ? "Influence over Time" : 'השפעה לאורך זמן';
     svg.append("a")
         .attr("xlink:href", "/visualize/timeline")
@@ -385,6 +411,7 @@ function buildFrame() {
         .attr("y", 46)
         .style("text-anchor", "middle")
         .text(TopTitle);
+    */
 
     timeScale = d3.scaleLinear()
     .domain([-1500, 2050])
@@ -392,11 +419,14 @@ function buildFrame() {
     s = n => timeScale(getDate(n));
 
     let axis = d3.axisTop(timeScale);
-    svg.append("g")
-        .attr("transform", "translate(0,80)")
+    graphBox.append("g")
+        .attr("transform", "translate(0,50)")
         .call(axis);
 }
 
+async function renderText(ref) {
+
+}
 
 /*****     Listeners to handle popstate and to rebuild on screen resize     *****/
 
@@ -425,6 +455,7 @@ function handleStateChange(event) {
 //Rebuild screen geometry, without state change
 function rebuildScreen() {
     d3.selectAll("svg").remove();
+    d3.selectAll("#textBox").remove();
     buildScreen();
 }
 
