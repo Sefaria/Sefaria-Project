@@ -3,6 +3,7 @@ import urllib
 import re
 import bleach
 import sys
+from random import randint
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
@@ -12,10 +13,32 @@ if not hasattr(sys, '_doc_build'):
 	from django.core.exceptions import ValidationError
 	from anymail.exceptions import AnymailRecipientsRefused
 
+from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet
-from sefaria.model.text import Ref
 from sefaria.system.database import db
 from django.utils import translation
+
+
+class UserHistory(abst.AbstractMongoRecord):
+	collection = 'user_history'
+
+	required_attrs = [
+		"uid",  # user id
+		"ref",
+		"he_ref",
+		"versions",
+		"time_read",
+		"time_stamp",
+		"server_time_stamp"
+	]
+
+	optional_attrs = [
+		"flags"
+	]
+
+
+class UserHistorySet(abst.AbstractMongoSet):
+	recordClass = UserHistory
 
 
 class UserProfile(object):
@@ -48,8 +71,6 @@ class UserProfile(object):
 		self._id                   = None  # Mongo ID of profile doc
 		self.id                    = id    # user ID
 		self.slug                  = ""
-		self.recentlyViewed        = []
-		self.saved                 = []
 		self.position              = ""
 		self.organization          = ""
 		self.jewish_education      = []
@@ -71,11 +92,17 @@ class UserProfile(object):
 			"interface_language": "english",
 			"textual_custom" : "sephardi"
 		}
+		# dict that stores the last time an attr has been modified
+		self.attr_time_stamps = {
+			"settings": 0
+		}
 
 		self._name_updated      = False
 
+
 		# Update with saved profile doc in MongoDB
 		profile = db.profiles.find_one({"id": id})
+		profile = self.migrateFromOldRecents(profile)
 		if profile:
 			self.update(profile)
 
@@ -98,6 +125,43 @@ class UserProfile(object):
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
 
+	def migrateFromOldRecents(self, profile):
+		"""
+		migrate from recentlyViewed which is a flat list and only saves one item per book to readingHistory, which is a dict and saves all reading history
+		"""
+		if profile is None:
+			profile = {}  # for testing, user doesn't need to exist
+		if "recentlyViewed" in profile:
+			import pytz
+			from datetime import datetime
+			from dateutil import parser
+			# fun times with python datetime
+			epoch = datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
+			# define total_seconds which exists in Python3
+			total_seconds = lambda delta: delta.days * 86400 + delta.seconds + delta.microseconds / 1e6
+			default_epoch_time = total_seconds(datetime(2011, 11, 20, tzinfo=pytz.UTC) - epoch)  # the Sefaria epoch. time since Brett's epic first commit
+			user_history = [
+				{
+					"uid": self.id,
+					"ref": r[0],
+					"he_ref": r[1],
+					"time_stamp": total_seconds(parser.parse(r[2]) - epoch) if r[2] is not None else default_epoch_time,
+					"server_time_stamp": total_seconds(parser.parse(r[2]) - epoch) if r[2] is not None else default_epoch_time,
+					"time_read": (r[3] if r[3] and isinstance(r[3], int) else 0) * randint(3 * 60, 5 * 60),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book. lets let Hashem decide
+					"versions": {
+						"en": r[4],
+						"he": r[5]
+					}
+				} for r in profile['recentlyViewed']
+			]
+			for temp_uh in user_history:
+				uh = UserHistory(temp_uh)
+				uh.save()
+			profile.pop('recentlyViewed', None)
+			db.profiles.find_one_and_update({"id": self.id}, {"$unset": {"recentlyViewed": True}})
+			self.save()
+		return profile
+
 	def update(self, obj):
 		"""
 		Update this object with the fields in dictionry 'obj'
@@ -113,27 +177,6 @@ class UserProfile(object):
 			if v:
 				if k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == []:
 					self.__dict__[k] = v
-
-	def add_saved(saved_items):
-		"""
-		:param saved_items: list of saved items to add to self.saved
-		"""
-		# validate
-		required_fields = ["ref", "heRef", "category"]
-		optional_fields = ["versionTitle", "heVersionTitle"]
-		all_fields = required_fields + optional_fields
-		assert isinstance(saved_items, list)
-		for saved in saved_items:
-			assert isinstance(saved, dict)
-			for r in required_fields:
-				assert r in saved
-			for k, v in saved.items():
-				assert k in all_fields
-		self.saved += saved_items
-		d = self.to_DICT()
-		if self._id:
-			d["_id"] = self._id
-		db.profiles.save(d)
 
 	def save(self):
 		"""
@@ -259,8 +302,6 @@ class UserProfile(object):
 		dictionary = {
 			"id":                    self.id,
 			"slug":                  self.slug,
-			"recentlyViewed":        self.recentlyViewed,
-            "saved":                 self.saved,
 			"position":              self.position,
 			"organization":          self.organization,
 			"jewish_education":      self.jewish_education,
@@ -274,6 +315,7 @@ class UserProfile(object):
 			"youtube":               self.youtube,
 			"pinned_sheets":         self.pinned_sheets,
 			"settings":              self.settings,
+			"attr_time_stamps":      self.attr_time_stamps,
 			"interrupting_messages": getattr(self, "interrupting_messages", []),
 			"tag_order":             getattr(self, "tag_order", None),
 			"partner_group":         self.partner_group,
