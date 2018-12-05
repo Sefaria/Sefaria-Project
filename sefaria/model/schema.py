@@ -14,7 +14,7 @@ except ImportError:
 import regex
 from . import abstract as abst
 from sefaria.system.database import db
-
+from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.system.exceptions import InputError, IndexSchemaError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
 
@@ -547,7 +547,7 @@ class TreeNode(object):
         return new_node
 
     def all_children(self):
-        return self.traverse_to_list(lambda n, i: [n])[1:]
+        return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
 
     def get_leaf_nodes_to_depth(self, max_depth = None):
         """
@@ -588,6 +588,8 @@ class TreeNode(object):
         :param child: TreeNode
         :return: Integer
         """
+        if child.parent.is_virtual:
+            return child.parent.get_child_order(child)
         return self.all_children().index(child) + 1
 
 
@@ -793,8 +795,10 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     def __str__(self):
         return self.full_title("en")
 
-    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return self.__class__.__name__ + "('" + self.full_title("en") + "')"
+    def __repr__(self):
+        # Wanted to use orig_tref, but repr can not include Unicode
+        # add `repr` around `full_title()` in case there's unicode in the output
+        return self.__class__.__name__ + "(" + repr(self.full_title("en")) + ")"
 
 
 """
@@ -1414,7 +1418,7 @@ class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
     supported_languages = ["en"]
 
-    def __init__(self, parent, title=None, tref=None, word=None):
+    def __init__(self, parent, title=None, tref=None, word=None, lexicon_entry=None):
         """
         A schema node created on the fly, in memory, to correspond to a dictionary entry.
         Created by a DictionaryNode object.
@@ -1423,6 +1427,7 @@ class DictionaryEntryNode(TitledTreeNode):
         :param title:
         :param tref:
         :param word:
+        :param lexicon_entry: LexiconEntry. if you pass this param and dont pass title, tref or word, then this will bootstrap the DictionaryEntryNode and avoid an extra mongo call
         """
         if title and tref:
             self.title = title
@@ -1431,6 +1436,10 @@ class DictionaryEntryNode(TitledTreeNode):
             self.word = self._match.group(1) or ""
         elif word:
             self.word = word
+        elif lexicon_entry:
+            self.lexicon_entry = lexicon_entry
+            self.has_word_match = bool(self.lexicon_entry)
+            self.word = self.lexicon_entry.headword
 
         super(DictionaryEntryNode, self).__init__({
             "titles": [{
@@ -1458,6 +1467,12 @@ class DictionaryEntryNode(TitledTreeNode):
 
         if not self.word or not self.has_word_match:
             raise DictionaryEntryNotFound("Word not found in {}".format(self.parent.full_title()), self.parent.lexiconName, self.parent.full_title(), self.word)
+
+    def __eq__(self, other):
+        return self.address() == other.address()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def has_numeric_continuation(self):
         return True
@@ -1571,6 +1586,11 @@ class DictionaryNode(VirtualNode):
         except DictionaryEntryNotFound:
             return None
 
+    def all_children(self):
+        lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
+        for lexicon_entry in lexicon_entry_set:
+            yield self.entry_class(self, lexicon_entry=lexicon_entry)
+
     def serialize(self, **kwargs):
         """
         :return string: serialization of the subtree rooted in this node
@@ -1582,6 +1602,15 @@ class DictionaryNode(VirtualNode):
         d["firstWord"] = self.firstWord
         d["lastWord"] = self.lastWord
         return d
+
+    def get_child_order(self, child):
+        if isinstance(child, DictionaryEntryNode):
+            if hasattr(child.lexicon_entry, "rid"):
+                return unicode(child.lexicon_entry.rid)
+            else:
+                return child.word
+        else:
+            return u""
 
 
 class SheetNode(NumberedTitledTreeNode):

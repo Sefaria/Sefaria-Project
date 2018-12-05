@@ -160,8 +160,8 @@ class TopicsManager(object):
 
     def save_to_cache(self):
         pickled = pickle.dumps(self)
-        scache.set_cache_elem('topics', pickled)
-        scache.set_cache_elem('topics_timestamp', self.timestamp())
+        scache.set_cache_elem('topics', pickled, None)
+        scache.set_cache_elem('topics_timestamp', self.timestamp(), None)
 
     def timestamp(self):
         return int(time.time())
