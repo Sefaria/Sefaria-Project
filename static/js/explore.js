@@ -102,6 +102,8 @@ function isNotTwelve(el) { return !isTwelve(el); }
 
 var pLinkCache = {}; //Cache for precise link queries
 
+window.pLinkCache = pLinkCache;
+
 /*****          Colors              *****/
 
 var colors = d3.scale.category10()
@@ -169,7 +171,6 @@ $.when(b, t).then(function() {
     replaceHistory();
 });
 
-
 /*****         Methods used in screen construction      *****/
 
 function buildScreen(openBooks, colorScheme) {
@@ -191,7 +192,7 @@ function buildScreen(openBooks, colorScheme) {
     }
     else {
         for (var i = 0; i < openBooks.length; i++) {
-            openBook(svg.select("#" + openBooks[i]).datum());
+            openBook(selectBook(openBooks[i]).datum());
         }
         showBookCollections();
     }
@@ -572,19 +573,20 @@ function addAxis(d) {
     var y = orient == "top" ? topOffsetY + 5 : bottomOffsetY + 5;    
 
     if(categories[type].talmudAddressed) {
-        ticks = SefariaD3.talmudRefTicks(d.chapters);
-        d.scale = SefariaD3.talmudScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
+        ticks = SefariaD3.talmudRefTicks(d);
+        d.scale = SefariaD3.textScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d, "talmud");
     } else {
-        ticks = SefariaD3.integerRefTicks(d.chapters);
-        d.scale = SefariaD3.integerScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d.chapters);
+        ticks = SefariaD3.integerRefTicks(d);
+        d.scale = SefariaD3.textScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d, "integer");
     }
 
     d.s = SefariaD3.scaleNormalizationFunction(d.scale);
 
     d.axis = d3.svg.axis()
-        .orient(orient)
+        .orient(orient) 
         .scale(d.scale)
-        .tickValues(ticks);
+        .tickValues(ticks)
+        .tickFormat(ref => ref.split(/(\d.*)/)[1]); // Only show numerical portion of ref in ticks
 
     d.axis_group = svg.select("#" + type).append("g")
 		.attr("class", "axis " + d.id )
@@ -966,25 +968,33 @@ function processPreciseLinks(dBook) {
 
     function preciseLinkCallback (error, json) {
         if (!(dBook.book in pLinkCache)) {
+            json.map(d => {
+                // Annotate data with book name,
+                // which may be different than title for complex texts
+                d["r1"]["book"] = Sefaria.parseRef(d["r1"]["title"]).index;
+                d["r2"]["book"] = Sefaria.parseRef(d["r2"]["title"]).index;
+            });
             pLinkCache[dBook.book] = json;
         }
 
-        //We are assuming that r1 is Bavli and r2 is Tanakh
-        var otherBookRef = dBook.collection == "tanakh" ? "r1" : "r2";
         var otherBook = null;
         svg.selectAll(".open.book").each(function(d) { if (d !== dBook) { otherBook = d; }});
 
+        //console.log("dBook.book", dBook.book);
+
         //Todo: avoid the server call, and just get the intersection from the existing cached json of the other book
         if(otherBook) {
-            var otherTitle = otherBook.book;
             function isInIntersection(el) {
-                return (el[otherBookRef]["title"] == otherTitle);
+                //console.log("otherBook", otherBook.book);
+                return (el["r1"]["book"] == otherBook.book || el["r2"]["book"] == otherBook.book);
             }
             json = json.filter(isInIntersection);
         }
 
         var preciseLinks = plinks.selectAll("a.preciseLinkA")
-            .data(json, function(d) { return d["r1"]["title"] + "-" + d["r1"]["loc"] + "-" + d["r2"]["title"] + "-" + d["r2"]["loc"]; });
+            .data(json, function(d) { 
+                return d["r1"]["title"] + "-" + d["r1"]["loc"] + "-" + d["r2"]["title"] + "-" + d["r2"]["loc"]; 
+            });
 
         //enter
         preciseLinks.enter()
@@ -1009,8 +1019,8 @@ function processPreciseLinks(dBook) {
                     } else {
                         xPosition = d3.mouse(this)[0] - 130;
                         yPosition = d3.mouse(this)[1] - 65;
-                        tooltip.select("#text1").text(d["r1"]["loc"] + " " + selectBook(d["r1"]["title"]).datum().heBook);
-                        tooltip.select("#text2").text(selectBook(d["r2"]["title"]).datum().heBook + " " + d["r2"]["loc"]);
+                        tooltip.select("#text1").text(d["r1"]["loc"] + " " + selectBook(d["r1"]["book"]).datum().heBook);
+                        tooltip.select("#text2").text(selectBook(d["r2"]["book"]).datum().heBook + " " + d["r2"]["loc"]);
                     }
                     var bbox1 = tooltip.select("#text1").node().getBBox();
                     var bbox2 = tooltip.select("#text2").node().getBBox();
@@ -1023,24 +1033,26 @@ function processPreciseLinks(dBook) {
         preciseLinks.attr("display", "inline")
             .select("path.preciseLink")
                 .attr("stroke", function (d) {
+                      //console.log(d);
                       if(otherBook && this.getAttribute("stroke")) { // link was already shown, leave it.  Second condition is needed for when two books open before first callback is called.
                           return this.getAttribute("stroke");
                       } else { // Color by opposing scheme
-                          return colors(selectBook(d[otherBookRef]["title"]).attr("section"));
+                          var opposingBookRef = d["r1"]["book"] == dBook.book ? "r2" : "r1";
+                          return colors(selectBook(d[opposingBookRef]["book"]).attr("section"));
                       }
                 })
                 .attr("d", d3.svg.diagonal()
                     .source(function (d) {
-                      d.sourcex = Number(selectBook(d["r1"]["title"]).datum().s(d["r1"]["loc"]));
-                      d.sourcey = Number(selectBook(d["r1"]["title"]).attr("cy"));
+                      d.sourcex = Number(selectBook(d["r1"]["book"]).datum().s(d["r1"]["title"] + " " + d["r1"]["loc"]));
+                      d.sourcey = Number(selectBook(d["r1"]["book"]).attr("cy"));
                       return {
                           "x": d.sourcex,
                           "y": d.sourcey
                       };
                     })
                     .target(function (d) {
-                      d.targetx = Number(selectBook(d["r2"]["title"]).datum().s(d["r2"]["loc"]));
-                      d.targety = Number(selectBook(d["r2"]["title"]).attr("cy"));
+                      d.targetx = Number(selectBook(d["r2"]["book"]).datum().s(d["r2"]["title"] + " " + d["r2"]["loc"]));
+                      d.targety = Number(selectBook(d["r2"]["book"]).attr("cy"));
                       return {
                           "x": d.targetx,
                           "y": d.targety

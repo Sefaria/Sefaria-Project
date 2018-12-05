@@ -353,6 +353,8 @@ def get_book_category_linkset(book, cat):
     book_re = text.Ref(book).regex()
     cat_re = r'^({}) \d'.format('|'.join(titles)) #todo: generalize this regex
 
+    cat_re = r'^({})'.format('|'.join([text.Ref(title).regex() for title in titles]))
+
     return LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
 
 

@@ -4,28 +4,18 @@ var Sefaria = require('sefaria');
 
 class SD3 {
 
-    static talmudScale(direction, left_point, right_point, chap_lengths) {
-        /*  Returns a D3 scale object for the Talmud:Integer addressed jagged array described by chap_lengths
+    static textScale(direction, left_point, right_point, shape, section_address_type) {
+        /*  Returns a D3 scale object for the text described by shape
 
             direction: "ltr" or "rtl"
             left_point: The leftmost px value
             right_point:  The rightmost px value
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
-        */
-        return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "talmud"));
-    }
+            shape: an object describing the shape of the text available from the Shape API
+            section_address_type: "talmud" or "integer"
 
-    static integerScale(direction, left_point, right_point, chap_lengths) {
-        /*  Returns a D3 scale object for the Integer:Integer addressed jagged array described by chap_lengths
-
-            direction: "ltr" or "rtl"
-            left_point: The leftmost px value
-            right_point:  The rightmost px value
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
         */
-        return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "integer"));
+        var domain = this._textDomain(shape, section_address_type);
+        return this._jaggedArrayScale(direction, left_point, right_point, domain);
     }
 
     static _jaggedArrayScale(direction, left_point, right_point, domain) {
@@ -42,6 +32,21 @@ class SD3 {
         return d3.scale.ordinal()
              .domain(domain)
             .rangePoints(rangePoints);
+    }
+
+    static _textDomain(shape, section_address_type) {
+        if (shape.isComplex) {
+            var domain = [];
+            shape.chapters.map(sectionShape => {
+                var sectionDomain = this._jaggedArrayDomain(sectionShape.chapters, section_address_type);
+                sectionDomain = sectionDomain.map(i => sectionShape.title + " " + i );
+                domain = domain.concat(sectionDomain);
+            });
+        } else {
+            var domain = this._jaggedArrayDomain(shape.chapters, section_address_type);
+            domain = domain.map(i => shape.book + " " + i );            
+        }
+        return domain;
     }
 
     static _jaggedArrayDomain(chap_lengths, section_address_type) {
@@ -103,49 +108,44 @@ class SD3 {
         };
     }
 
-    static talmudRefTicks(chap_lengths, skip) {
+    static talmudRefTicks(shape, skip) {
         /*  Returns an array of strings, in Talmud format, to be used as ticks on an Axis.
 
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
+            shape: an object describing the shape of the text available from the Shape API
             skip: the number of sections to skip, between ticks
                 If not provided, a default value will be chosen based on the number of sections
          */
-        var last_index = chap_lengths.length - 1;
-        skip = skip || (last_index < 80) ? 4 :
-            (last_index < 120) ? 6 :
-                10;
 
-        var ticks = [];
-        ticks.push("2a");
-        for (var i = skip + 2; i < last_index - 2; i = i + skip) {
-            ticks.push(Sefaria.hebrew.intToDaf(i));
-        }
-        ticks.push(Sefaria.hebrew.intToDaf(last_index));
+        var domain = this._textDomain(shape, "talmud");
+        var ticks = domain.filter(ref => ref.indexOf(":") == -1);
+        skip = skip || (domain.length < 80) ? 4 :
+            (domain.length < 120) ? 6 :
+                10;        
 
+        ticks = ticks.filter((e,i) => i % skip == 0);
         return ticks;
+
     }
 
-    static integerRefTicks(chap_lengths, skip) {
+    static integerRefTicks(shape, skip) {
         /*  Returns an array of strings, in Integer:Integer format, to be used as ticks on an Axis.
             Assumes depth 2 (Would this work w/ Depth 3, as is?)
 
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
+            shape: an object describing the shape of the text available from the Shape API
             skip: the number of sections to skip, between ticks
                 If not provided, a default value will be chosen based on the number of sections
          */
-        var isDepth1 = typeof chap_lengths == "number";
-        var last_index = isDepth1 ? chap_lengths : chap_lengths.length;
-        skip = skip || (last_index < 40) ? 1 :
-            (last_index < 90) ? 2 :
-                6;
+        var domain = this._textDomain(shape, "integer");
+        var ticks = domain.filter(ref => ref.indexOf(":") == -1);  
 
-        var ticks = [];
-        for (var i = 1; i <= last_index; i = i + skip) {
-            ticks.push(i);
-        }
+        skip = skip || (domain.length < 40) ? 1 :
+            (domain.length < 90) ? 2 :
+            (domain.length < 300) ? 6 :
+                20;
+
+        ticks = ticks.filter((e,i) => i % skip == 0);
         return ticks;
+
     }
 
 }
