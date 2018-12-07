@@ -277,6 +277,16 @@ function layoutTrees(trees) {
     return trees;
 }
 
+function cleanObject(trees) {
+    delete trees.past;
+    delete trees.future;
+    delete trees.concurrent;
+    delete trees.pastHierarchy;
+    delete trees.futureHierarchy;
+
+    return trees;
+}
+
 function renderTrees(trees) {
     // debugger;
     const g = graphBox.append("g")
@@ -393,6 +403,7 @@ function curryAndRenderData() {
         .then(buildRawTrees)
         .then(buildNetwork)
         .then(layoutTrees)
+        .then(cleanObject)
         .then(renderTrees)
         .then(console.log);
 }
