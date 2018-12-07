@@ -276,9 +276,8 @@ Sefaria = extend(Sefaria, {
   },
   _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts.
-  text: function(ref, settings = null, cb = null) {
-    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
-    settings = settings || {};
+  _complete_text_settings: function(s = null) {
+    let settings = s || {};
     settings = {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
@@ -288,6 +287,36 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
+    return settings;
+  },
+  getText: function(ref, settings) {
+    // returns a promise
+    settings = this._complete_text_settings(settings);
+    const key = this._textKey(ref, settings);
+
+    return new Promise((resolve, reject) => {
+        if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
+            const data = this._getOrBuildTextData(key, ref, settings);
+            resolve(data);
+        }
+        const saveData = data => {
+            if (Array.isArray(data)) {
+                data.map(d => this._saveText(d, settings))
+            } else {
+                this._saveText(data, settings);
+            }
+            return data;
+        };
+        resolve(
+            this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
+                .then(saveData)
+        );
+    });
+  },
+  text: function(ref, settings = null, cb = null) {
+    // To be deprecated in favor of `getText`
+    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
+    settings = this._complete_text_settings(settings);
     var key = this._textKey(ref, settings);
     if (!cb) {
       return this._getOrBuildTextData(key, ref, settings);
@@ -302,16 +331,9 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   textApi: function(ref, settings, cb) {
-    settings = settings || {};
-    settings = {
-      commentary: settings.commentary || 0,
-      context:    settings.context    || 0,
-      pad:        settings.pad        || 0,
-      enVersion:  settings.enVersion  || null,
-      heVersion:  settings.heVersion  || null,
-      multiple:   settings.multiple   || 0,
-      wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
-    };
+    // Used only by `text` method, above.
+    // To be deprecated in favor of `getText`
+    settings = this._complete_text_settings(settings);
     return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
       if (Array.isArray(data)) {
           data.map(d => this._saveText(d, settings))
@@ -385,14 +407,15 @@ Sefaria = extend(Sefaria, {
     return key;
   },
   _getOrBuildTextData: function(key, ref, settings) {
-    var cached = this._texts[key];
+    let cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData  = Sefaria.util.clone(this.text(cached.ref, extend(settings, {context: 0})));
-      var contextData  = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
+      let segmentData  = Sefaria.util.clone(this.text(cached.ref, extend(settings, {context: 0})));
+      let contextData  = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
+      // Should we be saving the built data?
     }
   },
   _saveText: function(data, settings) {
