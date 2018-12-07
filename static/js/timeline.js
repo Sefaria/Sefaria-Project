@@ -122,13 +122,14 @@ async function getConcurrentLinks(ref, year) {
 
 async function buildFutureTree(obj) {
     obj.future = await getFutureLinks(obj.ref, getDate(obj));
-    for (let link of obj.future) {
-        await buildFutureTree(link);
-    }
+
+    // Set up all the recursive calls first, then await them, so they execute in parallel.
+    obj.future.map(buildFutureTree).map(async _ => await _);
 
     // Remove dangling commentary branches
     // If an link has category "Commentary" and no future oriented links leave it off the chart.
     // (we don't know how it contributes to anything downstream)
+
     //debugger;
     obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
     //debugger;
@@ -136,10 +137,10 @@ async function buildFutureTree(obj) {
 
 async function buildPastTree(obj) {
     obj.past = await getPastLinks(obj.ref, getDate(obj));
-    obj.future = await getFutureLinks(obj.ref, getDate(obj));  // For secondary links
-    for (let link of obj.past) {
-        await buildPastTree(link);
-    }
+    const f = getFutureLinks(obj.ref, getDate(obj));           // For secondary links
+    obj.past.map(buildPastTree).map(async _ => await _);       // Parallel calls
+    obj.future = await f;
+    obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
 }
 
 async function buildConcurrentTree(obj) {
@@ -163,17 +164,21 @@ async function buildRawTrees(ref) {
     // "past" refs may have a "past" attributes with a list of refs, and recursing
     // "future" refs may have a "future" attribute with a list of refs, and recursing
 
-    let obj = {ref: ref};
-    let i = await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index);
-    obj.compDate = i.compDate;
-    obj.errorMargin = i.errorMargin;
-    obj.category = i.category;
+    const i = await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index);
+    const obj = {
+        ref: ref,
+        compDate: i.compDate,
+        errorMargin: i.errorMargin,
+        category: i.category
+    };
+
     let a = buildFutureTree(obj);
     let b = buildPastTree(obj);
     let c = buildConcurrentTree(obj);
     await a;
     await b;
     await c;
+
     return obj;
 }
 
@@ -411,20 +416,6 @@ function buildFrame() {
     graphBox = svg.append("g")
         // .attr("height", graphBox_height)
         .attr("transform", "translate(" + margin[3] + ", 0)");
-
-
-    /*
-    // Titles and labels
-    let TopTitle = isEnglish() ? "Influence over Time" : 'השפעה לאורך זמן';
-    svg.append("a")
-        .attr("xlink:href", "/visualize/timeline")
-      .append("text")
-        .attr("id","page-title")
-        .attr("x", w/2)
-        .attr("y", 46)
-        .style("text-anchor", "middle")
-        .text(TopTitle);
-    */
 
     timeScale = d3.scaleLinear()
     .domain([-1500, 2050])
