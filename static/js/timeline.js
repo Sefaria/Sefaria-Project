@@ -7,7 +7,7 @@ let $ = require("./sefaria/sefariaJquery");
 let margin = [60, 40, 20, 40];
 let w = 920; // real value determined in buildScreen()
 let h = 730 - margin[0] - margin[2];
-let textBox_height = 200;
+let textBox_height = 150;
 let graphBox_height = h - textBox_height;
 
 let svg, timeScale, s, t, textBox, graphBox;
@@ -318,7 +318,9 @@ function renderTrees(trees) {
     .data(trees.futureTree.descendants().reverse())
     .enter().append("g")
       .attr("class", "future")
-      .attr("transform", d => `translate(${d.y},${d.x})`);
+      .attr("transform", d => `translate(${d.y},${d.x})`)
+      .on("mouseover", renderText);
+
 
     futurenode.append("circle")
       .attr("fill", d => d.children ? "#555" : "#999")
@@ -339,7 +341,9 @@ function renderTrees(trees) {
     .data(trees.pastTree.descendants().reverse())
     .enter().append("g")
       .attr("class", "past")
-      .attr("transform", d => `translate(${d.y},${d.x})`);
+      .attr("transform", d => `translate(${d.y},${d.x})`)
+      .on("mouseover", renderText);
+
 
     pastnode.append("circle")
       .attr("fill", d => d.children ? "#555" : "#999")
@@ -356,6 +360,13 @@ function renderTrees(trees) {
   return trees;
 }
 
+function renderText(node) {
+    Sefaria.getText(node.data.ref).then(text => {
+        d3.select("#textTitle").html(text.ref);
+        d3.select("#textInner").html(text.he);
+    });
+
+}
 
 
 /*****         Draw Tree                                *****/
@@ -387,10 +398,12 @@ function buildFrame() {
     textBox = d3.select("#content").append("div")
         .attr("id", "textBox")
         .style("height", textBox_height + "px")
-        .style("width", w - 400 + "px")
-        .style("margin", `${margin[0]}px auto`)
-      .append("span")
-        .attr("id", 'textSpan');
+        .style("width", w - 400 + "px");
+    textBox.append("div")
+        .attr("id", 'textTitle');
+    textBox.append("div")
+        .attr("id", 'textInner')
+        .style("direction", "rtl");
     svg = d3.select("#content").append("svg")
         .attr("width", w + margin[1] + margin[3] - 16)
         .attr("height", graphBox_height + 150);  // todo: 150 is slop becuase I'm too lazy to sit and do arithmetic
@@ -422,10 +435,6 @@ function buildFrame() {
     graphBox.append("g")
         .attr("transform", "translate(0,50)")
         .call(axis);
-}
-
-async function renderText(ref) {
-
 }
 
 /*****     Listeners to handle popstate and to rebuild on screen resize     *****/
