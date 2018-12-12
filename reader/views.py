@@ -2181,7 +2181,7 @@ def get_name_completions(name, limit, ref_only):
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
-        d["completions"] = list(OrderedDict.fromkeys(t))  # filter out dupes
+        completions = list(OrderedDict.fromkeys(t))  # filter out dupes
     except InputError:
         completions = completer.complete(name, limit)
         object_data = completer.get_data(name)
@@ -3475,6 +3475,67 @@ def random_by_topic_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
+@csrf_exempt
+def dummy_search_api(request):
+    # Thou shalt upgrade thine app or thou shalt not glean the results of search thou seeketh
+    # this api is meant to information users of the old search.sefaria.org to upgrade their apps to get search to work again
+    were_sorry = u"We're sorry, but your version of the app is no longer compatible with our new search. We recommend you upgrade the Sefaria app to fully enjoy all it has to offer <br> עמכם הסליחה, אך גרסת האפליקציה הנמצאת במכשירכם איננה תואמת את מנוע החיפוש החדש. אנא עדכנו את אפליקצית ספריא להמשך שימוש בחיפוש"
+    resp = jsonResponse({
+        "took": 613,
+        "timed_out": False,
+        "_shards": {
+            "total": 5,
+            "successful": 5,
+            "skipped": 0,
+            "failed": 0
+        },
+        "hits": {
+            "total": 1,
+            "max_score": 1234,
+            "hits": [
+                {
+                    "_index": "merged-c",
+                    "_type": "text",
+                    "_id": "yoyo [he]",
+                    "_score": 1,
+                    "_source": {
+                        "titleVariants": ["Upgrade"],
+                        "path": "Tanakh/Torah/Genesis",
+                        "version_priority": 0,
+                        "content": were_sorry,
+                        "exact": were_sorry,
+                        "naive_lemmatizer": were_sorry,
+                        "comp_date": -1400,
+                        "categories": ["Tanakh", "Torah"],
+                        "lang": "he",
+                        "pagesheetrank": 1,
+                        "ref": "Genesis 1:1",
+                        "heRef": u"בראשית א:א",
+                        "version": None,
+                        "order":"A00000100220030"
+                    },
+                    "highlight": {
+                        "content": [
+                            were_sorry
+                        ],
+                        "exact": [
+                            were_sorry
+                        ],
+                        "naive_lemmatizer": [
+                            were_sorry
+                        ]
+                    }
+                }
+            ]
+        },
+        "aggregations": {
+            "category": {
+                "buckets": []
+            }
+        }
+    })
+    resp['Content-Type'] = "application/json; charset=utf-8"
+    return resp
 
 # def search_api(request):
 #     # dict to define request parameters and their default values. None means parameter is required

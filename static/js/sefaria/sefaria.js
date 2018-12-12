@@ -1,7 +1,7 @@
 var extend     = require('extend'),
     param      = require('querystring').stringify,
     striptags  = require('striptags'),
-    { Search } = require('./search'),
+    Search     = require('./search'),
     palette    = require('./palette'),
     Track      = require('./track'),
     Hebrew     = require('./hebrew'),
@@ -1718,46 +1718,17 @@ Sefaria = extend(Sefaria, {
   _groups: {},
   groups: function(group, sortBy, callback) {
     // Returns data for an individual group
-    var group = this._groups[group];
-    if (group) {
-      this._sortSheets(group, sortBy);
-      if (callback) { callback(group); }
+    var groupObj = this._groups[group];
+    if (groupObj) {
+      if (callback) { callback(groupObj); }
     } else if (callback) {
       var url = Sefaria.apiHost + "/api/groups/" + group;
        Sefaria._api(url, function(data) {
-          this._groups[group] = data;
-          this._sortSheets(data, sortBy);
-          callback(data);
+           this._groups[group] = data;
+           callback(data);
         }.bind(this));
       }
-    return group;
-  },
-  _sortSheets: function(group, sortBy) {
-    // Taks an object representing a group and sorts its sheets in place according to `sortBy`.
-    // Also honors ordering of any sheets in `group.pinned_sheets`
-    if (!group.sheets) { return; }
-
-    var sorters = {
-      date: function(a, b) {
-        return Date.parse(b.modified) - Date.parse(a.modified);
-      },
-      alphabetical: function(a, b) {
-        return a.title.stripHtml().trim() > b.title.stripHtml().trim() ? 1 : -1;
-      },
-      views: function(a, b) {
-        return b.views - a.views;
-      }
-    };
-    var sortPinned = function(a, b) {
-      var ai = group.pinnedSheets.indexOf(a.id);
-      var bi = group.pinnedSheets.indexOf(b.id);
-      if (ai == -1 && bi == -1) { return 0; }
-      if (ai == -1) { return 1; }
-      if (bi == -1) { return -1; }
-      return  ai < bi ? -1 : 1;
-    };
-    group.sheets.sort(sorters[sortBy]);
-    group.sheets.sort(sortPinned);
+    return groupObj;
   },
   _groupsList: null,
   groupsList: function(callback) {

@@ -746,6 +746,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       var menu = (<SearchPage
+                    key={"searchPage"}
                     query={this.state.searchQuery}
                     textSearchState={this.state.textSearchState}
                     sheetSearchState={this.state.sheetSearchState}

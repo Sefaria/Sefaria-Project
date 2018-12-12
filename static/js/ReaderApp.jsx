@@ -269,6 +269,17 @@ class ReaderApp extends Component {
     // console.log(state);
     if (state) {
       this.justPopped = true;
+      // history does not preserve custom objects
+      const h = state.header;
+      if (!!h) {
+        h.textSearchState = h.textSearchState && new SearchState(h.textSearchState);
+        h.sheetSearchState = h.sheetSearchState && new SearchState(h.sheetSearchState);
+      }
+      if (state.panels) {
+        for (let p of state.panels) {
+          p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
+        }
+      }
       this.setState(state);
       this.setContainerMode();
     }

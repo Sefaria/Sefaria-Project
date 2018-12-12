@@ -40,7 +40,9 @@ $(function() {
       layoutTanakh:  $.cookie("layoutTanakh")  || "segmented",
       color:         $.cookie("color")         || "light",
       biLayout:      $.cookie("biLayout")      || "stacked",
-      fontSize:      $.cookie("fontSize")      || 62.5
+      fontSize:      $.cookie("fontSize")      || 62.5,
+      aliyotTorah:   $.cookie("aliyotTorah")   || "aliyotOff",
+      vowels:        $.cookie("vowels")        || "all"
     };
     var multiPanel = $(window).width() > 600;
     component = React.createElement(SefariaReact.ReaderApp, {

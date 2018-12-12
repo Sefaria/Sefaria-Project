@@ -22,7 +22,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -786,7 +786,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
     def get_primary_category(self):
-        if self.is_dependant_text() and len(self.categories) >= 2:
+        if self.is_dependant_text() and self.dependence.capitalize() in self.categories:
             return self.dependence.capitalize()
         else:
             return self.categories[0]
@@ -1087,7 +1087,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
             addressTypes = schema[u"addressTypes"] if u"addressTypes" in schema else None
         if type(item) is dict:
             for n in schema[u"nodes"]:
-                if n.get(u"default", False):
+                try:
+                    is_virtual_node = VirtualNode in globals()[n.get(u"nodeType", u"")].__bases__
+                except KeyError:
+                    is_virtual_node = False
+                if n.get(u"default", False) or is_virtual_node:
                     node_title_en = node_title_he = u""
                 elif n.get(u"sharedTitle", False):
                     titles = terms_dict[n[u"sharedTitle"]][u"titles"] if terms_dict is not None else Term().load({"name": n[u"sharedTitle"]}).titles
@@ -1097,7 +1101,15 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                     node_title_en = u", " + get_primary_title(u"en", n[u"titles"])
                     node_title_he = u", " + get_primary_title(u"he", n[u"titles"])
 
-                self.walk_thru_contents(action, item[n[u"key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
+                if is_virtual_node:
+                    curr_ref = Ref(tref)
+                    vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == n.get(u"nodeType", u"") and x.firstWord == n[u"firstWord"])
+                    for vchild in vnode.all_children():
+                        vstring = u" ".join(vchild.get_text())
+                        vref = vchild.ref()
+                        self.walk_thru_contents(action, vstring, vref.normal(), vref.he_normal(), n, [])
+                else:
+                    self.walk_thru_contents(action, item[n[u"key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
         elif type(item) is list:
             for ii, i in enumerate(item):
                 try:
@@ -2152,7 +2164,6 @@ class Ref(object):
                 raise InputError(u"{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
     def __clean_tref(self):
-        self.tref = re.sub(ur"[\(\[]([^\)\]]+)[\)\]]", ur"\1", self.tref)  # remove surrounding parens if they exist
         self.tref = self.tref.strip().replace(u"–", "-").replace(u"\u2011", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
         if self._lang == "he":
             return
@@ -3635,13 +3646,15 @@ class Ref(object):
         try:
             base = library.category_id_dict()[key]
             if self.index.is_complex():
-                base += format(self.index.nodes.get_child_order(self.index_node), '03')
-            res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
+                child_order = self.index.nodes.get_child_order(self.index_node)
+                base += unicode(format(child_order, '03')) if isinstance(child_order, int) else child_order
+
+            res = reduce(lambda x, y: x + unicode(format(y, '04')), self.sections, base)
             if self.is_range():
-                res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
+                res = reduce(lambda x, y: x + unicode(format(y, '04')), self.toSections, res + u"-")
             return res
         except Exception as e:
-            logger.warning("Failed to execute order_id for {} : {}".format(self, e))
+            logger.warning(u"Failed to execute order_id for {} : {}".format(self, e))
             return "Z"
 
     """ Methods for working with Versions and VersionSets """
