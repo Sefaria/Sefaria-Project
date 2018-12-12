@@ -4,7 +4,8 @@ Run me with:
 python manage.py test reader
 """
 import sys
-#Tells sefaria.system.database to use a test db
+
+# Tells sefaria.system.database to use a test db
 sys._called_from_test = True
 
 from copy import deepcopy
@@ -13,13 +14,13 @@ import json
 
 from django.test import TestCase
 from django.test.client import Client
-from django.utils import simplejson as json
 from django.contrib.auth.models import User
-#import selenium
+# import selenium
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, VersionStateSet, TextChunk, Category
+from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
+    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 
@@ -31,7 +32,7 @@ class SefariaTestCase(TestCase):
         user = User.objects.create_user(username="test@sefaria.org", email='test@sefaria.org', password='!!!')
         user.set_password('!!!')
         user.first_name = "Test"
-        user.last_name  = "Testerberg"
+        user.last_name = "Testerberg"
         user.is_staff = True
         user.save()
         c.login(email="test@sefaria.org", password="!!!")
@@ -51,6 +52,7 @@ class PagesTest(SefariaTestCase):
     """
     Tests that an assortment of important pages can load without error. 
     """
+
     def test_root(self):
         response = c.get('/')
         self.assertEqual(200, response.status_code)
@@ -148,6 +150,7 @@ class ApiTest(SefariaTestCase):
     """
     Test data returned from GET calls to various APIs.
     """
+
     def setUp(self):
         pass
 
@@ -158,9 +161,9 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["text"]) > 0)
         self.assertTrue(len(data["he"]) > 0)
         self.assertTrue(len(data["commentary"]) > 0)
-        self.assertEqual(data["book"],       "Genesis")
+        self.assertEqual(data["book"], "Genesis")
         self.assertEqual(data["categories"], ["Tanakh", "Torah"])
-        self.assertEqual(data["sections"],   [1])
+        self.assertEqual(data["sections"], [1])
         self.assertEqual(data["toSections"], [1])
 
     def test_api_get_text_talmud(self):
@@ -170,9 +173,9 @@ class ApiTest(SefariaTestCase):
         self.assertTrue(len(data["text"]) > 0)
         self.assertTrue(len(data["he"]) > 0)
         self.assertTrue(len(data["commentary"]) > 0)
-        self.assertEqual(data["book"],       "Shabbat")
+        self.assertEqual(data["book"], "Shabbat")
         self.assertEqual(data["categories"], ["Talmud", "Bavli", "Seder Moed"])
-        self.assertEqual(data["sections"],   ["22a"])
+        self.assertEqual(data["sections"], ["22a"])
         self.assertEqual(data["toSections"], ["22a"])
 
     def test_api_get_text_tanakh_commentary(self):
@@ -181,11 +184,11 @@ class ApiTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertTrue(len(data["he"]) > 0)
         self.assertTrue(len(data["commentary"]) > 0)
-        self.assertEqual(data["book"],        "Rashi on Genesis")
+        self.assertEqual(data["book"], "Rashi on Genesis")
         self.assertEqual(data["collectiveTitle"], "Rashi")
-        self.assertEqual(data["categories"],  ["Tanakh","Commentary","Rashi","Torah"])
-        self.assertEqual(data["sections"],    [2,3])
-        self.assertEqual(data["toSections"],  [2,3])
+        self.assertEqual(data["categories"], ["Tanakh", "Commentary", "Rashi", "Torah"])
+        self.assertEqual(data["sections"], [2, 3])
+        self.assertEqual(data["toSections"], [2, 3])
 
     def test_api_get_text_talmud_commentary(self):
         response = c.get('/api/texts/Tosafot_on_Sukkah.2a.4.1')
@@ -193,24 +196,25 @@ class ApiTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertTrue(len(data["he"]) > 0)
         self.assertTrue(len(data["commentary"]) > 0)
-        self.assertEqual(data["book"],        "Tosafot on Sukkah")
+        self.assertEqual(data["book"], "Tosafot on Sukkah")
         self.assertEqual(data["collectiveTitle"], "Tosafot")
-        self.assertEqual(data["categories"],   ["Talmud","Bavli","Commentary","Tosafot","Seder Moed"])
-        self.assertEqual(data["sections"],    ["2a", 4, 1])
-        self.assertEqual(data["toSections"],  ["2a", 4, 1])
+        self.assertEqual(data["categories"], ["Talmud", "Bavli", "Commentary", "Tosafot", "Seder Moed"])
+        self.assertEqual(data["sections"], ["2a", 4, 1])
+        self.assertEqual(data["toSections"], ["2a", 4, 1])
 
     def test_api_get_text_range(self):
         response = c.get('/api/texts/Job.5.2-4')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["sections"],   [5, 2])
+        self.assertEqual(data["sections"], [5, 2])
         self.assertEqual(data["toSections"], [5, 4])
 
     def test_api_get_text_bad_text(self):
         response = c.get('/api/texts/Protocols_of_the_Elders_of_Zion.13.13')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["error"], "Failed to parse sections for ref Protocols_of_the_Elders_of_Zion.13.13") # "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
+        self.assertEqual(data["error"],
+                         "Failed to parse sections for ref Protocols_of_the_Elders_of_Zion.13.13")  # "Unrecognized Index record: Protocols of the Elders of Zion.13.13")
 
     def test_api_get_text_out_of_bound(self):
         response = c.get('/api/texts/Genesis.999')
@@ -232,21 +236,21 @@ class ApiTest(SefariaTestCase):
 
     def text_api_get_index(self):
         response = c.get('/api/index/Job')
-        self.assertEqual(200, response.status_code)        
+        self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data["title"],        "Job")
+        self.assertEqual(data["title"], "Job")
         self.assertEqual(data["sectionNames"], ["Chapter", "Verse"])
-        self.assertEqual(data["categories"],   ["Tanakh", "Writings"])
+        self.assertEqual(data["categories"], ["Tanakh", "Writings"])
 
     def text_api_get_commentator_index(self):
         response = c.get('/api/index/Rashi')
-        self.assertEqual(200, response.status_code)  
+        self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "No book named 'Rashi'.")
 
     def text_api_get_toc(self):
         response = c.get('/api/index')
-        self.assertEqual(200, response.status_code)  
+        self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data) > 10)
         self.assertTrue(data[0]["category"] == "Tanakh")
@@ -256,7 +260,7 @@ class ApiTest(SefariaTestCase):
 
     def text_api_get_books(self):
         response = c.get('/api/index/titles/')
-        self.assertEqual(200, response.status_code)  
+        self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data["books"]) > 1000)
         test_names = ("Genesis", "Sukkah", "Ex.", "Mishlei", "Mishnah Peah")
@@ -307,7 +311,7 @@ class PostV2IndexTest(SefariaTestCase):
 
         # Add some alt structs to it
         data["alt_structs"] = {
-            "Special Sections" : {
+            "Special Sections": {
                 "nodes": [
                     {
                         "nodeType": "ArrayMapNode",
@@ -331,7 +335,7 @@ class PostV2IndexTest(SefariaTestCase):
                             "Paragraph"
                         ],
                         "wholeRef": "Complex Book 3:4-7:1",
-                        "refs" : [
+                        "refs": [
                             "Complex Book 3:4-4:1",
                             "Complex Book 4:2-6:3",
                             "Complex Book 6:4-7:1"
@@ -490,6 +494,7 @@ class PostIndexTest(SefariaTestCase):
         self.assertIn("Reb Rabbit", data["titleVariants"])
     '''
 
+
 class PostTextNameChange(SefariaTestCase):
     """
     Tests:
@@ -524,7 +529,7 @@ class PostTextNameChange(SefariaTestCase):
         HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).delete()
 
     def test_change_index_name(self):
-        #Set up an index and text to test
+        # Set up an index and text to test
         index = {
             "title": "Name Change Test",
             "titleVariants": ["The Book of Name Change Test"],
@@ -584,7 +589,8 @@ class PostTextNameChange(SefariaTestCase):
             o["id"] = data["_id"]
 
         # test history
-        self.assertEqual(1, HistorySet({"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count())  # only one is public
+        self.assertEqual(1, HistorySet(
+            {"new.ref": {"$regex": "Name Change Test"}, "rev_type": "add note"}).count())  # only one is public
         self.assertEqual(3, HistorySet({"new.refs": {"$regex": "Name Change Test"}, "rev_type": "add link"}).count())
 
         # Change name of index record
@@ -625,7 +631,7 @@ class PostTextNameChange(SefariaTestCase):
         self.assertTrue(u"Name Changed" in data["books"])
         self.assertTrue(u"Name Change Test" not in data["books"])
 
-        #toc changed
+        # toc changed
         toc = json.loads(c.get("/api/index").content)
         tutils.verify_title_existence_in_toc(new["title"], expected_toc_location=orig['categories'])
 
@@ -746,6 +752,7 @@ class PostTextTest(SefariaTestCase):
     """
     Tests posting text content to Texts API.
     """
+
     def setUp(self):
         self.make_test_user()
 
@@ -783,12 +790,12 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertIn(u'Sefer Test', data["books"])
 
-        #test the toc is updated
+        # test the toc is updated
         toc = json.loads(c.get("/api/index").content)
         tutils.verify_title_existence_in_toc(index['title'], expected_toc_location=index['categories'])
 
         # Post Text (with English citation)
-        text = { 
+        text = {
             "text": "As it is written in Job 3:14, waste places.",
             "versionTitle": "The Test Edition",
             "versionSource": "www.sefaria.org",
@@ -808,7 +815,7 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertNotIn("error", data)
-        self.assertEqual([1,1], data["_en"]["availableCounts"])
+        self.assertEqual([1, 1], data["_en"]["availableCounts"])
         self.assertEqual(1, data["_en"]["availableTexts"][98][98])
         self.assertEqual(0, data["_en"]["availableTexts"][98][55])
 
@@ -831,7 +838,7 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual(data["commentary"][0]["ref"], 'Job 4:10')
 
         # Post Text (with Hebrew citation)
-        text = { 
+        text = {
             "text": 'כדכתיב: "לא תעשה לך פסל כל תמונה" כו (דברים ה ח)',
             "versionTitle": "The Hebrew Test Edition",
             "versionSource": "www.sefaria.org",
@@ -848,7 +855,7 @@ class PostTextTest(SefariaTestCase):
         response = c.get('/api/counts/Sefer_Test')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual([1,1], data["_he"]["availableCounts"])
+        self.assertEqual([1, 1], data["_he"]["availableCounts"])
         self.assertEqual(1, data["_he"]["availableTexts"][87][87])
         self.assertEqual(0, data["_en"]["availableTexts"][87][87])
 
@@ -856,12 +863,12 @@ class PostTextTest(SefariaTestCase):
         textRegex = Ref('Sefer Test').regex()
         IndexSet({"title": u'Sefer Test'}).delete()
 
-        #Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
-        #todo: notes?, reviews?
+        # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
+        # todo: notes?, reviews?
         self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
         self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
         self.assertEqual(0, VersionStateSet({"title": u'Sefer Test'}).count())
-        #todo: better way to do this?
+        # todo: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
     """def test_post_commentary_text(self):
@@ -907,12 +914,13 @@ class PostTextTest(SefariaTestCase):
 
     def test_post_to_default_node(self):
         text = {
-            "text": [["BFoo", "PBar", "Dub Blitz"],["GGGlam", "BBBlam", "Ber Flam"]],
+            "text": [["BFoo", "PBar", "Dub Blitz"], ["GGGlam", "BBBlam", "Ber Flam"]],
             "versionTitle": "test_default_node",
             "versionSource": "www.sefaria.org",
             "language": "en",
         }
-        response = c.post("/api/texts/Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1", {'json': json.dumps(text)})
+        response = c.post("/api/texts/Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1",
+                          {'json': json.dumps(text)})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
@@ -936,20 +944,20 @@ class PostCategory(SefariaTestCase):
 
     def test_duplicate_rejected(self):
         cat = {
-            "path" : [
+            "path": [
                 "Tanakh",
                 "Torah"
             ],
             "titles": [
                 {
-                    "lang" : "en",
-                    "text" : "Torah",
-                    "primary" : True
+                    "lang": "en",
+                    "text": "Torah",
+                    "primary": True
                 },
                 {
-                    "lang" : "he",
-                    "text" : u"תורה",
-                    "primary" : True
+                    "lang": "he",
+                    "text": u"תורה",
+                    "primary": True
                 }
             ]
         }
@@ -960,21 +968,21 @@ class PostCategory(SefariaTestCase):
 
     def test_orphan_rejected(self):
         cat = {
-            "path" : [
+            "path": [
                 "Tanakh",
                 "Other Stuff",
                 "New Works"
             ],
-            "titles" : [
+            "titles": [
                 {
-                    "lang" : "en",
-                    "text" : "New Works",
-                    "primary" : True
+                    "lang": "en",
+                    "text": "New Works",
+                    "primary": True
                 },
                 {
-                    "lang" : "he",
-                    "text" : u"חידושים",
-                    "primary" : True
+                    "lang": "he",
+                    "text": u"חידושים",
+                    "primary": True
                 }
             ]
         }
@@ -985,16 +993,16 @@ class PostCategory(SefariaTestCase):
 
     def test_incomplete_record_rejected(self):
         cat = {
-            "titles" : [
+            "titles": [
                 {
-                    "lang" : "en",
-                    "text" : "New Works",
-                    "primary" : True
+                    "lang": "en",
+                    "text": "New Works",
+                    "primary": True
                 },
                 {
-                    "lang" : "he",
-                    "text" : u"חידושים",
-                    "primary" : True
+                    "lang": "he",
+                    "text": u"חידושים",
+                    "primary": True
                 }
             ]
         }
@@ -1028,9 +1036,9 @@ class PostCategory(SefariaTestCase):
             ],
             "titles": [
                 {
-                    "lang" : "he",
-                    "text" : u"חידושים",
-                    "primary" : True
+                    "lang": "he",
+                    "text": u"חידושים",
+                    "primary": True
                 }
             ]
         }
@@ -1041,7 +1049,7 @@ class PostCategory(SefariaTestCase):
 
     def test_legit_post(self):
         cat = {
-            "path" : [
+            "path": [
                 "Tanakh",
                 "New Works"
             ],
@@ -1069,11 +1077,12 @@ class PostLinks(SefariaTestCase):
     """
     Tests posting text content to Texts API.
     """
+
     def setUp(self):
         self.make_test_user()
 
     def tearDown(self):
-        LinkSet({"refs" : {"$regex": 'Meshech Hochma'}, "anchorText": { "$exists": 1, "$ne": "" }}).delete()
+        LinkSet({"refs": {"$regex": 'Meshech Hochma'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
     def test_post_new_links(self):
         """
@@ -1082,14 +1091,15 @@ class PostLinks(SefariaTestCase):
         """
         # Post a new Index
         import random as rand
-        bible_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', 'Esther', 'Lamentations']
+        bible_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', 'Esther',
+                       'Lamentations']
         links = []
         for i in range(1, 61):
-            for j in range (1, 11):
+            for j in range(1, 11):
                 link_obj = {
-                        "type": "commentary",
-                        "refs": ["Meshech Hochma %d:%d" % (i,j), "%s 1:1" % rand.choice(bible_books)],
-                        "anchorText": u"עת לעשות לה' הפרו תורתך",
+                    "type": "commentary",
+                    "refs": ["Meshech Hochma %d:%d" % (i, j), "%s 1:1" % rand.choice(bible_books)],
+                    "anchorText": u"עת לעשות לה' הפרו תורתך",
                 }
                 links.append(link_obj)
         self.assertEqual(600, len(links))
@@ -1098,8 +1108,7 @@ class PostLinks(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshech Hochma'}}).count())
         # Delete links
-        LinkSet({"refs" : {"$regex": 'Meshech Hochma'}, "anchorText": { "$exists": 1, "$ne": "" }}).delete()
-
+        LinkSet({"refs": {"$regex": 'Meshech Hochma'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
 
 class SheetPostTest(SefariaTestCase):
@@ -1143,7 +1152,7 @@ class SheetPostTest(SefariaTestCase):
         self._sheet_id = sheet_id
         sheet = data
         sheet["lastModified"] = sheet["dateModified"]
-      
+
         # Add a source via add source API
         response = c.post("/api/sheets/{}/add_ref".format(sheet_id), {"ref": "Mishnah Peah 1:1"})
         self.assertEqual(200, response.status_code)
@@ -1151,7 +1160,7 @@ class SheetPostTest(SefariaTestCase):
         self.assertTrue("error" not in data)
         response = c.get("/api/sheets/{}".format(sheet_id))
         self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)        
+        data = json.loads(response.content)
         self.assertEqual("Mishnah Peah 1:1", data["sources"][0]["ref"])
 
         # Publish Sheet
@@ -1166,7 +1175,7 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(1, log["user"])
         self.assertEqual(sheet_id, log["sheet"])
         self.assertEqual("publish sheet", log["rev_type"])
-    
+
         # Unpublish Sheet
         sheet["status"] = "unlisted"
         sheet["lastModified"] = data["dateModified"]
@@ -1176,13 +1185,140 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual("unlisted", data["status"])
         log = db.history.find_one({"rev_type": "publish sheet", "sheet": sheet_id})
         self.assertEqual(None, log)
-    
+
         # Delete the Sheet
         response = c.post("/api/sheets/{}/delete".format(sheet_id), {})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
         self.assertEqual(0, db.sheets.find({"id": sheet_id}).count())
+
+
+class UserSyncTest(SefariaTestCase):
+    """
+    Test syncing user's settings and history
+    """
+
+    def setUp(self):
+        self.make_test_user()
+
+    def tearDown(self):
+        uhs = UserHistorySet()
+        uhs.delete()
+
+    @staticmethod
+    def d(x):
+        return json.dumps(x)
+
+    @staticmethod
+    def l(x):
+        return json.loads(x)
+
+    def test_simple_sync(s):
+        se = {
+            "email_notifications": "daily",
+            "interface_language": "english",
+            "textual_custom": "sephardi",
+            "time_stamp": 0
+        }
+        response = c.post("/api/profile/sync", {
+            'settings': s.d(se),
+            'last_sync': s.d(0),
+            'user_history': s.d([
+                {
+                    "ref": "Genesis 1:1",
+                    "he_ref": u"בראשית א:א",
+                    "time_stamp": 1,
+                    "server_time_stamp": 1,
+                    "versions": {}
+                }
+            ])
+        })
+        data = s.l(response.content)
+        s.assertEqual(len(data["user_history"]), 0)
+
+        response = c.post("/api/profile/sync", {
+            'settings': s.d(se),
+            'last_sync': s.d(0),
+            'user_history': s.d([
+                {
+                    "ref": "Genesis 1:2",
+                    "he_ref": u"בראשית א:א",
+                    "time_stamp": 2,
+                    "server_time_stamp": 2,
+                    "versions": {}
+                }
+            ])
+        })
+        data = s.l(response.content)
+        s.assertEqual(len(data["user_history"]), 1)
+        s.assertEqual(data["user_history"][0]["ref"], "Genesis 1:1")
+
+    def test_save_delete(s):
+        se = {
+            "email_notifications": "daily",
+            "interface_language": "english",
+            "textual_custom": "sephardi",
+            "time_stamp": 0
+        }
+        hist1 = {
+            "ref": "Genesis 1:1",
+            "he_ref": u"בראשית א:א",
+            "time_stamp": 0,
+            "server_time_stamp": 0,
+            "versions": {}
+        }
+        hist1save = hist1.copy()
+        hist1save['action'] = 'add_saved'
+        hist1delete = hist1.copy()
+        hist1delete['action'] = 'delete_saved'
+        hist1delete['server_time_stamp'] = 1
+        hist2 = hist1.copy()
+        hist2['ref'] = "Genesis 1:2"
+
+        response = c.post("/api/profile/sync", {
+            'settings': s.d(se),
+            'last_sync': s.d(0),
+            'user_history': s.d([
+                hist1
+            ])
+        })
+        response = c.post("/api/profile/sync", {
+            'settings': s.d(se),
+            'last_sync': s.d(0),
+            'user_history': s.d([
+                hist1save
+            ])
+        })
+        response = c.get("/api/profile/user_history?saved=1")
+        data = s.l(response.content)
+        s.assertEqual(len(data), 1)
+        s.assertEqual(data[0]['ref'], "Genesis 1:1")
+
+        response = c.post("/api/profile/sync", {
+            'settings': s.d(se),
+            'last_sync': s.d(0),
+            'user_history': s.d([
+                hist1delete
+            ])
+        })
+        response = c.get("/api/profile/user_history?saved=1")
+        data = s.l(response.content)
+        s.assertEqual(len(data), 0)
+
+        # check that another device will pick up a modification of a saved item
+
+        response = c.post("/api/profile/sync", {
+            'settings': s.d(se),
+            'last_sync': s.d(0),
+        })
+        data = s.l(response.content)
+        s.assertEqual(data["user_history"][0]["ref"], "Genesis 1:1")
+        s.assertFalse(data["user_history"][0]["saved"])
+
+    def test_settings(self):
+        pass
+
 
 '''
 # Fails. Ignore
