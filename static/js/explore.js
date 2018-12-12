@@ -35,14 +35,12 @@ var categories = {
         "heTitle": 'תנ"ך',
         "shapeParam": "Tanakh",
         "linkCountParam": "Tanakh",
-        "talmudAddressed": false,
     },
     "torah": {
         "title": "Torah",
         "heTitle": 'תורה',
         "shapeParam": "Tanakh/Torah",
         "linkCountParam": "Torah",
-        "talmudAddressed": false,        
     },
     "bavli": {
         "title": "Talmud",
@@ -63,28 +61,24 @@ var categories = {
         "heTitle": "משנה",
         "shapeParam": "Mishnah",
         "linkCountParam": "Mishnah",
-        "talmudAddressed": false,
     },
     "tosefta": {
         "title": "Tosefta",
         "heTitle": "תוספתא",
         "shapeParam": "Tanaitic/Tosefta",
         "linkCountParam": "Tosefta",
-        "talmudAddressed": false,
     },
     "midrashRabbah": {
         "title": "Midrash Rabbah",
         "heTitle": "מדרש רבה",
         "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
         "linkCountParam": "Midrash Rabbah",
-        "talmudAddressed": false,
     },
     "mishnehTorah": {
         "title": "Mishneh Torah",
         "heTitle": "משנה תורה",
         "shapeParam": "Halakhah/Mishneh Torah",
         "linkCountParam": "Mishneh Torah",
-        "talmudAddressed": false,
         "labelBySection": true,
     },
     "shulchanArukh": {
@@ -92,7 +86,7 @@ var categories = {
         "heTitle": "שולחן ערוך",
         "shapeParam": "Halakhah/Shulchan Arukh",
         "linkCountParam": "Shulchan Arukh",
-        "talmudAddressed": false,
+        "colorByBook": true,
     },
 };
 
@@ -117,7 +111,7 @@ var toggleColor = (function(){
             return;
         currentScheme = currentScheme == "Top" ? "Bottom" : "Top";
         svg.selectAll(".link") //.transition().duration(250)
-        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? colors(selectBook(d.book2).attr("section")) : colors(selectBook(d.book1).attr("section"))  });
+        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? selectBook(d.book2).attr("color") : selectBook(d.book1).attr("color")  });
 		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? "underline" : null);
 		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? null : "underline");
     }
@@ -429,7 +423,14 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .attr("cx", function(d) { d["base_cx"] = Number(this.getAttribute("x")) + Number(this.getAttribute("width")) / 2; return d["base_cx"]; })
                 .attr("cy", function(d) {  return Number(this.getAttribute("y")) + cnxOffset; })
                 .attr("section", function(d) { return toId(d["section"]) })
-                .attr("fill", function(d) { return colors(selectBook(d.id).attr("section")); })
+                .attr("color", function(d) { 
+                    var cat = position == "top" ? topCat : bottomCat;
+                    if (categories[cat].colorByBook) {
+                        return colors(d.id);
+                    } else {
+                        return colors(selectBook(d.id).attr("section"));
+                    } })
+                .attr("fill", function(d) { return selectBook(d.id).attr("color"); })
                 .each(addAxis)
                 .on("mouseover", mouseover_book)
                 .on("mouseout", mouseout_book)
@@ -484,7 +485,7 @@ function buildBookLabels(bks, klass, position) {
                         return isEnglish() ? d["book"] : d["hebook"];
                     })
                 .style("text-anchor", anchor)
-                .attr("fill", function(d) { return colors(selectBook(d.id).attr("section")); })
+                .attr("fill", function(d) { return selectBook(d.id).attr("color"); })
                 .attr("x", function(d) {
                     return Number(selectBook(d.id).attr("cx"))
                 })
@@ -717,7 +718,7 @@ function buildBookLinks() {
            //.each(function(d) { if (!(d.book1 && d.book2 && svg.select("#" + d["book1"]).datum().base_cx && svg.select("#" + d["book2"]).datum().base_cx && svg.select("#" + d["book1"]).attr("cy") && svg.select("#" + d["book2"]).attr("cy") )) {console.log(d);}})
           .attr("class", "link")
           .attr("stroke-width", function(d) { return d["count"]/10 + "px"})
-          .attr("stroke", function(d) { return colors(svg.select("#" + toId(d["book1"])).attr("section")) })
+          .attr("stroke", function(d) { return svg.select("#" + toId(d["book1"])).attr("color") })
           .attr("d", d3.svg.diagonal()
                 .source(function(d) { return {"x":Number(selectBook(d.book1).datum().base_cx), "y": Number(selectBook(d.book1).attr("cy"))}; })
                 .target(function(d) { return {"x":Number(selectBook(d.book2).datum().base_cx), "y": Number(selectBook(d.book2).attr("cy"))}; })
@@ -899,6 +900,7 @@ function openBook(dFocused) {
             .style("display","block")
         .select(".label")
             .attr("class","label " + toId(dBook.section))
+            .attr("fill", function(d) { return selectBook(dBook.id).attr("color"); })
             .text(isEnglish() ? dBook.book : dBook.heBook);
     svg.selectAll("#toggle").attr("display", "none");
 }
@@ -1038,7 +1040,7 @@ function processPreciseLinks(dBook) {
                           return this.getAttribute("stroke");
                       } else { // Color by opposing scheme
                           var opposingBookRef = d["r1"]["book"] == dBook.book ? "r2" : "r1";
-                          return colors(selectBook(d[opposingBookRef]["book"]).attr("section"));
+                          return selectBook(d[opposingBookRef]["book"]).attr("color");
                       }
                 })
                 .attr("d", d3.svg.diagonal()
