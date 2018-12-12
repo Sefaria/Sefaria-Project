@@ -1112,7 +1112,7 @@ Sefaria = extend(Sefaria, {
   },
   relatedApi: function(ref, callback) {
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
-    return this._api(url, function(data) {
+    return this._api(url, data => {
       if ("error" in data) {
         return;
       }
@@ -1122,15 +1122,16 @@ Sefaria = extend(Sefaria, {
       var split_data = {
           links: this._saveLinkData(ref, data.links),
           notes: this._saveNoteData(ref, data.notes),
-          sheets: this.sheets._saveSheetsByRefData(ref, data.sheets)
+          sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
+          saved: this._saveSavedData(ref, data.saved),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets"].forEach(function(obj_type) {
+      ["links", "notes", "sheets", "saved"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], saved: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1141,7 +1142,7 @@ Sefaria = extend(Sefaria, {
       this._related[ref] = originalData;
 
       callback(data);
-    }.bind(this));
+    });
   },
   _relatedPrivate: {},
   relatedPrivate: function(ref, callback) {
@@ -1384,21 +1385,38 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
-  saveSavedItem: savedItem => {
-    return new Promise((resolve, reject)) => {
+  getSavedItem: (ref, versions) => {
+    return Sefaria.saved.find(s => s.ref === ref && Sefaria.util.object_equals(s.versions, versions));
+  }
+  removeSavedItem: (ref, versions) => {
+    Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.object_equals(versions, x.versions)));
+  }
+  toggleSavedItem: (ref, versions) => {
+    return new Promise((resolve, reject) => {
+      const action = !!Sefaria.getSavedItem(ref, versions) ? "delete_saved" : "add_saved";
+      const savedItem = { ref, verions, time_stamp: Sefaria.util.epoch_time() };
       if (Sefaria._uid) {
-        $.post(`${Sefaria.apiHost}/api/profile/saved`,
-          { savedItems: JSON.stringify([savedItem])}
+        $.post(`${Sefaria.apiHost}/api/profile/sync`,
+          { user_history: JSON.stringify([savedItem]),  }
         ).done(response => {
-          Sefaria.saved.unshift(savedItem);
-          resolve(response);
+          if (!!response['error']) {
+            reject(response['error'])
+          } else {
+            if (action === "add_saved") {
+              Sefaria.saved.unshift(savedItem);
+            } else {
+              // delete
+              Sefaria.removeSavedItem(ref, versions);
+            }
+            resolve(response);
+          }
         }).fail((jqXHR, textStatus, errorThrown) => {
           reject(errorThrown);
         })
       } else {
         reject('notSignedIn');
       }
-    }
+    });
   },
   saveRecentItem: function(recentItem) {
     var recent = Sefaria.recentlyViewed;

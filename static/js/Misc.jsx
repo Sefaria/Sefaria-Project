@@ -377,11 +377,31 @@ class ReaderNavigationMenuSavedButton extends Component {
     super(props);
     this.state = {
       selected: false,
-    };
+    }
+  }
+  componentDidMount() {
+    this._isMounted = true;
+  }
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+  setSelected(props) {
+    if (this._isMounted) {
+      this.setState({ selected: !! });
+    }
+  }
+  componentWillReceiveProps(nextProps) {
+    if (this.props.ref !== nextProps.ref) {
+      this.setSelected(nextProps);
+    }
   }
   onClick(e) {
-    this.setState({selected: !this.state.selected})
-    this.props.onClick(e);
+    const { ref, heRef, currVersions } = this.props;
+    const action = this.state.selected ? 'delete' : 'save';
+    Sefaria.toggleSavedItem(ref, heRef, currVersions).then(() => {
+      // since request is async, check if it's selected from data
+      this.setSelected(this.props);
+    })
   }
   render() {
     const style = this.props.placeholder ? {visibility: 'hidden'} : {};
@@ -402,9 +422,12 @@ class ReaderNavigationMenuSavedButton extends Component {
   }
 }
 ReaderNavigationMenuSavedButton.propTypes = {
-  onClick: PropTypes.func,
+  onClick: PropTypes.func.isRequired,
+  ref: PropTypes.string.isRequired,  // can be ranged
+  heRef: PropTypes.strings.isRequired,
+  currVersions: PropTypes.object.isRequired,
   placeholder: PropTypes.bool,
-}
+};
 
 
 class CategoryColorLine extends Component {

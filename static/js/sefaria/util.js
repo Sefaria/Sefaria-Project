@@ -6,6 +6,29 @@ const striptags      = require('striptags');
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static object_equals(a, b) {
+        // simple object equality assuming values are primitive. see here
+        // http://adripofjavascript.com/blog/drips/object-equality-in-javascript.html
+        if ((typeof a) !== (typeof b))      { return false; }
+        if ((a === null && b !== null) || (a !== null && b === null))
+                                            { return false; }
+        const aProps = Object.getOwnPropertyNames(a);
+        const bProps = Object.getOwnPropertyNames(b);
+        if (aProps.length != bProps.length) { return false; }
+        for (let propName of aProps) {
+          if (a[propName] !== b[propName])  { return false; }
+        }
+        return true;
+    }
+    static epoch_time() {
+      // get current epoch time in UTC
+      // silly but thus is JS
+      // see: https://stackoverflow.com/a/6777470/4246723
+      const now = new Date();
+      const nowUTC =  Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+                               date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+      return Math.round(nowUTC/1000);
+    }
     static zip(...rows) {
       // rows is an array
       // corrolary to zip in python
