@@ -1781,9 +1781,11 @@ def related_api(request, tref):
     """
     oref = model.Ref(tref)
     if request.GET.get("private", False) and request.user.is_authenticated:
+        user = UserProfile(id=request.user.id)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
-            "notes": get_notes(oref, uid=request.user.id, public=False)
+            "notes": get_notes(oref, uid=request.user.id, public=False),
+            "saved": user.get_user_history(oref=oref, saved=True, secondary=False, serialized=True),
         }
     elif request.GET.get("private", False) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
@@ -1791,7 +1793,8 @@ def related_api(request, tref):
         response = {
             "links": get_links(tref, with_text=False),
             "sheets": get_sheets_for_ref(tref),
-            "notes": [] # get_notes(oref, public=True) # Hiding public notes for now
+            "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
+            "saved": [],
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -2841,6 +2844,85 @@ def profile_api(request):
         else:
             profile.save()
             return jsonResponse(profile.to_DICT())
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def profile_sync_api(request):
+    """
+    API for syncing history and settings with your profile
+    Required POST fields: settings, last_synce
+    POST payload should look like
+    {
+        settings: {..., time_stamp},
+        user_history: [{...},...],
+        last_sync: ...
+    }
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+    # fields in the POST req which can be synced
+    syncable_fields = ["settings", "user_history"]
+    if request.method == "POST":
+        post = request.POST
+
+        # send back items after `last_sync`
+        from sefaria.utils.util import epoch_time
+        now = epoch_time()
+        profile = UserProfile(id=request.user.id)
+        last_sync = json.loads(post.get("last_sync", profile.last_sync_web))
+        uhs = UserHistorySet({"server_time_stamp": {"$gt": last_sync}})
+        ret = {"last_sync": now, "user_history": [uh.contents() for uh in uhs.array()]}
+        if "last_sync" not in post:
+            # request was made from web. update last_sync on profile
+            profile.update({"last_sync_web": now})
+        # sync items from request
+        for field in syncable_fields:
+            if field not in post:
+                continue
+            field_data = json.loads(post[field])
+            if field == "settings":
+                if field_data["time_stamp"] > profile.attr_time_stamps[field]:
+                    # this change happened after other changes in the db
+                    profile.update({
+                        field: field_data,
+                        "attr_time_stamps": profile.attr_time_stamps.update({field: field_data["time_stamp"]})
+                    })
+                    ret["settings"] = profile.settings
+            elif field == "user_history":
+                for hist in field_data:
+                    hist["uid"] = request.user.id
+                    hist["server_time_stamp"] = now if "server_time_stamp" not in hist else hist[
+                        "server_time_stamp"]  # DEBUG: helpful to include this field for debugging
+
+                    action = hist.pop("action", None)
+                    saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
+                    uh = UserHistory(hist, load_existing=(action is not None), field_updates={
+                        "saved": saved,
+                        "server_time_stamp": hist["server_time_stamp"]
+                    })
+                    uh.save()
+        return jsonResponse(ret)
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def profile_get_user_history(request):
+    """
+    GET API for user history. optional URL params are
+    :saved: bool. True if you only want saved items. None if you dont care
+    :secondary: bool. True if you only want secondary items. None if you dont care
+    :tref: Ref associated with history item
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+    if request.method == "GET":
+        saved = bool(int(request.GET.get("saved", None)))
+        secondary = bool(int(request.GET.get("secondary", 0)))
+        tref = request.GET.get("tref", None)
+        oref = Ref(tref) if tref else None
+        user = UserProfile(id=request.user.id)
+        return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

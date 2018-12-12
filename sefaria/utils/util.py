@@ -2,10 +2,21 @@
 """
 Miscellaneous functions for Sefaria.
 """
+import pytz
+from datetime import datetime
 from HTMLParser import HTMLParser
 import re
 from functools import wraps
 
+epoch = datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
+
+
+def epoch_time(since=None):
+    if since is None:
+        since = datetime.now(tz=pytz.UTC)
+    # define total_seconds which exists in Python3
+    total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
+    return total_seconds(since - epoch)
 
 def graceful_exception(logger=None, return_value=[]):
     def argumented_decorator(func):

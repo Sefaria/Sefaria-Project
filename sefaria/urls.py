@@ -86,6 +86,8 @@ urlpatterns += [
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
     url(r'^api/profile$', reader_views.profile_api),
+    url(r'^api/profile/sync$', reader_views.profile_sync_api),
+    url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
 

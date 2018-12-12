@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 
 from sefaria.settings import *
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile
+from sefaria.model.user_profile import UserProfile, UserHistorySet
 from sefaria.model.interrupting_message import InterruptingMessage
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
@@ -93,23 +93,17 @@ def user_and_notifications(request):
     """
     Load data that comes from a user profile.
     Most of this data is currently only needed view /data.js
-    /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
     """
     if not request.user.is_authenticated:
-        import urlparse
-        recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
-        recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies
         return {
-            "recentlyViewed": recent,
             "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
         }
 
     profile = UserProfile(id=request.user.id)
     if request.path == "/texts":
         return {
-            "recentlyViewed": profile.recentlyViewed,
-            "saved": profile.saved,
+            "saved": profile.get_user_history(saved=True),
         }
 
     notifications = profile.recent_notifications()
@@ -124,8 +118,7 @@ def user_and_notifications(request):
         "notifications_json": notifications_json,
         "notifications_html": notifications.to_HTML(),
         "notifications_count": profile.unread_notification_count(),
-        "recentlyViewed": profile.recentlyViewed,
-        "saved": profile.saved,
+        "saved": profile.get_user_history(saved=True),
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
         "partner_role": profile.partner_role,

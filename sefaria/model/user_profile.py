@@ -3,6 +3,7 @@ import urllib
 import re
 import bleach
 import sys
+import json
 from random import randint
 
 if not hasattr(sys, '_doc_build'):
@@ -27,14 +28,37 @@ class UserHistory(abst.AbstractMongoRecord):
 		"ref",
 		"he_ref",
 		"versions",
-		"time_read",
 		"time_stamp",
-		"server_time_stamp"
+		"server_time_stamp",
+		"saved",
+		"secondary"  # True when view is from sidebar
 	]
 
 	optional_attrs = [
-		"flags"
+		"num_times_read"  # legacy for migrating old recent views
 	]
+
+	def __init__(self, attrs=None, load_existing=False, field_updates=None):
+		"""
+
+		:param attrs:
+		:param load_existing: True if you want to load an existing mongo record if it exists to avoid duplicates
+		:param field_updates: dict of updates in casse load_existing finds a record
+		"""
+		if attrs is None:
+			attrs = {}
+		# set defaults
+		if "saved" not in attrs:
+			attrs["saved"] = False
+		if "secondary" not in attrs:
+			attrs["secondary"] = False
+		if load_existing:
+			temp = self.load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
+			if temp is not None:
+				attrs = temp._saveable_attrs()
+				if field_updates:
+					attrs.update(field_updates)
+		super(UserHistory, self).__init__(attrs=attrs)
 
 
 class UserHistorySet(abst.AbstractMongoSet):
@@ -86,6 +110,7 @@ class UserProfile(object):
 		self.interrupting_messages = ["newUserWelcome"]
 		self.partner_group        = ""
 		self.partner_role         = ""
+		self.last_sync_web        = 0  # epoch time for last sync of web app
 
 		self.settings     =  {
 			"email_notifications": "daily",
@@ -132,22 +157,19 @@ class UserProfile(object):
 		if profile is None:
 			profile = {}  # for testing, user doesn't need to exist
 		if "recentlyViewed" in profile:
-			import pytz
 			from datetime import datetime
 			from dateutil import parser
-			# fun times with python datetime
-			epoch = datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
-			# define total_seconds which exists in Python3
-			total_seconds = lambda delta: delta.days * 86400 + delta.seconds + delta.microseconds / 1e6
-			default_epoch_time = total_seconds(datetime(2011, 11, 20, tzinfo=pytz.UTC) - epoch)  # the Sefaria epoch. time since Brett's epic first commit
+			import pytz
+			from sefaria.utils.util import epoch_time
+			default_epoch_time = epoch_time(datetime(2011, 11, 20, tzinfo=pytz.UTC))  # the Sefaria epoch. time since Brett's epic first commit
 			user_history = [
 				{
 					"uid": self.id,
 					"ref": r[0],
 					"he_ref": r[1],
-					"time_stamp": total_seconds(parser.parse(r[2]) - epoch) if r[2] is not None else default_epoch_time,
-					"server_time_stamp": total_seconds(parser.parse(r[2]) - epoch) if r[2] is not None else default_epoch_time,
-					"time_read": (r[3] if r[3] and isinstance(r[3], int) else 0) * randint(3 * 60, 5 * 60),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book. lets let Hashem decide
+					"time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
+					"server_time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
+					"num_times_read": (r[3] if r[3] and isinstance(r[3], int) else 0),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book. lets let Hashem decide
 					"versions": {
 						"en": r[4],
 						"he": r[5]
@@ -297,6 +319,28 @@ class UserProfile(object):
 			self.interrupting_messages.remove(message)
 			self.save()
 
+	def get_user_history(self, oref=None, saved=None, secondary=False, serialized=False):
+		"""
+
+		:param oref:
+		:param saved: True if you only want saved. False if not. None if you dont care
+		:param secondary: ditto
+		:param serialized: for return from API call
+		:return:
+		"""
+		query = {"uid": self.id}
+		if oref is not None:
+			regex_list = oref.context_ref().regex(as_list=True)
+			ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
+			query["$or"] = ref_clauses
+		if saved != -1:
+			query["saved"] = saved
+		if secondary is not None:
+			query["secondary"] = secondary
+		if serialized:
+			return [uh.contents() for uh in UserHistorySet(query)]
+		return UserHistorySet(query)
+
 	def to_DICT(self):
 		"""Return a json serializble dictionary this profile"""
 		dictionary = {
@@ -319,7 +363,8 @@ class UserProfile(object):
 			"interrupting_messages": getattr(self, "interrupting_messages", []),
 			"tag_order":             getattr(self, "tag_order", None),
 			"partner_group":         self.partner_group,
-			"partner_role":          self.partner_role
+			"partner_role":          self.partner_role,
+			"last_sync_web":         self.last_sync_web,
 		}
 		return dictionary
 
