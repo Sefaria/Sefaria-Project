@@ -112,19 +112,15 @@ class SD3 {
         /*  Returns an array of strings, in Talmud format, to be used as ticks on an Axis.
 
             shape: an object describing the shape of the text available from the Shape API
-            skip: the number of sections to skip, between ticks
-                If not provided, a default value will be chosen based on the number of sections
+            skip: the number of segments to skip, between ticks
+                If not provided, a default value will be chosen based on the number of segments
          */
-
         var domain = this._textDomain(shape, "talmud");
-        var ticks = domain.filter(ref => ref.indexOf(":") == -1);
-        skip = skip || (domain.length < 80) ? 4 :
-            (domain.length < 120) ? 6 :
-                10;        
+        skip = skip || parseInt(domain.length / 12);
+        var ticks = domain.filter((e,i) => i % skip == 0);
+        ticks = ticks.map(ref => ref.split(":")[0]);  
 
-        ticks = ticks.filter((e,i) => i % skip == 0);
         return ticks;
-
     }
 
     static integerRefTicks(shape, skip) {
@@ -132,20 +128,15 @@ class SD3 {
             Assumes depth 2 (Would this work w/ Depth 3, as is?)
 
             shape: an object describing the shape of the text available from the Shape API
-            skip: the number of sections to skip, between ticks
-                If not provided, a default value will be chosen based on the number of sections
+            skip: the number of segments to skip, between ticks
+                If not provided, a default value will be chosen based on the number of segments
          */
         var domain = this._textDomain(shape, "integer");
-        var ticks = domain.filter(ref => ref.indexOf(":") == -1);  
+        skip = skip || parseInt(domain.length / 30);
+        var ticks = domain.filter((e,i) => i % skip == 0);
+        ticks = ticks.map(ref => ref.split(":")[0]);  
 
-        skip = skip || (domain.length < 40) ? 1 :
-            (domain.length < 90) ? 2 :
-            (domain.length < 300) ? 6 :
-                20;
-
-        ticks = ticks.filter((e,i) => i % skip == 0);
         return ticks;
-
     }
 
 }
