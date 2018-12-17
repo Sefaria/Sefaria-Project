@@ -5,7 +5,7 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 *::selection {
-  background-color: #D2DCFF;
+  /* background-color: #D2DCFF; */
 }
 body.sepia {
   background-color: #FBFBFA;

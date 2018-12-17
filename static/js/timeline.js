@@ -14,8 +14,8 @@ let svg, timeScale, s, t, textBox, graphBox;
 
 const urlParams = new URLSearchParams(window.location.search);
 let startingRef = urlParams.get('ref');
-startingRef = startingRef || "Shabbat 32a:4";
-console.log(startingRef);
+let currentRef = startingRef || "Shabbat 32a:4";
+console.log(currentRef);
 
 /*****          Hebrew / English Handling              *****/
 let lang;
@@ -38,7 +38,9 @@ function switchToHebrew() { lang = "he"; }
 
 
 
-let getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
+const getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
+const linkKey = l => l.source.data.ref + "-" + l.target.data.ref;
+const nodeKey = n => n.data.ref;
 
 let _partitionedLinks = {}; // cache.  ref: [past, future, concurrent]
 async function getPartitionedLinks(ref, year) {
@@ -124,23 +126,26 @@ async function buildFutureTree(obj) {
     obj.future = await getFutureLinks(obj.ref, getDate(obj));
 
     // Set up all the recursive calls first, then await them, so they execute in parallel.
-    obj.future.map(buildFutureTree).map(async _ => await _);
-
+    let promises = obj.future.map(buildFutureTree);
+    await Promise.all(promises);
     // Remove dangling commentary branches
     // If an link has category "Commentary" and no future oriented links leave it off the chart.
     // (we don't know how it contributes to anything downstream)
 
-    //debugger;
     obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
-    //debugger;
+    return obj;
 }
 
 async function buildPastTree(obj) {
     obj.past = await getPastLinks(obj.ref, getDate(obj));
     const f = getFutureLinks(obj.ref, getDate(obj));           // For secondary links
-    obj.past.map(buildPastTree).map(async _ => await _);       // Parallel calls
+    let promises = obj.past.map(buildPastTree);
+
+    await Promise.all(promises);
     obj.future = await f;
+
     obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
+    return obj;
 }
 
 async function buildConcurrentTree(obj) {
@@ -150,6 +155,7 @@ async function buildConcurrentTree(obj) {
     // for (link of obj.concurrent) {
     //    await buildConcurrentTree(link);
     //}
+    return obj;
 }
 
 async function buildRawTrees(ref) {
@@ -187,12 +193,12 @@ async function getPassage(ref) {
     return res[ref];
 }
 
-function buildNetwork(trees) {
+function buildNetwork(treesObj) {
     // Do we end up with a pile of future data on the past tree, and vice versa?
 
-    trees.additionalLinks = [];  // List of pairs: [early ref, later ref]
-    trees.refLookup = {};
-    trees.refLookup[trees.ref] = trees;
+    treesObj.additionalLinks = [];  // List of pairs: [early ref, later ref]
+    treesObj.refLookup = {};
+    treesObj.refLookup[treesObj.ref] = treesObj;
 
     // Walk the past tree
     //   Build up a dict of nodes in the space
@@ -200,11 +206,11 @@ function buildNetwork(trees) {
     function trimPast(node) {
         if (!node.past) return;
         node.past.forEach((e,i,a) => {
-            if (e.ref in trees.refLookup) {
-                trees.additionalLinks.push([e.ref, node.ref]);
+            if (e.ref in treesObj.refLookup) {
+                treesObj.additionalLinks.push([e.ref, node.ref]);
                 delete a[i];
             } else {
-                trees.refLookup[e.ref] = e;
+                treesObj.refLookup[e.ref] = e;
             }
         });
         node.past = node.past.filter(a => a);
@@ -214,11 +220,11 @@ function buildNetwork(trees) {
     function trimFuture(node) {
         if (!node.future) return;
         node.future.forEach((e,i,a) => {
-            if (e.ref in trees.refLookup) {
-                trees.additionalLinks.push([node.ref, e.ref]);
+            if (e.ref in treesObj.refLookup) {
+                treesObj.additionalLinks.push([node.ref, e.ref]);
                 delete a[i];
             } else {
-                trees.refLookup[e.ref] = e;
+                treesObj.refLookup[e.ref] = e;
             }
         });
         node.future = node.future.filter(a => a);
@@ -231,148 +237,208 @@ function buildNetwork(trees) {
     function addAdditionalLinks(node)  {
         if (!node.past) return;
         node.past.forEach((e,i,a) => {
+            if (!e.future) return;
             e.future.forEach(f => {
-                if (f.ref in trees.refLookup) {
-                    trees.additionalLinks.push([e.ref, f.ref]);
+                if (f.ref in treesObj.refLookup) {
+                    treesObj.additionalLinks.push([e.ref, f.ref]);
                 }
             });
         });
         node.past.forEach(addAdditionalLinks);
     }
 
-    trimPast(trees);
-    trimFuture(trees);
-    addAdditionalLinks(trees);
+    trimPast(treesObj);
+    trimFuture(treesObj);
+    addAdditionalLinks(treesObj);
 
-    trees.pastHierarchy = d3.hierarchy(trees, d => d["past"]).sort(sortLinks);
-    trees.futureHierarchy = d3.hierarchy(trees, d => d["future"]).sort(sortLinks);
+    treesObj.pastHierarchy = d3.hierarchy(treesObj, d => d["past"]).sort(sortLinks);
+    treesObj.futureHierarchy = d3.hierarchy(treesObj, d => d["future"]).sort(sortLinks);
 
-    return trees;
+    return treesObj;
 }
 
-function layoutTrees(trees) {
-    let pt = d3.tree().size([w/2, graphBox_height])(trees.pastHierarchy);
-    let ft = d3.tree().size([w/2, graphBox_height])(trees.futureHierarchy);
+function layoutTrees(treesObj) {
+    let pt = d3.tree().size([w/2, graphBox_height])(treesObj.pastHierarchy);
+    let ft = d3.tree().size([w/2, graphBox_height])(treesObj.futureHierarchy);
+
     // Reset x according to date
-    pt.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); trees.refLookup[n.data.ref] = n; });
-    ft.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); trees.refLookup[n.data.ref] = n; });
-
     // Reset root y to center;
-    pt.y = s(pt.data);
-    ft.y = s(ft.data);
-    pt.x = graphBox_height/2;
-    ft.x = graphBox_height/2;
-    pt.color = Sefaria.palette.categoryColor(pt.data.category);
-    ft.color = Sefaria.palette.categoryColor(ft.data.category);
+    [pt, ft].forEach(t => {
+        t.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); treesObj.refLookup[n.data.ref] = n; });
+        t.y = s(t.data);
+        t.x = graphBox_height/2;
+        t.color = Sefaria.palette.categoryColor(t.data.category);
+    });
 
-    trees.refLookup[pt.ref] = pt;
+    treesObj.refLookup[pt.ref] = pt;
 
-    trees.pastTree = pt;
-    trees.futureTree = ft;
-    trees.placedLinks = trees.additionalLinks.map(ls => ({
-            source: trees.refLookup[ls[0]],
-            target: trees.refLookup[ls[1]]
+    treesObj.pastTree = pt;
+    treesObj.futureTree = ft;
+    treesObj.placedLinks = treesObj.additionalLinks.map(ls => ({
+            source: treesObj.refLookup[ls[0]],
+            target: treesObj.refLookup[ls[1]]
         }));
 
-    return trees;
+    return treesObj;
 }
 
-function cleanObject(trees) {
-    delete trees.past;
-    delete trees.future;
-    delete trees.concurrent;
-    delete trees.pastHierarchy;
-    delete trees.futureHierarchy;
+function cleanObject(treesObj) {
+    delete treesObj.past;
+    delete treesObj.future;
+    delete treesObj.concurrent;
+    delete treesObj.pastHierarchy;
+    delete treesObj.futureHierarchy;
 
-    return trees;
+    return treesObj;
 }
 
-function renderTrees(trees) {
+function updateTrees(treesObj) {
+    const components = {
+        past: {
+            links: treesObj.pastTree.links(),
+            nodes: treesObj.pastTree.descendants().reverse(),
+            coloring: "source"
+        },
+        future: {
+            links: treesObj.futureTree.links(),
+            nodes: treesObj.futureTree.descendants().reverse(),
+            coloring: "target"
+        },
+        additional: {
+            links: treesObj.placedLinks,
+            coloring: "target"
+        }
+    };
+
+  let t = d3.transition()
+      .duration(750);
+
+  for (let klass in components) {
+      let selection = graphBox.selectAll("path." + klass)
+          .data(components[klass].links, linkKey);
+
+      selection.exit()
+          .transition(t)
+            .style("fill-opacity", 1e-6)
+            .remove();
+
+      //update
+      selection.style("fill-opacity", 1)
+        .transition(t)
+          .attr("d", d3.linkHorizontal()
+              .x(d => d.y)
+              .y(d => d.x));
+
+      selection.enter().append("path")
+          .attr("class", klass)
+          .attr("stroke", d => d[components[klass].coloring].color)
+          .attr("d", d3.linkHorizontal()
+              .x(d => d.y)
+              .y(d => d.x))
+          .style("fill-opacity", 1e-6)
+        .transition(t)
+          .style("fill-opacity", 1);
+  }
+
+
+
+  ["future","past"].forEach(klass => {
+      const nodes = graphBox.selectAll("g." + klass)
+          .data(components[klass].nodes, nodeKey);
+
+      nodes.exit()
+        .transition(t)
+          .style("fill-opacity", 1e-6)
+          .remove();
+
+      //update
+      nodes.transition(t)
+          .attr("transform", d => `translate(${d.y},${d.x})`);
+
+      const nodes_g = nodes.enter().append("g")
+          .attr("class", klass)
+          .attr("transform", d => `translate(${d.y},${d.x})`)
+          .on("click", update)
+          .on("mouseover", renderText);
+
+      nodes_g.append("circle")
+          .attr("stroke-width", 3)
+          .attr("stroke-linejoin", "round")
+          .attr("fill", d => d.children ? "#555" : "#999")
+          .attr("r", 2.5);
+
+      nodes_g.append("text")
+          .attr("dy", "0.31em")
+          .attr("x", d => d.children ? -6 : 6)
+          .attr("text-anchor", d => d.children ? "end" : "start")
+          .text(d => d.data.ref)
+          .attr("stroke-width", 1)
+          .attr("stroke", "black")
+        .clone(true).lower()
+          .attr("stroke", "white");
+  });
+
+}
+
+
+
+function renderTrees(treesObj) {
+    const components = {
+        past: {
+            links: treesObj.pastTree.links(),
+            nodes: treesObj.pastTree.descendants().reverse(),
+            coloring: "source"
+        },
+        future: {
+            links: treesObj.futureTree.links(),
+            nodes: treesObj.futureTree.descendants().reverse(),
+            coloring: "target"
+        },
+        additional: {
+            links: treesObj.placedLinks,
+            coloring: "target"
+        }
+    };
+
     // debugger;
-    const g = graphBox.append("g")
-      .attr("font-family", "sans-serif")
-      .attr("font-size", 10)
-      .attr("transform", `translate(0,10)`);
 
-  const link = g.append("g")
-    .attr("fill", "none")
-    .attr("stroke-opacity", 0.4)
-    .attr("stroke-width", 1.5);
+    for (let klass in components) {
+        graphBox.selectAll("path." + klass)
+          .data(components[klass].links, linkKey)
+          .enter().append("path")
+            .attr("class", klass)
+            .attr("stroke", d => d[components[klass].coloring].color)
+            .attr("d", d3.linkHorizontal()
+              .x(d => d.y)
+              .y(d => d.x));
+    }
+    ["future","past"].forEach(klass => {
+      const nodes = graphBox.selectAll("g." + klass)
+        .data(components[klass].nodes, nodeKey)
+        .enter().append("g")
+          .attr("class", klass)
+          .attr("transform", d => `translate(${d.y},${d.x})`)
+          .on("click", update)
+          .on("mouseover", renderText);
 
-  link.selectAll("path.past")
-    .data(trees.pastTree.links())
-    .enter().append("path")
-      .attr("class", "past")
-      .attr("stroke", d => d.source.color)
-      .attr("d", d3.linkHorizontal()
-          .x(d => d.y)
-          .y(d => d.x));
+        nodes.append("circle")
+          .attr("stroke-width", 3)
+          .attr("stroke-linejoin", "round")
+          .attr("fill", d => d.children ? "#555" : "#999")
+          .attr("r", 2.5);
 
-  link.selectAll("path.future")
-    .data(trees.futureTree.links())
-    .enter().append("path")
-      .attr("class", "future")
-      .attr("stroke", d => d.target.color)
-      .attr("d", d3.linkHorizontal()
-          .x(d => d.y)
-          .y(d => d.x));
+        nodes.append("text")
+          .attr("dy", "0.31em")
+          .attr("x", d => d.children ? -6 : 6)
+          .attr("text-anchor", d => d.children ? "end" : "start")
+          .text(d => d.data.ref)
+          .attr("stroke-width", 1)
+          .attr("stroke", "black")
+        .clone(true).lower()
+          .attr("stroke", "white");
+    });
 
-  link.selectAll("path.additional")
-    .data(trees.placedLinks)
-    .enter().append("path")
-      .attr("class", "additional")
-      .attr("stroke", d => d.target.color)
-      .attr("d", d3.linkHorizontal()
-          .x(d => d.y)
-          .y(d => d.x));
-
-  const futurenode = g.append("g")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-width", 3)
-    .selectAll("g.future")
-    .data(trees.futureTree.descendants().reverse())
-    .enter().append("g")
-      .attr("class", "future")
-      .attr("transform", d => `translate(${d.y},${d.x})`)
-      .on("mouseover", renderText);
-
-
-    futurenode.append("circle")
-      .attr("fill", d => d.children ? "#555" : "#999")
-      .attr("r", 2.5);
-
-    futurenode.append("text")
-      .attr("dy", "0.31em")
-      .attr("x", d => d.children ? -6 : 6)
-      .attr("text-anchor", d => d.children ? "end" : "start")
-      .text(d => d.data.ref)
-    .clone(true).lower()
-      .attr("stroke", "white");
-
-  const pastnode = g.append("g")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-width", 3)
-    .selectAll("g.future")
-    .data(trees.pastTree.descendants().reverse())
-    .enter().append("g")
-      .attr("class", "past")
-      .attr("transform", d => `translate(${d.y},${d.x})`)
-      .on("mouseover", renderText);
-
-
-    pastnode.append("circle")
-      .attr("fill", d => d.children ? "#555" : "#999")
-      .attr("r", 2.5);
-
-    pastnode.append("text")
-      .attr("dy", "0.31em")
-      .attr("x", d => d.children ? -6 : 6)
-      .attr("text-anchor", d => d.children ? "end" : "start")
-      .text(d => d.data.ref)
-    .clone(true).lower()
-      .attr("stroke", "white");
-
-  return trees;
+  return treesObj;
 }
 
 function renderText(node) {
@@ -388,8 +454,6 @@ function renderText(node) {
 
 buildScreen();
 
-
-
 /*****         Methods used in screen construction      *****/
 
 function buildScreen() {
@@ -397,14 +461,25 @@ function buildScreen() {
     curryAndRenderData();
 }
 
-
 function curryAndRenderData() {
-    getPassage(startingRef)
+    getPassage(currentRef)
         .then(buildRawTrees)
         .then(buildNetwork)
         .then(layoutTrees)
         .then(cleanObject)
         .then(renderTrees)
+        .then(console.log);
+}
+
+function update(node) {
+    // We can do a better job of sharing cache between treeObjs
+    currentRef = node.data.ref;
+    getPassage(currentRef)
+        .then(buildRawTrees)
+        .then(buildNetwork)
+        .then(layoutTrees)
+        .then(cleanObject)
+        .then(updateTrees)
         .then(console.log);
 }
 
@@ -426,7 +501,12 @@ function buildFrame() {
     svg.append("svg:desc").text("This SVG displays visually ...");
     graphBox = svg.append("g")
         // .attr("height", graphBox_height)
-        .attr("transform", "translate(" + margin[3] + ", 0)");
+        .attr("transform", "translate(" + margin[3] + ", 10)")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .attr("fill", "none")
+        .attr("stroke-opacity", 0.4)
+        .attr("stroke-width", 1.5);
 
     timeScale = d3.scaleLinear()
     .domain([-1500, 2050])

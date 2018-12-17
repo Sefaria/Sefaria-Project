@@ -41,6 +41,10 @@
 
 
 <script>
+      if (!window.d3) {
+          console.log('logging d3 locally');
+          document.write('<script src="/static/js/lib/d3.v5.min.js"><\/script>');
+      }
     var GLOBALS = {
         interfaceLang: "{{ request.interfaceLang }}"
     }
