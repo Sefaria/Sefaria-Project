@@ -658,7 +658,7 @@ function brushmove() {
 }
 
 function brushend() {
-  d3.event.target["b_active"] = false
+  d3.event.target["b_active"] = false;
   svg.classed("selecting",
       (
         (brushes.hasOwnProperty(topCat) && brushes[topCat] != null && !brushes[topCat].empty()) ||
@@ -681,11 +681,11 @@ function mouseover_book(d) {
     svg.select(".title." + d.id)
             .classed("active",true);
     svg.selectAll(".link")
-            .filter(function (p) { return d.book ==  p["book1"] || d.id ==  p["book2"] })
+            .filter(function (p) { return d.book ==  p["book1"] || d.book ==  p["book2"] })
             .classed("active", true)
             .each(moveToFront);
     svg.selectAll(".preciseLink")
-            .filter(function (p) { return d.book ==  p["r1"]["title"] || d.id ==  p["r2"]["title"] })
+            .filter(function (p) { return d.book ==  p["r1"]["title"] || d.book ==  p["r2"]["title"] })
             .classed("active", true)
             .each(moveToFront);
 }
@@ -717,7 +717,7 @@ function buildBookLinks() {
         .enter().append("path")
            //.each(function(d) { if (!(d.book1 && d.book2 && svg.select("#" + d["book1"]).datum().base_cx && svg.select("#" + d["book2"]).datum().base_cx && svg.select("#" + d["book1"]).attr("cy") && svg.select("#" + d["book2"]).attr("cy") )) {console.log(d);}})
           .attr("class", "link")
-          .attr("stroke-width", function(d) { return d["count"]/10 + "px"})
+          .attr("stroke-width", function(d) { return linkCountWidth(d["count"]) + "px"})
           .attr("stroke", function(d) { return svg.select("#" + toId(d["book1"])).attr("color") })
           .attr("d", d3.svg.diagonal()
                 .source(function(d) { return {"x":Number(selectBook(d.book1).datum().base_cx), "y": Number(selectBook(d.book1).attr("cy"))}; })
@@ -975,6 +975,8 @@ function processPreciseLinks(dBook) {
                 // which may be different than title for complex texts
                 d["r1"]["book"] = Sefaria.parseRef(d["r1"]["title"]).index;
                 d["r2"]["book"] = Sefaria.parseRef(d["r2"]["title"]).index;
+                d["topRef"] = isBookOnTop(d["r1"]["book"]) ? d["r1"] : d["r2"];
+                d["bottomRef"] = isBookOnTop(d["r1"]["book"]) ? d["r2"] : d["r1"];
             });
             pLinkCache[dBook.book] = json;
         }
@@ -1045,16 +1047,16 @@ function processPreciseLinks(dBook) {
                 })
                 .attr("d", d3.svg.diagonal()
                     .source(function (d) {
-                      d.sourcex = Number(selectBook(d["r1"]["book"]).datum().s(d["r1"]["title"] + " " + d["r1"]["loc"]));
-                      d.sourcey = Number(selectBook(d["r1"]["book"]).attr("cy"));
+                      d.sourcex = Number(selectBook(d["bottomRef"]["book"]).datum().s(d["bottomRef"]["title"] + " " + d["bottomRef"]["loc"]));
+                      d.sourcey = Number(selectBook(d["bottomRef"]["book"]).attr("cy"));
                       return {
                           "x": d.sourcex,
                           "y": d.sourcey
                       };
                     })
                     .target(function (d) {
-                      d.targetx = Number(selectBook(d["r2"]["book"]).datum().s(d["r2"]["title"] + " " + d["r2"]["loc"]));
-                      d.targety = Number(selectBook(d["r2"]["book"]).attr("cy"));
+                      d.targetx = Number(selectBook(d["topRef"]["book"]).datum().s(d["topRef"]["title"] + " " + d["topRef"]["loc"]));
+                      d.targety = Number(selectBook(d["topRef"]["book"]).attr("cy"));
                       return {
                           "x": d.targetx,
                           "y": d.targety
@@ -1095,6 +1097,22 @@ function selectBook(book) {
     // selects a book by ID, accounting for encoding CSS friendly characters
     return svg.select("#" + toId(book));
 } 
+
+function isBookOnTop(book) {
+    // returns true if `book` belongs to the collection of books on top
+    return topBooks.some(b => b.book == book);
+}
+
+function linkCountWidth(count) {
+
+    // originally: count / 10;
+
+    const MAX_WIDTH = 70;
+    const MIN_WIDTH = 0.5;
+    const coeffecient = 1 - (1 / (1+ .00003 * (count ** 2)));
+    const width = MAX_WIDTH * coeffecient;
+    return width > MIN_WIDTH ? width : MIN_WIDTH;
+}
 
 function moveToFront() {
 	this.parentNode.appendChild(this);
