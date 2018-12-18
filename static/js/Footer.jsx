@@ -70,6 +70,10 @@ class Footer extends Component {
                   <span className="int-en">Testimonials</span>
                   <span className="int-he">חוות דעת</span>
               </a>
+              <a href="/metrics" className="outOfAppLink">
+                  <span className="int-en">Metrics</span>
+                  <span className="int-he">מדדים</span>
+              </a>
               <a href="/terms" className="outOfAppLink">
                   <span className="int-en">Terms of Use</span>
                   <span className="int-he">תנאי שימוש</span>
@@ -82,8 +86,8 @@ class Footer extends Component {
 
           <div className="section">
               <div className="header">
-                      <span className="int-en">Educators</span>
-                      <span className="int-he">מחנכים</span>
+                      <span className="int-en">Tools</span>
+                      <span className="int-he">כלים</span>
               </div>
               <a href="/educators" className="outOfAppLink">
                   <span className="int-en">Teach with Sefaria</span>
@@ -97,9 +101,17 @@ class Footer extends Component {
                   <span className="int-en">Visualizations</span>
                   <span className="int-he">תרשימים גרפיים</span>
               </a>
+              <a href="/mobile" className="outOfAppLink">
+                  <span className="int-en">Mobile Apps</span>
+                  <span className="int-he">ספריא בנייד</span>
+              </a>
               <a href="/people" className="outOfAppLink">
                   <span className="int-en">Authors</span>
                   <span className="int-he">מחברים</span>
+              </a>
+              <a href="/groups" className="outOfAppLink">
+                  <span className="int-en">Groups</span>
+                  <span className="int-he">הקבוצות</span>
               </a>
               <a href="/updates" className="outOfAppLink">
                   <span className="int-en">New Additions</span>
