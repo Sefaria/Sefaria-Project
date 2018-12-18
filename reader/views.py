@@ -3531,7 +3531,7 @@ def serve_static(request, page):
 
 
 @ensure_csrf_cookie
-def explore(request, book1, book2, lang=None):
+def explore(request, topCat, bottomCat, book1, book2, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """
@@ -3540,7 +3540,90 @@ def explore(request, book1, book2, lang=None):
         if book:
             books.append(book)
 
-    template_vars =  {"books": json.dumps(books)}
+    if not topCat and not bottomCat:
+        topCat, bottomCat = "Tanakh", "Bavli"
+        urlRoot = "/explore"
+    else:
+        urlRoot = "/explore-" + topCat + "-and-" + bottomCat
+
+    (topCat, bottomCat) = [x.replace("-","") for x in (topCat, bottomCat)]
+
+    categories = {
+        "Tanakh": {
+            "title": "Tanakh",
+            "heTitle": 'תנ"ך',
+            "shapeParam": "Tanakh",
+            "linkCountParam": "Tanakh",
+        },
+        "Torah": {
+            "title": "Torah",
+            "heTitle": 'תורה',
+            "shapeParam": "Tanakh/Torah",
+            "linkCountParam": "Torah",
+        },
+        "Bavli": {
+            "title": "Talmud",
+            "heTitle": "תלמוד",
+            "shapeParam": "Talmud/Bavli",
+            "linkCountParam": "Bavli",
+            "talmudAddressed": True,
+        },
+        "Yerushalmi": {
+            "title": "Jerusalem Talmud",
+            "heTitle": "תלמוד ירושלמי",
+            "shapeParam": "Talmud/Yerushalmi",
+            "linkCountParam": "Yerushalmi",
+            "talmudAddressed": True,
+        },
+        "Mishnah": {
+            "title": "Mishnah",
+            "heTitle": "משנה",
+            "shapeParam": "Mishnah",
+            "linkCountParam": "Mishnah",
+        },
+        "Tosefta": {
+            "title": "Tosefta",
+            "heTitle": "תוספתא",
+            "shapeParam": "Tanaitic/Tosefta",
+            "linkCountParam": "Tosefta",
+        },
+        "MidrashRabbah": {
+            "title": "Midrash Rabbah",
+            "heTitle": "מדרש רבה",
+            "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
+            "linkCountParam": "Midrash Rabbah",
+            "colorByBook": True,
+        },
+        "MishnehTorah": {
+            "title": "Mishneh Torah",
+            "heTitle": "משנה תורה",
+            "shapeParam": "Halakhah/Mishneh Torah",
+            "linkCountParam": "Mishneh Torah",
+            "labelBySection": True,
+        },
+        "ShulchanArukh": {
+            "title": "Shulchan Arukh",
+            "heTitle": "שולחן ערוך",
+            "shapeParam": "Halakhah/Shulchan Arukh",
+            "linkCountParam": "Shulchan Arukh",
+            "colorByBook": True,
+        },
+        "Zohar": {
+            "title": "Zohar",
+            "heTitle": "זוהר",
+            "shapeParam": "Zohar",
+            "linkCountParam": "Zohar",
+            "talmudAddressed": True,
+        },
+    }
+
+    template_vars =  {
+        "books": json.dumps(books),
+        "categories": json.dumps(categories),
+        "topCat": topCat,
+        "bottomCat": bottomCat,
+        "urlRoot": urlRoot,
+    }
     if lang == "he": # Override language settings if 'he' is in URL
         request.contentLang = "hebrew"
 

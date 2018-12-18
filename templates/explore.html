@@ -170,6 +170,10 @@
 <script>
     var GLOBALS = {
         books: {{ books|safe }},
+        categories: {{ categories|safe }},
+        topCat: "{{ topCat }}",
+        bottomCat: "{{ bottomCat }}",
+        urlRoot: "{{ urlRoot }}",
         interfaceLang: "{{ request.interfaceLang }}"
     }
 </script>

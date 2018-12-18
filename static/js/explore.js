@@ -29,74 +29,7 @@ var brushes = {};
 var booksJson;  // Initial setup book link info
 var booksFocused = 0; //State of number of books opened
 
-var categories = {
-    "tanakh": {
-        "title": "Tanakh",
-        "heTitle": 'תנ"ך',
-        "shapeParam": "Tanakh",
-        "linkCountParam": "Tanakh",
-    },
-    "torah": {
-        "title": "Torah",
-        "heTitle": 'תורה',
-        "shapeParam": "Tanakh/Torah",
-        "linkCountParam": "Torah",
-    },
-    "bavli": {
-        "title": "Talmud",
-        "heTitle": "תלמוד",
-        "shapeParam": "Talmud/Bavli",
-        "linkCountParam": "Bavli",
-        "talmudAddressed": true,
-    },
-    "yerushalmi": {
-        "title": "Jerusalem Talmud",
-        "heTitle": "תלמוד ירושלמי",
-        "shapeParam": "Talmud/Yerushalmi",
-        "linkCountParam": "Yerushalmi",
-        "talmudAddressed": true,
-    },
-    "mishnah": {
-        "title": "Mishnah",
-        "heTitle": "משנה",
-        "shapeParam": "Mishnah",
-        "linkCountParam": "Mishnah",
-    },
-    "tosefta": {
-        "title": "Tosefta",
-        "heTitle": "תוספתא",
-        "shapeParam": "Tanaitic/Tosefta",
-        "linkCountParam": "Tosefta",
-    },
-    "midrashRabbah": {
-        "title": "Midrash Rabbah",
-        "heTitle": "מדרש רבה",
-        "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
-        "linkCountParam": "Midrash Rabbah",
-        "colorByBook": true,
-    },
-    "mishnehTorah": {
-        "title": "Mishneh Torah",
-        "heTitle": "משנה תורה",
-        "shapeParam": "Halakhah/Mishneh Torah",
-        "linkCountParam": "Mishneh Torah",
-        "labelBySection": true,
-    },
-    "shulchanArukh": {
-        "title": "Shulchan Arukh",
-        "heTitle": "שולחן ערוך",
-        "shapeParam": "Halakhah/Shulchan Arukh",
-        "linkCountParam": "Shulchan Arukh",
-        "colorByBook": true,
-    },
-    "zohar": {
-        "title": "Zohar",
-        "heTitle": "זוהר",
-        "shapeParam": "Zohar",
-        "linkCountParam": "Zohar",
-        "talmudAddressed": true,
-    },
-};
+var categories = GLOBALS.categories;
 
 var twelve = ["Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi"];
 function isTwelve(el) { return twelve.indexOf(el["book"]) > -1; }
@@ -146,24 +79,11 @@ function switchToHebrew() { lang = "he"; }
 var topBooks = [];
 var bottomBooks = [];
 
+var topCat = GLOBALS.topCat;
+var bottomCat = GLOBALS.bottomCat;
 
-var urlVars = Sefaria.util.getUrlVars();
-
-if ("cats" in urlVars) {
-    var topCat = urlVars.cats.split("|")[0];
-    var bottomCat = urlVars.cats.split("|")[1];
-} else {
-    var topCat = "tanakh";
-    //var topCat = "torah";
-    //var topCat = "mishnah";
-    //var topCat = "bavli";
-
-    var bottomCat = "bavli";
-    //var bottomCat = "mishnah";
-    //var bottomCat = "yerushalmi
-    //var bottomCat = "tosefta";";
-    //var bottomCat = "mishnehTorah";
-}
+console.log(categories);
+console.log(topCat,bottomCat);
 
 var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
 var b = Sefaria.shape(categories[bottomCat].shapeParam, d => bottomBooks = d);
@@ -217,7 +137,7 @@ function buildFrame() {
         // Titles and labels
     var TopTitle = isEnglish() ? "Connections between " + categories[bottomCat].title + " and " + categories[topCat].title  : 'חיבורים בין ה' + categories[bottomCat].heTitle + ' ו' + categories[topCat].heTitle ;
     svg.append("a")
-        .attr("xlink:href", "/explore")
+        .attr("xlink:href", GLOBALS.urlRoot)
       .append("text")
         .attr("id","page-title")
         .attr("x", w/2)
@@ -1195,7 +1115,7 @@ function pushHistory() {
 }
 
 function _getHistory() {
-    var url = "/explore";
+    var url = GLOBALS.urlRoot;
     var title = isEnglish()?"Explore":'מצא חיבורים בין';
     var openIds = [];
     var talmudOpen = false;
