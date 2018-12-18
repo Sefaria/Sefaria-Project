@@ -489,9 +489,7 @@ function buildBookLabels(bks, klass, position) {
         .selectAll("text.title").data(bks).enter()
             .append("text")
                 .attr("class", function(d) { d.id = toId(d.book); return "title " + toId(d["section"]) + " " + d["id"] } )
-                .text(function(d) {
-                        return isEnglish() ? d["book"] : d["hebook"];
-                    })
+                .text(bookLabel)
                 .style("text-anchor", anchor)
                 .attr("fill", function(d) { return selectBook(d.id).attr("color"); })
                 .attr("x", function(d) {
@@ -521,6 +519,19 @@ function buildBookLabels(bks, klass, position) {
             twelveNode.attr("x", Number(svg.select("#Habakkuk").attr("cx"))).attr("y", Number(svg.select("#Habakkuk").attr("y")) - 12)
         }
     }
+
+
+    function bookLabel (d) {
+        var label = isEnglish() ? d["book"] : d["heBook"];
+        label = label.replace("Mishneh Torah, ", "")
+                    .replace("Shulchan Arukh, ", "")
+                    .replace("Jerusalem Talmud ", "")
+                    .replace("משנה תורה, ", "")
+                    .replace("שולחן ערוך, ", "")
+                    .replace("תלמוד ירושלמי ", "");
+        return label;
+    }
+
 }
 
 function buildBookLabelsBySection(bks, klass, position) {
