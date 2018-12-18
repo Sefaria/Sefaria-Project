@@ -6,7 +6,7 @@ Writes to MongoDB Collection: links
 import regex as re
 from bson.objectid import ObjectId
 
-from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
 from sefaria.system.database import db
 from . import abstract as abst
 from . import text
@@ -271,6 +271,11 @@ def process_index_delete_in_links(indx, **kwargs):
 #They have some client formatting code in them; it may make sense to move them up to sefaria.client or sefaria.helper
 link_counts = {}
 def get_link_counts(cat1, cat2):
+    """
+    Returns a list of book to book link counts for books within `cat1` and `cat2`
+    Parameters may name either a category or a individual book
+    """
+
     global link_counts
     key = cat1 + "-" + cat2
     if link_counts.get(key):
@@ -280,7 +285,11 @@ def get_link_counts(cat1, cat2):
     for c in [cat1, cat2]:
         ts = text.library.get_indexes_in_category(c)
         if len(ts) == 0:
-            return {"error": "No results for {}".format(c)}
+            try:
+                text.library.get_index(c)
+                ts.append(c)
+            except BookNameError:
+                return {"error": "No results for {}".format(c)}
         titles.append(ts)
 
     result = []
@@ -341,14 +350,18 @@ def get_category_category_linkset(cat1, cat2):
 
 def get_book_category_linkset(book, cat):
     """
-    Return LinkSet of links between the given book and category.
+    Return LinkSet of links between the given book and category, or between two books.
     :param book: String
     :param cat: String
     :return:
     """
     titles = text.library.get_indexes_in_category(cat)
     if len(titles) == 0:
-        return {"error": "No results for {}".format(query)}
+        try:
+            text.library.get_index(cat)
+            titles = [cat]
+        except BookNameError:
+            return {"error": "No results for {}".format(cat)}
 
     book_re = text.Ref(book).regex()
     cat_re = r'^({}) \d'.format('|'.join(titles)) #todo: generalize this regex

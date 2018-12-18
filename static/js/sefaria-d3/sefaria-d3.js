@@ -65,20 +65,27 @@ class SD3 {
             for (var i = 0; i < chap_lengths; ++i) {
                 domain.push((i+1).toString());
             }
-            return domain
+            return domain;
         }
 
         for (var i = 0; i < chap_lengths.length; ++i) {
-            if (section_address_type == "talmud") {
-                section = Sefaria.hebrew.intToDaf(i);
+            if (Array.isArray(chap_lengths[i])) {
+                // Depth 3
+                var sectionDomain = this._jaggedArrayDomain(chap_lengths[i], section_address_type);
+                sectionDomain.map(sectionRef => domain.push(i+1 + ":" + sectionRef))
             } else {
-                section = i+1;
-            }
-            if (chap_lengths[i] > 0) {
-                domain.push(section); // To support refs to e.g. "7b"
-            }
-            for (var j = 1; j <= chap_lengths[i]; ++j) {
-                domain.push(section + ":" + j)
+                // Depth 2
+                if (section_address_type == "talmud") {
+                    section = Sefaria.hebrew.intToDaf(i);
+                } else {
+                    section = i+1;
+                }
+                if (chap_lengths[i] > 0) {
+                    domain.push(section); // To support refs to sections e.g. "7b"
+                }
+                for (var j = 1; j <= chap_lengths[i]; ++j) {
+                    domain.push(section + ":" + j)
+                }
             }
         }
         return domain;
@@ -118,14 +125,13 @@ class SD3 {
         var domain = this._textDomain(shape, "talmud");
         skip = skip || parseInt(domain.length / 12);
         var ticks = domain.filter((e,i) => i % skip == 0);
-        ticks = ticks.map(ref => ref.split(":")[0]);  
+        ticks = ticks.map(ref => ref.lastIndexOf(":") > -1 ? ref.slice(0, ref.lastIndexOf(":")) : ref);  
 
         return ticks;
     }
 
     static integerRefTicks(shape, skip) {
         /*  Returns an array of strings, in Integer:Integer format, to be used as ticks on an Axis.
-            Assumes depth 2 (Would this work w/ Depth 3, as is?)
 
             shape: an object describing the shape of the text available from the Shape API
             skip: the number of segments to skip, between ticks
@@ -134,7 +140,7 @@ class SD3 {
         var domain = this._textDomain(shape, "integer");
         skip = skip || parseInt(domain.length / 30);
         var ticks = domain.filter((e,i) => i % skip == 0);
-        ticks = ticks.map(ref => ref.split(":")[0]);  
+        ticks = ticks.map(ref => ref.lastIndexOf(":") > -1 ? ref.slice(0, ref.lastIndexOf(":")) : ref);  
 
         return ticks;
     }

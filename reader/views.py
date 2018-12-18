@@ -1558,7 +1558,7 @@ def shape_api(request, title):
 
         # Leaf Node
         if sn and not sn.children:
-            res = _simple_shape(sn)
+            res = [_simple_shape(sn)]
 
         # Branch Node
         elif sn and sn.children:

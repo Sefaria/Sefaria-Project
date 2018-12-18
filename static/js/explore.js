@@ -73,6 +73,7 @@ var categories = {
         "heTitle": "מדרש רבה",
         "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
         "linkCountParam": "Midrash Rabbah",
+        "colorByBook": true,
     },
     "mishnehTorah": {
         "title": "Mishneh Torah",
@@ -87,6 +88,13 @@ var categories = {
         "shapeParam": "Halakhah/Shulchan Arukh",
         "linkCountParam": "Shulchan Arukh",
         "colorByBook": true,
+    },
+    "zohar": {
+        "title": "Zohar",
+        "heTitle": "זוהר",
+        "shapeParam": "Zohar",
+        "linkCountParam": "Zohar",
+        "talmudAddressed": true,
     },
 };
 
