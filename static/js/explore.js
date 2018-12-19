@@ -945,7 +945,7 @@ function processPreciseLinks(dBook) {
         //enter
         preciseLinks.enter()
             .append("a")
-                .attr("xlink:href", function(d) { return "/" + toLink(d["r1"]["title"]) + "." + d["r1"]["loc"]})
+                .attr("xlink:href", function(d) { return "/" + toLink(d["bottomRef"]["title"]) + "." + d["bottomRef"]["loc"]})
                 .attr("target","_blank")
                 .classed("preciseLinkA", true)
             .append("path")
