@@ -3608,7 +3608,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
             "linkCountParam": "Shulchan Arukh",
             "colorByBook": True,
         },
-        "zohar": {
+        "Zohar": {
             "title": "Zohar",
             "heTitle": "זוהר",
             "shapeParam": "Zohar",

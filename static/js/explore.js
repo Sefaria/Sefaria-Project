@@ -37,8 +37,6 @@ function isNotTwelve(el) { return !isTwelve(el); }
 
 var pLinkCache = {}; //Cache for precise link queries
 
-window.pLinkCache = pLinkCache;
-
 /*****          Colors              *****/
 
 var colors = d3.scale.category10()
@@ -81,9 +79,6 @@ var bottomBooks = [];
 
 var topCat = GLOBALS.topCat;
 var bottomCat = GLOBALS.bottomCat;
-
-console.log(categories);
-console.log(topCat,bottomCat);
 
 var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
 var b = Sefaria.shape(categories[bottomCat].shapeParam, d => bottomBooks = d);
@@ -129,8 +124,6 @@ function buildFrame() {
         .attr("height", h + margin[0] + margin[2])
       .append("g")
         .attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
-
-window.svg = svg;
 
     svg.append("svg:desc").text("This SVG displays visually the connections between " + categories[bottomCat].title + " and " + categories[topCat].title + " that can be found throughout our site");
     links = svg.append("g").attr("id","links").attr("display","none");
@@ -215,8 +208,8 @@ window.svg = svg;
             .on("click",toggleColor)
             .text(bottomSwitchLabel);
 
-	svg.append("g").attr("class", topCat).attr("id", topCat).classed("collection",true).attr("display","none");
-    svg.append("g").attr("class", bottomCat).attr("id", bottomCat).classed("collection",true).attr("display","none");
+	svg.append("g").attr("class", topCat).attr("id", topCat + "-collection").classed("collection",true).attr("display","none");
+    svg.append("g").attr("class", bottomCat).attr("id", bottomCat+ "-collection").classed("collection",true).attr("display","none");
 
     // Tooltips
     tooltip = svg.append("g")
@@ -335,7 +328,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 	var currentLeft = 0; //used for LTR
 	var previousLeft = w + bookSpacer; //used for RTL
 	var totalBookLength = totalBookLengths(books);
-	svg.select("#" + klass).selectAll("rect.book").data(books).enter()
+	svg.select("#" + klass + "-collection").selectAll("rect.book").data(books).enter()
 			.append("rect")
                 .attr("id", function (d)  { d.id = toId(d.book); return d.id; })
                 .each(function (d) { d["collection"] = klass; d["position"] = position; })
@@ -369,7 +362,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .on("mouseout", mouseout_book)
                 .on("click", recordOpenBook);
 
-    svg.selectAll("#" + klass + " .book")
+    svg.selectAll("#" + klass + "-collection .book")
             .on("mouseover.tooltip", function() { 
                 bookTooltip.style("display", null); })
             .on("mouseout.tooltip", function() { bookTooltip.style("display", "none"); })
@@ -406,11 +399,11 @@ function buildBookLabels(bks, klass, position) {
         dy = "0";
     }
 
-    if (klass == "tanakh") {
+    if (klass == "Tanakh") {
         bks = bks.filter(isNotTwelve);
     }
 
-    svg.select("#" + klass)
+    svg.select("#" + klass + "-collection")
         .selectAll("text.title").data(bks).enter()
             .append("text")
                 .attr("class", function(d) { d.id = toId(d.book); return "title " + toId(d["section"]) + " " + d["id"] } )
@@ -432,9 +425,9 @@ function buildBookLabels(bks, klass, position) {
                 .on("mouseout", mouseout_book)
                 .on("click", recordOpenBook);
 
-    if (klass == "tanakh") {
+    if (klass == "Tanakh") {
         var twelveText = isEnglish() ? "The Twelve Prophets" : "תרי עשר";
-        var twelveNode = svg.select("#" + klass).append("text")
+        var twelveNode = svg.select("#Tanakh-collection").append("text")
             .attr("class", "title twelve Prophets")
             .attr("fill", function(d) { return colors("Prophets"); })
             .text(twelveText)
@@ -483,7 +476,7 @@ function buildBookLabelsBySection(bks, klass, position) {
         prevSection = bks[i].section;
     }
 
-    svg.select("#" + klass)
+    svg.select("#" + klass + "-collection")
         .selectAll("text.title").data(sections).enter()
             .append("text")
                 .attr("class", function(d) { return "title " + toId(d["section"])} )
@@ -511,13 +504,12 @@ function buildBookLabelsBySection(bks, klass, position) {
 
 
 function addAxis(d) {
-    var type = d.collection;
     var orient = d.position;
     var ticks, y;
 
     var y = orient == "top" ? topOffsetY + 5 : bottomOffsetY + 5;    
 
-    if(categories[type].talmudAddressed) {
+    if(categories[d.collection].talmudAddressed) {
         ticks = SefariaD3.talmudRefTicks(d);
         d.scale = SefariaD3.textScale(isEnglish()?"ltr":"rtl", d.base_x, d.base_x + d.base_width, d, "talmud");
     } else {
@@ -533,7 +525,7 @@ function addAxis(d) {
         .tickValues(ticks)
         .tickFormat(ref => ref.split(/(\d.*)/)[1]); // Only show numerical portion of ref in ticks
 
-    d.axis_group = svg.select("#" + type).append("g")
+    d.axis_group = svg.select("#" + d.collection + "-collection").append("g")
 		.attr("class", "axis " + d.id )
 		.attr("transform","translate(0," + y + ")")
         .style("display", "none")
@@ -552,7 +544,7 @@ function updateAxis(d) {
 /*****       Axis Brushing Selection         *****/
 
 function activateBrush(d) {
-    svg.select("#" + d.collection)
+    svg.select("#" + d.collection + "-collection")
       .append("g")
       .attr("class", "brush")
       .each(function() {
@@ -575,7 +567,7 @@ function activateBrush(d) {
 function removeBrush(d) {
     brushes[d.collection].clear();
     brushmove();
-    svg.select("#" + d.collection + " .brush").remove();
+    svg.select("#" + d.collection + "-collection .brush").remove();
     brushes[d.collection] = null;
 }
 
@@ -662,7 +654,7 @@ function buildBookLinks() {
            //.each(function(d) { if (!(d.book1 && d.book2 && svg.select("#" + d["book1"]).datum().base_cx && svg.select("#" + d["book2"]).datum().base_cx && svg.select("#" + d["book1"]).attr("cy") && svg.select("#" + d["book2"]).attr("cy") )) {console.log(d);}})
           .attr("class", "link")
           .attr("stroke-width", function(d) { return linkCountWidth(d["count"]) + "px"})
-          .attr("stroke", function(d) { return svg.select("#" + toId(d["book1"])).attr("color") })
+          .attr("stroke", function(d) { return selectBook(d.book1).attr("color"); })
           .attr("d", d3.svg.diagonal()
                 .source(function(d) { return {"x":Number(selectBook(d.book1).datum().base_cx), "y": Number(selectBook(d.book1).attr("cy"))}; })
                 .target(function(d) { return {"x":Number(selectBook(d.book2).datum().base_cx), "y": Number(selectBook(d.book2).attr("cy"))}; })
@@ -771,7 +763,7 @@ function openBook(dFocused) {
         .on("mouseover", null);
 
     //Reregister events
-    svg.selectAll("#" + dBook.collection + " .book")
+    svg.selectAll("#" + dBook.collection + "-collection .book")
         .filter(function(d) { return d !== dBook; })
             .on("mouseover", null)
             .on("mouseout", null)
@@ -780,7 +772,7 @@ function openBook(dFocused) {
             .on("mouseout.tooltip",null);
 
     // Resize book rectangles
-    svg.selectAll("#" + dBook.collection + " .book")
+    svg.selectAll("#" + dBook.collection + "-collection .book")
         .transition()
             .attr("width", function(d) {
                     if (d === dBook) {
@@ -835,7 +827,7 @@ function openBook(dFocused) {
     hideBookLinks();
 
     //hide other books titles
-    svg.selectAll("#" + dBook.collection + " .title")
+    svg.selectAll("#" + dBook.collection + "-collection .title")
         .transition().duration(1000)
             .style("display","none");
 
@@ -854,12 +846,12 @@ function closeBook(dCloser) {
     booksFocused--;
 
     var collectionId = dCloser.collection;
-    var closing = svg.select("#" + collectionId + " .open").classed("open", false).on("mouseover", mouseover_book);
+    var closing = svg.select("#" + collectionId + "-collection .open").classed("open", false).on("mouseover", mouseover_book);
 
     var labelId = collectionId == topCat ? "top-label" : "bottom-label";
 
     //Resize books
-    svg.selectAll("#" + collectionId + " .book")
+    svg.selectAll("#" + collectionId + "-collection .book")
         .transition()
             .attr("width", function(d) { delete d["new_width"]; return d["base_width"]; })
             .attr("x", function(d) { delete d["new_x"]; return d["base_x"]; })
@@ -889,12 +881,12 @@ function closeBook(dCloser) {
     }
 
     //Reset events
-    svg.selectAll("#" + collectionId + " .book")
+    svg.selectAll("#" + collectionId + "-collection .book")
             .on("mouseover", mouseover_book)
             .on("mouseout", mouseout_book)
             .on("click", recordOpenBook);
 
-    svg.selectAll("#" + collectionId + " .book")
+    svg.selectAll("#" + collectionId + "-collection .book")
         .on("mouseover.tooltip", function() { bookTooltip.style("display", null); })
         .on("mouseout.tooltip", function() { bookTooltip.style("display", "none"); });
 
@@ -905,7 +897,7 @@ function closeBook(dCloser) {
             .text("")
             .attr("class","label");
 
-    svg.selectAll("#" + collectionId + " .title")
+    svg.selectAll("#" + collectionId + "-collection .title")
         .transition().duration(1000)
             .style("display","block");
 }
@@ -1126,7 +1118,7 @@ function _getHistory() {
     var talmudOpen = false;
     var tanakhOpen = false;
 
-    svg.select("#" + topCat + " .open.book").each(function(d) {
+    svg.select("#" + topCat + "-collection .open.book").each(function(d) {
         tanakhOpen = true;
         openIds.push(d.id);
         url += "/" + fromIdtoUrl(d.id);
@@ -1134,7 +1126,7 @@ function _getHistory() {
         title += isEnglish() ? d.book : d.heBook;
     });
 
-    svg.select("#" + bottomCat + " .open.book").each(function(d) {
+    svg.select("#" + bottomCat + "-collection .open.book").each(function(d) {
         talmudOpen = true;
         openIds.push(d.id);
         url += "/" + fromIdtoUrl(d.id);
