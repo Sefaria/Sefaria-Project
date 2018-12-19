@@ -16,7 +16,9 @@ if not hasattr(sys, '_doc_build'):
 
 from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet
+from sefaria.model.text import Ref
 from sefaria.system.database import db
+from sefaria.utils.util import epoch_time
 from django.utils import translation
 
 
@@ -30,20 +32,22 @@ class UserHistory(abst.AbstractMongoRecord):
 		"versions",
 		"time_stamp",
 		"server_time_stamp",
+		"last_place",  # True if this is the last ref read for this user in this book
+		"book",
 		"saved",
-		"secondary"  # True when view is from sidebar
+		"secondary",  # True when view is from sidebar
 	]
 
 	optional_attrs = [
 		"num_times_read"  # legacy for migrating old recent views
 	]
 
-	def __init__(self, attrs=None, load_existing=False, field_updates=None):
+	def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
 		"""
 
 		:param attrs:
 		:param load_existing: True if you want to load an existing mongo record if it exists to avoid duplicates
-		:param field_updates: dict of updates in casse load_existing finds a record
+		:param field_updates: dict of updates in case load_existing finds a record
 		"""
 		if attrs is None:
 			attrs = {}
@@ -52,12 +56,21 @@ class UserHistory(abst.AbstractMongoRecord):
 			attrs["saved"] = False
 		if "secondary" not in attrs:
 			attrs["secondary"] = False
+		if "last_place" not in attrs:
+			attrs["last_place"] = False
 		if load_existing:
-			temp = self.load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
+			temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
 			if temp is not None:
 				attrs = temp._saveable_attrs()
 				if field_updates:
 					attrs.update(field_updates)
+		if update_last_place:
+			temp = UserHistory().load({"uid": attrs["uid"], "book": attrs["book"], "last_place": True})
+			if temp is not None:
+				temp.last_place = False
+				temp.save()
+			attrs["last_place"] = True
+
 		super(UserHistory, self).__init__(attrs=attrs)
 
 
@@ -150,6 +163,31 @@ class UserProfile(object):
 			if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
 				self._name_updated = True
 
+	@staticmethod
+	def transformOldRecents(uid, recents):
+		from datetime import datetime
+		from dateutil import parser
+		import pytz
+		default_epoch_time = epoch_time(
+			datetime(2011, 11, 20, tzinfo=pytz.UTC))  # the Sefaria epoch. time since Brett's epic first commit
+
+		return filter(lambda x: x["book"] is not None, [
+				{
+					"uid": uid,
+					"ref": r[0],
+					"he_ref": r[1],
+					"book": Ref(r[0]).index.title if Ref.is_ref(r[0]) else None,
+					"last_place": True,
+					"time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
+					"server_time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
+					"num_times_read": (r[3] if r[3] and isinstance(r[3], int) else 0),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
+					"versions": {
+						"en": r[4],
+						"he": r[5]
+					}
+				} for r in recents
+			])
+
 	def migrateFromOldRecents(self, profile):
 		"""
 		migrate from recentlyViewed which is a flat list and only saves one item per book to readingHistory, which is a dict and saves all reading history
@@ -157,25 +195,7 @@ class UserProfile(object):
 		if profile is None:
 			profile = {}  # for testing, user doesn't need to exist
 		if "recentlyViewed" in profile:
-			from datetime import datetime
-			from dateutil import parser
-			import pytz
-			from sefaria.utils.util import epoch_time
-			default_epoch_time = epoch_time(datetime(2011, 11, 20, tzinfo=pytz.UTC))  # the Sefaria epoch. time since Brett's epic first commit
-			user_history = [
-				{
-					"uid": self.id,
-					"ref": r[0],
-					"he_ref": r[1],
-					"time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
-					"server_time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
-					"num_times_read": (r[3] if r[3] and isinstance(r[3], int) else 0),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book. lets let Hashem decide
-					"versions": {
-						"en": r[4],
-						"he": r[5]
-					}
-				} for r in profile['recentlyViewed']
-			]
+			user_history = self.transformOldRecents(self.id, profile['recentlyViewed'])
 			for temp_uh in user_history:
 				uh = UserHistory(temp_uh)
 				uh.save()
@@ -184,11 +204,24 @@ class UserProfile(object):
 			self.save()
 		return profile
 
+	def update_attr_time_stamps(self, obj):
+		if "settings" in obj:
+			settings_changed = False
+			for k, v in obj["settings"].items():
+				if k not in self.settings:
+					settings_changed = True
+				elif v != self.settings[k]:
+					settings_changed = True
+			if settings_changed:
+				obj["attr_time_stamps"] = obj.get("attr_time_stamps", {})
+				obj["attr_time_stamps"]["settings"] = epoch_time()
+
 	def update(self, obj):
 		"""
 		Update this object with the fields in dictionry 'obj'
 		"""
 		self._set_flags_on_update(obj)
+		self.update_attr_time_stamps(obj)
 		self.__dict__.update(obj)
 
 		return self
@@ -319,7 +352,7 @@ class UserProfile(object):
 			self.interrupting_messages.remove(message)
 			self.save()
 
-	def get_user_history(self, oref=None, saved=None, secondary=False, serialized=False):
+	def get_user_history(self, oref=None, saved=None, secondary=None, serialized=False, last_place=None):
 		"""
 
 		:param oref:
@@ -333,12 +366,14 @@ class UserProfile(object):
 			regex_list = oref.context_ref().regex(as_list=True)
 			ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
 			query["$or"] = ref_clauses
-		if saved != -1:
+		if saved is not None:
 			query["saved"] = saved
 		if secondary is not None:
 			query["secondary"] = secondary
+		if last_place is not None:
+			query["last_place"] = last_place
 		if serialized:
-			return [uh.contents() for uh in UserHistorySet(query)]
+			return [uh.contents() for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0})]
 		return UserHistorySet(query)
 
 	def to_DICT(self):

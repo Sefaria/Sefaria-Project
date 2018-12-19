@@ -375,8 +375,9 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 class ReaderNavigationMenuSavedButton extends Component {
   constructor(props) {
     super(props);
+    this._posting = false;
     this.state = {
-      selected: false,
+      selected: !!Sefaria.getSavedItem(props.tref, props.currVersions),
     }
   }
   componentDidMount() {
@@ -387,20 +388,24 @@ class ReaderNavigationMenuSavedButton extends Component {
   }
   setSelected(props) {
     if (this._isMounted) {
-      this.setState({ selected: !! });
+      this.setState({ selected: !!Sefaria.getSavedItem(props.tref, props.currVersions) });
     }
   }
   componentWillReceiveProps(nextProps) {
-    if (this.props.ref !== nextProps.ref) {
+    if (this.props.tref !== nextProps.tref) {
       this.setSelected(nextProps);
     }
   }
   onClick(e) {
-    const { ref, heRef, currVersions } = this.props;
-    const action = this.state.selected ? 'delete' : 'save';
-    Sefaria.toggleSavedItem(ref, heRef, currVersions).then(() => {
+    if (this._posting) { return; }
+    this._posting = true;
+    const { tref, currVersions } = this.props;
+    Sefaria.toggleSavedItem(tref, currVersions).then(() => {
       // since request is async, check if it's selected from data
+      this._posting = false;
       this.setSelected(this.props);
+    }).catch(() => {
+      this._posting = false;
     })
   }
   render() {
@@ -422,10 +427,8 @@ class ReaderNavigationMenuSavedButton extends Component {
   }
 }
 ReaderNavigationMenuSavedButton.propTypes = {
-  onClick: PropTypes.func.isRequired,
-  ref: PropTypes.string.isRequired,  // can be ranged
-  heRef: PropTypes.strings.isRequired,
-  currVersions: PropTypes.object.isRequired,
+  tref: PropTypes.string,  // can be ranged
+  currVersions: PropTypes.object,
   placeholder: PropTypes.bool,
 };
 

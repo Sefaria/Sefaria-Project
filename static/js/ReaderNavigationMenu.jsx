@@ -102,20 +102,7 @@ class ReaderNavigationMenu extends Component {
     }
   }
   render() {
-    if (this.props.categories.length && this.props.categories[0] == "recent") {
-      return (<div onClick={this.handleClick}>
-                <RecentPanel
-                  multiPanel={this.props.multiPanel}
-                  closeNav={this.closeNav}
-                  openDisplaySettings={this.props.openDisplaySettings}
-                  toggleLanguage={this.props.toggleLanguage}
-                  navHome={this.navHome}
-                  compare={this.props.compare}
-                  hideNavHeader={this.props.hideNavHeader}
-                  width={this.width}
-                  interfaceLang={this.props.interfaceLang} />
-              </div>);
-    } else if (this.props.categories.length) {
+    if (this.props.categories.length) {
       // List of Texts in a Category
       return (<div className="readerNavMenu" onClick={this.handleClick} >
                 <ReaderNavigationCategoryMenu
@@ -247,11 +234,11 @@ class ReaderNavigationMenu extends Component {
       topContent = this.props.hideNavHeader ? null : topContent;
 
       let topUserData = [
-        <a href="/texts/recent" className="resourcesLink" onClick={this.props.setCategories.bind(null, ["recent"])}>
+        <a href="/texts/saved" className="resourcesLink" onClick={this.props.openMenu.bind(null, "saved")}>
           <span className="en"><img src="/static/img/star.png" alt="" /> Saved</span>
           <span className="he">שמורים <img src="/static/img/star.png" alt=""  /></span>
         </a>,
-        <a href="/texts/recent" className="resourcesLink" onClick={this.props.setCategories.bind(null, ["recent"])}>
+        <a href="/texts/history" className="resourcesLink" onClick={this.props.openMenu.bind(null, "history")}>
           <span className="en"><img src="/static/img/clock.png" alt="" /> History</span>
           <span className="he">היסטוריה <img src="/static/img/clock.png" alt=""  /></span>
         </a>

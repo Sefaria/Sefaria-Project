@@ -264,7 +264,7 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
-    this.props.saveRecentlyViewed({ mode: "Text", refs, currVersions });
+    this.props.saveLastPlace({ mode: "Text", refs, currVersions });
     this.conditionalSetState({
       mode: "Text",
       refs,
@@ -844,7 +844,21 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "modtools") {
       var menu = (<ModeratorToolsPanel
                     interfaceLang={this.props.interfaceLang} />);
-
+    } else if () {
+      var menu = (
+        <div onClick={this.handleClick}>
+          <RecentPanel
+            multiPanel={this.props.multiPanel}
+            closeNav={this.closeNav}
+            openDisplaySettings={this.props.openDisplaySettings}
+            toggleLanguage={this.props.toggleLanguage}
+            navHome={this.navHome}
+            compare={this.props.compare}
+            hideNavHeader={this.props.hideNavHeader}
+            width={this.width}
+            interfaceLang={this.props.interfaceLang} />
+        </div>
+      )
     } else {
       var menu = null;
     }
@@ -874,6 +888,7 @@ class ReaderPanel extends Component {
           showBaseText={this.showBaseText}
           sheet={this.state.sheet}
           currentRef={this.state.currentlyVisibleRef}
+          highlightedRef={Sefaria.normRef(this.state.highlightedRefs)}
           currentMode={this.currentMode.bind(this)}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook.bind(this)}
@@ -892,7 +907,8 @@ class ReaderPanel extends Component {
           connectionsCategory={this.state.connectionsCategory}
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
-          interfaceLang={this.props.interfaceLang} />)}
+          interfaceLang={this.props.interfaceLang}
+          hasSidebar={this.props.hasSidebar}/>)}
 
         {(items.length > 0 && !menu) ?
             <div className="readerContent" style={style}>
@@ -974,7 +990,7 @@ ReaderPanel.propTypes = {
   getLicenseMap:               PropTypes.func.isRequired,
   translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
-  saveRecentlyViewed:          PropTypes.func,
+  saveLastPlace:          PropTypes.func,
 };
 
 
@@ -1023,7 +1039,7 @@ class ReaderControls extends Component {
       }
       else {
         var oref    = Sefaria.ref(title);
-        heTitle = oref ? oref.heTitle : "";
+        heTitle = oref ? oref.heRef : "";
       }
 
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
@@ -1039,7 +1055,7 @@ class ReaderControls extends Component {
     var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     var url = this.props.sheet ? "/sheets/"+ this.props.sheet.id : Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
-
+    const savedRef = this.props.hasSidebar ? this.props.highlightedRef : title;  // saved button depends on whether or not sidebar is open
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -1072,11 +1088,11 @@ class ReaderControls extends Component {
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
-          <ReaderNavigationMenuSavedButton onClick={()=>{}} placeholder={true}/>
+          <ReaderNavigationMenuSavedButton placeholder={true}/>
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton onClick={()=>{console.log("SAVE ME!");}} />
+          <ReaderNavigationMenuSavedButton tref={savedRef} currVersions={this.props.currVersions} />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
@@ -1110,9 +1126,11 @@ ReaderControls.propTypes = {
   currentBook:             PropTypes.func.isRequired,
   currentLayout:           PropTypes.func.isRequired,
   onError:                 PropTypes.func.isRequired,
+  hasSidebar:              PropTypes.bool.isRequired,
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,
   currentRef:              PropTypes.string,
+  highlightedRef:          PropTypes.string,
   currVersions:            PropTypes.object,
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,

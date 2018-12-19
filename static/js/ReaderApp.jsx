@@ -215,7 +215,7 @@ class ReaderApp extends Component {
       $(".inAppLink").on("click", this.handleInAppLinkClick);
     }
     // Save all initial panels to recently viewed
-    this.state.panels.map(this.saveRecentlyViewed);
+    this.state.panels.map(this.saveLastPlace);
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -455,7 +455,7 @@ class ReaderApp extends Component {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._("Sefaria") : Sefaria._("The Sefaria Library");
-            hist.title = cats == "recent" ? Sefaria._("Recently Viewed | Sefaria") : hist.title;
+            hist.title = hist.title;
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -1033,7 +1033,7 @@ class ReaderApp extends Component {
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
     }
-    // state is not always a full panel state. make sure it has necessary fields needed to run saveRecentlyViewed(). don't use extend() b/c it overwrites extended obj
+    // state is not always a full panel state. make sure it has necessary fields needed to run saveLastPlace(). don't use extend() b/c it overwrites extended obj
     const fields = ["menu", "mode", "currVersions"];
     fields.map(field => {
       if (!(field in state)) {
@@ -1246,7 +1246,7 @@ class ReaderApp extends Component {
     newPanels.splice(n+1, 0, panel);
     this.setState({panels: newPanels});
     this.setHeaderState({menuOpen: null});
-    this.saveRecentlyViewed(panel);
+    this.saveLastPlace(panel);
   }
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
@@ -1359,7 +1359,7 @@ class ReaderApp extends Component {
     // Opens a text in in place of the panel currently open at `n`.
     this.state.panels[n] = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
     this.setState({panels: this.state.panels});
-    this.saveRecentlyViewed(this.state.panels[n]);
+    this.saveLastPlace(this.state.panels[n]);
   }
   openComparePanel(n, connectAfter) {
     var comparePanel = this.makePanelState({
@@ -1377,7 +1377,10 @@ class ReaderApp extends Component {
     } else {
       // If this is a Connection panel, we need to unset the filter in the base panel
       if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections"){
-        this.state.panels[n-1].filter = [];
+        const parent = this.state.panels[n-1];
+        parent.filter = [];
+        parent.highlightedRefs = [];
+        parent.currentlyVisibleRef = Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
@@ -1471,27 +1474,17 @@ class ReaderApp extends Component {
     }
     this.panelScrollIntentTimer[n] = window.setTimeout(function(initialState, n){
       if (!this.didPanelRefChange(initialState, this.state.panels[n])) {
-        // console.log("Firing recently viewed " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
-        this.saveRecentlyViewed(this.state.panels[n]);
+        // console.log("Firing last viewed " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
+        this.saveLastPlace(this.state.panels[n]);
       }
       this.panelScrollIntentTimer[n] = null;
     }.bind(this), intentDelay, state, n);
   }
-  saveRecentlyViewed(panel) {
+  saveLastPlace(panel) {
     if (panel.mode == "Connections" || !panel.refs.length) { return; }
-    var ref  = panel.currentlyVisibleRef || panel.refs.slice(-1)[0];  // Will currentlyVisibleRef ever not be available?
-    Sefaria.ref(ref, function(oRef) {
-      var previousRecent = Sefaria.recentItemForText(oRef.indexTitle);
-      var recentItem = {
-        ref: ref,
-        heRef: oRef.heRef,
-        book: oRef.indexTitle,
-        lastVisited: new Date(),
-        bookVisitCount: previousRecent ? previousRecent.bookVisitCount + 1 : 1,
-        currVersions: panel.currVersions,
-      };
-      Sefaria.saveRecentItem(recentItem);
-    });
+    const ref  = panel.currentlyVisibleRef || panel.refs.slice(-1)[0];  // Will currentlyVisibleRef ever not be available?
+    const parsedRef = Sefaria.parseRef(ref);
+    Sefaria.saveUserHistory(ref, panel.currVersions, parsedRef.book);
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open
@@ -1647,7 +1640,7 @@ class ReaderApp extends Component {
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
                       translateISOLanguageCode={this.translateISOLanguageCode}
-                      saveRecentlyViewed={this.saveRecentlyViewed}
+                      saveLastPlace={this.saveLastPlace}
                     />
                   </div>);
     }

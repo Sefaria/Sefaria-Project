@@ -118,7 +118,7 @@ class TextRange extends Component {
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       //console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
-      return;      
+      return;
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
@@ -216,7 +216,7 @@ class TextRange extends Component {
     $text.find(".linkCount").each(setTop);
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
-    
+
     var side = this.props.settings.language == "hebrew" ? "right" : "left";
     var selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
     var fixCollision = function ($elems) {
@@ -296,7 +296,7 @@ class TextRange extends Component {
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
-                            this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
+                            false; //this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
       var parashahHeader = null;
         if (this.props.showParashahHeaders) {
         var parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));

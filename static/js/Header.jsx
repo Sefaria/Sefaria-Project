@@ -84,9 +84,9 @@ class Header extends Component {
   }
   showDesktop() {
     if (this.props.panelsOpen == 0) {
-      var recentlyViewed = Sefaria.recentlyViewed;
-      if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].currVersions);
+      const { last_place } = Sefaria;
+      if (last_place && last_place.length) {
+        this.handleRefClick(last_place[0].ref, last_place[0].versions);
       }
     }
     this.props.setCentralState({menuOpen: null});

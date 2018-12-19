@@ -1215,19 +1215,11 @@ class UserSyncTest(SefariaTestCase):
         return json.loads(x)
 
     def test_simple_sync(s):
-        se = {
-            "email_notifications": "daily",
-            "interface_language": "english",
-            "textual_custom": "sephardi",
-            "time_stamp": 0
-        }
         response = c.post("/api/profile/sync", {
-            'settings': s.d(se),
             'last_sync': s.d(0),
             'user_history': s.d([
                 {
                     "ref": "Genesis 1:1",
-                    "he_ref": u"בראשית א:א",
                     "time_stamp": 1,
                     "server_time_stamp": 1,
                     "versions": {}
@@ -1238,12 +1230,10 @@ class UserSyncTest(SefariaTestCase):
         s.assertEqual(len(data["user_history"]), 0)
 
         response = c.post("/api/profile/sync", {
-            'settings': s.d(se),
             'last_sync': s.d(0),
             'user_history': s.d([
                 {
                     "ref": "Genesis 1:2",
-                    "he_ref": u"בראשית א:א",
                     "time_stamp": 2,
                     "server_time_stamp": 2,
                     "versions": {}
@@ -1255,15 +1245,8 @@ class UserSyncTest(SefariaTestCase):
         s.assertEqual(data["user_history"][0]["ref"], "Genesis 1:1")
 
     def test_save_delete(s):
-        se = {
-            "email_notifications": "daily",
-            "interface_language": "english",
-            "textual_custom": "sephardi",
-            "time_stamp": 0
-        }
         hist1 = {
             "ref": "Genesis 1:1",
-            "he_ref": u"בראשית א:א",
             "time_stamp": 0,
             "server_time_stamp": 0,
             "versions": {}
@@ -1277,14 +1260,12 @@ class UserSyncTest(SefariaTestCase):
         hist2['ref'] = "Genesis 1:2"
 
         response = c.post("/api/profile/sync", {
-            'settings': s.d(se),
             'last_sync': s.d(0),
             'user_history': s.d([
                 hist1
             ])
         })
         response = c.post("/api/profile/sync", {
-            'settings': s.d(se),
             'last_sync': s.d(0),
             'user_history': s.d([
                 hist1save
@@ -1296,7 +1277,6 @@ class UserSyncTest(SefariaTestCase):
         s.assertEqual(data[0]['ref'], "Genesis 1:1")
 
         response = c.post("/api/profile/sync", {
-            'settings': s.d(se),
             'last_sync': s.d(0),
             'user_history': s.d([
                 hist1delete
@@ -1309,7 +1289,6 @@ class UserSyncTest(SefariaTestCase):
         # check that another device will pick up a modification of a saved item
 
         response = c.post("/api/profile/sync", {
-            'settings': s.d(se),
             'last_sync': s.d(0),
         })
         data = s.l(response.content)

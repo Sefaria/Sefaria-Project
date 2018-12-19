@@ -29,6 +29,9 @@ handler500 = 'reader.views.custom_server_error'
 # App Pages
 urlpatterns = [
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
+    url(r'^texts/saved/?$', reader_views.saved),
+    url(r'^texts/history/?$', reader_views.user_history),
+    url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),

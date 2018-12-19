@@ -16,7 +16,7 @@ var Sefaria = Sefaria || {
   toc: [],
   books: [],
   booksDict: {},
-  recentlyViewed: [],
+  last_place: [],
 
   apiHost: "" // Defaults to localhost, override to talk another server
 };
@@ -1123,15 +1123,14 @@ Sefaria = extend(Sefaria, {
           links: this._saveLinkData(ref, data.links),
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
-          saved: this._saveSavedData(ref, data.saved),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "saved"].forEach(obj_type => {
+      ["links", "notes", "sheets"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], saved: []};
+                this._related[ref] = {links: [], notes: [], sheets: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1387,17 +1386,18 @@ Sefaria = extend(Sefaria, {
   },
   getSavedItem: (ref, versions) => {
     return Sefaria.saved.find(s => s.ref === ref && Sefaria.util.object_equals(s.versions, versions));
-  }
+  },
   removeSavedItem: (ref, versions) => {
-    Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.object_equals(versions, x.versions)));
-  }
+    Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.util.object_equals(versions, x.versions)));
+  },
   toggleSavedItem: (ref, versions) => {
     return new Promise((resolve, reject) => {
       const action = !!Sefaria.getSavedItem(ref, versions) ? "delete_saved" : "add_saved";
-      const savedItem = { ref, verions, time_stamp: Sefaria.util.epoch_time() };
+      console.log("action", action);
+      const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync`,
-          { user_history: JSON.stringify([savedItem]),  }
+          { user_history: JSON.stringify([savedItem]) }
         ).done(response => {
           if (!!response['error']) {
             reject(response['error'])
@@ -1418,62 +1418,24 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
-  saveRecentItem: function(recentItem) {
-    var recent = Sefaria.recentlyViewed;
-    if (recent.length && recent[0].ref == recentItem.ref) { return; }
-    recent = recent.filter(function(item) {
-      return item.book !== recentItem.book; // Remove this item if it's in the list already
-    });
-    recent.splice(0, 0, recentItem);
-    Sefaria.recentlyViewed = recent;
-    var packedRecent = recent.map(Sefaria.packRecentItem);
+  saveUserHistory: function(ref, versions, book) {
+    const history_item = { ref, versions, time_stamp: Sefaria.util.epoch_time(), book };
     if (Sefaria._uid) {
-        $.post(Sefaria.apiHost + "/api/profile",
-              {json: JSON.stringify({recentlyViewed: packedRecent})},
-              function(data) {} );
+        console.log("sync", history_item);
+        $.post(Sefaria.apiHost + "/api/profile/sync",
+              {user_history: JSON.stringify([history_item])},
+              data => { console.log("sync resp", data)} );
     } else {
-      var cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-      packedRecent = packedRecent.slice(0, 6);
-      cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});
+      const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+      const user_history_cookie = cookie("user_history");
+      const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
+      cookie("user_history", JSON.stringify([history_item].concat(user_history)), {path: "/"});
     }
+    Sefaria.last_place = [history_item].concat(Sefaria.last_place);
   },
-  packRecentItem: function(item) {
-    // Returns an array which represents the object `item` with less overhead.
-    let packed = [
-      item.ref,
-      item.heRef,
-      item.lastVisited,
-      item.bookVisitCount,
-      item.currVersions.en,
-      item.currVersions.he
-    ];
-    return packed;
-  },
-  unpackRecentItem: function(item) {
-    // Returns an object which preprsents the array `item` with fields expanded
-    var oRef = Sefaria.parseRef(item[0]);
-    item = item.pad(6, null)
-    var unpacked = {
-      ref:            item[0],
-      heRef:          item[1],
-      book:           oRef.index,
-      lastVisited:    item[2],
-      bookVisitCount: item[3],
-      currVersions: {
-        en:           item[4],
-        he:           item[5],
-      },
-    };
-    return unpacked;
-  },
-  recentItemForText: function(title) {
-    // Return the most recently visited item for text `title` or null if `title` is not present in recentlyViewed.
-    for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
-      if (Sefaria.recentlyViewed[i].book === title) {
-        return Sefaria.recentlyViewed[i];
-      }
-    }
-    return null;
+  lastPlaceForText: function(title) {
+    // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.
+    return Sefaria.last_place.find(x => x.book === title);
   },
   _topicList: null,
   topicList: function(callback) {
@@ -2099,10 +2061,12 @@ Sefaria.setup = function(data) {
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
-    if (!Sefaria.recentlyViewed) {
-        Sefaria.recentlyViewed = [];
+    if (!Sefaria.saved) {
+      Sefaria.saved = [];
     }
-    Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem).filter(function(item) { return !("error" in item); });
+    if (!Sefaria.last_place) {
+        Sefaria.last_place = [];
+    }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)

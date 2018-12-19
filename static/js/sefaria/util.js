@@ -25,8 +25,8 @@ class Util {
       // silly but thus is JS
       // see: https://stackoverflow.com/a/6777470/4246723
       const now = new Date();
-      const nowUTC =  Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
-                               date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+      const nowUTC =  Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
+                               now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
       return Math.round(nowUTC/1000);
     }
     static zip(...rows) {

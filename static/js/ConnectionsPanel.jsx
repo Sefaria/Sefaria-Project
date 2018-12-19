@@ -72,7 +72,6 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
-    console.log(this.props.srefs);
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
@@ -529,7 +528,7 @@ class ConnectionsSummary extends Component {
         var ib = order.indexOf(b.category)
         return ia - ib;
       });
-      
+
     } else if (this.props.category) {
       // Single Category Summary
       summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));
