@@ -310,21 +310,26 @@ function updateTrees(treesObj) {
         }
     };
 
-  let t = d3.transition()
-      .duration(750);
+  let t0 = d3.transition("0")
+      .delay(200).duration(750);
+  let t1 = t0.transition("1")
+      .delay(200).duration(750);
+  let t2 = t1.transition("2")
+      .delay(200).duration(750);
+
 
   for (let klass in components) {
       let selection = graphBox.selectAll("path." + klass)
           .data(components[klass].links, linkKey);
 
       selection.exit()
-          .transition(t)
-            .style("fill-opacity", 1e-6)
+          .transition(t0)
+            .style("stroke-opacity", 1e-6)
             .remove();
 
+
       //update
-      selection.style("fill-opacity", 1)
-        .transition(t)
+      selection.transition(t1)
           .attr("d", d3.linkHorizontal()
               .x(d => d.y)
               .y(d => d.x));
@@ -335,9 +340,9 @@ function updateTrees(treesObj) {
           .attr("d", d3.linkHorizontal()
               .x(d => d.y)
               .y(d => d.x))
-          .style("fill-opacity", 1e-6)
-        .transition(t)
-          .style("fill-opacity", 1);
+          .style("stroke-opacity", 1e-6)
+        .transition(t2)
+          .style("stroke-opacity", 1);
   }
 
 
@@ -347,12 +352,12 @@ function updateTrees(treesObj) {
           .data(components[klass].nodes, nodeKey);
 
       nodes.exit()
-        .transition(t)
+        .transition(t0)
           .style("fill-opacity", 1e-6)
           .remove();
 
       //update
-      nodes.transition(t)
+      nodes.transition(t1)
           .attr("transform", d => `translate(${d.y},${d.x})`);
 
       const nodes_g = nodes.enter().append("g")
@@ -365,7 +370,10 @@ function updateTrees(treesObj) {
           .attr("stroke-width", 3)
           .attr("stroke-linejoin", "round")
           .attr("fill", d => d.children ? "#555" : "#999")
-          .attr("r", 2.5);
+          .attr("r", 2.5)
+          .style("fill-opacity", 1e-6)
+        .transition(t2)
+          .style("fill-opacity", 1);
 
       nodes_g.append("text")
           .attr("dy", "0.31em")
@@ -375,7 +383,10 @@ function updateTrees(treesObj) {
           .attr("stroke-width", 1)
           .attr("stroke", "black")
         .clone(true).lower()
-          .attr("stroke", "white");
+          .attr("stroke", "white")
+          .style("fill-opacity", 1e-6)
+        .transition(t2)
+          .style("fill-opacity", 1);
   });
 
 }
@@ -408,6 +419,7 @@ function renderTrees(treesObj) {
           .enter().append("path")
             .attr("class", klass)
             .attr("stroke", d => d[components[klass].coloring].color)
+            .style("fill-opacity", 1)
             .attr("d", d3.linkHorizontal()
               .x(d => d.y)
               .y(d => d.x));
