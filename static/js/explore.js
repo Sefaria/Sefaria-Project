@@ -130,6 +130,8 @@ function buildFrame() {
       .append("g")
         .attr("transform", "translate(" + margin[3] + "," + margin[0] + ")");
 
+window.svg = svg;
+
     svg.append("svg:desc").text("This SVG displays visually the connections between " + categories[bottomCat].title + " and " + categories[topCat].title + " that can be found throughout our site");
     links = svg.append("g").attr("id","links").attr("display","none");
     plinks = svg.append("g").attr("id","plinks");
