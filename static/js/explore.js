@@ -124,7 +124,7 @@ function buildScreen(openBooks, colorScheme) {
 //Build objects that are present for any starting state - 0, 1, or 2 books
 function buildFrame() {
     w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
-    svg = d3.select("#content").append("svg")
+    svg = d3.select("#linkExplorerPage").insert("svg", ":first-child")
         .attr("width", w + margin[1] + margin[3] - 16)
         .attr("height", h + margin[0] + margin[2])
       .append("g")
@@ -265,6 +265,9 @@ function buildFrame() {
       .attr("x", 15)
       .attr("dy", 20)
       .attr("font-size", "16px");
+
+      d3.select("#explorerNav").style("display", "block");
+
 }
 
 
