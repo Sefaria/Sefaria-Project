@@ -12,14 +12,10 @@
 {%  endblock %}
 
 {% block css %}
-	#languageToggle {
-		display: inline;
-	}
 
-	#languageToggle #bilingual {
-		display: none;
-	}
-
+    #linkExplorerPage {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
     svg {
       font-size: 9px;
     }
@@ -30,12 +26,13 @@
         font-weight: lighter;
     }
 
-    #content.english #page-title{
-        font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    #content.interface-english #page-title {
+        font-family: "adobe-garamond-pro", Georgia, serif;
     }
-    #content.hebrew #page-title{
-        font-family: "Open Sans Hebrew", sans-serif;
+    #content.interface-hebrew #page-title {
+        font-family: "Heebo", sans-serif;
     }
+
     .book {
         fill-opacity: .7;
     }
@@ -126,44 +123,89 @@
         font-size: 18px;
     }
     #social-container {
-        position: relative;
-        width: 200px;
-        margin: 0 auto;
-        top: 720px;
-        padding: 0 0 0 33px;
+        text-align: center;
+        margin-top: -20px;
+        padding-bottom: 30px;
     }
 
     #social-container .fb-like {
         bottom: 5px;
     }
     #explorerNav {
-        display: none;
-        padding: 0px 40px;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: stretch;
+        background-color: #F9F9F7;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 30px;
+    }
+
+    #explorerNav a {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 18px;
+        padding: 15px;
+        cursor: pointer;
+        color: #000;
+    }
+
+    .interface-english #explorerNav a .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+
+    .interface-english #explorerNav a + a {
+        border-left: 1px solid #ddd;
+    }
+
+    .interface-hebrew #explorerNav a + a {
+        border-right: 1px solid #ddd;
+    }
+
+    #explorerNav a:hover {
+        text-decoration: none;
+    }
+
+    #explorerNav a.active {
+        background-color: white;
+    }
+
+    .showAfterLoad {
+        visibility: hidden;
     }
 {% endblock %}
 
 {% block content %}
 <div id="linkExplorerPage">
     
-    <div id="explorerNav">
-        <h2>Explore More Categories of Texts</h2>
-        <ul>
-            <li><a href="/explore">Tanakh & Talmud</a></li>
-            <li><a href="/explore-Tanakh-and-Mishneh-Torah">Tanakh & Mishneh Torah</a></li>
-            <li><a href="/explore-Tanakh-and-Shulchan-Arukh">Tanakh & Shulchan Arukh</a></li>
-            <li><a href="/explore-Tanakh-and-Midrash-Rabbah">Tanakh & Midrash Rabbah</a></li>
-            <li><a href="/explore-Bavli-and-Mishneh-Torah">Talmud & Mishneh Torah</a></li>
-            <li><a href="/explore-Bavli-and-Shulchan-Arukh">Talmud & Shulchan Arukh</a></li>
-            <li><a href="/explore-Mishneh-Torah-and-Shulchan-Arukh">Mishneh Torah & Shulchan Arukh</a></li>
-        </ul>
-        <h2>Probably not to highlight</h2>
-        <ul>
-            <li><a href="/explore-Tanakh-and-Zohar">Tanakh & Zohar</a></li>
-            <li><a href="/explore-Mishnah-and-Tosefta">Mishnah & Tosefta</a></li>
-            <li><a href="/explore-Mishnah-and-Midrash-Rabbah">Mishnah & Midrash Rabbah</a></li>
-           <li><a href="/explore-Tosefta-and-Midrash-Rabbah">Tosefta & Midrash Rabbah</a></li>
-        </ul>
+    <div id="explorerNav" class="showAfterLoad">
+        <a href="/explore">
+            <span class="int-en">Tanakh & Talmud</span>
+        </a>
+        <a href="/explore-Tanakh-and-Mishneh-Torah">
+            <span class="int-en">Tanakh & <nobr>Mishneh Torah</nobr></span>
+        </a>
+        <a href="/explore-Tanakh-and-Shulchan-Arukh">
+            <span class="int-en">Tanakh & <nobr>Shulchan Arukh</nobr></span>
+        </a>
+        <a href="/explore-Tanakh-and-Midrash-Rabbah">
+            <span class="int-en">Tanakh & <nobr>Midrash Rabbah</nobr></span>
+        </a>
+        <a href="/explore-Bavli-and-Mishneh-Torah">
+            <span class="int-en">Talmud & <nobr>Mishneh Torah</nobr></span>
+        </a>
+        <a href="/explore-Bavli-and-Shulchan-Arukh">
+            <span class="int-en">Talmud & <nobr>Shulchan Arukh</nobr></span>
+        </a>
+        <a href="/explore-Mishneh-Torah-and-Shulchan-Arukh">
+            <span class="int-en"><nobr>Mishneh Torah</nobr> & <nobr>Shulchan Arukh</nobr></span>
+        </a>
     </div>
+
+    <div id="svgBefore"></div>
 
     <div id="fb-root"></div>
     <script>(function(d, s, id) {
@@ -174,11 +216,24 @@
       fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));</script>
 
-    <div id="social-container">
+    <div id="social-container" class="showAfterLoad">
         <div class="fb-like" data-href="http://www.sefaria.org/explore" data-layout="button_count" data-width="300" data-action="like" data-show-faces="false" data-share="false"></div>
         <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.sefaria.org/explore" data-text="Visually explore all the relationships between Talmud and Tanakh" data-via="SefariaProject">Tweet</a>
         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
     </div>
+
+<!--
+    <div class="showAfterLoad">
+        <h2>Probably not to highlight</h2>
+        <ul>
+            <li><a href="/explore-Tanakh-and-Zohar">Tanakh & Zohar</a></li>
+            <li><a href="/explore-Mishnah-and-Tosefta">Mishnah & Tosefta</a></li>
+            <li><a href="/explore-Mishnah-and-Midrash-Rabbah">Mishnah & Midrash Rabbah</a></li>
+            <li><a href="/explore-Tosefta-and-Midrash-Rabbah">Tosefta & Midrash Rabbah</a></li>
+        </ul>
+    </div>
+-->
+
 </div>
 {% endblock %}
 

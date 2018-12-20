@@ -119,7 +119,7 @@ function buildScreen(openBooks, colorScheme) {
 //Build objects that are present for any starting state - 0, 1, or 2 books
 function buildFrame() {
     w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
-    svg = d3.select("#linkExplorerPage").insert("svg", ":first-child")
+    svg = d3.select("#linkExplorerPage").insert("svg", "#svgBefore")
         .attr("width", w + margin[1] + margin[3] - 16)
         .attr("height", h + margin[0] + margin[2])
       .append("g")
@@ -261,7 +261,12 @@ function buildFrame() {
       .attr("dy", 20)
       .attr("font-size", "16px");
 
-      d3.select("#explorerNav").style("display", "block");
+      d3.selectAll(".showAfterLoad").style("visibility", "visible");
+
+      d3.selectAll("#explorerNav a").classed("active", function(d) {
+        console.log(this.getAttribute("href"));
+        return this.getAttribute("href") == GLOBALS.urlRoot;
+      });
 
 }
 
@@ -311,6 +316,7 @@ function rebuildScreen() {
     svg.selectAll(".open.book").each(function(d) { openBooks.push(d.id); });
 
     d3.selectAll("svg").remove();
+
     booksFocused = 0;
 
     buildScreen(openBooks, currentScheme);
