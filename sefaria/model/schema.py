@@ -1891,7 +1891,7 @@ class AddressTalmud(AddressType):
     :class:`AddressType` for Talmud style Daf + Amud addresses
     """
     section_patterns = {
-        "en": None,
+        "en": ur"""(?:(?:[Ff]olio|[Dd]af|[Pp](age|\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"(\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
     }
 
