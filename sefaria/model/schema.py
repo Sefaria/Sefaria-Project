@@ -597,8 +597,8 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
 
-    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to|\u05D5?\u05D1?(\u05E1\u05D5\u05E3|\u05E8\u05D9\u05E9)))+"  # should be an arg?  \r\n are for html matches
-    after_address_delimiter_ref = ur"[,.: \r\n]+"
+    after_title_delimiter_re = ur"(?:[,.:\s]|(?:to|\u05d5?\u05d1?(\u05e1\u05d5\u05e3|\u05e8\u05d9\u05e9)))+"  # should be an arg?  \r\n are for html matches
+    after_address_delimiter_ref = ur"[,.:\s]+"
     title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -905,7 +905,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-            reg += ur"(?=[.,:;?! })\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
+            reg += ur"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
