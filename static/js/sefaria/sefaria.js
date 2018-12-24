@@ -1450,7 +1450,8 @@ Sefaria = extend(Sefaria, {
         });
       }))).then(new_hist_array => {
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-        const user_history = !!user_history_cookie ? JSON.parse(cookie("user_history")) : [];
+        const user_history_cookie = cookie("user_history");
+        const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
       });
     }
