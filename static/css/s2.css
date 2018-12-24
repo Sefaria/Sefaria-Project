@@ -1050,6 +1050,9 @@ a.resourcesLink {
 .readerPanel.hebrew .recentPanel .recentItem {
   flex-direction: row-reverse;
 }
+.readerPanel.hebrew .recentPanel .sideColorLeft {
+  flex-direction: row-reverse;
+}
 .readerPanel .recentPanel .sideColorLeft,
 .readerPanel .recentPanel .sideColorRight {
   display: flex;
