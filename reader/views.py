@@ -2882,7 +2882,7 @@ def profile_sync_api(request):
         post = request.POST
         from sefaria.utils.util import epoch_time
         now = epoch_time()
-        no_return = post.get("no_return", False)
+        no_return = request.GET.get("no_return", False)
         profile = UserProfile(id=request.user.id)
         if not no_return:
             # send back items after `last_sync`
@@ -2925,6 +2925,7 @@ def profile_sync_api(request):
                         "server_time_stamp": hist["server_time_stamp"]
                     })
                     uh.save()
+                    ret["created"] = uh.contents(for_api=True)
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -3021,7 +3022,7 @@ def home(request):
     """
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("last_place", None)
-    if (recent or last_place) and not "home" in request.GET:
+    if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
         return redirect("/texts")
 
     if request.user_agent.is_mobile:

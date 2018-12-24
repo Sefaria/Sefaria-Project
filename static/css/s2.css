@@ -986,8 +986,33 @@ a.resourcesLink {
   min-height: 60px;
 }
 .readerPanel .recentPanel .recentItem {
-  padding: 15px;
-  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+  border: 0;
+}
+.readerPanel.hebrew .recentPanel .recentItem {
+  flex-direction: row-reverse;
+}
+.readerPanel .recentPanel .sideColorLeft,
+.readerPanel .recentPanel .sideColorRight {
+  display: flex;
+}
+.readerPanel .recentPanel .recentItem .sideColorRight .saveButton {
+  display: none;
+}
+.readerPanel .recentPanel .recentItem:hover .sideColorRight .saveButton {
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+}
+.readerPanel .recentPanel .sideColor {
+  width: 6px;
+}
+.readerPanel .recentPanel .sideColorInner {
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
 }
 .readerNavCategories {
   width: 100%;
@@ -2560,10 +2585,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 40px;
   height: 56px;
   cursor: pointer;
-  opacity: 0.5;
 }
 .saveButton img {
   height: 20px;
+  width: 20px;
+  opacity: 0.5;
 }
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
@@ -5672,4 +5698,53 @@ sup.nechama {
 
 .img-circle {
   border-radius: 50%;
+}
+/* Tooltip - source: https://codepen.io/cristina-silva/pen/XXOpga */
+.tooltip-toggle {
+  cursor: pointer;
+  position: relative;
+  line-height: normal;
+}
+.tooltip-toggle svg {
+  height: 18px;
+  width: 18px;
+}
+/*Tooltip text container*/
+.tooltip-toggle::before {
+  color: #000;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  position: absolute;
+  top: 47px;
+  left: -30px;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  border-radius: 5px;
+  content: attr(aria-label);
+  text-transform: none;
+  transition: all 0.5s ease;
+  width: 100px;
+}
+/*Tooltip arrow
+.tooltip-toggle::after {
+  position: absolute;
+  top: 37px;
+  left: 30px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #2b222a;
+  content: " ";
+  font-size: 0;
+  line-height: 0;
+  margin-left: -5px;
+  width: 0;
+}*/
+/*Triggering the transition*/
+.tooltip-toggle:hover::before, .tooltip-toggle:hover::after {
+  opacity: 1;
+  transition: all 0.75s ease;
 }

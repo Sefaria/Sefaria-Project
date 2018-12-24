@@ -296,7 +296,7 @@ class TextRange extends Component {
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
-                            false; //this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
+                            this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
       var parashahHeader = null;
         if (this.props.showParashahHeaders) {
         var parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));

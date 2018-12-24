@@ -55,39 +55,9 @@ class ReaderNavigationMenu extends Component {
     this.props.setCategories([]);
     this.props.openNav();
   }
-  closeNav() {
-    if (this.props.compare) {
-      this.props.closePanel();
-    } else {
-      this.props.setCategories([]);
-      this.props.closeNav();
-    }
-  }
   showMore(event) {
     event.preventDefault();
     this.setState({showMore: true});
-  }
-  handleClick(event) {
-    if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
-      event.preventDefault();
-    }
-    if ($(event.target).hasClass("refLink") || $(event.target).parent().hasClass("refLink")) {
-      var ref = $(event.target).attr("data-ref") || $(event.target).parent().attr("data-ref");
-      var pos = $(event.target).attr("data-position") || $(event.target).parent().attr("data-position");
-      const enVersion = $(event.target).attr("data-ven") || $(event.target).parent().attr("data-ven");
-      const heVersion = $(event.target).attr("data-vhe") || $(event.target).parent().attr("data-vhe");
-      if ($(event.target).hasClass("recentItem") || $(event.target).parent().hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
-      } else {
-        this.props.onTextClick(ref, {en: enVersion, he: heVersion});
-      }
-      if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
-    } else if ($(event.target).hasClass("catLink") || $(event.target).parent().hasClass("catLink")) {
-      var cats = $(event.target).attr("data-cats") || $(event.target).parent().attr("data-cats");
-      cats = cats.split("|");
-      this.props.setCategories(cats);
-      if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Sub Category Click", cats.join(" / ")); }
-    }
   }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {
@@ -104,11 +74,11 @@ class ReaderNavigationMenu extends Component {
   render() {
     if (this.props.categories.length) {
       // List of Texts in a Category
-      return (<div className="readerNavMenu" onClick={this.handleClick} >
+      return (<div className="readerNavMenu" onClick={this.props.handleClick} >
                 <ReaderNavigationCategoryMenu
                   categories={this.props.categories}
                   category={this.props.categories.slice(-1)[0]}
-                  closeNav={this.closeNav}
+                  closeNav={this.onClose}
                   setCategories={this.props.setCategories}
                   toggleLanguage={this.props.toggleLanguage}
                   openDisplaySettings={this.props.openDisplaySettings}
@@ -222,7 +192,7 @@ class ReaderNavigationMenu extends Component {
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <div className="readerNavTopStart">
-                  <ReaderNavigationMenuMenuButton onClick={this.closeNav} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
+                  <ReaderNavigationMenuMenuButton onClick={this.onClose} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
                   <div className="searchBox">
                     <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                     <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />
@@ -258,7 +228,7 @@ class ReaderNavigationMenu extends Component {
                     </footer> );
       var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
       var contentClasses = classNames({content: 1, hasFooter: footer != null});
-      return(<div className={classes} onClick={this.handleClick} key="0">
+      return(<div className={classes} onClick={this.props.handleClick} key="0">
               {topContent}
               <div className={contentClasses}>
                 <div className="contentInner">
@@ -280,12 +250,13 @@ ReaderNavigationMenu.propTypes = {
   settings:      PropTypes.object.isRequired,
   setCategories: PropTypes.func.isRequired,
   setOption:     PropTypes.func.isRequired,
-  closeNav:      PropTypes.func.isRequired,
+  onClose:       PropTypes.func.isRequired,
   openNav:       PropTypes.func.isRequired,
   openSearch:    PropTypes.func.isRequired,
   openMenu:      PropTypes.func.isRequired,
   onTextClick:   PropTypes.func.isRequired,
   onRecentClick: PropTypes.func.isRequired,
+  handleClick:   PropTypes.func.isRequired,
   closePanel:    PropTypes.func,
   hideNavHeader: PropTypes.bool,
   multiPanel:    PropTypes.bool,
@@ -293,71 +264,5 @@ ReaderNavigationMenu.propTypes = {
   compare:       PropTypes.bool,
   interfaceLang: PropTypes.string,
 };
-
-
-class RecentPanel extends Component {
-  render() {
-    var width = typeof window !== "undefined" ? $(window).width() : 1000;
-
-    var recentItems = Sefaria.recentlyViewed.map(function(item, i) {
-      return (<TextBlockLink
-                sref={item.ref}
-                heRef={item.heRef}
-                book={item.book}
-                currVersions={item.currVersions}
-                showSections={true}
-                recentItem={true}
-                key={i} />)
-    });
-
-    var footer = this.props.compare ? null :
-                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                      <Footer />
-                    </footer> );
-
-
-    var navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare, noLangToggleInHebrew: 1});
-    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
-    var contentClasses = classNames({content: 1, hasFooter: footer != null});
-    return (
-      <div className={navMenuClasses}>
-        {this.props.hideNavHeader ? null :
-          <div className={navTopClasses}>
-            <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
-            {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
-            <h2>
-              <span className="int-en">Recent</span>
-              <span className="int-he">נצפו לאחרונה</span>
-            </h2>
-        </div>}
-        <div className={contentClasses}>
-          <div className="contentInner">
-            {this.props.hideNavHeader ?
-              <h1>
-              {this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
-              <span className="int-en">Recent</span>
-              <span className="int-he">נצפו לאחרונה</span>
-            </h1>
-            : null }
-            {recentItems}
-          </div>
-          {footer}
-        </div>
-      </div>
-      );
-  }
-}
-RecentPanel.propTypes = {
-  closeNav:            PropTypes.func.isRequired,
-  toggleLanguage:      PropTypes.func.isRequired,
-  openDisplaySettings: PropTypes.func.isRequired,
-  navHome:             PropTypes.func.isRequired,
-  width:               PropTypes.number,
-  compare:             PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
-  interfaceLang:       PropTypes.string
-};
-
 
 module.exports = ReaderNavigationMenu;

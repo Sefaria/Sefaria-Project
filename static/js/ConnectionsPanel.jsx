@@ -254,7 +254,9 @@ class ConnectionsPanel extends Component {
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
-                    selectedWords={this.props.selectedWords}/>);
+                    selectedWords={this.props.selectedWords}
+                    checkIntentTimer={this.props.checkIntentTimer}
+                  />);
 
     } else if (this.props.mode === "Sheets") {
       content = (<div>
@@ -456,6 +458,7 @@ ConnectionsPanel.propTypes = {
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
+  checkIntentTimer:        PropTypes.func.isRequired,
 };
 
 

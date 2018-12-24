@@ -99,27 +99,43 @@ ReaderNavigationMenuSection.defaultProps = {
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   render() {
-    var index    = Sefaria.index(this.props.book);
-    var category = this.props.category || (index ? index.primary_category : "Other");
-    var style    = {"borderColor": Sefaria.palette.categoryColor(category)};
-    var title    = this.props.title   || (this.props.showSections ? this.props.sref : this.props.book);
-    var heTitle  = this.props.heTitle || (this.props.showSections ? this.props.heRef : index.heTitle);
-    var subtitle = this.props.displayValue ? (
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, recentItem, currVersions, sideColor, saved } = this.props;
+    const index    = Sefaria.index(book);
+    category = category || (index ? index.primary_category : "Other");
+    const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
+    title    = title   || (showSections ? sref : book);
+    heTitle  = heTitle || (showSections ? heRef : index.heTitle);
+    const subtitle = displayValue ? (
         <span className="blockLinkSubtitle">
-            <span className="en">{this.props.displayValue}</span>
-            <span className="he">{this.props.heDisplayValue}</span>
+            <span className="en">{displayValue}</span>
+            <span className="he">{heDisplayValue}</span>
         </span>
     ) : null;
 
-    var position = this.props.position || 0;
-    var classes  = classNames({refLink: 1, blockLink: 1, recentItem: this.props.recentItem, calendarLink: (subtitle != null)});
-    var url = "/" + Sefaria.normRef(this.props.sref);
-    url += Object.keys(this.props.currVersions)
-            .filter(vlang=>!!this.props.currVersions[vlang])
-            .map((vlang)=>`&v${vlang}=${this.props.currVersions[vlang]}`)
-            .join("")
-            .replace("&","?");
-    return (<a href={url} className={classes} data-ref={this.props.sref} data-ven={this.props.currVersions.en} data-vhe={this.props.currVersions.he} data-position={position} style={style}>
+    position = position || 0;
+    const classes  = classNames({refLink: 1, blockLink: 1, recentItem, calendarLink: (subtitle != null)});
+    const url = "/" + Sefaria.normRef(sref) + Object.keys(currVersions)
+      .filter(vlang=>!!currVersions[vlang])
+      .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
+      .join("")
+      .replace("&","?");
+    if (sideColor) {
+      return (
+        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+          <div className="sideColorLeft" data-ref-child={true}>
+            <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
+            <div className="sideColorInner" data-ref-child={true}>
+              <span className="en" data-ref-child={true}>{title}</span>
+              <span className="he" data-ref-child={true}>{heTitle}</span>
+            </div>
+          </div>
+          <div className="sideColorRight">
+            { saved ? <ReaderNavigationMenuSavedButton tref={sref} currVersions={currVersions} /> : null }
+          </div>
+        </a>
+      );
+    }
+    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
               <span className="en">{title}</span>
               <span className="he">{heTitle}</span>
                 {subtitle}
@@ -139,6 +155,8 @@ TextBlockLink.propTypes = {
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
   position:        PropTypes.number,
+  sideColor:       PropTypes.bool,
+  saved:           PropTypes.bool,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
@@ -410,18 +428,27 @@ class ReaderNavigationMenuSavedButton extends Component {
   }
   render() {
     const style = this.props.placeholder ? {visibility: 'hidden'} : {};
+    const altText = `${this.state.selected ? "Remove" : "Save"} ${this.props.tref}`;
+    const classes = classNames({saveButton: 1, "tooltip-toggle": this.props.tooltip});
     return (
       <div
-        className="saveButton"
+        aria-label={altText} tabIndex="0"
+        className={classes}
         role="button"
         style={style}
         onClick={this.onClick}
         onKeyPress={e => {e.charCode == 13 ? this.props.onClick(e):null}}
       >
-          { this.state.selected ?
-            <img src="/static/img/filled-star.png" alt="Remove from saved texts" /> :
-            <img src="/static/img/star.png" alt="Save this text" />
-          }
+        { this.state.selected ?
+          <img
+            src="/static/img/filled-star.png"
+            alt={altText}
+          /> :
+          <img
+            src="/static/img/star.png"
+            alt={altText}
+          />
+        }
       </div>
     );
   }
@@ -430,6 +457,7 @@ ReaderNavigationMenuSavedButton.propTypes = {
   tref: PropTypes.string,  // can be ranged
   currVersions: PropTypes.object,
   placeholder: PropTypes.bool,
+  tooltip: PropTypes.bool,
 };
 
 

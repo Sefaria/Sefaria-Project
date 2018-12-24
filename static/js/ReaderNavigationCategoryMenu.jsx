@@ -140,12 +140,12 @@ class ReaderNavigationCategoryMenuContents extends Component {
   }
   hebrewContentSort(cats) {
     // Sorts contents of this category by Hebrew Alphabetical
-    console.log(cats);
+    //console.log(cats);
     var heCats = cats.slice().map(function(item, indx) {
       item.enOrder = indx;
       return item;
     });
-    console.log(heCats.slice())
+    //console.log(heCats.slice())
     heCats = heCats.sort(function(a, b) {
       if ("order" in a || "order" in b) {
         var aOrder = "order" in a ? a.order : 9999;

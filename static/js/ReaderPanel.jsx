@@ -21,6 +21,7 @@ const TopicPage                 = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
+const UserHistoryPanel          = require('./UserHistoryPanel');
 const UpdatesPanel              = require('./UpdatesPanel');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
@@ -168,6 +169,48 @@ class ReaderPanel extends Component {
     }
     this.setState({"error": message})
   }
+  _getClickTarget(event) {
+    // searches for click target with the proper css class
+    let target = $(event.target);
+    let isRefLink = false;
+    while (target.attr("data-ref-child")) {
+      // go up known data-ref-children
+      target = target.parent();
+    }
+    if (target.hasClass("refLink") || target.hasClass("catLink")) {
+      isRefLink = target.hasClass("refLink");
+    } else if (target.parent().hasClass("refLink") || target.parent().hasClass("catLink")) {
+      target = target.parent();
+      isRefLink = target.parent().hasClass("refLink");
+    } else {
+      return {};  // couldn't find a known link
+    }
+    return { target, isRefLink };
+  }
+  handleClick(event) {
+    if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
+      event.preventDefault();
+    }
+    const { target, isRefLink } = this._getClickTarget(event);
+    if (!target) { return; }
+    if (isRefLink) {
+      const ref       = target.attr("data-ref");
+      const pos       = target.attr("data-position");
+      const enVersion = target.attr("data-ven");
+      const heVersion = target.attr("data-vhe");
+      if (target.hasClass("recentItem")) {
+        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
+      } else {
+        const onTextClick = this.props.onNavTextClick || this.showBaseText;
+        onTextClick(ref, {en: enVersion, he: heVersion});
+      }
+      if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
+    } else {
+      const cats = target.attr("data-cats").split("|");
+      this.setNavigationCategories(cats);
+      if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Sub Category Click", cats.join(" / ")); }
+    }
+  }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
     return Sefaria.util.clone(panel);
@@ -264,7 +307,7 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
-    this.props.saveLastPlace({ mode: "Text", refs, currVersions });
+    this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings });
     this.conditionalSetState({
       mode: "Text",
       refs,
@@ -311,6 +354,14 @@ class ReaderPanel extends Component {
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
+  }
+  onClose() {
+    if (this.state.menuOpen === "compare") {
+      this.props.closePanel();
+    } else {
+      this.props.setNavigationCategories([]);
+      this.closeMenus();
+    }
   }
   closeSheetMetaData() {
     var state = {
@@ -640,6 +691,7 @@ class ReaderPanel extends Component {
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
+          checkIntentTimer={this.props.checkIntentTimer}
           key="connections" />
       );
     }
@@ -656,11 +708,12 @@ class ReaderPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     settings={this.state.settings}
-                    setCategories={this.setNavigationCategories || []}
+                    setCategories={this.setNavigationCategories}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
-                    closeNav={this.closeMenus}
+                    onClose={this.onClose}
                     closePanel={this.props.closePanel}
+                    handleClick={this.handleClick}
                     openNav={openNav}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
@@ -844,20 +897,18 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "modtools") {
       var menu = (<ModeratorToolsPanel
                     interfaceLang={this.props.interfaceLang} />);
-    } else if () {
+    } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
       var menu = (
-        <div onClick={this.handleClick}>
-          <RecentPanel
-            multiPanel={this.props.multiPanel}
-            closeNav={this.closeNav}
-            openDisplaySettings={this.props.openDisplaySettings}
-            toggleLanguage={this.props.toggleLanguage}
-            navHome={this.navHome}
-            compare={this.props.compare}
-            hideNavHeader={this.props.hideNavHeader}
-            width={this.width}
-            interfaceLang={this.props.interfaceLang} />
-        </div>
+        <UserHistoryPanel
+          multiPanel={this.props.multiPanel}
+          menuOpen={this.state.menuOpen}
+          handleClick={this.handleClick}
+          openNav={this.openMenu.bind(null, "navigation")}
+          openDisplaySettings={this.openDisplaySettings}
+          toggleLanguage={this.toggleLanguage}
+          compare={this.state.menuOpen === "compare"}
+          hideNavHeader={this.props.hideNavHeader}
+          interfaceLang={this.props.interfaceLang} />
       )
     } else {
       var menu = null;
@@ -990,7 +1041,8 @@ ReaderPanel.propTypes = {
   getLicenseMap:               PropTypes.func.isRequired,
   translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
-  saveLastPlace:          PropTypes.func,
+  saveLastPlace:               PropTypes.func,
+  checkIntentTimer:            PropTypes.func,
 };
 
 
@@ -1092,7 +1144,7 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton tref={savedRef} currVersions={this.props.currVersions} />
+          <ReaderNavigationMenuSavedButton tref={savedRef} currVersions={this.props.currVersions} tooltip={true} />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});

@@ -17,7 +17,7 @@ var Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
-
+  saved: [],
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
@@ -1384,11 +1384,15 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
+  areVersionsEqual(v1, v2) {
+    // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
+    return v1.en == v2.en && v1.he == v2.he;
+  },
   getSavedItem: (ref, versions) => {
-    return Sefaria.saved.find(s => s.ref === ref && Sefaria.util.object_equals(s.versions, versions));
+    return Sefaria.saved.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
   },
   removeSavedItem: (ref, versions) => {
-    Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.util.object_equals(versions, x.versions)));
+    Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.areVersionsEqual(versions, x.versions)));
   },
   toggleSavedItem: (ref, versions) => {
     return new Promise((resolve, reject) => {
@@ -1396,14 +1400,14 @@ Sefaria = extend(Sefaria, {
       console.log("action", action);
       const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action };
       if (Sefaria._uid) {
-        $.post(`${Sefaria.apiHost}/api/profile/sync`,
+        $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
           { user_history: JSON.stringify([savedItem]) }
         ).done(response => {
           if (!!response['error']) {
             reject(response['error'])
           } else {
-            if (action === "add_saved") {
-              Sefaria.saved.unshift(savedItem);
+            if (action === "add_saved" && !!response.created) {
+              Sefaria.saved.unshift(response.created);
             } else {
               // delete
               Sefaria.removeSavedItem(ref, versions);
@@ -1418,20 +1422,32 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
-  saveUserHistory: function(ref, versions, book) {
-    const history_item = { ref, versions, time_stamp: Sefaria.util.epoch_time(), book };
+  userHistoryAPI: () => {
+    return new Promise((resolve, reject) => {
+      Sefaria._api(Sefaria.apiHost + "/api/profile/user_history?secondary=0", data => {
+        resolve(data);
+      })
+    });
+  },
+  saveUserHistory: function(history_item) {
+    // history_item contains:
+    // - ref, book, versions. optionally: secondary, he_ref, language
+    const history_item_array = Array.isArray(history_item) ? history_item : [history_item];
+    for (let h of history_item_array) {
+      h.time_stamp = Sefaria.util.epoch_time();
+    }
     if (Sefaria._uid) {
-        console.log("sync", history_item);
-        $.post(Sefaria.apiHost + "/api/profile/sync",
-              {user_history: JSON.stringify([history_item])},
-              data => { console.log("sync resp", data)} );
+        console.log("sync", history_item_array);
+        $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
+              {user_history: JSON.stringify(history_item_array)},
+              data => { /*console.log("sync resp", data)*/ } );
     } else {
       const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
       const user_history_cookie = cookie("user_history");
       const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
-      cookie("user_history", JSON.stringify([history_item].concat(user_history)), {path: "/"});
+      cookie("user_history", JSON.stringify(history_item_array.concat(user_history)), {path: "/"});
     }
-    Sefaria.last_place = [history_item].concat(Sefaria.last_place);
+    Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
   lastPlaceForText: function(title) {
     // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.
