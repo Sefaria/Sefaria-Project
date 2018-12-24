@@ -102,7 +102,6 @@ class ReaderNavigationCategoryMenu extends Component {
 ReaderNavigationCategoryMenu.propTypes = {
   category:            PropTypes.string.isRequired,
   categories:          PropTypes.array.isRequired,
-  closeNav:            PropTypes.func.isRequired,
   setCategories:       PropTypes.func.isRequired,
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,

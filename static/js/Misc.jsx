@@ -422,7 +422,10 @@ class ReaderNavigationMenuSavedButton extends Component {
       // since request is async, check if it's selected from data
       this._posting = false;
       this.setSelected(this.props);
-    }).catch(() => {
+    }).catch(e => {
+      if (e == 'notSignedIn') {
+        this.props.toggleSignUpModal();
+      }
       this._posting = false;
     })
   }
@@ -458,6 +461,7 @@ ReaderNavigationMenuSavedButton.propTypes = {
   currVersions: PropTypes.object,
   placeholder: PropTypes.bool,
   tooltip: PropTypes.bool,
+  toggleSignUpModal: PropTypes.func,
 };
 
 
@@ -531,7 +535,47 @@ class LoginPrompt extends Component {
 LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
-
+class SignUpModal extends Component {
+  render() {
+    const innerContent = [
+      ["sheet-white.png", Sefaria._("Organize sources with sheets")],
+      ["note-white.png", Sefaria._("Make notes")],
+      ["star-white.png", Sefaria._("Save texts")],
+      ["user-2-white.png", Sefaria._("Follow your favorite authors")],
+      ["email-white.png", Sefaria._("Get updates on texts")],
+    ].map(x => (
+      <div key={x[0]}>
+        <img src={`/static/img/${x[0]}`} alt={x[1]} />
+        { x[1] }
+      </div>
+    ))
+    return (
+      this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
+        <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
+        <div id="interruptingMessage" className="sefariaModalContentBox">
+          <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
+          <div className="sefariaModalContent">
+            <h2>{Sefaria._("Join Sefaria.")}</h2>
+            <div className="sefariaModalInnerContent">
+              { innerContent }
+            </div>
+            <div className="button white control-elem">
+              { Sefaria._("Create Your Account")}
+            </div>
+            <div className="sefariaModalBottomContent">
+              { Sefaria._("Already have an account?") + " "}
+              <a href="#">{ Sefaria._("Sign\u00A0in")}</a>
+            </div>
+          </div>
+        </div>
+      </div> : null
+    );
+  }
+}
+SignUpModal.propTypes = {
+  show: PropTypes.bool,
+  onClose: PropTypes.func.isRequired,
+};
 
 class InterruptingMessage extends Component {
   constructor(props) {
@@ -1023,6 +1067,7 @@ module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuM
 module.exports.ReaderNavigationMenuSavedButton           = ReaderNavigationMenuSavedButton;
 module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
 module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
+module.exports.SignUpModal                               = SignUpModal;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;
 module.exports.SheetTagLink                              = SheetTagLink;
 module.exports.TextBlockLink                             = TextBlockLink;

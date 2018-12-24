@@ -181,7 +181,7 @@ class ReaderPanel extends Component {
       isRefLink = target.hasClass("refLink");
     } else if (target.parent().hasClass("refLink") || target.parent().hasClass("catLink")) {
       target = target.parent();
-      isRefLink = target.parent().hasClass("refLink");
+      isRefLink = target.hasClass("refLink");
     } else {
       return {};  // couldn't find a known link
     }
@@ -720,7 +720,8 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     onTextClick={this.props.onNavTextClick || this.showBaseText}
                     onRecentClick={onRecentClick}
-                    hideNavHeader={this.props.hideNavHeader} />);
+                    hideNavHeader={this.props.hideNavHeader}
+                    toggleSignUpModal={this.props.toggleSignUpModal} />);
 
     } else if (this.state.menuOpen === "sheet meta") {
       var menu = (<SheetMetadata
@@ -939,7 +940,7 @@ class ReaderPanel extends Component {
           showBaseText={this.showBaseText}
           sheet={this.state.sheet}
           currentRef={this.state.currentlyVisibleRef}
-          highlightedRef={Sefaria.normRef(this.state.highlightedRefs)}
+          highlightedRef={(!!this.state.highlightedRefs && this.state.highlightedRefs.length) ? Sefaria.normRef(this.state.highlightedRefs) : null}
           currentMode={this.currentMode.bind(this)}
           currentCategory={this.currentCategory}
           currentBook={this.currentBook.bind(this)}
@@ -959,6 +960,7 @@ class ReaderPanel extends Component {
           closePanel={this.props.closePanel}
           toggleLanguage={this.toggleLanguage}
           interfaceLang={this.props.interfaceLang}
+          toggleSignUpModal={this.props.toggleSignUpModal}
           hasSidebar={this.props.hasSidebar}/>)}
 
         {(items.length > 0 && !menu) ?
@@ -1043,6 +1045,7 @@ ReaderPanel.propTypes = {
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
   checkIntentTimer:            PropTypes.func,
+  toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
 
@@ -1107,7 +1110,7 @@ class ReaderControls extends Component {
     var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     var url = this.props.sheet ? "/sheets/"+ this.props.sheet.id : Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
-    const savedRef = this.props.hasSidebar ? this.props.highlightedRef : title;  // saved button depends on whether or not sidebar is open
+    const savedRef = (this.props.hasSidebar && !!this.props.highlightedRef) ? this.props.highlightedRef : title;  // saved button depends on whether or not sidebar is open
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -1144,7 +1147,7 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton tref={savedRef} currVersions={this.props.currVersions} tooltip={true} />
+          <ReaderNavigationMenuSavedButton tref={savedRef} currVersions={this.props.currVersions} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
@@ -1187,7 +1190,8 @@ ReaderControls.propTypes = {
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
-  interfaceLang:           PropTypes.string
+  interfaceLang:           PropTypes.string,
+  toggleSignUpModal:       PropTypes.func.isRequired,
 };
 
 

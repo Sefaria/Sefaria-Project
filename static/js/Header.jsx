@@ -249,7 +249,8 @@ class Header extends Component {
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
-                          translateISOLanguageCode={this.props.translateISOLanguageCode}/>) : null;
+                          translateISOLanguageCode={this.props.translateISOLanguageCode}
+                          toggleSignUpModal={this.props.toggleSignUpModal}/>) : null;
 
 
     var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});
@@ -330,6 +331,7 @@ Header.propTypes = {
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
+  toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
 

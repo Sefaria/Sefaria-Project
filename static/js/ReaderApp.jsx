@@ -10,6 +10,7 @@ const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
 const SearchState   = require('./sefaria/searchState');
 const {
+  SignUpModal,
   InterruptingMessage,
   CookiesNotification,
 }                   = require('./Misc');
@@ -203,7 +204,8 @@ class ReaderApp extends Component {
       layoutOrientation: layoutOrientation,
       path: props.initialPath,
       panelCap: props.initialPanelCap,
-      initialAnalyticsTracked: false
+      initialAnalyticsTracked: false,
+      showSignUpModal: false,
     };
   }
   componentDidMount() {
@@ -895,6 +897,9 @@ class ReaderApp extends Component {
       }
     }
   }
+  toggleSignUpModal() {
+    this.setState({ showSignUpModal: !this.state.showSignUpModal });
+  }
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -1570,7 +1575,8 @@ class ReaderApp extends Component {
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
-                    translateISOLanguageCode={this.translateISOLanguageCode} />) : null;
+                    translateISOLanguageCode={this.translateISOLanguageCode}
+                    toggleSignUpModal={this.toggleSignUpModal} />) : null;
 
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
@@ -1650,6 +1656,7 @@ class ReaderApp extends Component {
                       translateISOLanguageCode={this.translateISOLanguageCode}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
+                      toggleSignUpModal={this.toggleSignUpModal}
                     />
                   </div>);
     }
@@ -1667,6 +1674,9 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : null;
+    const sefariaModal = (
+      <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
+    );
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
@@ -1676,6 +1686,7 @@ class ReaderApp extends Component {
               {header}
               {panels}
               {interruptingMessage}
+              {sefariaModal}
               <CookiesNotification />
             </div>);
   }

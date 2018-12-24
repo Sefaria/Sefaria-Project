@@ -71,6 +71,13 @@ class ReaderNavigationMenu extends Component {
       this.props.openSearch(query);
     }
   }
+  openSaved() {
+    if (Sefaria._uid) {
+      this.props.openMenu("saved");
+    } else {
+      this.props.toggleSignUpModal();
+    }
+  }
   render() {
     if (this.props.categories.length) {
       // List of Texts in a Category
@@ -204,7 +211,7 @@ class ReaderNavigationMenu extends Component {
       topContent = this.props.hideNavHeader ? null : topContent;
 
       let topUserData = [
-        <a href="/texts/saved" className="resourcesLink" onClick={this.props.openMenu.bind(null, "saved")}>
+        <a href="/texts/saved" className="resourcesLink" onClick={this.openSaved}>
           <span className="en"><img src="/static/img/star.png" alt="" /> Saved</span>
           <span className="he">שמורים <img src="/static/img/star.png" alt=""  /></span>
         </a>,
@@ -257,6 +264,7 @@ ReaderNavigationMenu.propTypes = {
   onTextClick:   PropTypes.func.isRequired,
   onRecentClick: PropTypes.func.isRequired,
   handleClick:   PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func.isRequired,
   closePanel:    PropTypes.func,
   hideNavHeader: PropTypes.bool,
   multiPanel:    PropTypes.bool,

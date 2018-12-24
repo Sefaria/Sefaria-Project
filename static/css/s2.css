@@ -406,6 +406,9 @@ input.noselect {
   position: fixed;
   z-index: 1001;
 }
+.sefariaModalBox {
+  transition: none;
+}
 #interruptingMessageBox {
   display: flex;
   justify-content: center;
@@ -431,6 +434,8 @@ input.noselect {
 }
 #interruptingMessage {
   max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
   box-sizing: border-box;
   position: fixed;
   padding: 18px 15px;
@@ -440,10 +445,61 @@ input.noselect {
   text-align: center;
   color: #666;
 }
+#interruptingMessage.sefariaModalContentBox {
+  background-color: #212e50;
+  color: white;
+  padding: 50px 70px;
+  border-color: transparent;
+  border-radius: 5px;
+}
+.sefariaModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 21px;
+  line-height: 220%;
+}
+.sefariaModalContent a {
+  color: white;
+}
+.sefariaModalContent h2 {
+  font-weight: normal;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 38px;
+  margin: 0;
+  margin-bottom: 0.83em;
+}
+.sefariaModalInnerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+.sefariaModalInnerContent div {
+  display: flex;
+  align-items: center;
+  text-align: start;
+}
+.sefariaModalBottomContent {
+  font-size: 15px;
+  color: #999;
+}
+.sefariaModalContent .button {
+  width: 100%;
+}
+.sefariaModalInnerContent img {
+  width: 21px;
+  height: 21px;
+  padding-right: 20px;
+}
 #interruptingMessageContentBox {
   position: relative;
   border: 1px solid #CCC;
   background-color: white;
+}
+#interruptingMessageClose.sefariaModalClose {
+  color: white;
 }
 #interruptingMessageClose {
   position: absolute;
