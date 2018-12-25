@@ -548,7 +548,9 @@ class SignUpModal extends Component {
         <img src={`/static/img/${x[0]}`} alt={x[1]} />
         { x[1] }
       </div>
-    ))
+    ));
+    const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+
     return (
       this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
         <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
@@ -559,12 +561,12 @@ class SignUpModal extends Component {
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
-            <div className="button white control-elem">
+            <a className="button white control-elem" href={"/register" + nextParam}>
               { Sefaria._("Create Your Account")}
-            </div>
+            </a>
             <div className="sefariaModalBottomContent">
               { Sefaria._("Already have an account?") + " "}
-              <a href="#">{ Sefaria._("Sign\u00A0in")}</a>
+              <a href={"/login" + nextParam}>{ Sefaria._("Sign\u00A0in")}</a>
             </div>
           </div>
         </div>
