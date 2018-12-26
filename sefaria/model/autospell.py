@@ -111,6 +111,8 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(forms)
             self.ngram_matcher.train_phrases(forms, normal_forms)
 
+    def set_other_lang_ac(self, ac):
+        self.other_lang_ac = ac
 
     @staticmethod
     def _get_main_categories(otoc):
@@ -151,10 +153,9 @@ class AutoCompleter(object):
             return completions
 
         # No results. Try letter swap
-        if not redirected:
-            other_language = "he" if self.lang == "en" else "en"
+        if not redirected and self.other_lang_ac:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
-            return self.library.full_auto_completer(other_language).complete(swapped_string, limit, redirected=True)
+            return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
 
         return []
 

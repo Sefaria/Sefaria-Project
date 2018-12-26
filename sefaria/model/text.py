@@ -4183,11 +4183,17 @@ class Library(object):
             lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True) for lang in self.langs
         }
 
+        for lang in self.langs:
+            self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
+
     def build_ref_auto_completer(self):
         from autospell import AutoCompleter
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
+
+        for lang in self.langs:
+            self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
 
     def build_lexicon_auto_completers(self):
         from autospell import LexiconTrie
