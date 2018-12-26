@@ -1060,7 +1060,7 @@ function linkCountWidth(count) {
 
     const MAX_WIDTH = 70;
     const MIN_WIDTH = 1;
-    const coeffecient = 1 - (1 / (1+ .00003 * (count ** 2)));
+    const coeffecient = 1 - (1 / (1+ .00003 * (count * count)));
     const width = MAX_WIDTH * coeffecient;
     return width > MIN_WIDTH ? width : MIN_WIDTH;
 }
