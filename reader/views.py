@@ -3622,6 +3622,8 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "categories": json.dumps(categories),
         "topCat": topCat,
         "bottomCat": bottomCat,
+        "topCatTitle": categories[topCat]["heTitle"] if request.interfaceLang == "hebrew" else categories[topCat]["title"],
+        "bottomCatTitle": categories[bottomCat]["heTitle"] if request.interfaceLang == "hebrew" else categories[bottomCat]["title"],
         "urlRoot": urlRoot,
     }
     if lang == "he": # Override language settings if 'he' is in URL

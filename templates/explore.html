@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria" %}{% endblock %}
+{% block title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endblock %}
 
-{% block description %}{% trans "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper." %}{% endblock %}
+{% block description %}{% if urlRoot == "/explore" %}{% blocktrans asvar page_description %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endblock %}
 
 {% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
 
@@ -21,7 +21,7 @@
     }
 
     #page-title {
-        fill: #555;
+        fill: #000;
         font-size: 30px;
         font-weight: lighter;
     }
@@ -141,6 +141,11 @@
         margin-bottom: 30px;
     }
 
+    .interface-hebrew #explorerNav {
+        direction: rtl;
+        font-family: "Frank Ruehl Libre","Times New Roman",serif;
+    }
+
     #explorerNav a {
         flex: 1;
         display: flex;
@@ -151,18 +156,16 @@
         padding: 15px;
         cursor: pointer;
         color: #000;
+        border-top: 6px solid transparent;
     }
 
     .interface-english #explorerNav a .int-en {
         font-family: "adobe-garamond-pro", Georgia, serif;
     }
 
-    .interface-english #explorerNav a + a {
-        border-left: 1px solid #ddd;
-    }
-
-    .interface-hebrew #explorerNav a + a {
-        border-right: 1px solid #ddd;
+    .interface-hebrew #explorerNav a .int-he {
+        font-family: "Frank Ruehl Libre","Times New Roman",serif;
+        font-size: 22px;
     }
 
     #explorerNav a:hover {
@@ -182,26 +185,33 @@
 <div id="linkExplorerPage">
     
     <div id="explorerNav" class="showAfterLoad">
-        <a href="/explore">
+        <a href="/explore" style="border-top-color: #ccb479">
             <span class="int-en">Tanakh & Talmud</span>
+            <span class="int-he">תנ"ך & תלמוד</span>
         </a>
-        <a href="/explore-Tanakh-and-Mishneh-Torah">
+        <a href="/explore-Tanakh-and-Mishneh-Torah" style="border-top-color: #802f3e">
             <span class="int-en">Tanakh & <nobr>Mishneh Torah</nobr></span>
+            <span class="int-he">תנ"ך & <nobr>משנה תורה</nobr></span>
         </a>
-        <a href="/explore-Tanakh-and-Shulchan-Arukh">
+        <a href="/explore-Tanakh-and-Shulchan-Arukh" style="border-top-color: #802f3e">
             <span class="int-en">Tanakh & <nobr>Shulchan Arukh</nobr></span>
+            <span class="int-he">תנ"ך & <nobr>שולחן ערוך</nobr></span>
         </a>
-        <a href="/explore-Tanakh-and-Midrash-Rabbah">
+        <a href="/explore-Tanakh-and-Midrash-Rabbah" style="border-top-color: #5d956f">
             <span class="int-en">Tanakh & <nobr>Midrash Rabbah</nobr></span>
+            <span class="int-he">תנ"ך & <nobr>מדרש רבה</nobr></span>
         </a>
-        <a href="/explore-Bavli-and-Mishneh-Torah">
+        <a href="/explore-Bavli-and-Mishneh-Torah" style="border-top-color: #802f3e">
             <span class="int-en">Talmud & <nobr>Mishneh Torah</nobr></span>
+            <span class="int-he">תלמוד & <nobr>משנה תורה</nobr></span>
         </a>
-        <a href="/explore-Bavli-and-Shulchan-Arukh">
+        <a href="/explore-Bavli-and-Shulchan-Arukh" style="border-top-color: #802f3e">
             <span class="int-en">Talmud & <nobr>Shulchan Arukh</nobr></span>
+            <span class="int-he">תלמוד & <nobr>שולחן ערוך</nobr></span>
         </a>
-        <a href="/explore-Mishneh-Torah-and-Shulchan-Arukh">
+        <a href="/explore-Mishneh-Torah-and-Shulchan-Arukh" style="border-top-color: #802f3e">
             <span class="int-en"><nobr>Mishneh Torah</nobr> & <nobr>Shulchan Arukh</nobr></span>
+            <span class="int-he"><nobr>משנה תורה</nobr> & <nobr>שולחן ערוך</nobr></span>
         </a>
     </div>
 

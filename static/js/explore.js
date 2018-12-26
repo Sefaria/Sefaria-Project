@@ -244,6 +244,8 @@ function buildFrame() {
       .text(isEnglish() ? "Click to explore" : "לחץ להרחבה")
       .attr("font-size", "8px");
 
+      window.tooltip = tooltip;
+
     bookTooltip = svg.append("g")
       .attr("class", "ex-tooltip")
       .attr("id", "book-toolip")
@@ -264,7 +266,6 @@ function buildFrame() {
       d3.selectAll(".showAfterLoad").style("visibility", "visible");
 
       d3.selectAll("#explorerNav a").classed("active", function(d) {
-        console.log(this.getAttribute("href"));
         return this.getAttribute("href") == GLOBALS.urlRoot;
       });
 
@@ -679,14 +680,18 @@ function buildBookLinks() {
                 xPosition = d3.mouse(this)[0];
                 yPosition = d3.mouse(this)[1] - 65;
               } else {
-                tooltip.select("#text1").text(selectBook(d.book1).datum().heTitle + " - " + selectBook(d.book2).datum().heTitle);
+                tooltip.select("#text1").text(selectBook(d.book1).datum().heBook + " - " + selectBook(d.book2).datum().heBook);
                 tooltip.select("#text2").text(d["count"] + " :קשרים");
-                xPosition = d3.mouse(this)[0] - 170;
+                xPosition = d3.mouse(this)[0];
                 yPosition = d3.mouse(this)[1] - 65;
               }
               var bbox1 = tooltip.select("#text1").node().getBBox();
               var bbox2 = tooltip.select("#text2").node().getBBox();
               var width = bbox1.width > bbox2.width ? bbox1.width : bbox2.width;
+              if (isHebrew()) {
+                tooltip.selectAll("text").attr("x", width + 15);
+                xPosition -= width;
+              } 
               tooltip.select("rect").attr("width", width + 30); 
               tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
           });
@@ -971,7 +976,11 @@ function processPreciseLinks(dBook) {
                     var bbox1 = tooltip.select("#text1").node().getBBox();
                     var bbox2 = tooltip.select("#text2").node().getBBox();
                     var width = bbox1.width > bbox2.width ? bbox1.width : bbox2.width;
-                    tooltip.select("rect").attr("width", width + 30); 
+                    tooltip.select("rect").attr("width", width + 30);
+                    if (isHebrew()) {
+                        tooltip.selectAll("text").attr("x", width + 15);
+                        xPosition -= width;
+                    } 
                     tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                 });
 
@@ -1050,7 +1059,7 @@ function linkCountWidth(count) {
     // originally: count / 10;
 
     const MAX_WIDTH = 70;
-    const MIN_WIDTH = 0.5;
+    const MIN_WIDTH = 1;
     const coeffecient = 1 - (1 / (1+ .00003 * (count ** 2)));
     const width = MAX_WIDTH * coeffecient;
     return width > MIN_WIDTH ? width : MIN_WIDTH;
@@ -1119,52 +1128,42 @@ function pushHistory() {
 
 function _getHistory() {
     var url = GLOBALS.urlRoot;
-    var title = isEnglish()?"Explore":'מצא חיבורים בין';
+    var title = isEnglish() ? "Explore Connections Between " : 'מצא חיבורים בין ';
     var openIds = [];
-    var talmudOpen = false;
-    var tanakhOpen = false;
+    var topOpen = null;
+    var bottomOpen = null;
+    var topCatTitle = isEnglish() ? categories[topCat].title : categories[topCat].heTitle;
+    var bottomCatTitle = isEnglish() ? categories[bottomCat].title : categories[bottomCat].heTitle;
 
     svg.select("#" + topCat + "-collection .open.book").each(function(d) {
-        tanakhOpen = true;
+        topOpen = isEnglish() ? d.book : d.heBook;;
         openIds.push(d.id);
         url += "/" + fromIdtoUrl(d.id);
-        title += " ";
-        title += isEnglish() ? d.book : d.heBook;
     });
 
     svg.select("#" + bottomCat + "-collection .open.book").each(function(d) {
-        talmudOpen = true;
+        bottomOpen = isEnglish() ? d.book : d.heBook;
         openIds.push(d.id);
         url += "/" + fromIdtoUrl(d.id);
-        title += tanakhOpen ? isEnglish() ? " & " : " ו" : " ";
-        title += isEnglish() ? d.book : d.heBook;
     });
-    if (isHebrew()) {
-        if(talmudOpen && !tanakhOpen) {
-            title += " והתנ״ך ";
-        }
-        if(tanakhOpen && !talmudOpen) {
-            title += " והתלמוד ";
-        }
-    }
 
-
-    if(isHebrew()) {
-        url += "/he";
-        if(title == 'מצא חיבורים בין') {
-            title = "מצא חיבורים בספריא";
-        }
-    } else {
-        if(title == "Explore") {
-            title += " Sefaria";
-        } else {
-            title += " Connections";
-        }
-    }
-
-    var urlVars = Sefaria.util.getUrlVars();
-    if ("cats" in urlVars) {
-        url += ("?cats=" + urlVars.cats);
+    if (topOpen && bottomOpen) {
+        title += topOpen +
+            (isHebrew() ? " ו" : " & ") +
+            bottomOpen;
+    } else if (topOpen && !bottomOpen) {
+        title += topOpen +
+            (isHebrew() ? " וה"  : " & " ) +
+            bottomCatTitle;
+    } else if (!topOpen && bottomOpen) {
+        title += bottomOpen +
+            (isHebrew() ? " וה"  : " & " ) +
+            topCatTitle;
+    } else if (!topOpen && !bottomOpen) {
+        title += (isHebrew() ? "ה" : "") +
+            topCatTitle + 
+            (isHebrew() ? " וה"  : " & " ) +
+            bottomCatTitle;
     }
 
     return {

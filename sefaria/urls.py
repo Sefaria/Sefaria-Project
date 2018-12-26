@@ -60,7 +60,6 @@ urlpatterns += [
 # Visualizations / Link Explorer
 urlpatterns += [
     url(r'^explore(-(?P<topCat>[\w-]+)-and-(?P<bottomCat>[\w-]+))?(/(?P<book1>[A-Za-z-,\']+))?(/(?P<book2>[A-Za-z-,\']+))?(/(?P<lang>\w\w)/?)?/?$', reader_views.explore),
-    #url(r'^explore(/(?P<book1>[A-Za-z-,\']+))?(/(?P<book2>[A-Za-z-,\']+))?/?$', reader_views.explore),
     url(r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', reader_views.visualize_library),
     url(r'^visualize/library/?(?P<cats>.*)/?$', reader_views.visualize_library),
     url(r'^visualize/toc$', reader_views.visualize_toc),
