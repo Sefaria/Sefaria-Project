@@ -665,14 +665,14 @@ Sefaria = extend(Sefaria, {
   _lexiconCompletions: {},
   lexiconCompletion: function(word, lexicon, callback) {
       word = word.trim();
-      var key = word + "/" + lexicon;
+      var key = lexicon ? word + "/" + lexicon : word;
       if (key in this._lexiconCompletions) {
           callback(this._lexiconCompletions[key]);
           return null;
       }
       return $.ajax({
           dataType: "json",
-          url: Sefaria.apiHost + "/api/words/completion/" + word + "/" + lexicon,
+          url: Sefaria.apiHost + "/api/words/completion/" + word + (lexicon ? "/" + lexicon : ""),
           success: function(data) {
               this._lexiconCompletions[key] = data;
               callback(data);
