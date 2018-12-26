@@ -59,12 +59,17 @@ class UserHistory(abst.AbstractMongoRecord):
             attrs["secondary"] = False
         if "last_place" not in attrs:
             attrs["last_place"] = False
+        # remove empty versions
+        for k, v in attrs.get("versions", {}).items():
+            if v is None:
+                del attrs["versions"][k]
         if load_existing:
             temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
             if temp is not None:
                 attrs = temp._saveable_attrs()
-                if field_updates:
-                    attrs.update(field_updates)
+            # in the race-condition case where you're creating the saved item before the history item, do the update outside the previous if
+            if field_updates:
+                attrs.update(field_updates)
         if update_last_place:
             temp = UserHistory().load({"uid": attrs["uid"], "book": attrs["book"], "last_place": True})
             if temp is not None:
