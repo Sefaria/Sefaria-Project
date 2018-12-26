@@ -163,7 +163,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
       }
       return a.enOrder > b.enOrder ? 1 : -1;
     });
-    console.log(heCats)
+    //console.log(heCats)
     return heCats;
   }
   render() {

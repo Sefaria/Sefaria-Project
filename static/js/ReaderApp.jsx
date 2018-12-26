@@ -1050,7 +1050,7 @@ class ReaderApp extends Component {
       [searchStateName]: searchState.update({ sortType })
     });
   }
-  setPanelState(n, state, replaceHistory) {
+  setPanelState(n, state, replaceHistory, saveLastPlace=true) {
     this.replaceHistory  = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
@@ -1067,7 +1067,8 @@ class ReaderApp extends Component {
       ...this.state.panels[n],
       ...state,
     };
-    if (this.didPanelRefChange(this.state.panels[n], state)) {
+    // saveLastPlace is false when called from ReaderPanel b/c it already saves last place
+    if (this.didPanelRefChange(this.state.panels[n], state) && saveLastPlace) {
       this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
@@ -1097,14 +1098,26 @@ class ReaderApp extends Component {
     if (!prevPanel && !!nextPanel) { return true; }
     if (!!prevPanel && !nextPanel) { return true; }
     if (!prevPanel && !nextPanel) { return false; }
-    if (nextPanel.menu || nextPanel.mode == "Connections" ||
-        !nextPanel.refs || nextPanel.refs.length == 0 ||
-        !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
-    if (nextPanel.refs.compare(prevPanel.refs)) {
-      if (nextPanel.currVersions.en !== prevPanel.currVersions.en) { return true; }
-      if (nextPanel.currVersions.he !== prevPanel.currVersions.he) { return true; }
-      //console.log('didPanelRefChange?', nextPanel.highlightedRefs, prevPanel.highlightedRefs);
-      return !((nextPanel.highlightedRefs || []).compare(prevPanel.highlightedRefs || []));
+    if (prevPanel.mode === 'Text' && nextPanel.mode === 'Sheet') { return true; }
+    if (prevPanel.mode === 'Sheet' && nextPanel.mode === 'Text') { return true; }
+    if (nextPanel.mode === 'Text') {
+      if (nextPanel.menu || nextPanel.mode == "Connections" ||
+          !nextPanel.refs || nextPanel.refs.length == 0 ||
+          !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
+      if (nextPanel.refs.compare(prevPanel.refs)) {
+        if (nextPanel.currVersions.en !== prevPanel.currVersions.en) { return true; }
+        if (nextPanel.currVersions.he !== prevPanel.currVersions.he) { return true; }
+        //console.log('didPanelRefChange?', nextPanel.highlightedRefs, prevPanel.highlightedRefs);
+        return !((nextPanel.highlightedRefs || []).compare(prevPanel.highlightedRefs || []));
+      } else {
+        return true;
+      }
+    } else if (nextPanel.mode === 'Sheet') {
+      if (!prevPanel.sheet && !!nextPanel.sheet) { return true; }
+      if (!nextPanel.sheet && !!prevPanel.sheet) { return true; }
+      if (!prevPanel.sheet && !nextPanel.sheet) { return false; }
+      if (prevPanel.sheet.id !== nextPanel.sheet.id) { return true; }
+      return prevPanel.highlightedNodes !== nextPanel.highlightedNodes
     } else {
       return true;
     }
@@ -1250,11 +1263,15 @@ class ReaderApp extends Component {
     // Open a new panel after `n` with the new ref
 
     // If book level, Open book toc
+    const parsedRef = Sefaria.parseRef(ref);
     var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
     var panel;
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
-    } else {
+    } else if (parsedRef.book === "Sheet") {
+      const [sheetId, sheetNode] = parsedRef.sections;
+      panel = this.makePanelState({mode: 'Sheet', sheet: {id: sheetId, title: '', options: {}}, highlightedNodes: sheetNode});
+    } else {  // Text
       if (ref.constructor == Array) {
         // When called with an array, set highlight for the whole spanning range of the array
         var refs = ref;
@@ -1410,7 +1427,7 @@ class ReaderApp extends Component {
         console.log("close connections panel");
         parent.filter = [];
         parent.highlightedRefs = [];
-        parent.currentlyVisibleRef = Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
+        parent.currentlyVisibleRef = !parent.currentlyVisibleRef ? parent.currentlyVisibleRef : Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
@@ -1493,9 +1510,17 @@ class ReaderApp extends Component {
       this.setState({panels: [state]});
     }
   }
+  getHistoryRef(panel) {
+    // get rave to send to /api/profile/user_history
+    if (panel.mode === 'Sheet') {
+      return `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
+    }
+    return (panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
+  }
   saveLastPlace(panel) {
-    if (panel.mode == "Connections" || !panel.refs.length) { return; }
-    const ref  = (panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
+    // if panel is sheet, panel.refs isn't set
+    if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
+    const ref = this.getHistoryRef(panel);
     const parsedRef = Sefaria.parseRef(ref);
     Sefaria.saveUserHistory({ ref, versions: panel.currVersions, book: parsedRef.book, language: panel.settings.language });
   }
@@ -1657,6 +1682,7 @@ class ReaderApp extends Component {
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
+                      getHistoryRef={this.getHistoryRef}
                     />
                   </div>);
     }

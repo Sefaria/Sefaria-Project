@@ -156,7 +156,7 @@ class ReaderPanel extends Component {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
     if (this.props.setCentralState) {
-      this.props.setCentralState(state, this.replaceHistory);
+      this.props.setCentralState(state, this.replaceHistory, false);
       this.replaceHistory = false;
     } else {
       this.setState(state);
@@ -172,28 +172,32 @@ class ReaderPanel extends Component {
   _getClickTarget(event) {
     // searches for click target with the proper css class
     let target = $(event.target);
-    let isRefLink = false;
+    let linkType;
     while (target.attr("data-ref-child")) {
       // go up known data-ref-children
       target = target.parent();
     }
-    if (target.hasClass("refLink") || target.hasClass("catLink")) {
-      isRefLink = target.hasClass("refLink");
-    } else if (target.parent().hasClass("refLink") || target.parent().hasClass("catLink")) {
+    if (target.parent().hasClass("refLink") || target.parent().hasClass("catLink")) {
       target = target.parent();
-      isRefLink = target.hasClass("refLink");
+    }
+    if (target.hasClass("refLink")) {
+      linkType = "ref";
+    } else if (target.hasClass("catLink")) {
+      linkType = "cat";
+    } else if (target.hasClass("sheetLink")) {
+      linkType = "sheet";
     } else {
       return {};  // couldn't find a known link
     }
-    return { target, isRefLink };
+    return { target, linkType };
   }
   handleClick(event) {
     if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
       event.preventDefault();
     }
-    const { target, isRefLink } = this._getClickTarget(event);
+    const { target, linkType } = this._getClickTarget(event);
     if (!target) { return; }
-    if (isRefLink) {
+    if (linkType === "ref") {
       const ref       = target.attr("data-ref");
       const pos       = target.attr("data-position");
       const enVersion = target.attr("data-ven");
@@ -205,10 +209,14 @@ class ReaderPanel extends Component {
         onTextClick(ref, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
-    } else {
+    } else if (linkType === "cat") {
       const cats = target.attr("data-cats").split("|");
       this.setNavigationCategories(cats);
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Sub Category Click", cats.join(" / ")); }
+    } else if (linkType === "sheet") {
+      const ref = target.attr("data-ref");
+      const onTextClick = this.props.onNavTextClick || this.showBaseText;
+      onTextClick(ref);
     }
   }
   clonePanel(panel) {
@@ -278,11 +286,11 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedNodes: [], highlightedRefs: [], mode: "Sheet"});
   }
-  handleSheetClick(e,sheet) {
+  handleSheetClick(e, sheet, highlightedNodes) {
     e.preventDefault();
     var newSettings = this.state.settings;
     newSettings["language"] = sheet.options.language;
-    this.conditionalSetState({ mode: "Sheet", sheet: sheet, settings: newSettings});
+    this.conditionalSetState({ mode: "Sheet", sheet, highlightedNodes, settings: newSettings});
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
@@ -721,7 +729,8 @@ class ReaderPanel extends Component {
                     onTextClick={this.props.onNavTextClick || this.showBaseText}
                     onRecentClick={onRecentClick}
                     hideNavHeader={this.props.hideNavHeader}
-                    toggleSignUpModal={this.props.toggleSignUpModal} />);
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                  />);
 
     } else if (this.state.menuOpen === "sheet meta") {
       var menu = (<SheetMetadata
@@ -909,7 +918,8 @@ class ReaderPanel extends Component {
           toggleLanguage={this.toggleLanguage}
           compare={this.state.menuOpen === "compare"}
           hideNavHeader={this.props.hideNavHeader}
-          interfaceLang={this.props.interfaceLang} />
+          interfaceLang={this.props.interfaceLang}
+        />
       )
     } else {
       var menu = null;
@@ -961,7 +971,8 @@ class ReaderPanel extends Component {
           toggleLanguage={this.toggleLanguage}
           interfaceLang={this.props.interfaceLang}
           toggleSignUpModal={this.props.toggleSignUpModal}
-          hasSidebar={this.props.hasSidebar}/>)}
+          historyRef={this.props.getHistoryRef(this.state)}
+        />)}
 
         {(items.length > 0 && !menu) ?
             <div className="readerContent" style={style}>
@@ -1046,6 +1057,7 @@ ReaderPanel.propTypes = {
   saveLastPlace:               PropTypes.func,
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
+  getHistoryRef:               PropTypes.func,
 };
 
 
@@ -1110,7 +1122,7 @@ class ReaderControls extends Component {
     var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     var url = this.props.sheet ? "/sheets/"+ this.props.sheet.id : Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
-    const savedRef = (this.props.hasSidebar && !!this.props.highlightedRef) ? this.props.highlightedRef : title;  // saved button depends on whether or not sidebar is open
+
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
           <ConnectionsPanelHeader
@@ -1147,7 +1159,7 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton tref={savedRef} currVersions={this.props.currVersions} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
+          <ReaderNavigationMenuSavedButton tref={this.props.historyRef} currVersions={this.props.currVersions} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
@@ -1181,7 +1193,6 @@ ReaderControls.propTypes = {
   currentBook:             PropTypes.func.isRequired,
   currentLayout:           PropTypes.func.isRequired,
   onError:                 PropTypes.func.isRequired,
-  hasSidebar:              PropTypes.bool.isRequired,
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,
   currentRef:              PropTypes.string,
@@ -1192,6 +1203,7 @@ ReaderControls.propTypes = {
   multiPanel:              PropTypes.bool,
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
+  historyRef:              PropTypes.string.isRequired,
 };
 
 

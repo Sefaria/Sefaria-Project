@@ -113,12 +113,19 @@ class TextBlockLink extends Component {
     ) : null;
 
     position = position || 0;
-    const classes  = classNames({refLink: 1, blockLink: 1, recentItem, calendarLink: (subtitle != null)});
-    const url = "/" + Sefaria.normRef(sref) + Object.keys(currVersions)
-      .filter(vlang=>!!currVersions[vlang])
-      .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
-      .join("")
-      .replace("&","?");
+    const isSheet = book === 'Sheet';
+    const classes  = classNames({refLink: !isSheet, sheetLink: isSheet, blockLink: 1, recentItem, calendarLink: (subtitle != null)});
+    let url;
+    if (isSheet) {
+      url = `/sheets/${Sefaria.normRef(sref).replace('Sheet.','')}`
+    } else {
+      url = "/" + Sefaria.normRef(sref) + Object.keys(currVersions)
+        .filter(vlang=>!!currVersions[vlang])
+        .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
+        .join("")
+        .replace("&","?");
+    }
+
     if (sideColor) {
       return (
         <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>

@@ -212,12 +212,14 @@ class ReaderNavigationMenu extends Component {
 
       let topUserData = [
         <a href="/texts/saved" className="resourcesLink" onClick={this.openSaved}>
-          <span className="en"><img src="/static/img/star.png" alt="" /> Saved</span>
-          <span className="he">שמורים <img src="/static/img/star.png" alt=""  /></span>
+          <img src="/static/img/star.png" alt="saved text icon" />
+          <span className="en">Saved</span>
+          <span className="he">שמורים</span>
         </a>,
         <a href="/texts/history" className="resourcesLink" onClick={this.props.openMenu.bind(null, "history")}>
-          <span className="en"><img src="/static/img/clock.png" alt="" /> History</span>
-          <span className="he">היסטוריה <img src="/static/img/clock.png" alt=""  /></span>
+          <img src="/static/img/clock.png" alt="" />
+          <span className="en">History</span>
+          <span className="he">היסטוריה</span>
         </a>
       ];
       topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);

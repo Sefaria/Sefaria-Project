@@ -1498,10 +1498,10 @@ Sefaria = extend(Sefaria, {
         if (callback) { callback(sheet); }
       } else {
         var url = "/api/sheets/" + id +"?more_data=1";
-         $.getJSON(url, function(data) {
+         $.getJSON(url, data => {
             this._loadSheetByID[id] = data;
             if (callback) { callback(data); }
-          }.bind(this));
+          });
         }
       return sheet;
     },
