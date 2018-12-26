@@ -425,6 +425,7 @@ class ReaderNavigationMenuSavedButton extends Component {
     if (this._posting) { return; }
     this._posting = true;
     const { tref, currVersions } = this.props;
+    Sefaria.track.event("Saved", "saving", tref);
     Sefaria.toggleSavedItem(tref, currVersions).then(() => {
       // since request is async, check if it's selected from data
       this._posting = false;
