@@ -90,7 +90,7 @@ class AutoCompleter(object):
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
         if include_lexicons:
             # languages get muddy for lexicons
-            wfs = WordFormSet({"generated_by" : {"$ne":"replace_shorthand"}})
+            wfs = WordFormSet({"generated_by": {"$ne": "replace_shorthand"}})
             forms = [wf.form for wf in wfs]
             normal_forms = [self.normalizer(wf) for wf in forms]
             for wf in wfs:

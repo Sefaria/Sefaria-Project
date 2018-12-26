@@ -4054,6 +4054,7 @@ class Library(object):
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
+        self._cross_lexicon_auto_completer = None
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4193,6 +4194,16 @@ class Library(object):
         self._lexicon_auto_completer = {
             lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
         }
+
+    def build_cross_lexicon_auto_completer(self):
+        from autospell import AutoCompleter
+        self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
+
+    def cross_lexicon_auto_completer(self):
+        if self._cross_lexicon_auto_completer is None:
+            logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
+            self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
+        return self._cross_lexicon_auto_completer
 
     def lexicon_auto_completer(self, lexicon):
         try:
