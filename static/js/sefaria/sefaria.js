@@ -1437,13 +1437,13 @@ Sefaria = extend(Sefaria, {
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-        console.log("sync", history_item_array);
+        //console.log("sync", history_item_array);
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
               data => { /*console.log("sync resp", data)*/ } );
     } else {
       // we need to get the heRef for each history item
-      Promise.all(history_item_array.map(h => new Promise((resolve, reject) => {
+      Promise.all(history_item_array.filter(x=>!x.secondary).map(h => new Promise((resolve, reject) => {
         Sefaria.ref(h.ref, oref => {
           h.he_ref = oref.heRef;
           resolve(h);
@@ -1453,6 +1453,18 @@ Sefaria = extend(Sefaria, {
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
+        //console.log("saving history cookie", new_hist_array);
+        if (Sefaria._inBrowser) {
+          // check if we've reached the cookie size limit
+          const cookie_hist = JSON.parse(cookie("user_history"));
+          if (cookie_hist.length < (user_history.length + new_hist_array.length)) {
+            // save failed silently. resave by popping old history
+            if (new_hist_array.length < user_history.length) {
+              new_hist_array = new_hist_array.concat(user_history.slice(0, -new_hist_array.length));
+            }
+            cookie("user_history", JSON.stringify(new_hist_array), {path: "/"});
+          }
+        }
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client

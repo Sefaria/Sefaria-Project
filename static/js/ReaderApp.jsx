@@ -757,7 +757,7 @@ class ReaderApp extends Component {
       if (!this.didPanelRefChange(state, this.state.panels[n])) {
         //const ref  = (state.highlightedRefs && state.highlightedRefs.length) ? Sefaria.normRef(state.highlightedRefs) : (state.currentlyVisibleRef || state.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
         //console.log("Firing last viewed " + ref + " in panel " + n);
-        this.saveLastPlace(this.state.panels[n]);
+        this.saveLastPlace(this.state.panels[n], n);
       }
       this.panelScrollIntentTimer[n] = null;
     });
@@ -1050,7 +1050,7 @@ class ReaderApp extends Component {
       [searchStateName]: searchState.update({ sortType })
     });
   }
-  setPanelState(n, state, replaceHistory, saveLastPlace=true) {
+  setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
     //console.log(`setPanel State ${n}, replace: ` + this.replaceHistory);
     //console.log(state)
@@ -1067,8 +1067,7 @@ class ReaderApp extends Component {
       ...this.state.panels[n],
       ...state,
     };
-    // saveLastPlace is false when called from ReaderPanel b/c it already saves last place
-    if (this.didPanelRefChange(this.state.panels[n], state) && saveLastPlace) {
+    if (this.didPanelRefChange(this.state.panels[n], state)) {
       this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
@@ -1098,6 +1097,7 @@ class ReaderApp extends Component {
     if (!prevPanel && !!nextPanel) { return true; }
     if (!!prevPanel && !nextPanel) { return true; }
     if (!prevPanel && !nextPanel) { return false; }
+    if (prevPanel.mode === 'Connections' && nextPanel.mode === 'Text') { return false; }  // special case. when opening new panel from commentary, ref is already logged in history
     if (prevPanel.mode === 'Text' && nextPanel.mode === 'Sheet') { return true; }
     if (prevPanel.mode === 'Sheet' && nextPanel.mode === 'Text') { return true; }
     if (nextPanel.mode === 'Text') {
@@ -1291,7 +1291,7 @@ class ReaderApp extends Component {
     newPanels.splice(n+1, 0, panel);
     this.setState({panels: newPanels});
     this.setHeaderState({menuOpen: null});
-    this.saveLastPlace(panel);
+    this.saveLastPlace(panel, n+1);
   }
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
@@ -1306,7 +1306,7 @@ class ReaderApp extends Component {
 
     if (panel.mode !== "Connections") {
       // No connections panel is open yet, splice in a new one
-      this.saveLastPlace(parentPanel);
+      this.saveLastPlace(parentPanel, n);
       newPanels.splice(n, 0, {});
       panel = newPanels[n];
       panel.filter = [];
@@ -1405,7 +1405,7 @@ class ReaderApp extends Component {
     // Opens a text in in place of the panel currently open at `n`.
     this.state.panels[n] = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
     this.setState({panels: this.state.panels});
-    this.saveLastPlace(this.state.panels[n]);
+    this.saveLastPlace(this.state.panels[n], n);
   }
   openComparePanel(n, connectAfter) {
     var comparePanel = this.makePanelState({
@@ -1510,17 +1510,21 @@ class ReaderApp extends Component {
       this.setState({panels: [state]});
     }
   }
-  getHistoryRef(panel) {
+  getHistoryRef(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
     if (panel.mode === 'Sheet') {
       return `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
     }
-    return (panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
+    return (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
   }
-  saveLastPlace(panel) {
+  doesPanelHaveSidebar(n) {
+    return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
+  }
+  saveLastPlace(panel, n) {
+    const hasSidebar = this.doesPanelHaveSidebar(n);
     // if panel is sheet, panel.refs isn't set
     if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
-    const ref = this.getHistoryRef(panel);
+    const ref = this.getHistoryRef(panel, hasSidebar);
     const parsedRef = Sefaria.parseRef(ref);
     Sefaria.saveUserHistory({ ref, versions: panel.currVersions, book: parsedRef.book, language: panel.settings.language });
   }
@@ -1673,7 +1677,7 @@ class ReaderApp extends Component {
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
-                      hasSidebar={panelStates.length > i+1 && panelStates[i+1].mode == "Connections"}
+                      hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}

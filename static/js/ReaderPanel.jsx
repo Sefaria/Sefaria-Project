@@ -156,7 +156,7 @@ class ReaderPanel extends Component {
     // Set state either in the central app or in the local component,
     // depending on whether a setCentralState function was given.
     if (this.props.setCentralState) {
-      this.props.setCentralState(state, this.replaceHistory, false);
+      this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
     } else {
       this.setState(state);
@@ -315,7 +315,7 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
-    this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings });
+    this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     this.conditionalSetState({
       mode: "Text",
       refs,
