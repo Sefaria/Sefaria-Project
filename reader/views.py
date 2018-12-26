@@ -2264,7 +2264,10 @@ def dictionary_completion_api(request, word, lexicon=None):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
 
-    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    if lexicon is None:
+        result = library.cross_lexicon_auto_completer().complete(word, LIMIT)
+    else:
+        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
 
 
