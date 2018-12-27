@@ -466,7 +466,7 @@ input.noselect {
   align-items: flex-start;
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   font-size: 16px;
-  line-height: 220%;
+  line-height: 1.5;
 }
 .sefariaModalContent a {
   color: white;
@@ -488,6 +488,7 @@ input.noselect {
   display: flex;
   align-items: center;
   text-align: start;
+  padding: 10px 0;
 }
 .sefariaModalBottomContent {
   font-size: 16px;
@@ -500,6 +501,10 @@ input.noselect {
   width: 16px;
   height: 16px;
   padding-right: 10px;
+}
+.readerApp.interface-hebrew .sefariaModalInnerContent img {
+  padding-right: 0;
+  padding-left: 10px;
 }
 #interruptingMessageContentBox {
   position: relative;
@@ -1073,8 +1078,9 @@ a.resourcesLink {
   color: #999;
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  direction: ltr;
 }
-.readerPanel .recentPanel a.refLink .sideColorRight:hover {
+.readerPanel .recentPanel .recentItem:hover .sideColorRight div {
   text-decoration: none;
 }
 .readerPanel .recentPanel .sideColorLeft,

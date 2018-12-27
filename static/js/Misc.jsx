@@ -452,7 +452,8 @@ class ReaderNavigationMenuSavedButton extends Component {
   render() {
     const { placeholder, historyObject, tooltip } = this.props;
     const style = placeholder ? {visibility: 'hidden'} : {};
-    const altText = placeholder ? '' : `${this.state.selected ? "Remove" : "Save"} '${historyObject.sheet_title ? historyObject.sheet_title.stripHtml() : historyObject.ref}'`;
+    const altText = placeholder ? '' : `${Sefaria._(this.state.selected ? "Remove" : "Save")} '${historyObject.sheet_title ? historyObject.sheet_title.stripHtml() : historyObject.ref}'`;
+
     const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
     return (
       <div

@@ -1917,7 +1917,17 @@ Sefaria = extend(Sefaria, {
       "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
       "Select Type" : "סוג משוב",
       "Added by" : "נוסף בידי",
-
+      "Join Sefaria.": "הצטרפו לספריא",
+      "Organize sources with sheets": "ארגנו מקורות במחולל דפי המקורות",
+      "Make notes": "רשמו הערות על טקסטים",
+      "Save texts": "שמרו טקסטים לקריאה חוזרת",
+      "Follow your favorite authors": "עקבו אחר הסופרים האהובים עליכם",
+      "Get updates on texts": "קבלו עדכונים על תוכן חדש",
+      "Create Your Account": "צרו חשבון",
+      "Already have an account?": "כבר יש לכם חשבון?",
+      "Sign\u00A0in": "התחברו",
+      "Save": "שמירת",
+      "Remove": "הסרת",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
