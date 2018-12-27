@@ -1067,10 +1067,19 @@ a.resourcesLink {
 .readerPanel .recentPanel  .recentItem:hover .sideColorLeft {
   max-width: calc(100% - 66px); /* the width of the star */
 }
+.readerPanel .recentPanel a:not(.saved) .sideColorRight {
+  padding: 0 10px;
+  align-items: center;
+  color: #999;
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerPanel .recentPanel a.refLink .sideColorRight:hover {
+  text-decoration: none;
+}
 .readerPanel .recentPanel .sideColorLeft,
 .readerPanel .recentPanel .sideColorRight {
   display: flex;
-  max-width: 100%;
 }
 .readerPanel .recentPanel .recentItem .sideColorRight .saveButton {
   display: none;

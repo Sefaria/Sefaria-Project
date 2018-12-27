@@ -4,6 +4,7 @@ import re
 import bleach
 import sys
 import json
+from datetime import datetime
 from random import randint
 
 if not hasattr(sys, '_doc_build'):
@@ -20,6 +21,7 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
+from django.contrib.humanize.templatetags.humanize import naturaltime
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -92,6 +94,8 @@ class UserHistory(abst.AbstractMongoRecord):
                 del d["server_time_stamp"]
             except KeyError:
                 pass
+        if kwargs.get("natural_time", False):
+            d["natural_time"] = naturaltime(datetime.fromtimestamp(d["time_stamp"]))
         return d
 
 
@@ -186,7 +190,6 @@ class UserProfile(object):
 
     @staticmethod
     def transformOldRecents(uid, recents):
-        from datetime import datetime
         from dateutil import parser
         import pytz
         default_epoch_time = epoch_time(
@@ -395,7 +398,7 @@ class UserProfile(object):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents() for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
+            return [uh.contents(natural_time=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
         return UserHistorySet(query, sort=[("time_stamp", -1)])
 
     def to_DICT(self):
