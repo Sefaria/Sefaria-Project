@@ -4,6 +4,7 @@ const {
   ReaderNavigationMenuDisplaySettingsButton,
   TextBlockLink,
   LanguageToggleButton,
+  LoadingMessage,
 }               = require('./Misc');
 const React      = require('react');
 const PropTypes = require('prop-types');
@@ -63,7 +64,7 @@ class UserHistoryPanel extends Component {
           saved={this.props.menuOpen === 'saved'}
           key={item.ref + item.time_stamp}
       />)
-    ) : (<div>{"Loading..."}</div>);
+    ) : (<LoadingMessage />);
 
 
     const footer = this.props.compare ? null :

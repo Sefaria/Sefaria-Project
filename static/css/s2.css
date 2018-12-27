@@ -1060,12 +1060,6 @@ a.resourcesLink {
   padding: 0;
   border: 0;
 }
-.readerPanel.hebrew .recentPanel .recentItem {
-  flex-direction: row-reverse;
-}
-.readerPanel.hebrew .recentPanel .sideColorLeft {
-  flex-direction: row-reverse;
-}
 .readerPanel .recentPanel .sideColorLeft {
   max-width: 100%;
 }
