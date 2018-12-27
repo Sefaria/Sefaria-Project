@@ -98,13 +98,20 @@ ReaderNavigationMenuSection.defaultProps = {
 
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
+  // This component is seriously overloaded :grimacing:
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, recentItem, currVersions, sideColor, saved } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     title    = title   || (showSections ? sref : book);
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
+    let byLine;
+    if (!!sheetOwner && sideColor) {
+      title = sheetTitle;
+      heTitle = sheetTitle;
+      byLine = sheetOwner;
+    }
     const subtitle = displayValue ? (
         <span className="blockLinkSubtitle">
             <span className="en">{displayValue}</span>
@@ -132,12 +139,12 @@ class TextBlockLink extends Component {
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
-              <span className="en" data-ref-child={true}>{title}</span>
-              <span className="he" data-ref-child={true}>{heTitle}</span>
+              <span className="en" data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
+              <span className="he" data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
             </div>
           </div>
           <div className="sideColorRight">
-            { saved ? <ReaderNavigationMenuSavedButton tref={sref} currVersions={currVersions} /> : null }
+            { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
           </div>
         </a>
       );
@@ -402,7 +409,7 @@ class ReaderNavigationMenuSavedButton extends Component {
     super(props);
     this._posting = false;
     this.state = {
-      selected: !!Sefaria.getSavedItem(props.tref, props.currVersions),
+      selected: props.placeholder || !!Sefaria.getSavedItem(props.historyObject),
     }
   }
   componentDidMount() {
@@ -413,20 +420,21 @@ class ReaderNavigationMenuSavedButton extends Component {
   }
   setSelected(props) {
     if (this._isMounted) {
-      this.setState({ selected: !!Sefaria.getSavedItem(props.tref, props.currVersions) });
+      this.setState({ selected: !!Sefaria.getSavedItem(props.historyObject) });
     }
   }
   componentWillReceiveProps(nextProps) {
-    if (this.props.tref !== nextProps.tref) {
+    if (this.props.placeholder) { return; }
+    if (this.props.historyObject.ref !== nextProps.historyObject.ref) {
       this.setSelected(nextProps);
     }
   }
   onClick(e) {
     if (this._posting) { return; }
     this._posting = true;
-    const { tref, currVersions } = this.props;
-    Sefaria.track.event("Saved", "saving", tref);
-    Sefaria.toggleSavedItem(tref, currVersions).then(() => {
+    const { historyObject } = this.props;
+    Sefaria.track.event("Saved", "saving", historyObject.ref);
+    Sefaria.toggleSavedItem(historyObject).then(() => {
       // since request is async, check if it's selected from data
       this._posting = false;
       this.setSelected(this.props);
@@ -438,9 +446,10 @@ class ReaderNavigationMenuSavedButton extends Component {
     })
   }
   render() {
-    const style = this.props.placeholder ? {visibility: 'hidden'} : {};
-    const altText = `${this.state.selected ? "Remove" : "Save"} ${this.props.tref}`;
-    const classes = classNames({saveButton: 1, "tooltip-toggle": this.props.tooltip});
+    const { placeholder, historyObject, tooltip } = this.props;
+    const style = placeholder ? {visibility: 'hidden'} : {};
+    const altText = placeholder ? '' : `${this.state.selected ? "Remove" : "Save"} ${historyObject.ref}`;
+    const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
     return (
       <div
         aria-label={altText} tabIndex="0"
@@ -448,7 +457,7 @@ class ReaderNavigationMenuSavedButton extends Component {
         role="button"
         style={style}
         onClick={this.onClick}
-        onKeyPress={e => {e.charCode == 13 ? this.props.onClick(e):null}}
+        onKeyPress={e => {e.charCode == 13 ? this.onClick(e):null}}
       >
         { this.state.selected ?
           <img
@@ -465,8 +474,10 @@ class ReaderNavigationMenuSavedButton extends Component {
   }
 }
 ReaderNavigationMenuSavedButton.propTypes = {
-  tref: PropTypes.string,  // can be ranged
-  currVersions: PropTypes.object,
+  historyObject: PropTypes.shape({
+    ref: PropTypes.string,
+    versions: PropTypes.object,
+  }),
   placeholder: PropTypes.bool,
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,

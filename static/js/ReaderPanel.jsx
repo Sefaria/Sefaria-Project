@@ -971,7 +971,7 @@ class ReaderPanel extends Component {
           toggleLanguage={this.toggleLanguage}
           interfaceLang={this.props.interfaceLang}
           toggleSignUpModal={this.props.toggleSignUpModal}
-          historyRef={this.props.getHistoryRef(this.state)}
+          historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
         />)}
 
         {(items.length > 0 && !menu) ?
@@ -1159,7 +1159,7 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton tref={this.props.historyRef} currVersions={this.props.currVersions} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
+          <ReaderNavigationMenuSavedButton historyObject={this.props.historyObject} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
@@ -1203,7 +1203,7 @@ ReaderControls.propTypes = {
   multiPanel:              PropTypes.bool,
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
-  historyRef:              PropTypes.string.isRequired,
+  historyObject:           PropTypes.object.isRequired,
 };
 
 

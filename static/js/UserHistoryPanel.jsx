@@ -54,6 +54,8 @@ class UserHistoryPanel extends Component {
           heRef={item.he_ref}
           book={item.book}
           currVersions={item.versions}
+          sheetOwner={item.sheet_owner}
+          sheetTitle={item.sheet_title}
           showSections={true}
           recentItem={true}
           sideColor={true}

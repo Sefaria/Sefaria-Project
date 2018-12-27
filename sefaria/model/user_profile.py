@@ -40,7 +40,9 @@ class UserHistory(abst.AbstractMongoRecord):
 
     optional_attrs = [
         "language",  # didn't exist in legacy model
-        "num_times_read"  # legacy for migrating old recent views
+        "num_times_read",  # legacy for migrating old recent views
+        "sheet_title",  # for sheet history
+        "sheet_owner",
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):

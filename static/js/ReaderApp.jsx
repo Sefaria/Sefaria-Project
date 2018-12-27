@@ -1259,7 +1259,7 @@ class ReaderApp extends Component {
     this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions);
   }
-  openPanelAt(n, ref, currVersions) {
+  async openPanelAt(n, ref, currVersions) {
     // Open a new panel after `n` with the new ref
 
     // If book level, Open book toc
@@ -1270,7 +1270,9 @@ class ReaderApp extends Component {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else if (parsedRef.book === "Sheet") {
       const [sheetId, sheetNode] = parsedRef.sections;
-      panel = this.makePanelState({mode: 'Sheet', sheet: {id: sheetId, title: '', options: {}}, highlightedNodes: sheetNode});
+      // a bit messy to put async func here. Ideally `sheet` would not be stored in props
+      const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
+      panel = this.makePanelState({mode: 'Sheet', sheet});
     } else {  // Text
       if (ref.constructor == Array) {
         // When called with an array, set highlight for the whole spanning range of the array
@@ -1510,12 +1512,25 @@ class ReaderApp extends Component {
       this.setState({panels: [state]});
     }
   }
-  getHistoryRef(panel, hasSidebar) {
+  getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
+    let ref, sheet_owner, sheet_title;
     if (panel.mode === 'Sheet') {
-      return `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
+      ref = `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
+      sheet_owner = panel.sheet.ownerName;
+      sheet_title = panel.sheet.title;
+    } else {
+      ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
-    return (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
+    const parsedRef = Sefaria.parseRef(ref);
+    return {
+      ref,
+      versions: panel.currVersions,
+      book: parsedRef.book,
+      language: panel.settings.language,
+      sheet_owner,
+      sheet_title,
+    };
   }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
@@ -1524,9 +1539,7 @@ class ReaderApp extends Component {
     const hasSidebar = this.doesPanelHaveSidebar(n);
     // if panel is sheet, panel.refs isn't set
     if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
-    const ref = this.getHistoryRef(panel, hasSidebar);
-    const parsedRef = Sefaria.parseRef(ref);
-    Sefaria.saveUserHistory({ ref, versions: panel.currVersions, book: parsedRef.book, language: panel.settings.language });
+    Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open
@@ -1686,7 +1699,7 @@ class ReaderApp extends Component {
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
-                      getHistoryRef={this.getHistoryRef}
+                      getHistoryObject={this.getHistoryObject}
                     />
                   </div>);
     }

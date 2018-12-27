@@ -1388,17 +1388,16 @@ Sefaria = extend(Sefaria, {
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
     return v1.en == v2.en && v1.he == v2.he;
   },
-  getSavedItem: (ref, versions) => {
+  getSavedItem: ({ ref, versions }) => {
     return Sefaria.saved.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
   },
-  removeSavedItem: (ref, versions) => {
+  removeSavedItem: ({ ref, versions }) => {
     Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.areVersionsEqual(versions, x.versions)));
   },
-  toggleSavedItem: (ref, versions) => {
+  toggleSavedItem: ({ ref, versions, sheet_owner, sheet_title }) => {
     return new Promise((resolve, reject) => {
-      const action = !!Sefaria.getSavedItem(ref, versions) ? "delete_saved" : "add_saved";
-      console.log("action", action);
-      const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action };
+      const action = !!Sefaria.getSavedItem({ ref, versions }) ? "delete_saved" : "add_saved";
+      const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
           { user_history: JSON.stringify([savedItem]) }
@@ -1410,7 +1409,7 @@ Sefaria = extend(Sefaria, {
               Sefaria.saved.unshift(response.created);
             } else {
               // delete
-              Sefaria.removeSavedItem(ref, versions);
+              Sefaria.removeSavedItem({ ref, versions });
             }
             resolve(response);
           }
@@ -1437,7 +1436,7 @@ Sefaria = extend(Sefaria, {
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-        //console.log("sync", history_item_array);
+        console.log("sync", history_item_array);
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
               data => { /*console.log("sync resp", data)*/ } );

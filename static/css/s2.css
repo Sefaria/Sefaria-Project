@@ -1061,9 +1061,16 @@ a.resourcesLink {
 .readerPanel.hebrew .recentPanel .sideColorLeft {
   flex-direction: row-reverse;
 }
+.readerPanel .recentPanel .sideColorLeft {
+  max-width: 100%;
+}
+.readerPanel .recentPanel  .recentItem:hover .sideColorLeft {
+  max-width: calc(100% - 66px); /* the width of the star */
+}
 .readerPanel .recentPanel .sideColorLeft,
 .readerPanel .recentPanel .sideColorRight {
   display: flex;
+  max-width: 100%;
 }
 .readerPanel .recentPanel .recentItem .sideColorRight .saveButton {
   display: none;
@@ -1075,11 +1082,22 @@ a.resourcesLink {
 }
 .readerPanel .recentPanel .sideColor {
   width: 6px;
+  min-width: 6px;
 }
 .readerPanel .recentPanel .sideColorInner {
   display: flex;
   align-items: center;
   padding: 0 15px;
+  overflow: hidden;
+}
+.readerPanel .recentPanel .sideColorInner .en,
+.readerPanel .recentPanel .sideColorInner .he {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.readerPanel .recentPanel .sideColorInner .byLine {
+  padding: 0 10px;
 }
 .readerNavCategories {
   width: 100%;
