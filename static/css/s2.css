@@ -4250,7 +4250,10 @@ a .button:hover {
 .entry + .entry {
   padding-top: 10px;
 }
-.lexicon-results .entry > div{
+.lexicon-results {
+  padding-top: 20px;
+}
+.lexicon-results .entry > div {
   padding: 1% 0 1% 0;
   margin: auto;
 }
