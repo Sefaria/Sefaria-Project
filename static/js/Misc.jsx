@@ -108,8 +108,8 @@ class TextBlockLink extends Component {
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
     let byLine;
     if (!!sheetOwner && sideColor) {
-      title = sheetTitle;
-      heTitle = sheetTitle;
+      title = sheetTitle.stripHtml();
+      heTitle = title;
       byLine = sheetOwner;
     }
     const subtitle = displayValue ? (
@@ -448,7 +448,7 @@ class ReaderNavigationMenuSavedButton extends Component {
   render() {
     const { placeholder, historyObject, tooltip } = this.props;
     const style = placeholder ? {visibility: 'hidden'} : {};
-    const altText = placeholder ? '' : `${this.state.selected ? "Remove" : "Save"} ${historyObject.ref}`;
+    const altText = placeholder ? '' : `${this.state.selected ? "Remove" : "Save"} '${historyObject.sheet_title ? historyObject.sheet_title.stripHtml() : historyObject.ref}'`;
     const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
     return (
       <div
