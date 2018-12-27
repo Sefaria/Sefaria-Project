@@ -129,19 +129,24 @@ class DictionarySearch extends Component {
       }
     }
   }
+  displayWord(word) {
+    if (this.props.showWordList) {
+      this.props.showWordList(word);
+    } else if (this.props.showBaseText) {
+      const ref = this.props.title + ", " + word;
+      this.props.showBaseText(ref, false, this.props.currVersions);
+    }
+  }
   submitSearch(word, needsResolution) {
     if (needsResolution) {
       // Get the dotted form of this word, or the nearest match
       Sefaria.lexiconCompletion(word, this.props.lexiconName,
         d => {
-          var resolvedWord = (d.length > 0) ? d[0][1] : word;
-          var ref = this.props.title + ", " + resolvedWord;
-          this.props.showBaseText(ref, false, this.props.currVersions);
-          }
-      )
+          const resolvedWord = (d.length > 0) ? d[0][1] : word;
+          this.displayWord(resolvedWord)
+          });
     } else {
-      var ref = this.props.title + ", " + word;
-      this.props.showBaseText(ref, false, this.props.currVersions);
+      this.displayWord(word);
     }
   }
   showVirtualKeyboardIcon(show){
@@ -171,12 +176,12 @@ class DictionarySearch extends Component {
 }
 
 DictionarySearch.propTypes = {
-  lexiconName:      PropTypes.string.isRequired,
-  title:            PropTypes.string.isRequired,
+  lexiconName:      PropTypes.string,    // req. for redirect to text - e.g. TOC case.
+  title:            PropTypes.string,    // req. for redirect to text - e.g. TOC case.
   interfaceLang:    PropTypes.string,
-  close:            PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  currVersions:     PropTypes.object.isRequired,
+  showBaseText:     PropTypes.func,      // req. for redirect to text - e.g. TOC case.
+  showWordList:     PropTypes.func,      // req. for sidebar case
+  currVersions:     PropTypes.object,    // req. for redirect to text - e.g. TOC case.
   contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in. 
 };
 

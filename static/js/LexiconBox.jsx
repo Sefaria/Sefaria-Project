@@ -3,6 +3,7 @@ const {
 }                = require('./Misc');
 const React      = require('react');
 const Sefaria    = require('./sefaria/sefaria');
+const DictionarySearch = require('./DictionarySearch');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
@@ -12,6 +13,7 @@ class LexiconBox extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      searchedWord: null,   // This isn't really used, currently, but should really be show in the search box after search, and bubble up to state.
       entries: [],
       loaded: false
     };
@@ -32,21 +34,28 @@ class LexiconBox extends Component {
   }
   clearLookups() {
     this.setState({
+      searchedWord: null,
       loaded: false,
       entries: []
     });
   }
+  searchWord(word) {
+    this.clearLookups();
+    this.setState({searchedWord: word});
+    this.getLookups(word);
+  }
   getLookups(words, oref) {
-    if(this.shouldActivate(words)){
+    if(this.shouldActivate(words)) {
+      let ref = oref ? oref.ref : undefined;
       // console.log('getting data: ', words, oref.ref);
-      Sefaria.lexicon(words, oref.ref, function(data) {
+      Sefaria.lexicon(words, ref, function(data) {
         this.setState({
           loaded: true,
           entries: data
         });
 
         var action = (data.length == 0)? "Open No Result": "Open";
-        action += " / " + oref.categories.join("/") + "/" + oref.book;
+        action += oref ? " / " + oref.categories.join("/") + "/" + oref.book : "";
         Sefaria.track.event("Lexicon", action, words);
 
         // console.log('gotten data from Sefaria.js, state re-set: ', this, data);
@@ -55,14 +64,15 @@ class LexiconBox extends Component {
   }
   shouldActivate(selectedWords){
     if(selectedWords && selectedWords.match(/[\s:\u0590-\u05ff.]+/)) {
-      var wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
-      var inputLength = wordList.length;
+      const wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
+      const inputLength = wordList.length;
       return (inputLength <= 3);
     } else {
         return null;
     }
   }
   render() {
+  /*
     if (!this.props.selectedWords) {
       return (
         <div className="lexicon-instructions">
@@ -70,39 +80,40 @@ class LexiconBox extends Component {
           <span className="int-he">סמן מילים כדי לחפש הגדרות</span>
         </div>);
     }
+  */
 
-    var refCats = this.props.oref.categories.join(", "); //TODO: the way to filter by categories is very limiting.
-    var enEmpty = 'No definitions found for "' + this.props.selectedWords + '".';
-    var heEmpty = 'לא נמצאו תוצאות "' + this.props.selectedWords + '".';
-    if(!this.shouldActivate(this.props.selectedWords)){
-      //console.log("not rendering lexicon");
-      return false;
-    }
-    var content;
-    if(!this.state.loaded) {
-      // console.log("lexicon not yet loaded");
-      content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
-    } else if(this.state.entries.length == 0) {
-      if (this.props.selectedWords.length == 0) {
-        //console.log("empty words: nothing to render");
-        return false;
+    const refCats = this.props.oref ? this.props.oref.categories.join(", ") : null; //TODO: the way to filter by categories is very limiting.
+    const enEmpty = 'No definitions found for "' + this.props.selectedWords + '".';
+    const heEmpty = 'לא נמצאו תוצאות "' + this.props.selectedWords + '".';
+    let content = "";
+
+    if(this.shouldActivate(this.props.selectedWords)) {
+      if(!this.state.loaded) {
+          // console.log("lexicon not yet loaded");
+          content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
+      } else if(this.state.entries.length === 0) {
+          if (this.props.selectedWords.length > 0) {
+            content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
+          }
       } else {
-        //console.log("no results");
-        content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
+          let entries = this.state.entries;
+          content =  entries.filter(e => (!refCats) || e['parent_lexicon_details']['text_categories'].length === 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
+                return (<LexiconEntry
+                    data={entry}
+                    onEntryClick={this.props.onEntryClick}
+                    onCitationClick={this.props.onCitationClick}
+                    key={i} />)
+              }.bind(this));
+          content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
       }
-    }else{
-      var entries = this.state.entries;
-      content =  entries.filter(e => e['parent_lexicon_details']['text_categories'].length == 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
-            return (<LexiconEntry 
-                data={entry} 
-                onEntryClick={this.props.onEntryClick}
-                onCitationClick={this.props.onCitationClick}
-                key={i} />)
-          }.bind(this));
-      content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
     }
+
     return (
         <div className="lexicon-content">
+         <DictionarySearch
+              interfaceLang={this.props.interfaceLang}
+              showWordList={this.searchWord}
+              contextSelector=".lexicon-content"/>
           <div className="lexicon-results">
             { content }
           </div>
