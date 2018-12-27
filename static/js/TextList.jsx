@@ -179,17 +179,15 @@ class TextList extends Component {
     const initialRefs = this.props.srefs;
     this.scrollIntentTimer = this.props.checkIntentTimer(this.scrollIntentTimer, () => {
       if (!this.didFilterChange(initialFilter, initialRefs, this.props.filter, this.props.srefs)) {
-        for (let l of links) {
-          // TODO: add version info once we support that in links
-          Sefaria.saveUserHistory({
+        // TODO: add version info once we support that in links
+        Sefaria.saveUserHistory(links.map(l => ({
             ref: l.sourceRef,
             he_ref: l.sourceHeRef,
             versions: {en: null, he: null},
             book: l.index_title,
             secondary: true,
             language: this.props.contentLang,
-          });
-        }
+        })));
       }
     });
   }
