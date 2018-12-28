@@ -251,7 +251,7 @@ class Completions(object):
         non_primary_matches = []
         for k, v in all_continuations:
             if v["is_primary"] and v["key"] not in self.keys_covered:
-                if v["type"] == "ref":
+                if v["type"] == "ref" or v["type"] == "word_form":
                     self.completions += [v["title"]]
                 else:
                     self.completions.insert(0, v["title"])
