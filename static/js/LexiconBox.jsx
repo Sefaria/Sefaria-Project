@@ -13,7 +13,7 @@ class LexiconBox extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      searchedWord: null,   // This isn't really used, currently, but should really be show in the search box after search, and bubble up to state.
+      searchedWord: null,   // This is used only to counteract the influence of a ref, currently, but should really be show in the search box after search, and bubble up to state.
       entries: [],
       loaded: false
     };
@@ -63,6 +63,9 @@ class LexiconBox extends Component {
     }
   }
   shouldActivate(selectedWords){
+    if (this.state.searchedWord) {
+      return true;
+    }
     if(selectedWords && selectedWords.match(/[\s:\u0590-\u05ff.]+/)) {
       const wordList = selectedWords.split(/[\s:\u05c3\u05be\u05c0.]+/);
       const inputLength = wordList.length;
@@ -82,7 +85,7 @@ class LexiconBox extends Component {
     }
   */
 
-    const refCats = this.props.oref ? this.props.oref.categories.join(", ") : null; //TODO: the way to filter by categories is very limiting.
+    const refCats = (this.props.oref && (!this.state.searchedWord)) ? this.props.oref.categories.join(", ") : null; //TODO: the way to filter by categories is very limiting.
     const enEmpty = 'No definitions found for "' + this.props.selectedWords + '".';
     const heEmpty = 'לא נמצאו תוצאות "' + this.props.selectedWords + '".';
     let content = "";
