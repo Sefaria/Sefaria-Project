@@ -130,6 +130,7 @@ class DictionarySearch extends Component {
     }
   }
   displayWord(word) {
+    // Either show results in sidebar, or show word in reader, depending on which mode we're in.
     if (this.props.showWordList) {
       this.props.showWordList(word);
     } else if (this.props.showBaseText) {
@@ -178,7 +179,7 @@ class DictionarySearch extends Component {
 DictionarySearch.propTypes = {
   lexiconName:      PropTypes.string,    // req. for redirect to text - e.g. TOC case.
   title:            PropTypes.string,    // req. for redirect to text - e.g. TOC case.
-  interfaceLang:    PropTypes.string,
+  interfaceLang:    PropTypes.string.isRequired,
   showBaseText:     PropTypes.func,      // req. for redirect to text - e.g. TOC case.
   showWordList:     PropTypes.func,      // req. for sidebar case
   currVersions:     PropTypes.object,    // req. for redirect to text - e.g. TOC case.

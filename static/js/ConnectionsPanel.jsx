@@ -313,6 +313,7 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
+                    interfaceLang={this.props.interfaceLang}
       />);
 
     } else if (this.props.mode === "Tools") {

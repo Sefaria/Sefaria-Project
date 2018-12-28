@@ -125,6 +125,7 @@ class LexiconBox extends Component {
   }
 }
 LexiconBox.propTypes = {
+  interfaceLang:    PropTypes.string.isRequired,
   selectedWords: PropTypes.string,
   oref:          PropTypes.object,
   onEntryClick:  PropTypes.func,
