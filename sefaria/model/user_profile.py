@@ -19,7 +19,7 @@ from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
-from sefaria.utils.util import epoch_time
+from sefaria.utils.util import epoch_time, concise_natural_time
 from django.utils import translation
 from django.contrib.humanize.templatetags.humanize import naturaltime
 
@@ -95,12 +95,8 @@ class UserHistory(abst.AbstractMongoRecord):
             except KeyError:
                 pass
         if kwargs.get("natural_time", False):
-            d["natural_time"] = naturaltime(datetime.fromtimestamp(d["time_stamp"]))
-            m = re.match(ur"(?:\d+|a|an) [a-z]+", d["natural_time"])
-            if m:
-                d["natural_time"] = m.group()  # go from 2 months, 1 week ago => 2 months
-            d["natural_time"] = re.sub(ur"^(?:a|an) (minute|hour|day)$", ur"1 \1",d["natural_time"])  # go from "a minute" to "1 minute"
-        return d
+            d["natural_time"] = concise_natural_time(datetime.fromtimestamp(d["time_stamp"]))
+            return d
 
 
 class UserHistorySet(abst.AbstractMongoSet):
@@ -197,7 +193,7 @@ class UserProfile(object):
         from dateutil import parser
         import pytz
         default_epoch_time = epoch_time(
-            datetime(2017, 12, 1))  # the Sefaria epoch. approx time since we added time stamps to recent items
+            datetime(2017, 12, 1, tzinfo=pytz.UTC))  # the Sefaria epoch. approx time since we added time stamps to recent items
         return filter(lambda x: x["book"] is not None, [
                 {
                     "uid": uid,
