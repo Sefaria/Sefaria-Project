@@ -96,7 +96,9 @@ class UserHistory(abst.AbstractMongoRecord):
                 pass
         if kwargs.get("natural_time", False):
             d["natural_time"] = naturaltime(datetime.fromtimestamp(d["time_stamp"]))
-            d["natural_time"] = re.match(ur"(?:\d+|a|an) [a-z]+", d["natural_time"]).group()  # go from 2 months, 1 week ago => 2 months
+            m = re.match(ur"(?:\d+|a|an) [a-z]+", d["natural_time"])
+            if m:
+                d["natural_time"] = m.group()  # go from 2 months, 1 week ago => 2 months
             d["natural_time"] = re.sub(ur"^(?:a|an) (minute|hour|day)$", ur"1 \1",d["natural_time"])  # go from "a minute" to "1 minute"
         return d
 
@@ -195,7 +197,7 @@ class UserProfile(object):
         from dateutil import parser
         import pytz
         default_epoch_time = epoch_time(
-            datetime(2017, 12, 1, tzinfo=pytz.UTC))  # the Sefaria epoch. approx time since we added time stamps to recent items
+            datetime(2017, 12, 1))  # the Sefaria epoch. approx time since we added time stamps to recent items
         return filter(lambda x: x["book"] is not None, [
                 {
                     "uid": uid,
