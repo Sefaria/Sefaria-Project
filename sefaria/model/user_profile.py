@@ -96,6 +96,8 @@ class UserHistory(abst.AbstractMongoRecord):
                 pass
         if kwargs.get("natural_time", False):
             d["natural_time"] = naturaltime(datetime.fromtimestamp(d["time_stamp"]))
+            d["natural_time"] = re.match(ur"(?:\d+|a|an) [a-z]+", d["natural_time"]).group()  # go from 2 months, 1 week ago => 2 months
+            d["natural_time"] = re.sub(ur"^(?:a|an) (minute|hour|day)$", ur"1 \1",d["natural_time"])  # go from "a minute" to "1 minute"
         return d
 
 
@@ -193,8 +195,7 @@ class UserProfile(object):
         from dateutil import parser
         import pytz
         default_epoch_time = epoch_time(
-            datetime(2011, 11, 20, tzinfo=pytz.UTC))  # the Sefaria epoch. time since Brett's epic first commit
-
+            datetime(2017, 12, 1, tzinfo=pytz.UTC))  # the Sefaria epoch. approx time since we added time stamps to recent items
         return filter(lambda x: x["book"] is not None, [
                 {
                     "uid": uid,
@@ -204,7 +205,7 @@ class UserProfile(object):
                     "last_place": True,
                     "time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
                     "server_time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
-                    "num_times_read": (r[3] if r[3] and isinstance(r[3], int) else 0),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
+                    "num_times_read": (r[3] if r[3] and isinstance(r[3], int) else 1),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
                     "versions": {
                         "en": r[4],
                         "he": r[5]
