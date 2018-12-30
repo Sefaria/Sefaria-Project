@@ -84,9 +84,9 @@ class Header extends Component {
   }
   showDesktop() {
     if (this.props.panelsOpen == 0) {
-      var recentlyViewed = Sefaria.recentlyViewed;
-      if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].currVersions);
+      const { last_place } = Sefaria;
+      if (last_place && last_place.length) {
+        this.handleRefClick(last_place[0].ref, last_place[0].versions);
       }
     }
     this.props.setCentralState({menuOpen: null});
@@ -249,7 +249,8 @@ class Header extends Component {
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
-                          translateISOLanguageCode={this.props.translateISOLanguageCode}/>) : null;
+                          translateISOLanguageCode={this.props.translateISOLanguageCode}
+                          toggleSignUpModal={this.props.toggleSignUpModal}/>) : null;
 
 
     var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});
@@ -330,6 +331,7 @@ Header.propTypes = {
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
+  toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
 

@@ -1,7 +1,7 @@
 # coding=utf-8
 from . import abstract as abst
 from . import schema
-from . import time
+from . import timeperiod
 import geojson
 import logging
 logger = logging.getLogger(__name__)
@@ -68,21 +68,21 @@ class Person(abst.AbstractMongoRecord):
     # They may also have none of these...
     def mostAccurateTimePeriod(self):
         if getattr(self, "birthYear", None) and getattr(self, "deathYear", None):
-            return time.TimePeriod({
+            return timeperiod.TimePeriod({
                 "start": self.birthYear,
                 "startIsApprox": getattr(self, "birthYearIsApprox", False),
                 "end": self.deathYear,
                 "endIsApprox": getattr(self, "deathYearIsApprox", False)
             })
         elif getattr(self, "birthYear", None) and getattr(self, "era", "CO"):
-            return time.TimePeriod({
+            return timeperiod.TimePeriod({
                 "start": self.birthYear,
                 "startIsApprox": getattr(self, "birthYearIsApprox", False),
             })
         elif getattr(self, "generation", None):
-            return time.TimePeriod().load({"symbol": self.generation})
+            return timeperiod.TimePeriod().load({"symbol": self.generation})
         elif getattr(self, "era", None):
-            return time.TimePeriod().load({"symbol": self.era})
+            return timeperiod.TimePeriod().load({"symbol": self.era})
         else:
             return None
 
@@ -107,7 +107,7 @@ class Person(abst.AbstractMongoRecord):
 
     def get_era(self):
         if getattr(self, "era", False):
-            return time.TimePeriod().load({"symbol": self.era})
+            return timeperiod.TimePeriod().load({"symbol": self.era})
         else:
             g = self.get_generation()
             if g:
@@ -117,7 +117,7 @@ class Person(abst.AbstractMongoRecord):
     def get_generation(self):
         if not getattr(self, "generation", False):
             return None
-        return time.TimePeriod().load({"symbol": self.generation})
+        return timeperiod.TimePeriod().load({"symbol": self.generation})
 
     def get_places(self, asGeoJsonString=True):
         from . import place

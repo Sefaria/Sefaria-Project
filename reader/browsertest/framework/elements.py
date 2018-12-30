@@ -172,6 +172,13 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         return self
 
+    def nav_to_history(self):
+        self.nav_to_toc()
+        el = self.driver.find_element_by_css_selector('a[href="/texts/history"]')
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".recentItem")))
+        return self
+
     def load_toc(self, my_temper=None):
         my_temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
         self.driver.get(self.base_url + "/texts")

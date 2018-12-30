@@ -406,6 +406,9 @@ input.noselect {
   position: fixed;
   z-index: 1001;
 }
+.sefariaModalBox {
+  transition: none;
+}
 #interruptingMessageBox {
   display: flex;
   justify-content: center;
@@ -431,6 +434,7 @@ input.noselect {
 }
 #interruptingMessage {
   max-width: 90%;
+  max-height: 90%;
   box-sizing: border-box;
   position: fixed;
   padding: 18px 15px;
@@ -440,10 +444,75 @@ input.noselect {
   text-align: center;
   color: #666;
 }
+#interruptingMessage.sefariaModalContentBox {
+  background-color: #18345D;
+  color: white;
+  padding: 50px 70px;
+  border-color: transparent;
+  border-radius: 5px;
+}
+@media (max-width: 450px) {
+  #interruptingMessage.sefariaModalContentBox {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+.sefariaModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.sefariaModalContent a {
+  color: white;
+}
+.sefariaModalContent h2 {
+  font-weight: normal;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  margin: 0;
+  margin-bottom: 40px;
+}
+.sefariaModalInnerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+.sefariaModalInnerContent div {
+  display: flex;
+  align-items: center;
+  text-align: start;
+  padding: 10px 0;
+}
+.sefariaModalBottomContent {
+  font-size: 16px;
+  color: #999;
+}
+.sefariaModalContent .button {
+  width: 100%;
+}
+.sefariaModalInnerContent img {
+  width: 16px;
+  height: 16px;
+  padding-right: 10px;
+}
+.readerApp.interface-hebrew .sefariaModalInnerContent img {
+  padding-right: 0;
+  padding-left: 10px;
+}
 #interruptingMessageContentBox {
   position: relative;
   border: 1px solid #CCC;
   background-color: white;
+}
+#interruptingMessageClose.sefariaModalClose {
+  color: white;
 }
 #interruptingMessageClose {
   position: absolute;
@@ -986,8 +1055,58 @@ a.resourcesLink {
   min-height: 60px;
 }
 .readerPanel .recentPanel .recentItem {
-  padding: 15px;
-  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+  border: 0;
+}
+.readerPanel .recentPanel .sideColorLeft {
+  max-width: 100%;
+}
+.readerPanel .recentPanel  .recentItem:hover .sideColorLeft {
+  max-width: calc(100% - 66px); /* the width of the star */
+}
+.readerPanel .recentPanel a:not(.saved) .sideColorRight {
+  padding: 0 10px;
+  align-items: center;
+  color: #999;
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  direction: ltr;
+}
+.readerPanel .recentPanel .recentItem:hover .sideColorRight div {
+  text-decoration: none;
+}
+.readerPanel .recentPanel .sideColorLeft,
+.readerPanel .recentPanel .sideColorRight {
+  display: flex;
+}
+.readerPanel .recentPanel .recentItem .sideColorRight .saveButton {
+  display: none;
+}
+.readerPanel .recentPanel .recentItem:hover .sideColorRight .saveButton {
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+}
+.readerPanel .recentPanel .sideColor {
+  width: 6px;
+  min-width: 6px;
+}
+.readerPanel .recentPanel .sideColorInner {
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  overflow: hidden;
+}
+.readerPanel .recentPanel .sideColorInner .en,
+.readerPanel .recentPanel .sideColorInner .he {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.readerPanel .recentPanel .sideColorInner .byLine {
+  padding: 0 10px;
 }
 .readerNavCategories {
   width: 100%;
@@ -1036,6 +1155,9 @@ a.readerNavCategory {
 .readerNavCalendar {
   margin-bottom: 30px;
   margin-top: -8px;
+}
+.userDataButtons {
+  margin-bottom: 44px;
 }
 .blockLink,
 .readerNavMenu .resourcesLink {
@@ -1213,7 +1335,7 @@ a.readerNavCategory {
 .navButton:active,
 .readerNavCategory:active,
 .refLink:active,
-.resourceseLink {
+.resourceseLink {  /* likely a typo in this word but not sure if this this still applies */
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {
@@ -2532,10 +2654,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
+  display: flex;
+  flex-direction: row;
   text-align: left;
 }
 .interface-english .rightButtons,
 .interface-hebrew .leftButtons {
+  display: flex;
+  flex-direction: row;
   text-align: right;
 }
 /* icons need a little nudge in flipped hebrew mode */
@@ -2545,7 +2671,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .leftButtons {
   margin-right: 2px;
 }
-
+.leftButtons .saveButton,
+.rightButtons .saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 40px;
+  height: 56px;
+  cursor: pointer;
+}
+.saveButton img {
+  height: 20px;
+  width: 20px;
+  opacity: 0.5;
+}
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
@@ -5653,4 +5792,53 @@ sup.nechama {
 
 .img-circle {
   border-radius: 50%;
+}
+/* Tooltip - source: https://codepen.io/cristina-silva/pen/XXOpga */
+.tooltip-toggle {
+  cursor: pointer;
+  position: relative;
+  line-height: normal;
+}
+.tooltip-toggle svg {
+  height: 18px;
+  width: 18px;
+}
+/*Tooltip text container*/
+.tooltip-toggle::before {
+  color: #000;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  position: absolute;
+  top: 47px;
+  left: -30px;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  border-radius: 5px;
+  content: attr(aria-label);
+  text-transform: none;
+  transition: all 0.5s ease;
+  width: 100px;
+}
+/*Tooltip arrow
+.tooltip-toggle::after {
+  position: absolute;
+  top: 37px;
+  left: 30px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #2b222a;
+  content: " ";
+  font-size: 0;
+  line-height: 0;
+  margin-left: -5px;
+  width: 0;
+}*/
+/*Triggering the transition*/
+.tooltip-toggle:hover::before, .tooltip-toggle:hover::after {
+  opacity: 1;
+  transition: all 0.75s ease;
 }
