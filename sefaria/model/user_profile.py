@@ -193,7 +193,7 @@ class UserProfile(object):
         from dateutil import parser
         import pytz
         default_epoch_time = epoch_time(
-            datetime(2017, 12, 1, tzinfo=pytz.UTC))  # the Sefaria epoch. approx time since we added time stamps to recent items
+            datetime(2017, 12, 1))  # the Sefaria epoch. approx time since we added time stamps to recent items
         return filter(lambda x: x["book"] is not None, [
                 {
                     "uid": uid,

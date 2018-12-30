@@ -8,7 +8,7 @@ from HTMLParser import HTMLParser
 import re
 from functools import wraps
 
-epoch = datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
+epoch = datetime.utcfromtimestamp(0)
 
 
 def concise_natural_time(start_date, end_date=None):
@@ -53,7 +53,7 @@ def concise_natural_time(start_date, end_date=None):
 
 def epoch_time(since=None):
     if since is None:
-        since = datetime.now(tz=pytz.UTC)
+        since = datetime.now()
     # define total_seconds which exists in Python3
     total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
     return total_seconds(since - epoch)
