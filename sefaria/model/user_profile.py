@@ -201,8 +201,8 @@ class UserProfile(object):
                     "he_ref": r[1],
                     "book": Ref(r[0]).index.title if Ref.is_ref(r[0]) else None,
                     "last_place": True,
-                    "time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
-                    "server_time_stamp": epoch_time(parser.parse(r[2])) if r[2] is not None else default_epoch_time,
+                    "time_stamp": epoch_time(parser.parse(r[2]).replace(tzinfo=None)) if r[2] is not None else default_epoch_time,
+                    "server_time_stamp": epoch_time(parser.parse(r[2]).replace(tzinfo=None)) if r[2] is not None else default_epoch_time,
                     "num_times_read": (r[3] if r[3] and isinstance(r[3], int) else 1),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
                     "versions": {
                         "en": r[4],
