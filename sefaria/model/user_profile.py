@@ -96,7 +96,7 @@ class UserHistory(abst.AbstractMongoRecord):
                 pass
         if kwargs.get("natural_time", False):
             d["natural_time"] = concise_natural_time(datetime.fromtimestamp(d["time_stamp"]))
-            return d
+        return d
 
 
 class UserHistorySet(abst.AbstractMongoSet):
