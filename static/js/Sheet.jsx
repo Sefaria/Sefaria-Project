@@ -39,7 +39,6 @@ class Sheet extends Component {
   }
 
   onDataLoad(data) {
-
     this.forceUpdate();
 
     for (var i = 0; i < data.sources.length; i++) {

@@ -10,6 +10,7 @@ const EditGroupPage = require('./EditGroupPage');
 const Footer        = require('./Footer');
 const SearchState   = require('./sefaria/searchState');
 const {
+  SignUpModal,
   InterruptingMessage,
   CookiesNotification,
 }                   = require('./Misc');
@@ -203,7 +204,8 @@ class ReaderApp extends Component {
       layoutOrientation: layoutOrientation,
       path: props.initialPath,
       panelCap: props.initialPanelCap,
-      initialAnalyticsTracked: false
+      initialAnalyticsTracked: false,
+      showSignUpModal: false,
     };
   }
   componentDidMount() {
@@ -215,7 +217,7 @@ class ReaderApp extends Component {
       $(".inAppLink").on("click", this.handleInAppLinkClick);
     }
     // Save all initial panels to recently viewed
-    this.state.panels.map(this.saveRecentlyViewed);
+    this.state.panels.map(this.saveLastPlace);
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -455,7 +457,7 @@ class ReaderApp extends Component {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._("Sefaria") : Sefaria._("The Sefaria Library");
-            hist.title = cats == "recent" ? Sefaria._("Recently Viewed | Sefaria") : hist.title;
+            hist.title = hist.title;
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -570,6 +572,16 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("Moderator Tools");
             hist.url = "modtools";
             hist.mode = "modtools";
+            break;
+          case "saved":
+            hist.title = Sefaria._("My Saved Content");
+            hist.url = "texts/saved";
+            hist.mode = "saved";
+            break;
+          case "history":
+            hist.title = Sefaria._("My User History");
+            hist.url = "texts/history";
+            hist.mode = "history";
             break;
         }
       } else if (state.mode === "Text") {
@@ -720,26 +732,40 @@ class ReaderApp extends Component {
 
     return hist;
   }
-  // These two methods to check scroll intent have similar implementations on the panel level.  Refactor?
   _refState() {
     // Return a single flat list of all the refs across all panels
     var panels = (this.props.multiPanel)? this.state.panels : [this.state.header];
     return [].concat(...panels.map(p => p.refs || []))
   }
+  // These two methods to check scroll intent have similar implementations on the panel level.  Refactor?
+  // Dec 2018 - somewhat refactored
   checkScrollIntentAndTrack() {
     // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
-    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
-    // console.log("Setting scroll intent check");
-    if (this.scrollIntentTimer) {
-      clearTimeout(this.scrollIntentTimer);
-    }
-    this.scrollIntentTimer = window.setTimeout(initialRefs => {
-      // console.log("Checking scroll intent");
+    const initialRefs = this._refState();
+    this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
+        console.log("TRACK PAGE VIEW");
         this.trackPageview();
       }
       this.scrollIntentTimer = null;
-    }, intentDelay, this._refState());
+    });
+  }
+  checkPanelScrollIntentAndSaveRecent(state, n) {
+    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
+    this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
+    this.panelScrollIntentTimer[n] = this.checkIntentTimer(this.panelScrollIntentTimer[n], () => {
+      if (!this.didPanelRefChange(state, this.state.panels[n])) {
+        //const ref  = (state.highlightedRefs && state.highlightedRefs.length) ? Sefaria.normRef(state.highlightedRefs) : (state.currentlyVisibleRef || state.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
+        //console.log("Firing last viewed " + ref + " in panel " + n);
+        this.saveLastPlace(this.state.panels[n], n);
+      }
+      this.panelScrollIntentTimer[n] = null;
+    });
+  }
+  checkIntentTimer(timer, cb) {
+    const intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+    if (timer) { clearTimeout(timer); }
+    return window.setTimeout(cb, intentDelay);
   }
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
@@ -870,6 +896,9 @@ class ReaderApp extends Component {
         $container.css({paddingRight: 0, paddingLeft: width});
       }
     }
+  }
+  toggleSignUpModal() {
+    this.setState({ showSignUpModal: !this.state.showSignUpModal });
   }
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
@@ -1033,13 +1062,11 @@ class ReaderApp extends Component {
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
     }
-    // state is not always a full panel state. make sure it has necessary fields needed to run saveRecentlyViewed(). don't use extend() b/c it overwrites extended obj
-    const fields = ["menu", "mode", "currVersions"];
-    fields.map(field => {
-      if (!(field in state)) {
-        state[field] = this.state.panels[n][field];
-      }
-    });
+    // state is not always a full panel state. make sure it has necessary fields needed to run saveLastPlace()
+    state = {
+      ...this.state.panels[n],
+      ...state,
+    };
     if (this.didPanelRefChange(this.state.panels[n], state)) {
       this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
@@ -1070,16 +1097,30 @@ class ReaderApp extends Component {
     if (!prevPanel && !!nextPanel) { return true; }
     if (!!prevPanel && !nextPanel) { return true; }
     if (!prevPanel && !nextPanel) { return false; }
-    if (nextPanel.menu || nextPanel.mode == "Connections" ||
-        !nextPanel.refs || nextPanel.refs.length == 0 ||
-        !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
-    if (nextPanel.refs.compare(prevPanel.refs)) {
-      if (nextPanel.currVersions.en !== prevPanel.currVersions.en) { return true; }
-      if (nextPanel.currVersions.he !== prevPanel.currVersions.he) { return true; }
+    if (prevPanel.mode === 'Connections' && nextPanel.mode === 'Text') { return false; }  // special case. when opening new panel from commentary, ref is already logged in history
+    if (prevPanel.mode === 'Text' && nextPanel.mode === 'Sheet') { return true; }
+    if (prevPanel.mode === 'Sheet' && nextPanel.mode === 'Text') { return true; }
+    if (nextPanel.mode === 'Text') {
+      if (nextPanel.menu || nextPanel.mode == "Connections" ||
+          !nextPanel.refs || nextPanel.refs.length == 0 ||
+          !prevPanel.refs || prevPanel.refs.length == 0 ) { return false; }
+      if (nextPanel.refs.compare(prevPanel.refs)) {
+        if (nextPanel.currVersions.en !== prevPanel.currVersions.en) { return true; }
+        if (nextPanel.currVersions.he !== prevPanel.currVersions.he) { return true; }
+        //console.log('didPanelRefChange?', nextPanel.highlightedRefs, prevPanel.highlightedRefs);
+        return !((nextPanel.highlightedRefs || []).compare(prevPanel.highlightedRefs || []));
+      } else {
+        return true;
+      }
+    } else if (nextPanel.mode === 'Sheet') {
+      if (!prevPanel.sheet && !!nextPanel.sheet) { return true; }
+      if (!nextPanel.sheet && !!prevPanel.sheet) { return true; }
+      if (!prevPanel.sheet && !nextPanel.sheet) { return false; }
+      if (prevPanel.sheet.id !== nextPanel.sheet.id) { return true; }
+      return prevPanel.highlightedNodes !== nextPanel.highlightedNodes
     } else {
       return true;
     }
-    return false;
   }
   addToSourceSheet(n, selectedSheet, confirmFunction) {
     // This is invoked from a connections panel.
@@ -1218,15 +1259,21 @@ class ReaderApp extends Component {
     this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions);
   }
-  openPanelAt(n, ref, currVersions) {
+  async openPanelAt(n, ref, currVersions) {
     // Open a new panel after `n` with the new ref
 
     // If book level, Open book toc
+    const parsedRef = Sefaria.parseRef(ref);
     var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
     var panel;
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
-    } else {
+    } else if (parsedRef.book === "Sheet") {
+      const [sheetId, sheetNode] = parsedRef.sections;
+      // a bit messy to put async func here. Ideally `sheet` would not be stored in props
+      const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
+      panel = this.makePanelState({mode: 'Sheet', sheet});
+    } else {  // Text
       if (ref.constructor == Array) {
         // When called with an array, set highlight for the whole spanning range of the array
         var refs = ref;
@@ -1246,7 +1293,7 @@ class ReaderApp extends Component {
     newPanels.splice(n+1, 0, panel);
     this.setState({panels: newPanels});
     this.setHeaderState({menuOpen: null});
-    this.saveRecentlyViewed(panel);
+    this.saveLastPlace(panel, n+1);
   }
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
@@ -1261,6 +1308,7 @@ class ReaderApp extends Component {
 
     if (panel.mode !== "Connections") {
       // No connections panel is open yet, splice in a new one
+      this.saveLastPlace(parentPanel, n);
       newPanels.splice(n, 0, {});
       panel = newPanels[n];
       panel.filter = [];
@@ -1359,7 +1407,7 @@ class ReaderApp extends Component {
     // Opens a text in in place of the panel currently open at `n`.
     this.state.panels[n] = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
     this.setState({panels: this.state.panels});
-    this.saveRecentlyViewed(this.state.panels[n]);
+    this.saveLastPlace(this.state.panels[n], n);
   }
   openComparePanel(n, connectAfter) {
     var comparePanel = this.makePanelState({
@@ -1377,7 +1425,11 @@ class ReaderApp extends Component {
     } else {
       // If this is a Connection panel, we need to unset the filter in the base panel
       if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections"){
-        this.state.panels[n-1].filter = [];
+        const parent = this.state.panels[n-1];
+        console.log("close connections panel");
+        parent.filter = [];
+        parent.highlightedRefs = [];
+        parent.currentlyVisibleRef = !parent.currentlyVisibleRef ? parent.currentlyVisibleRef : Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
@@ -1460,38 +1512,34 @@ class ReaderApp extends Component {
       this.setState({panels: [state]});
     }
   }
-  checkPanelScrollIntentAndSaveRecent(state, n) {
-    // Record current state of panel refs, and check if it has changed after some delay.  If it remains the same, track analytics.
-    var intentDelay = 3000;  // Number of milliseconds to demonstrate intent
-    // console.log("Setting scroll intent check");
-    // console.log("Setting scroll intent for " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
-    this.panelScrollIntentTimer = this.panelScrollIntentTimer || [];
-    if (this.panelScrollIntentTimer[n]) {
-      clearTimeout(this.panelScrollIntentTimer[n]);
+  getHistoryObject(panel, hasSidebar) {
+    // get rave to send to /api/profile/user_history
+    let ref, sheet_owner, sheet_title;
+    if (panel.mode === 'Sheet') {
+      ref = `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
+      sheet_owner = panel.sheet.ownerName;
+      sheet_title = panel.sheet.title;
+    } else {
+      ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
-    this.panelScrollIntentTimer[n] = window.setTimeout(function(initialState, n){
-      if (!this.didPanelRefChange(initialState, this.state.panels[n])) {
-        // console.log("Firing recently viewed " + (this.state.panels[n].currentlyVisibleRef || (state.refs.length && state.refs.slice(-1)[0])) + " in panel " + n);
-        this.saveRecentlyViewed(this.state.panels[n]);
-      }
-      this.panelScrollIntentTimer[n] = null;
-    }.bind(this), intentDelay, state, n);
+    const parsedRef = Sefaria.parseRef(ref);
+    return {
+      ref,
+      versions: panel.currVersions,
+      book: parsedRef.book,
+      language: panel.settings.language,
+      sheet_owner,
+      sheet_title,
+    };
   }
-  saveRecentlyViewed(panel) {
-    if (panel.mode == "Connections" || !panel.refs.length) { return; }
-    var ref  = panel.currentlyVisibleRef || panel.refs.slice(-1)[0];  // Will currentlyVisibleRef ever not be available?
-    Sefaria.ref(ref, function(oRef) {
-      var previousRecent = Sefaria.recentItemForText(oRef.indexTitle);
-      var recentItem = {
-        ref: ref,
-        heRef: oRef.heRef,
-        book: oRef.indexTitle,
-        lastVisited: new Date(),
-        bookVisitCount: previousRecent ? previousRecent.bookVisitCount + 1 : 1,
-        currVersions: panel.currVersions,
-      };
-      Sefaria.saveRecentItem(recentItem);
-    });
+  doesPanelHaveSidebar(n) {
+    return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
+  }
+  saveLastPlace(panel, n) {
+    const hasSidebar = this.doesPanelHaveSidebar(n);
+    // if panel is sheet, panel.refs isn't set
+    if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
+    Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
   }
   currentlyConnecting() {
     // returns true if there is currently an "Add Connections" Panel open
@@ -1569,7 +1617,8 @@ class ReaderApp extends Component {
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
-                    translateISOLanguageCode={this.translateISOLanguageCode} />) : null;
+                    translateISOLanguageCode={this.translateISOLanguageCode}
+                    toggleSignUpModal={this.toggleSignUpModal} />) : null;
 
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
@@ -1641,13 +1690,16 @@ class ReaderApp extends Component {
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
-                      hasSidebar={panelStates.length > i+1 && panelStates[i+1].mode == "Connections"}
+                      hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
                       translateISOLanguageCode={this.translateISOLanguageCode}
-                      saveRecentlyViewed={this.saveRecentlyViewed}
+                      saveLastPlace={this.saveLastPlace}
+                      checkIntentTimer={this.checkIntentTimer}
+                      toggleSignUpModal={this.toggleSignUpModal}
+                      getHistoryObject={this.getHistoryObject}
                     />
                   </div>);
     }
@@ -1665,6 +1717,9 @@ class ReaderApp extends Component {
           messageHTML={Sefaria.interruptingMessage.html}
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : null;
+    const sefariaModal = (
+      <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
+    );
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
@@ -1674,6 +1729,7 @@ class ReaderApp extends Component {
               {header}
               {panels}
               {interruptingMessage}
+              {sefariaModal}
               <CookiesNotification />
             </div>);
   }

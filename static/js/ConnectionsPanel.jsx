@@ -72,7 +72,6 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
-    console.log(this.props.srefs);
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
@@ -255,7 +254,9 @@ class ConnectionsPanel extends Component {
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
-                    selectedWords={this.props.selectedWords}/>);
+                    selectedWords={this.props.selectedWords}
+                    checkIntentTimer={this.props.checkIntentTimer}
+                  />);
 
     } else if (this.props.mode === "Sheets") {
       content = (<div>
@@ -457,6 +458,7 @@ ConnectionsPanel.propTypes = {
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
+  checkIntentTimer:        PropTypes.func.isRequired,
 };
 
 
@@ -529,7 +531,7 @@ class ConnectionsSummary extends Component {
         var ib = order.indexOf(b.category)
         return ia - ib;
       });
-      
+
     } else if (this.props.category) {
       // Single Category Summary
       summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));

@@ -41,7 +41,7 @@ var baseConfig = {
                 query: {
                     //specify that we will be dealing with React code
                     presets: ['react', 'es2015'],
-                    plugins: ['transform-es2015-destructuring', 'transform-object-rest-spread']
+                    plugins: ['transform-es2015-destructuring', 'transform-object-rest-spread', 'transform-async-to-generator']
                 }
             }
         ]
