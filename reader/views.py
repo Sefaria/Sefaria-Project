@@ -3551,7 +3551,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
     categories = {
         "Tanakh": {
             "title": "Tanakh",
-            "heTitle": 'תנ"ך',
+            "heTitle": 'התנ"ך',
             "shapeParam": "Tanakh",
             "linkCountParam": "Tanakh",
         },
@@ -3563,27 +3563,27 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         },
         "Bavli": {
             "title": "Talmud",
-            "heTitle": "תלמוד",
+            "heTitle": "התלמוד",
             "shapeParam": "Talmud/Bavli",
             "linkCountParam": "Bavli",
             "talmudAddressed": True,
         },
         "Yerushalmi": {
             "title": "Jerusalem Talmud",
-            "heTitle": "תלמוד ירושלמי",
+            "heTitle": "התלמוד ירושלמי",
             "shapeParam": "Talmud/Yerushalmi",
             "linkCountParam": "Yerushalmi",
             "talmudAddressed": True,
         },
         "Mishnah": {
             "title": "Mishnah",
-            "heTitle": "משנה",
+            "heTitle": "המשנה",
             "shapeParam": "Mishnah",
             "linkCountParam": "Mishnah",
         },
         "Tosefta": {
             "title": "Tosefta",
-            "heTitle": "תוספתא",
+            "heTitle": "התוספתא",
             "shapeParam": "Tanaitic/Tosefta",
             "linkCountParam": "Tosefta",
         },
@@ -3603,14 +3603,14 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         },
         "ShulchanArukh": {
             "title": "Shulchan Arukh",
-            "heTitle": "שולחן ערוך",
+            "heTitle": "השולחן ערוך",
             "shapeParam": "Halakhah/Shulchan Arukh",
             "linkCountParam": "Shulchan Arukh",
             "colorByBook": True,
         },
         "Zohar": {
             "title": "Zohar",
-            "heTitle": "זוהר",
+            "heTitle": "הזוהר",
             "shapeParam": "Zohar",
             "linkCountParam": "Zohar",
             "talmudAddressed": True,

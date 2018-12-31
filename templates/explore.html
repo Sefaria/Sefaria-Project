@@ -3,7 +3,7 @@
 
 {% block title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endblock %}
 
-{% block description %}{% if urlRoot == "/explore" %}{% blocktrans asvar page_description %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endblock %}
+{% block description %}{% if urlRoot == "/explore" %}{% blocktrans %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endblock %}
 
 {% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
 
@@ -187,31 +187,31 @@
     <div id="explorerNav" class="showAfterLoad">
         <a href="/explore" style="border-top-color: #ccb479">
             <span class="int-en">Tanakh & Talmud</span>
-            <span class="int-he">תנ"ך & תלמוד</span>
+            <span class="int-he">תנ"ך ותלמוד</span>
         </a>
         <a href="/explore-Tanakh-and-Mishneh-Torah" style="border-top-color: #802f3e">
             <span class="int-en">Tanakh & <nobr>Mishneh Torah</nobr></span>
-            <span class="int-he">תנ"ך & <nobr>משנה תורה</nobr></span>
+            <span class="int-he">תנ"ך <nobr>ומשנה תורה</nobr></span>
         </a>
         <a href="/explore-Tanakh-and-Shulchan-Arukh" style="border-top-color: #802f3e">
             <span class="int-en">Tanakh & <nobr>Shulchan Arukh</nobr></span>
-            <span class="int-he">תנ"ך & <nobr>שולחן ערוך</nobr></span>
+            <span class="int-he">תנ"ך <nobr>ושולחן ערוך</nobr></span>
         </a>
         <a href="/explore-Tanakh-and-Midrash-Rabbah" style="border-top-color: #5d956f">
             <span class="int-en">Tanakh & <nobr>Midrash Rabbah</nobr></span>
-            <span class="int-he">תנ"ך & <nobr>מדרש רבה</nobr></span>
+            <span class="int-he">תנ"ך <nobr>ומדרש רבה</nobr></span>
         </a>
         <a href="/explore-Bavli-and-Mishneh-Torah" style="border-top-color: #802f3e">
             <span class="int-en">Talmud & <nobr>Mishneh Torah</nobr></span>
-            <span class="int-he">תלמוד & <nobr>משנה תורה</nobr></span>
+            <span class="int-he">תלמוד <nobr>ומשנה תורה</nobr></span>
         </a>
         <a href="/explore-Bavli-and-Shulchan-Arukh" style="border-top-color: #802f3e">
             <span class="int-en">Talmud & <nobr>Shulchan Arukh</nobr></span>
-            <span class="int-he">תלמוד & <nobr>שולחן ערוך</nobr></span>
+            <span class="int-he">תלמוד <nobr>ושולחן ערוך</nobr></span>
         </a>
         <a href="/explore-Mishneh-Torah-and-Shulchan-Arukh" style="border-top-color: #802f3e">
             <span class="int-en"><nobr>Mishneh Torah</nobr> & <nobr>Shulchan Arukh</nobr></span>
-            <span class="int-he"><nobr>משנה תורה</nobr> & <nobr>שולחן ערוך</nobr></span>
+            <span class="int-he"><nobr>משנה תורה</nobr> <nobr>ושולחן ערוך</nobr></span>
         </a>
     </div>
 

@@ -130,7 +130,7 @@ function buildFrame() {
     plinks = svg.append("g").attr("id","plinks");
 
         // Titles and labels
-    var TopTitle = isEnglish() ? "Connections between " + categories[bottomCat].title + " and " + categories[topCat].title  : 'חיבורים בין ה' + categories[bottomCat].heTitle + ' ו' + categories[topCat].heTitle ;
+    var TopTitle = isEnglish() ? "Connections between " + categories[bottomCat].title + " and " + categories[topCat].title  : 'חיבורים בין ' + categories[bottomCat].heTitle + ' ו' + categories[topCat].heTitle ;
     svg.append("a")
         .attr("xlink:href", GLOBALS.urlRoot)
       .append("text")
@@ -140,7 +140,7 @@ function buildFrame() {
         .style("text-anchor", "middle")
         .text(TopTitle);
 
-    var tLabel = isEnglish() ? '(View all ' + categories[topCat].title + ')' : '(חזרה למבט על כל ה' + categories[topCat].heTitle + ')';
+    var tLabel = isEnglish() ? '(View all ' + categories[topCat].title + ')' : '(חזרה למבט על כל ' + categories[topCat].heTitle + ')';
     var topLabel = svg.append("g")
         .attr("id", "top-label")
         .style("display", "none");
@@ -157,7 +157,7 @@ function buildFrame() {
         .datum({"collection": topCat})
         .on("click", recordCloseBook);
 
-    var bLabel = isEnglish() ? '(View all ' + categories[bottomCat].title + ')' : '(חזרה למבט על כל ה' + categories[bottomCat].heTitle + ')';
+    var bLabel = isEnglish() ? '(View all ' + categories[bottomCat].title + ')' : '(חזרה למבט על כל ' + categories[bottomCat].heTitle + ')';
     var bottomLabel = svg.append("g")
         .attr("id", "bottom-label")
         .style("display", "none");
@@ -1147,23 +1147,15 @@ function _getHistory() {
         url += "/" + fromIdtoUrl(d.id);
     });
 
+    var conjunction = isHebrew() ? " ו" : " & ";
     if (topOpen && bottomOpen) {
-        title += topOpen +
-            (isHebrew() ? " ו" : " & ") +
-            bottomOpen;
+        title += topOpen + conjunction  + bottomOpen;
     } else if (topOpen && !bottomOpen) {
-        title += topOpen +
-            (isHebrew() ? " וה"  : " & " ) +
-            bottomCatTitle;
+        title += topOpen + conjunction + bottomCatTitle;
     } else if (!topOpen && bottomOpen) {
-        title += bottomOpen +
-            (isHebrew() ? " וה"  : " & " ) +
-            topCatTitle;
+        title += bottomOpen + conjunction + topCatTitle;
     } else if (!topOpen && !bottomOpen) {
-        title += (isHebrew() ? "ה" : "") +
-            topCatTitle + 
-            (isHebrew() ? " וה"  : " & " ) +
-            bottomCatTitle;
+        title += topCatTitle + conjunction + bottomCatTitle;
     }
 
     return {
