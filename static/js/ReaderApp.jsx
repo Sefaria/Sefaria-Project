@@ -63,6 +63,7 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
+          searchTab: props.initialSearchTab || "text",
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
@@ -102,6 +103,7 @@ class ReaderApp extends Component {
           connectionsMode: initialPanel.connectionsMode || "Resources",
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
+          searchTab: props.initialSearchTab || "text",
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
@@ -134,6 +136,7 @@ class ReaderApp extends Component {
         bookRef: props.initialBookRef,
         menuOpen: props.initialMenu,
         searchQuery: props.initialQuery,
+        searchTab: props.initialSearchTab || "text",
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters: props.initialTextSearchFilters,
@@ -406,6 +409,7 @@ class ReaderApp extends Component {
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
+          (prev.searchTab != next.searchTab) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
@@ -492,10 +496,10 @@ class ReaderApp extends Component {
             hist.mode = "extended notes";
             break;
           case "search":
-            var query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
+            const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += Sefaria._("Sefaria Search");
-            hist.url   = "search" + (state.searchQuery ? ("&q=" + query +
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` + 
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
               state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";
@@ -823,6 +827,7 @@ class ReaderApp extends Component {
       navigationTopic:         state.navigationTopic         || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
+      searchTab:               state.searchTab               || 'text',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
@@ -990,6 +995,13 @@ class ReaderApp extends Component {
       sheetSearchState: tempState.sheetSearchState.update({ filtersValid: false }),
     };
     tempSetState(updates);
+  }
+  updateSearchTabInHeader(searchTab) {
+    this.updateSearchTab(undefined, searchTab);
+  }
+  updateSearchTab(n, searchTab) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    tempSetState({ searchTab });
   }
   updateAvailableFiltersInHeader(type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
     this.updateAvailableFilters(undefined, ...arguments);
@@ -1612,6 +1624,7 @@ class ReaderApp extends Component {
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
                     onQueryChange={this.updateQueryInHeader}
+                    updateSearchTab={this.updateSearchTabInHeader}
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     updateSearchOptionField={this.updateSearchOptionFieldInHeader}
                     updateSearchOptionSort={this.updateSearchOptionSortInHeader}
@@ -1639,6 +1652,7 @@ class ReaderApp extends Component {
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var updateQuery                    = this.updateQuery.bind(null, i);
+      var updateSearchTab                = this.updateSearchTab.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
@@ -1687,6 +1701,7 @@ class ReaderApp extends Component {
                       backFromExtendedNotes={backFromExtendedNotes}
                       setDefaultOption={this.setDefaultOption}
                       onQueryChange={updateQuery}
+                      updateSearchTab={updateSearchTab}
                       updateSearchFilter={updateSearchFilter}
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}

@@ -83,6 +83,7 @@ class ReaderPanel extends Component {
       sheet:                props.sheet || null,
       sheetID:              null,
       searchQuery:          props.initialQuery || null,
+      searchTab:            props.initialSearchTab || "text",
       textSearchState: new SearchState({
         type:               'text',
         field:              props.initialTextSearchField,
@@ -811,6 +812,7 @@ class ReaderPanel extends Component {
       var menu = (<SearchPage
                     key={"searchPage"}
                     query={this.state.searchQuery}
+                    tab={this.state.searchTab}
                     textSearchState={this.state.textSearchState}
                     sheetSearchState={this.state.sheetSearchState}
                     settings={Sefaria.util.clone(this.state.settings)}
@@ -821,6 +823,7 @@ class ReaderPanel extends Component {
                     close={this.closePanelSearch}
                     hideNavHeader={this.props.hideNavHeader}
                     onQueryChange={this.props.onQueryChange}
+                    updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
@@ -1033,6 +1036,7 @@ ReaderPanel.propTypes = {
   viewExtendedNotes:           PropTypes.func,
   backFromExtendedNotes:       PropTypes.func,
   onQueryChange:               PropTypes.func,
+  updateSearchTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
