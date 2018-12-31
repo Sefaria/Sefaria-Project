@@ -283,6 +283,11 @@ class ReaderApp extends Component {
         }
       }
       this.setState(state);
+      if (!h && state.panels) {
+        // potentially going back to panel state from header state
+        // make sure header is closed
+        this.setHeaderState({menuOpen: null});
+      }
       this.setContainerMode();
     }
   }
