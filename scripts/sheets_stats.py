@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import django
+django.setup()
 import sys
+import datetime
 
 from sefaria.stats import SheetStats
 

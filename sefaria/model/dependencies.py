@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden, notification, group, library, category
+from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, timeperiod, person, garden, notification, group, library, category
 
 from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -42,13 +42,15 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "t
 def process_version_title_change_in_search(ver, **kwargs):
     from sefaria.local_settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import delete_version, index_full_version, get_new_and_current_index_names
-        search_index_name = get_new_and_current_index_names()['current']
-        search_index_name_merged = get_new_and_current_index_names(merged=True)['current']
+        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        search_index_name = get_new_and_current_index_names("text")['current']
+        # no reason to deal with merged index since versions don't exist. still leaving this here in case it is necessary
+        # search_index_name_merged = get_new_and_current_index_names("merged")['current']
         text_index = library.get_index(ver.title)
         delete_version(text_index, kwargs.get("old"), ver.language)
-        index_full_version(search_index_name, text_index, kwargs.get("new"), ver.language)
-        index_full_version(search_index_name_merged, text_index, kwargs.get("new"), ver.language)
+        for ref in text_index.all_segment_refs():
+            TextIndexer.index_ref(search_index_name, ref, kwargs.get("new"), ver.language, False)
+            # TextIndexer.index_ref(search_index_name_merged, ref, None, ver.language, True)
 
 
 # Version Title Change
@@ -71,8 +73,8 @@ subscribe(text.reset_simple_term_mapping,                                   sche
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # Time
-subscribe(cascade(person.PersonSet, "era"),                                time.TimePeriod, "attributeChange", "symbol")
-subscribe(cascade(person.PersonSet, "generation"),                         time.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "era"),                                timeperiod.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "generation"),                         timeperiod.TimePeriod, "attributeChange", "symbol")
 
 # Person key change
 subscribe(cascade(person.PersonRelationshipSet, "to_key"),                 person.Person, "attributeChange", "key")

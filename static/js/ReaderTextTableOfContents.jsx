@@ -10,6 +10,7 @@ const React        = require('react');
 const ReactDOM     = require('react-dom');
 const $            = require('./sefaria/sefariaJquery');
 const Sefaria      = require('./sefaria/sefaria');
+const DictionarySearch = require('./DictionarySearch');
 const VersionBlock = require('./VersionBlock');
 const ExtendedNotes= require('./ExtendedNotes');
 const classNames   = require('classnames');
@@ -177,6 +178,7 @@ class ReaderTextTableOfContents extends Component {
     // Text Details
     var details = Sefaria.indexDetails(this.props.title);
     var detailsSection = details ? <TextDetails index={details} narrowPanel={this.props.narrowPanel} /> : null;
+    var isDictionary = details && !!details.lexiconName;
 
     if (this.isTextToc()) {
       var sectionStrings = Sefaria.sectionString(this.props.currentRef);
@@ -394,19 +396,29 @@ class ReaderTextTableOfContents extends Component {
                     </div>
                   : null}
                   {details ?
-                  <div onClick={this.handleClick}>
-                    <TextTableOfContentsNavigation
-                      schema={details.schema}
-                      commentatorList={Sefaria.commentaryList(this.props.title)}
-                      alts={details.alts}
-                      defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
-                      narrowPanel={this.props.narrowPanel}
-                      title={this.props.title}/>
-
+                  <div>
+                    { isDictionary ? <DictionarySearch
+                        lexiconName={details.lexiconName}
+                        title={this.props.title}
+                        interfaceLang={this.props.interfaceLang}
+                        close={this.props.close}
+                        showBaseText={this.props.showBaseText}
+                        contextSelector=".readerTextTableOfContents"
+                        currVersions={this.props.currVersions}/> : ""}
+                    <div onClick={this.handleClick}>
+                      <TextTableOfContentsNavigation
+                        schema={details.schema}
+                        isDictionary={isDictionary}
+                        commentatorList={Sefaria.commentaryList(this.props.title)}
+                        alts={details.alts}
+                        defaultStruct={"default_struct" in details && details.default_struct in details.alts ? details.default_struct : "default"}
+                        narrowPanel={this.props.narrowPanel}
+                        title={this.props.title}/>
+                    </div>
                   </div>
                   : <LoadingMessage />}
                   {versionSection}
-                  {downloadSection}
+                  {isDictionary ? "" : downloadSection}
                 </div>}
               </div>
             </div>);
@@ -431,7 +443,6 @@ ReaderTextTableOfContents.propTypes = {
   extendedNotes:    PropTypes.string,
   extendedNotesHebrew: PropTypes.string
 };
-
 
 class TextDetails extends Component {
  render() {
@@ -574,10 +585,11 @@ class TextTableOfContentsNavigation extends Component {
       });
     }
 
-    var toggle = <TabbedToggleSet
+    var toggle = (this.props.isDictionary ? "" :
+                  <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
-                    narrowPanel={this.props.narrowPanel} />;
+                    narrowPanel={this.props.narrowPanel} />);
 
     switch(this.state.tab) {
       case "default":
@@ -617,6 +629,7 @@ TextTableOfContentsNavigation.propTypes = {
   alts:            PropTypes.object,
   defaultStruct:   PropTypes.string,
   narrowPanel:     PropTypes.bool,
+  isDictionary:    PropTypes.bool,
   title:           PropTypes.string.isRequired,
 };
 
@@ -690,6 +703,10 @@ class SchemaNode extends Component {
         return (
           <ArrayMapNode schema={this.props.schema} />
         );
+      } else if (this.props.schema.nodeType === "DictionaryNode") {
+        return (
+          <DictionaryNode schema={this.props.schema} />
+        );
       }
 
     } else {
@@ -713,7 +730,9 @@ class SchemaNode extends Component {
             </div>);
         } else if (node.nodeType == "ArrayMapNode") {
           // ArrayMapNode with only wholeRef
-          return <ArrayMapNode schema={node} key={i} />;
+          return <ArrayMapNode schema={node} key={i}/>;
+        } else if (node.nodeType == "DictionaryNode") {
+          return <DictionaryNode schema={node} key={i}/>;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
           var path = this.props.refPath + ", " + node.title;
@@ -755,6 +774,7 @@ SchemaNode.propTypes = {
   schema:      PropTypes.object.isRequired,
   refPath:     PropTypes.string.isRequired
 };
+
 
 
 class JaggedArrayNode extends Component {
@@ -923,6 +943,27 @@ ArrayMapNode.propTypes = {
   schema:      PropTypes.object.isRequired
 };
 
+
+class DictionaryNode extends Component {
+  render() {
+    if (this.props.schema.headwordMap) {
+      var sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
+      var letter = m[0];
+      var ref = m[1];
+      return (
+          <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
+            <span className="he">{letter}</span>
+            <span className="en">{letter}</span>
+          </a>
+        );
+      });
+      return (<div className="schema-node-toc"><div className="schema-node-contents"><div className="tocLevel">{sectionLinks}</div></div></div>);
+    }
+  }
+}
+DictionaryNode.propTypes = {
+  schema:      PropTypes.object.isRequired
+};
 
 class CommentatorList extends Component {
   render() {

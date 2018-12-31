@@ -18,7 +18,6 @@ class TextColumn extends Component {
     this.$container          = $(ReactDOM.findDOMNode(this));
     this.initialScrollTopSet = false;
     this.windowMiddle        = $(window).outerHeight() / 2;
-    this.setPaddingForScrollbar();
     this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
     var node = ReactDOM.findDOMNode(this);
     node.addEventListener("scroll", this.handleScroll);
@@ -102,7 +101,7 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
-    //console.log("handle text load");
+    console.log("handle text load");
     this.setScrollPosition();
     this.adjustInfiniteScroll();
   }
@@ -118,14 +117,14 @@ class TextColumn extends Component {
       var $texts  = $node.find(".basetext");
       if ($texts.length < 2) { return; }
       //console.log("scrolltop: " + $node.scrollTop());
-      var top     = $texts.eq(1).position().top + (2*$node.scrollTop()) - adjust ;
+      var top     = $texts.eq(this.numSectionsLoadedAtTop).position().top + (2*$node.scrollTop()) - adjust ;
 
       if (!$texts.eq(0).hasClass("loading")) {
         this.loadingContentAtTop = false;
         this.initialScrollTopSet = true;
         this.justScrolled = true;
         node.scrollTop = top;
-        //console.log("total top: " + top)
+        //console.log("After load at top, total top: " + top)
       }
     } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
       //console.log("scroll to highlighted");
@@ -136,9 +135,17 @@ class TextColumn extends Component {
     } else if (!this.initialScrollTopSet && (node.scrollHeight > node.clientHeight)) {
       //console.log("initial scroll set");
       // initial value set below 0 so you can scroll up for previous
-      node.scrollTop = 90;
+      var first   = Sefaria.ref(this.props.srefs[0]);
+      var hasPrev = first && first.prev;
+      if (!hasPrev) {
+        node.scrollTop = 0;
+      }
+      else {
+        node.scrollTop = 90;
+      }
       //console.log(node.scrollTop);
       this.initialScrollTopSet = true;
+      this.justScrolled = true;
     }
   }
   adjustInfiniteScroll() {
@@ -149,7 +156,7 @@ class TextColumn extends Component {
     if (node.scrollHeight <= node.clientHeight) { return; }
     var $node        = $(node);
 
-    var refs         = this.props.srefs;
+    var refs         = this.props.srefs.slice();
     var $lastText    = $node.find(".textRange.basetext").last();
     if (!$lastText.length) { console.log("no last basetext"); return; }
     var lastTop      = $lastText.position().top;
@@ -160,13 +167,28 @@ class TextColumn extends Component {
     if (windowTop < 75 && !this.loadingContentAtTop) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       var topRef = refs[0];
-      var data   = Sefaria.ref(topRef);
+      var data   = Sefaria.ref(topRef);   // data for current ref
       if (data && data.prev) {
+        refs.splice(refs, 0, data.prev);  // Splice in at least the previous one (-1)
+        this.numSectionsLoadedAtTop = 1;
+
+        var prevData, earlierData;
+
+        // Now, only add sources if we have data for them
+        if(prevData = Sefaria.ref(data.prev)) {
+          earlierData = Sefaria.ref(prevData.prev);
+        }
+
+        while(earlierData) {
+          refs.splice(refs, 0, earlierData.ref);
+          this.numSectionsLoadedAtTop += 1;
+          earlierData = Sefaria.ref(earlierData.prev);
+        }
+
         //console.log("Up! Add previous section. Windowtop is: " + windowTop);
-        refs.splice(refs, 0, data.prev);
         this.loadingContentAtTop = true;
         this.props.updateTextColumn(refs);
-        Sefaria.track.event("Reader", "Infinite Scroll", "Up");
+        // Sefaria.track.event("Reader", "Infinite Scroll", "Up");
       }
     } else if ( lastBottom < windowHeight + 80 ) {
       // DOWN: add the next section to bottom
@@ -178,9 +200,22 @@ class TextColumn extends Component {
       var currentRef = refs.slice(-1)[0];
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
-        refs.push(data.next);
+        refs.push(data.next); // Append at least the next one
+
+        var nextData, laterData;
+
+        // Now, only add sources if we have data for them
+        if(nextData = Sefaria.ref(data.next)) {
+          laterData = Sefaria.ref(nextData.next);
+        }
+
+        while(laterData) {
+          refs.push(laterData.ref);
+          laterData = Sefaria.ref(laterData.next);
+        }
+
         this.props.updateTextColumn(refs);
-        Sefaria.track.event("Reader", "Infinite Scroll", "Down");
+        // Sefaria.track.event("Reader", "Infinite Scroll", "Down");
       }
     }
   }
@@ -243,28 +278,22 @@ class TextColumn extends Component {
       }
     }
   }
-  setPaddingForScrollbar() {
-    // Scrollbars take up spacing, causing the centering of TextColumn to be slightly off center
-    // compared to the header. This functions sets appropriate padding to compensate.
-    var width = Sefaria.util.getScrollbarWidth();
-    if (this.props.interfaceLang == "hebrew") {
-      this.$container.css({paddingRight: width, paddingLeft: 0});
-    } else {
-      this.$container.css({paddingRight: 0, paddingLeft: width});
-    }
-  }
   render() {
     var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
+    var index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
+    var isDictionary = (index && index.categories[0] == "Reference");
     var content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={ref}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
+        hideTitle={isDictionary}
         basetext={true}
         withContext={true}
         loadLinks={true}
         prefetchNextPrev={true}
+        prefetchMultiple={isDictionary?20:0}
         showParashahHeaders={true}
         settings={this.props.settings}
         setOption={this.props.setOption}
@@ -289,7 +318,14 @@ class TextColumn extends Component {
       if (hasPrev) {
         content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
       } else {
-        content.splice(0, 0, (<LoadingMessage message={topSymbol} heMessage={topSymbol} className="base prev" key="prev"/>));
+
+        content.splice(0, 0, (
+          <div className="bookMetaDataBox" key="prev">
+              <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{this.props.bookTitle}</div>
+              <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{this.props.heBookTitle}</div>
+          </div>
+        ));
+
       }
       if (hasNext) {
         content.push((<LoadingMessage className="base next" key="next"/>));

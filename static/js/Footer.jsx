@@ -4,9 +4,6 @@ const $          = require('./sefaria/sefariaJquery');
 import Component from 'react-class';
 
 
-var fbURL = Sefaria.interfaceLang == "hebrew" ?
-    "https://www.facebook.com/sefaria.org.il" 
-    : "https://www.facebook.com/sefaria.org";
 
 class Footer extends Component {
   constructor(props) {
@@ -41,6 +38,7 @@ class Footer extends Component {
     }
   }
   render() {
+    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     var currentPath = Sefaria.util.currentPath();
     var currentPathEncoded = encodeURIComponent(currentPath);
     var next = currentPathEncoded ? currentPathEncoded : '?home';
@@ -68,6 +66,14 @@ class Footer extends Component {
                   <span className="int-en">Team</span>
                   <span className="int-he">צוות</span>
               </a>
+              <a href="/testimonials" className="outOfAppLink">
+                  <span className="int-en">Testimonials</span>
+                  <span className="int-he">חוות דעת</span>
+              </a>
+              <a href="/metrics" className="outOfAppLink">
+                  <span className="int-en">Metrics</span>
+                  <span className="int-he">מדדים</span>
+              </a>
               <a href="/terms" className="outOfAppLink">
                   <span className="int-en">Terms of Use</span>
                   <span className="int-he">תנאי שימוש</span>
@@ -80,8 +86,8 @@ class Footer extends Component {
 
           <div className="section">
               <div className="header">
-                      <span className="int-en">Educators</span>
-                      <span className="int-he">מחנכים</span>
+                      <span className="int-en">Tools</span>
+                      <span className="int-he">כלים</span>
               </div>
               <a href="/educators" className="outOfAppLink">
                   <span className="int-en">Teach with Sefaria</span>
@@ -95,13 +101,21 @@ class Footer extends Component {
                   <span className="int-en">Visualizations</span>
                   <span className="int-he">תרשימים גרפיים</span>
               </a>
+              <a href="/mobile" className="outOfAppLink">
+                  <span className="int-en">Mobile Apps</span>
+                  <span className="int-he">ספריא בנייד</span>
+              </a>
               <a href="/people" className="outOfAppLink">
                   <span className="int-en">Authors</span>
                   <span className="int-he">מחברים</span>
               </a>
+              <a href="/groups" className="outOfAppLink">
+                  <span className="int-en">Groups</span>
+                  <span className="int-he">הקבוצות</span>
+              </a>
               <a href="/updates" className="outOfAppLink">
                   <span className="int-en">New Additions</span>
-                  <span className="int-he">מה חדש</span>
+                  <span className="int-he">עדכונים</span>
               </a>
           </div>
 
@@ -179,20 +193,20 @@ class Footer extends Component {
                 <span className="int-he">טוויטר</span>
 
               </a>
-              &bull;
+              <br />
               <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
                   <span className="int-en">YouTube</span>
                   <span className="int-he">יוטיוב</span>
               </a>
-              <br />
+              &bull;
               <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
                   <span className="int-en">Blog</span>
                   <span className="int-he">בלוג</span>
               </a>
-              &bull;
-              <a href="https://groups.google.com/forum/?fromgroups#!forum/sefaria" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Forum</span>
-                  <span className="int-he">פורום</span>
+              <br />
+              <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
+                  <span className="int-en">Instagram</span>
+                  <span className="int-he">אינסטגרם</span>
 
               </a>
               &bull;
@@ -265,6 +279,7 @@ class LikeFollowButtons extends Component {
     }
   }
   render() {
+    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     var lang = Sefaria.interfaceLang.substring(0,2);
     return (<div id="socialButtons">
               <div id="facebookButton">
@@ -286,5 +301,6 @@ class LikeFollowButtons extends Component {
             </div>);
   }
 }
+
 
 module.exports = Footer;

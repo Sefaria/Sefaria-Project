@@ -38,6 +38,7 @@ class SheetStats(object):
 		proj = {"sources.ref": 1, "tags": 1, "options": 1, "status": 1, "id": 1}
 		if query:
 			sheets            = db.sheets.find(query, proj)
+			self.total = sheets.count()
 			print "%d matching query" % sheets.count()
 		else:
 			sheets            = db.sheets.find()
@@ -148,7 +149,8 @@ class SheetStats(object):
 		show_count = self.show_count
 		print "*********************************\n"
 		print "%d Total Sheets" % self.total
-		print "%d Public Sheets" % self.public_total
+		if hasattr(self,"public_total"):
+			print "%d Public Sheets" % self.public_total
 		print "\n"
 		print "%0.1f%% Bilingual" % (100 * self.languages["bilingual"] / float(self.total))
 		print "%0.1f%% Hebrew" % (100 * self.languages["hebrew"] / float(self.total))

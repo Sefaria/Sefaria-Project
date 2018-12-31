@@ -12,6 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+""" Not used?
 def update_table_of_contents():
     toc = []
     # Add an entry for every text we know about
@@ -23,6 +24,7 @@ def update_table_of_contents():
         node.append(text_dict)
     # Recursively sort categories and texts
     return sort_toc_node(toc, recur=True)
+"""
 
 
 def update_search_filter_table_of_contents():
@@ -30,6 +32,8 @@ def update_search_filter_table_of_contents():
     # Add an entry for every text we know about
     indices = IndexSet()
     for i in indices:
+        if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
+            continue
         cats = get_toc_categories(i, for_search=True)
         node = get_or_make_summary_node(search_toc, cats)
         text_dict = i.slim_toc_contents()

@@ -97,6 +97,7 @@ CATEGORY_ORDER = [
         "Rambam",
     'Apocrypha',
     'Modern Works',
+    "Reference",
     'Other',
     'Tosafot',
 ]
@@ -116,6 +117,7 @@ TOP_CATEGORIES = [
     "Responsa",
     "Apocrypha",
     "Modern Works",
+    "Reference",
     "Other"
 ]
 

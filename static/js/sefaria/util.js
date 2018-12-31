@@ -1,17 +1,48 @@
-const $         = require('./sefariaJquery');
-const extend    = require('extend');
-const striptags = require('striptags');
+const $              = require('./sefariaJquery');
+const extend         = require('extend');
+const striptags      = require('striptags');
 
-if (typeof document !== 'undefined') {
-  var INBROWSER = true;
-} else {
-  var INBROWSER = false;
-}
+
+var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    static clone(obj) {
+    static object_equals(a, b) {
+        // simple object equality assuming values are primitive. see here
+        // http://adripofjavascript.com/blog/drips/object-equality-in-javascript.html
+        if ((typeof a) !== (typeof b))      { return false; }
+        if ((a === null && b !== null) || (a !== null && b === null))
+                                            { return false; }
+        const aProps = Object.getOwnPropertyNames(a);
+        const bProps = Object.getOwnPropertyNames(b);
+        if (aProps.length != bProps.length) { return false; }
+        for (let propName of aProps) {
+          if (a[propName] !== b[propName])  { return false; }
+        }
+        return true;
+    }
+    static epoch_time() {
+      // get current epoch time in UTC
+      // silly but thus is JS
+      // see: https://stackoverflow.com/a/6777470/4246723
+      const now = new Date();
+      const nowUTC =  Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
+                               now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
+      return Math.round(nowUTC/1000);
+    }
+    static zip(...rows) {
+      // rows is an array
+      // corrolary to zip in python
+      return rows[0].map((_,c)=>rows.map(row=>row[c]));
+    }
+    static clone(obj, trimFilters) {
         // Handle the 3 simple types, and null or undefined
         if (null == obj || "object" != typeof obj) return obj;
+
+        if (typeof obj.clone === 'function') {
+          // this handles any object with a clone function which currently
+          // includes SearchState and FilterNode
+          return obj.clone(trimFilters);
+        }
 
         // Handle Date
         if (obj instanceof Date) {
@@ -180,6 +211,11 @@ class Util {
            //}
         };
 
+        String.prototype.stripHtmlKeepLineBreaks = function() {
+            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/<p>/g, ' <p>'),['br']);
+        };
+
+
         String.prototype.escapeHtml = function() {
             return this.replace(/&/g,'&amp;')
                         .replace(/</g,'&lt;')
@@ -251,6 +287,33 @@ class Util {
             }
             this.splice(new_index, 0, this.splice(old_index, 1)[0]);
             return this; // for testing purposes
+        };
+
+        Array.prototype.insertInOrder = function(element, comparer) {
+          // see https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
+          // insert `element` into array so that the array remains sorted, assuming it was sorted to begin with
+          this.splice(this.locationOfSorted(element, comparer) + 1, 0, element);
+          return this;
+        };
+
+        Array.prototype.locationOfSorted = function(element, comparer, start, end) {
+          // https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
+          // get index to insert `element` into array so that array remains sorted, assuming it was sorted to begin with
+          if (this.length === 0)
+            return -1;
+
+          start = start || 0;
+          end = end || this.length;
+          const pivot = (start + end) >> 1;  // should be faster than dividing by 2
+
+          const c = comparer(element, this[pivot]);
+          if (end - start <= 1) return c == -1 ? pivot - 1 : pivot;
+
+          switch (c) {
+            case -1: return this.locationOfSorted(element, comparer, start, pivot);
+            case 0: return pivot;
+            case 1: return this.locationOfSorted(element, comparer, pivot, end);
+          };
         };
 
         if (!Array.prototype.fill) {
@@ -508,7 +571,7 @@ class Util {
 
          new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#preview"));
 
-         As currently designed, the object is instantiated, and sets up its own events.
+         The object is instantiated, and sets up its own events.
          It doesn't need to be interacted with from the outside.
          */
 
@@ -540,6 +603,9 @@ class Util {
                       function (d) { response(d["completions"]); }
                   );
                 },
+                select: function(event, ui) {
+                  this._lookupAndRoute(ui.item.value);
+                }.bind(this),
                 minLength: 3
             });
     };

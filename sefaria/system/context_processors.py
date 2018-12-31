@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 
 from sefaria.settings import *
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile
+from sefaria.model.user_profile import UserProfile, UserHistorySet
 from sefaria.model.interrupting_message import InterruptingMessage
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
@@ -24,12 +24,12 @@ logger = logging.getLogger(__name__)
 
 def data_only(view):
     """
-    Marks processors only need when setting the data JS.
+    Marks processors only needed when setting the data JS.
     Passed in Source Sheets which rely on S1 JS.
     """
     @wraps(view)
     def wrapper(request):
-        if (request.path in ("/data.js", "/sefaria.js", "/texts") or 
+        if (request.path in ("/data.js", "/sefaria.js", "/texts") or
               request.path.startswith("/sheets/")):
             return view(request)
         else:
@@ -54,7 +54,8 @@ def user_only(view):
 def global_settings(request):
     return {
         "SEARCH_URL":             SEARCH_HOST,
-        "SEARCH_INDEX_NAME":      SEARCH_INDEX_NAME,
+        "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
+        "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
         "GOOGLE_ANALYTICS_CODE":  GOOGLE_ANALYTICS_CODE,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
@@ -92,37 +93,33 @@ def user_and_notifications(request):
     """
     Load data that comes from a user profile.
     Most of this data is currently only needed view /data.js
-    /texts requires `recentlyViewed` which is used for server side rendering of recent section
     (currently Node does not get access to logged in version of /data.js)
     """
     if not request.user.is_authenticated:
-        import urlparse
-        recent = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))
-        recent = [] if len(recent) and isinstance(recent[0], dict) else recent # ignore old style cookies
         return {
-            "recentlyViewed": recent,
             "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
         }
-    
+
     profile = UserProfile(id=request.user.id)
     if request.path == "/texts":
         return {
-            "recentlyViewed": profile.recentlyViewed,
+            "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
+            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True)
         }
 
     notifications = profile.recent_notifications()
     notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
-    
+
     interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
     interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
     interrupting_message_json = interrupting_message.json()
-
     return {
         "notifications": notifications,
         "notifications_json": notifications_json,
         "notifications_html": notifications.to_HTML(),
         "notifications_count": profile.unread_notification_count(),
-        "recentlyViewed": profile.recentlyViewed,
+        "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
+        "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
         "partner_role": profile.partner_role,
@@ -177,5 +174,9 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora))}
-
+    if request.user.is_authenticated:
+        profile = UserProfile(id=request.user.id)
+        custom = profile.settings.get("textual_custom", "ashkenazi")
+    else:
+        custom = "ashkenazi" # this is default because this is the most complete data set
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora, custom=custom))}

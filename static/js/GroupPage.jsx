@@ -36,7 +36,39 @@ class GroupPage extends Component {
     }
   }
   getData() {
-    return Sefaria.groups(this.props.group, this.state.sheetSort);
+      var groupData = Sefaria.groups(this.props.group);
+      this.sortSheetData(groupData);
+      if (groupData.pinnedSheets && groupData.pinnedSheets.length > 0) {
+        this.pinSheetsToSheetList(groupData);
+      }
+      return(groupData);
+  }
+  sortSheetData(group) {
+    if (!group.sheets) { return; }
+
+    var sorters = {
+      date: function(a, b) {
+        return Date.parse(b.modified) - Date.parse(a.modified);
+      },
+      alphabetical: function(a, b) {
+        return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
+      },
+      views: function(a, b) {
+        return b.views - a.views;
+      }
+    };
+    group.sheets.sort(sorters[this.state.sheetSort]);
+  }
+  pinSheetsToSheetList(group){
+    var sortPinned = function(a, b) {
+      var ai = group.pinnedSheets.indexOf(a.id);
+      var bi = group.pinnedSheets.indexOf(b.id);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.sheets.sort(sortPinned);
   }
   setTab(tab) {
     this.setState({tab: tab});
@@ -94,7 +126,11 @@ class GroupPage extends Component {
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
         var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
-        return (<div className={classes} onClick={filterThisTag} key={tag.tag}>{tag.tag} ({tag.count})</div>);
+        /* TODO this has a very similar structure to SheetTag, maybe merge */
+        return (<div className={classes} onClick={filterThisTag} key={tag.tag}>
+            <span className="int-en">{tag.tag} ({tag.count})</span>
+            <span className="int-he">{Sefaria.hebrewTerm(tag.tag)} (<span className="enInHe">{tag.count}</span>)</span>
+        </div>);
       }.bind(this)) : null;
 
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
@@ -111,7 +147,7 @@ class GroupPage extends Component {
                 key={sheet.id} />);
     }.bind(this)) : <LoadingMessage />;
 
-    return (<div className="content groupPage sheetList hasFooter">
+    return (group ? <div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
                 {group.imageUrl ?
@@ -211,7 +247,7 @@ class GroupPage extends Component {
             <footer id="footer" className="static sans">
               <Footer />
             </footer>
-            </div>);
+            </div>: <LoadingMessage />);
   }
 }
 GroupPage.propTypes = {
@@ -227,23 +263,27 @@ class GroupSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
 
     if (sheet.tags === undefined) { sheet.tags = []; }
-    var tagString = sheet.tags.map(function (tag) {
-          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
+    var sheetArr = sheet.tags.filter(function(item, pos) {
+        return sheet.tags.indexOf(item) == pos;
+    });
+    var tagString = sheetArr.map(function (tag) {
+          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={`${sheet.id}-${tag}`}/>);
     }, this);
 
 
     var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});
-    var pinMessage = this.props.pinned && this.props.isAdmin ? "Pinned Sheet - click to unpin" :
-                      this.props.pinned ? "Pinned Sheet" : "Pin Sheet";
+    var pinMessage = this.props.pinned && this.props.isAdmin ? Sefaria._("Pinned Sheet - click to unpin") :
+                      this.props.pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
     var pinButton = <div className={pinButtonClasses} onClick={this.props.isAdmin ? this.props.pinSheet : null}>
                       <img src="/static/img/pin.svg" title={pinMessage} />
                     </div>
 
+
     return (<div className="sheet userSheet">
                 <div className="groupSheetInner">
                   <div className="groupSheetInnerContent"> 
-                    <span><a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
-                    <div>{sheet.ownerName} · {sheet.views} Views · {sheet.modified} · <span className="tagString">{tagString}</span></div>
+                    <span><a className="sheetTitle" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
+                    <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{tagString}</span></div>
                   </div>
                   {pinButton}
                 </div>

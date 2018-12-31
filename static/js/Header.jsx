@@ -33,6 +33,7 @@ class Header extends Component {
     if (nextProps.initialState) {
       this.setState(nextProps.initialState);
     }
+    this.setState({notificationCount: Sefaria.notificationCount || 0});
   }
   _searchOverrideRegex() {
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
@@ -83,9 +84,9 @@ class Header extends Component {
   }
   showDesktop() {
     if (this.props.panelsOpen == 0) {
-      var recentlyViewed = Sefaria.recentlyViewed;
-      if (recentlyViewed && recentlyViewed.length) {
-        this.handleRefClick(recentlyViewed[0].ref, recentlyViewed[0].currVersions);
+      const { last_place } = Sefaria;
+      if (last_place && last_place.length) {
+        this.handleRefClick(last_place[0].ref, last_place[0].versions);
       }
     }
     this.props.setCentralState({menuOpen: null});
@@ -248,18 +249,18 @@ class Header extends Component {
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
-                          translateISOLanguageCode={this.props.translateISOLanguageCode}/>) : null;
+                          translateISOLanguageCode={this.props.translateISOLanguageCode}
+                          toggleSignUpModal={this.props.toggleSignUpModal}/>) : null;
 
 
-    var notificationCount = Sefaria.notificationCount || 0;
-    var notifcationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
+    var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
                             <a href="/account" className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></a>
-                            <a href="/notifications" aria-label="See New Notifications" className={notifcationsClasses} onClick={this.showNotifications}>{notificationCount}</a>
+                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login signupLink" href={"/register" + nextParam}>
@@ -271,14 +272,18 @@ class Header extends Component {
                              <span className="int-he">התחבר</span>
                            </a>
                          </div>);
-    var vkClassActivator = this.props.interfaceLang == 'english' ? " keyboardInput" : "";
+    // Header should not show box-shadow over panels that have color line
+    var hasColorLine = ["sheets", "sheets meta"];
+    var hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) == -1);
+    var headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
+    var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == "english", hebrewSearch: this.props.interfaceLang == "hebrew"});
     return (<div className="header" role="banner">
-              <div className="headerInner">
+              <div className={headerInnerClasses}>
                 <div className="headerNavSection">
                     <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
                     <div  className="searchBox">
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                      <input className={"search"+ vkClassActivator}
+                      <input className={inputClasses}
                              id="searchInput"
                              placeholder={Sefaria._("Search")}
                              onKeyUp={this.handleSearchKeyUp}
@@ -326,6 +331,7 @@ Header.propTypes = {
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
+  toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
 

@@ -3,7 +3,7 @@ html {
 
 body {
 	overflow-x: visible;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 }
 body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   	outline: auto;
@@ -125,11 +125,9 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width: 770px;
 	min-height: 980px;
 	padding: 60px 40px;
-	margin: 150px auto 56px;
+	margin: 160px auto 56px;
 	box-shadow: 0px 0px 2px #777;
 	font-family: "Times New Roman", "Georgia", serif;
-
-
 	width:850px;
 	padding:60px 0px;
 
@@ -592,7 +590,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sheetMetadata .metadataOpenDetails {
 	font-size: 14px;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	padding: 35px 0;
 }
 
@@ -620,7 +618,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #s2LikeContainer {
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	color: #666;
 	font-size:12px;
 	height:26px;
@@ -716,7 +714,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #sheet .sourceControlsOpen {
-	background-color: #F9F9F7;
+	background-color: #FBFBFA;
 	z-index: 2;
 	border-top:solid 1px #F2F2F2;
 	border-bottom:solid 1px #F2F2F2;
@@ -751,12 +749,12 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin: 0 5px;
 	font-size: 15px;
 	cursor: pointer;
-	background-color: #F9F9F7 !important;
+	background-color: #FBFBFA !important;
 }
 
 #sourceControls div:hover {
 	color: #08c;
-	background-color: #F9F9F7 !important;
+	background-color: #FBFBFA !important;
 
 }
 .interface-english #sourceControls.sideControls {
@@ -779,7 +777,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 #sourceControls.sideControls div:hover {
 	color: #999;
-	background-color: #F9F9F7 !important;
+	background-color: #FBFBFA !important;
 
 }
 
@@ -941,7 +939,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 #sheet.boxed .sourceControlsOpen {
-	background-color: #F9F9F7;
+	background-color: #FBFBFA;
 }
 
 #sheet.boxed .text,
@@ -1694,7 +1692,7 @@ line-height: normal;
     z-index: 21;
     font-size: 16px;
     color: #333;
-    top: 54px;
+    top: 60px;
 }
 
 .sheetsMenuBar, .sheetsEditorControls{
@@ -1765,7 +1763,7 @@ line-height: normal;
 	display: block;
 	top:45px;
 	/*left:20px;*/
-	background-color: #F9F9F7;
+	background-color: #FBFBFA;
 }
 
 #insertMenu:hover .optionsMenu, .menuHeaderOpen .optionsMenu {
@@ -1801,7 +1799,7 @@ line-height: normal;
 }
 
 .activeSource {
-	background-color: #F9F9F7;
+	background-color: #FBFBFA;
 	border-left:solid 6px #212e50;
 	border-top:solid 1px #F2F2F2;
 	border-bottom:solid 1px #F2F2F2;
@@ -1835,7 +1833,7 @@ line-height: normal;
 	background-color: #f2f2f2;
 	padding: 40px 0 60px 0;
 	text-align: center;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	font-size: 14px;
 	border-top: 1px #ccc solid;
 	border-bottom: 1px #ccc solid;
@@ -1961,6 +1959,9 @@ line-height: normal;
 .inlineAddSourceByttons {
 	display: inline-block;
 }
+.inlineAddSourceByttons .button {
+	padding: 16px 20px;
+}
 .sheetsEditNavTop .button {
 	background-color: #212e50;
 	border-color: #212e50;
@@ -2072,14 +2073,14 @@ a.userLink{
 	float:left;
 	margin-right: 7px;
 }
-.sheetsEditNavTop #save, .sheetsEditNavTop #share  {
+.sheetsEditNavTop #save, .sheetsEditNavTop #share, .sheetsEditNavTop #onlineMode, .sheetsEditNavTop #likeButton  {
 	border-radius: 3px;
 	font-weight: 300;
 	font-size: 12px;
 	margin: auto;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
-    margin-bottom: 2px;
+    height: 10px;
     margin-right: 2px;
 
 }
@@ -2144,12 +2145,12 @@ label[for="sourceSheetShareSelect"] {
 	font-size: 16px;
 	padding: 10px 15px;
     border-radius: 4px;
-	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+	font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 	margin-bottom: 0;
 }
 
 #sheetsContent textarea#sheetSummaryInput::placeholder {
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	color: #999999;
 }
 
@@ -2161,7 +2162,7 @@ label[for="sourceSheetShareSelect"] {
 	width: 100%;
 	font-size: 16px;
     height: 36px;
-	font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+	font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 #shareWithOthers {
@@ -2197,7 +2198,7 @@ label[for="sourceSheetShareSelect"] {
 
 .s2Modal {
 	padding: 30px;
-	background-color: #F9F9F7;
+	background-color: #FBFBFA;
 	border: 1px solid #999;
 	border-radius: 6px;
 	width: 400px;
@@ -2301,7 +2302,7 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 
 #tags input {
     font-size: 16px;
-    font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .ui-icon {
@@ -2321,7 +2322,7 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 
 ul.tagit li.tagit-choice {
     color: #666;
-	background-color: #F9F9F7;
+	background-color: #FBFBFA;
 	border-radius: 2px;
 	padding: 5px 15px 5px 5px;
 	margin: 5px 0 0 5px;
@@ -2368,10 +2369,10 @@ a.tagit-close {
   	position: absolute;
 	z-index: 3;
 	width: 320px;
-	background-color: #f9f9f7;
+	background-color: #FBFBFA;
 	border-radius: 3px;
 	border: 1px solid #ccc;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 
 }
 
@@ -2482,7 +2483,7 @@ a.tagit-close {
 .highlighterSegment[data-tag]::before {
     content: attr(data-tag) ;
     font-size: 14px;
-	font-family: "proxima-nova","Helvetica Neue","Helvetica",sans-serif;
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
     position:absolute;
     z-index: 2;
     white-space:nowrap;

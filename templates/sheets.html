@@ -5,7 +5,8 @@
 
 {% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet by {{ sheet.owner|user_name }} created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block soc_description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
@@ -538,6 +539,7 @@
                 </div>
             </div>
                 <div class="sheetsMenuBarButtons">
+
                 {% if new_sheet %}
                 <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
                     <i class="fa fa-floppy-o"></i>
@@ -556,6 +558,10 @@
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
                 </a>
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                    <span class="int-en">View in Library</span>
+                    <span class="int-he">תצוגה בספריא</span>
+                </a>
                 {% else %}
                 <a id="likeButton" class="button{% if viewer_is_liker %} liked{% endif %}" role="button">
                     {% if viewer_is_liker %}
@@ -563,6 +569,10 @@
                     {% else %}
                         <span class="int-en">Like</span><span class="int-he">אהבתי</span>
                     {% endif %}
+                </a>
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                    <span class="int-en">View in Library</span>
+                    <span class="int-he">תצוגה בספריא</span>
                 </a>
                 {% endif %}
             </div>
@@ -595,19 +605,6 @@
             </span>
             <span class="int-he">
                 אוהבים? <a href="/login?next=/sheets/new">התחברו</a> או <a href="/register?next=/sheets/new">הרשמו</a> כדי ליצור דף מקורות משלכם.
-            </span>
-        </div>
-	</div>
-
-    {% elif not can_edit %}
-
-	<div id="fileControls">
-        <div id="fileControlMsg">
-            <span class="int-en">
-                We're rolling out a <a href="/sheets/{{sheet.id}}?panel=1">new view</a> for sheets. <a href="/sheets/{{sheet.id}}?panel=1">Check it out</a>, and let us know how it looks.
-            </span>
-            <span class="int-he">
-                אנחנו משיקים  <a href="/sheets/{{sheet.id}}?panel=1">מראה חדש</a> בדפי מקורות, <a href="/sheets/{{sheet.id}}?panel=1">בדקו את התכונה החדשה</a> ושתפו אותנו בחוויה שלכם.
             </span>
         </div>
 	</div>
@@ -755,12 +752,7 @@
                 </div>
                 <div class="blockContainer">
                     <input id="inlineAdd" class="inlineAddTextInput"
-                           placeholder=
-                                   {% if request.interfaceLang == 'english' %}
-                                       "Search for a Text or Commentator"
-                                   {% else %}
-                                       "הקלידו לחיפוש טקסט או פרשן"
-                                   {% endif %}/>
+                           placeholder="{% trans "Search for a Text or Commentator" %}"/>
                     <div class="buttonContainer">
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
                             <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">

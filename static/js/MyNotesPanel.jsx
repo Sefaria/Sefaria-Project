@@ -19,9 +19,12 @@ import Component          from 'react-class';
 
 
 class MyNotesPanel extends Component {
+  constructor(props) {
+      super(props);
+      this.state = { numberToRender: 2 };
+  }
   componentDidMount() {
     this.loadData();
-    this.state = { numberToRender: 2 };
   }
   loadData() {
     var notes = Sefaria.allPrivateNotes();
@@ -127,7 +130,11 @@ class NoteListing extends Component {
     var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
 
     return (<div className="noteListing">
-              <div className="addToSheetButton sans" onClick={this.showSheetModal}>
+              <div className="addToSheetButton sans he" onClick={this.showSheetModal}>
+                <span className="int-en">Add to Sheet</span>
+                <span className="int-he">הוסף לדף מקורות</span>
+              </div>
+              <div className="addToSheetButton sans en" onClick={this.showSheetModal}>
                 <span className="int-en">Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
               </div>

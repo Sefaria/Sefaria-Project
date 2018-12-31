@@ -1,7 +1,7 @@
 var extend     = require('extend'),
     param      = require('querystring').stringify,
     striptags  = require('striptags'),
-    { Search } = require('./search'),
+    Search     = require('./search'),
     palette    = require('./palette'),
     Track      = require('./track'),
     Hebrew     = require('./hebrew'),
@@ -9,14 +9,15 @@ var extend     = require('extend'),
     $          = require('./sefariaJquery');
                  require('babel-polyfill');
 
-var INBROWSER = (typeof document !== 'undefined');
 
 var Sefaria = Sefaria || {
   _dataLoaded: false,
+  _inBrowser: (typeof document !== "undefined"),
   toc: [],
   books: [],
   booksDict: {},
-  recentlyViewed: [],
+  last_place: [],
+  saved: [],
   apiHost: "" // Defaults to localhost, override to talk another server
 };
 
@@ -49,10 +50,21 @@ Sefaria = extend(Sefaria, {
       var toSplit = q.split("-");
       var first   = toSplit[0];
 
-      var book, bookOn, index, nums, i;
+      var book, index, nums, i;
       for (i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
-          if (book in Sefaria.booksDict) {
+          if (book in Sefaria.virtualBooksDict) {
+              // todo: This assumes that this is a depth one integer indexed node
+              var numberMatch = first.match(/([\d ]+)$/);
+              if (numberMatch) {
+                  nums = String(+numberMatch[0]);
+                  book = first.slice(0, numberMatch.index)
+              } else {
+                  book = first;
+              }
+              break;
+          }
+          if (book in Sefaria.booksDict || book == "Sheet") {
               nums = first.slice(i+1);
               break;
           }
@@ -69,6 +81,7 @@ Sefaria = extend(Sefaria, {
 
       if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
+          console.log(Sefaria._parseRef[q])
           return Sefaria._parseRef[q];
       }
 
@@ -160,7 +173,7 @@ Sefaria = extend(Sefaria, {
     var oRef2 = Sefaria.parseRef(ref2);
 
     for (var i = 0; i < oRef1.sections.length; i++) {
-      
+
       if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
         return true;
       } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
@@ -183,21 +196,21 @@ Sefaria = extend(Sefaria, {
     var isDepth1 = oRef.sections.length == 1;
     var textData = Sefaria.text(ref);
     if (textData) {
-        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref); 
-        return refs;      
+        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref);
+        return refs;
     } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
       // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
       // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the split of the first non-spanning ref.
       var newRef = Sefaria.util.clone(oRef);
       newRef.toSections = newRef.sections;
-      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));        
-      
+      return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));
+
     } else {
       var refs  = [];
       var start = oRef.sections[oRef.sections.length-1];
       var end   = oRef.toSections[oRef.sections.length-1];
-      for (var i = start; i <= end; i++) {
+      for (var i = parseInt(start); i <= parseInt(end); i++) {
         newRef = Sefaria.util.clone(oRef);
         newRef.sections[oRef.sections.length-1] = i;
         newRef.toSections[oRef.sections.length-1] = i;
@@ -272,6 +285,7 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
+      multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     var key = this._textKey(ref, settings);
@@ -295,24 +309,19 @@ Sefaria = extend(Sefaria, {
       pad:        settings.pad        || 0,
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
-      //wrapLinks:  settings.wrapLinks  || 1
+      multiple:   settings.multiple   || 0,
       wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
-      this._saveText(data, settings);
+      if (Array.isArray(data)) {
+          data.map(d => this._saveText(d, settings))
+      } else {
+          this._saveText(data, settings);
+      }
       cb(data);
       //console.log("API return for " + data.ref)
     }.bind(this));
   },
-  /*
-  refreshSegmentCache: function(ref, versionTitle, language) {
-     // versionTitle and language are optional
-     all_5bit_binary_strings = [...Array(32).keys()].map(n => ((pad + (n).toString(2)).slice(-5)))
-      this.textApi(ref, settings, function() {})
-        .always(function() {this.textApi(ref, settings, function() {})}.bind(this))
-        .always()
-  },
-  */
   _versions: {},
   _translateVersions: {},
   versions: function(ref, cb) {
@@ -346,7 +355,8 @@ Sefaria = extend(Sefaria, {
       commentary: settings.commentary,
       context:    settings.context,
       pad:        settings.pad,
-      wrapLinks:  settings.wrapLinks
+      wrapLinks:  settings.wrapLinks,
+      multiple:   settings.multiple
     });
     var url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + settings.enVersion.replace(/ /g,"_"); }
@@ -402,7 +412,7 @@ Sefaria = extend(Sefaria, {
       this._splitTextSection(data, settings);
     }
 
-    if (settings.context) { 
+    if (settings.context) {
       // Save a copy of the data at section level without context flag
       var newData         = Sefaria.util.clone(data);
       newData.ref         = data.sectionRef;
@@ -415,7 +425,7 @@ Sefaria = extend(Sefaria, {
       newSettings.context = 0;
       this._saveText(newData, newSettings);
     }
-    
+
     if (data.isSpanning) {
       const spanningContextSettings = Sefaria.util.clone(settings);
       spanningContextSettings.context = 1;
@@ -429,7 +439,7 @@ Sefaria = extend(Sefaria, {
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
-    // Don't do this for Refs above section level, like "Rashi on Genesis 1", 
+    // Don't do this for Refs above section level, like "Rashi on Genesis 1",
     // since it's impossible to correctly derive next & prev.
     settings = settings || {};
     var en = typeof data.text == "string" ? [data.text] : data.text;
@@ -652,6 +662,23 @@ Sefaria = extend(Sefaria, {
         });
     }
   },
+  _lexiconCompletions: {},
+  lexiconCompletion: function(word, lexicon, callback) {
+      word = word.trim();
+      var key = word + "/" + lexicon;
+      if (key in this._lexiconCompletions) {
+          callback(this._lexiconCompletions[key]);
+          return null;
+      }
+      return $.ajax({
+          dataType: "json",
+          url: Sefaria.apiHost + "/api/words/completion/" + word + "/" + lexicon,
+          success: function(data) {
+              this._lexiconCompletions[key] = data;
+              callback(data);
+          }.bind(this)
+      });
+  },
   _lexiconLookups: {},
   lexicon: function(words, ref, cb){
     // Returns a list of lexicon entries for the given words
@@ -737,7 +764,7 @@ Sefaria = extend(Sefaria, {
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i = 0; i < data.length; i++) {
       var ref = data[i].anchorRef;
-      if (!ref) { 
+      if (!ref) {
         console.log("_saveItemsByRef encountered an item without a ref field:");
         console.log(data[i]);
         continue;
@@ -1085,7 +1112,7 @@ Sefaria = extend(Sefaria, {
   },
   relatedApi: function(ref, callback) {
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
-    return this._api(url, function(data) {
+    return this._api(url, data => {
       if ("error" in data) {
         return;
       }
@@ -1095,11 +1122,11 @@ Sefaria = extend(Sefaria, {
       var split_data = {
           links: this._saveLinkData(ref, data.links),
           notes: this._saveNoteData(ref, data.notes),
-          sheets: this.sheets._saveSheetsByRefData(ref, data.sheets)
+          sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets"].forEach(function(obj_type) {
+      ["links", "notes", "sheets"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
@@ -1114,7 +1141,7 @@ Sefaria = extend(Sefaria, {
       this._related[ref] = originalData;
 
       callback(data);
-    }.bind(this));
+    });
   },
   _relatedPrivate: {},
   relatedPrivate: function(ref, callback) {
@@ -1357,62 +1384,93 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
-  saveRecentItem: function(recentItem) {
-    var recent = Sefaria.recentlyViewed;
-    if (recent.length && recent[0].ref == recentItem.ref) { return; }
-    recent = recent.filter(function(item) {
-      return item.book !== recentItem.book; // Remove this item if it's in the list already
-    });
-    recent.splice(0, 0, recentItem);
-    Sefaria.recentlyViewed = recent;
-    var packedRecent = recent.map(Sefaria.packRecentItem);
-    if (Sefaria._uid) {
-        $.post(Sefaria.apiHost + "/api/profile",
-              {json: JSON.stringify({recentlyViewed: packedRecent})},
-              function(data) {} );
-    } else {
-      var cookie = INBROWSER ? $.cookie : Sefaria.util.cookie;
-      packedRecent = packedRecent.slice(0, 6);
-      cookie("recentlyViewed", JSON.stringify(packedRecent), {path: "/"});
-    }
+  areVersionsEqual(v1, v2) {
+    // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
+    return v1.en == v2.en && v1.he == v2.he;
   },
-  packRecentItem: function(item) {
-    // Returns an array which represents the object `item` with less overhead.
-    let packed = [
-      item.ref,
-      item.heRef,
-      item.lastVisited,
-      item.bookVisitCount,
-      item.currVersions.en,
-      item.currVersions.he
-    ];
-    return packed;
+  getSavedItem: ({ ref, versions }) => {
+    return Sefaria.saved.find(s => s.ref === ref && Sefaria.areVersionsEqual(s.versions, versions));
   },
-  unpackRecentItem: function(item) {
-    // Returns an object which preprsents the array `item` with fields expanded
-    var oRef = Sefaria.parseRef(item[0]);
-    item = item.pad(6, null)
-    var unpacked = {
-      ref:            item[0],
-      heRef:          item[1],
-      book:           oRef.index,
-      lastVisited:    item[2],
-      bookVisitCount: item[3],
-      currVersions: {
-        en:           item[4],
-        he:           item[5],
-      },
-    };
-    return unpacked;
+  removeSavedItem: ({ ref, versions }) => {
+    Sefaria.saved = Sefaria.saved.filter(x => !(x.ref === ref && Sefaria.areVersionsEqual(versions, x.versions)));
   },
-  recentItemForText: function(title) {
-    // Return the most recently visited item for text `title` or null if `title` is not present in recentlyViewed.
-    for (var i = 0; i < Sefaria.recentlyViewed.length; i++) {
-      if (Sefaria.recentlyViewed[i].book === title) {
-        return Sefaria.recentlyViewed[i];
+  toggleSavedItem: ({ ref, versions, sheet_owner, sheet_title }) => {
+    return new Promise((resolve, reject) => {
+      const action = !!Sefaria.getSavedItem({ ref, versions }) ? "delete_saved" : "add_saved";
+      const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
+      if (Sefaria._uid) {
+        $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
+          { user_history: JSON.stringify([savedItem]) }
+        ).done(response => {
+          if (!!response['error']) {
+            reject(response['error'])
+          } else {
+            if (action === "add_saved" && !!response.created) {
+              Sefaria.saved.unshift(response.created);
+            } else {
+              // delete
+              Sefaria.removeSavedItem({ ref, versions });
+            }
+            resolve(response);
+          }
+        }).fail((jqXHR, textStatus, errorThrown) => {
+          reject(errorThrown);
+        })
+      } else {
+        reject('notSignedIn');
       }
+    });
+  },
+  userHistoryAPI: () => {
+    return new Promise((resolve, reject) => {
+      Sefaria._api(Sefaria.apiHost + "/api/profile/user_history?secondary=0", data => {
+        resolve(data);
+      })
+    });
+  },
+  saveUserHistory: function(history_item) {
+    // history_item contains:
+    // - ref, book, versions. optionally: secondary, he_ref, language
+    const history_item_array = Array.isArray(history_item) ? history_item : [history_item];
+    for (let h of history_item_array) {
+      h.time_stamp = Sefaria.util.epoch_time();
     }
-    return null;
+    if (Sefaria._uid) {
+        console.log("sync", history_item_array);
+        $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
+              {user_history: JSON.stringify(history_item_array)},
+              data => { /*console.log("sync resp", data)*/ } );
+    } else {
+      // we need to get the heRef for each history item
+      Promise.all(history_item_array.filter(x=>!x.secondary).map(h => new Promise((resolve, reject) => {
+        Sefaria.ref(h.ref, oref => {
+          h.he_ref = oref.heRef;
+          resolve(h);
+        });
+      }))).then(new_hist_array => {
+        const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+        const user_history_cookie = cookie("user_history");
+        const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
+        cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
+        //console.log("saving history cookie", new_hist_array);
+        if (Sefaria._inBrowser) {
+          // check if we've reached the cookie size limit
+          const cookie_hist = JSON.parse(cookie("user_history"));
+          if (cookie_hist.length < (user_history.length + new_hist_array.length)) {
+            // save failed silently. resave by popping old history
+            if (new_hist_array.length < user_history.length) {
+              new_hist_array = new_hist_array.concat(user_history.slice(0, -new_hist_array.length));
+            }
+            cookie("user_history", JSON.stringify(new_hist_array), {path: "/"});
+          }
+        }
+      });
+    }
+    Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
+  },
+  lastPlaceForText: function(title) {
+    // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.
+    return Sefaria.last_place.find(x => x.book === title);
   },
   _topicList: null,
   topicList: function(callback) {
@@ -1451,10 +1509,10 @@ Sefaria = extend(Sefaria, {
         if (callback) { callback(sheet); }
       } else {
         var url = "/api/sheets/" + id +"?more_data=1";
-         $.getJSON(url, function(data) {
+         $.getJSON(url, data => {
             this._loadSheetByID[id] = data;
             if (callback) { callback(data); }
-          }.bind(this));
+          });
         }
       return sheet;
     },
@@ -1520,7 +1578,7 @@ Sefaria = extend(Sefaria, {
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = Sefaria.apiHost + "/api/sheets/tag/" + tag;
+        var url = Sefaria.apiHost + "/api/sheets/tag/" + tag.replace("#","%23");
          $.getJSON(url, function(data) {
             this._sheetsByTag[tag] = data.sheets;
             if (callback) { callback(data.sheets); }
@@ -1657,46 +1715,17 @@ Sefaria = extend(Sefaria, {
   _groups: {},
   groups: function(group, sortBy, callback) {
     // Returns data for an individual group
-    var group = this._groups[group];
-    if (group) {
-      this._sortSheets(group, sortBy);
-      if (callback) { callback(group); }
+    var groupObj = this._groups[group];
+    if (groupObj) {
+      if (callback) { callback(groupObj); }
     } else if (callback) {
       var url = Sefaria.apiHost + "/api/groups/" + group;
        Sefaria._api(url, function(data) {
-          this._groups[group] = data;
-          this._sortSheets(data, sortBy);
-          callback(data);
+           this._groups[group] = data;
+           callback(data);
         }.bind(this));
       }
-    return group;
-  },
-  _sortSheets: function(group, sortBy) {
-    // Taks an object representing a group and sorts its sheets in place according to `sortBy`.
-    // Also honors ordering of any sheets in `group.pinned_sheets`
-    if (!group.sheets) { return; }
-
-    var sorters = {
-      date: function(a, b) {
-        return Date.parse(b.modified) - Date.parse(a.modified);
-      },
-      alphabetical: function(a, b) {
-        return a.title.stripHtml().trim() > b.title.stripHtml().trim() ? 1 : -1;
-      },
-      views: function(a, b) {
-        return b.views - a.views;
-      }
-    };
-    var sortPinned = function(a, b) {
-      var ai = group.pinnedSheets.indexOf(a.id);
-      var bi = group.pinnedSheets.indexOf(b.id);
-      if (ai == -1 && bi == -1) { return 0; }
-      if (ai == -1) { return 1; }
-      if (bi == -1) { return -1; }
-      return  ai < bi ? -1 : 1;
-    };
-    group.sheets.sort(sorters[sortBy]);
-    group.sheets.sort(sortPinned);
+    return groupObj;
   },
   _groupsList: null,
   groupsList: function(callback) {
@@ -1788,6 +1817,9 @@ Sefaria = extend(Sefaria, {
       "Please select a source sheet.": "אנא בחר דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
       "Source Sheet by" : "דף מקורות מאת",
+      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
+      "Pinned Sheet" : "דף מקורות נעוץ",
+      "Pin Sheet" : "נעיצת דף מקורות",
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
@@ -1836,7 +1868,6 @@ Sefaria = extend(Sefaria, {
       //"Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Views": "צפיות",
       "Versions": "גרסאות",
       "Version Open": "גרסה פתוחה",
       "About": "אודות",
@@ -1872,7 +1903,31 @@ Sefaria = extend(Sefaria, {
       "Vocalization": "טעמים וניקוד",
       "Vowels": "ניקוד",
       "Show only vowel points": "הצג טקסט עם ניקוד",
-      "Show only consonantal text": "הצג טקסט עיצורי בלבד"
+      "Show only consonantal text": "הצג טקסט עיצורי בלבד",
+      "Email Address" : "כתובת אימייל",
+      "Describe the issue..." : "טקסט המשוב",
+      "Report an issue with the text" : "דיווח על בעיה בטקסט",
+      "Report a bug" : "דיווח על תקלה באתר",
+      "Get help" : "עזרה",
+      "Request a feature": "בקשה להוספת אפשרות באתר",
+      "Give thanks": "תודה",
+      "Other": "אחר",
+      "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
+      "Please select a feedback type": "אנא בחרו סוג משוב",
+      "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
+      "Select Type" : "סוג משוב",
+      "Added by" : "נוסף בידי",
+      "Join Sefaria.": "הצטרפו לספריא",
+      "Organize sources with sheets": "ארגנו מקורות במחולל דפי המקורות",
+      "Make notes": "רשמו הערות על טקסטים",
+      "Save texts": "שמרו טקסטים לקריאה חוזרת",
+      "Follow your favorite authors": "עקבו אחר הסופרים האהובים עליכם",
+      "Get updates on texts": "קבלו עדכונים על תוכן חדש",
+      "Create Your Account": "צרו חשבון",
+      "Already have an account?": "כבר יש לכם חשבון?",
+      "Sign\u00A0in": "התחברו",
+      "Save": "שמירת",
+      "Remove": "הסרת",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -2049,14 +2104,17 @@ Sefaria.setup = function(data) {
       Sefaria._partner_role = cookie._partner_role;
     }
     Sefaria._makeBooksDict();
+    Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
-    if (!Sefaria.recentlyViewed) {
-        Sefaria.recentlyViewed = [];
+    if (!Sefaria.saved) {
+      Sefaria.saved = [];
     }
-    Sefaria.recentlyViewed = Sefaria.recentlyViewed.map(Sefaria.unpackRecentItem).filter(function(item) { return !("error" in item); });
+    if (!Sefaria.last_place) {
+        Sefaria.last_place = [];
+    }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
-    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndex)
+    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)
 };
 Sefaria.setup();
 

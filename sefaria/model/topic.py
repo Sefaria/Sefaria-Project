@@ -118,11 +118,12 @@ class TopicsManager(object):
         self._loaded = False
 
     def _lazy_load(self):
+        return
+        '''
         if not self._loaded:
             self.make_data_from_sheets()
-            self._loaded = True
             self.save_to_cache()
-
+        '''
     def make_data_from_sheets(self):
         """
         Processes all public source sheets to create topic data.
@@ -155,10 +156,12 @@ class TopicsManager(object):
             if len(topic.sources) > 0:
                 self.topics[tag] = topic
 
+        self._loaded = True
+
     def save_to_cache(self):
         pickled = pickle.dumps(self)
-        scache.set_cache_elem('topics', pickled)
-        scache.set_cache_elem('topics_timestamp', self.timestamp())
+        scache.set_cache_elem('topics', pickled, None)
+        scache.set_cache_elem('topics_timestamp', self.timestamp(), None)
 
     def timestamp(self):
         return int(time.time())
@@ -189,7 +192,10 @@ class TopicsManager(object):
 
     def list(self, sort_by="alpha"):
         """ Returns a list of all available topics """
-        self._lazy_load()
+        if not self._loaded:
+            return []
+
+        # self._lazy_load()
         if sort_by in self.sorted_topics:
             return self.sorted_topics[sort_by]
         else:

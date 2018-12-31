@@ -32,15 +32,19 @@ static_pages = [
     "educators",
     "the-sefaria-story",
     "aramaic-translation-contest",
+    "newsletter",
+    "shavuot-map-2018",
+    "testimonials"
 ]
 
-# Semi Static Content
+# Static and Semi Static Content
 site_urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
 ]
+
 
 # Redirects to Forum, Wiki, etc
 site_urlpatterns += [
@@ -51,9 +55,13 @@ site_urlpatterns += [
     url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
-    url(r'^textmap/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria-Text-Map-June-2016.pdf')),
-    url(r'^workshop/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_SummerMeeting_2016.pdf')),
-    url(r'^ideasforteaching/?$', lambda x: HttpResponseRedirect('/static/files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
+]
+
+site_urlpatterns +=[
+    url(r'^textmap/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria-Text-Map-June-2016.pdf')),
+    url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
+    url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
+    url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
 ]

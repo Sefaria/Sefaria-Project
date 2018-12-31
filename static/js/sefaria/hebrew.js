@@ -93,6 +93,12 @@ class Hebrew {
     }
     return false;
   }
+
+  static containsEnglish(text) {
+    // Returns true if there are any English characters in text
+    return !!(text.match(/[a-zA-Z]/));
+  }
+
   static hebrewPlural(s) {
     var known = {
       "Daf":      "Dappim",

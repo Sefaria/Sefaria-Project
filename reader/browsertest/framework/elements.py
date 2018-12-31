@@ -85,6 +85,19 @@ class AbstractTest(object):
         pass
         # self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
+    def set_cookies_cookie(self):
+        # set cookie to avoid popup interruption
+        # We now longer set the welcomeToS2LoggedOut message by default.
+        # TODO is this method still needed?
+        self.driver.add_cookie({"name": "cookiesNotificationAccepted", "value": "1", 'path' : '/'})
+
+    def click_accept_cookies(self):
+        try:
+            elem = self.driver.find_element_by_css_selector(".cookiesNotification .button")
+            elem.click()
+        except NoSuchElementException:
+            pass
+
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
         user = os.environ["SEFARIA_TEST_USER"]
@@ -123,7 +136,7 @@ class AbstractTest(object):
         el = self.driver.find_element_by_css_selector('.sheets-link')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".sheetsNewButton .button")))
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".userSheet")))
+        #WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".userSheet")))
         #WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, ".loadingMessage")))
         el = self.driver.find_element_by_css_selector(".sheetsNewButton .button")
         el.click()
@@ -157,6 +170,13 @@ class AbstractTest(object):
             self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
 
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
+        return self
+
+    def nav_to_history(self):
+        self.nav_to_toc()
+        el = self.driver.find_element_by_css_selector('a[href="/texts/history"]')
+        el.click()
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".recentItem")))
         return self
 
     def load_toc(self, my_temper=None):
@@ -258,7 +278,6 @@ class AbstractTest(object):
                 self.open_text_toc_menu(ancestor.ref())
 
         self.click_text_toc_section(section_ref)
-
         return self
 
     @staticmethod
@@ -484,7 +503,7 @@ class AbstractTest(object):
         if query is not None:
             url += "?q={}".format(query)
         self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-total")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".type-button-title")))
         self.set_modal_cookie()
         return self
 

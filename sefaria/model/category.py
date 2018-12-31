@@ -11,6 +11,7 @@ from . import text as text
 from . import link as link
 from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
 
+
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
     collection = 'category'
     history_noun = "category"
@@ -142,7 +143,7 @@ def toc_serial_to_objects(toc):
     root = TocCategory()
     root.add_primary_titles("TOC", u"שרש")
     for e in toc:
-        root.append(schema.deserialize_tree(e, struct_class=TocCategory, leaf_class=TocTextIndex, children_attr="contents"))
+        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents"))
     return root
 
 
@@ -175,6 +176,8 @@ class TocTree(object):
         # Place Indexes
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
         for i in indx_set:
+            if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
+                continue
             node = self._make_index_node(i)
             cat = self.lookup(i.categories)
             if not cat:
@@ -422,5 +425,4 @@ class TocTextIndex(TocNode):
         "en": "title",
         "he": "heTitle"
     }
-
 
