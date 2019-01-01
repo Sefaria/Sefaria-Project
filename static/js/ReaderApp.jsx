@@ -68,6 +68,7 @@ class ReaderApp extends Component {
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
             field: props.initialTextSearchField,
+            appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
             sortType: props.initialTextSearchSortType,
           }),
           sheetSearchState: new SearchState({
@@ -108,6 +109,7 @@ class ReaderApp extends Component {
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
             field: props.initialTextSearchField,
+            appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
             sortType: props.initialTextSearchSortType,
           }),
           sheetSearchState: new SearchState({
@@ -141,6 +143,7 @@ class ReaderApp extends Component {
           type: 'text',
           appliedFilters: props.initialTextSearchFilters,
           field: props.initialTextSearchField,
+          appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
           sortType: props.initialTextSearchSortType,
         }),
         sheetSearchState: new SearchState({
@@ -499,7 +502,7 @@ class ReaderApp extends Component {
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
             hist.title += Sefaria._("Sefaria Search");
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` + 
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` +
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
               state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";

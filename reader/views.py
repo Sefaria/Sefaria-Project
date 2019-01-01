@@ -566,13 +566,14 @@ def get_search_params(get_dict, i=None):
                                                                                                        "") else []
     sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(
         sheet_tags_search_filters)  # i got a tingly feeling writing this
-
+    text_filters = map(lambda f: urllib.unquote(f), get_dict.get(gp("tpathFilters", i)).split("|")) if get_dict.get(gp("tpathFilters", i)) else []
     return {
         "query": urllib.unquote(get_dict.get(gp("q", i), "")),
         "tab": urllib.unquote(get_dict.get(gp("tab", i), "text")),
         "textField": ("naive_lemmatizer" if get_dict.get(gp("tvar", i)) == "1" else "exact") if get_dict.get(gp("tvar", i)) else "",
         "textSort": get_dict.get(gp("tsort", i), None),
-        "textFilters": map(lambda f: urllib.unquote(f), get_dict.get(gp("tpathFilters", i)).split("|")) if get_dict.get(gp("tpathFilters", i)) else [],
+        "textFilters": text_filters,
+        "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
         "sheetSort": get_dict.get(gp("ssort", i), None),
         "sheetFilters": (sheet_group_search_filters + sheet_tags_search_filters),
         "sheetFilterAggTypes": sheet_agg_types,
@@ -591,10 +592,11 @@ def search(request):
         "initialQuery": search_params["query"],
         "initialSearchTab": search_params["tab"],
         "initialTextSearchFilters": search_params["textFilters"],
-        "initialSheetSearchFilters": search_params["sheetFilters"],
-        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
+        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
         "initialTextSearchField": search_params["textField"],
         "initialTextSearchSortType": search_params["textSort"],
+        "initialSheetSearchFilters": search_params["sheetFilters"],
+        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
         "initialSheetSearchSortType": search_params["sheetSort"]
     })
     propsJSON = json.dumps(props)

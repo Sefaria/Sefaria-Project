@@ -89,6 +89,7 @@ class ReaderPanel extends Component {
         field:              props.initialTextSearchField,
         sortType:           props.initialTextSearchSortType,
         appliedFilters:     props.initialTextAppliedSearchFilters,
+        appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
       }),
       sheetSearchState: new SearchState({
         type:               'sheet',
