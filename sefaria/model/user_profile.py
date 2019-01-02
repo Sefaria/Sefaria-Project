@@ -191,25 +191,36 @@ class UserProfile(object):
     @staticmethod
     def transformOldRecents(uid, recents):
         from dateutil import parser
+        from sefaria.system.exceptions import InputError
         import pytz
         default_epoch_time = epoch_time(
             datetime(2017, 12, 1))  # the Sefaria epoch. approx time since we added time stamps to recent items
-        return filter(lambda x: x["book"] is not None, [
-                {
+
+        def xformer(recent):
+            try:
+                return {
                     "uid": uid,
-                    "ref": r[0],
-                    "he_ref": r[1],
-                    "book": Ref(r[0]).index.title if Ref.is_ref(r[0]) else None,
+                    "ref": recent[0],
+                    "he_ref": recent[1],
+                    "book": Ref(recent[0]).index.title,
                     "last_place": True,
-                    "time_stamp": epoch_time(parser.parse(r[2]).replace(tzinfo=None)) if r[2] is not None else default_epoch_time,
-                    "server_time_stamp": epoch_time(parser.parse(r[2]).replace(tzinfo=None)) if r[2] is not None else default_epoch_time,
-                    "num_times_read": (r[3] if r[3] and isinstance(r[3], int) else 1),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
+                    "time_stamp": epoch_time(parser.parse(recent[2]).replace(tzinfo=None)) if recent[2] is not None else default_epoch_time,
+                    "server_time_stamp": epoch_time(parser.parse(recent[2]).replace(tzinfo=None)) if recent[2] is not None else default_epoch_time,
+                    "num_times_read": (recent[3] if recent[3] and isinstance(recent[3], int) else 1),  # we dont really know how long they've read this book. it's probably correlated with the number of times they opened the book
                     "versions": {
-                        "en": r[4],
-                        "he": r[5]
+                        "en": recent[4],
+                        "he": recent[5]
                     }
-                } for r in recents
-            ])
+                }
+            except InputError:
+                return None
+            except ValueError:
+                return None
+            except IndexError:
+                return None
+            except AttributeError:
+                return None
+        return filter(None, [xformer(r) for r in recents])
 
     def migrateFromOldRecents(self, profile):
         """
