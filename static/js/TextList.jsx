@@ -77,7 +77,7 @@ class TextList extends Component {
     }
   }
   preloadSingleCommentaryText(filter) {
-    console.log('preloading single commentary')
+    //console.log('preloading single commentary')
     // Preload commentary for an entire section of text.
     this.setState({textLoaded: false});
     var commentator       = filter[0];
@@ -164,13 +164,38 @@ class TextList extends Component {
     }.bind(this);
 
     let sectionLinks = Sefaria.links(sectionRef);
-
     let overlaps = link => (!(Sefaria.splitRangingRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)));
     let links = Sefaria._filterLinks(sectionLinks, filter)
       .filter(overlaps)
       .sort(sortConnections);
 
+    this.checkLinkScrollIntent(links);
     return links;
+  }
+  checkLinkScrollIntent(links) {
+    // make sure there is a filter and it corresponds to a single book
+    if (!this.props.filter || !this.props.filter.length || !Sefaria.index(this.props.filter[0])) { return; }
+    const initialFilter = this.props.filter;
+    const initialRefs = this.props.srefs;
+    this.scrollIntentTimer = this.props.checkIntentTimer(this.scrollIntentTimer, () => {
+      if (!this.didFilterChange(initialFilter, initialRefs, this.props.filter, this.props.srefs)) {
+        // TODO: add version info once we support that in links
+        Sefaria.saveUserHistory(links.map(l => ({
+            ref: l.sourceRef,
+            he_ref: l.sourceHeRef,
+            versions: {en: null, he: null},
+            book: l.index_title,
+            secondary: true,
+            language: this.props.contentLang,
+        })));
+      }
+    });
+  }
+  didFilterChange(prevFilter, prevRefs, nextFilter, nextRefs) {
+    if (!prevFilter || !nextFilter ||
+        !prevFilter.length || !nextFilter.length ||
+        (Sefaria.index(prevFilter[0]) !== Sefaria.index(nextFilter[0]))) { return true; }
+    return !prevRefs.compare(nextRefs);
   }
   render() {
     var refs               = this.props.srefs;
@@ -244,6 +269,7 @@ TextList.propTypes = {
   openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
   selectedWords:           PropTypes.string,
+  checkIntentTimer:        PropTypes.func.isRequired,
 };
 
 

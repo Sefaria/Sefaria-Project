@@ -2,10 +2,61 @@
 """
 Miscellaneous functions for Sefaria.
 """
+import pytz
+from datetime import datetime
 from HTMLParser import HTMLParser
 import re
 from functools import wraps
 
+epoch = datetime.utcfromtimestamp(0)
+
+
+def concise_natural_time(start_date, end_date=None):
+    """
+    meant as a shorter version of naturaltime() from django
+    :param start_date:
+    :param end_date:
+    :return: difference in time b/w start_date and end_date. output is tuple (units:int, unit_str:str)
+    for example, if diff is 2 seconds output will be (2, "seconds")
+    slightly incovenient output is meant to make it easier to internationalize
+    """
+    if end_date is None:
+        end_date = datetime.now()
+    delta = end_date - start_date
+    natural_order = [
+        ("days", 365, u"year"),
+        ("days", 30, u"month"),
+        ("days", 7, u"week"),
+        ("days", 1, u"day"),
+        ("seconds", 3600, u"hour"),
+        ("seconds", 60, u"minute"),
+        ("seconds", 1, u"second")
+    ]
+    n, time_unit = None, None
+    for attr, cutoff, temp_time_unit in natural_order:
+        n_units = getattr(delta, attr)
+        if n_units > 0:
+            if n_units >= cutoff:
+                n = n_units/cutoff
+
+                time_unit = temp_time_unit
+                break
+        elif n_units < 0:
+            # date is in the future. pretend like it's now
+            break
+    if n is None:
+        return u"now"
+    return u"{} {}{}".format(n, time_unit, u"s" if n > 1 else u"")
+
+
+
+
+def epoch_time(since=None):
+    if since is None:
+        since = datetime.now()
+    # define total_seconds which exists in Python3
+    total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
+    return total_seconds(since - epoch)
 
 def graceful_exception(logger=None, return_value=[]):
     def argumented_decorator(func):

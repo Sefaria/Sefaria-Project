@@ -47,10 +47,12 @@ class SearchPage extends Component {
                           </h1>
                           <div className="searchContent" style={style}>
                               <SearchResultList
-                                query = { this.props.query }
+                                query={this.props.query}
+                                tab={this.props.tab}
                                 textSearchState={this.props.textSearchState}
                                 sheetSearchState={this.props.sheetSearchState}
                                 onResultClick={this.props.onResultClick}
+                                updateTab={this.props.updateTab}
                                 updateAppliedFilter = {this.props.updateAppliedFilter}
                                 updateAppliedOptionField={this.props.updateAppliedOptionField}
                                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
@@ -70,6 +72,7 @@ class SearchPage extends Component {
 }
 SearchPage.propTypes = {
     query:                    PropTypes.string,
+    tab:                      PropTypes.oneOf(["text", "sheet"]),
     textSearchState:          PropTypes.object,
     sheetSearchState:         PropTypes.object,
     settings:                 PropTypes.object,
@@ -77,6 +80,7 @@ SearchPage.propTypes = {
     close:                    PropTypes.func,
     onResultClick:            PropTypes.func,
     onQueryChange:            PropTypes.func,
+    updateTab:                PropTypes.func,
     updateAppliedFilter:      PropTypes.func,
     updateAppliedOptionField: PropTypes.func,
     updateAppliedOptionSort:  PropTypes.func,
