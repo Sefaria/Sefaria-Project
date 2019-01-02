@@ -95,7 +95,7 @@ class UserHistory(abst.AbstractMongoRecord):
             except KeyError:
                 pass
         if kwargs.get("natural_time", False):
-            d["natural_time"] = concise_natural_time(datetime.fromtimestamp(d["time_stamp"]))
+            d["natural_time"] = concise_natural_time(datetime.utcfromtimestamp(d["time_stamp"]))
         return d
 
 
