@@ -4856,26 +4856,8 @@ body #keyboardInputMaster {
     box-shadow: none;
     border-radius: 0.3em;
 }
-body #keyboardInputMaster thead{
-    display: none;
-}
-body #keyboardInputMaster:before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 30px;
-  border-bottom: 10px solid #ccc;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-}
-body #keyboardInputMaster:after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 31px;
-  border-bottom: 9px solid #f9f9f9;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
+body #keyboardInputMaster thead {
+  display: none;
 }
 body #keyboardInputMaster tbody tr td table{
     border-spacing: 2px 2px;
