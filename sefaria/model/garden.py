@@ -7,7 +7,7 @@ from sefaria.system.database import db
 from . import abstract as abst
 from . import text
 from . import place
-from . import time
+from . import timeperiod
 from . import person
 from . import link
 from . import user_profile
@@ -485,7 +485,7 @@ class GardenStop(abst.AbstractMongoRecord):
     def time_period(self):
         if not getattr(self, "start", False):
             return None
-        return time.TimePeriod({
+        return timeperiod.TimePeriod({
             "start": self.start,
             "startIsApprox": getattr(self, "startIsApprox", False),
             "end": self.end,

@@ -26,7 +26,7 @@ class FilterNode {
   getLeafNodes() {
       //Return ordered array of leaf (book) level filters
       if (!this.hasChildren()) {
-          return this;
+          return [this];
       }
       var results = [];
       for (var i = 0; i < this.children.length; i++) {

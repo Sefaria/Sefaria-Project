@@ -278,6 +278,8 @@ def calculate_sheetrank():
                     continue
                 except TypeError:
                     continue
+                except AssertionError:
+                    continue
                 except IndexError:
                     print s["ref"]
                     continue

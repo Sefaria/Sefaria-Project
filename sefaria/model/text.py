@@ -454,7 +454,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
-            from sefaria.model.time import TimePeriod
+            from sefaria.model.timeperiod import TimePeriod
             if not startIsApprox is None:
                 return TimePeriod({
                     "start": start,
@@ -469,7 +469,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 })
 
     def _get_time_period(self, date_field, margin_field=None):
-        from . import time
+        from . import timeperiod
         if not getattr(self, date_field, None):
             return None
 
@@ -487,7 +487,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 years[1] = int(years[2])
             start = int(years[0]) - errorMargin
             end = int(years[1]) + errorMargin
-        return time.TimePeriod({
+        return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
             "end": end,
