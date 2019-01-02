@@ -98,9 +98,9 @@ class RecentInToc(AtomicTest):
         # Using a short chapter can cause the text to fail if the following section is
         # counted as a view and saved in recent in place of the named chapter.
         self.search_ref("Joshua 1")
-        self.nav_to_toc().click_toc_recent("Joshua 1")
+        self.nav_to_history().click_toc_recent("Joshua 1")
         self.browse_to_ref("Berakhot 23b")
-        self.nav_to_toc().click_toc_recent("Berakhot 23b")
+        self.nav_to_history().click_toc_recent("Berakhot 23b")
 
 
 class RecentInTocOnReload(AtomicTest):
@@ -110,7 +110,7 @@ class RecentInTocOnReload(AtomicTest):
 
     def body(self):
         self.load_ref("Joshua 1")
-        self.load_toc().click_toc_recent("Joshua 1")
+        self.load_toc().nav_to_history().click_toc_recent("Joshua 1")
 
 
 class NavToRefAndClickSegment(AtomicTest):

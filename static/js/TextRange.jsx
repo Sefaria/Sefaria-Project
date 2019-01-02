@@ -39,6 +39,7 @@ class TextRange extends Component {
           nextProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           nextProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           nextProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
+          nextProps.settings.vowels !== this.props.settings.vowels ||
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
@@ -117,7 +118,7 @@ class TextRange extends Component {
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       //console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
-      return;      
+      return;
     }
 
     // If this is a ref to a super-section, rewrite it to first available section
@@ -215,7 +216,7 @@ class TextRange extends Component {
     $text.find(".linkCount").each(setTop);
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
-    
+
     var side = this.props.settings.language == "hebrew" ? "right" : "left";
     var selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
     var fixCollision = function ($elems) {
@@ -317,6 +318,8 @@ class TextRange extends Component {
                 <TextSegment
 
             sref={segment.ref}
+            enLangCode={this.props.currVersions.en && /.+\[([a-z][a-z])\]$/g.test(this.props.currVersions.en) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.en)[1] : 'en'}
+            heLangCode={this.props.currVersions.he && /.+\[([a-z][a-z])\]$/g.test(this.props.currVersions.he) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.he)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
@@ -545,8 +548,8 @@ class TextSegment extends Component {
       <div tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <p className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
-        <p className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
+        <p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
+        <p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
         <div className="clearFix"></div>
       </div>
     );

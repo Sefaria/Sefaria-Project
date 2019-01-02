@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, time, person, garden, notification, group, library, category
+from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, timeperiod, person, garden, notification, group, library, category
 
 from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -73,8 +73,8 @@ subscribe(text.reset_simple_term_mapping,                                   sche
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # Time
-subscribe(cascade(person.PersonSet, "era"),                                time.TimePeriod, "attributeChange", "symbol")
-subscribe(cascade(person.PersonSet, "generation"),                         time.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "era"),                                timeperiod.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(person.PersonSet, "generation"),                         timeperiod.TimePeriod, "attributeChange", "symbol")
 
 # Person key change
 subscribe(cascade(person.PersonRelationshipSet, "to_key"),                 person.Person, "attributeChange", "key")

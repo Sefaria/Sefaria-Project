@@ -36,7 +36,39 @@ class GroupPage extends Component {
     }
   }
   getData() {
-    return Sefaria.groups(this.props.group, this.state.sheetSort);
+      var groupData = Sefaria.groups(this.props.group);
+      this.sortSheetData(groupData);
+      if (groupData.pinnedSheets && groupData.pinnedSheets.length > 0) {
+        this.pinSheetsToSheetList(groupData);
+      }
+      return(groupData);
+  }
+  sortSheetData(group) {
+    if (!group.sheets) { return; }
+
+    var sorters = {
+      date: function(a, b) {
+        return Date.parse(b.modified) - Date.parse(a.modified);
+      },
+      alphabetical: function(a, b) {
+        return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
+      },
+      views: function(a, b) {
+        return b.views - a.views;
+      }
+    };
+    group.sheets.sort(sorters[this.state.sheetSort]);
+  }
+  pinSheetsToSheetList(group){
+    var sortPinned = function(a, b) {
+      var ai = group.pinnedSheets.indexOf(a.id);
+      var bi = group.pinnedSheets.indexOf(b.id);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.sheets.sort(sortPinned);
   }
   setTab(tab) {
     this.setState({tab: tab});
@@ -115,7 +147,7 @@ class GroupPage extends Component {
                 key={sheet.id} />);
     }.bind(this)) : <LoadingMessage />;
 
-    return (<div className="content groupPage sheetList hasFooter">
+    return (group ? <div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
                 {group.imageUrl ?
@@ -215,7 +247,7 @@ class GroupPage extends Component {
             <footer id="footer" className="static sans">
               <Footer />
             </footer>
-            </div>);
+            </div>: <LoadingMessage />);
   }
 }
 GroupPage.propTypes = {
@@ -250,7 +282,7 @@ class GroupSheetListing extends Component {
     return (<div className="sheet userSheet">
                 <div className="groupSheetInner">
                   <div className="groupSheetInnerContent"> 
-                    <span><a className="sheetTitle" href={url} key={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
+                    <span><a className="sheetTitle" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
                     <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{tagString}</span></div>
                   </div>
                   {pinButton}

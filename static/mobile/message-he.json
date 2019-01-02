@@ -1,1 +1,8 @@
-null
+{
+	"title": "תמכו בספריא",
+	"text": ["השגנו תורם למימון תואם עבור כל תרומה שתינתן לספריא עד הראשון בינואר. עזרו לנו להזניק את התכניות לשיפורים גדולים בספריא בשביל כולנו בשנת 2019!"],
+	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile",
+	"buttonText": "לתרומה",
+	"name": "holidayDonation-2018-4",
+	"schemaVersion": 1
+}

@@ -3,6 +3,7 @@
 import logging
 from django.conf import settings
 import requests, json, traceback
+from requests.exceptions import ConnectionError
 
 
 
@@ -56,6 +57,7 @@ class SlackLogHandler(logging.Handler):
             "icon_emoji": ":scream:",
             "channel": self.channel
         }
-        requests.post(self.logging_url, data=json.dumps(slack_payload))
-
-
+        try:
+            requests.post(self.logging_url, data=json.dumps(slack_payload))
+        except ConnectionError:
+            pass  # basa. but slack posting failures should not crash a script
