@@ -28,23 +28,23 @@ class UserHistory(abst.AbstractMongoRecord):
     collection = 'user_history'
 
     required_attrs = [
-        "uid",  # user id
-        "ref",
-        "he_ref",
-        "versions",
-        "time_stamp",
-        "server_time_stamp",
-        "last_place",  # True if this is the last ref read for this user in this book
-        "book",
-        "saved",
-        "secondary",  # True when view is from sidebar
+        "uid",                # user id
+        "ref",                # str
+        "he_ref",             # str
+        "versions",           # dict: {en: str, he: str}
+        "time_stamp",         # int: time this ref was read in epoch time
+        "server_time_stamp",  # int: time this was saved on the server in epoch time
+        "last_place",         # bool: True if this is the last ref read for this user in this book
+        "book",               # str: index title
+        "saved",              # bool: True if saved
+        "secondary",          # bool: True when view is from sidebar
     ]
 
     optional_attrs = [
-        "language",  # didn't exist in legacy model
-        "num_times_read",  # legacy for migrating old recent views
-        "sheet_title",  # for sheet history
-        "sheet_owner",
+        "language",           # oneOf(english, hebrew, bilingual) didn't exist in legacy model
+        "num_times_read",     # int: legacy for migrating old recent views
+        "sheet_title",        # str: for sheet history
+        "sheet_owner",        # str: ditto
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
@@ -95,7 +95,7 @@ class UserHistory(abst.AbstractMongoRecord):
             except KeyError:
                 pass
         if kwargs.get("natural_time", False):
-            d["natural_time"] = concise_natural_time(datetime.fromtimestamp(d["time_stamp"]))
+            d["natural_time"] = concise_natural_time(datetime.utcfromtimestamp(d["time_stamp"]))
         return d
 
 
