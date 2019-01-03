@@ -28,8 +28,8 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     :return:
     """
     chunk = model.TextChunk(oref, lang, vtitle)
-    #if getattr(chunk.version(), "status", "") == "locked" and not model.user_profile.is_user_staff(user):
-    #    raise InputError("This text has been locked against further edits.")
+    if getattr(chunk.version(), "status", "") == "locked" and not model.user_profile.is_user_staff(user):
+        raise InputError("This text has been locked against further edits.")
     action = kwargs.get("type") or "edit" if chunk.text else "add"
     old_text = chunk.text
     chunk.text = text
