@@ -105,6 +105,10 @@ class Footer extends Component {
                   <span className="int-en">Mobile Apps</span>
                   <span className="int-he">ספריא בנייד</span>
               </a>
+              <a href="/torah-tab" className="outOfAppLink">
+                  <span className="int-en">Torah Tab</span>
+                  <span className="int-he">תורה טאב</span>
+              </a>
               <a href="/people" className="outOfAppLink">
                   <span className="int-en">Authors</span>
                   <span className="int-he">מחברים</span>
