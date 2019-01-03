@@ -21,7 +21,7 @@ def concise_natural_time(start_date, end_date=None):
     slightly incovenient output is meant to make it easier to internationalize
     """
     if end_date is None:
-        end_date = datetime.now()
+        end_date = datetime.utcnow()
     delta = end_date - start_date
     natural_order = [
         ("days", 365, u"year"),
@@ -53,7 +53,7 @@ def concise_natural_time(start_date, end_date=None):
 
 def epoch_time(since=None):
     if since is None:
-        since = datetime.now()
+        since = datetime.utcnow()
     # define total_seconds which exists in Python3
     total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
     return total_seconds(since - epoch)
