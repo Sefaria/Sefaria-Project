@@ -89,27 +89,20 @@ def get_mappings(file):
 
 
 def execute():
-    results = codecs.open("../data/tanchuma_ref_results.csv", 'r', 'utf-8')
+    results = codecs.open("data/tanchuma_ref_results.csv", 'r', 'utf-8')
     reader = csv.reader(results)
     lines = []
     info = []
-    book_version_tuples = set()
     for row in reader:
         other_ref, vtitle = row
-        book_version = (Ref(other_ref).index.title, vtitle)
-        book_version_tuples.add(book_version)
         info.append((other_ref, vtitle))
-
-    API_KEY = "kAEw7OKw5IjZIG4lFbrYxpSdu78Jsza67HgR0gRBOdg"
-    for each in book_version_tuples:
-        print """./run scripts/move_draft_text.py '{}' -d 'http://www.sefaria.org' -v "{}" -k '{}'""".format(each[0], each[1], API_KEY)
-
-    for count, line in enumerate(codecs.open("../data/tanchuma_text_results.txt")):
+    for count, line in enumerate(codecs.open("data/tanchuma_text_results.txt")):
         lines.append(line)
 
     assert len(lines) == len(info)
 
     for count, line in enumerate(lines):
+        print count
         line = line.decode('utf-8')
         other_ref, vtitle = info[count]
         # modify_text(15399, Ref(other_ref), vtitle, 'en', line.strip())
@@ -159,6 +152,4 @@ def write():
 
 if __name__ == "__main__":
     execute()
-
-
 
