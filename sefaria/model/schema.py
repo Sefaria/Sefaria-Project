@@ -547,7 +547,7 @@ class TreeNode(object):
         return new_node
 
     def all_children(self):
-        return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
+        return self.traverse_to_list(lambda n, i: [n])[1:]
 
     def get_leaf_nodes_to_depth(self, max_depth = None):
         """
@@ -1313,6 +1313,9 @@ class SchemaNode(TitledTreeNode):
             return True, [self]
         else:
             return False, reduce(lambda x, y: x+y, [result[1] for result in children_results])
+
+    def all_children(self):
+        return self.traverse_to_list(lambda n, i: list(n.all_children()) if n.is_virtual else [n])[1:]
 
     def __eq__(self, other):
         return self.address() == other.address()
