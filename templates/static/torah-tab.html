@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+
+{% block title %}{% trans "Sefaria Torah Tab" %}{% endblock %}
+
+{% block description %}{% trans "Install the free Sefaria Torah Tab for your web browser." %}{% endblock %}
+
+{% block head %}
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="https://www.sefaria.org/torah-tab"/>
+{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+{% block content %}
+
+    <div id="edPage" class="static">
+
+        <div id="torah-tab" class="section textLeft">
+            <div class="sectionInner">
+                <div class="textBox">
+                    <h2>
+                        <span class="int-en">Sefaria Torah Tab</span>
+                        <span class="int-he">ה"תורה טאב" של ספריא</span>
+                    </h2>
+                    <div class="description systemText">
+                        <span class="int-en">
+                                Learn a little bit of Torah every time you open a new tab on your web browser.<br/><br/> Install Sefaria's Torah Tab — a Google Chrome or Firefox extension.
+                            </span>
+                            <span class="int-he">
+                            למדו עוד קצת תורה, בכל פעם שאתם פותחים כרטיסיה בדפדפן האינטרנט שלכם.<br/><br/> התקינו את ה"תורה טאב" של ספריא - בגוגל כרום או פיירפוקס.
+
+                            </span>
+                    </div>
+
+                    <a href="https://chrome.google.com/webstore/detail/sefaria/koknfnobkmemgnldcieojenhklinnibl" target="_blank">
+                        <div class="button white control-elem">
+                            <span class="int-en">Install for Chrome &rsaquo;</span>
+                            <span class="int-he"> התקינו לגוגל כרום &rsaquo;</span>
+                        </div>
+                    </a>
+                    <a href="https://addons.mozilla.org/en-US/firefox/addon/torahtab-by-sefaria/" id="iOSButton" target="_blank">
+                        <div class="button white control-elem">
+                            <span class="int-en">Install for Firefox &rsaquo;</span>
+                            <span class="int-he"> התקינו לפיירפוקס &rsaquo;</span>
+                        </div>
+                    </a>
+
+
+                </div>
+                <div class="imageBox">
+                  <img src="{% static 'img/torah-tab.png' %}" alt="Image of Sefaria's Torah Tab" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
