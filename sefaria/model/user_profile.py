@@ -21,7 +21,6 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time, concise_natural_time
 from django.utils import translation
-from django.contrib.humanize.templatetags.humanize import naturaltime
 
 
 class UserHistory(abst.AbstractMongoRecord):

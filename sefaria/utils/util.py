@@ -7,9 +7,18 @@ from datetime import datetime
 from HTMLParser import HTMLParser
 import re
 from functools import wraps
+from django.utils.translation import ungettext_lazy, ugettext
 
 epoch = datetime.utcfromtimestamp(0)
-
+TIME_CHUNKS = [
+    ("days", 365, ungettext_lazy(u"%d year", u"%d years")),
+    ("days", 30, ungettext_lazy(u"%d month", u"%d months")),
+    ("days", 7, ungettext_lazy(u"%d week", u"%d weeks")),
+    ("days", 1, ungettext_lazy(u"%d day", u"%d days")),
+    ("seconds", 3600, ungettext_lazy(u"%d hour", u"%d hours")),
+    ("seconds", 60, ungettext_lazy(u"%d minute", u"%d minutes")),
+    ("seconds", 1, ungettext_lazy(u"%d second", u"%d seconds"))
+]
 
 def concise_natural_time(start_date, end_date=None):
     """
@@ -23,17 +32,9 @@ def concise_natural_time(start_date, end_date=None):
     if end_date is None:
         end_date = datetime.utcnow()
     delta = end_date - start_date
-    natural_order = [
-        ("days", 365, u"year"),
-        ("days", 30, u"month"),
-        ("days", 7, u"week"),
-        ("days", 1, u"day"),
-        ("seconds", 3600, u"hour"),
-        ("seconds", 60, u"minute"),
-        ("seconds", 1, u"second")
-    ]
+
     n, time_unit = None, None
-    for attr, cutoff, temp_time_unit in natural_order:
+    for attr, cutoff, temp_time_unit in TIME_CHUNKS:
         n_units = getattr(delta, attr)
         if n_units > 0:
             if n_units >= cutoff:
@@ -45,8 +46,8 @@ def concise_natural_time(start_date, end_date=None):
             # date is in the future. pretend like it's now
             break
     if n is None:
-        return u"now"
-    return u"{} {}{}".format(n, time_unit, u"s" if n > 1 else u"")
+        return ugettext(u"now")
+    return time_unit % n
 
 
 
