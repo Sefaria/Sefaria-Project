@@ -179,7 +179,7 @@ TextBlockLink.propTypes = {
   saved:           PropTypes.bool,
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
-  naturalTime:     PropTypes.string,
+  naturalTime:     PropTypes.object,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},

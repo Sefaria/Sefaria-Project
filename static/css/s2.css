@@ -1061,10 +1061,10 @@ a.resourcesLink {
   border: 0;
 }
 .readerPanel .recentPanel .sideColorLeft {
-  max-width: 100%;
+  max-width: 85%;
 }
-.readerPanel .recentPanel  .recentItem:hover .sideColorLeft {
-  max-width: calc(100% - 66px); /* the width of the star */
+.readerPanel .recentPanel .saved .sideColorLeft {
+  max-width: 90%;
 }
 .readerPanel .recentPanel a:not(.saved) .sideColorRight {
   padding: 0 10px;
@@ -1074,7 +1074,9 @@ a.resourcesLink {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   direction: ltr;
 }
-.readerPanel .recentPanel .recentItem:hover .sideColorRight div {
+.interface-hebrew .recentItem:hover .sideColorRight .int-he,
+.interface-english .recentItem:hover .sideColorRight .int-en {
+  display: inline-block;
   text-decoration: none;
 }
 .readerPanel .recentPanel .sideColorLeft,
