@@ -7,6 +7,7 @@ from datetime import datetime
 from HTMLParser import HTMLParser
 import re
 from functools import wraps
+from django.utils import translation
 from django.utils.translation import ungettext_lazy, ugettext
 
 epoch = datetime.utcfromtimestamp(0)
@@ -20,14 +21,14 @@ TIME_CHUNKS = [
     ("seconds", 1, ungettext_lazy(u"%d second", u"%d seconds"))
 ]
 
-def concise_natural_time(start_date, end_date=None):
+
+def concise_natural_time(start_date, end_date=None, lang=None):
     """
     meant as a shorter version of naturaltime() from django
     :param start_date:
     :param end_date:
-    :return: difference in time b/w start_date and end_date. output is tuple (units:int, unit_str:str)
-    for example, if diff is 2 seconds output will be (2, "seconds")
-    slightly incovenient output is meant to make it easier to internationalize
+    :param lang: 2-letter lang code to force a certain output. optional
+    :return: difference in time b/w start_date and end_date
     """
     if end_date is None:
         end_date = datetime.utcnow()
@@ -45,9 +46,16 @@ def concise_natural_time(start_date, end_date=None):
         elif n_units < 0:
             # date is in the future. pretend like it's now
             break
+    if lang:
+        translation.activate(lang)
     if n is None:
-        return ugettext(u"now")
-    return time_unit % n
+        ret = ugettext(u"now")
+    else:
+        ret = time_unit % n
+    if lang:
+        translation.deactivate()
+    return ret
+
 
 
 

@@ -145,7 +145,12 @@ class TextBlockLink extends Component {
           </div>
           <div className="sideColorRight">
             { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
-            { !saved ? <span>{ naturalTime }</span>: null }
+            { !saved ?
+              <span>
+                <span className="int-en">{ naturalTime.en }</span>
+                <span className="int-he">&rlm;{ naturalTime.he }</span>
+              </span>: null
+            }
           </div>
         </a>
       );
