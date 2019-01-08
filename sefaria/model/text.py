@@ -3469,7 +3469,7 @@ class Ref(object):
             if as_list:
                 return [u"{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "u%s(%s)" % (escaped_book, u"|".join(patterns))
+                return u"%s(%s)" % (escaped_book, u"|".join(patterns))
 
     def ref_regex_query(self):
         """
