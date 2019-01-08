@@ -98,7 +98,10 @@ class NewUserForm(EmailUserCreationForm):
 
         return user
 
-
+# TODO: Check back on me
+# This class doesn't seem to be getting called at all -- it's referenced in urls.py,
+# but I'm not 100% convinced anything coded here actually sends the email template outside of the django defaults (rmn)
+#
 class HTMLPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
 

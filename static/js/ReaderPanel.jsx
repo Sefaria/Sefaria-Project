@@ -1164,7 +1164,12 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton historyObject={this.props.historyObject} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
+          <ReaderNavigationMenuSavedButton
+            historyObject={this.props.historyObject}
+            tooltip={true}
+            toggleSignUpModal={this.props.toggleSignUpModal}
+            interfaceLang={this.props.interfaceLang}
+          />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
