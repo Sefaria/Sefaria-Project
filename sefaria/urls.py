@@ -40,7 +40,7 @@ urlpatterns = [
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
     url(r'^groups/?$', reader_views.public_groups),
-    url(r'^groups/allz$', reader_views.groups_admin_page),
+    url(r'^groups/all$', reader_views.groups_admin_page),
     url(r'^groups/new$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)/settings$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)$', reader_views.group_page),
