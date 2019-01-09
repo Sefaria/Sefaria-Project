@@ -1018,6 +1018,10 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             except ValueError as e:
                 self.priority = None
 
+    def _sanitize(self):
+        # sanitization happens on TextChunk saving
+        pass
+
     def get_index(self):
         return library.get_index(self.title)
 
