@@ -1937,20 +1937,9 @@ Sefaria = extend(Sefaria, {
 	}
   },
   _r: function (inputRef) {
-    var oref = Sefaria.ref(inputRef);
-    if(Sefaria.interfaceLang != "english"){
-        if(oref){
-            return oref.heRef;
-        }
-    }else{
-        if(oref){
-            return oref.ref;
-        }
-        else{
-          return inputRef;
-
-        }
-	}
+    const oref = Sefaria.ref(inputRef);
+    if (!oref) { return inputRef; }
+    return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
   _va: function(inputVarArr){
     if(Sefaria.interfaceLang != "english"){

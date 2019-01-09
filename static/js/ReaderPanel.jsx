@@ -1168,7 +1168,6 @@ class ReaderControls extends Component {
             historyObject={this.props.historyObject}
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}
-            interfaceLang={this.props.interfaceLang}
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
