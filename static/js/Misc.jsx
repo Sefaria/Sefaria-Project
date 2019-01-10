@@ -145,7 +145,7 @@ class TextBlockLink extends Component {
           </div>
           <div className="sideColorRight">
             { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
-            { !saved ?
+            { !saved && naturalTime ?
               <span>
                 <span className="int-en">{ naturalTime.en }</span>
                 <span className="int-he">&rlm;{ naturalTime.he }</span>
@@ -455,12 +455,11 @@ class ReaderNavigationMenuSavedButton extends Component {
     })
   }
   render() {
-    const { placeholder, historyObject, tooltip, interfaceLang } = this.props;
+    const { placeholder, historyObject, tooltip } = this.props;
     const style = placeholder ? {visibility: 'hidden'} : {};
     const altText = placeholder ? '' :
       `${Sefaria._(this.state.selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
-          historyObject.sheet_title.stripHtml() :
-          (interfaceLang == "hebrew" && historyObject.he_ref ? historyObject.he_ref : historyObject.ref)}'`;
+          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}'`;
 
     const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
     return (
@@ -494,7 +493,6 @@ ReaderNavigationMenuSavedButton.propTypes = {
   placeholder: PropTypes.bool,
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
-  interfaceLang: PropTypes.string,
 };
 
 
