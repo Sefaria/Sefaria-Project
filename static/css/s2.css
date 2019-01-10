@@ -601,7 +601,7 @@ input.noselect {
   padding: 6px 0;
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
-  z-index: 1002 !important;
+  z-index: 1000000 !important;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .ui-autocomplete .ui-menu-item a {

@@ -70,12 +70,15 @@ class DictionarySearch extends Component {
         of: this.props.contextSelector + ' .dictionarySearchBox'
       },
       open: function(e) {
+        const searchBoxWidth = $(this.props.contextSelector + " .dictionarySearchBox").width();
+
         if (document.getElementById('keyboardInputMaster')) {
-          // If the keyboard is open, set width to width of keyboard
-          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($('#keyboardInputMaster').width()+10);
+          // If the keyboard is open, set width to whichever is less of width of input box and width of keyboard
+          const keyboardWidth = $('#keyboardInputMaster').width() + 10;
+          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width(Math.min(searchBoxWidth, keyboardWidth));
         } else {
           // Otherwise width of input box
-          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($(this.props.contextSelector + " .dictionarySearchBox").width());
+          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width(searchBoxWidth);
         }
       }.bind(this),
       close: function(event) {
