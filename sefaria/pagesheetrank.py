@@ -6,6 +6,8 @@ import math
 import numpy
 import random
 import json
+import time
+from pymongo.errors import AutoReconnect
 from collections import defaultdict, OrderedDict
 from sefaria.model import *
 from sefaria.system.exceptions import InputError, NoVersionFoundError
@@ -252,6 +254,28 @@ def test_pagerank(a,b):
     ranked = pagerank(g, a, verbose=True, tolerance=b)
     print ranked
 
+
+def get_all_sheets(tries=0, page=0):
+    limit = 1000
+    has_more = True
+    while has_more:
+        try:
+            temp_sheets = db.sheets.find().skip(page*limit).limit(limit)
+        except AutoReconnect as e:
+            tries += 1
+            if tries >= 200:
+                print "Tried: {} times".format(tries)
+                raise e
+            time.sleep(5)
+            continue
+        page += 1
+        has_more = False
+        for s in temp_sheets:
+            has_more = True
+            yield s
+
+
+
 def calculate_sheetrank():
 
     def count_sources(sources):
@@ -289,12 +313,12 @@ def calculate_sheetrank():
         return temp_sources_count
 
     graph = defaultdict(int)
-    sheets = db.sheets.find()
-    total = sheets.count()
+    len_sheets = db.sheets.find().count()
+    sheets = get_all_sheets()
     sources_count = 0
     for i, sheet in enumerate(sheets):
         if i % 1000 == 0:
-            print "{}/{}".format(i, total)
+            print "{}/{}".format(i, len_sheets)
         if "sources" not in sheet:
             continue
         sources_count += count_sources(sheet["sources"])
