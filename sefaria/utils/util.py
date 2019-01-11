@@ -2,10 +2,70 @@
 """
 Miscellaneous functions for Sefaria.
 """
+import pytz
+from datetime import datetime
 from HTMLParser import HTMLParser
 import re
 from functools import wraps
+from django.utils import translation
+from django.utils.translation import ungettext_lazy, ugettext
 
+epoch = datetime.utcfromtimestamp(0)
+TIME_CHUNKS = [
+    ("days", 365, ungettext_lazy(u"%d year", u"%d years")),
+    ("days", 30, ungettext_lazy(u"%d month", u"%d months")),
+    ("days", 7, ungettext_lazy(u"%d week", u"%d weeks")),
+    ("days", 1, ungettext_lazy(u"%d day", u"%d days")),
+    ("seconds", 3600, ungettext_lazy(u"%d hour", u"%d hours")),
+    ("seconds", 60, ungettext_lazy(u"%d minute", u"%d minutes")),
+    ("seconds", 1, ungettext_lazy(u"%d second", u"%d seconds"))
+]
+
+
+def concise_natural_time(start_date, end_date=None, lang=None):
+    """
+    meant as a shorter version of naturaltime() from django
+    :param start_date:
+    :param end_date:
+    :param lang: 2-letter lang code to force a certain output. optional
+    :return: difference in time b/w start_date and end_date
+    """
+    if end_date is None:
+        end_date = datetime.utcnow()
+    delta = end_date - start_date
+
+    n, time_unit = None, None
+    for attr, cutoff, temp_time_unit in TIME_CHUNKS:
+        n_units = getattr(delta, attr)
+        if n_units > 0:
+            if n_units >= cutoff:
+                n = n_units/cutoff
+
+                time_unit = temp_time_unit
+                break
+        elif n_units < 0:
+            # date is in the future. pretend like it's now
+            break
+    if lang:
+        translation.activate(lang)
+    if n is None:
+        ret = ugettext(u"now")
+    else:
+        ret = time_unit % n
+    if lang:
+        translation.deactivate()
+    return ret
+
+
+
+
+
+def epoch_time(since=None):
+    if since is None:
+        since = datetime.utcnow()
+    # define total_seconds which exists in Python3
+    total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
+    return total_seconds(since - epoch)
 
 def graceful_exception(logger=None, return_value=[]):
     def argumented_decorator(func):

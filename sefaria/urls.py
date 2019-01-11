@@ -29,6 +29,9 @@ handler500 = 'reader.views.custom_server_error'
 # App Pages
 urlpatterns = [
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
+    url(r'^texts/saved/?$', reader_views.saved),
+    url(r'^texts/history/?$', reader_views.user_history),
+    url(r'^texts/recent/?$', reader_views.old_recent_redirect),
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
@@ -37,7 +40,7 @@ urlpatterns = [
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
     url(r'^groups/?$', reader_views.public_groups),
-    url(r'^groups/allz$', reader_views.groups_admin_page),
+    url(r'^groups/all$', reader_views.groups_admin_page),
     url(r'^groups/new$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)/settings$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)$', reader_views.group_page),
@@ -86,6 +89,8 @@ urlpatterns += [
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
     url(r'^api/profile$', reader_views.profile_api),
+    url(r'^api/profile/sync$', reader_views.profile_sync_api),
+    url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
 
@@ -192,9 +197,10 @@ urlpatterns += [
 ]
 
 # Search API
-# urlpatterns += [
-#     url(r'^api/search$', reader_views.search_api)
-# ]
+urlpatterns += [
+    url(r'^api/dummy-search$', reader_views.dummy_search_api)
+    # url(r'^api/search$', reader_views.search_api)
+]
 
 # Following API
 urlpatterns += [
@@ -281,7 +287,7 @@ urlpatterns += [
     url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
     url(r'^register/?$', sefaria_views.register, name='register'),
     url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
-    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(), {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
+    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
     url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
@@ -332,7 +338,8 @@ static_pages = [
     "aramaic-translation-contest",
     "newsletter",
     "shavuot-map-2018",
-    "testimonials"
+    "testimonials",
+    "torah-tab",
 ]
 
 # Static and Semi Static Content

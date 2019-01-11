@@ -1,4 +1,5 @@
 const Util = require('./util');
+const FilterNode = require('./FilterNode');
 
 class SearchState {
   constructor({
@@ -17,14 +18,26 @@ class SearchState {
     this.type             = type;  // always required
     this.appliedFilters   = appliedFilters   || [];
     this.appliedFilterAggTypes = appliedFilterAggTypes || [];
-    this.availableFilters = availableFilters || [];
-    this.filterRegistry   = filterRegistry   || {};
+    this.availableFilters = typeof availableFilters === 'undefined' ? [] : availableFilters.map(f => f instanceof FilterNode ? f : new FilterNode(f));
+    this.filterRegistry   = this._recreateRegistry(this.availableFilters);
     this.filtersValid     = filtersValid     || false;
     this.orphanFilters    = orphanFilters    || [];
     this.fieldExact       = fieldExact       || SearchState.metadataByType[type].fieldExact;
     this.fieldBroad       = fieldBroad       || SearchState.metadataByType[type].fieldBroad;
     this.field            = field            || SearchState.metadataByType[type].field;
     this.sortType         = sortType         || SearchState.metadataByType[type].sortType;
+  }
+
+  _recreateRegistry(filters) {
+    let registry = {};
+    for (let f of filters) {
+      registry = {
+        ...registry,
+        [f.aggKey]: f,
+        ...this._recreateRegistry(f.children),
+      };
+    }
+    return registry;
   }
 
   clone(trimFilters) {
