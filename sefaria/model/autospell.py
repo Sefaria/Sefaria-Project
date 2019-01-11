@@ -56,6 +56,7 @@ class AutoCompleter(object):
         self.title_trie = TitleTrie(lang, *args, **kwargs)
         self.spell_checker = SpellChecker(lang)
         self.ngram_matcher = NGramMatcher(lang)
+        self.other_lang_ac = None
 
         # Titles in library
         if include_titles:

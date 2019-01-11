@@ -169,7 +169,7 @@ class DictionarySearch extends Component {
       <span className="dictionarySearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
                       <input className={inputClasses}
                              id="searchInput"
-                             placeholder={Sefaria._("Search")}
+                             placeholder={Sefaria._("Search Dictionary")}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                              onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
