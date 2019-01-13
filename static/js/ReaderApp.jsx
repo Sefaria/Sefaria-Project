@@ -1543,7 +1543,7 @@ class ReaderApp extends Component {
       ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
     const parsedRef = Sefaria.parseRef(ref);
-    const ret = {
+    return {
       ref,
       versions: panel.currVersions,
       book: parsedRef.book,
@@ -1551,11 +1551,6 @@ class ReaderApp extends Component {
       sheet_owner,
       sheet_title,
     };
-    const oref = Sefaria.ref(ref);
-    if (oref && oref.heRef) {
-      ret.he_ref = oref.heRef;
-    }
-    return ret;
   }
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";

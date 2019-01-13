@@ -70,12 +70,15 @@ class DictionarySearch extends Component {
         of: this.props.contextSelector + ' .dictionarySearchBox'
       },
       open: function(e) {
+        const searchBoxWidth = $(this.props.contextSelector + " .dictionarySearchBox").width();
+
         if (document.getElementById('keyboardInputMaster')) {
-          // If the keyboard is open, set width to width of keyboard
-          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($('#keyboardInputMaster').width()+10);
+          // If the keyboard is open, set width to whichever is less of width of input box and width of keyboard
+          const keyboardWidth = $('#keyboardInputMaster').width() + 10;
+          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width(Math.min(searchBoxWidth, keyboardWidth));
         } else {
           // Otherwise width of input box
-          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width($(this.props.contextSelector + " .dictionarySearchBox").width());
+          $(this.props.contextSelector + " .dictionary-toc-autocomplete").width(searchBoxWidth);
         }
       }.bind(this),
       close: function(event) {
@@ -129,26 +132,32 @@ class DictionarySearch extends Component {
       }
     }
   }
+  displayWord(word) {
+    // Either show results in sidebar, or show word in reader, depending on which mode we're in.
+    if (this.props.showWordList) {
+      this.props.showWordList(word);
+    } else if (this.props.showBaseText) {
+      const ref = this.props.title + ", " + word;
+      this.props.showBaseText(ref, false, this.props.currVersions);
+    }
+  }
   submitSearch(word, needsResolution) {
     if (needsResolution) {
       // Get the dotted form of this word, or the nearest match
       Sefaria.lexiconCompletion(word, this.props.lexiconName,
         d => {
-          var resolvedWord = (d.length > 0) ? d[0][1] : word;
-          var ref = this.props.title + ", " + resolvedWord;
-          this.props.showBaseText(ref, false, this.props.currVersions);
-          }
-      )
+          const resolvedWord = (d.length > 0) ? d[0][1] : word;
+          this.displayWord(resolvedWord)
+          });
     } else {
-      var ref = this.props.title + ", " + word;
-      this.props.showBaseText(ref, false, this.props.currVersions);
+      this.displayWord(word);
     }
   }
   showVirtualKeyboardIcon(show){
       if(document.getElementById('keyboardInputMaster')) { // if keyboard is open, ignore.
         return; //this prevents the icon from flashing on every key stroke.
       }
-      if(this.props.interfaceLang == 'english'){
+      if(this.props.interfaceLang === 'english'){
           var opacity = show ? 0.4 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
@@ -160,7 +169,7 @@ class DictionarySearch extends Component {
       <span className="dictionarySearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
                       <input className={inputClasses}
                              id="searchInput"
-                             placeholder={Sefaria._("Search")}
+                             placeholder={Sefaria._("Search Dictionary")}
                              onKeyUp={this.handleSearchKeyUp}
                              onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
                              onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
@@ -171,12 +180,12 @@ class DictionarySearch extends Component {
 }
 
 DictionarySearch.propTypes = {
-  lexiconName:      PropTypes.string.isRequired,
-  title:            PropTypes.string.isRequired,
-  interfaceLang:    PropTypes.string,
-  close:            PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  currVersions:     PropTypes.object.isRequired,
+  lexiconName:      PropTypes.string,    // req. for redirect to text - e.g. TOC case.
+  title:            PropTypes.string,    // req. for redirect to text - e.g. TOC case.
+  interfaceLang:    PropTypes.string.isRequired,
+  showBaseText:     PropTypes.func,      // req. for redirect to text - e.g. TOC case.
+  showWordList:     PropTypes.func,      // req. for sidebar case
+  currVersions:     PropTypes.object,    // req. for redirect to text - e.g. TOC case.
   contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in. 
 };
 
