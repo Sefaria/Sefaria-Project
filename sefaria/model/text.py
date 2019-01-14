@@ -4209,6 +4209,7 @@ class Library(object):
         if self._cross_lexicon_auto_completer is None:
             logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built cross lexicon auto completer.")
         return self._cross_lexicon_auto_completer
 
     def lexicon_auto_completer(self, lexicon):
@@ -4217,6 +4218,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
+            logger.warning("Built {} auto completer.".format(lexicon))
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
@@ -4225,6 +4227,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
     def ref_auto_completer(self, lang):
@@ -4233,6 +4236,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built {} ref auto completer.".format(lang))
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
