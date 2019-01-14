@@ -45,7 +45,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
-from sefaria.system.decorators import catch_error_as_json
+from sefaria.system.decorators import catch_error_as_json, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
@@ -55,7 +55,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
-from sefaria.system.cache import django_cache_decorator
+from sefaria.system.cache import django_cache
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
 from sefaria.system.multiserver.coordinator import server_coordinator
 from django.utils.html import strip_tags
@@ -1460,6 +1460,7 @@ def index_api(request, title, v2=False, raw=False):
 
 
 @catch_error_as_json
+@json_response_decorator
 def bare_link_api(request, book, cat):
 
     if request.method == "GET":
@@ -1472,16 +1473,20 @@ def bare_link_api(request, book, cat):
 
 
 @catch_error_as_json
+@json_response_decorator
+@django_cache(default_on_miss = True)
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
     """
     if request.method == "GET":
-        resp = jsonResponse(get_link_counts(cat1, cat2))
+        resp = get_link_counts(cat1, cat2)
         return resp
 
     elif request.method == "POST":
-        return jsonResponse({"error": "Not implemented."})
+        return {"error": "Not implemented."}
+
+
 
 
 @catch_error_as_json

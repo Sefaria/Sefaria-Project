@@ -6,11 +6,24 @@ from django.shortcuts import render_to_response
 
 from sefaria.client.util import jsonResponse
 import sefaria.system.exceptions as exps
+import sefaria.settings
 
 import logging
 logger = logging.getLogger(__name__)
 
 
+# TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
+def json_response_decorator(func):
+    """
+    A decorator thats takes a view response and turns it
+    into json. If a callback is added through GET or POST
+    the response is JSONP.
+    """
+
+    @wraps(func)
+    def decorator(request, *args, **kwargs):
+        return jsonResponse(func(request, *args, **kwargs), callback=request.GET.get("callback", None))
+    return decorator
 
 def catch_error_as_json(func):
     """
