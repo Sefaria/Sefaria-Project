@@ -8,7 +8,7 @@ from HTMLParser import HTMLParser
 import re
 from functools import wraps
 from django.utils import translation
-from django.utils.translation import ungettext_lazy, ugettext
+from django.utils.translation import ungettext_lazy, ugettext, get_language, get_language_from_request
 
 epoch = datetime.utcfromtimestamp(0)
 TIME_CHUNKS = [
@@ -46,14 +46,15 @@ def concise_natural_time(start_date, end_date=None, lang=None):
         elif n_units < 0:
             # date is in the future. pretend like it's now
             break
-    if lang:
+    reqLangCode = get_language() # the current request's actual interface language
+    if lang and lang != reqLangCode:
         translation.activate(lang)
     if n is None:
         ret = ugettext(u"now")
     else:
         ret = time_unit % n
-    if lang:
-        translation.deactivate()
+    if lang and lang != reqLangCode:
+        translation.activate(reqLangCode)
     return ret
 
 
