@@ -128,6 +128,7 @@ class DictionarySearch extends Component {
     if (event.keyCode === 13) {
       var query = $(event.target).val();
       if (query) {
+        $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete("close");
         this.submitSearch(query, true);
       }
     }
