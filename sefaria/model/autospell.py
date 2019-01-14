@@ -57,6 +57,7 @@ class AutoCompleter(object):
         self.spell_checker = SpellChecker(lang)
         self.ngram_matcher = NGramMatcher(lang)
         self.other_lang_ac = None
+        self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
 
         # Titles in library
         if include_titles:
@@ -91,11 +92,11 @@ class AutoCompleter(object):
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
         if include_lexicons:
             # languages get muddy for lexicons
+            self.prefer_longest = False
             wfs = WordFormSet({"generated_by": {"$ne": "replace_shorthand"}})
-            forms = [wf.form for wf in wfs]
-            normal_forms = [self.normalizer(wf) for wf in forms]
+
             for wf in wfs:
-                self.title_trie[wf.form] = {
+                self.title_trie[self.normalizer(wf.form)] = {
                     "title": wf.form,
                     "key": wf.form,
                     "type": "word_form",
@@ -103,12 +104,15 @@ class AutoCompleter(object):
                 }
                 if not hasattr(wf, "c_form"):
                     continue
-                self.title_trie[wf.c_form] = {
+                self.title_trie[self.normalizer(wf.c_form)] = {
                     "title": wf.c_form,
                     "key": wf.form,
                     "type": "word_form",
-                    "is_primary": False
+                    "is_primary": True
                 }
+
+            forms = [getattr(wf, "c_form", wf.form) for wf in wfs]
+            normal_forms = [self.normalizer(wf) for wf in forms]
             self.spell_checker.train_phrases(forms)
             self.ngram_matcher.train_phrases(forms, normal_forms)
 
@@ -242,7 +246,8 @@ class Completions(object):
         """
 
         try:
-            all_continuations = self.auto_completer.title_trie.items(str)[::-1]
+            skip = -1 if self.auto_completer.prefer_longest else 1
+            all_continuations = self.auto_completer.title_trie.items(str)[::skip]
         except KeyError:
             return []
 
