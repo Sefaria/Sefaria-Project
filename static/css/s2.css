@@ -5655,6 +5655,13 @@ span.purim-emoji img{
   display: block;
 }
 
+.readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
+  display: none;
+}
+.readerPanel.english .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.he {
+  display: none;
+}
+
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
