@@ -3597,37 +3597,46 @@ def dummy_search_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
-# def search_api(request):
-#     # dict to define request parameters and their default values. None means parameter is required
-#     params = {
-#         "query": None,
-#         "size": 10,
-#         "from": 0,
-#         "type": None,  #
-#         "get_filters": False,
-#         "applied_filters": [],
-#         "field": None,
-#         "sort_type": None,
-#         "exact": False
-#     }
-#     param_vals = {}
-#     for p in params:
-#         param_vals[p] = request.GET.get(p, )
-#     query = request.GET.get("q")
-#     """
-#              query: query string
-#              size: size of result set
-#              from: from what result to start
-#              type: "sheet" or "text"
-#              get_filters: if to fetch initial filters
-#              applied_filters: filter query by these filters
-#              field: field to query in elastic_search
-#              sort_type: chonological or relevance
-#              exact: if query is exact
-#              success: callback on success
-#              error: callback on error
-#     """
-#     size = request.GET.get("size")
+def search_api(request):
+    # dict to define request parameters and their default values. None means parameter is required
+    from elasticsearch import Elasticsearch
+    from elasticsearch_dsl import Search
+    from sefaria.settings import SEARCH_ADMIN
+    client = Elasticsearch(SEARCH_ADMIN)
+    search = Search(using=client)
+    params = {
+        "query_type": "match_phrase",
+        "query": None,
+        "size": 10,
+        "from": 0,
+        "type": None,  #
+        "get_filters": False,
+        "applied_filters": [],
+        "field": None,
+        "sort_type": None,
+        "exact": False
+    }
+    param_vals = {
+        p: request.GET.get(p, params[p])
+        for p in params
+    }
+    search = search.query(param_vals["query_type"], )
+
+    query = request.GET.get("q")
+    """
+         query: string
+         get_filters: boolean
+         applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
+         appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
+         aggregationsToUpdate: array of aggTypes to update in the case when there exist multiple aggTypes for a query type
+         size: int - number of results to request
+         from: int - start from result # (skip from - 1 results)
+         type: string - currently either "text" or "sheet"
+         field: string - which field to query. this essentially changes the exactness of the search. right now, 'exact' or 'naive_lemmatizer'
+         sort_type: See SearchState.metadataByType for possible sort types
+         exact: boolean. true if query should be exact
+    """
+    size = request.GET.get("size")
 
 
 @ensure_csrf_cookie
