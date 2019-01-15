@@ -260,7 +260,7 @@ def get_all_sheets(tries=0, page=0):
     has_more = True
     while has_more:
         try:
-            temp_sheets = db.sheets.find().skip(page*limit).limit(limit)
+            temp_sheets = list(db.sheets.find().skip(page*limit).limit(limit))
         except AutoReconnect as e:
             tries += 1
             if tries >= 200:
@@ -268,11 +268,12 @@ def get_all_sheets(tries=0, page=0):
                 raise e
             time.sleep(5)
             continue
-        page += 1
         has_more = False
         for s in temp_sheets:
             has_more = True
             yield s
+        page += 1
+
 
 
 
