@@ -390,11 +390,13 @@ def rebuild_auto_completer(request):
     library.build_full_auto_completer()
     library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
+    library.build_cross_lexicon_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
         server_coordinator.publish_event("library", "build_ref_auto_completer")
         server_coordinator.publish_event("library", "build_lexicon_auto_completers")
+        server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
