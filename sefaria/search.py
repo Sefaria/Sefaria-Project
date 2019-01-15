@@ -540,8 +540,8 @@ class TextIndexer(object):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
         cls.merged = merged
         cls.index_name = index_name
-        cls.best_time_period = cls.curr_index.best_time_period()
         cls.curr_index = oref.index
+        cls.best_time_period = cls.curr_index.best_time_period()
         cls.trefs_seen = set()
         version_priority = 0
         version = None
