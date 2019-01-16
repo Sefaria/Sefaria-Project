@@ -137,19 +137,13 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   /* English content text that may contain Hebrew characters */
   font-family: 'Hebrew Text Font';
   src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
-  unicode-range: U+0590-05FF;
+  unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
   /* English system text that may contain Hebrew characters */
   font-family: 'Hebrew System Font';
   src: local('Heebo'), local('Roboto');
   unicode-range: U+0590-05FF;
-}
-@font-face {
-  /* for proper nikkud placement around unicode dotted circle  */
-  font-family: 'dotted circle';
-  src: local('Arial'), local('Times New Roman');
-  unicode-range: U+0591-05C7, U+25CC;
 }
 .sans,
 .sans .en,
@@ -661,7 +655,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "dotted circle", "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
