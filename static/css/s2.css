@@ -145,6 +145,12 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   src: local('Heebo'), local('Roboto');
   unicode-range: U+0590-05FF;
 }
+@font-face {
+  /* for proper nikkud placement around unicode dotted circle  */
+  font-family: 'dotted circle';
+  src: local('Arial'), local('Times New Roman');
+  unicode-range: U+25CC;
+}
 .sans,
 .sans .en,
 #s2 .sans .en,
@@ -655,7 +661,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "dotted circle", "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
