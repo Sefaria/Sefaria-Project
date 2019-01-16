@@ -149,7 +149,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   /* for proper nikkud placement around unicode dotted circle  */
   font-family: 'dotted circle';
   src: local('Arial'), local('Times New Roman');
-  unicode-range: U+25CC;
+  unicode-range: U+0591-05C7, U+25CC;
 }
 .sans,
 .sans .en,
