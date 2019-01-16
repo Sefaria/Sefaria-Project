@@ -240,6 +240,7 @@ class Header extends Component {
                           onRecentClick={this.props.onRecentClick}
                           setDefaultOption={this.props.setDefaultOption}
                           onQueryChange={this.props.onQueryChange}
+                          updateSearchTab={this.props.updateSearchTab}
                           updateSearchFilter={this.props.updateSearchFilter}
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}

@@ -34,8 +34,10 @@ static_pages = [
     "aramaic-translation-contest",
     "newsletter",
     "shavuot-map-2018",
-    "testimonials"
+    "testimonials",
+    "torah-tab",
 ]
+
 
 # Static and Semi Static Content
 site_urlpatterns = [
@@ -58,6 +60,7 @@ site_urlpatterns += [
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
 ]
+
 
 site_urlpatterns +=[
     url(r'^textmap/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria-Text-Map-June-2016.pdf')),

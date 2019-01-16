@@ -52,11 +52,11 @@ class ConnectionsPanel extends Component {
     }
     // Turn on the lexicon when receiving new words if they are less than 3
     // and don't span refs.
-    if (!prevProps.selectedWords &&
-        this.props.selectedWords &&
+    if (this.props.selectedWords &&
+        this.props.selectedWords !== prevProps.selectedWords &&
         this.props.selectedWords.match(/[\s:\u0590-\u05ff.]+/) &&
         this.props.selectedWords.split(" ").length < 3 &&
-        this.props.srefs.length == 1) {
+        this.props.srefs.length === 1) {
       this.props.setConnectionsMode("Lexicon");
     }
     // Go back to main sidebar when words are unselected
@@ -314,6 +314,7 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
+                    interfaceLang={this.props.interfaceLang}
       />);
 
     } else if (this.props.mode === "Tools") {

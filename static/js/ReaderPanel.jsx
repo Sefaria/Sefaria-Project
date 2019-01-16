@@ -83,11 +83,13 @@ class ReaderPanel extends Component {
       sheet:                props.sheet || null,
       sheetID:              null,
       searchQuery:          props.initialQuery || null,
+      searchTab:            props.initialSearchTab || "text",
       textSearchState: new SearchState({
         type:               'text',
         field:              props.initialTextSearchField,
         sortType:           props.initialTextSearchSortType,
         appliedFilters:     props.initialTextAppliedSearchFilters,
+        appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
       }),
       sheetSearchState: new SearchState({
         type:               'sheet',
@@ -811,6 +813,7 @@ class ReaderPanel extends Component {
       var menu = (<SearchPage
                     key={"searchPage"}
                     query={this.state.searchQuery}
+                    tab={this.state.searchTab}
                     textSearchState={this.state.textSearchState}
                     sheetSearchState={this.state.sheetSearchState}
                     settings={Sefaria.util.clone(this.state.settings)}
@@ -821,6 +824,7 @@ class ReaderPanel extends Component {
                     close={this.closePanelSearch}
                     hideNavHeader={this.props.hideNavHeader}
                     onQueryChange={this.props.onQueryChange}
+                    updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
@@ -1033,6 +1037,7 @@ ReaderPanel.propTypes = {
   viewExtendedNotes:           PropTypes.func,
   backFromExtendedNotes:       PropTypes.func,
   onQueryChange:               PropTypes.func,
+  updateSearchTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
@@ -1093,7 +1098,7 @@ class ReaderControls extends Component {
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
-      this.state.runningQuery.abort();
+      this.state.runningQuery.abort();  //todo: make work with promises
     }
   }
   render() {
@@ -1159,7 +1164,11 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton historyObject={this.props.historyObject} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
+          <ReaderNavigationMenuSavedButton
+            historyObject={this.props.historyObject}
+            tooltip={true}
+            toggleSignUpModal={this.props.toggleSignUpModal}
+          />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});

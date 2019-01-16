@@ -69,9 +69,9 @@ class GlobalNotification(abst.AbstractMongoRecord):
             i = self.content.get("index")
             v = self.content.get("version")
             l = self.content.get("language")
-            assert i
-            assert v
-            assert l
+
+            assert i and v and l
+
             version = Version().load({
                 "title": i,
                 "versionTitle": v,
@@ -120,20 +120,12 @@ class GlobalNotification(abst.AbstractMongoRecord):
         self.content["en"] = msg
         return self
 
-    """
-    def to_HTML(self):
-        html = render_to_string("elements/notification.html", {"notification": self}).strip()
-        html = re.sub("\n", "", html)
-        return html
-    """
-
     def contents(self):
         d = super(GlobalNotification, self).contents()
         d["_id"] = self.id
         d["date"] = d["date"].isoformat()
 
         return d
-
 
     @property
     def id(self):
@@ -152,12 +144,6 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
 
     def contents(self):
         return [n.contents() for n in self]
-
-    """
-    def to_HTML(self):
-        html = [n.to_HTML() for n in self]
-        return "".join(html)
-    """
 
 
 class Notification(abst.AbstractMongoRecord):

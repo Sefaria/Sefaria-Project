@@ -601,7 +601,7 @@ input.noselect {
   padding: 6px 0;
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
-  z-index: 1002 !important;
+  z-index: 1000000 !important;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .ui-autocomplete .ui-menu-item a {
@@ -1061,10 +1061,10 @@ a.resourcesLink {
   border: 0;
 }
 .readerPanel .recentPanel .sideColorLeft {
-  max-width: 100%;
+  max-width: 85%;
 }
-.readerPanel .recentPanel  .recentItem:hover .sideColorLeft {
-  max-width: calc(100% - 66px); /* the width of the star */
+.readerPanel .recentPanel .saved .sideColorLeft {
+  max-width: 90%;
 }
 .readerPanel .recentPanel a:not(.saved) .sideColorRight {
   padding: 0 10px;
@@ -1074,7 +1074,9 @@ a.resourcesLink {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   direction: ltr;
 }
-.readerPanel .recentPanel .recentItem:hover .sideColorRight div {
+.interface-hebrew .recentItem:hover .sideColorRight .int-he,
+.interface-english .recentItem:hover .sideColorRight .int-en {
+  display: inline-block;
   text-decoration: none;
 }
 .readerPanel .recentPanel .sideColorLeft,
@@ -4400,7 +4402,10 @@ a .button:hover {
 .entry + .entry {
   padding-top: 10px;
 }
-.lexicon-results .entry > div{
+.lexicon-results {
+  padding-top: 20px;
+}
+.lexicon-results .entry > div {
   padding: 1% 0 1% 0;
   margin: auto;
 }
@@ -5003,26 +5008,8 @@ body #keyboardInputMaster {
     box-shadow: none;
     border-radius: 0.3em;
 }
-body #keyboardInputMaster thead{
-    display: none;
-}
-body #keyboardInputMaster:before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 30px;
-  border-bottom: 10px solid #ccc;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-}
-body #keyboardInputMaster:after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 31px;
-  border-bottom: 9px solid #f9f9f9;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
+body #keyboardInputMaster thead {
+  display: none;
 }
 body #keyboardInputMaster tbody tr td table{
     border-spacing: 2px 2px;
@@ -5677,6 +5664,13 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;
   display: block;
+}
+
+.readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
+  display: none;
+}
+.readerPanel.english .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.he {
+  display: none;
 }
 
 .sourceContentText.centeredSheetContent {

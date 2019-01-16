@@ -240,10 +240,14 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     return panel
 
 
-def make_search_panel_dict(query, **kwargs):
+def make_search_panel_dict(get_dict, i, **kwargs):
+    search_params = get_search_params(get_dict, i)
+    # TODO hard to pass search params related to textSearchState and sheetSearchState as those are JS objects
+    # TODO this is not such a pressing issue though
     panel = {
         "menuOpen": "search",
-        "searchQuery": query
+        "searchQuery": search_params["query"],
+        "searchTab": search_params["tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -393,9 +397,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if not ref:
             break
         if ref == "search":
-            query = request.GET.get("q{}".format(i))
             panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
-            panels += [make_search_panel_dict(query, **{"panelDisplayLanguage": panelDisplayLanguage})]
+            panels += [make_search_panel_dict(request.GET, i, **{"panelDisplayLanguage": panelDisplayLanguage})]
 
         elif ref == "sheet":
             sheet_id = request.GET.get("s{}".format(i))
@@ -550,37 +553,59 @@ def texts_category_list(request, cats):
     })
 
 
+def get_param(param, i=None):
+    return "{}{}".format(param, "" if i is None else i)
+
+
+def get_search_params(get_dict, i=None):
+    gp = get_param
+    sheet_group_search_filters = map(lambda f: urllib.unquote(f),
+                                     get_dict.get(gp("sgroupFilters", i)).split("|")) if get_dict.get(gp("sgroupFilters", i),
+                                                                                                     "") else []
+    sheet_tags_search_filters = map(lambda f: urllib.unquote(f),
+                                    get_dict.get(gp("stagsFilters", i), "").split("|")) if get_dict.get(gp("stagsFilters", i),
+                                                                                                       "") else []
+    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(
+        sheet_tags_search_filters)  # i got a tingly feeling writing this
+    text_filters = map(lambda f: urllib.unquote(f), get_dict.get(gp("tpathFilters", i)).split("|")) if get_dict.get(gp("tpathFilters", i)) else []
+    return {
+        "query": urllib.unquote(get_dict.get(gp("q", i), "")),
+        "tab": urllib.unquote(get_dict.get(gp("tab", i), "text")),
+        "textField": ("naive_lemmatizer" if get_dict.get(gp("tvar", i)) == "1" else "exact") if get_dict.get(gp("tvar", i)) else "",
+        "textSort": get_dict.get(gp("tsort", i), None),
+        "textFilters": text_filters,
+        "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
+        "sheetSort": get_dict.get(gp("ssort", i), None),
+        "sheetFilters": (sheet_group_search_filters + sheet_tags_search_filters),
+        "sheetFilterAggTypes": sheet_agg_types,
+    }
+
 @ensure_csrf_cookie
 def search(request):
     """
     Search or Search Results page.
     """
-    text_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("tpathFilters").split("|")) if request.GET.get("tpathFilters") else []
-    sheet_group_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("sgroupFilters").split("|")) if request.GET.get("sgroupFilters", "") else []
-    sheet_tags_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("stagsFilters", "").split("|")) if request.GET.get("stagsFilters", "") else []
-    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(sheet_tags_search_filters)  # i got a tingly feeling writing this
-    initialQuery = urllib.unquote(request.GET.get("q", ""))
-    text_field = ("naive_lemmatizer" if request.GET.get("tvar") == "1" else "exact") if request.GET.get("tvar") else ""
-    text_sort = request.GET.get("tsort", None)
-    sheet_sort = request.GET.get("ssort", None)
+    search_params = get_search_params(request.GET)
 
     props = base_props(request)
     props.update({
         "initialMenu": "search",
-        "initialQuery": initialQuery,
-        "initialTextSearchFilters": text_search_filters,
-        "initialSheetSearchFilters": (sheet_group_search_filters + sheet_tags_search_filters),
-        "initialSheetSearchFilterAggTypes": sheet_agg_types,
-        "initialTextSearchField": text_field,
-        "initialTextSearchSortType": text_sort,
-        "initialSheetSearchSortType": sheet_sort
+        "initialQuery": search_params["query"],
+        "initialSearchTab": search_params["tab"],
+        "initialTextSearchFilters": search_params["textFilters"],
+        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
+        "initialTextSearchField": search_params["textField"],
+        "initialTextSearchSortType": search_params["textSort"],
+        "initialSheetSearchFilters": search_params["sheetFilters"],
+        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
+        "initialSheetSearchSortType": search_params["sheetSort"]
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON": propsJSON,
         "html":      html,
-        "title":     (initialQuery + " | " if initialQuery else "") + _("Sefaria Search"),
+        "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     })
 
@@ -2283,7 +2308,12 @@ def dictionary_completion_api(request, word, lexicon=None):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
 
-    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    if lexicon is None:
+        ac = library.cross_lexicon_auto_completer()
+        rs = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+    else:
+        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
 
 

@@ -540,8 +540,8 @@ class TextIndexer(object):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
         cls.merged = merged
         cls.index_name = index_name
-        cls.best_time_period = cls.curr_index.best_time_period()
         cls.curr_index = oref.index
+        cls.best_time_period = cls.curr_index.best_time_period()
         cls.trefs_seen = set()
         version_priority = 0
         version = None
@@ -619,9 +619,9 @@ class TextIndexer(object):
         else:
             comp_start_date = 3000  # far in the future
 
-        section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
+        # section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
 
-        pagerank = math.log(pagerank_dict[section_ref]) + 20 if section_ref in pagerank_dict else 1.0
+        pagerank = math.log(pagerank_dict[tref]) + 20 if tref in pagerank_dict else 1.0
         sheetrank = (1.0 + sheetrank_dict[tref]["count"] / 5)**2 if tref in sheetrank_dict else (1.0 / 5) ** 2
         return {
             "ref": tref,

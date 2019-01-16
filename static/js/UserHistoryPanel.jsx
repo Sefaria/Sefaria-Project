@@ -49,7 +49,7 @@ class UserHistoryPanel extends Component {
       this.state.items.reduce((accum, curr, index) => (  // reduce consecutive history items with the same ref
         (!accum.length || curr.ref !== accum[accum.length-1].ref) ? accum.concat([curr]) : accum
       ), [])
-      .map(item =>
+      .map((item, iitem) =>
        (<TextBlockLink
           sref={item.ref}
           heRef={item.he_ref}
@@ -62,7 +62,7 @@ class UserHistoryPanel extends Component {
           recentItem={true}
           sideColor={true}
           saved={this.props.menuOpen === 'saved'}
-          key={item.ref + item.time_stamp}
+          key={item.ref + "|" + item.time_stamp + "|" + iitem }
       />)
     ) : (<LoadingMessage />);
 
