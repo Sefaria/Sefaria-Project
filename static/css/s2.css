@@ -970,7 +970,6 @@ h1 .languageToggle {
   border-radius: 4px;
   line-height: 34px;
   cursor: pointer;
-  display: none;  /* 4x hack */
 }
 h1 div.languageToggle .en {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -2701,10 +2700,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .rightButtons .readerOptions {
   vertical-align: middle;
-  font-weight: bold;
-  font-size: 25px;
 }
-
+.rightButtons .readerOptions:hover {
+  text-decoration: none;
+}
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
   margin-top: 6px;
@@ -2777,7 +2776,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: none;
 }
 .readerOptions img {
-  height: 21px; /* 4x hack. Was 16px; */
+  height: 16px;
+}
+.readerOptions .textIcon {
+  font-size: 22px;
+  line-height: 60px;
 }
 .dark .readerOptions img {
 

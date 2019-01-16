@@ -226,7 +226,8 @@ class ReaderNavigationMenu extends Component {
 
 
       var title = (<h1>
-                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._torah_specific ?
+                     <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                     <span className="int-en">The Sefaria Library</span>
                     <span className="int-he">האוסף של ספריא</span>
                   </h1>);

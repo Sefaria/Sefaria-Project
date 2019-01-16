@@ -9,6 +9,7 @@ from django.utils import translation
 from django.shortcuts import redirect
 
 from sefaria.settings import *
+from sefaria.site.site_settings import TORAH_SPECIFIC
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
 from django.utils.deprecation import MiddlewareMixin
@@ -80,7 +81,10 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         content = short_to_long_lang_code(content)
         # Don't allow languages other than what we currently handle
         content = default_content_lang if content not in ('english', 'hebrew', 'bilingual') else content
-        # Note: URL parameters may override values set her, handled in reader view.
+        # Note: URL parameters may override values set here, handled in reader view.
+
+        if not TORAH_SPECIFIC:
+            content = "english"
 
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface

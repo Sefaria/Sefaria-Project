@@ -68,7 +68,7 @@ class MyNotesPanel extends Component {
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-                { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                { this.props.multiPanel && Sefaria._torah_specific ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                 <span className="int-en">My Notes</span>
                 <span className="int-he">הרשומות שלי</span>
               </h1>

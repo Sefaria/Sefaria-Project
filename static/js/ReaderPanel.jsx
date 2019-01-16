@@ -65,7 +65,7 @@ class ReaderPanel extends Component {
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
-        language:      "english", // 4x - was "bilingual"
+        language:      Sefaria._torah_specific ? "binlinual" : "english",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
@@ -1234,18 +1234,17 @@ class ReaderDisplayOptionsMenu extends Component {
   }
   render() {
 
-    /* 4x language Hack */
     var hasHebrew = !!this.props.currentData().he.length;
     var hasEnglish = !!this.props.currentData().text.length;
     var singleLanguage = !(hasHebrew && hasEnglish);
-    /*   */
+    var showLangaugeToggle = Sefaria._torah_specific || !singleLanguage;
 
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
       {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
       {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
-    var languageToggle = singleLanguage?"":(
+    var languageToggle = showLangaugeToggle ? (
         <ToggleSet
           role="radiogroup"
           ariaLabel="Language toggle"
@@ -1253,7 +1252,7 @@ class ReaderDisplayOptionsMenu extends Component {
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />);
+          settings={this.props.settings} />) : null;
 
     var layoutOptions = [
       {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },

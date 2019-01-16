@@ -57,6 +57,7 @@ from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
+from sefaria.site.site_settings import TORAH_SPECIFIC
 from sefaria.system.multiserver.coordinator import server_coordinator
 from django.utils.html import strip_tags
 
@@ -324,7 +325,7 @@ def base_props(request):
         "_uid": request.user.id,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
-            "language":      "english", # 4x - wasrequest.contentLang
+            "language":      request.contentLang,
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),

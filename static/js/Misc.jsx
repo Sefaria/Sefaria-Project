@@ -390,6 +390,9 @@ class ReaderNavigationMenuCloseButton extends Component {
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
+    var icon = Sefaria._torah_specific ? 
+      <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
+      <span className="textIcon">Aa</span>;
     return (<a
               className="readerOptions"
               tabIndex="0"
@@ -398,7 +401,9 @@ class ReaderNavigationMenuDisplaySettingsButton extends Component {
               aria-label="Toggle Reader Menu Display Settings"
               style={style}
               onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>Aa</a>);
+              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+              {icon}
+            </a>);
   }
 }
 ReaderNavigationMenuDisplaySettingsButton.propTypes = {
