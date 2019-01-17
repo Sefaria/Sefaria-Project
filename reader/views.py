@@ -2,6 +2,8 @@
 
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta, date
+from elasticsearch_dsl import Search
+from elasticsearch import Elasticsearch
 from sets import Set
 from random import choice
 from pprint import pprint
@@ -56,8 +58,9 @@ from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_i
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.helper.search import get_query_obj
 from django.utils.html import strip_tags
 
 if USE_VARNISH:
@@ -3597,46 +3600,23 @@ def dummy_search_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
-def search_api(request):
-    # dict to define request parameters and their default values. None means parameter is required
-    from elasticsearch import Elasticsearch
-    from elasticsearch_dsl import Search
-    from sefaria.settings import SEARCH_ADMIN
-    client = Elasticsearch(SEARCH_ADMIN)
-    search = Search(using=client)
-    params = {
-        "query_type": "match_phrase",
-        "query": None,
-        "size": 10,
-        "from": 0,
-        "type": None,  #
-        "get_filters": False,
-        "applied_filters": [],
-        "field": None,
-        "sort_type": None,
-        "exact": False
-    }
-    param_vals = {
-        p: request.GET.get(p, params[p])
-        for p in params
-    }
-    search = search.query(param_vals["query_type"], )
 
-    query = request.GET.get("q")
-    """
-         query: string
-         get_filters: boolean
-         applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
-         appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
-         aggregationsToUpdate: array of aggTypes to update in the case when there exist multiple aggTypes for a query type
-         size: int - number of results to request
-         from: int - start from result # (skip from - 1 results)
-         type: string - currently either "text" or "sheet"
-         field: string - which field to query. this essentially changes the exactness of the search. right now, 'exact' or 'naive_lemmatizer'
-         sort_type: See SearchState.metadataByType for possible sort types
-         exact: boolean. true if query should be exact
-    """
-    size = request.GET.get("size")
+@csrf_exempt
+def search_wrapper_api(request):
+    if request.method == "POST":
+        if "json" in request.POST:
+            j = request.POST.get("json")
+        else:
+            j = request.body  # using content-type: application/json
+        j = json.loads(j)
+        es_client = Elasticsearch(SEARCH_ADMIN + "/" + j.get("type"))
+        search_obj = Search(using=es_client)
+        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in j.items()})
+        response = search_obj.execute()
+        if response.success():
+            return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
+        return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @ensure_csrf_cookie
