@@ -92,7 +92,7 @@ class UserHistoryPanel extends Component {
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-              {this.props.interfaceLang !== "hebrew" && Sefaria._torah_specific ? 
+              {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? 
                 <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
               <span className="int-en">{ title }</span>
               <span className="int-he">{ title }</span>

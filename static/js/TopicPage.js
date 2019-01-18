@@ -83,7 +83,7 @@ class TopicPage extends Component {
                   </Link>
                 </h2>
                 <h1>
-                  { this.props.multiPanel && Sefaria._torah_specific ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                  { this.props.multiPanel && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                   <span className="int-en">{this.props.topic}</span>
                   <span className="int-he">{Sefaria.hebrewTerm(this.props.topic)}</span>
                 </h1>

@@ -223,8 +223,15 @@ class ReaderTextTableOfContents extends Component {
             onClick={this.toggleVersionsDropDownOpen}
             onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
             <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
-              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
-              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              {Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <span>
+                <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+                <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              </span> :
+              <span>
+                <span className="int-en">{`${numVersions["en"]}`}</span>
+                <span className="int-he">{`${numVersions["en"]}`}</span>
+              </span> }
             </div>
             <div className="versionSectionTitle">
               <span className="int-en">Versions</span>
@@ -232,8 +239,15 @@ class ReaderTextTableOfContents extends Component {
               {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
             </div>
             <div className="versionSectionSummary">
-              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
-              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              {Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <span>
+                <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+                <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              </span> :
+              <span>
+                <span className="int-en">{`${numVersions["en"]}`}</span>
+                <span className="int-he">{`${numVersions["en"]}`}</span>
+              </span> }
             </div>
           </h2>
           { this.state.versionsDropDownOpen ?

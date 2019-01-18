@@ -10,7 +10,7 @@ from functools import wraps
 from django.template.loader import render_to_string
 
 from sefaria.settings import *
-from sefaria.site.site_settings import TORAH_SPECIFIC
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet
 from sefaria.model.interrupting_message import InterruptingMessage
@@ -63,7 +63,7 @@ def global_settings(request):
         "GLOBAL_WARNING":         GLOBAL_WARNING,
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
         "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY,
-        "TORAH_SPECIFIC":         TORAH_SPECIFIC,
+        "SITE_SETTINGS":          SITE_SETTINGS,
         #"USE_VARNISH":            USE_VARNISH,
         #"VARNISH_ADDR":           VARNISH_ADDR,
         #"USE_VARNISH_ESI":        USE_VARNISH_ESI

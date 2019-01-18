@@ -23,9 +23,9 @@ var DJANGO_DATA_VARS = {
   interfaceLang:        "{{ request.interfaceLang }}",
   globalWarningMessage: {% if GLOBAL_WARNING %}"{{ GLOBAL_WARNING_MESSAGE}}"{% else %}null{% endif %},
   interruptingMessage:  {{ interrupting_message_json|default:'null' }},
+  _siteSettings:        {{ SITE_SETTINGS|jsonify }},
   _email:               "{{ request.user.email|default:'' }}",
   _debug:               {% if DEBUG %}true{% else %}false{% endif %},
-  _torah_specific:      {% if TORAH_SPECIFIC %}true{% else %}false{% endif %},
   _uid:                 {{ request.user.id|default:"null" }},
   _partner_group:       "{{ partner_group }}",
   _partner_role:        "{{ partner_role }}"

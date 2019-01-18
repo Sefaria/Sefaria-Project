@@ -295,7 +295,7 @@ class Header extends Component {
                     </div>
                 </div>
                 <div className="headerHomeSection">
-                    {Sefaria._torah_specific ? 
+                    {Sefaria._siteSettings.TORAH_SPECIFIC ? 
                       <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> :
                       null }
                 </div>

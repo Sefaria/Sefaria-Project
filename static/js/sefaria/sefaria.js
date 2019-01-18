@@ -1790,7 +1790,7 @@ Sefaria = extend(Sefaria, {
       "CC-BY": "רשיון CC-BY",
       "CC-BY-NC": "רשיון CC-BY-NC",
       "CC-BY-SA": "רשיון CC-BY-SA",
-      "CC-BY-NC-SA": "רשיון CC-BY-NC-Sa",
+      "CC-BY-NC-SA": "רשיון CC-BY-NC-SA",
       "CC0": "רשיון CC0",
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
@@ -1969,6 +1969,13 @@ Sefaria = extend(Sefaria, {
         return inputStr;
 	  }
   },
+  _cacheSiteInterfaceStrings: function() {
+    // Ensure that names set in Site Settings are available for translation in JS. 
+    if (!Sefaria._siteSettings) { return; }
+    ["SITE_NAME", "LIBRARY_NAME"].map(key => {
+      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];
+    });
+  },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
@@ -2102,6 +2109,7 @@ Sefaria.setup = function(data) {
         Sefaria.last_place = [];
     }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
+    Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)
 };

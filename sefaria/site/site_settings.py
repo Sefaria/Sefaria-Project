@@ -1,5 +1,5 @@
 from sefaria.settings import SITE_PACKAGE
 
-temp = __import__(SITE_PACKAGE + ".site_settings", fromlist=["TORAH_SPECIFIC"])
+temp = __import__(SITE_PACKAGE + ".site_settings", fromlist=["SITE_SETTINGS"])
 
-TORAH_SPECIFIC = temp.TORAH_SPECIFIC
+SITE_SETTINGS = temp.SITE_SETTINGS

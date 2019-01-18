@@ -65,7 +65,7 @@ class ReaderPanel extends Component {
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
-        language:      Sefaria._torah_specific ? "binlinual" : "english",
+        language:      Sefaria._siteSettings.TORAH_SPECIFIC ? "binlinual" : "english",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
@@ -1246,7 +1246,7 @@ class ReaderDisplayOptionsMenu extends Component {
     var hasHebrew = !!this.props.currentData().he.length;
     var hasEnglish = !!this.props.currentData().text.length;
     var singleLanguage = !(hasHebrew && hasEnglish);
-    var showLangaugeToggle = Sefaria._torah_specific || !singleLanguage;
+    var showLangaugeToggle = Sefaria._siteSettings.TORAH_SPECIFIC || !singleLanguage;
 
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },

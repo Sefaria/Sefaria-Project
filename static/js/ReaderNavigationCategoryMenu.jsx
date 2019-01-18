@@ -80,7 +80,7 @@ class ReaderNavigationCategoryMenu extends Component {
               <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
-                      {this.props.interfaceLang !== "hebrew"  && Sefaria._torah_specific ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                      {this.props.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                       <span className="en">{catTitle}</span>
                       <span className="he">{heCatTitle}</span>
                     </h1>) : null}

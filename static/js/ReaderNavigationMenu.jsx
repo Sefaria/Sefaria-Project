@@ -145,6 +145,8 @@ class ReaderNavigationMenu extends Component {
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
                   </div>);
+
+
       var calendar = Sefaria.calendars.map(function(item) {
           return (<TextBlockLink
                     sref={item.url}
@@ -157,6 +159,7 @@ class ReaderNavigationMenu extends Component {
                     recentItem={false} />)
       });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
+
 
       var resources = [(<a className="resourcesLink" href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" alt="source sheets icon" />
@@ -184,6 +187,11 @@ class ReaderNavigationMenu extends Component {
                         <span className="int-he">הקבוצות</span>
                       </a>)
                       ];
+
+      const torahSpecificResources = ["/visualizations", "/people"];
+      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+        resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
+      }
       resources = (<div className="readerTocResources"><TwoBox content={resources} width={this.width} /></div>);
 
 
@@ -226,10 +234,10 @@ class ReaderNavigationMenu extends Component {
 
 
       var title = (<h1>
-                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._torah_specific ?
+                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                      <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-                    <span className="int-en">The Sefaria Library</span>
-                    <span className="int-he">האוסף של ספריא</span>
+                    <span className="int-en">{Sefaria._siteSettings.LIBRARY_NAME.en}</span>
+                    <span className="int-he">{Sefaria._siteSettings.LIBRARY_NAME.he}</span>
                   </h1>);
 
       var footer = this.props.compare ? null :
@@ -245,7 +253,7 @@ class ReaderNavigationMenu extends Component {
                   { this.props.compare ? null : title }
                   { topUserData }
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
-                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} />
+                  { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
                   { this.props.multiPanel ? null : siteLinks }
                 </div>

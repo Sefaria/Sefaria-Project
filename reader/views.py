@@ -57,7 +57,7 @@ from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
-from sefaria.site.site_settings import TORAH_SPECIFIC
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from django.utils.html import strip_tags
 
@@ -863,7 +863,7 @@ def mobile_home(request):
 
 def texts_list(request):
     props = base_props(request)
-    title = _("The Sefaria Library")
+    title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, props, "navigation", title, desc)
 

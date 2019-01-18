@@ -395,7 +395,7 @@ class ReaderNavigationMenuCloseButton extends Component {
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    var icon = Sefaria._torah_specific ? 
+    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ? 
       <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
       <span className="textIcon">Aa</span>;
     return (<a
@@ -593,7 +593,7 @@ class SignUpModal extends Component {
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
-            <h2>{Sefaria._("Join Sefaria.")}</h2>
+            <h2>{Sefaria._("Join " + Sefaria._siteSettings.SITE_NAME.en + ".")}</h2>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
