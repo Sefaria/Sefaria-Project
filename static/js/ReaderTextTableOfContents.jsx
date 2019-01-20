@@ -401,7 +401,6 @@ class ReaderTextTableOfContents extends Component {
                         lexiconName={details.lexiconName}
                         title={this.props.title}
                         interfaceLang={this.props.interfaceLang}
-                        close={this.props.close}
                         showBaseText={this.props.showBaseText}
                         contextSelector=".readerTextTableOfContents"
                         currVersions={this.props.currVersions}/> : ""}
