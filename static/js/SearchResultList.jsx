@@ -155,10 +155,9 @@ class SearchResultList extends Component {
         query: this.props.query,
         type,
         size,
-        from: last,
+        start: last,
         field,
         sort_type: sortType,
-        get_filters: false,
         applied_filters: appliedFilters,
         appliedFilterAggTypes,
         aggregationsToUpdate: [],
@@ -202,11 +201,10 @@ class SearchResultList extends Component {
       const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
       const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
       const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
-      const aggregationsToUpdate = aggregation_field_array.filter( a => justUnapplied || a !== this.lastAppliedAggType[type]);
+      const aggregationsToUpdate = filtersValid && aggregation_field_array.length === 1 ? [] : aggregation_field_array.filter( a => justUnapplied || a !== this.lastAppliedAggType[type]);
       const runningQuery = Sefaria.search.execute_query({
           query: props.query,
           type,
-          get_filters: !filtersValid,
           applied_filters: request_applied,
           appliedFilterAggTypes,
           aggregationsToUpdate,

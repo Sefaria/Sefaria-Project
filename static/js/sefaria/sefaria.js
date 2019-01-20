@@ -2103,7 +2103,7 @@ Sefaria.setup = function(data) {
     }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
-    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)
+    Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
 
