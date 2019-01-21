@@ -2,6 +2,7 @@
 import sys
 import os
 import datetime
+from pymongo.errors import DuplicateKeyError
 import django
 django.setup()
 
@@ -35,4 +36,7 @@ metrics = {
     "sheets": sheets,
 }
 
-db.metrics.save(metrics)
+try:
+    db.metrics.save(metrics)
+except DuplicateKeyError:
+    pass

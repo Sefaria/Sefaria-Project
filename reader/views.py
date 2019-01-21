@@ -239,10 +239,14 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     return panel
 
 
-def make_search_panel_dict(query, **kwargs):
+def make_search_panel_dict(get_dict, i, **kwargs):
+    search_params = get_search_params(get_dict, i)
+    # TODO hard to pass search params related to textSearchState and sheetSearchState as those are JS objects
+    # TODO this is not such a pressing issue though
     panel = {
         "menuOpen": "search",
-        "searchQuery": query
+        "searchQuery": search_params["query"],
+        "searchTab": search_params["tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -320,7 +324,6 @@ def base_props(request):
     return {
         "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "recentlyViewed": user_and_notifications(request).get("recentlyViewed"),
         "loggedIn": True if request.user.is_authenticated else False, # Django 1.10 changed this to a CallableBool, so it doesnt have a direct value of True/False,
         "_uid": request.user.id,
         "interfaceLang": request.interfaceLang,
@@ -393,9 +396,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if not ref:
             break
         if ref == "search":
-            query = request.GET.get("q{}".format(i))
             panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
-            panels += [make_search_panel_dict(query, **{"panelDisplayLanguage": panelDisplayLanguage})]
+            panels += [make_search_panel_dict(request.GET, i, **{"panelDisplayLanguage": panelDisplayLanguage})]
 
         elif ref == "sheet":
             sheet_id = request.GET.get("s{}".format(i))
@@ -550,37 +552,59 @@ def texts_category_list(request, cats):
     })
 
 
+def get_param(param, i=None):
+    return "{}{}".format(param, "" if i is None else i)
+
+
+def get_search_params(get_dict, i=None):
+    gp = get_param
+    sheet_group_search_filters = map(lambda f: urllib.unquote(f),
+                                     get_dict.get(gp("sgroupFilters", i)).split("|")) if get_dict.get(gp("sgroupFilters", i),
+                                                                                                     "") else []
+    sheet_tags_search_filters = map(lambda f: urllib.unquote(f),
+                                    get_dict.get(gp("stagsFilters", i), "").split("|")) if get_dict.get(gp("stagsFilters", i),
+                                                                                                       "") else []
+    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(
+        sheet_tags_search_filters)  # i got a tingly feeling writing this
+    text_filters = map(lambda f: urllib.unquote(f), get_dict.get(gp("tpathFilters", i)).split("|")) if get_dict.get(gp("tpathFilters", i)) else []
+    return {
+        "query": urllib.unquote(get_dict.get(gp("q", i), "")),
+        "tab": urllib.unquote(get_dict.get(gp("tab", i), "text")),
+        "textField": ("naive_lemmatizer" if get_dict.get(gp("tvar", i)) == "1" else "exact") if get_dict.get(gp("tvar", i)) else "",
+        "textSort": get_dict.get(gp("tsort", i), None),
+        "textFilters": text_filters,
+        "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
+        "sheetSort": get_dict.get(gp("ssort", i), None),
+        "sheetFilters": (sheet_group_search_filters + sheet_tags_search_filters),
+        "sheetFilterAggTypes": sheet_agg_types,
+    }
+
 @ensure_csrf_cookie
 def search(request):
     """
     Search or Search Results page.
     """
-    text_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("tpathFilters").split("|")) if request.GET.get("tpathFilters") else []
-    sheet_group_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("sgroupFilters").split("|")) if request.GET.get("sgroupFilters", "") else []
-    sheet_tags_search_filters = map(lambda f: urllib.unquote(f), request.GET.get("stagsFilters", "").split("|")) if request.GET.get("stagsFilters", "") else []
-    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(sheet_tags_search_filters)  # i got a tingly feeling writing this
-    initialQuery = urllib.unquote(request.GET.get("q", ""))
-    text_field = ("naive_lemmatizer" if request.GET.get("tvar") == "1" else "exact") if request.GET.get("tvar") else ""
-    text_sort = request.GET.get("tsort", None)
-    sheet_sort = request.GET.get("ssort", None)
+    search_params = get_search_params(request.GET)
 
     props = base_props(request)
     props.update({
         "initialMenu": "search",
-        "initialQuery": initialQuery,
-        "initialTextSearchFilters": text_search_filters,
-        "initialSheetSearchFilters": (sheet_group_search_filters + sheet_tags_search_filters),
-        "initialSheetSearchFilterAggTypes": sheet_agg_types,
-        "initialTextSearchField": text_field,
-        "initialTextSearchSortType": text_sort,
-        "initialSheetSearchSortType": sheet_sort
+        "initialQuery": search_params["query"],
+        "initialSearchTab": search_params["tab"],
+        "initialTextSearchFilters": search_params["textFilters"],
+        "initialTextSearchFilterAggTypes": search_params["textFilterAggTypes"],
+        "initialTextSearchField": search_params["textField"],
+        "initialTextSearchSortType": search_params["textSort"],
+        "initialSheetSearchFilters": search_params["sheetFilters"],
+        "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
+        "initialSheetSearchSortType": search_params["sheetSort"]
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON": propsJSON,
         "html":      html,
-        "title":     (initialQuery + " | " if initialQuery else "") + _("Sefaria Search"),
+        "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     })
 
@@ -841,6 +865,21 @@ def texts_list(request):
     title = _("The Sefaria Library")
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, props, "navigation", title, desc)
+
+
+def saved(request):
+    props = base_props(request)
+    title = _("My Saved Content")
+    desc = _("See your saved content on Sefaria")
+    return menu_page(request, props, "saved", title, desc)
+
+
+def user_history(request):
+    props = base_props(request)
+    title = _("My User History")
+    desc = _("See your user history on Sefaria")
+    return menu_page(request, props, "history", title, desc)
+
 
 def updates(request):
     props = base_props(request)
@@ -1282,6 +1321,10 @@ def old_text_versions_api_redirect(request, tref, lang, version):
     params = request.GET.urlencode()
     response['Location'] += "&{}".format(params) if params else ""
     return response
+
+
+def old_recent_redirect(request):
+    return redirect("/texts/history", permanent=True)
 
 
 @catch_error_as_json
@@ -1791,7 +1834,7 @@ def related_api(request, tref):
         response = {
             "links": get_links(tref, with_text=False),
             "sheets": get_sheets_for_ref(tref),
-            "notes": [] # get_notes(oref, public=True) # Hiding public notes for now
+            "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -2178,7 +2221,7 @@ def get_name_completions(name, limit, ref_only):
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
-        d["completions"] = list(OrderedDict.fromkeys(t))  # filter out dupes
+        completions = list(OrderedDict.fromkeys(t))  # filter out dupes
     except InputError:
         completions = completer.complete(name, limit)
         object_data = completer.get_data(name)
@@ -2264,7 +2307,12 @@ def dictionary_completion_api(request, word, lexicon=None):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
 
-    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    if lexicon is None:
+        ac = library.cross_lexicon_auto_completer()
+        rs = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+    else:
+        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
 
 
@@ -2844,6 +2892,105 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@catch_error_as_json
+def profile_sync_api(request):
+    """
+    API for syncing history and settings with your profile
+    Required POST fields: settings, last_synce
+    POST payload should look like
+    {
+        settings: {..., time_stamp},
+        user_history: [{...},...],
+        last_sync: ...
+    }
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+    # fields in the POST req which can be synced
+    syncable_fields = ["settings", "user_history"]
+    if request.method == "POST":
+        post = request.POST
+        from sefaria.utils.util import epoch_time
+        now = epoch_time()
+        no_return = request.GET.get("no_return", False)
+        profile = UserProfile(id=request.user.id)
+        if not no_return:
+            # send back items after `last_sync`
+            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            ret = {"last_sync": now, "user_history": [uh.contents() for uh in uhs.array()]}
+            if "last_sync" not in post:
+                # request was made from web. update last_sync on profile
+                profile.update({"last_sync_web": now})
+                profile.save()
+        else:
+            ret = {}
+        # sync items from request
+        for field in syncable_fields:
+            if field not in post:
+                continue
+            field_data = json.loads(post[field])
+            if field == "settings":
+                if field_data["time_stamp"] > profile.attr_time_stamps[field]:
+                    # this change happened after other changes in the db
+                    profile.update({
+                        field: field_data,
+                        "attr_time_stamps": profile.attr_time_stamps.update({field: field_data["time_stamp"]})
+                    })
+                    ret["settings"] = profile.settings
+            elif field == "user_history":
+                for hist in field_data:
+                    hist["uid"] = request.user.id
+                    if "he_ref" not in hist or "book" not in hist:
+                        oref = Ref(hist["ref"])
+                        hist["he_ref"] = oref.he_normal()
+                        hist["book"] = oref.index.title
+                    hist["server_time_stamp"] = now if "server_time_stamp" not in hist else hist[
+                        "server_time_stamp"]  # DEBUG: helpful to include this field for debugging
+
+                    action = hist.pop("action", None)
+                    saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
+                    uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
+                        "saved": saved,
+                        "server_time_stamp": hist["server_time_stamp"]
+                    })
+                    uh.save()
+                    ret["created"] = uh.contents(for_api=True)
+        return jsonResponse(ret)
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def profile_get_user_history(request):
+    """
+    GET API for user history. optional URL params are
+    :saved: bool. True if you only want saved items. None if you dont care
+    :secondary: bool. True if you only want secondary items. None if you dont care
+    :tref: Ref associated with history item
+    """
+    if not request.user.is_authenticated:
+        import urlparse
+        recents = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
+        recents = UserProfile.transformOldRecents(None, recents)
+        history = json.loads(urlparse.unquote(request.COOKIES.get("user_history", '[]')))
+        return jsonResponse(history + recents)
+    if request.method == "GET":
+        saved = request.GET.get("saved", None)
+        if saved is not None:
+            saved = bool(int(saved))
+        secondary = request.GET.get("secondary", None)
+        if secondary is not None:
+            secondary = bool(int(secondary))
+        last_place = request.GET.get("last_place", None)
+        if last_place is not None:
+            last_place = bool(int(last_place))
+        tref = request.GET.get("tref", None)
+        oref = Ref(tref) if tref else None
+        user = UserProfile(id=request.user.id)
+        return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def profile_redirect(request, uid, page=1):
     """"
     Redirect to the profile of the logged in user.
@@ -2904,13 +3051,13 @@ def home(request):
     Homepage
     """
     recent = request.COOKIES.get("recentlyViewed", None)
-    if recent and not "home" in request.GET:
+    last_place = request.COOKIES.get("user_history", None)
+    if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
         return redirect("/texts")
 
     if request.user_agent.is_mobile:
         return mobile_home(request)
 
-    today     = date.today()
     calendar_items = get_keyed_calendar_items(request.diaspora)
     daf_today = calendar_items["Daf Yomi"]
     parasha   = calendar_items["Parashat Hashavua"]
@@ -3393,6 +3540,67 @@ def random_by_topic_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
+@csrf_exempt
+def dummy_search_api(request):
+    # Thou shalt upgrade thine app or thou shalt not glean the results of search thou seeketh
+    # this api is meant to information users of the old search.sefaria.org to upgrade their apps to get search to work again
+    were_sorry = u"We're sorry, but your version of the app is no longer compatible with our new search. We recommend you upgrade the Sefaria app to fully enjoy all it has to offer <br> עמכם הסליחה, אך גרסת האפליקציה הנמצאת במכשירכם איננה תואמת את מנוע החיפוש החדש. אנא עדכנו את אפליקצית ספריא להמשך שימוש בחיפוש"
+    resp = jsonResponse({
+        "took": 613,
+        "timed_out": False,
+        "_shards": {
+            "total": 5,
+            "successful": 5,
+            "skipped": 0,
+            "failed": 0
+        },
+        "hits": {
+            "total": 1,
+            "max_score": 1234,
+            "hits": [
+                {
+                    "_index": "merged-c",
+                    "_type": "text",
+                    "_id": "yoyo [he]",
+                    "_score": 1,
+                    "_source": {
+                        "titleVariants": ["Upgrade"],
+                        "path": "Tanakh/Torah/Genesis",
+                        "version_priority": 0,
+                        "content": were_sorry,
+                        "exact": were_sorry,
+                        "naive_lemmatizer": were_sorry,
+                        "comp_date": -1400,
+                        "categories": ["Tanakh", "Torah"],
+                        "lang": "he",
+                        "pagesheetrank": 1,
+                        "ref": "Genesis 1:1",
+                        "heRef": u"בראשית א:א",
+                        "version": None,
+                        "order":"A00000100220030"
+                    },
+                    "highlight": {
+                        "content": [
+                            were_sorry
+                        ],
+                        "exact": [
+                            were_sorry
+                        ],
+                        "naive_lemmatizer": [
+                            were_sorry
+                        ]
+                    }
+                }
+            ]
+        },
+        "aggregations": {
+            "category": {
+                "buckets": []
+            }
+        }
+    })
+    resp['Content-Type'] = "application/json; charset=utf-8"
+    return resp
 
 # def search_api(request):
 #     # dict to define request parameters and their default values. None means parameter is required

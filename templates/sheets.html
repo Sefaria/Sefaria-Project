@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block static_css %}{% endblock %}
-{% load i18n cache humanize sefaria_tags%}
+{% load cache humanize sefaria_tags%}
 {% load static %}
+{% load i18n %}
 
 {% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
-{% block soc_description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
@@ -816,12 +817,7 @@
                     <span class="int-he">הוספת תמונה, סרטון יוטוב, קישור מ-SoundCloud או קובץ MP3</span>
                 </div>
                 <div class="blockContainer">
-                    <input id="inlineAddMediaInput" class="inlineAddTextInput"
-                           placeholder={% if request.interfaceLang == 'english' %}
-                                       "Paste URL"
-                                   {% else %}
-                                       "הדבק קישור"
-                                   {% endif %}/>
+                    <input id="inlineAddMediaInput" class="inlineAddTextInput" placeholder="{% trans 'Paste URL' %}" />
                     <div class="buttonContainer">
                         <div class="inlineAddSourceByttons">
                             <div class="button" role="button" tabIndex="0">

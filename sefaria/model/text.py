@@ -22,7 +22,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -454,7 +454,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
-            from sefaria.model.time import TimePeriod
+            from sefaria.model.timeperiod import TimePeriod
             if not startIsApprox is None:
                 return TimePeriod({
                     "start": start,
@@ -469,7 +469,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 })
 
     def _get_time_period(self, date_field, margin_field=None):
-        from . import time
+        from . import timeperiod
         if not getattr(self, date_field, None):
             return None
 
@@ -487,7 +487,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 years[1] = int(years[2])
             start = int(years[0]) - errorMargin
             end = int(years[1]) + errorMargin
-        return time.TimePeriod({
+        return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
             "end": end,
@@ -786,7 +786,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
     def get_primary_category(self):
-        if self.is_dependant_text() and len(self.categories) >= 2:
+        if self.is_dependant_text() and self.dependence.capitalize() in self.categories:
             return self.dependence.capitalize()
         else:
             return self.categories[0]
@@ -1087,7 +1087,11 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
             addressTypes = schema[u"addressTypes"] if u"addressTypes" in schema else None
         if type(item) is dict:
             for n in schema[u"nodes"]:
-                if n.get(u"default", False):
+                try:
+                    is_virtual_node = VirtualNode in globals()[n.get(u"nodeType", u"")].__bases__
+                except KeyError:
+                    is_virtual_node = False
+                if n.get(u"default", False) or is_virtual_node:
                     node_title_en = node_title_he = u""
                 elif n.get(u"sharedTitle", False):
                     titles = terms_dict[n[u"sharedTitle"]][u"titles"] if terms_dict is not None else Term().load({"name": n[u"sharedTitle"]}).titles
@@ -1097,7 +1101,15 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                     node_title_en = u", " + get_primary_title(u"en", n[u"titles"])
                     node_title_he = u", " + get_primary_title(u"he", n[u"titles"])
 
-                self.walk_thru_contents(action, item[n[u"key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
+                if is_virtual_node:
+                    curr_ref = Ref(tref)
+                    vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == n.get(u"nodeType", u"") and x.firstWord == n[u"firstWord"])
+                    for vchild in vnode.all_children():
+                        vstring = u" ".join(vchild.get_text())
+                        vref = vchild.ref()
+                        self.walk_thru_contents(action, vstring, vref.normal(), vref.he_normal(), n, [])
+                else:
+                    self.walk_thru_contents(action, item[n[u"key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
         elif type(item) is list:
             for ii, i in enumerate(item):
                 try:
@@ -3457,7 +3469,7 @@ class Ref(object):
             if as_list:
                 return [u"{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "u%s(%s)" % (escaped_book, u"|".join(patterns))
+                return u"%s(%s)" % (escaped_book, u"|".join(patterns))
 
     def ref_regex_query(self):
         """
@@ -3634,13 +3646,15 @@ class Ref(object):
         try:
             base = library.category_id_dict()[key]
             if self.index.is_complex():
-                base += format(self.index.nodes.get_child_order(self.index_node), '03')
-            res = reduce(lambda x, y: x + format(y, '04'), self.sections, base)
+                child_order = self.index.nodes.get_child_order(self.index_node)
+                base += unicode(format(child_order, '03')) if isinstance(child_order, int) else child_order
+
+            res = reduce(lambda x, y: x + unicode(format(y, '04')), self.sections, base)
             if self.is_range():
-                res = reduce(lambda x, y: x + format(y, '04'), self.toSections, res + "-")
+                res = reduce(lambda x, y: x + unicode(format(y, '04')), self.toSections, res + u"-")
             return res
         except Exception as e:
-            logger.warning("Failed to execute order_id for {} : {}".format(self, e))
+            logger.warning(u"Failed to execute order_id for {} : {}".format(self, e))
             return "Z"
 
     """ Methods for working with Versions and VersionSets """
@@ -4040,6 +4054,7 @@ class Library(object):
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
+        self._cross_lexicon_auto_completer = None
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4168,11 +4183,17 @@ class Library(object):
             lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True) for lang in self.langs
         }
 
+        for lang in self.langs:
+            self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
+
     def build_ref_auto_completer(self):
         from autospell import AutoCompleter
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
+
+        for lang in self.langs:
+            self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
 
     def build_lexicon_auto_completers(self):
         from autospell import LexiconTrie
@@ -4180,12 +4201,24 @@ class Library(object):
             lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
         }
 
+    def build_cross_lexicon_auto_completer(self):
+        from autospell import AutoCompleter
+        self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
+
+    def cross_lexicon_auto_completer(self):
+        if self._cross_lexicon_auto_completer is None:
+            logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
+            self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built cross lexicon auto completer.")
+        return self._cross_lexicon_auto_completer
+
     def lexicon_auto_completer(self, lexicon):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
             logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
+            logger.warning("Built {} auto completer.".format(lexicon))
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
@@ -4194,6 +4227,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
     def ref_auto_completer(self, lang):
@@ -4202,6 +4236,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built {} ref auto completer.".format(lang))
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):

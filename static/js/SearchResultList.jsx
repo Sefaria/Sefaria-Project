@@ -34,7 +34,6 @@ class SearchResultList extends Component {
         totals:         this._typeObjDefault(0),
         displayedUntil: this._typeObjDefault(50),
         hits:           this._typeObjDefault([]),
-        activeTab:      this.types[0],
         error:          false,
         showOverlay:    false,
         displayFilters: false,
@@ -52,7 +51,7 @@ class SearchResultList extends Component {
     }
 
     updateLastAppliedAggType(aggType) {
-      this.lastAppliedAggType[this.state.activeTab] = aggType;
+      this.lastAppliedAggType[this.props.tab] = aggType;
     }
 
     _typeObjDefault(defaultValue) {
@@ -82,7 +81,7 @@ class SearchResultList extends Component {
     }
 
     handleScroll() {
-      var tab = this.state.activeTab;
+      var tab = this.props.tab;
       if (this.state.displayedUntil[tab] >= this.state.totals[tab]) { return; }
       var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
       var margin = 100;
@@ -92,10 +91,10 @@ class SearchResultList extends Component {
     }
 
     _extendResultsDisplayed() {
-      const { activeTab } = this.state;
-      this.state.displayedUntil[activeTab] += this.resultDisplayStep;
-      if (this.state.displayedUntil[activeTab] >= this.state.totals[activeTab]) {
-        this.state.displayedUntil[activeTab] = this.state.totals[activeTab];
+      const { tab } = this.props;
+      this.state.displayedUntil[tab] += this.resultDisplayStep;
+      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
+        this.state.displayedUntil[tab] = this.state.totals[tab];
       }
       this.setState({ displayedUntil: this.state.displayedUntil });
     }
@@ -261,10 +260,10 @@ class SearchResultList extends Component {
         this.updateRunningQuery(null, null, false);
     }
     showSheets() {
-      this.setState({activeTab: 'sheet'});
+      this.props.updateTab('sheet');
     }
     showTexts() {
-      this.setState({activeTab: 'text'});
+      this.props.updateTab('text');
     }
     showResultsOverlay(shouldShow) {
       //overlay gives opacity to results when either filter box or sort box is open
@@ -291,7 +290,7 @@ class SearchResultList extends Component {
             return null;
         }
 
-        var tab = this.state.activeTab;
+        var { tab } = this.props;
         var results = [];
 
         if (tab == "text") {
@@ -318,16 +317,16 @@ class SearchResultList extends Component {
         results              = haveResults ? results : noResultsMessage;
         var searchFilters    = (<SearchFilters
                                   query = {this.props.query}
-                                  searchState={this._getSearchState(this.state.activeTab)}
+                                  searchState={this._getSearchState(this.props.tab)}
                                   total = {this.state.totals["text"] + this.state.totals["sheet"]}
                                   textTotal = {this.state.totals["text"]}
                                   sheetTotal = {this.state.totals["sheet"]}
-                                  updateAppliedFilter      = {this.updateAppliedFilterByTypeMap[this.state.activeTab]}
-                                  updateAppliedOptionField = {this.updateAppliedOptionFieldByTypeMap[this.state.activeTab]}
-                                  updateAppliedOptionSort  = {this.updateAppliedOptionSortByTypeMap[this.state.activeTab]}
+                                  updateAppliedFilter      = {this.updateAppliedFilterByTypeMap[this.props.tab]}
+                                  updateAppliedOptionField = {this.updateAppliedOptionFieldByTypeMap[this.props.tab]}
+                                  updateAppliedOptionSort  = {this.updateAppliedOptionSortByTypeMap[this.props.tab]}
                                   updateLastAppliedAggType={this.updateLastAppliedAggType}
                                   isQueryRunning = {this.state.isQueryRunning[tab]}
-                                  type = {this.state.activeTab}
+                                  type = {this.props.tab}
                                   clickTextButton = {this.showTexts}
                                   clickSheetButton = {this.showSheets}
                                   showResultsOverlay = {this.showResultsOverlay}
@@ -349,9 +348,11 @@ class SearchResultList extends Component {
 }
 SearchResultList.propTypes = {
   query:                    PropTypes.string,
+  tab:                      PropTypes.oneOf(["text", "sheet"]),
   textSearchState:          PropTypes.object,
   sheetSearchState:         PropTypes.object,
   onResultClick:            PropTypes.func,
+  updateTab:                PropTypes.func,
   updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,

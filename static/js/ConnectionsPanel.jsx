@@ -52,11 +52,11 @@ class ConnectionsPanel extends Component {
     }
     // Turn on the lexicon when receiving new words if they are less than 3
     // and don't span refs.
-    if (!prevProps.selectedWords &&
-        this.props.selectedWords &&
+    if (this.props.selectedWords &&
+        this.props.selectedWords !== prevProps.selectedWords &&
         this.props.selectedWords.match(/[\s:\u0590-\u05ff.]+/) &&
         this.props.selectedWords.split(" ").length < 3 &&
-        this.props.srefs.length == 1) {
+        this.props.srefs.length === 1) {
       this.props.setConnectionsMode("Lexicon");
     }
     // Go back to main sidebar when words are unselected
@@ -72,7 +72,6 @@ class ConnectionsPanel extends Component {
     }
   }
   sectionRef() {
-    console.log(this.props.srefs);
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
@@ -255,7 +254,9 @@ class ConnectionsPanel extends Component {
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
-                    selectedWords={this.props.selectedWords}/>);
+                    selectedWords={this.props.selectedWords}
+                    checkIntentTimer={this.props.checkIntentTimer}
+                  />);
 
     } else if (this.props.mode === "Sheets") {
       content = (<div>
@@ -313,6 +314,7 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
+                    interfaceLang={this.props.interfaceLang}
       />);
 
     } else if (this.props.mode === "Tools") {
@@ -457,6 +459,7 @@ ConnectionsPanel.propTypes = {
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
+  checkIntentTimer:        PropTypes.func.isRequired,
 };
 
 
@@ -529,7 +532,7 @@ class ConnectionsSummary extends Component {
         var ib = order.indexOf(b.category)
         return ia - ib;
       });
-      
+
     } else if (this.props.category) {
       // Single Category Summary
       summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));

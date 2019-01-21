@@ -72,9 +72,9 @@ class ReaderNavigationCategoryMenu extends Component {
                   <span className="en">{catTitle}</span>
                   <span className="he">{heCatTitle}</span>
                 </h2>)}
-                {this.props.hideNavHeader ? null : 
-                  (this.props.interfaceLang === "hebrew" ? 
-                    <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> 
+                {this.props.hideNavHeader ? null :
+                  (this.props.interfaceLang === "hebrew" ?
+                    <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />
                     : <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
               </div>
               <div className={contentClasses}>
@@ -86,10 +86,10 @@ class ReaderNavigationCategoryMenu extends Component {
                     </h1>) : null}
                   {toggle}
                   <CategoryAttribution categories={categories} />
-                  <ReaderNavigationCategoryMenuContents 
-                    contents={catContents} 
+                  <ReaderNavigationCategoryMenuContents
+                    contents={catContents}
                     categories={categories}
-                    width={this.props.width} 
+                    width={this.props.width}
                     category={this.props.category}
                     contentLang={this.props.contentLang}
                     nestLevel={nestLevel} />
@@ -102,7 +102,6 @@ class ReaderNavigationCategoryMenu extends Component {
 ReaderNavigationCategoryMenu.propTypes = {
   category:            PropTypes.string.isRequired,
   categories:          PropTypes.array.isRequired,
-  closeNav:            PropTypes.func.isRequired,
   setCategories:       PropTypes.func.isRequired,
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
@@ -140,38 +139,38 @@ class ReaderNavigationCategoryMenuContents extends Component {
   }
   hebrewContentSort(cats) {
     // Sorts contents of this category by Hebrew Alphabetical
-    console.log(cats);
+    //console.log(cats);
     var heCats = cats.slice().map(function(item, indx) {
       item.enOrder = indx;
       return item;
     });
-    console.log(heCats.slice())
+    //console.log(heCats.slice())
     heCats = heCats.sort(function(a, b) {
       if ("order" in a || "order" in b) {
         var aOrder = "order" in a ? a.order : 9999;
         var bOrder = "order" in b ? b.order : 9999;
         return aOrder > bOrder ? 1 : -1;
-      
+
       } else if (("category" in a) != ("category" in b)) {
-        return a.enOrder > b.enOrder ? 1 : -1;      
-      
+        return a.enOrder > b.enOrder ? 1 : -1;
+
       } else if (a.heComplete != b.heComplete) {
         return a.heComplete ? -1 : 1;
-      
+
       } else if (a.heTitle && b.heTitle) {
         return a.heTitle > b.heTitle ? 1 : -1;
-      
+
       }
       return a.enOrder > b.enOrder ? 1 : -1;
     });
-    console.log(heCats)
-    return heCats; 
+    //console.log(heCats)
+    return heCats;
   }
   render() {
       var content = [];
       var cats = this.props.categories || [];
       var contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
-                      this.hebrewContentSort(this.props.contents) 
+                      this.hebrewContentSort(this.props.contents)
                       : this.props.contents;
       for (var i = 0; i < contents.length; i++) {
         var item = contents[i];
@@ -192,7 +191,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
                                 <span className='he'>{heTitle}</span>
                               </a>
                               ));
-            
+
             } else {
               // Create a link to a subcategory
               var url = "/texts/" + newCats.join("/");
@@ -211,25 +210,25 @@ class ReaderNavigationCategoryMenuContents extends Component {
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
                             </h3>
-                            <ReaderNavigationCategoryMenuContents 
+                            <ReaderNavigationCategoryMenuContents
                               contents={item.contents}
                               categories={newCats}
                               width={this.props.width}
                               nestLevel={this.props.nestLevel + 1}
-                              category={this.props.category} 
+                              category={this.props.category}
                               contentLang={this.props.contentLang} />
                           </div>));
           }
         } else {
           // Add a Text
           var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-          var recentItem = Sefaria.recentItemForText(item.title)
-          var ref =  recentItem ? recentItem.ref : item.firstSection;
+          const lastPlace = Sefaria.lastPlaceForText(item.title)
+          var ref =  lastPlace ? lastPlace.ref : item.firstSection;
           var url = "/" + Sefaria.normRef(ref);
           var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
           var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
-          content.push((<a href={url} 
-                          className={classes} 
+          content.push((<a href={url}
+                          className={classes}
                           data-ref={ref}
                           key={"text." + this.props.nestLevel + "." + i}>
                           <span className='en'>{title}</span>
