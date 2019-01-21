@@ -4,7 +4,6 @@ translation_request.py
 Writes to MongoDB Collection:
 """
 import re
-import bleach
 from . import abstract as abst
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
@@ -89,18 +88,7 @@ class LexiconEntry(abst.AbstractMongoRecord):
     }
 
     def _sanitize(self):
-        content = getattr(self, "content")
-        setattr(self, "content", self._sanitize_recurser(content))
-
-    def _sanitize_recurser(self, content):
-        if isinstance(content, dict):
-            for k, v in content.items():
-                content[k] = self._sanitize_recurser(v)
-        elif isinstance(content, list):
-            content = map(self._sanitize_recurser, content)
-        elif isinstance(content, basestring):
-            content = bleach.clean(content, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
-        return content
+        pass
 
     def factory(self, lexicon_name):
         pass
