@@ -137,7 +137,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   /* English content text that may contain Hebrew characters */
   font-family: 'Hebrew Text Font';
   src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
-  unicode-range: U+0590-05FF;
+  unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
   /* English system text that may contain Hebrew characters */
