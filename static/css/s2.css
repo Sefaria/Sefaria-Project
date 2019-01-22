@@ -655,7 +655,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "Hebrew Text Font", "Frank Ruehl Libre", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
