@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-06 07:17-0800\n"
+"POT-Creation-Date: 2019-01-10 11:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -192,7 +191,7 @@ msgstr ""
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
 
-#: sefaria/forms.py:26 sefaria/forms.py:31 sefaria/forms.py:103
+#: sefaria/forms.py:26 sefaria/forms.py:31 sefaria/forms.py:106
 #: templates/static/aramaic-translation-contest.html:140
 #: templates/static/educators.html:359 templates/static/home.html:362
 #: templates/static/newsletter.html:24
@@ -233,56 +232,56 @@ msgstr ""
 msgid "Public Groups are required to have at least 3 public sheets."
 msgstr ""
 
-#: sefaria/utils/util.py:14
+#: sefaria/utils/util.py:15
 #, python-format
 msgid "%d year"
 msgid_plural "%d years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: sefaria/utils/util.py:15
+#: sefaria/utils/util.py:16
 #, python-format
 msgid "%d month"
 msgid_plural "%d months"
 msgstr[0] ""
 msgstr[1] ""
 
-#: sefaria/utils/util.py:16
+#: sefaria/utils/util.py:17
 #, python-format
 msgid "%d week"
 msgid_plural "%d weeks"
 msgstr[0] ""
 msgstr[1] ""
 
-#: sefaria/utils/util.py:17
+#: sefaria/utils/util.py:18
 #, python-format
 msgid "%d day"
 msgid_plural "%d days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: sefaria/utils/util.py:18
+#: sefaria/utils/util.py:19
 #, python-format
 msgid "%d hour"
 msgid_plural "%d hours"
 msgstr[0] ""
 msgstr[1] ""
 
-#: sefaria/utils/util.py:19
+#: sefaria/utils/util.py:20
 #, python-format
 msgid "%d minute"
 msgid_plural "%d minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: sefaria/utils/util.py:20
+#: sefaria/utils/util.py:21
 #, python-format
 msgid "%d second"
 msgid_plural "%d seconds"
 msgstr[0] ""
 msgstr[1] ""
 
-#: sefaria/utils/util.py:49
+#: sefaria/utils/util.py:52
 msgid "now"
 msgstr ""
 
@@ -733,16 +732,19 @@ msgid "Password Reset Link Sent"
 msgstr ""
 
 #: templates/registration/password_reset_email.html:4
+#: templates/registration/password_reset_email.txt:3
 msgid ""
 "A request has been made to reset the password for this email address on "
 "Sefaria.org."
 msgstr ""
 
 #: templates/registration/password_reset_email.html:6
+#: templates/registration/password_reset_email.txt:5
 msgid "Click this link, or copy it to your browser, to choose a new password:"
 msgstr ""
 
 #: templates/registration/password_reset_email.html:12
+#: templates/registration/password_reset_email.txt:9
 msgid "If you did not request this reset, you can safely ignore this email."
 msgstr ""
 
@@ -815,35 +817,39 @@ msgstr ""
 msgid "Search for a Text or Commentator"
 msgstr ""
 
-#: templates/sheets.html:920
+#: templates/sheets.html:819
+msgid "Paste URL"
+msgstr ""
+
+#: templates/sheets.html:915
 msgid "Made with the Sefaria Source Sheet Builder"
 msgstr ""
 
-#: templates/sheets.html:943
+#: templates/sheets.html:938
 msgid "Create New"
 msgstr ""
 
-#: templates/sheets.html:1017
+#: templates/sheets.html:1012
 msgid "Write a summary to help others understand your sheet..."
 msgstr ""
 
-#: templates/sheets.html:1053
+#: templates/sheets.html:1048
 msgid "None"
 msgstr ""
 
-#: templates/sheets.html:1087
+#: templates/sheets.html:1082
 msgid "View"
 msgstr ""
 
-#: templates/sheets.html:1090
+#: templates/sheets.html:1085
 msgid "Add"
 msgstr ""
 
-#: templates/sheets.html:1093
+#: templates/sheets.html:1088
 msgid "Edit"
 msgstr ""
 
-#: templates/sheets.html:1106
+#: templates/sheets.html:1101
 msgid ""
 "\n"
 "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
@@ -1064,6 +1070,14 @@ msgstr ""
 
 #: templates/static/the-sefaria-story.html:6
 msgid "Watch a video about the story of Sefaria."
+msgstr ""
+
+#: templates/static/torah-tab.html:5
+msgid "Sefaria Torah Tab"
+msgstr ""
+
+#: templates/static/torah-tab.html:7
+msgid "Install the free Sefaria Torah Tab for your web browser."
 msgstr ""
 
 #: templates/static/visualizations.html:4
