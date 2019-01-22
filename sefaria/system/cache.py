@@ -50,6 +50,7 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, 
         cache_key = None
 
     def decorator(fn):
+        fn.func_dict["django_cache"] = True
         @wraps(fn)
         def wrapper(*args, **kwargs):
             #logger.debug([args, kwargs])
@@ -79,7 +80,7 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, 
                     set_cache_elem(_cache_key, result, timeout=timeout, cache_type=cache_type)
                 else:
                     result = default_on_miss_value
-                    logger.critical("No cached data was found for ")
+                    logger.critical("No cached data was found for {}".format(fn.__name__))
 
             return result
         return wrapper
