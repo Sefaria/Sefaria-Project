@@ -29,6 +29,9 @@ class WordForm(abst.AbstractMongoRecord):
             query['form'] = {"$regex": "^"+query['form']+"$", "$options": "i"}
         return super(WordForm, self).load(query, proj=None)
 
+    def _sanitize(self):
+        pass
+
 
 class WordFormSet(abst.AbstractMongoSet):
     recordClass = WordForm
