@@ -3615,7 +3615,7 @@ def search_wrapper_api(request):
             j = request.body  # using content-type: application/json
         j = json.loads(j)
         es_client = Elasticsearch(SEARCH_ADMIN)
-        search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=30)
+        search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in j.items()})
         response = search_obj.execute()
         if response.success():
