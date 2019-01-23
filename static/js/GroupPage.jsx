@@ -244,9 +244,7 @@ class GroupPage extends Component {
                   : null }
 
               </div>
-            <footer id="footer" className="static sans">
-              <Footer />
-            </footer>
+            <Footer />
             </div>: <LoadingMessage />);
   }
 }

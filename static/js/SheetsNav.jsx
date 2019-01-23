@@ -235,9 +235,7 @@ class SheetsHomePage extends Component {
                   <TwoOrThreeBox content={tagList} width={this.props.width} />
                 </div>
               </div>
-              <footer id="footer" className="static sans">
-                    <Footer />
-              </footer>
+              <Footer />
              </div>);
   }
 }
@@ -278,9 +276,7 @@ class TagSheetsPage extends Component {
                         </h1>) : null}
                         {sheets}
                       </div>
-                      <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
+                      <Footer />
                     </div>);
   }
 }
@@ -364,9 +360,7 @@ class AllSheetsPage extends Component {
                         </h1>) : null}
                         {sheets}
                       </div>
-                      <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
+                      <Footer />
                     </div>);
   }
 }

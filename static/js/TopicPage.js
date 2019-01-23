@@ -130,9 +130,7 @@ class TopicPage extends Component {
             </div>
 
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }

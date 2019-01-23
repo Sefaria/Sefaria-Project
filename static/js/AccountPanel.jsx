@@ -57,10 +57,7 @@ class AccountPanel extends Component {
       (<BlockLink interfaceLink={true} target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
-
-    var footer =  (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                    <Footer />
-                    </footer> );
+    
 
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -81,7 +78,7 @@ class AccountPanel extends Component {
            {Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} /> : null }
            {Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} /> : null }
           </div>
-            {footer}
+          <Footer />
         </div>
       </div>
       );

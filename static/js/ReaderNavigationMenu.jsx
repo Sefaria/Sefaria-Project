@@ -240,10 +240,7 @@ class ReaderNavigationMenu extends Component {
                     <span className="int-he">{Sefaria._siteSettings.LIBRARY_NAME.he}</span>
                   </h1>);
 
-      var footer = this.props.compare ? null :
-                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                      <Footer />
-                    </footer> );
+      var footer = this.props.compare ? null : <Footer />;
       var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
       var contentClasses = classNames({content: 1, hasFooter: footer != null});
       return(<div className={classes} onClick={this.props.handleClick} key="0">

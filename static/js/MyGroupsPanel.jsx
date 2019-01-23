@@ -47,9 +47,7 @@ class MyGroupsPanel extends Component {
             </div>
 
           </div>
-          <footer id="footer" className={`interface-${Sefaria.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }
@@ -96,9 +94,7 @@ class PublicGroupsPanel extends Component {
             </div>
 
           </div>
-          <footer id="footer" className={`interface-${Sefaria.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }
