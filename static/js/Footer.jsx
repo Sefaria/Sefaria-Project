@@ -38,7 +38,6 @@ class Footer extends Component {
     }
   }
   render() {
-    if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
 
     var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     var currentPath = Sefaria.util.currentPath();

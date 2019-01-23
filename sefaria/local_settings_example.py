@@ -64,7 +64,7 @@ CACHES = {
     }
 }"""
 
-SITE_PACKAGE = "sites.torah"
+SITE_PACKAGE = "sites.sefaria"
 
 
 

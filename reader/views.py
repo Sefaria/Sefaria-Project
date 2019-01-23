@@ -128,7 +128,7 @@ def render_react_component(component, props):
     Returns HTML.
     """
     if not USE_NODE:
-        return render_to_string("elements/loading.html")
+        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
 
@@ -156,11 +156,11 @@ def render_react_component(component, props):
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
                 ))
-            return render_to_string("elements/loading.html")
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
             logger.exception("Node error: Fell back to client-side rendering.")
-            return render_to_string("elements/loading.html")
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
 
 def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
@@ -3051,6 +3051,9 @@ def home(request):
     """
     Homepage
     """
+    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+        return redirect("/texts")
+        
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
     if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
