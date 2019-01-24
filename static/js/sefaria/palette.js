@@ -49,7 +49,14 @@ palette.categoryColor = function(cat) {
   if (cat in palette.categoryColors) {
     return palette.categoryColors[cat];
   }
-  return palette.categoryColors["Other"];
+  
+  // For unknown categories, map the string a color (random, but stable)
+  const colors = Object.values(palette.colors);
+  let idx = 0;
+  cat.split("").map(letter => {idx += letter.charCodeAt(0);});
+  idx = idx % colors.length;
+
+  return colors[idx];
 };
 
 module.exports = palette;

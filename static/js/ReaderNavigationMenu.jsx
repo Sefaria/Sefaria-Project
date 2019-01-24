@@ -28,7 +28,7 @@ class ReaderNavigationMenu extends Component {
 
     this.width = 1000;
     this.state = {
-      showMore: false
+      showMore: Sefaria.toc.length < 9,
     };
   }
   componentDidMount() {
