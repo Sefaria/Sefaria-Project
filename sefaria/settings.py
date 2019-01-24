@@ -148,6 +148,7 @@ INSTALLED_APPS = (
     'anymail',
     'webpack_loader',
     'django_user_agents',
+    'rest_framework',
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -163,6 +164,11 @@ AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 LOCALE_PATHS = (
     relative_to_abs_path('../locale'),
