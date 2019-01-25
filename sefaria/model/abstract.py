@@ -488,6 +488,7 @@ def cascade_to_list(set_class, attr):
 
     return foo
 
+
 def cascade_delete(set_class, fk_attr, pk_attr):
     """
     Handles generic delete cascading, for simple key reference changes.

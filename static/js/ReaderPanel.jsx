@@ -23,6 +23,7 @@ const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
 const UpdatesPanel              = require('./UpdatesPanel');
+const HomeFeed                  = require('./HomeFeed');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
   MyGroupsPanel,
@@ -75,7 +76,7 @@ class ReaderPanel extends Component {
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
+      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
       navigationCategories: props.initialNavigationCategories || [],
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
@@ -903,6 +904,10 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "myGroups") {
       var menu = (<MyGroupsPanel />);
+
+    } else if (this.state.menuOpen === "homefeed") {
+      var menu = (<HomeFeed
+                    interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "updates") {
       var menu = (<UpdatesPanel

@@ -655,6 +655,21 @@ def get_group_page(request, group, authenticated):
     })
 
 
+def home_feed(request):
+    props = base_props(request)
+
+    props.update({
+        "initialMenu": "homefeed"
+    })
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request, 'base.html', {
+        "propsJSON": propsJSON,
+        "html": html,
+        "title": "Sefaria Stories",
+        "desc": "",
+    })
+
 def public_groups(request):
     props = base_props(request)
     title = _("Sefaria Groups")
@@ -910,6 +925,8 @@ def modtools(request):
     return menu_page(request, props, "modtools", title)
 
 
+""" Is this used? 
+
 def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
         raise Http404
@@ -935,7 +952,7 @@ def s2_extended_notes(request, tref, lang, version_title):
     }
     props['panels'] = [panel]
     return s2_page(request, props, "extended notes", title)
-
+"""
 
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
@@ -3808,6 +3825,7 @@ def visual_garden_page(request, g):
     }
 
     return render(request,'visual_garden.html', template_vars)
+
 
 
 @requires_csrf_token
