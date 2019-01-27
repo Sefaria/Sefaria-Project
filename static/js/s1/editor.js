@@ -983,7 +983,7 @@ $(function() {
 
 		var n = sjs.selected_verses[0];
 		var top = $(".segmentLabel").eq(n-1).position().top - 100;
-		$("html, body").animate({scrollTop: top, duation: 200});
+		$("html, body").animate({scrollTop: top, duration: 200});
 	}
 	
 
@@ -3679,7 +3679,7 @@ sjs.addThis = function(e) {
 			//console.log("Scrolling to " + n);
 			//console.log($top);
 			var top = $top.position().top - 100;
-			$("html, body").animate({scrollTop: top, duation: 200});
+			$("html, body").animate({scrollTop: top, duration: 200});
 
 		}
 	}
@@ -3705,7 +3705,7 @@ sjs.padEditorText = function(n) {
 	var $top = $("#newTextCompare .verse").eq(n-1)
 	if ($top) {
 		var topPos = $top.position().top - 100;
-		$("html, body").animate({scrollTop: topPos, duation: 200});
+		$("html, body").animate({scrollTop: topPos, duration: 200});
 	}
 };
 
