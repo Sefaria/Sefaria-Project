@@ -503,7 +503,7 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
         :param diffs: list of tuples as produced by diff_match_patch.diff_main()
         :param change_from: diff_match_patch.diff_main() gives a diff that shows how to change from stringA to stringB. This
           flag should be true if you wish to see only the additions that need to be made to textA (first string fed to
-          diff_main). If the inserts to the second are to be diplayed, set to False.
+          diff_main). If the inserts to the second are to be displayed, set to False.
         :return: html string
         """
         diff_delete, diff_insert, diff_equal = -1, 1, 0
