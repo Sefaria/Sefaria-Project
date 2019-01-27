@@ -1541,7 +1541,7 @@ sjs.lexicon = {
 							"Jastrow<span class='ui-icon ui-icon-extlink'></span></a>" : "") +
 						"</div>";
 				}
-				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesry of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
+				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesy of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
 							"CAL Project</a></i>" : "" );
 				html += "</div>";
 			}
