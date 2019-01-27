@@ -254,7 +254,7 @@ class UserProfile(object):
 
     def update(self, obj):
         """
-        Update this object with the fields in dictionry 'obj'
+        Update this object with the fields in dictionary 'obj'
         """
         self._set_flags_on_update(obj)
         self.update_attr_time_stamps(obj)
