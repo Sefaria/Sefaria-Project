@@ -123,7 +123,7 @@ class ReaderTextTableOfContents extends Component {
   }
   openVersion(version, language) {
     // Selects a version and closes this menu to show it.
-    // Calling this function wihtout parameters resets to default
+    // Calling this function without parameters resets to default
     this.props.selectVersion(version, language);
     this.props.close();
   }
