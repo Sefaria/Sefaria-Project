@@ -312,7 +312,7 @@ class ReaderTextTableOfContents extends Component {
       var formatStrings = {
         none: {english: "File Format", hebrew: "סוג הקובץ"},
         txt: {english: "Text (with Tags)", hebrew: "טקסט (עם תיוגים)"},
-        plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
+        plaintext: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
       };
       var downloadSection = (
         <div className="dlSection">
@@ -329,7 +329,7 @@ class ReaderTextTableOfContents extends Component {
           <select className="dlVersionSelect dlVersionFormatSelect" value={this.state.dlVersionFormat || "0"} onChange={this.onDlFormatSelect}>
             <option key="none" value="0" disabled>{ formatStrings.none[Sefaria.interfaceLang] }</option>
             <option key="txt" value="txt" >{ formatStrings.txt[Sefaria.interfaceLang] }</option>
-            <option key="plain.txt" value="plain.txt" >{ formatStrings.plaintxt[Sefaria.interfaceLang] }</option>
+            <option key="plain.txt" value="plain.txt" >{ formatStrings.plaintext[Sefaria.interfaceLang] }</option>
             <option key="csv" value="csv" >CSV</option>
             <option key="json" value="json" >JSON</option>
           </select>
