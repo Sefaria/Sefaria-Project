@@ -56,7 +56,7 @@ node_modules
 /sefaria/local_settings.py
 /node/local_settings.json
 
-# Symlink needed for Djano admin #
+# Symlink needed for Django admin #
 ##################################
 /static/admin
 

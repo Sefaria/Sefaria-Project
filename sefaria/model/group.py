@@ -42,7 +42,7 @@ class Group(abst.AbstractMongoRecord):
         website = getattr(self, "websiteUrl", False)
         if website and not website.startswith("https://"):
             if website.startswith("http://"):
-                # Only allow HTTPS. If you site doens't support it, deal with it!
+                # Only allow HTTPS. If you site doesn't support it, deal with it!
                 self.websiteUrl = website.replace("http://", "https://")
             else:
                 # Allows include protocol
