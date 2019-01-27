@@ -90,7 +90,7 @@ sjs.cache = {
 		var data = clone(origData);
 		var ref  = this.cacheKey(data.ref);
 
-		// Store data for book name alone (eg "Genesis") immediatley
+		// Store data for book name alone (eg "Genesis") immediately
 		// normalizing below will render this "Genesis.1" which we also store
 		if (ref.indexOf(".") == -1) {
 			this._cache[ref] = data;
