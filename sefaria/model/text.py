@@ -4689,7 +4689,7 @@ class Library(object):
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         from sefaria.utils.hebrew import strip_nikkud
-        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
+        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantillation
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
         title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
 
