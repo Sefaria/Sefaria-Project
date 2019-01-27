@@ -810,7 +810,7 @@ Sefaria = extend(Sefaria, {
     return links.length;
   },
   _filterLinks: function(links, filter) {
-    // Filters array `links` for only those thart match array `filter`.
+    // Filters array `links` for only those that match array `filter`.
     // If `filter` ends with "|Quoting" return Quoting Commentary only,
     // otherwise commentary `filters` will return only links with type `commentary`
     if (filter.length == 0) { return links; }
