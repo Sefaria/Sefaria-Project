@@ -217,7 +217,7 @@ class TocTree(object):
                     if temp_cat_name in TOP_CATEGORIES:
                         return ORDER.index(temp_cat_name) + 0.5
 
-                # Sort by an eplicit `order` field if present
+                # Sort by an explicit `order` field if present
                 # otherwise into two alphabetical list for complete and incomplete.
                 return getattr(node, "order", complete_or_title_key)
 
