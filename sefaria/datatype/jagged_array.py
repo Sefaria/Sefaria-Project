@@ -244,7 +244,7 @@ class JaggedArray(object):
     @staticmethod
     def _dfs_traverse(counts_map, starting_points=None, forward=True, depth=0):
         """
-        Private function to recusrsively iterate through the counts doc to find the next available section
+        Private function to recursively iterate through the counts doc to find the next available section
         :param counts_map: the counts doc map of available texts
         :param forward: if to move forward or backwards
         :param starting_points: the indices from which to start looking.
