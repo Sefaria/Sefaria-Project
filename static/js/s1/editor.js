@@ -3141,7 +3141,7 @@ sjs.deleteReview = function(e) {
 				}
 			},
 			error: function () {
-				sjs.alert.message("There was an error deleting this reivew. Please reload the page and try again.");
+				sjs.alert.message("There was an error deleting this review. Please reload the page and try again.");
 			}
 		});
 	}
