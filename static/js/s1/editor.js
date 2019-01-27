@@ -279,7 +279,7 @@ sjs.Init.handlers = function() {
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
 		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
-			// We're not in Sourcss mode, need to build commentary first
+			// We're not in Sources mode, need to build commentary first
 			$(".showSources").trigger("click");
 		}
 		$(".source").removeClass("active");
