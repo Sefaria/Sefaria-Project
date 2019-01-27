@@ -4387,7 +4387,7 @@ class Library(object):
         self.add_index_record_to_cache(new_index, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
-    #todo: Rename, as method not gauraunteed to return all titles
+    #todo: Rename, as method not guaranteed to return all titles
     def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
         """
         :param lang: "en" or "he"
