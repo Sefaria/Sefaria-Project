@@ -1560,7 +1560,7 @@ input#id_email{
     float: left;
 }
 
-#visualGardenPage .control-results-containe{
+#visualGardenPage .control-results-container{
   display: flex;
   display: -webkit-flex;
   align-items: flex-start;
