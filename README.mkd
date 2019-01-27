@@ -153,7 +153,7 @@ to bundle once. To watch the javascript for changes and automatically rebuild, r
     
 #### Server-side rendering with Node:
 
-Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. 
+Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environment however server side HTML is very important for bots and SEO. 
 
 For development, you can run the Node server using nodemon with:
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Post a sheet form the local enviornment to a remote enviornment, using an API Key.
+Post a sheet form the local environment to a remote environment, using an API Key.
 """
 import sys
 import json
