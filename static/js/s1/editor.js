@@ -35,7 +35,7 @@ $.extend(sjs,  {
 	sourcesFilter: "all",
 	previousFilter: "all",
 	_direction: 0,      // direction of text load animation: -1 left, 0 no animation, 1 right
-	_verseHeights: [],  // stored list of the top positon of each verse
+	_verseHeights: [],  // stored list of the top position of each verse
 	_scrollMap: []      // stored list of the window top position that should correspond to highlighting each verse
 });
 
