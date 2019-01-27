@@ -90,7 +90,7 @@
 				return;
 			}
 			$("#navToc").on("click", ".tocCat", this._handleNavClick);
-			// Langugage Toggle
+			// Language Toggle
 			$("#navToc").on("click", ".langToggle", function() {
 				var lang = $(this).attr("data-lang");
 				$("#navToc").removeClass("english hebrew")

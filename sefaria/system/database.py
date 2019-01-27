@@ -83,7 +83,7 @@ def ensure_indices():
     db.sheets.ensure_index("assignment_id")
     db.texts.ensure_index("title")
     db.texts.ensure_index([("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)])
-    db.texts.ensure_index([("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)])
+    db.texts.ensure_index([("versionTitle", pymongo.ASCENDING), ("language", pymongo.ASCENDING)])
     db.word_form.ensure_index("form")
     db.word_form.ensure_index("c_form")
     db.term.ensure_index("titles.text", unique=True)

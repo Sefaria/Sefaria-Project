@@ -193,7 +193,7 @@ def merge_multiple_text_versions(versions, text_title, language, warn=False):
 
 def merge_text_versions_by_source(text_title, language, warn=False):
     """
-    Merges all texts of text_title in langauge that share the same value for versionSource.
+    Merges all texts of text_title in language that share the same value for versionSource.
     """
     v = VersionSet({"title": text_title, "language": language})
 
@@ -204,7 +204,7 @@ def merge_text_versions_by_source(text_title, language, warn=False):
 
 def merge_text_versions_by_language(text_title, language, warn=False):
     """
-    Merges all texts of text_title in langauge.
+    Merges all texts of text_title in language.
     """
     versions = VersionSet({"title": text_title, "language": language}).distinct("versionTitle")
     merge_multiple_text_versions(versions, text_title, language)
