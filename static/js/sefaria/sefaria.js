@@ -1558,7 +1558,7 @@ Sefaria = extend(Sefaria, {
     },
     _userTagList: null,
     userTagList: function(uid, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
+      // Returns a list of all public source sheet tags, ordered by popularity
       var tags = this._userTagList;
       if (tags) {
         if (callback) { callback(tags); }
