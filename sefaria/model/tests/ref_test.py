@@ -16,7 +16,7 @@ class Test_Ref(object):
         assert Ref("Exo.3.21")
         assert Ref("1Ch.") == Ref("1 Chronicles")
 
-    def test_normal_form_is_identifcal(self):
+    def test_normal_form_is_identical(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
         assert Ref("Shabbat 32b").normal() == "Shabbat 32b"
         assert Ref("Mishnah Peah 4:2-4").normal() == "Mishnah Peah 4:2-4"
