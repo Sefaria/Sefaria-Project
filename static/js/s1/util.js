@@ -2663,7 +2663,7 @@ window.findAndReplaceDOMText = (function() {
 			var matchStartNode = startPortion.node;
 			var matchEndNode = endPortion.node;
 
-			var preceedingTextNode;
+			var precedingTextNode;
 			var followingTextNode;
 
 			if (matchStartNode === matchEndNode) {
@@ -2672,8 +2672,8 @@ window.findAndReplaceDOMText = (function() {
 
 				if (startPortion.indexInNode > 0) {
 					// Add `before` text node (before the match)
-					preceedingTextNode = doc.createTextNode(node.data.substring(0, startPortion.indexInNode));
-					node.parentNode.insertBefore(preceedingTextNode, node);
+					precedingTextNode = doc.createTextNode(node.data.substring(0, startPortion.indexInNode));
+					node.parentNode.insertBefore(precedingTextNode, node);
 				}
 
 				// Create the replacement node:
@@ -2693,8 +2693,8 @@ window.findAndReplaceDOMText = (function() {
 				node.parentNode.removeChild(node);
 
 				this.reverts.push(function() {
-					if (preceedingTextNode === newNode.previousSibling) {
-						preceedingTextNode.parentNode.removeChild(preceedingTextNode);
+					if (precedingTextNode === newNode.previousSibling) {
+						precedingTextNode.parentNode.removeChild(precedingTextNode);
 					}
 					if (followingTextNode === newNode.nextSibling) {
 						followingTextNode.parentNode.removeChild(followingTextNode);
@@ -2708,7 +2708,7 @@ window.findAndReplaceDOMText = (function() {
 				// Replace matchStartNode -> [innerMatchNodes...] -> matchEndNode (in that order)
 
 
-				preceedingTextNode = doc.createTextNode(
+				precedingTextNode = doc.createTextNode(
 					matchStartNode.data.substring(0, startPortion.indexInNode)
 				);
 
@@ -2743,7 +2743,7 @@ window.findAndReplaceDOMText = (function() {
 					match
 				);
 
-				matchStartNode.parentNode.insertBefore(preceedingTextNode, matchStartNode);
+				matchStartNode.parentNode.insertBefore(precedingTextNode, matchStartNode);
 				matchStartNode.parentNode.insertBefore(firstNode, matchStartNode);
 				matchStartNode.parentNode.removeChild(matchStartNode);
 
@@ -2752,7 +2752,7 @@ window.findAndReplaceDOMText = (function() {
 				matchEndNode.parentNode.removeChild(matchEndNode);
 
 				this.reverts.push(function() {
-					preceedingTextNode.parentNode.removeChild(preceedingTextNode);
+					precedingTextNode.parentNode.removeChild(precedingTextNode);
 					firstNode.parentNode.replaceChild(matchStartNode, firstNode);
 					followingTextNode.parentNode.removeChild(followingTextNode);
 					lastNode.parentNode.replaceChild(matchEndNode, lastNode);
