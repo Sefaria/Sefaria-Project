@@ -34,7 +34,7 @@ $.extend(sjs,  {
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	sourcesFilter: "all",
 	previousFilter: "all",
-	_direction: 0,      // direction of text load animaition: -1 left, 0 no animation, 1 right
+	_direction: 0,      // direction of text load animation: -1 left, 0 no animation, 1 right
 	_verseHeights: [],  // stored list of the top positon of each verse
 	_scrollMap: []      // stored list of the window top position that should correspond to highlighting each verse
 });
