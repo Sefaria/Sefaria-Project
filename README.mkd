@@ -4,13 +4,13 @@ Sefaria is creating interfaces, apps (like a source sheet builder) and infrastru
 
 You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
 
-Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+Interested developers should join the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
 For general discussion about the project, please post to the [Sefaria Forum](https://groups.google.com/forum/?fromgroups#!forum/sefaria).
 
 You can post bugs or request/discuss features on [GitHub Issues](https://github.com/blockspeiser/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
 
-If you're interested in working on a project you see listed here, please email the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+If you're interested in working on a project you see listed here, please email the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
 ***
 

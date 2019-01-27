@@ -3523,7 +3523,7 @@ sjs.showNewText = function () {
 		.unbind()
 		.change(updateTextDirection);
 	
-	// Special handing of Original Translation // Sefara Community Translation
+	// Special handing of Original Translation // Sefaria Community Translation
 	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
 	$("#textTypeForm input").unbind().click(function() {
 		if ($(this).val() === "copy") { 

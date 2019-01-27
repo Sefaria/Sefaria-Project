@@ -18,7 +18,7 @@ except:
 
 if len(sys.argv) < 3:
   print "Please specify a sheet id to post and a destination host. E.g.:"
-  print "post_sheet.py 613 https://dev.sefaira.org'"
+  print "post_sheet.py 613 https://dev.sefaria.org'"
 else:
   
   id = int(sys.argv[1])
