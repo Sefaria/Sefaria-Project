@@ -1274,7 +1274,7 @@ sjs.deleteTextButtonHandler = function(e) {
 
 	if (isCommentator) {
 		var commentaryText = $(this).attr("data-commentary-text");
-		var confirm = prompt("If you proceeed, all commentaries by " + title + " will be deleted, not only " + commentaryText + ". Type DELETE to confirm.", "");
+		var confirm = prompt("If you proceed, all commentaries by " + title + " will be deleted, not only " + commentaryText + ". Type DELETE to confirm.", "");
 		if (confirm !== "DELETE") {
 			alert("Delete canceled.");
 			return;
