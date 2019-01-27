@@ -563,7 +563,7 @@ sjs.textSync = {
 		}
 
 		// [ENTER]
-		// Insert placeholder "..." when hitting enter mutliple times to allow
+		// Insert placeholder "..." when hitting enter multiple times to allow
 		// skipping ahead to a further segment
 		if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
 			text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);

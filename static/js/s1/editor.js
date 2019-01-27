@@ -3617,7 +3617,7 @@ sjs.editText = function(data) {
 	}
 	if ((sjs.langMode === 'en' && "sources" in data) || 
 		(sjs.langMode === 'he' && "heSources" in data)) {
-		sjs.alert.message("You are viewing a page that includes mutliple text versions. To edit, please first select a single version in the About Text panel.");
+		sjs.alert.message("You are viewing a page that includes multiple text versions. To edit, please first select a single version in the About Text panel.");
 		return;
 	}
 
