@@ -4,10 +4,9 @@ const FilterNode = require('./FilterNode');
 const SearchState = require('./searchState');
 
 class Search {
-    constructor(searchBaseUrl, searchIndexText, searchIndexSheet) {
+    constructor(searchIndexText, searchIndexSheet) {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
-      this.baseUrl = searchBaseUrl;
       this._cache = {}
     }
     cache(key, result) {
@@ -22,9 +21,8 @@ class Search {
         /* args can contain
          query: query string
          size: size of result set
-         from: from what result to start
+         start: from what result to start
          type: "sheet" or "text"
-         get_filters: if to fetch initial filters
          applied_filters: filter query by these filters
          appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
          field: field to query in elastic_search
@@ -42,10 +40,8 @@ class Search {
             args.success(cache_result);
             return null;
         }
-        const url = `${this.baseUrl}/${args.type == 'text' ? this.searchIndexText : this.searchIndexSheet}/_search`;
-        console.log("SERACH URL", url);
         return $.ajax({
-            url,
+            url: `${Sefaria.apiHost}/api/search-wrapper`,
             type: 'POST',
             data: req,
             contentType: "application/json; charset=utf-8",
@@ -59,133 +55,36 @@ class Search {
             error: args.error
         });
     }
-    get_aggregation_object(aggregation_field_array) {
-      return aggregation_field_array.reduce((obj, a) =>
-        {
-          obj[a] = {
-            terms: {
-              field: a,
-              size: 10000
-            }
-          };
-          return obj;
-        }, {}
-      );
-    }
     get_query_object({
       query,
-      get_filters,
       applied_filters,
       appliedFilterAggTypes,
       aggregationsToUpdate,
       size,
-      from,
+      start,
       type,
       field,
       sort_type,
       exact
     }) {
-        /*
-         Only the first argument - "query" - is required.
-
-         query: string
-         get_filters: boolean
-         applied_filters: null or list of applied filters (in format supplied by Filter_Tree...)
-         appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
-         aggregationsToUpdate: array of aggTypes to update in the case when there exist multiple aggTypes for a query type
-         size: int - number of results to request
-         from: int - start from result # (skip from - 1 results)
-         type: string - currently either "text" or "sheet"
-         field: string - which field to query. this essentially changes the exactness of the search. right now, 'exact' or 'naive_lemmatizer'
-         sort_type: See SearchState.metadataByType for possible sort types
-         exact: boolean. true if query should be exact
-         */
-
-
-        const core_query = { match_phrase: {} };
-        core_query['match_phrase'][field] = {
-            "query": query.replace(/(\S)"(\S)/g, '$1\u05f4$2'), //Replace internal quotes with gershaim.
-        };
-
-        if (!exact) {
-            core_query['match_phrase'][field]['slop'] = 10;
-        }
-
-        var o = {
-            from,
-            size,
-            highlight: {
-                pre_tags: ['<b>'],
-                post_tags: ['</b>'],
-                fields: {}
-            }
-        };
-
-        o["highlight"]["fields"][field] = {fragment_size: 200};
-
-        // deal with sort_type
-        const { sortTypeArray, aggregation_field_array, make_filter_query } = SearchState.metadataByType[type];
-        const { sort_method, fieldArray, field: sort_field, score_missing, direction: sort_direction } = sortTypeArray.find( x => x.type === sort_type );
-        if (sort_method == "sort") {
-            o["sort"] = fieldArray.map( x => ({ [x]: { order: sort_direction } }) );  // wrap your head around that es6 nonsense
-        } else if (sort_method == 'score' && !!sort_field) {
-
-            o["query"] = {
-                function_score: {
-                    field_value_factor: {
-                        field: sort_field,
-                        missing: score_missing,
-                    }
-                }
-            }
-        }
-
-        let inner_query;
-        if (get_filters || (aggregation_field_array.length > 1 && aggregationsToUpdate.length > 0)) {
-          //Initial, unfiltered query.  Get potential filters.
-          //OR
-          //any filtered query where there are more than 1 agg type means you need to re-fetch filters on each filter you add
-          o['aggs'] = this.get_aggregation_object(aggregationsToUpdate);
-        }
-        if (get_filters) {
-            inner_query = core_query;
-        } else if (!applied_filters || applied_filters.length == 0) {
-            inner_query = core_query;
-        } else {
-            //Filtered query.  Add clauses.
-            // AND query (aka must) b/w diff aggTypes
-            // OR query (aka should) b/w aggTypes of same type
-            const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
-            inner_query = {
-                bool: {
-                  must: core_query,
-                  filter: {
-                    bool: {
-                      must: uniqueAggTypes.map( a => ({
-                        bool: {
-                          should: Sefaria.util.zip(applied_filters, appliedFilterAggTypes).filter( x => x[1] === a).map( x => this[make_filter_query](x[0], x[1]))
-                        }
-                      }))
-                    }
-                  }
-                }
-            };
-        }
-        if (!inner_query) {
-
-        }
-
-        //after that confusing logic, hopefully inner_query is defined properly
-        if (sort_method == 'sort' || !sort_method) {
-            o['query'] = inner_query;
-        } else if (sort_method == 'score' && !!sort_field) {
-            o['query']['function_score']['query'] = inner_query;
-        } else if (sort_method == 'score' && !sort_field) {
-            o['query'] = inner_query;
-        }
-
-        console.log(JSON.stringify(o));
-        return o;
+      const { sortTypeArray, aggregation_field_array } = SearchState.metadataByType[type];
+      const { sort_method, fieldArray, score_missing, direction } = sortTypeArray.find( x => x.type === sort_type );
+      return {
+        type,
+        query,
+        field,
+        source_proj: true,
+        slop: exact ? 0 : 10,
+        start,
+        size,
+        filters: applied_filters.length ? applied_filters : [],
+        filter_fields: appliedFilterAggTypes,
+        aggs: aggregationsToUpdate,
+        sort_method,
+        sort_fields: fieldArray,
+        sort_reverse: direction === "desc",
+        sort_score_missing: score_missing,
+      };
     }
 
     process_text_hits(hits) {
@@ -409,23 +308,6 @@ class Search {
         );
       });
       return { availableFilters, registry: {}, orphans: [] };
-    }
-
-    makeTextFilterQuery(aggKey, aggType) {
-      // only one aggType for text queries so ignoring aggType param
-      return {
-        regexp: {
-          path: RegExp.escape(aggKey) + (aggKey.indexOf("/") != -1 ? ".*" : "/.*")  //filters with '/' might be leading to books. also, very unlikely they'll match an false positives
-        }
-      };
-    }
-
-    makeSheetFilterQuery(aggKey, aggType) {
-      return {
-        term: {
-          [aggType]: aggKey
-        }
-      };
     }
 }
 

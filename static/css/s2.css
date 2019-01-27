@@ -137,7 +137,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   /* English content text that may contain Hebrew characters */
   font-family: 'Hebrew Text Font';
   src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
-  unicode-range: U+0590-05FF;
+  unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
   /* English system text that may contain Hebrew characters */
@@ -5653,6 +5653,13 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;
   display: block;
+}
+
+.readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
+  display: none;
+}
+.readerPanel.english .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.he {
+  display: none;
 }
 
 .sourceContentText.centeredSheetContent {

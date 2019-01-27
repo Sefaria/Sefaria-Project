@@ -1,12 +1,15 @@
 import codecs
 import json
 import re
+import unicodecsv
 from collections import defaultdict
 import heapq
+import math as mathy
 import django
 django.setup()
 
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
 
 
 def argmax(iterable, n=1):
@@ -24,20 +27,27 @@ for i in library.get_indexes_in_category("Torah", full_records=True):
         for pasuk in r.range_list():
             ref2parsha[pasuk.normal()] = p["sharedTitle"]
 
+my_csv = []
+with codecs.open("../static/sheetrank.json", "rb", encoding="utf8") as fin:
+    sheetrank = json.load(fin, encoding="utf8")
 with codecs.open("../static/pagerank.json", "rb", encoding="utf8") as fin:
     jin = json.load(fin, encoding="utf8")
-    for tref, pr in jin:
-        oref = Ref(tref)
-        if oref.primary_category == "Tanakh" and oref.index.categories[1] == "Torah":
-            try:
-                p = ref2parsha[oref.normal()]
-                parsha2pr[p] += [[tref, pr]]
-            except KeyError:
-                pass
+    for ii, (tref, pr) in enumerate(jin):
+        if ii % 1000 == 0:
+            print ii
+        try:
+            oref = Ref(tref)
+            if len(oref.text("he").text) == 0:
+                continue
+            new_pr = mathy.log(pr) + 20
+            sheet_pr = (1.0 + sheetrank[tref]["count"] / 5)**2 if tref in sheetrank else (1.0 / 5) ** 2
+            my_csv += [{"Ref": tref, "PR": new_pr * sheet_pr}]
+        except InputError:
+            continue
 
-for p, pr_list in parsha2pr.items():
-    argmax_pr = set(argmax([pr for tref, pr in pr_list], n=10))
-    parsha2pr[p] = sorted(map(lambda x: x[1], filter(lambda x: x[0] in argmax_pr, enumerate(pr_list))), key=lambda x: x[1], reverse=True)
 
-with codecs.open("../static/top_pagerank_parsha.json", "wb", encoding="utf8") as fout:
-    json.dump(parsha2pr, fout, ensure_ascii=False, indent=2, encoding="utf8")
+with open("../static/all_pagerank.csv", "wb") as fout:
+    my_csv.sort(key=lambda x: Ref(x["Ref"]).order_id())
+    c = unicodecsv.DictWriter(fout, ["Ref", "PR"])
+    c.writeheader()
+    c.writerows(my_csv)

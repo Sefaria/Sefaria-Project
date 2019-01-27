@@ -8,7 +8,7 @@ from HTMLParser import HTMLParser
 import re
 from functools import wraps
 from django.utils import translation
-from django.utils.translation import ungettext_lazy, ugettext, get_language, get_language_from_request
+from django.utils.translation import ungettext_lazy, ugettext, get_language
 
 epoch = datetime.utcfromtimestamp(0)
 TIME_CHUNKS = [

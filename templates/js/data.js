@@ -9,7 +9,6 @@ var DJANGO_DATA_VARS = {
   terms:                {{ terms_json}},
   books:                {{ titlesJSON }},
   calendars:            {{ calendars }},
-  searchBaseUrl:       '{{ SEARCH_URL|default:"http://localhost:9200" }}',
   searchIndexText:     '{{ SEARCH_INDEX_NAME_TEXT }}',
   searchIndexSheet:    '{{ SEARCH_INDEX_NAME_SHEET }}',
   loggedIn:             {% if user.is_authenticated %}true{% else %}false{% endif %},
