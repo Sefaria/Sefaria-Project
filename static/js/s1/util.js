@@ -547,7 +547,7 @@ sjs.textSync = {
 		if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
 			if (cursor) {
 				
-				// Advance cursor to end of \n seqeuence
+				// Advance cursor to end of \n sequence
 				while (text[cursor] == "\n") cursor++;
 				
 				// Count back to beginning for total number of new lines
