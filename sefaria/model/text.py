@@ -4720,7 +4720,7 @@ class Library(object):
                 # logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
-        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+        if lang == "en" or for_js:  # JavaScript doesn't support look behinds.
             for address_tuple, title_node_tuples in nodes_by_address_type.items():
                 node = title_node_tuples[0][1]
                 titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
@@ -4751,7 +4751,7 @@ class Library(object):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+        if lang == "en" or for_js:  # JavaScript doesn't support look behinds.
             return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
 
         elif lang == "he":

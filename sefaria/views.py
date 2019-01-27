@@ -160,7 +160,7 @@ def generate_feedback(request):
 
 def data_js(request):
     """
-    Javascript populating dynamic data like book lists, toc.
+    JavaScript populating dynamic data like book lists, toc.
     """
     return render(request, "js/data.js", content_type="text/javascript")
 
@@ -184,7 +184,7 @@ def sefaria_js(request):
 
 def linker_js(request,linker_version=None):
     """
-    Javascript of Linker plugin.
+    JavaScript of Linker plugin.
     """
     attrs = {
         "book_titles": json.dumps(model.library.citing_title_list("en")
@@ -196,7 +196,7 @@ def linker_js(request,linker_version=None):
 
 def old_linker_js(request):
     """
-    Javascript of Linker plugin.
+    JavaScript of Linker plugin.
     """
     attrs = {
         "book_titles": json.dumps(model.library.citing_title_list("en")

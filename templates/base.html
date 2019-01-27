@@ -81,7 +81,7 @@
             ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
 
             window.onerror = function(msg, url, lineNumber) {
-                ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
+                ga('send', 'event', 'JavaScript Errors',  msg, url + ':' + lineNumber);
             };
         {% else  %}
             var ga = function(){};

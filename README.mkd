@@ -130,7 +130,7 @@ Node is now required to run the site because we are using [Webpack](https://webp
 
 For the common Linux distributions such as Debian, Ubuntu and Linux Mint, you are better off following the instructions [here](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions). They will install both Node and npm. 
 
-Now download the required Javascript libraries and install some global tools for development with the `setup` script (from the project root).
+Now download the required JavaScript libraries and install some global tools for development with the `setup` script (from the project root).
 
     npm install
     sudo npm run setup
