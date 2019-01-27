@@ -2323,7 +2323,7 @@ function addSource(q, source, appendOrInsert, $target) {
 			.on("mouseup", sjs.initCKEditor);
 	}
 	else if (sjs.can_add) {
-		// For colloborative adders, only allow edits on their on content
+		// For collaborative adders, only allow edits on their on content
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
@@ -3058,7 +3058,7 @@ function buildSource($target, source, appendOrInsert) {
 			.on("mouseup", sjs.initCKEditor);
 	}
 	else if (sjs.can_add) {
-		// For colloborative adders, only allow edits on their on content
+		// For collaborative adders, only allow edits on their on content
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
