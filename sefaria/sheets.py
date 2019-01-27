@@ -392,7 +392,7 @@ def add_ref_to_sheet(id, ref):
 
 def refs_in_sources(sources):
 	"""
-	Recurisve function that returns a list of refs found anywhere in sources.
+	Recursive function that returns a list of refs found anywhere in sources.
 	"""
 	refs = []
 	for source in sources:
