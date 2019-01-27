@@ -1929,7 +1929,7 @@ function buildView(data) {
 	var scrollXDur = sjs._direction == 0 ? 1 : 600;
 	var scrollYDur = 200; // sjs._direction == 0 ? 1 : 200;
 
-	// Animate horizonatally to new screen	
+	// Animate horizontally to new screen	
 	$('.screen-container').css('position', 'fixed')
 		.animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, 
 		{duration: scrollXDur, complete: function() {
