@@ -1823,7 +1823,7 @@ class AddressType(object):
         """
         The regular expression part that matches this address reference
         :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
+        :param group_id: The id of the regular expression group the this match will be captured in
         :return string: regex component
         """
         pass
