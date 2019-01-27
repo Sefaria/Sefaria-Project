@@ -2112,7 +2112,7 @@ function buildCommentary(data) {
 		}
 	}
 
-	// Highligh highlighted commentaries
+	// Highlight highlighted commentaries
 	if (sjs._$verses && sjs._$verses.hasClass("lowlight")) {
 		var first = parseInt(sjs._$verses.not(".lowlight").first().attr("data-num"));
 		var last  = parseInt(sjs._$verses.not(".lowlight").last().attr("data-num"));

@@ -3607,7 +3607,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   line-height: 18px;
   color: #000;
-  -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
+  -webkit-tap-highlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
 .textFilter {
   padding: 19px 34px;
