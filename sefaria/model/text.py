@@ -1177,7 +1177,7 @@ def merge_texts(text, sources):
             results.append(result)
             # NOTE - the below flattens the sources list, so downstream code can always expect
             # a one dimensional list, but in so doing the mapping of source names to segments
-            # is lost for merged texts of depth > 2 (this mapping is not currenly used in general)
+            # is lost for merged texts of depth > 2 (this mapping is not currently used in general)
             result_sources += source
         return [results, result_sources]
 
