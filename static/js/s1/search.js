@@ -282,7 +282,7 @@ $.extend(Sefaria.search, {
                     }
                     Sefaria.search.post(true, true)
                 });
-                $(".filter-parent span").click(function (e) {  // If text is clicked, propgate click to checkbox
+                $(".filter-parent span").click(function (e) {  // If text is clicked, propagate click to checkbox
                     $(this).closest("li").find(".filter").first().trigger('click');
                 });
                 $("li.filter-parent ul").hide(); //hide the child lists
@@ -418,8 +418,8 @@ $.extend(Sefaria.search.FilterNode.prototype, {
         var selector = ".filter#" + this.getId();
         return $(selector);
     },
-    setSelected : function(propogateParent, noPropogateChild) {
-        //default is to propogate children and not parents.
+    setSelected : function(propagateParent, noPropogateChild) {
+        //default is to propagate children and not parents.
         //Calls from front end should use (true, false), or just (true)
         this.selected = 1;
         this.$el().prop('indeterminate', false);
@@ -429,12 +429,12 @@ $.extend(Sefaria.search.FilterNode.prototype, {
                 this.children[i].setSelected(false);
             }
         }
-        if(propogateParent) {
+        if(propagateParent) {
             if(this.parent) this.parent._deriveState();
         }
     },
-    setUnselected : function(propogateParent, noPropogateChild) {
-        //default is to propogate children and not parents.
+    setUnselected : function(propagateParent, noPropogateChild) {
+        //default is to propagate children and not parents.
         //Calls from front end should use (true, false), or just (true)
         this.selected = 0;
         this.$el().prop('indeterminate', false);
@@ -444,13 +444,13 @@ $.extend(Sefaria.search.FilterNode.prototype, {
                 this.children[i].setUnselected(false);
             }
         }
-        if(propogateParent) {
+        if(propagateParent) {
             if(this.parent) this.parent._deriveState();
         }
 
     },
     setPartial : function() {
-        //Never propogate to children.  Always propogate to parents
+        //Never propagate to children.  Always propagate to parents
         this.selected = 2;
         this.$el().prop('indeterminate', true);
         this.$el().prop('checked', false);
@@ -481,9 +481,9 @@ Sefaria.FilterTree.prototype = Object.create(Sefaria.search.FilterNode.prototype
 Sefaria.FilterTree.prototype.constructor = Sefaria.FilterTree;
 $.extend(Sefaria.FilterTree.prototype, {
 
-    setUnselected: function(propogateParent, noPropogateChild) {
+    setUnselected: function(propagateParent, noPropogateChild) {
         Sefaria.search.filter_tree.orphanFilters = [];
-        Sefaria.search.FilterNode.prototype.setUnselected.call(this, propogateParent, noPropogateChild);
+        Sefaria.search.FilterNode.prototype.setUnselected.call(this, propagateParent, noPropogateChild);
     },
     updateAvailableFilters: function(filters) {
         this.orphanFilters = this.getAppliedFilters();

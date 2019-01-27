@@ -3019,7 +3019,7 @@ class Ref(object):
 
         return r.next_section_ref() if r.is_empty() else r
 
-    #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
+    #Don't store results on Ref cache - state objects change, and don't yet propagate to this Cache
     def get_state_node(self, meta=None, hint=None):
         """
         :return: :class:`sefaria.model.version_state.StateNode`

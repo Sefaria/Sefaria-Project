@@ -729,11 +729,11 @@ class PostTextNameChange(SefariaTestCase):
         self.assertEqual(0, IndexSet({"title": "Ploni"}).count())
         self.assertEqual(1, IndexSet({"title": "Shmoni"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, VersionSet({"title": "Ploni on Job"}).count())
         self.assertEqual(1, VersionSet({"title": "Shmoni on Job"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Shmoni on Job"}}).count())
 
