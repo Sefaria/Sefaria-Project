@@ -296,7 +296,7 @@ def discussion_link(discussion):
 	if isinstance(discussion, basestring):
 		discussion = m.Layer().load({"urlkey": discussion})
 		if not discussion:
-			return mark_safe("[discusion not found]")
+			return mark_safe("[discussion not found]")
 	if getattr(discussion, "first_ref", None):
 		oref = m.Ref(discussion.first_ref)
 		href = "/" + oref.url() + "?layer=" + discussion.urlkey
