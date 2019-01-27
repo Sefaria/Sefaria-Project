@@ -486,14 +486,14 @@
                 }
                 if (previewDepth >= node.sectionNames.length - 1) {
                     // Section Preview (terminal depth, preview text)
-                    var isTalmmudAddress = node.addressTypes.slice(-2)[0] == "Talmud";  // still hacky. reworking the isTalmud logic
+                    var isTalmudAddress = node.addressTypes.slice(-2)[0] == "Talmud";  // still hacky. reworking the isTalmud logic
                     html += "<div class='sectionName'>" + hebrewPlural(node.sectionNames.slice(-2)[0]) + "</div>";
                     if (!this._showPreviews) {
                         html += "<div id='numLinkBox'>"
                     }
                     for (var i = 1; i <= previewSection.length; i++) {
-                        var num = isTalmmudAddress ? intToDaf(i - 1) : i;
-                        var heNum = isTalmmudAddress ? encodeHebrewDaf(intToDaf(i - 1)) : encodeHebrewNumeral(i);
+                        var num = isTalmudAddress ? intToDaf(i - 1) : i;
+                        var heNum = isTalmudAddress ? encodeHebrewDaf(intToDaf(i - 1)) : encodeHebrewNumeral(i);
                         //var url   = ("/" + sects.join(".") + "." + num).replace(/\'/g, "&apos;");
                         var url = "/" + this._preview.schema.get_node_url_from_indexes(sects.slice(1).concat(num));
                         var he = previewSection[i - 1].he;
