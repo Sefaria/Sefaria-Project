@@ -60,7 +60,7 @@ class Topic(abst.AbstractMongoRecord):
             sources_dict        = self.sources_dict
             related_topics_dict = self.related_topics_dict
         else:
-            # Otherwise, grab all relavant sheets and make a count
+            # Otherwise, grab all relevant sheets and make a count
             projection          = {"tags": 1, "sources.ref": 1}
             sheets              = db.sheets.find({"tags": self.topic, "status": "public"}, projection)
             sources_dict        = defaultdict(int)
