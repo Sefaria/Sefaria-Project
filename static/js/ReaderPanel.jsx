@@ -680,7 +680,7 @@ class ReaderPanel extends Component {
           setConnectionsCategory={this.setConnectionsCategory}
           sheetMetaData={this.state.sheet}
           nodeRef={this.state.nodeRef}
-          closeConectionsInPanel={this.closeConnectionsInPanel}
+          closeConnectionsInPanel={this.closeConnectionsInPanel}
           handleSheetClick={this.handleSheetClick}
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
