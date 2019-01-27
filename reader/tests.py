@@ -875,7 +875,7 @@ class PostTextTest(SefariaTestCase):
         '''
         Tests:
             Posting a new commentator index
-            Get a virtual index for comentator on a text
+            Get a virtual index for commentator on a text
             Posting commentary text
             Commentary links auto generated
         '''

@@ -359,7 +359,7 @@ def add_source_to_sheet(id, source, note=None):
 		'outsideBiText' (indicating a bilingual outside text)
 	    'comment' (indicating a comment)
 		'media' (indicating a media object)
-	if string `note` is present, add it as a coment immediately after the source.
+	if string `note` is present, add it as a comment immediately after the source.
 		pass
 	"""
 	if not is_valid_source(source):
