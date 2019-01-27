@@ -52,7 +52,7 @@ def filter_type_to_query(filter_type):
     Most strings search for filter_type in the rev_type field, but others may have different behavior:
 
     'translate' - version is SCT and type is 'add text'
-    'flagged'   - type is review and score is less thatn 0.4
+    'flagged'   - type is review and score is less than 0.4
     """
     q = {}
 
