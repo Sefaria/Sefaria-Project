@@ -170,7 +170,7 @@ for booklist in booklists:
                 else:
                     print u"(g0) Did not match 'Gemara' in {}".format(current["ref"].normal())
             else:
-                print "Unexpect type: {}".format(current["type"])
+                print "Unexpected type: {}".format(current["type"])
                 exit()
 
             # Adjust any later elements
