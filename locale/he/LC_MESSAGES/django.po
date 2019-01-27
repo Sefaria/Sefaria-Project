@@ -198,8 +198,8 @@ msgstr "הנכם צריכים להיות מחוברים כדי לערוך את �
 
 #: reader/views.py:3668 reader/views.py:3671
 #, python-format
-msgid "Learn about %(name)s - works written, biographies, dates and more."
-msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאריכים ועוד"
+msgid "Learn about %(name)'s - works written, biographies, dates and more."
+msgstr "אודות %(name)'s. יצירות שחוברו, ביוגרפיה, תאריכים ועוד"
 
 #: sefaria/forms.py:26 sefaria/forms.py:31 sefaria/forms.py:106
 #: templates/static/aramaic-translation-contest.html:140
