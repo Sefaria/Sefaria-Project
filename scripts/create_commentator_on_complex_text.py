@@ -7,7 +7,7 @@ import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("commentator_name", help="commentator's name")
-    parser.add_argument("existing_book", help="title of existing index record for the comemntary")
+    parser.add_argument("existing_book", help="title of existing index record for the commentary")
     parser.add_argument("language", help="version language", choices=['en', 'he'])
     parser.add_argument("version_title", help="version title for the new version")
     parser.add_argument("version_source", help="version source for the new version")

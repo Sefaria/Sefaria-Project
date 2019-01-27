@@ -586,7 +586,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         Make sure these fields do not appear:
         "titleVariants",      # required for old style
-        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
+        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commentary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
         "maps",               # deprecated

@@ -267,7 +267,7 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	loadingSidebar: function() {
-		sjs._$commentaryViewPort.removeClass("noCommenatary")
+		sjs._$commentaryViewPort.removeClass("noCommentary")
 				.html('<div class="loadingSidebar"><img src="/static/img/loading.gif" /></div>');
 	},
 	copy: function(text) {
