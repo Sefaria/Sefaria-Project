@@ -65,7 +65,7 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 
 def random_untranslated_ref_in_text(text, skip=None):
 	"""
-	Returns the first untranslted ref from a random section of text.
+	Returns the first untranslated ref from a random section of text.
 	(i.e., this isn't choosing across all refs, only the first untranslated in each section)
 
 	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
