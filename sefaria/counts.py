@@ -113,7 +113,7 @@ def get_category_count(categories):
 	"""
 	Returns the counts doc stored in the matching category list 'categories'
 	"""
-	# This ugly query is an approximation for the extact array in order
+	# This ugly query is an approximation for the extract array in order
 	# WARNING: This query get confused is we ever have two lists of categories which have
 	# the same length, elements, and first element, but different order. (e.g ["a", "b", "c"] and ["a", "c", "b"])
 	doc = db.counts.find_one({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
