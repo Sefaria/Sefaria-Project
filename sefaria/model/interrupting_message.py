@@ -22,7 +22,7 @@ class InterruptingMessage(object):
     if not self.name:
       return False
 
-    # Don't show this name/repetiion pair more than once
+    # Don't show this name/repetition pair more than once
     if self.request.COOKIES.get(self.cookie_name, False):
       return False
 
