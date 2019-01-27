@@ -1337,7 +1337,7 @@ a.readerNavCategory {
 .navButton:active,
 .readerNavCategory:active,
 .refLink:active,
-.resourceseLink {  /* likely a typo in this word but not sure if this this still applies */
+.resourcesLink {
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {
