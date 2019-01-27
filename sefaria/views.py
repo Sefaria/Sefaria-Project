@@ -111,7 +111,7 @@ def accounts(request):
 
 def subscribe(request, email):
     """
-    API for subscribg is mailing lists, in `lists` url param.
+    API for subscribe is mailing lists, in `lists` url param.
     Currently active lists are:
     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
     """
