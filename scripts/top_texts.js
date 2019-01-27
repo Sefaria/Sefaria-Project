@@ -45,7 +45,7 @@ var reducer = function(key, values) {
 db.links.mapReduce(mapper, reducer, {out: "texts_by_connections"});
 
 
-// ----------- Count Top Chapters by # of Disctinct Connections ------------
+// ----------- Count Top Chapters by # of Distinct Connections ------------
 var mapper = function () {
   
   var countLink = function(base, ref) {
