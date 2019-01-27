@@ -83,7 +83,7 @@ def parse_lib_to_json(start, end):
     ref_num_min_N_title = [] # min ref_num of each book.title [[min_ref_num, book_title], ...]
     ref_num = 0 # absolute index num for all refs
 
-    # only used for debuging (
+    # only used for debugging (
     ref_num_2_full_name = []
 
     # index of list is ref_num (implicitly) ["intro to bookA", 1, 2, 3, "Intro to bookB", ...]
