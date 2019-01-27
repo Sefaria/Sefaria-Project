@@ -2028,7 +2028,7 @@ $(function() {
 
 
 
-	var autoAddConnetions =  function() {
+	var autoAddConnections =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
 		var $target = $($(this).closest(".source")).eq(0);
 
@@ -2096,7 +2096,7 @@ $(function() {
 			}
 		});
 	};
-	$(".addConnections").on("click", autoAddConnetions);
+	$(".addConnections").on("click", autoAddConnections);
 
 
 	// ---- Start Polling -----
