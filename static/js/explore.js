@@ -655,7 +655,7 @@ function recordOpenBookLink(d) {
 }
 
 function openBook(dFocused) {
-    //This may be invoked from a title or link, so get the book element explicity.  Don't rely on 'this'.
+    //This may be invoked from a title or link, so get the book element explicitly.  Don't rely on 'this'.
     var book = svg.select(".book." + dFocused.id);
     var dBook = book.datum();
 
