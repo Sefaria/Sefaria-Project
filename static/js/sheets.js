@@ -2736,7 +2736,7 @@ function saveSheet(sheet, reload) {
 				window.location = "/sheets/" + data.id+"?editor=1";
 			}
 			sjs.current = data;
-			sjs.lastEdit = null;    // save was succesful, won't need to replay
+			sjs.lastEdit = null;    // save was successful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 			var $lastSaved = $("#lastSaved");
