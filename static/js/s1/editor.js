@@ -4144,7 +4144,7 @@ function readNewVersion() {
 	if (text) {
 		var verses = text.split(/\n\n+/g);
 	} else {
-		// Avoid treating an empty textarea as [""] which is interrpreted as
+		// Avoid treating an empty textarea as [""] which is interpreted as
 		// 'a first segment exists, but we don't have it'. This should actually
 		// be saved as empty.
 		var verses = [];
