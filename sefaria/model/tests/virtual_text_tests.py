@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Tests for virtual texts, like dictionries
+Tests for virtual texts, like dictionaries
 Handling virtual schema nodes
 Refs pointing to virtual schemas, etc
 
