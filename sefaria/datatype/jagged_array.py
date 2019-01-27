@@ -3,7 +3,7 @@ jagged_array.py: a sparse array of arrays
 
 """
 
-# WARNING! instanciation creates a *reference* to the passed array.
+# WARNING! instantiation creates a *reference* to the passed array.
 # This is fine for analysis, but for modification, may modify the original array
 
 # All methods that modify self._store need to be aware of this

@@ -1988,7 +1988,7 @@ class RefCacheType(type):
     """
     Metaclass for Ref class.
     Caches all Ref instances according to the string they were instantiated with and their normal form.
-    Returns cached instance on instanciation if either instanciation string or normal form are matched.
+    Returns cached instance on instantiation if either instantiation string or normal form are matched.
     """
 
     def __init__(cls, name, parents, dct):

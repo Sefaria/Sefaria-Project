@@ -364,7 +364,7 @@ class Test_Library(object):
                 obj.validate()
 
 
-    def test_cache_populated_on_instanciation(self):
+    def test_cache_populated_on_instantiation(self):
         assert library._index_map
         assert "en" in library.langs
         assert "he" in library.langs

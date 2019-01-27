@@ -1643,7 +1643,7 @@ def links_api(request, link_id_or_ref=None):
         callback=request.GET.get("callback", None)
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
+        #The Ref instantiation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
