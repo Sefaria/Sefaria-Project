@@ -42,7 +42,7 @@ class Test_Toc(object):
     def recur_toc_integrity(self, toc, depth=0):
         for toc_elem in toc:
             if 'category' in toc_elem and 'contents' in toc_elem:
-                #verify proper category node (including that it doesnt have a title attr)
+                #verify proper category node (including that it doesn't have a title attr)
                 self.verify_category_node_integrity(toc_elem)
                 self.recur_toc_integrity(toc_elem['contents'], depth+1)
             elif 'title' in toc_elem:

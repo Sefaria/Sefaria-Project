@@ -291,7 +291,7 @@ class TextRange extends Component {
 
     var segments      = Sefaria.makeSegments(data, this.props.withContext);
     if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
-      strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
+      strip_text_re = null; //if the first segment doesn't even match as containing vowels or cantillation- stop
     }
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
