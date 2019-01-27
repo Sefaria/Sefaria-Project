@@ -140,7 +140,7 @@ def update_category_counts():
 		count_category(cats)
 
 
-#Superceded by StateNode.get_percent_available()
+#Superseded by StateNode.get_percent_available()
 # still used for cats
 def get_percent_available(text, lang="en"):
 	"""
@@ -154,16 +154,16 @@ def get_percent_available(text, lang="en"):
 	else:
 		return 0
 
-#Superceded by StateNode.get_available_counts_dict()
+#Superseded by StateNode.get_available_counts_dict()
 def get_available_counts(text, lang="en"):
 
-#Superceded by StateNode.get_available_counts_dict()
+#Superseded by StateNode.get_available_counts_dict()
 def make_available_counts_dict(index, count):
 
-#Superceded by StateNode.get_untranslated_count_by_unit()
+#Superseded by StateNode.get_untranslated_count_by_unit()
 def get_untranslated_count_by_unit(text, unit):
 
-#Superceded by StateNode.get_translated_count_by_unit()
+#Superseded by StateNode.get_translated_count_by_unit()
 def get_translated_count_by_unit(text, unit):
 
 '''
