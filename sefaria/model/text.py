@@ -4737,10 +4737,10 @@ class Library(object):
                            + node.after_title_delimiter_re \
                            + node.address_regex(lang, for_js=for_js, match_range=True) + u")"]
 
-            all_interal = u"|".join(regex_components)
-            if all_interal:
+            all_internal = u"|".join(regex_components)
+            if all_internal:
                 full_regex = ur"""(?:
-                    """ + all_interal + ur"""
+                    """ + all_internal + ur"""
                     )
                     (?=\W|$)                                        # look ahead for non-word char
                     """
