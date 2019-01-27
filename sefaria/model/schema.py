@@ -1957,7 +1957,7 @@ class AddressTalmud(AddressType):
                 raise InputError(u"Couldn't parse Talmud reference: {}".format(s))
 
             if self.length and daf > self.length:
-                #todo: Catch this above and put the book name on it.  Proably change Exception type.
+                #todo: Catch this above and put the book name on it.  Probably change Exception type.
                 raise InputError(u"{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 2
