@@ -2135,7 +2135,7 @@ function buildCommentaryContent(commentary) {
 	var sources           = {};
 	var commentaryObjects = []
 	var commentaryHtml    = "";
-	var n                 = 0; // number of assiged colors in pallette
+	var n                 = 0; // number of assigned colors in pallette
 
 	if (commentary.length) {
 		$(".noCommentary").removeClass("noCommentary");
