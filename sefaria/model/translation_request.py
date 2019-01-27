@@ -67,7 +67,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
     def _receive_support(self):
         """
         Look for requests that contains this one, 
-        receive thier requesters support for self.
+        receive their requesters support for self.
 
         Not currently used. (too much noise in requests specificity)
         """

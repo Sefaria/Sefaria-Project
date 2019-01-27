@@ -211,7 +211,7 @@ class TocTree(object):
                 return ORDER.index(title)
 
             except ValueError:
-                # Sort top level Commentary categories just below theit base category
+                # Sort top level Commentary categories just below their base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
