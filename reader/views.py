@@ -1461,15 +1461,14 @@ def index_api(request, title, v2=False, raw=False):
 
 @catch_error_as_json
 @json_response_decorator
+@django_cache(default_on_miss = True)
 def bare_link_api(request, book, cat):
-
     if request.method == "GET":
-        resp = jsonResponse(get_book_link_collection(book, cat), callback=request.GET.get("callback", None))
-        resp['Content-Type'] = "application/json; charset=utf-8"
+        resp = get_book_link_collection(book, cat)
         return resp
 
     elif request.method == "POST":
-        return jsonResponse({"error": "Not implemented."})
+        return {"error": "Not implemented."}
 
 
 @catch_error_as_json
