@@ -101,7 +101,7 @@ class SegementFixer:
                 span.name = 'i'
                 span.wrap(self.soup.new_tag('b'))
         else:
-            raise AttributeError("Eelement has no valid class")
+            raise AttributeError("Element has no valid class")
         for attr in span.attrs.keys():
             del span[attr]
 
