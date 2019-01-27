@@ -143,7 +143,7 @@ class AbstractIndex(object):
             return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
 
         def aggregate_available_texts(available):
-            """Returns a jagged arrary of ints that counts the number of segments in each section,
+            """Returns a jagged array of ints that counts the number of segments in each section,
             (by throwing out the number of versions of each segment)"""
             if len(available) == 0 or type(available[0]) is int:
                 return len(available)
