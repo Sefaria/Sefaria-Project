@@ -22,7 +22,7 @@ def count_terms(query={}, lang=None):
     #todo: move to object model.  Maybe.  What's this doing?
     """
     Counts all terms in texts matching query, lang
-    Saves reults to terms collection in db.
+    Saves results to terms collection in db.
     """
     terms = {}
     bavli_names = db.index.find(query).distinct("title")
