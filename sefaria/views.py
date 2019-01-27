@@ -528,7 +528,7 @@ def cause_error(request):
     try:
         erorr = excepting
     except Exception as e:
-        logger.exception('An Exception has ocurred in the code')
+        logger.exception('An Exception has occurred in the code')
     erorr = error
     return jsonResponse(resp)
 
