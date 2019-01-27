@@ -3176,7 +3176,7 @@ function buildOpen(editMode) {
 	// Previously, this same code create modals for viewing full text of a source.
 	// if editMode, copy expanded source for editing
 	// else, build a modal for adding a new source
-	// This code is a mess and shoud be rewritten from scratch. 
+	// This code is a mess and should be rewritten from scratch. 
 	
 	$(".open").remove();
 
