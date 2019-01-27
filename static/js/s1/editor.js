@@ -1725,7 +1725,7 @@ function buildView(data) {
 	}
 	if(versionInfo){
 		var version_title_attr = versionInfo['lang'] == 'he' ? 'heVersionTitle' : 'versionTitle';
-		//we are comapring the preferred version to what we actually got
+		//we are comparing the preferred version to what we actually got
 		if(versionInfo['version'] != data[version_title_attr]){
 			//if there is a mismatch, remove the version from the url with replaceState.
 			var q = {book: data['book'],	sections: data['sections'],	toSections: data['toSections'],	ref: data['ref']};
