@@ -180,7 +180,7 @@ class NavAndVerifyTextTOC(AtomicTest):
             self.nav_to_text_toc(cats, text_title)
 
 
-class LoadAndVerifyIndepenedentTOC(AtomicTest):
+class LoadAndVerifyIndependentTOC(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
