@@ -242,7 +242,7 @@ class TextRange extends Component {
     this.placeSegmentNumbers();
   }
   parashahHeader(data, segment, includeAliyot=false) {
-    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
+    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parashah
     // returns null otherwise.
     //var data = this.getText();
     if (!data) { return null; }
