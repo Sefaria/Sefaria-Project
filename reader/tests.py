@@ -500,7 +500,7 @@ class PostTextNameChange(SefariaTestCase):
     Tests:
         Post/Delete of Note
         Post/Delete of Link
-        Index title change casacade to:
+        Index title change cascade to:
             Books list updated
             TOC updated
             Versions updated
