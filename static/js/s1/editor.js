@@ -2586,7 +2586,7 @@ function aboutHtml(data) {
 function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
-	// visible in the baesetext.
+	// visible in the basetext.
 	// Don't scroll if...
 	if (sjs.flags.loading || // we're still loading a view
 			!sjs._$verses || // verses aren't loaded yet
