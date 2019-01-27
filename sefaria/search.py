@@ -733,7 +733,7 @@ def index_from_queue():
 
 def add_recent_to_queue(ndays):
     """
-    Look through the last ndays of the activitiy log,
+    Look through the last ndays of the activity log,
     add to the index queue any refs that had their text altered.
     """
     cutoff = datetime.now() - timedelta(days=ndays)

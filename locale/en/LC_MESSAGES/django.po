@@ -314,7 +314,7 @@ msgstr ""
 
 #: templates/activity.html:19
 msgid ""
-"View a user's acitvitiy history on Sefaria, including published source "
+"View a user's activity history on Sefaria, including published source "
 "sheets, and text translations, edits or additions."
 msgstr ""
 

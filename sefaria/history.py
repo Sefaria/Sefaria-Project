@@ -276,7 +276,7 @@ def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=Non
     if version:
         condition["version"] = version
 
-    # Count acitvity from API?
+    # Count activity from API?
     if not api:
         condition["method"] = {"$ne": "API"}
 
