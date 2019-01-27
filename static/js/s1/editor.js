@@ -3747,7 +3747,7 @@ sjs.toggleShowOriginal = function(){
 
 
 sjs.translateText = function(data) {
-	// Transistion to the UI for adding a translation of the text
+	// Transition to the UI for adding a translation of the text
 	// in data.
 	if ("error" in data) {
 		sjs.alert.message(data.error);
