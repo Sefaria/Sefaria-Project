@@ -2929,7 +2929,7 @@ sjs.longCommentaryText = function(text, backup) {
 // ---------- Reviews ---------------
 
 sjs.loadReviews = function () {
-	// Calls the server to load both english and hebrew revies as needed
+	// Calls the server to load both english and hebrew reviews as needed
 	sjs.reviews.en = null;
 	sjs.reviews.he = null;
 	if (sjs.current.text.length) { sjs.loadReview("en"); }
