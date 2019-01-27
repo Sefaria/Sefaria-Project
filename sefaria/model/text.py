@@ -3390,7 +3390,7 @@ class Ref(object):
                                 d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
                         '''
 
-                    if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
+                    if d["toSections"][-1]:  # to filter out, e.g. nonexistent Rashi's, where the last index is 0
                         try:
                             refs.append(Ref(_obj=d))
                         except InputError:

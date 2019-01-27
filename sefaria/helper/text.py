@@ -214,7 +214,7 @@ def merge_text_versions_by_language(text_title, language, warn=False):
 def merge_text(a, b):
     """
     Merge two lists representing texts, giving preference to a, but keeping
-    values froms b when a position in a is empty or non existant.
+    values froms b when a position in a is empty or nonexistent.
 
     e.g merge_text(["", "Two", "Three"], ["One", "Nope", "Nope", "Four]) ->
         ["One", "Two" "Three", "Four"]
