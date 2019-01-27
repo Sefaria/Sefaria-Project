@@ -132,7 +132,7 @@ def collapse_activity(activity):
 def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=None):
     """
     Returns (activity, page) where
-    activity is the collasped set of activity items, counting multiple consecutive actions as one
+    activity is the collapsed set of activity items, counting multiple consecutive actions as one
     page is the page number for the next page of queries to search, or None if there are no more results.
 
     Makes repeat DB calls to return more activity items so a full page_size of items cen returned.

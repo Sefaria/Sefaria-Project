@@ -2904,7 +2904,7 @@ sjs.expandSource = function($source) {
 
 
 sjs.shortCommentaryText = function (text, backup) {
-	// Create a short version of commentary text for collaspsed display
+	// Create a short version of commentary text for collapsed display
 	// Use backup if text is empty.
 	var shortText = text.length > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
 	shortText = (isArray(shortText) ? shortText.join(" ") : shortText);
