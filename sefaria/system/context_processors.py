@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Djagno Context Processors, for decorating all HTTP requests with common data.
+Django Context Processors, for decorating all HTTP requests with common data.
 """
 import json
 from datetime import datetime
