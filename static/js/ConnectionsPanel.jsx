@@ -468,7 +468,7 @@ class ResourcesList extends Component {
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
@@ -494,7 +494,7 @@ class SheetNodeConnectionTools extends Component {
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
                 <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
 
