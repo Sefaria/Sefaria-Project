@@ -3142,7 +3142,7 @@ def dashboard(request):
 @ensure_csrf_cookie
 def translation_requests(request, completed_only=False, featured_only=False):
     """
-    Page listing all outstnading translation requests.
+    Page listing all outstanding translation requests.
     """
     page              = int(request.GET.get("page", 1)) - 1
     page_size         = 100
