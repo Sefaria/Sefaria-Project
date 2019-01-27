@@ -15,7 +15,7 @@ from utils.talmud import section_to_daf
 
 def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
 	"""
-	Returns a ref of the first occurence of a Hebrew text in 'text' 
+	Returns a ref of the first occurrence of a Hebrew text in 'text' 
 	that does not have an English translation, or is not currently locked.
 
 	* section  - optinally restrict the search to a particular section
