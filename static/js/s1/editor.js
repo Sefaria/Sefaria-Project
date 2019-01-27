@@ -3529,7 +3529,7 @@ sjs.showNewText = function () {
 		if ($(this).val() === "copy") { 
 		// Click on "Copied Text" Radio
 			$("#copiedTextForm").show();
-			// When swtiching from an original transltion, clear the text area
+			// When switching from an original transltion, clear the text area
 			if ($("#addVersionHeader").hasClass("original")) {
 				sjs._$newVersion.val("").trigger("keyup");
 				$("#copiedTextForm").find("input").val("");
