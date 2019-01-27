@@ -125,7 +125,7 @@ Sefaria = extend(Sefaria, {
       return ref;
   },
   normRef: function(ref) {
-      // Returns a string of the URL normalized form of `ref` (using _ for spaces and . for section seprator).
+      // Returns a string of the URL normalized form of `ref` (using _ for spaces and . for section separator).
       // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
       if (ref instanceof Array) {
         return Sefaria.normRefList(ref);
