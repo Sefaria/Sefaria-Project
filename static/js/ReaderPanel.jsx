@@ -1258,7 +1258,7 @@ class ReaderDisplayOptionsMenu extends Component {
           settings={this.props.settings} />);
 
     var layoutOptions = [
-      {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
+      {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram (?! what ??)" },
       {name: "segmented", fa: "align-left", role: "radio", ariaLabel: "Show Text segmented" },
     ];
     var biLayoutOptions = [
