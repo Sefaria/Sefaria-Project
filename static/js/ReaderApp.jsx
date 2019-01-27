@@ -1305,7 +1305,7 @@ class ReaderApp extends Component {
         var currentlyVisibleRef = ref;
         var highlightedRefs = [];
       }
-      //console.log("Higlighted refs:", highlightedRefs)
+      //console.log("Highlighted refs:", highlightedRefs)
       panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text"});
     }
 
