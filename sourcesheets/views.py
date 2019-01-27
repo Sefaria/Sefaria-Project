@@ -46,7 +46,7 @@ from sefaria.gauth.decorators import gauth_required
 
 def annotate_user_links(sources):
 	"""
-	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	Search a sheet for any addedBy fields (containing a UID) and add corresponding user links.
 	"""
 	for source in sources:
 		if "addedBy" in source:
