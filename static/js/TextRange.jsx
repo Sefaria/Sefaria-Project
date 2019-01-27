@@ -241,7 +241,7 @@ class TextRange extends Component {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.placeSegmentNumbers();
   }
-  parashahHeader(data, segment, includeAliyout=false) {
+  parashahHeader(data, segment, includeAliyot=false) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
     // returns null otherwise.
     //var data = this.getText();
@@ -249,7 +249,7 @@ class TextRange extends Component {
     if ("alts" in data && data.alts.length && data.categories[1] == "Torah" && !data["isDependant"]) {
       var curRef = segment.ref;
       if ("alt" in segment && segment.alt != null){
-        if(includeAliyout || "whole" in segment.alt){
+        if(includeAliyot || "whole" in segment.alt){
           return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
         }
       }
