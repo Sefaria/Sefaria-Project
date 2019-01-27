@@ -29,7 +29,7 @@ $.extend(sjs,  {
 	},
 	timers: {
 		hideMenu: null,
-		panelPreivew: null,
+		panelPreview: null,
 	},
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	sourcesFilter: "all",
