@@ -17,7 +17,7 @@ If you're interested in working on a project you see listed here, please email t
 ### Getting Started
 First clone the Sefaria-Project repository to a directory on your computer, then follow the instructions:
 
-*Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this respository by clicking the "Fork" button above when logged in to GitHub.*
+*Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this repository by clicking the "Fork" button above when logged in to GitHub.*
 
 #### Install Python
 Most UNIX systems come with a python interpreter pre-installed. 
