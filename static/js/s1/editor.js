@@ -2288,7 +2288,7 @@ function buildCommentaryContent(commentary) {
 function sortCommentary(a,b) {
 	// Sort function for ordering commentary
 
-	// First sort accoring to verse position
+	// First sort according to verse position
 	// Use parseInt to look at only the first verse in cases where
 	// vref is a string like "2 4 6" denoting multiple verses
 	if (parseInt(a.vref) != parseInt(b.vref)) {
