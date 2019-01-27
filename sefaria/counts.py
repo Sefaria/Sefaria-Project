@@ -75,7 +75,7 @@ def count_category(cat, lang=None):
 
 		return counts
 
-	# Count this cateogry
+	# Count this category
 	counts = defaultdict(int)
 	percent = 0.0
 	percentCount = 0

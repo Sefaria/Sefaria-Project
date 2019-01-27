@@ -3312,7 +3312,7 @@ def translation_flow(request, tref):
             return render(request,'static/generic.html', generic_response)
 
         if "random" in request.GET:
-            # choose a random text from this cateogory
+            # choose a random text from this category
             skip = int(request.GET.get("skip")) if "skip" in request.GET else None
             text = random_untranslated_text_in_category(cat, skip=skip)
             assigned_ref = next_untranslated_ref_in_text(text)
