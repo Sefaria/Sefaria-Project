@@ -110,7 +110,7 @@ def can_edit(user, sheet):
 
 def can_add(user, sheet):
 	"""
-	Returns True if user has adding persmission on sheet.
+	Returns True if user has adding permission on sheet.
 	Returns False if user has the higher permission "can_edit"
 	"""
 	if not user.is_authenticated:
