@@ -104,7 +104,7 @@ def collapse_activity(activity):
         act.update({
             "summary": True,
             #"contents": streak[1:],
-            # add the update count form first item if it exists, in case that item was a sumamry itself
+            # add the update count form first item if it exists, in case that item was a summary itself
             "updates_count": len(streak) + act.get("updates_count", 1) -1,
             "history_url": "/activity/%s/%s/%s" % (Ref(act["ref"]).section_ref().url(),
                                                    act["language"],
