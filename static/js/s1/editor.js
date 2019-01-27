@@ -6,7 +6,7 @@ var sjs = sjs || {};
 
 $.extend(sjs,  {
 	Init: {},       // functions for initializing a page
-	bind: {},       // functons for binding event handlers
+	bind: {},       // functions for binding event handlers
 	depth: 0,       // how deep the many steps in the current thread
 	thread: [],     // a list of refs describing the path taken through texts
 	view: {},       // cached values related to current view

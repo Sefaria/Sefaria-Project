@@ -289,7 +289,7 @@ def make_leaderboard(condition):
     matches the conditions of 'condition' - an object used to query
     the history collection.
 
-    This fucntion queries and calculates for all currently matching history.
+    This function queries and calculates for all currently matching history.
     """
 
     reducer = Code("""
