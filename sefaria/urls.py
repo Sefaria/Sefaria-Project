@@ -239,7 +239,7 @@ urlpatterns += [
     url(r'^api/locks/check/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.check_lock_api),
 ]
 
-# Lock Text API (permament locking of an entire text)
+# Lock Text API (permanent locking of an entire text)
 urlpatterns += [
     url(r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.lock_text_api),
     url(r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.flag_text_api),
