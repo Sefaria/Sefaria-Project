@@ -182,7 +182,7 @@ The shell script `cli` will invoke a python interpreter with the core models loa
 
 ## Thanks
 
-We're grateful to the following orgazations for providing us with donated services:
+We're grateful to the following organizations for providing us with donated services:
 
 - [BrowserStack](https://www.browserstack.com/)
 - [Google Apps for Work](https://apps.google.com/)
