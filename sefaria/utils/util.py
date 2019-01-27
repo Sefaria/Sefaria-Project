@@ -157,7 +157,7 @@ def flatten_jagged_array(jagged):
 
 def is_text_empty(text):
     """
-    Returns true if a jagged array 'test' is emtpy or contains
+    Returns true if a jagged array 'test' is empty or contains
     only "" or 0.
     """
     text = flatten_jagged_array(text)
