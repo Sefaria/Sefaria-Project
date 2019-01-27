@@ -3228,12 +3228,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: middle;
 }
 .segment .segmentNumber,
-.textRagnge .numberLabel {
+.textRange .numberLabel {
   color: #999;
   top: 0;
 }
 .dark .segment .segmentNumber,
-.dark .textRagnge .numberLabel {
+.dark .textRange .numberLabel {
   color: white;
 }
 .segment .linkCount {
