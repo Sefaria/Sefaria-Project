@@ -298,7 +298,7 @@ class Test_Schema(object):
         Ref("Mishnah Torah Test, Introduction, Transmission")
 
         with pytest.raises(InputError):
-            Ref("Mishnah Torah Test, Introduction, TransmisXsion")  # Mispelled last piece
+            Ref("Mishnah Torah Test, Introduction, TransmisXsion")  # Misspelled last piece
 
         i.delete()
 
