@@ -715,7 +715,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         Overridden in subclasses.
         :return:
         """
-        #overidden in subclasses
+        #overridden in subclasses
         for child in self.children:
             if child.is_default():
                 if child.has_numeric_continuation():
