@@ -437,7 +437,7 @@ Template tags for working with lists.
 You'll use these in templates thusly::
 
 	{% load listutil %}      # I don't think we need this line.
-	{% for sublist in mylist|parition:"3" %}
+	{% for sublist in mylist|partition:"3" %}
 		{% for item in mylist %}
 			do something with {{ item }}
 		{% endfor %}
