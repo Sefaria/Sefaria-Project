@@ -352,7 +352,7 @@ def make_little_endian(blob):
     #hex_str = struct.unpack_from('>8s', blob)
     #print(hex_str)
     hex_str = str(blob).encode("hex")
-    print('pre little endain', hex_str)
+    print('pre little endian', hex_str)
     new_hex = []
     for byte_i in range(0, len(hex_str), 8):
         hex_byte_str = hex_str[byte_i:byte_i + 8]
