@@ -80,7 +80,7 @@ class Topic(abst.AbstractMongoRecord):
 
     def filter(self, topics):
         """Perform all filtering that may depend on a complete TopicList (related topics),
-        or that may require computation to be delyed (Ref validation)"""
+        or that may require computation to be delayed (Ref validation)"""
         if self._filtered:
             return self
         self.filter_sources()
