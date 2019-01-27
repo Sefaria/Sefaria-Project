@@ -1779,7 +1779,7 @@ function encodeHebrewNumeral(n) {
 
 
 function encodeHebrewDaf(daf, form) {
-	// Ruturns Hebrew daf strings from "32b"
+	// Returns Hebrew daf strings from "32b"
 	
 	form = form || "short";
 	var n = parseInt(daf.slice(0,-1));
