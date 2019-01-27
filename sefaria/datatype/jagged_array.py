@@ -265,7 +265,7 @@ class JaggedArray(object):
                 #we have been told where to start looking
                 if depth < len(starting_points):
                     begin_index = starting_points[depth]
-                    #this is in case we come back to this depth, then we want to start from 0 becasue the start point only matters for the
+                    #this is in case we come back to this depth, then we want to start from 0 because the start point only matters for the
                     #array element we were in to begin with
                     starting_points[depth] = 0
                 else:

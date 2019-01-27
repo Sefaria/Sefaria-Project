@@ -1751,7 +1751,7 @@ function buildView(data) {
 	var $sourcesBox         = sjs._$sourcesBox;
 
 	// Clear everything out 
-	$("#about").appendTo("body").hide(); // Stash, becasue we use as a template
+	$("#about").appendTo("body").hide(); // Stash, because we use as a template
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
