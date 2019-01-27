@@ -783,7 +783,7 @@ Sefaria = extend(Sefaria, {
       if (splitItems.hasOwnProperty(ref)) {
         if (!(ref in store) || store[ref].length <= splitItems[ref].length) {
           // Don't overwrite the cache if it already contains more items than the new list.
-          // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yeild
+          // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yield
           // a smaller list of results for "Genesis 1:4" than was already present.
           store[ref] = splitItems[ref];
         }
