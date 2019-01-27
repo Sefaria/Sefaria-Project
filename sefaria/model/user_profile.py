@@ -414,7 +414,7 @@ class UserProfile(object):
         return UserHistorySet(query, sort=[("time_stamp", -1)])
 
     def to_DICT(self):
-        """Return a json serializble dictionary this profile"""
+        """Return a json serializable dictionary this profile"""
         dictionary = {
             "id":                    self.id,
             "slug":                  self.slug,
