@@ -1115,7 +1115,7 @@ sjs.textBrowser = {
 	},
 	selectInBetween: function() {
 		// Add selected class to every segment between the first and last
-		// selected segements
+		// selected segments
 		var $selected = $(".segment.selected");
 		if ($selected.length > 1) {
 			$selected.first()

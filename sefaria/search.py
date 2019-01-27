@@ -568,7 +568,7 @@ class TextIndexer(object):
         vlang = version.language
         try:
             version_priority, categories = cls.version_priority_map[(version.title, vtitle, vlang)]
-            #TODO include sgement_str in this func
+            #TODO include segment_str in this func
             doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories)
             # print doc
         except Exception as e:

@@ -126,7 +126,7 @@ def random_untranslated_text_in_category(cat):
 def mark_locked(text, counts):
 	"""
 	Returns a jagged array of counts which marks all currently locked
-	SCT text seguments as already complete. 
+	SCT text segments as already complete. 
 	"""
 	locks = db.locks.find({
 							"ref": {"$regex": "^" + text},

@@ -1569,7 +1569,7 @@ class TextChunk(AbstractTextRecord):
         """
         Regex search in TextChunk
         :param regex_str: regex string to search for
-        :param cleaner: f(str)->str. function to clean a semgent before searching
+        :param cleaner: f(str)->str. function to clean a segment before searching
         :param strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
         :return: list[(Ref, Match, str)] - list of tuples. each tuple has a segment ref, match object for the match, and text for the segment
         """
