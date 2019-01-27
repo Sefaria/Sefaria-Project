@@ -534,7 +534,7 @@ class Test_Cache(object):
     # Retired.  Since we're dealing with objects, tref will either bleed one way or the other.
     # Removed last dependencies on tref outside of object init. 
     def test_tref_bleed(self):
-        # Insure that instanciating trefs are correct for this instance, and don't bleed through the cache.
+        # Insure that instantiating trefs are correct for this instance, and don't bleed through the cache.
         Ref(u'שבת לא')
         r = Ref("Shabbat 31a")
         assert r.tref == "Shabbat 31a"

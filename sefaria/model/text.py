@@ -2433,7 +2433,7 @@ class Ref(object):
     @staticmethod
     def is_ref(tref):
         """
-        Static method for testing if a string is valid for instanciating a Ref object.
+        Static method for testing if a string is valid for instantiating a Ref object.
 
         :param string tref: the string to test
         :return bool:
