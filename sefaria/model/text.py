@@ -3080,7 +3080,7 @@ class Ref(object):
 
         #arrays are 0 based. text sections are 1 based. so shift the numbers back.
         if not forward:
-            # Going backward, start from begginning of Ref
+            # Going backward, start from beginning of Ref
             starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
         else:
             # Going forward start form end of Ref
