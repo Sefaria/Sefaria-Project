@@ -255,7 +255,7 @@ def convert_to_josh_packets(words_2_ref_nums):
         if words_done % 100000 == 0:
             print(words_done, 1.0*words_done/len(words_2_ref_nums), str(dt.now().time()),)
 
-        #packet looks like: [0, '0010010000000000']  (the first index for the packet.. meaninbg a 1 shows up in the first 24 bits)
+        #packet looks like: [0, '0010010000000000']  (the first index for the packet.. meaning a 1 shows up in the first 24 bits)
         #                    ^ bit number
         #print(ref_nums)
         #print(packets)
