@@ -18,7 +18,7 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 	Returns a ref of the first occurrence of a Hebrew text in 'text' 
 	that does not have an English translation, or is not currently locked.
 
-	* section  - optinally restrict the search to a particular section
+	* section  - optionally restrict the search to a particular section
 	* enCounts - a jagged array of counts of available english texted, assumed to 
 				 already have been marked for locked texts.
 	* tryNext  - when a section is specified, but no ref is found, should we move on

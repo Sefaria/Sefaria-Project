@@ -1223,7 +1223,7 @@ class TextFamilyDelegator(type):
 
 class TextChunk(AbstractTextRecord):
     """
-    A chunk of text corresponding to the provided :class:`Ref`, language, and optionall version name.
+    A chunk of text corresponding to the provided :class:`Ref`, language, and optionally version name.
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
     :param oref: :class:`Ref`
