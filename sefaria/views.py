@@ -118,7 +118,7 @@ def subscribe(request, email):
     lists = request.GET.get("lists", "")
     lists = lists.split("|")
     if len(lists) == 0:
-        return jsonResponse({"error": "Please specifiy a list."})
+        return jsonResponse({"error": "Please specify a list."})
     if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:

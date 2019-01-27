@@ -1281,7 +1281,7 @@ def texts_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can delete texts."})
         if not (tref and (versionEn or versionHe)):
-            return jsonResponse({"error": "To delete a text version please specifiy a text title, version title and language."})
+            return jsonResponse({"error": "To delete a text version please specify a text title, version title and language."})
 
         tref    = tref.replace("_", " ")
         if versionEn:
