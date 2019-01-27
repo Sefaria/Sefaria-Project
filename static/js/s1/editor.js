@@ -43,7 +43,7 @@ sjs.cache.params({notes: 1, sheets: 1}); // Default parameters to getting texts.
 
 sjs.ratySettings = { // for text review ratings
 	path: "/static/img/raty/",
-	hints: ["Major problems", "Some problems", "Seems good", "Good", "Definately good"]
+	hints: ["Major problems", "Some problems", "Seems good", "Good", "Definitely good"]
 };
 
 
