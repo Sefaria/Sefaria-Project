@@ -810,7 +810,7 @@
 
 		// Move Goto box, controls into hidden menu for small screen size
 		sjs.adjustLayout = function() {
-			// Layout changes for small screen sizes that can't be accomplised
+			// Layout changes for small screen sizes that can't be accomplished
 			// with media-queries only
 			var width     = $(window).width();
 			var $gotoBox  = $("#gotoBox");
