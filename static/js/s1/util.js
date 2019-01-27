@@ -1238,7 +1238,7 @@ sjs.getFirstExistingTextSection = function(counts){
 };
 
 sjs.findFirst = function(arr){
-    //iterates and recures until finds non empty text elem.
+    //iterates and recurses until finds non empty text elem.
     //then returns the path of text segment numbers leading to it
     if (arr == undefined) {
 		return false;
