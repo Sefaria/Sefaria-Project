@@ -3240,7 +3240,7 @@ def translation_request_api(request, tref):
 @ensure_csrf_cookie
 def translation_flow(request, tref):
     """
-    Assign a user a paritcular bit of text to translate within 'ref',
+    Assign a user a particular bit of text to translate within 'ref',
     either a text title or category.
     """
     tref = tref.replace("_", " ")
