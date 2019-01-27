@@ -862,7 +862,7 @@ $(function() {
 
 
 	// ---------- Embed Sheet ----------------
-	$("#embedSheet").click(showEmebed);
+	$("#embedSheet").click(showEmbed);
 
 
 	// ---------- Delete Sheet ----------------
@@ -3515,7 +3515,7 @@ function toggleHighlighter() {
 		}
 }
 
-function showEmebed() {
+function showEmbed() {
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
 		.end()
