@@ -180,8 +180,8 @@ class VersionBlock extends Component {
               {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
             </select>
 
-            <label id="digitzedBySefaria_label" htmlFor="digitzedBySefaria">Digitized by Sefaria</label>
-            <input type="checkbox" id="digitzedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
+            <label id="digitizedBySefaria_label" htmlFor="digitizedBySefaria">Digitized by Sefaria</label>
+            <input type="checkbox" id="digitizedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
 
             <label id="priority_label" htmlFor="priority">Priority</label>
             <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
