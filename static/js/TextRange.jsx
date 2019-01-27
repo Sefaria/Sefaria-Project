@@ -110,12 +110,12 @@ class TextRange extends Component {
     this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
-      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      // Pass parameter to showBaseText to replaceHistory - normalization shouldn't add a step to history
       this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
     } else if (data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
-      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      // Pass parameter to showBaseText to replaceHistory - normalization shouldn't add a step to history
       //console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
       return;
