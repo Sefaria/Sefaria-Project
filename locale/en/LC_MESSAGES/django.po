@@ -309,7 +309,7 @@ msgid "Sefaria Activity"
 msgstr ""
 
 #: templates/activity.html:17
-msgid "View the complete revision hisotry of this text on Sefaria."
+msgid "View the complete revision history of this text on Sefaria."
 msgstr ""
 
 #: templates/activity.html:19

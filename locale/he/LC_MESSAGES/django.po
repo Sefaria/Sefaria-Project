@@ -319,7 +319,7 @@ msgid "Sefaria Activity"
 msgstr "פעילות בספריא"
 
 #: templates/activity.html:17
-msgid "View the complete revision hisotry of this text on Sefaria."
+msgid "View the complete revision history of this text on Sefaria."
 msgstr "צפו בהיסטורית העריכה של הטקסט הזה בספריא"
 
 #: templates/activity.html:19
