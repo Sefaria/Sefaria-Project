@@ -19,9 +19,12 @@ import Component          from 'react-class';
 
 
 class MyNotesPanel extends Component {
+  constructor(props) {
+      super(props);
+      this.state = { numberToRender: 2 };
+  }
   componentDidMount() {
     this.loadData();
-    this.state = { numberToRender: 2 };
   }
   loadData() {
     var notes = Sefaria.allPrivateNotes();

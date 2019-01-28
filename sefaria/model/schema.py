@@ -596,8 +596,9 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to))+"  # should be an arg?  \r\n are for html matches
-    after_address_delimiter_ref = ur"[,.: \r\n]+"
+
+    after_title_delimiter_re = ur"(?:[,.:\s]|(?:to|\u05d5?\u05d1?(\u05e1\u05d5\u05e3|\u05e8\u05d9\u05e9)))+"  # should be an arg?  \r\n are for html matches
+    after_address_delimiter_ref = ur"[,.:\s]+"
     title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -904,7 +905,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-            reg += ur"(?=[.,:;?! })\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
+            reg += ur"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
@@ -924,7 +925,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
             #TODO However, most false positives will be filtered out in library._get_ref_from_match()
 
-            reg += ur"(?:\s*[-\u2010-\u2015\u05BE]\s*"  # maybe there's a dash (either n or m dash) and a range
+            reg += ur"(?:\s*([-\u2010-\u2015\u05be]|to)\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += ur"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
@@ -1623,6 +1624,8 @@ class SheetNode(NumberedTitledTreeNode):
         if not self.sheet_object:
             raise InputError
 
+
+
     def has_numeric_continuation(self):
         return False  # What about section level?
 
@@ -1638,9 +1641,29 @@ class SheetNode(NumberedTitledTreeNode):
     def get_version_title(self, lang):
         return "Dummy"
 
+    def return_text_from_sheet_source(self, source):
+        if source.get("text"):
+            return (source.get("text"))
+        elif source.get("outsideText"):
+            return (source.get("outsideText"))
+        elif source.get("outsideBiText"):
+            return (source.get("outsideBiText"))
+        elif source.get("comment"):
+            return (source.get("comment"))
+        elif source.get("media"):
+            return (source.get("media"))
+
     def get_text(self):
-        return [u"test"]
-        # Return depth 1 array of strings from self.sheet_object
+        text = []
+        for source in self.sheet_object.get("sources"):
+            if self.nodeId:
+                if self.nodeId == source.get("node"):
+                    text.append(self.return_text_from_sheet_source(source))
+                    break
+            else:
+                text.append(self.return_text_from_sheet_source(source))
+
+        return text
 
     #def address(self):
     #    return self.parent.address() + [self.sheetId]
@@ -1868,7 +1891,7 @@ class AddressTalmud(AddressType):
     :class:`AddressType` for Talmud style Daf + Amud addresses
     """
     section_patterns = {
-        "en": None,
+        "en": ur"""(?:(?:[Ff]olio|[Dd]af|[Pp](age|\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"(\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
     }
 
@@ -1947,9 +1970,9 @@ class AddressTalmud(AddressType):
             else:
                 punctuation = kwargs.get("punctuation", True)
                 if i > daf_num * 2:
-                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05D1"
+                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d1"
                 else:
-                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05D0"
+                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d0"
 
         return daf
 

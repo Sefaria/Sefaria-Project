@@ -944,6 +944,8 @@ class MyNotes extends Component {
   }
   render() {
     var myNotesData = Sefaria.privateNotes(this.props.srefs);
+    console.log(this.props.srefs)
+    console.log(myNotesData)
     var myNotes = myNotesData ? myNotesData.map(function(note) {
       var editNote = function() {
         this.props.editNote(note);
