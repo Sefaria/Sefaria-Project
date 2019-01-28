@@ -92,7 +92,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
         db.texts.save(text)
 
     # TODO Rewrite any existing Links
-    # TODO Rewrite any exisitng History items
+    # TODO Rewrite any existing History items
 
     library.refresh_index_record_in_cache(index)
 
@@ -193,7 +193,7 @@ def merge_multiple_text_versions(versions, text_title, language, warn=False):
 
 def merge_text_versions_by_source(text_title, language, warn=False):
     """
-    Merges all texts of text_title in langauge that share the same value for versionSource.
+    Merges all texts of text_title in language that share the same value for versionSource.
     """
     v = VersionSet({"title": text_title, "language": language})
 
@@ -204,7 +204,7 @@ def merge_text_versions_by_source(text_title, language, warn=False):
 
 def merge_text_versions_by_language(text_title, language, warn=False):
     """
-    Merges all texts of text_title in langauge.
+    Merges all texts of text_title in language.
     """
     versions = VersionSet({"title": text_title, "language": language}).distinct("versionTitle")
     merge_multiple_text_versions(versions, text_title, language)
@@ -214,7 +214,7 @@ def merge_text_versions_by_language(text_title, language, warn=False):
 def merge_text(a, b):
     """
     Merge two lists representing texts, giving preference to a, but keeping
-    values froms b when a position in a is empty or non existant.
+    values froms b when a position in a is empty or nonexistent.
 
     e.g merge_text(["", "Two", "Three"], ["One", "Nope", "Nope", "Four]) ->
         ["One", "Two" "Three", "Four"]
@@ -503,7 +503,7 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
         :param diffs: list of tuples as produced by diff_match_patch.diff_main()
         :param change_from: diff_match_patch.diff_main() gives a diff that shows how to change from stringA to stringB. This
           flag should be true if you wish to see only the additions that need to be made to textA (first string fed to
-          diff_main). If the inserts to the second are to be diplayed, set to False.
+          diff_main). If the inserts to the second are to be displayed, set to False.
         :return: html string
         """
         diff_delete, diff_insert, diff_equal = -1, 1, 0

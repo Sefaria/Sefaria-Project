@@ -75,7 +75,7 @@ def count_category(cat, lang=None):
 
 		return counts
 
-	# Count this cateogry
+	# Count this category
 	counts = defaultdict(int)
 	percent = 0.0
 	percentCount = 0
@@ -113,7 +113,7 @@ def get_category_count(categories):
 	"""
 	Returns the counts doc stored in the matching category list 'categories'
 	"""
-	# This ugly query is an approximation for the extact array in order
+	# This ugly query is an approximation for the extract array in order
 	# WARNING: This query get confused is we ever have two lists of categories which have
 	# the same length, elements, and first element, but different order. (e.g ["a", "b", "c"] and ["a", "c", "b"])
 	doc = db.counts.find_one({"$and": [{'categories.0': categories[0]}, {"categories": {"$all": categories}}, {"categories": {"$size": len(categories)}} ]})
@@ -140,7 +140,7 @@ def update_category_counts():
 		count_category(cats)
 
 
-#Superceded by StateNode.get_percent_available()
+#Superseded by StateNode.get_percent_available()
 # still used for cats
 def get_percent_available(text, lang="en"):
 	"""
@@ -154,16 +154,16 @@ def get_percent_available(text, lang="en"):
 	else:
 		return 0
 
-#Superceded by StateNode.get_available_counts_dict()
+#Superseded by StateNode.get_available_counts_dict()
 def get_available_counts(text, lang="en"):
 
-#Superceded by StateNode.get_available_counts_dict()
+#Superseded by StateNode.get_available_counts_dict()
 def make_available_counts_dict(index, count):
 
-#Superceded by StateNode.get_untranslated_count_by_unit()
+#Superseded by StateNode.get_untranslated_count_by_unit()
 def get_untranslated_count_by_unit(text, unit):
 
-#Superceded by StateNode.get_translated_count_by_unit()
+#Superseded by StateNode.get_translated_count_by_unit()
 def get_translated_count_by_unit(text, unit):
 
 '''

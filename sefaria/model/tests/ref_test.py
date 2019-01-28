@@ -16,7 +16,7 @@ class Test_Ref(object):
         assert Ref("Exo.3.21")
         assert Ref("1Ch.") == Ref("1 Chronicles")
 
-    def test_normal_form_is_identifcal(self):
+    def test_normal_form_is_identical(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
         assert Ref("Shabbat 32b").normal() == "Shabbat 32b"
         assert Ref("Mishnah Peah 4:2-4").normal() == "Mishnah Peah 4:2-4"
@@ -534,7 +534,7 @@ class Test_Cache(object):
     # Retired.  Since we're dealing with objects, tref will either bleed one way or the other.
     # Removed last dependencies on tref outside of object init. 
     def test_tref_bleed(self):
-        # Insure that instanciating trefs are correct for this instance, and don't bleed through the cache.
+        # Insure that instantiating trefs are correct for this instance, and don't bleed through the cache.
         Ref(u'שבת לא')
         r = Ref("Shabbat 31a")
         assert r.tref == "Shabbat 31a"

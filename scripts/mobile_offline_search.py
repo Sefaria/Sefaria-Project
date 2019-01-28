@@ -83,7 +83,7 @@ def parse_lib_to_json(start, end):
     ref_num_min_N_title = [] # min ref_num of each book.title [[min_ref_num, book_title], ...]
     ref_num = 0 # absolute index num for all refs
 
-    # only used for debuging (
+    # only used for debugging (
     ref_num_2_full_name = []
 
     # index of list is ref_num (implicitly) ["intro to bookA", 1, 2, 3, "Intro to bookB", ...]
@@ -255,7 +255,7 @@ def convert_to_josh_packets(words_2_ref_nums):
         if words_done % 100000 == 0:
             print(words_done, 1.0*words_done/len(words_2_ref_nums), str(dt.now().time()),)
 
-        #packet looks like: [0, '0010010000000000']  (the first index for the packet.. meaninbg a 1 shows up in the first 24 bits)
+        #packet looks like: [0, '0010010000000000']  (the first index for the packet.. meaning a 1 shows up in the first 24 bits)
         #                    ^ bit number
         #print(ref_nums)
         #print(packets)
@@ -352,7 +352,7 @@ def make_little_endian(blob):
     #hex_str = struct.unpack_from('>8s', blob)
     #print(hex_str)
     hex_str = str(blob).encode("hex")
-    print('pre little endain', hex_str)
+    print('pre little endian', hex_str)
     new_hex = []
     for byte_i in range(0, len(hex_str), 8):
         hex_byte_str = hex_str[byte_i:byte_i + 8]

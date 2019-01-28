@@ -125,14 +125,14 @@ Sefaria = extend(Sefaria, {
       return ref;
   },
   normRef: function(ref) {
-      // Returns a string of the URL normalized form of `ref` (using _ for spaces and . for section seprator).
+      // Returns a string of the URL normalized form of `ref` (using _ for spaces and . for section separator).
       // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
       if (ref instanceof Array) {
         return Sefaria.normRefList(ref);
       }
       var norm = Sefaria.makeRef(Sefaria.parseRef(ref));
       if (typeof norm == "object" && "error" in norm) {
-          // If the ref doesn't parse, just replace spaces with undescores.
+          // If the ref doesn't parse, just replace spaces with underscores.
           return typeof ref === "string" ? ref.replace(/ /g, "_") : ref;
       }
       return norm;
@@ -783,7 +783,7 @@ Sefaria = extend(Sefaria, {
       if (splitItems.hasOwnProperty(ref)) {
         if (!(ref in store) || store[ref].length <= splitItems[ref].length) {
           // Don't overwrite the cache if it already contains more items than the new list.
-          // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yeild
+          // Due to range logic, if cache was populated with "Genesis 1", a call for "Genesis 1:2-4" could yield
           // a smaller list of results for "Genesis 1:4" than was already present.
           store[ref] = splitItems[ref];
         }
@@ -810,7 +810,7 @@ Sefaria = extend(Sefaria, {
     return links.length;
   },
   _filterLinks: function(links, filter) {
-    // Filters array `links` for only those thart match array `filter`.
+    // Filters array `links` for only those that match array `filter`.
     // If `filter` ends with "|Quoting" return Quoting Commentary only,
     // otherwise commentary `filters` will return only links with type `commentary`
     if (filter.length == 0) { return links; }
@@ -1558,7 +1558,7 @@ Sefaria = extend(Sefaria, {
     },
     _userTagList: null,
     userTagList: function(uid, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
+      // Returns a list of all public source sheet tags, ordered by popularity
       var tags = this._userTagList;
       if (tags) {
         if (callback) { callback(tags); }

@@ -46,7 +46,7 @@ from sefaria.gauth.decorators import gauth_required
 
 def annotate_user_links(sources):
 	"""
-	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	Search a sheet for any addedBy fields (containing a UID) and add corresponding user links.
 	"""
 	for source in sources:
 		if "addedBy" in source:
@@ -110,7 +110,7 @@ def can_edit(user, sheet):
 
 def can_add(user, sheet):
 	"""
-	Returns True if user has adding persmission on sheet.
+	Returns True if user has adding permission on sheet.
 	Returns False if user has the higher permission "can_edit"
 	"""
 	if not user.is_authenticated:
@@ -864,7 +864,7 @@ def group_tag_list_api(request, group):
 
 def trending_tags_api(request):
 	"""
-	API to retrieve the list of peopke who like sheet_id.
+	API to retrieve the list of people who like sheet_id.
 	"""
 	response = recent_public_tags(days=14, ntags=18)
 	response = jsonResponse(response, callback=request.GET.get("callback", None))

@@ -327,7 +327,7 @@ def base_props(request):
     return {
         "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "loggedIn": True if request.user.is_authenticated else False, # Django 1.10 changed this to a CallableBool, so it doesnt have a direct value of True/False,
+        "loggedIn": True if request.user.is_authenticated else False, # Django 1.10 changed this to a CallableBool, so it doesn't have a direct value of True/False,
         "_uid": request.user.id,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
@@ -1182,7 +1182,7 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
-        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
@@ -1281,7 +1281,7 @@ def texts_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can delete texts."})
         if not (tref and (versionEn or versionHe)):
-            return jsonResponse({"error": "To delete a text version please specifiy a text title, version title and language."})
+            return jsonResponse({"error": "To delete a text version please specify a text title, version title and language."})
 
         tref    = tref.replace("_", " ")
         if versionEn:
@@ -1643,7 +1643,7 @@ def links_api(request, link_id_or_ref=None):
         callback=request.GET.get("callback", None)
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
+        #The Ref instantiation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
@@ -3109,7 +3109,7 @@ def new_discussion_api(request):
             discussion.save()
             return jsonResponse(discussion.contents())
 
-        return jsonResponse({"error": "An extremely unlikley event has occurred."})
+        return jsonResponse({"error": "An extremely unlikely event has occurred."})
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3142,7 +3142,7 @@ def dashboard(request):
 @ensure_csrf_cookie
 def translation_requests(request, completed_only=False, featured_only=False):
     """
-    Page listing all outstnading translation requests.
+    Page listing all outstanding translation requests.
     """
     page              = int(request.GET.get("page", 1)) - 1
     page_size         = 100
@@ -3240,7 +3240,7 @@ def translation_request_api(request, tref):
 @ensure_csrf_cookie
 def translation_flow(request, tref):
     """
-    Assign a user a paritcular bit of text to translate within 'ref',
+    Assign a user a particular bit of text to translate within 'ref',
     either a text title or category.
     """
     tref = tref.replace("_", " ")
@@ -3312,7 +3312,7 @@ def translation_flow(request, tref):
             return render(request,'static/generic.html', generic_response)
 
         if "random" in request.GET:
-            # choose a random text from this cateogory
+            # choose a random text from this category
             skip = int(request.GET.get("skip")) if "skip" in request.GET else None
             text = random_untranslated_text_in_category(cat, skip=skip)
             assigned_ref = next_untranslated_ref_in_text(text)

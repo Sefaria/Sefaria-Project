@@ -423,12 +423,12 @@ class NGramMatcher(object):
 
     def _combined_title_scores(self, titles__scores, num_tokens):
         collapsed_title_to_score = defaultdict(int)
-        collapsed_title_to_occurence = defaultdict(int)
+        collapsed_title_to_occurrence = defaultdict(int)
         for title, score in titles__scores:
             collapsed_title_to_score[title] += score
-            collapsed_title_to_occurence[title] += 1
+            collapsed_title_to_occurrence[title] += 1
         for title in collapsed_title_to_score.keys():
-            collapsed_title_to_score[title] *= collapsed_title_to_occurence[title] / float(num_tokens)
+            collapsed_title_to_score[title] *= collapsed_title_to_occurrence[title] / float(num_tokens)
         return collapsed_title_to_score
 
     def _filtered_results(self, titles__scores):

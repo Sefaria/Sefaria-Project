@@ -33,7 +33,7 @@ for link in links:
 
 with open("../tmp/berakhot_review_links.csv", 'wb') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["Ref 1", "Ref 2", "Type", "Anchort Text"])
+    writer.writerow(["Ref 1", "Ref 2", "Type", "Anchor Text"])
     for line in keepers:
         writer.writerow(line)
 

@@ -111,14 +111,14 @@ def accounts(request):
 
 def subscribe(request, email):
     """
-    API for subscribg is mailing lists, in `lists` url param.
+    API for subscribe is mailing lists, in `lists` url param.
     Currently active lists are:
     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
     """
     lists = request.GET.get("lists", "")
     lists = lists.split("|")
     if len(lists) == 0:
-        return jsonResponse({"error": "Please specifiy a list."})
+        return jsonResponse({"error": "Please specify a list."})
     if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
@@ -160,7 +160,7 @@ def generate_feedback(request):
 
 def data_js(request):
     """
-    Javascript populating dynamic data like book lists, toc.
+    JavaScript populating dynamic data like book lists, toc.
     """
     return render(request, "js/data.js", content_type="text/javascript")
 
@@ -184,7 +184,7 @@ def sefaria_js(request):
 
 def linker_js(request,linker_version=None):
     """
-    Javascript of Linker plugin.
+    JavaScript of Linker plugin.
     """
     attrs = {
         "book_titles": json.dumps(model.library.citing_title_list("en")
@@ -196,7 +196,7 @@ def linker_js(request,linker_version=None):
 
 def old_linker_js(request):
     """
-    Javascript of Linker plugin.
+    JavaScript of Linker plugin.
     """
     attrs = {
         "book_titles": json.dumps(model.library.citing_title_list("en")
@@ -528,7 +528,7 @@ def cause_error(request):
     try:
         erorr = excepting
     except Exception as e:
-        logger.exception('An Exception has ocurred in the code')
+        logger.exception('An Exception has occurred in the code')
     erorr = error
     return jsonResponse(resp)
 

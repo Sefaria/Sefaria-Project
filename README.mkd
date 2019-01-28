@@ -4,20 +4,20 @@ Sefaria is creating interfaces, apps (like a source sheet builder) and infrastru
 
 You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
 
-Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+Interested developers should join the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
 For general discussion about the project, please post to the [Sefaria Forum](https://groups.google.com/forum/?fromgroups#!forum/sefaria).
 
 You can post bugs or request/discuss features on [GitHub Issues](https://github.com/blockspeiser/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
 
-If you're interested in working on a project you see listed here, please email the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+If you're interested in working on a project you see listed here, please email the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
 ***
 
 ### Getting Started
 First clone the Sefaria-Project repository to a directory on your computer, then follow the instructions:
 
-*Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this respository by clicking the "Fork" button above when logged in to GitHub.*
+*Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this repository by clicking the "Fork" button above when logged in to GitHub.*
 
 #### Install Python
 Most UNIX systems come with a python interpreter pre-installed. 
@@ -130,7 +130,7 @@ Node is now required to run the site because we are using [Webpack](https://webp
 
 For the common Linux distributions such as Debian, Ubuntu and Linux Mint, you are better off following the instructions [here](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions). They will install both Node and npm. 
 
-Now download the required Javascript libraries and install some global tools for development with the `setup` script (from the project root).
+Now download the required JavaScript libraries and install some global tools for development with the `setup` script (from the project root).
 
     npm install
     sudo npm run setup
@@ -153,7 +153,7 @@ to bundle once. To watch the javascript for changes and automatically rebuild, r
     
 #### Server-side rendering with Node:
 
-Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. 
+Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environment however server side HTML is very important for bots and SEO. 
 
 For development, you can run the Node server using nodemon with:
 
@@ -182,7 +182,7 @@ The shell script `cli` will invoke a python interpreter with the core models loa
 
 ## Thanks
 
-We're grateful to the following orgazations for providing us with donated services:
+We're grateful to the following organizations for providing us with donated services:
 
 - [BrowserStack](https://www.browserstack.com/)
 - [Google Apps for Work](https://apps.google.com/)

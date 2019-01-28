@@ -92,7 +92,7 @@ class Track {
         this.event("Explorer", "Brush", book);
     }
     static setInterfaceLanguage(origin, language){
-        // Tracks a user setting their interface langauge, which can be done either account settings or footer
+        // Tracks a user setting their interface language, which can be done either account settings or footer
         this.event("Settings", origin, language);
     }
 }

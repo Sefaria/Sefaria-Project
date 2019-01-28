@@ -977,11 +977,11 @@ MyNotes.propTypes = {
 
 
 class PublicNotes extends Component {
-  // List of Publc notes a ref or range or refs.
+  // List of Public notes a ref or range or refs.
   render() {
     var notes   = Sefaria.notes(this.props.srefs);
     var content = notes ? notes.filter(function(note) {
-      // Exlude my notes, shown already in MyNotes.
+      // Exclude my notes, shown already in MyNotes.
       return note.owner !== Sefaria._uid;
     }).map(function(note) {
       return (<Note

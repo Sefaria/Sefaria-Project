@@ -78,7 +78,7 @@
                 <div class="helpText">
                 The primary title of a text. Texts may have multiple titles which can be entered below, but this will be the default way of referring to this text.
                 <br><br>
-                Titles in this field must use Roman chacters, but may be transliterations. Add titles in Hebrew characters below.
+                Titles in this field must use Roman characters, but may be transliterations. Add titles in Hebrew characters below.
                 </div>
             </div>
             Text Title</span> <input id="textTitle"/>
@@ -98,7 +98,7 @@
             <span class="fieldLabel">
             <div class="help">?
                 <div class="helpText">
-                Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Press enter after each title variant to seprate it from others.
+                Alternate English Titles can include alternate translations, alternate transliterations spellings, and abbreviations.<br><br>Press enter after each title variant to separate it from others.
                 </div>
             </div>
             Alternate English Titles<span class="optional">(optional)</span></span> <ul id="textTitleVariants"></ul>
@@ -108,7 +108,7 @@
             <span class="fieldLabel">
             <div class="help">?
                 <div class="helpText">
-                Alternate Hebrew Titles can include alternate spellings and abbreviations.<br><br>Press enter after each title variant to seprate it from others.
+                Alternate Hebrew Titles can include alternate spellings and abbreviations.<br><br>Press enter after each title variant to separate it from others.
                 </div>
             </div>
             Alternate Hebrew Titles<span class="optional">(optional)</span></span> <ul id="textHeTitleVariants"></ul>
@@ -135,7 +135,7 @@
             <span class="fieldLabel">
             <div class="help">?
                 <div class="helpText">
-                A Text's Structure is represented by the hieracrchy of different types of sections that make up the text.<br><br>For example, texts of the Tanakh like Genesis are divided into "Chapters" which are then divided into "Verses".<br><br>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law".
+                A Text's Structure is represented by the hierarchy of different types of sections that make up the text.<br><br>For example, texts of the Tanakh like Genesis are divided into "Chapters" which are then divided into "Verses".<br><br>Larger texts, such as the Mishneh Torah, may have more levels in their hierarchy, for example "Book" > "Section" > "Chapter" > "Law".
             </div>
             </div>
             Text Structure</span>
@@ -269,14 +269,14 @@
                         $node.find(".nodeTitle").val(t.text);
                     } else {
                         // Todo Title Variants
-                        // $node.find(".nodeTitleVaiants").val(t.text)
+                        // $node.find(".nodeTitleVariants").val(t.text)
                     }
                 } else if (t.lang === "he") {
                     if (t.primary) {
                         $node.find(".nodeHeTitle").val(t.text);
                     } else {
                         // Todo Title Variants
-                        // $node.find(".nodeHeTitleVaiants").val(t.text)
+                        // $node.find(".nodeHeTitleVariants").val(t.text)
                     }
                 }
             }
@@ -343,7 +343,7 @@
 
 
     sjs.readIndexNode = function($node) {
-        // Returns an object represeting a single index node as it stand in the DOM
+        // Returns an object representing a single index node as it stand in the DOM
         var node = {};
 
         return node;

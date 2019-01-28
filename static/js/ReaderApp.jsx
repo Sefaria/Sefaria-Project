@@ -236,7 +236,7 @@ class ReaderApp extends Component {
       return;
     }
 
-    // Set initial page view (deferred from analytics.js instanciation)
+    // Set initial page view (deferred from analytics.js instantiation)
     if (!this.state.initialAnalyticsTracked) { this.trackPageview(); }
     // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
     if (this.state.panels.length > this.state.panelCap && this.state.panels.length > prevState.panels.length) {
@@ -1305,7 +1305,7 @@ class ReaderApp extends Component {
         var currentlyVisibleRef = ref;
         var highlightedRefs = [];
       }
-      //console.log("Higlighted refs:", highlightedRefs)
+      //console.log("Highlighted refs:", highlightedRefs)
       panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text"});
     }
 

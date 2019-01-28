@@ -62,7 +62,7 @@ class TextList extends Component {
   preloadText(filter) {
     // Preload text of links if `filter` is a single commentary, or all commentary
     if (filter.length == 1 &&
-        Sefaria.index(filter[0]) && // filterSuffix for quoting commmentary prevents this path for QC
+        Sefaria.index(filter[0]) && // filterSuffix for quoting commentary prevents this path for QC
         (Sefaria.index(filter[0]).categories[0] == "Commentary"||
          Sefaria.index(filter[0]).primary_category == "Commentary")) {
       // Individual commentator names ("Rashi") are put into Sefaria.index with "Commentary" as first category

@@ -47,7 +47,7 @@ class Count(abst.AbstractMongoRecord):
         if getattr(self, "allVersionCounts", None) is not None:
             self._allVersionCountsJA = ja.JaggedIntArray(self.allVersionCounts)
 
-    #remove uneccesary and dangerous categories attr from text counts
+    #remove unnecessary and dangerous categories attr from text counts
     #This assumes that category nodes have no title element
     #todo: review this. Do we need to subclass text and category counts?
     def _saveable_attr_keys(self):

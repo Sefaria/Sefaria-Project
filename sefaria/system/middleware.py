@@ -44,7 +44,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             profile = UserProfile(id=request.user.id)
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
-            # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
+            # Pull language setting from cookie, location (set by Cloudflare) or Accept-Language header or default to english
             interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
             interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
             # Don't allow languages other than what we currently handle
@@ -66,7 +66,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
                     if DOMAIN_LANGUAGES[domain] == interface:
                         redirect_domain = domain
                 if redirect_domain:
-                    # When detected language doesn't match current domain langauge, redirect
+                    # When detected language doesn't match current domain language, redirect
                     path = request.get_full_path()
                     path = path + ("&" if "?" in path else "?") + "set-language-cookie"
                     return redirect(redirect_domain + path)
@@ -75,7 +75,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         # CONTENT
         default_content_lang = 'hebrew' if interface == 'hebrew' else 'bilingual'
-        # Pull language setting from cookie or Accept-Lanugage header or default to english
+        # Pull language setting from cookie or Accept-Language header or default to english
         content = request.GET.get('lang') or request.COOKIES.get('contentLang') or default_content_lang
         content = short_to_long_lang_code(content)
         # Don't allow languages other than what we currently handle

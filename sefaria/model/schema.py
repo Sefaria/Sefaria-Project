@@ -310,7 +310,7 @@ def deserialize_tree(serial=None, **kwargs):
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
 
     if serial.get(kwargs.get("children_attr", "nodes")) or (kwargs.get("struct_title_attr") and serial.get(kwargs.get("struct_title_attr"))):
-        #Structure class - use explicitly defined 'nodeType', code overide 'struct_class', or default SchemaNode
+        #Structure class - use explicitly defined 'nodeType', code override 'struct_class', or default SchemaNode
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, **kwargs)
     elif klass:
@@ -715,7 +715,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         Overridden in subclasses.
         :return:
         """
-        #overidden in subclasses
+        #overridden in subclasses
         for child in self.children:
             if child.is_default():
                 if child.has_numeric_continuation():
@@ -1823,7 +1823,7 @@ class AddressType(object):
         """
         The regular expression part that matches this address reference
         :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
+        :param group_id: The id of the regular expression group the this match will be captured in
         :return string: regex component
         """
         pass
@@ -1957,7 +1957,7 @@ class AddressTalmud(AddressType):
                 raise InputError(u"Couldn't parse Talmud reference: {}".format(s))
 
             if self.length and daf > self.length:
-                #todo: Catch this above and put the book name on it.  Proably change Exception type.
+                #todo: Catch this above and put the book name on it.  Probably change Exception type.
                 raise InputError(u"{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 2

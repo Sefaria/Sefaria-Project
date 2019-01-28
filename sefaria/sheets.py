@@ -155,7 +155,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 
 def annotate_user_links(sources):
 	"""
-	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	Search a sheet for any addedBy fields (containing a UID) and add corresponding user links.
 	"""
 	for source in sources:
 		if "addedBy" in source:
@@ -359,7 +359,7 @@ def add_source_to_sheet(id, source, note=None):
 		'outsideBiText' (indicating a bilingual outside text)
 	    'comment' (indicating a comment)
 		'media' (indicating a media object)
-	if string `note` is present, add it as a coment immediately after the source.
+	if string `note` is present, add it as a comment immediately after the source.
 		pass
 	"""
 	if not is_valid_source(source):
@@ -392,7 +392,7 @@ def add_ref_to_sheet(id, ref):
 
 def refs_in_sources(sources):
 	"""
-	Recurisve function that returns a list of refs found anywhere in sources.
+	Recursive function that returns a list of refs found anywhere in sources.
 	"""
 	refs = []
 	for source in sources:

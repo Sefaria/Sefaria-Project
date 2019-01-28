@@ -862,7 +862,7 @@ $(function() {
 
 
 	// ---------- Embed Sheet ----------------
-	$("#embedSheet").click(showEmebed);
+	$("#embedSheet").click(showEmbed);
 
 
 	// ---------- Delete Sheet ----------------
@@ -2028,7 +2028,7 @@ $(function() {
 
 
 
-	var autoAddConnetions =  function() {
+	var autoAddConnections =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
 		var $target = $($(this).closest(".source")).eq(0);
 
@@ -2096,7 +2096,7 @@ $(function() {
 			}
 		});
 	};
-	$(".addConnections").on("click", autoAddConnetions);
+	$(".addConnections").on("click", autoAddConnections);
 
 
 	// ---- Start Polling -----
@@ -2323,7 +2323,7 @@ function addSource(q, source, appendOrInsert, $target) {
 			.on("mouseup", sjs.initCKEditor);
 	}
 	else if (sjs.can_add) {
-		// For colloborative adders, only allow edits on their on content
+		// For collaborative adders, only allow edits on their on content
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
@@ -2736,7 +2736,7 @@ function saveSheet(sheet, reload) {
 				window.location = "/sheets/" + data.id+"?editor=1";
 			}
 			sjs.current = data;
-			sjs.lastEdit = null;    // save was succesful, won't need to replay
+			sjs.lastEdit = null;    // save was successful, won't need to replay
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 			var $lastSaved = $("#lastSaved");
@@ -3058,7 +3058,7 @@ function buildSource($target, source, appendOrInsert) {
 			.on("mouseup", sjs.initCKEditor);
 	}
 	else if (sjs.can_add) {
-		// For colloborative adders, only allow edits on their on content
+		// For collaborative adders, only allow edits on their on content
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
@@ -3515,7 +3515,7 @@ function toggleHighlighter() {
 		}
 }
 
-function showEmebed() {
+function showEmbed() {
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
 		.end()

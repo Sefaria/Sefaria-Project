@@ -26,7 +26,7 @@ class ConnectionsPanelHeader extends Component {
     this.setMarginForScrollbar();
   }
   setMarginForScrollbar() {
-    // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center
+    // Scrollbars take up spacing, causing the centering of ConnectionsPanel to be slightly off center
     // compared to the header. This functions sets appropriate margin to compensate.
     var width      = Sefaria.util.getScrollbarWidth();
     var $container = $(ReactDOM.findDOMNode(this));

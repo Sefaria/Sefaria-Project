@@ -31,7 +31,7 @@ class Util {
     }
     static zip(...rows) {
       // rows is an array
-      // corrolary to zip in python
+      // corollary to zip in python
       return rows[0].map((_,c)=>rows.map(row=>row[c]));
     }
     static clone(obj, trimFilters) {

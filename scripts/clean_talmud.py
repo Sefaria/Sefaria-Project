@@ -11,7 +11,7 @@ mesechtot = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Chagigah",
              "Megillah", "Moed Katan", "Nazir", "Nedarim", "Rosh Hashanah", "Sotah", "Sukkah", "Taanit", "Yevamot",
              "Yoma", "Bava Kamma", "Bava Metzia", "Bava Batra"]
 
-class SegementFixer:
+class SegmentFixer:
 
     def __init__(self):
         self.soup = BeautifulSoup(u'', 'html5lib')
@@ -101,7 +101,7 @@ class SegementFixer:
                 span.name = 'i'
                 span.wrap(self.soup.new_tag('b'))
         else:
-            raise AttributeError("Eelement has no valid class")
+            raise AttributeError("Element has no valid class")
         for attr in span.attrs.keys():
             del span[attr]
 
@@ -121,7 +121,7 @@ class SegementFixer:
 def fix_tractate(tractate):
     chunk = Ref(tractate).text('en', 'William Davidson Edition - English')
     text_array = copy.deepcopy(chunk.text)
-    fixer = SegementFixer()
+    fixer = SegmentFixer()
 
     for daf in text_array:
         for loc, segment in enumerate(daf[:]):
@@ -161,7 +161,7 @@ class SegmentFixerTester(object):
 
     @staticmethod
     def test_base_cases():
-        fixer = SegementFixer()
+        fixer = SegmentFixer()
 
         test_bold = '<span class="gemarra-regular">this should be bold</span>'
         test_italic = '<span class="it-text">this should be italic</span>'
@@ -175,7 +175,7 @@ class SegmentFixerTester(object):
 
     @staticmethod
     def test_merging():
-        fixer = SegementFixer()
+        fixer = SegmentFixer()
 
         bold = '<span class="gemarra-regular">this should be bold</span> <span class="gemarra-regular">so should this</span>'
         no_merge = '  <span class="gemarra-regular">this should be bold</span> some text <span class="gemarra-regular">so should this</span> '
@@ -193,7 +193,7 @@ class SegmentFixerTester(object):
 
     @staticmethod
     def test_gemarra_italic():
-        fixer = SegementFixer()
+        fixer = SegmentFixer()
 
         bold_before = '<span class="gemarra-regular">this should be bold</span> <span class="gemarra-italic">this is italic</span>'
         bold_after = '<span class="gemarra-italic">this should be bold and italic</span> <span class="gemarra-regular">this is just bold</span>'

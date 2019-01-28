@@ -3,7 +3,7 @@ jagged_array.py: a sparse array of arrays
 
 """
 
-# WARNING! instanciation creates a *reference* to the passed array.
+# WARNING! instantiation creates a *reference* to the passed array.
 # This is fine for analysis, but for modification, may modify the original array
 
 # All methods that modify self._store need to be aware of this
@@ -244,7 +244,7 @@ class JaggedArray(object):
     @staticmethod
     def _dfs_traverse(counts_map, starting_points=None, forward=True, depth=0):
         """
-        Private function to recusrsively iterate through the counts doc to find the next available section
+        Private function to recursively iterate through the counts doc to find the next available section
         :param counts_map: the counts doc map of available texts
         :param forward: if to move forward or backwards
         :param starting_points: the indices from which to start looking.
@@ -265,7 +265,7 @@ class JaggedArray(object):
                 #we have been told where to start looking
                 if depth < len(starting_points):
                     begin_index = starting_points[depth]
-                    #this is in case we come back to this depth, then we want to start from 0 becasue the start point only matters for the
+                    #this is in case we come back to this depth, then we want to start from 0 because the start point only matters for the
                     #array element we were in to begin with
                     starting_points[depth] = 0
                 else:

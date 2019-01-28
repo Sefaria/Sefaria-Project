@@ -67,7 +67,7 @@ class TranslationRequest(abst.AbstractMongoRecord):
     def _receive_support(self):
         """
         Look for requests that contains this one, 
-        receive thier requesters support for self.
+        receive their requesters support for self.
 
         Not currently used. (too much noise in requests specificity)
         """
@@ -179,7 +179,7 @@ def add_translation_requests_from_source_sheets(hours=0):
 
 def process_version_state_change_in_translation_requests(version, **kwargs):
     """
-    When a version is updated, check if an open Translation Requests have been fullfilled.
+    When a version is updated, check if an open Translation Requests have been fulfilled.
     """
     requests = TranslationRequestSet({"ref": {"$regex": text.Ref(version.title).regex()}, "completed": False})
     for request in requests:

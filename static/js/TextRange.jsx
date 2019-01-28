@@ -110,12 +110,12 @@ class TextRange extends Component {
     this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
-      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      // Pass parameter to showBaseText to replaceHistory - normalization shouldn't add a step to history
       this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
     } else if (data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
-      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      // Pass parameter to showBaseText to replaceHistory - normalization shouldn't add a step to history
       //console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
       return;
@@ -241,15 +241,15 @@ class TextRange extends Component {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.placeSegmentNumbers();
   }
-  parashahHeader(data, segment, includeAliyout=false) {
-    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
+  parashahHeader(data, segment, includeAliyot=false) {
+    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parashah
     // returns null otherwise.
     //var data = this.getText();
     if (!data) { return null; }
     if ("alts" in data && data.alts.length && data.categories[1] == "Torah" && !data["isDependant"]) {
       var curRef = segment.ref;
       if ("alt" in segment && segment.alt != null){
-        if(includeAliyout || "whole" in segment.alt){
+        if(includeAliyot || "whole" in segment.alt){
           return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
         }
       }
@@ -291,7 +291,7 @@ class TextRange extends Component {
 
     var segments      = Sefaria.makeSegments(data, this.props.withContext);
     if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
-      strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
+      strip_text_re = null; //if the first segment doesn't even match as containing vowels or cantillation- stop
     }
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set

@@ -15,10 +15,10 @@ from utils.talmud import section_to_daf
 
 def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
 	"""
-	Returns a ref of the first occurence of a Hebrew text in 'text' 
+	Returns a ref of the first occurrence of a Hebrew text in 'text' 
 	that does not have an English translation, or is not currently locked.
 
-	* section  - optinally restrict the search to a particular section
+	* section  - optionally restrict the search to a particular section
 	* enCounts - a jagged array of counts of available english texted, assumed to 
 				 already have been marked for locked texts.
 	* tryNext  - when a section is specified, but no ref is found, should we move on
@@ -65,7 +65,7 @@ def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=Tru
 
 def random_untranslated_ref_in_text(text, skip=None):
 	"""
-	Returns the first untranslted ref from a random section of text.
+	Returns the first untranslated ref from a random section of text.
 	(i.e., this isn't choosing across all refs, only the first untranslated in each section)
 
 	* skip  - a section number to disallow (so users wont get the same section twice in a row when asking for random)
@@ -126,7 +126,7 @@ def random_untranslated_text_in_category(cat):
 def mark_locked(text, counts):
 	"""
 	Returns a jagged array of counts which marks all currently locked
-	SCT text seguments as already complete. 
+	SCT text segments as already complete. 
 	"""
 	locks = db.locks.find({
 							"ref": {"$regex": "^" + text},

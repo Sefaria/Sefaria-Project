@@ -7,7 +7,7 @@ import collections
 import logging
 import copy
 
-#Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
+#Should we import "from abc import ABCMeta, abstractmethod" and make these explicitly abstract?
 #
 
 from bson.objectid import ObjectId

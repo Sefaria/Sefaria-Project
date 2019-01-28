@@ -42,7 +42,7 @@ class Group(abst.AbstractMongoRecord):
         website = getattr(self, "websiteUrl", False)
         if website and not website.startswith("https://"):
             if website.startswith("http://"):
-                # Only allow HTTPS. If you site doens't support it, deal with it!
+                # Only allow HTTPS. If you site doesn't support it, deal with it!
                 self.websiteUrl = website.replace("http://", "https://")
             else:
                 # Allows include protocol
@@ -115,7 +115,7 @@ class Group(abst.AbstractMongoRecord):
     def invite_member(self, email, inviter, role="member"):
         """
         Invites a person by email to sign up for a Sefaria and join a group. 
-        Creates on outstanding inviations record for `email` / `role` 
+        Creates on outstanding invitations record for `email` / `role` 
         and sends an invitation to `email`.
         """
         self.remove_invitation(email)
@@ -135,7 +135,7 @@ class Group(abst.AbstractMongoRecord):
 
     def send_invitation(self, email, inviter_id):
         """
-        Sends an email inviation to `email` from `invited_id`.
+        Sends an email invitation to `email` from `invited_id`.
         """
         from django.core.mail import EmailMultiAlternatives
         from django.template.loader import render_to_string

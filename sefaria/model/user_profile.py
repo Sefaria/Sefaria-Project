@@ -254,7 +254,7 @@ class UserProfile(object):
 
     def update(self, obj):
         """
-        Update this object with the fields in dictionry 'obj'
+        Update this object with the fields in dictionary 'obj'
         """
         self._set_flags_on_update(obj)
         self.update_attr_time_stamps(obj)
@@ -375,7 +375,7 @@ class UserProfile(object):
 
     def interrupting_message(self):
         """
-        Returns the next message to interupt the user with, if any are queued up.
+        Returns the next message to interrupt the user with, if any are queued up.
         """
         messages = self.interrupting_messages
         return messages[0] if len(messages) > 0 else None
@@ -414,7 +414,7 @@ class UserProfile(object):
         return UserHistorySet(query, sort=[("time_stamp", -1)])
 
     def to_DICT(self):
-        """Return a json serializble dictionary this profile"""
+        """Return a json serializable dictionary this profile"""
         dictionary = {
             "id":                    self.id,
             "slug":                  self.slug,

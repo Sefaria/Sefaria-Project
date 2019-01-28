@@ -60,7 +60,7 @@ class Topic(abst.AbstractMongoRecord):
             sources_dict        = self.sources_dict
             related_topics_dict = self.related_topics_dict
         else:
-            # Otherwise, grab all relavant sheets and make a count
+            # Otherwise, grab all relevant sheets and make a count
             projection          = {"tags": 1, "sources.ref": 1}
             sheets              = db.sheets.find({"tags": self.topic, "status": "public"}, projection)
             sources_dict        = defaultdict(int)
@@ -80,7 +80,7 @@ class Topic(abst.AbstractMongoRecord):
 
     def filter(self, topics):
         """Perform all filtering that may depend on a complete TopicList (related topics),
-        or that may require computation to be delyed (Ref validation)"""
+        or that may require computation to be delayed (Ref validation)"""
         if self._filtered:
             return self
         self.filter_sources()

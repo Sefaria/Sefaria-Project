@@ -328,7 +328,7 @@ Header.propTypes = {
   registerAvailableFilters:    PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   handleInAppLinkClick:        PropTypes.func,
-  headerMesssage:              PropTypes.string,
+  headerMessage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,

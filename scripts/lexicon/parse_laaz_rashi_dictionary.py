@@ -79,7 +79,7 @@ class LaazRashiParser(object):
             _current_entry['orig_word'] = parts[2].strip()
             _current_entry['headword'] = parts[3].strip()
             if he_regex.search(parts[4]):
-                if he_regex.search(parts[5]): #if the latin transliteation is not here... it's probably in the right place, but contains a bit of hebrew
+                if he_regex.search(parts[5]): #if the latin transliteration is not here... it's probably in the right place, but contains a bit of hebrew
                     pass
                     #print "{} seems to have eng in wrong place: {}".format(parts[0].encode('utf-8'), parts[5].encode('utf-8'))
                 else:

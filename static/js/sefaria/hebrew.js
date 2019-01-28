@@ -49,7 +49,7 @@ class Hebrew {
     return heb;
   }
   static encodeHebrewDaf(daf, form) {
-    // Ruturns Hebrew daf strings from "32b"
+    // Returns Hebrew daf strings from "32b"
     var form = form || "short"
     var n = parseInt(daf.slice(0,-1));
     var a = daf.slice(-1);

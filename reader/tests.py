@@ -500,7 +500,7 @@ class PostTextNameChange(SefariaTestCase):
     Tests:
         Post/Delete of Note
         Post/Delete of Link
-        Index title change casacade to:
+        Index title change cascade to:
             Books list updated
             TOC updated
             Versions updated
@@ -729,11 +729,11 @@ class PostTextNameChange(SefariaTestCase):
         self.assertEqual(0, IndexSet({"title": "Ploni"}).count())
         self.assertEqual(1, IndexSet({"title": "Shmoni"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, VersionSet({"title": "Ploni on Job"}).count())
         self.assertEqual(1, VersionSet({"title": "Shmoni on Job"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Shmoni on Job"}}).count())
 
@@ -875,7 +875,7 @@ class PostTextTest(SefariaTestCase):
         '''
         Tests:
             Posting a new commentator index
-            Get a virtual index for comentator on a text
+            Get a virtual index for commentator on a text
             Posting commentary text
             Commentary links auto generated
         '''

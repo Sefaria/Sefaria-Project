@@ -504,7 +504,7 @@ def export_links():
             writer.writerow([
                     "Citation 1",
                     "Citation 2",
-                    "Conection Type",
+                    "Connection Type",
                     "Text 1",
                     "Text 2",
                     "Category 1",

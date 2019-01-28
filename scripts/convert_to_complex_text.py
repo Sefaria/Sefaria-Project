@@ -135,24 +135,24 @@ def migrate_links_of_ref(orRef, destRef):
         linkRef1 = Ref(link.refs[0])
         linkRef2 = Ref(link.refs[1])
         curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
-        tranlsatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
-        newrefs = [tranlsatedLinkRef.normal(), linkRef2.normal()] if linkRef1 == curLinkRef else [linkRef1.normal(), tranlsatedLinkRef.normal()]
-        tranlsatedLink = Link({'refs': newrefs, 'type': link.type})
+        translatedLinkRef = translate_ref(curLinkRef, orRef, destRef)
+        newrefs = [translatedLinkRef.normal(), linkRef2.normal()] if linkRef1 == curLinkRef else [linkRef1.normal(), translatedLinkRef.normal()]
+        translatedLink = Link({'refs': newrefs, 'type': link.type})
         try:
-            tranlsatedLink.save()
-            make_link_history_record(curLinkRef, tranlsatedLinkRef)
+            translatedLink.save()
+            make_link_history_record(curLinkRef, translatedLinkRef)
             print newrefs
         except DuplicateRecordError:
             print "SUCH A LINK ALREADY EXISTS: {}".format(newrefs)
 
 
-def make_link_history_record(curLinkRef, tranlsatedLinkRef):
+def make_link_history_record(curLinkRef, translatedLinkRef):
     link_history = HistorySet({"new.refs": curLinkRef.normal(),'rev_type': {"$regex": 'link'}})
     for h in link_history:
         new_h = h.copy()
-        new_h.new["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.new["refs"]]
+        new_h.new["refs"] = [r.replace(curLinkRef.normal(), translatedLinkRef.normal(), 1) for r in h.new["refs"]]
         if getattr(h,'old', None):
-            new_h.old["refs"] = [r.replace(curLinkRef.normal(), tranlsatedLinkRef.normal(), 1) for r in h.old["refs"]]
+            new_h.old["refs"] = [r.replace(curLinkRef.normal(), translatedLinkRef.normal(), 1) for r in h.old["refs"]]
         new_h.save()
 
 

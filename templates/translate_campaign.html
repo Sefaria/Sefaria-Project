@@ -68,7 +68,7 @@
 
 	<div class="row" id="transTitle">
 		<div class="span6">
-			<h2>Your assigment: {{ assigned_ref|ref_link }}</h2>
+			<h2>Your assignment: {{ assigned_ref|ref_link }}</h2>
 			Click words to open dictionary. <a href="/translate/{{ base_ref|url_safe }}?random=1{{ random_param }}">Get a different assignment.</a>
 		</div>
 
@@ -196,7 +196,7 @@ $(function() {
 	});
 
 
-	// Wrap all Hebrew words in links to a dictioary
+	// Wrap all Hebrew words in links to a dictionary
 	findAndReplaceDOMText(document.getElementById("original"), {
 		find: /[^ .,;:()]+/g,
 		wrap: "a"

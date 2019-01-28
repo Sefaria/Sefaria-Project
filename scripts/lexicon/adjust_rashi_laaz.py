@@ -80,29 +80,29 @@ print "{})\t[{}]\t{}\t{}\t{}\t{}".format("Catane Number",
                                          "Lexicon Headword",
                                          "Best Ref",
                                          "Best Word Match",
-                                         "Level of Uncertainity")
+                                         "Level of Uncertainty")
 for entry in laaz_rashi_entries:
     results = []
     only_in_print_str = u'מצוי רק בדפוס'
     not_in_print_str = [u'מצוי רק ב', u'לא בדפוסי', u'חסר בדפוסי', u'חסרה בדפוסי', u'אינה נמצאת בדפוסי', u'בדפוסים המלה חסרה', u'אינה בדפוסי']
     if only_in_print_str in entry.content['notes'] or all(s not in entry.content['notes'] for s in not_in_print_str):
         oref = Ref("Rashi on {}".format(entry.orig_ref))
-        level_of_uncertainity = 1
+        level_of_uncertainty = 1
         headword = entry.headword
         text_rows = flatten_text_to_lowest_refs(oref)
         #try and filter down to comments containing the original word from Rashi/the Commented Text
         filtered_text_rows = narrow_search_by_orig_word(text_rows, entry.orig_word)
         if not len(filtered_text_rows):
-            level_of_uncertainity +=1
+            level_of_uncertainty +=1
             filtered_text_rows = text_rows
         #filter comments that have the word לעז in them.
         """keywd_filtered_text_rows = narrow_search_by_word_existence(filtered_text_rows, [u'לע"ז', u'לעז']) #u'שקורין'
         if not len(keywd_filtered_text_rows):
-            level_of_uncertainity +=1
+            level_of_uncertainty +=1
             keywd_filtered_text_rows = filtered_text_rows"""
         best_match = find_closest_match(filtered_text_rows, entry.headword)
         if not best_match:
-            level_of_uncertainity +=2
+            level_of_uncertainty +=2
             best_match = find_closest_match(filtered_text_rows, entry.headword, filter_words_with_quotation_marks=False)
         if best_match:
             print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
@@ -110,7 +110,7 @@ for entry in laaz_rashi_entries:
                                                entry.headword.encode('utf-8'),
                                                url_base + best_match[0],
                                                best_match[2].encode('utf-8'),
-                                                     level_of_uncertainity)
+                                                     level_of_uncertainty)
         else:
             print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                                      entry.orig_word.encode('utf-8'),

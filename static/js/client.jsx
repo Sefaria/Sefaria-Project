@@ -22,7 +22,7 @@ $(function() {
     renderFunc(component, container);
   
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
-    // Rendering just a specifc component to a container
+    // Rendering just a specific component to a container
     container = document.getElementById(DJANGO_VARS.containerId);
     component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
     renderFunc(component, container);

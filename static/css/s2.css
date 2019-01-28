@@ -1337,7 +1337,7 @@ a.readerNavCategory {
 .navButton:active,
 .readerNavCategory:active,
 .refLink:active,
-.resourceseLink {  /* likely a typo in this word but not sure if this this still applies */
+.resourcesLink {
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {
@@ -1587,7 +1587,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionEditForm #priority {
   width: 25px;
 }
-.readerTextTableOfContents .versionEditForm #digitzedBySefaria {
+.readerTextTableOfContents .versionEditForm #digitizedBySefaria {
   margin-right: 10px;
 }
 .readerTextTableOfContents .versionEditForm #save_button,
@@ -3228,12 +3228,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: middle;
 }
 .segment .segmentNumber,
-.textRagnge .numberLabel {
+.textRange .numberLabel {
   color: #999;
   top: 0;
 }
 .dark .segment .segmentNumber,
-.dark .textRagnge .numberLabel {
+.dark .textRange .numberLabel {
   color: white;
 }
 .segment .linkCount {
@@ -3607,7 +3607,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   line-height: 18px;
   color: #000;
-  -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
+  -webkit-tap-highlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
 .textFilter {
   padding: 19px 34px;

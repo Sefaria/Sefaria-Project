@@ -13,7 +13,7 @@ Grab each link and add appropriate fields
 """
 
 
-def grab_itag_commetators(segment_ref):
+def grab_itag_commentators(segment_ref):
     seg_text = segment_ref.text('he').text
     soup = BeautifulSoup(u'<root>{}</root>'.format(seg_text), 'xml')
     itags = soup.find_all(lambda x: x.name == 'i' and x.has_attr('data-commentator'))
@@ -45,5 +45,5 @@ for masechet in masechtot:
         r = r.default_child_ref()
     segs = r.all_segment_refs()
     for segment in segs:
-        i_commentators = grab_itag_commetators(segment)
+        i_commentators = grab_itag_commentators(segment)
         fix_links(segment, i_commentators)

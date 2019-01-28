@@ -469,7 +469,7 @@ Ideas:
                 .style(tocolor, function(d) {
                     if (d.order <= 8) {
                         return ("#004e5f") //darkteal zugot gen 1 and 2
-                    } else if (d.order <= 11) { //zugot 3, 4, 5 rasberry
+                    } else if (d.order <= 11) { //zugot 3, 4, 5 raspberry
                         return ("#7c406f")
                     } else if (d.order <= 12) { //early tanaim green
                         return ("#5d956f")
@@ -609,7 +609,7 @@ Ideas:
                   // What is this "o" we are passing through
                   // the function?
                     circle.style("opacity", function(o) {
-                      // Syntax note - like a comperehension
+                      // Syntax note - like a comprehension
                       // return isConnected if 1, else highlight_trans
                       // if 1, will check to see if d and o are connected
                         return isConnected(d, o) ? 1 : highlight_trans;
@@ -851,7 +851,7 @@ Ideas:
                     console.log(d)
                     return d.key != selectedVal;
                     /*Make it center on it - Russel has code
-                    and bounce? link transitions in miliseconds
+                    and bounce? link transitions in milliseconds
                     and make it go to exposition -1, expand and de-expand*/
                 });
                 selected.style("opacity", "0");

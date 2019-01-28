@@ -30,7 +30,7 @@ class Test_Mongo_Record_Models(object):
             assert "_id" not in sub.required_attrs
 
 
-    def test_instanciation_load_and_validity(self):
+    def test_instantiation_load_and_validity(self):
         for sub in record_classes:
             m = sub()
             if m.collection == "term": #remove this line once terms are normalized
@@ -67,7 +67,7 @@ class Test_Mongo_Set_Models(object):
 
 class Test_Mongo_Record_Methods(object):
     """ Tests of the methods on the abstract models.
-    They often need instanciation, but are not designed to test the subclasses specifically.
+    They often need instantiation, but are not designed to test the subclasses specifically.
     """
     def test_equality_and_identity(self):
         attrs = {

@@ -52,7 +52,7 @@ def filter_type_to_query(filter_type):
     Most strings search for filter_type in the rev_type field, but others may have different behavior:
 
     'translate' - version is SCT and type is 'add text'
-    'flagged'   - type is review and score is less thatn 0.4
+    'flagged'   - type is review and score is less than 0.4
     """
     q = {}
 
@@ -104,7 +104,7 @@ def collapse_activity(activity):
         act.update({
             "summary": True,
             #"contents": streak[1:],
-            # add the update count form first item if it exists, in case that item was a sumamry itself
+            # add the update count form first item if it exists, in case that item was a summary itself
             "updates_count": len(streak) + act.get("updates_count", 1) -1,
             "history_url": "/activity/%s/%s/%s" % (Ref(act["ref"]).section_ref().url(),
                                                    act["language"],
@@ -132,7 +132,7 @@ def collapse_activity(activity):
 def get_maximal_collapsed_activity(query={}, page_size=100, page=1, filter_type=None):
     """
     Returns (activity, page) where
-    activity is the collasped set of activity items, counting multiple consecutive actions as one
+    activity is the collapsed set of activity items, counting multiple consecutive actions as one
     page is the page number for the next page of queries to search, or None if there are no more results.
 
     Makes repeat DB calls to return more activity items so a full page_size of items cen returned.
@@ -276,7 +276,7 @@ def make_leaderboard_condition(start=None, end=None, ref_regex=None, version=Non
     if version:
         condition["version"] = version
 
-    # Count acitvity from API?
+    # Count activity from API?
     if not api:
         condition["method"] = {"$ne": "API"}
 
@@ -289,7 +289,7 @@ def make_leaderboard(condition):
     matches the conditions of 'condition' - an object used to query
     the history collection.
 
-    This fucntion queries and calculates for all currently matching history.
+    This function queries and calculates for all currently matching history.
     """
 
     reducer = Code("""

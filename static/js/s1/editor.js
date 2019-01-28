@@ -6,7 +6,7 @@ var sjs = sjs || {};
 
 $.extend(sjs,  {
 	Init: {},       // functions for initializing a page
-	bind: {},       // functons for binding event handlers
+	bind: {},       // functions for binding event handlers
 	depth: 0,       // how deep the many steps in the current thread
 	thread: [],     // a list of refs describing the path taken through texts
 	view: {},       // cached values related to current view
@@ -29,13 +29,13 @@ $.extend(sjs,  {
 	},
 	timers: {
 		hideMenu: null,
-		panelPreivew: null,
+		panelPreview: null,
 	},
 	palette: ["#5B1094", "#00681C", "#790619", "#CC0060", "#008391", "#001866", "#C88900", "#009486", "#935A10", "#9D2E2C"],
 	sourcesFilter: "all",
 	previousFilter: "all",
-	_direction: 0,      // direction of text load animaition: -1 left, 0 no animation, 1 right
-	_verseHeights: [],  // stored list of the top positon of each verse
+	_direction: 0,      // direction of text load animation: -1 left, 0 no animation, 1 right
+	_verseHeights: [],  // stored list of the top position of each verse
 	_scrollMap: []      // stored list of the window top position that should correspond to highlighting each verse
 });
 
@@ -43,7 +43,7 @@ sjs.cache.params({notes: 1, sheets: 1}); // Default parameters to getting texts.
 
 sjs.ratySettings = { // for text review ratings
 	path: "/static/img/raty/",
-	hints: ["Major problems", "Some problems", "Seems good", "Good", "Definately good"]
+	hints: ["Major problems", "Some problems", "Seems good", "Good", "Definitely good"]
 };
 
 
@@ -279,7 +279,7 @@ sjs.Init.handlers = function() {
 	// Commentary filtering by clicking on source category
 	$(document).on("click", ".source", function() {
 		if (sjs.sourcesFilter === "Notes" || sjs.sourcesFilter === "Sheets" || sjs.sourcesFilter === "Layer") {
-			// We're not in Sourcss mode, need to build commentary first
+			// We're not in Sources mode, need to build commentary first
 			$(".showSources").trigger("click");
 		}
 		$(".source").removeClass("active");
@@ -951,7 +951,7 @@ $(function() {
 
 
 	function addNoteToSelectedOnLayer(e) {
-		// Start flow for adding a notem but save it to a layer.
+		// Start flow for adding a note but save it to a layer.
 		sjs.selectType = "noteForLayer";
 		sjs.writeNote();
 		e.stopPropagation();
@@ -983,7 +983,7 @@ $(function() {
 
 		var n = sjs.selected_verses[0];
 		var top = $(".segmentLabel").eq(n-1).position().top - 100;
-		$("html, body").animate({scrollTop: top, duation: 200});
+		$("html, body").animate({scrollTop: top, duration: 200});
 	}
 	
 
@@ -1357,7 +1357,7 @@ sjs.lexicon = {
 		wrapped = "";
 		//words = text.split(/[ ]+/);
 		//regex to match hebrew, but not spaces, colons, maqqaf or parshiya indicator (פ) or (ס)
-		//TODO: this regex had \'\" after \u05f3 to help with laaz rashi wrapping. it was casuing issues with search highlights. Find another way
+		//TODO: this regex had \'\" after \u05f3 to help with laaz rashi wrapping. it was causing issues with search highlights. Find another way
 		var regexs = /([\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05f4]+)(?!\))/g;
 		wrapped = text.replace(regexs, "<span class='lexicon-link'>$1</span>")
 		/*for (var i = 0; i < words.length; i++ ) {
@@ -1541,7 +1541,7 @@ sjs.lexicon = {
 							"Jastrow<span class='ui-icon ui-icon-extlink'></span></a>" : "") +
 						"</div>";
 				}
-				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesry of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
+				html += (sense.source === "CAL Lexicon" ? "<i class='definitionSource'>Definitions courtesy of <a href='http://cal1.cn.huc.edu/browseheaders.php?first3=" + entry.term + "' target='_blank'>" +
 							"CAL Project</a></i>" : "" );
 				html += "</div>";
 			}
@@ -1725,7 +1725,7 @@ function buildView(data) {
 	}
 	if(versionInfo){
 		var version_title_attr = versionInfo['lang'] == 'he' ? 'heVersionTitle' : 'versionTitle';
-		//we are comapring the preferred version to what we actually got
+		//we are comparing the preferred version to what we actually got
 		if(versionInfo['version'] != data[version_title_attr]){
 			//if there is a mismatch, remove the version from the url with replaceState.
 			var q = {book: data['book'],	sections: data['sections'],	toSections: data['toSections'],	ref: data['ref']};
@@ -1751,7 +1751,7 @@ function buildView(data) {
 	var $sourcesBox         = sjs._$sourcesBox;
 
 	// Clear everything out 
-	$("#about").appendTo("body").hide(); // Stash, becasue we use as a template
+	$("#about").appendTo("body").hide(); // Stash, because we use as a template
 	$basetext.empty().removeClass("noCommentary versionCompare").hide();
 	$("body").removeClass("newText");
 	$commentaryBox.removeClass("noCommentary").hide(); 
@@ -1929,7 +1929,7 @@ function buildView(data) {
 	var scrollXDur = sjs._direction == 0 ? 1 : 600;
 	var scrollYDur = 200; // sjs._direction == 0 ? 1 : 200;
 
-	// Animate horizonatally to new screen	
+	// Animate horizontally to new screen	
 	$('.screen-container').css('position', 'fixed')
 		.animate({left: '-' + (5000 + (sjs.depth * 100)) + "%"}, 
 		{duration: scrollXDur, complete: function() {
@@ -2112,7 +2112,7 @@ function buildCommentary(data) {
 		}
 	}
 
-	// Highligh highlighted commentaries
+	// Highlight highlighted commentaries
 	if (sjs._$verses && sjs._$verses.hasClass("lowlight")) {
 		var first = parseInt(sjs._$verses.not(".lowlight").first().attr("data-num"));
 		var last  = parseInt(sjs._$verses.not(".lowlight").last().attr("data-num"));
@@ -2135,7 +2135,7 @@ function buildCommentaryContent(commentary) {
 	var sources           = {};
 	var commentaryObjects = []
 	var commentaryHtml    = "";
-	var n                 = 0; // number of assiged colors in pallette
+	var n                 = 0; // number of assigned colors in palette
 
 	if (commentary.length) {
 		$(".noCommentary").removeClass("noCommentary");
@@ -2288,7 +2288,7 @@ function buildCommentaryContent(commentary) {
 function sortCommentary(a,b) {
 	// Sort function for ordering commentary
 
-	// First sort accoring to verse position
+	// First sort according to verse position
 	// Use parseInt to look at only the first verse in cases where
 	// vref is a string like "2 4 6" denoting multiple verses
 	if (parseInt(a.vref) != parseInt(b.vref)) {
@@ -2586,7 +2586,7 @@ function aboutHtml(data) {
 function updateVisible() {
 	// Update view based on what text is currently visible in the viewport.
 	// Currently, this means scrolling the commentary box to sync with content
-	// visible in the baesetext.
+	// visible in the basetext.
 	// Don't scroll if...
 	if (sjs.flags.loading || // we're still loading a view
 			!sjs._$verses || // verses aren't loaded yet
@@ -2904,7 +2904,7 @@ sjs.expandSource = function($source) {
 
 
 sjs.shortCommentaryText = function (text, backup) {
-	// Create a short version of commentary text for collaspsed display
+	// Create a short version of commentary text for collapsed display
 	// Use backup if text is empty.
 	var shortText = text.length > 0 ? text : (backup.length > 0 ? backup : "[no text available]");
 	shortText = (isArray(shortText) ? shortText.join(" ") : shortText);
@@ -2929,7 +2929,7 @@ sjs.longCommentaryText = function(text, backup) {
 // ---------- Reviews ---------------
 
 sjs.loadReviews = function () {
-	// Calls the server to load both english and hebrew revies as needed
+	// Calls the server to load both english and hebrew reviews as needed
 	sjs.reviews.en = null;
 	sjs.reviews.he = null;
 	if (sjs.current.text.length) { sjs.loadReview("en"); }
@@ -3141,7 +3141,7 @@ sjs.deleteReview = function(e) {
 				}
 			},
 			error: function () {
-				sjs.alert.message("There was an error deleting this reivew. Please reload the page and try again.");
+				sjs.alert.message("There was an error deleting this review. Please reload the page and try again.");
 			}
 		});
 	}
@@ -3176,7 +3176,7 @@ function buildOpen(editMode) {
 	// Previously, this same code create modals for viewing full text of a source.
 	// if editMode, copy expanded source for editing
 	// else, build a modal for adding a new source
-	// This code is a mess and shoud be rewritten from scratch. 
+	// This code is a mess and should be rewritten from scratch. 
 	
 	$(".open").remove();
 
@@ -3523,13 +3523,13 @@ sjs.showNewText = function () {
 		.unbind()
 		.change(updateTextDirection);
 	
-	// Special handing of Original Translation // Sefara Community Translation
+	// Special handing of Original Translation // Sefaria Community Translation
 	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
 	$("#textTypeForm input").unbind().click(function() {
 		if ($(this).val() === "copy") { 
 		// Click on "Copied Text" Radio
 			$("#copiedTextForm").show();
-			// When swtiching from an original transltion, clear the text area
+			// When switching from an original translation, clear the text area
 			if ($("#addVersionHeader").hasClass("original")) {
 				sjs._$newVersion.val("").trigger("keyup");
 				$("#copiedTextForm").find("input").val("");
@@ -3617,7 +3617,7 @@ sjs.editText = function(data) {
 	}
 	if ((sjs.langMode === 'en' && "sources" in data) || 
 		(sjs.langMode === 'he' && "heSources" in data)) {
-		sjs.alert.message("You are viewing a page that includes mutliple text versions. To edit, please first select a single version in the About Text panel.");
+		sjs.alert.message("You are viewing a page that includes multiple text versions. To edit, please first select a single version in the About Text panel.");
 		return;
 	}
 
@@ -3679,7 +3679,7 @@ sjs.addThis = function(e) {
 			//console.log("Scrolling to " + n);
 			//console.log($top);
 			var top = $top.position().top - 100;
-			$("html, body").animate({scrollTop: top, duation: 200});
+			$("html, body").animate({scrollTop: top, duration: 200});
 
 		}
 	}
@@ -3705,7 +3705,7 @@ sjs.padEditorText = function(n) {
 	var $top = $("#newTextCompare .verse").eq(n-1)
 	if ($top) {
 		var topPos = $top.position().top - 100;
-		$("html, body").animate({scrollTop: topPos, duation: 200});
+		$("html, body").animate({scrollTop: topPos, duration: 200});
 	}
 };
 
@@ -3747,7 +3747,7 @@ sjs.toggleShowOriginal = function(){
 
 
 sjs.translateText = function(data) {
-	// Transistion to the UI for adding a translation of the text
+	// Transition to the UI for adding a translation of the text
 	// in data.
 	if ("error" in data) {
 		sjs.alert.message(data.error);
@@ -4144,7 +4144,7 @@ function readNewVersion() {
 	if (text) {
 		var verses = text.split(/\n\n+/g);
 	} else {
-		// Avoid treating an empty textarea as [""] which is interrpreted as
+		// Avoid treating an empty textarea as [""] which is interpreted as
 		// 'a first segment exists, but we don't have it'. This should actually
 		// be saved as empty.
 		var verses = [];

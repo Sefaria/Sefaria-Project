@@ -143,7 +143,7 @@ class AbstractIndex(object):
             return aggregate_available_texts(vstate_node["_all"]["availableTexts"])
 
         def aggregate_available_texts(available):
-            """Returns a jagged arrary of ints that counts the number of segments in each section,
+            """Returns a jagged array of ints that counts the number of segments in each section,
             (by throwing out the number of versions of each segment)"""
             if len(available) == 0 or type(available[0]) is int:
                 return len(available)
@@ -586,7 +586,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         Make sure these fields do not appear:
         "titleVariants",      # required for old style
-        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commnetary
+        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commentary
         "heTitle",            # optional for old style
         "heTitleVariants",    # optional for old style
         "maps",               # deprecated
@@ -1177,7 +1177,7 @@ def merge_texts(text, sources):
             results.append(result)
             # NOTE - the below flattens the sources list, so downstream code can always expect
             # a one dimensional list, but in so doing the mapping of source names to segments
-            # is lost for merged texts of depth > 2 (this mapping is not currenly used in general)
+            # is lost for merged texts of depth > 2 (this mapping is not currently used in general)
             result_sources += source
         return [results, result_sources]
 
@@ -1223,7 +1223,7 @@ class TextFamilyDelegator(type):
 
 class TextChunk(AbstractTextRecord):
     """
-    A chunk of text corresponding to the provided :class:`Ref`, language, and optionall version name.
+    A chunk of text corresponding to the provided :class:`Ref`, language, and optionally version name.
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
     :param oref: :class:`Ref`
@@ -1569,7 +1569,7 @@ class TextChunk(AbstractTextRecord):
         """
         Regex search in TextChunk
         :param regex_str: regex string to search for
-        :param cleaner: f(str)->str. function to clean a semgent before searching
+        :param cleaner: f(str)->str. function to clean a segment before searching
         :param strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
         :return: list[(Ref, Match, str)] - list of tuples. each tuple has a segment ref, match object for the match, and text for the segment
         """
@@ -1987,8 +1987,8 @@ class TextFamily(object):
 class RefCacheType(type):
     """
     Metaclass for Ref class.
-    Caches all Ref isntances according to the string they were instanciated with and their normal form.
-    Returns cached instance on instanciation if either instanciation string or normal form are matched.
+    Caches all Ref instances according to the string they were instantiated with and their normal form.
+    Returns cached instance on instantiation if either instantiation string or normal form are matched.
     """
 
     def __init__(cls, name, parents, dct):
@@ -2433,7 +2433,7 @@ class Ref(object):
     @staticmethod
     def is_ref(tref):
         """
-        Static method for testing if a string is valid for instanciating a Ref object.
+        Static method for testing if a string is valid for instantiating a Ref object.
 
         :param string tref: the string to test
         :return bool:
@@ -3019,7 +3019,7 @@ class Ref(object):
 
         return r.next_section_ref() if r.is_empty() else r
 
-    #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
+    #Don't store results on Ref cache - state objects change, and don't yet propagate to this Cache
     def get_state_node(self, meta=None, hint=None):
         """
         :return: :class:`sefaria.model.version_state.StateNode`
@@ -3080,7 +3080,7 @@ class Ref(object):
 
         #arrays are 0 based. text sections are 1 based. so shift the numbers back.
         if not forward:
-            # Going backward, start from begginning of Ref
+            # Going backward, start from beginning of Ref
             starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
         else:
             # Going forward start form end of Ref
@@ -3390,7 +3390,7 @@ class Ref(object):
                                 d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
                         '''
 
-                    if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
+                    if d["toSections"][-1]:  # to filter out, e.g. nonexistent Rashi's, where the last index is 0
                         try:
                             refs.append(Ref(_obj=d))
                         except InputError:
@@ -4387,7 +4387,7 @@ class Library(object):
         self.add_index_record_to_cache(new_index, rebuild=True)
 
     #todo: the for_js path here does not appear to be in use.
-    #todo: Rename, as method not gauraunteed to return all titles
+    #todo: Rename, as method not guaranteed to return all titles
     def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
         """
         :param lang: "en" or "he"
@@ -4689,7 +4689,7 @@ class Library(object):
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         from sefaria.utils.hebrew import strip_nikkud
-        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
+        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantillation
         unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
         title_nodes = {title: self.get_schema_node(title,lang) for title in unique_titles}
 
@@ -4720,7 +4720,7 @@ class Library(object):
                 # logger.warning(u"Library._wrap_all_refs_in_string() failed to create regex for: {}.  {}".format(title, e))
                 continue
 
-        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+        if lang == "en" or for_js:  # JavaScript doesn't support look behinds.
             for address_tuple, title_node_tuples in nodes_by_address_type.items():
                 node = title_node_tuples[0][1]
                 titles = u"|".join([regex.escape(tup[0]) for tup in title_node_tuples])
@@ -4737,10 +4737,10 @@ class Library(object):
                            + node.after_title_delimiter_re \
                            + node.address_regex(lang, for_js=for_js, match_range=True) + u")"]
 
-            all_interal = u"|".join(regex_components)
-            if all_interal:
+            all_internal = u"|".join(regex_components)
+            if all_internal:
                 full_regex = ur"""(?:
-                    """ + all_interal + ur"""
+                    """ + all_internal + ur"""
                     )
                     (?=\W|$)                                        # look ahead for non-word char
                     """
@@ -4751,7 +4751,7 @@ class Library(object):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+        if lang == "en" or for_js:  # JavaScript doesn't support look behinds.
             return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
 
         elif lang == "he":

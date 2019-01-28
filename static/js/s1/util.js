@@ -90,7 +90,7 @@ sjs.cache = {
 		var data = clone(origData);
 		var ref  = this.cacheKey(data.ref);
 
-		// Store data for book name alone (eg "Genesis") immediatley
+		// Store data for book name alone (eg "Genesis") immediately
 		// normalizing below will render this "Genesis.1" which we also store
 		if (ref.indexOf(".") == -1) {
 			this._cache[ref] = data;
@@ -267,7 +267,7 @@ sjs.alert = {
 		sjs.alert._show(alertHtml);
 	},
 	loadingSidebar: function() {
-		sjs._$commentaryViewPort.removeClass("noCommenatary")
+		sjs._$commentaryViewPort.removeClass("noCommentary")
 				.html('<div class="loadingSidebar"><img src="/static/img/loading.gif" /></div>');
 	},
 	copy: function(text) {
@@ -547,7 +547,7 @@ sjs.textSync = {
 		if (e.keyCode == 8 && sjs.charBeforeCursor == '\n') {		
 			if (cursor) {
 				
-				// Advance cursor to end of \n seqeuence
+				// Advance cursor to end of \n sequence
 				while (text[cursor] == "\n") cursor++;
 				
 				// Count back to beginning for total number of new lines
@@ -563,7 +563,7 @@ sjs.textSync = {
 		}
 
 		// [ENTER]
-		// Insert placeholder "..." when hitting enter mutliple times to allow
+		// Insert placeholder "..." when hitting enter multiple times to allow
 		// skipping ahead to a further segment
 		if (e.keyCode === 13 && (sjs.charBeforeCursor === '\n' || sjs.charBeforeCursor === undefined)) {
 			text = text.substr(0, cursor-1) + "...\n\n" + text.substr(cursor);
@@ -1115,7 +1115,7 @@ sjs.textBrowser = {
 	},
 	selectInBetween: function() {
 		// Add selected class to every segment between the first and last
-		// selected segements
+		// selected segments
 		var $selected = $(".segment.selected");
 		if ($selected.length > 1) {
 			$selected.first()
@@ -1238,7 +1238,7 @@ sjs.getFirstExistingTextSection = function(counts){
 };
 
 sjs.findFirst = function(arr){
-    //iterates and recures until finds non empty text elem.
+    //iterates and recurses until finds non empty text elem.
     //then returns the path of text segment numbers leading to it
     if (arr == undefined) {
 		return false;
@@ -1274,7 +1274,7 @@ sjs.deleteTextButtonHandler = function(e) {
 
 	if (isCommentator) {
 		var commentaryText = $(this).attr("data-commentary-text");
-		var confirm = prompt("If you proceeed, all commentaries by " + title + " will be deleted, not only " + commentaryText + ". Type DELETE to confirm.", "");
+		var confirm = prompt("If you proceed, all commentaries by " + title + " will be deleted, not only " + commentaryText + ". Type DELETE to confirm.", "");
 		if (confirm !== "DELETE") {
 			alert("Delete canceled.");
 			return;
@@ -1779,7 +1779,7 @@ function encodeHebrewNumeral(n) {
 
 
 function encodeHebrewDaf(daf, form) {
-	// Ruturns Hebrew daf strings from "32b"
+	// Returns Hebrew daf strings from "32b"
 	
 	form = form || "short";
 	var n = parseInt(daf.slice(0,-1));
@@ -2663,7 +2663,7 @@ window.findAndReplaceDOMText = (function() {
 			var matchStartNode = startPortion.node;
 			var matchEndNode = endPortion.node;
 
-			var preceedingTextNode;
+			var precedingTextNode;
 			var followingTextNode;
 
 			if (matchStartNode === matchEndNode) {
@@ -2672,8 +2672,8 @@ window.findAndReplaceDOMText = (function() {
 
 				if (startPortion.indexInNode > 0) {
 					// Add `before` text node (before the match)
-					preceedingTextNode = doc.createTextNode(node.data.substring(0, startPortion.indexInNode));
-					node.parentNode.insertBefore(preceedingTextNode, node);
+					precedingTextNode = doc.createTextNode(node.data.substring(0, startPortion.indexInNode));
+					node.parentNode.insertBefore(precedingTextNode, node);
 				}
 
 				// Create the replacement node:
@@ -2693,8 +2693,8 @@ window.findAndReplaceDOMText = (function() {
 				node.parentNode.removeChild(node);
 
 				this.reverts.push(function() {
-					if (preceedingTextNode === newNode.previousSibling) {
-						preceedingTextNode.parentNode.removeChild(preceedingTextNode);
+					if (precedingTextNode === newNode.previousSibling) {
+						precedingTextNode.parentNode.removeChild(precedingTextNode);
 					}
 					if (followingTextNode === newNode.nextSibling) {
 						followingTextNode.parentNode.removeChild(followingTextNode);
@@ -2708,7 +2708,7 @@ window.findAndReplaceDOMText = (function() {
 				// Replace matchStartNode -> [innerMatchNodes...] -> matchEndNode (in that order)
 
 
-				preceedingTextNode = doc.createTextNode(
+				precedingTextNode = doc.createTextNode(
 					matchStartNode.data.substring(0, startPortion.indexInNode)
 				);
 
@@ -2743,7 +2743,7 @@ window.findAndReplaceDOMText = (function() {
 					match
 				);
 
-				matchStartNode.parentNode.insertBefore(preceedingTextNode, matchStartNode);
+				matchStartNode.parentNode.insertBefore(precedingTextNode, matchStartNode);
 				matchStartNode.parentNode.insertBefore(firstNode, matchStartNode);
 				matchStartNode.parentNode.removeChild(matchStartNode);
 
@@ -2752,7 +2752,7 @@ window.findAndReplaceDOMText = (function() {
 				matchEndNode.parentNode.removeChild(matchEndNode);
 
 				this.reverts.push(function() {
-					preceedingTextNode.parentNode.removeChild(preceedingTextNode);
+					precedingTextNode.parentNode.removeChild(precedingTextNode);
 					firstNode.parentNode.replaceChild(matchStartNode, firstNode);
 					followingTextNode.parentNode.removeChild(followingTextNode);
 					lastNode.parentNode.replaceChild(matchEndNode, lastNode);

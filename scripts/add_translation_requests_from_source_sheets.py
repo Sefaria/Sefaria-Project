@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Harvest Translation Requests from unstranslated sources in source sheets.
+Harvest Translation Requests from untranslated sources in source sheets.
 """
 import sys
 

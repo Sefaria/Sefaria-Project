@@ -36,7 +36,7 @@ class LockSet(abst.AbstractMongoSet):
 
 def set_lock(ref, lang, version, user):
     """
-    Creats a lock for ref/lang/version/user.
+    Creates a lock for ref/lang/version/user.
     user 0 indicates anonymous lock.
     """
 

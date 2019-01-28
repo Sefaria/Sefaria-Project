@@ -254,7 +254,7 @@ class ToggleSet extends Component {
                 key={option.name}
                 set={this.props.name}
                 role={option.role}
-                ariaLable={option.ariaLabel}
+                ariaLabel={option.ariaLabel}
                 on={value == option.name}
                 setOption={this.props.setOption}
                 style={style}

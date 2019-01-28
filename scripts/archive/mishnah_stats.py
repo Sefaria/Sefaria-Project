@@ -27,7 +27,7 @@ print "%d percent complete" % percent
 
 # mishnayot remaining
 remaining = get_untranslated_count_by_unit("Mishna", "Mishna")
-print "Mishnayot remaing: %d" % remaining
+print "Mishnayot remaining: %d" % remaining
 
 # mishnayot done since 6/19
 translated = db.history.find({

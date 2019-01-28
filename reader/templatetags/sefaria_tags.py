@@ -264,7 +264,7 @@ def strip_tags(value):
 @register.filter(is_safe=True)
 def escape_quotes(value):
 	"""
-	Returns the given HTML with single and double quotes escpaed with \ for a JS context
+	Returns the given HTML with single and double quotes escaped with \ for a JS context
 	"""
 	value = value.replace("'", "\\'")
 	value = value.replace('"', '\\"')
@@ -296,7 +296,7 @@ def discussion_link(discussion):
 	if isinstance(discussion, basestring):
 		discussion = m.Layer().load({"urlkey": discussion})
 		if not discussion:
-			return mark_safe("[discusion not found]")
+			return mark_safe("[discussion not found]")
 	if getattr(discussion, "first_ref", None):
 		oref = m.Ref(discussion.first_ref)
 		href = "/" + oref.url() + "?layer=" + discussion.urlkey
@@ -437,7 +437,7 @@ Template tags for working with lists.
 You'll use these in templates thusly::
 
 	{% load listutil %}      # I don't think we need this line.
-	{% for sublist in mylist|parition:"3" %}
+	{% for sublist in mylist|partition:"3" %}
 		{% for item in mylist %}
 			do something with {{ item }}
 		{% endfor %}

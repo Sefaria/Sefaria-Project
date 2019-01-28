@@ -210,7 +210,7 @@ class WorkflowyParser(object):
             self._term_scheme = ts
 
     def create_shared_term_for_scheme(self, title_group):
-        #TODO: This might be a silly method, since for most cases we do not want to blindly create terms from ALL thre nodes of a schema
+        #TODO: This might be a silly method, since for most cases we do not want to blindly create terms from ALL the nodes of a schema
         if not Term().load({"name": title_group.primary_title()}):
             print "Creating Shared Term for Scheme from outline"
             term = Term()

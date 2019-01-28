@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
 
     args = parser.parse_args()
-    logger.info("purge cloudflare arguemnts: {}".format(args))
+    logger.info("purge cloudflare arguments: {}".format(args))
     if args.files:
         if USE_CLOUDFLARE:
             SefariaCloudflareManager().purge_batch_cloudflare_urls(args.files)

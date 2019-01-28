@@ -57,7 +57,7 @@ suspect_entries =[]
 for entry in lex_entries:
 
     if "senses" not in entry.content:
-        print "Entry {} doesnt have senses".format(entry.strong_number)
+        print "Entry {} doesn't have senses".format(entry.strong_number)
     else:
         if recurse_senses(entry.content["senses"]) is not None:
             suspect_entries.append(entry.strong_number)

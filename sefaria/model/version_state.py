@@ -310,7 +310,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         i.e how many elements are not null or zero
         :param text_depth: the depth of the array
         :param structure: a counts structure from count_texts()
-        :return: a precentage of the array fullness
+        :return: a percentage of the array fullness
         """
         result = {'full': 0, 'total':0}
         cls._rec_calc_text_structure_completeness(text_depth, structure, result)

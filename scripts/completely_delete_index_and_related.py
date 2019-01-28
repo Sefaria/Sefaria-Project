@@ -20,7 +20,7 @@ delete history of versions
 delete history of commentary versions
 delete commentary versions
 delete links history
-delete version states of the commntaries
+delete version states of the commentaries
 """
 
 
@@ -100,7 +100,7 @@ def remove_old_index_and_rename(idx_title):
 
 
 
-#delete versionstates for the comemntaries?
+#delete versionstates for the commentaries?
 
 
 """ The main function, runs when called from the CLI"""

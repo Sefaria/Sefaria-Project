@@ -10,7 +10,7 @@ from sefaria.system.database import db
 
 
 def delete_user_account(uid, confirm=True):
-    """ Deletes the account of `uid` as well as all ownded data """
+    """ Deletes the account of `uid` as well as all owned data """
     user = model.UserProfile(id=uid)
     if confirm:
         print "Are you sure you want to delete the account of '%s' (%s)?" % (user.full_name, user.email)
