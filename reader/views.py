@@ -2,6 +2,8 @@
 
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta, date
+from elasticsearch_dsl import Search
+from elasticsearch import Elasticsearch
 from sets import Set
 from random import choice
 from pprint import pprint
@@ -45,7 +47,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
-from sefaria.system.decorators import catch_error_as_json
+from sefaria.system.decorators import catch_error_as_json, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
@@ -55,9 +57,10 @@ from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
-from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
+from sefaria.system.cache import django_cache
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.helper.search import get_query_obj
 from django.utils.html import strip_tags
 
 if USE_VARNISH:
@@ -1460,28 +1463,32 @@ def index_api(request, title, v2=False, raw=False):
 
 
 @catch_error_as_json
+@json_response_decorator
+@django_cache(default_on_miss = True)
 def bare_link_api(request, book, cat):
-
     if request.method == "GET":
-        resp = jsonResponse(get_book_link_collection(book, cat), callback=request.GET.get("callback", None))
-        resp['Content-Type'] = "application/json; charset=utf-8"
+        resp = get_book_link_collection(book, cat)
         return resp
 
     elif request.method == "POST":
-        return jsonResponse({"error": "Not implemented."})
+        return {"error": "Not implemented."}
 
 
 @catch_error_as_json
+@json_response_decorator
+@django_cache(default_on_miss = True)
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
     """
     if request.method == "GET":
-        resp = jsonResponse(get_link_counts(cat1, cat2))
+        resp = get_link_counts(cat1, cat2)
         return resp
 
     elif request.method == "POST":
-        return jsonResponse({"error": "Not implemented."})
+        return {"error": "Not implemented."}
+
+
 
 
 @catch_error_as_json
@@ -1905,43 +1912,43 @@ def version_status_api(request):
 
 simplified_toc = {}
 
+@json_response_decorator
+@django_cache(default_on_miss = True)
 def version_status_tree_api(request, lang=None):
-    global simplified_toc
-    key = lang or "none"
-    if not simplified_toc.get(key):
-        def simplify_toc(toc_node, path):
-            simple_nodes = []
-            for x in toc_node:
-                node_name = x.get("category", None) or x.get("title", None)
-                node_path = path + [node_name]
-                simple_node = {
-                    "name": node_name,
-                    "path": node_path
-                }
-                if "category" in x:
-                    if "contents" not in x:
-                        continue
-                    simple_node["type"] = "category"
-                    simple_node["children"] = simplify_toc(x["contents"], node_path)
-                elif "title" in x:
-                    query = {"title": x["title"]}
-                    if lang:
-                        query["language"] = lang
-                    simple_node["type"] = "index"
-                    simple_node["children"] = [{
-                           "name": u"{} ({})".format(v.versionTitle, v.language),
-                           "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
-                           "size": v.word_count(),
-                           "type": "version"
-                       } for v in VersionSet(query)]
-                simple_nodes.append(simple_node)
-            return simple_nodes
-        simplified_toc[key] = simplify_toc(library.get_toc(), [])
-    return jsonResponse({
+    def simplify_toc(toc_node, path):
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": node_path
+            }
+            if "category" in x:
+                if "contents" not in x:
+                    continue
+                simple_node["type"] = "category"
+                simple_node["children"] = simplify_toc(x["contents"], node_path)
+            elif "title" in x:
+                query = {"title": x["title"]}
+                if lang:
+                    query["language"] = lang
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                    "name": u"{} ({})".format(v.versionTitle, v.language),
+                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                    "size": v.word_count(),
+                    "type": "version"
+                } for v in VersionSet(query)]
+            simple_nodes.append(simple_node)
+        return simple_nodes
+
+    result = simplify_toc(library.get_toc(), [])
+    return {
         "name": "Whole Library" + " ({})".format(lang) if lang else "",
         "path": [],
-        "children": simplified_toc[key]
-    }, callback=request.GET.get("callback", None))
+        "children": result
+    }
 
 
 def visualize_library(request, lang=None, cats=None):
@@ -2341,7 +2348,12 @@ def dictionary_completion_api(request, word, lexicon=None):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
 
-    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    if lexicon is None:
+        ac = library.cross_lexicon_auto_completer()
+        rs = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+    else:
+        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
 
 
@@ -3631,37 +3643,23 @@ def dummy_search_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
-# def search_api(request):
-#     # dict to define request parameters and their default values. None means parameter is required
-#     params = {
-#         "query": None,
-#         "size": 10,
-#         "from": 0,
-#         "type": None,  #
-#         "get_filters": False,
-#         "applied_filters": [],
-#         "field": None,
-#         "sort_type": None,
-#         "exact": False
-#     }
-#     param_vals = {}
-#     for p in params:
-#         param_vals[p] = request.GET.get(p, )
-#     query = request.GET.get("q")
-#     """
-#              query: query string
-#              size: size of result set
-#              from: from what result to start
-#              type: "sheet" or "text"
-#              get_filters: if to fetch initial filters
-#              applied_filters: filter query by these filters
-#              field: field to query in elastic_search
-#              sort_type: chonological or relevance
-#              exact: if query is exact
-#              success: callback on success
-#              error: callback on error
-#     """
-#     size = request.GET.get("size")
+
+@csrf_exempt
+def search_wrapper_api(request):
+    if request.method == "POST":
+        if "json" in request.POST:
+            j = request.POST.get("json")  # using form-urlencoded
+        else:
+            j = request.body  # using content-type: application/json
+        j = json.loads(j)
+        es_client = Elasticsearch(SEARCH_ADMIN)
+        search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
+        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in j.items()})
+        response = search_obj.execute()
+        if response.success():
+            return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
+        return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @ensure_csrf_cookie

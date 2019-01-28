@@ -1098,7 +1098,7 @@ class ReaderControls extends Component {
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
-      this.state.runningQuery.abort();
+      this.state.runningQuery.abort();  //todo: make work with promises
     }
   }
   render() {
@@ -1164,7 +1164,11 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton historyObject={this.props.historyObject} tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}/>
+          <ReaderNavigationMenuSavedButton
+            historyObject={this.props.historyObject}
+            tooltip={true}
+            toggleSignUpModal={this.props.toggleSignUpModal}
+          />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});

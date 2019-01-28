@@ -38,7 +38,8 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instantiates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_people=False, include_categories=False, include_parasha=False, *args, **kwargs):
+    def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
+                 include_parasha=False, include_lexicons=False, *args, **kwargs):
         """
 
         :param lang:
@@ -55,16 +56,18 @@ class AutoCompleter(object):
         self.title_trie = TitleTrie(lang, *args, **kwargs)
         self.spell_checker = SpellChecker(lang)
         self.ngram_matcher = NGramMatcher(lang)
+        self.other_lang_ac = None
+        self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
 
         # Titles in library
-        title_node_dict = self.library.get_title_node_dict(lang)
-        tnd_items = title_node_dict.items()
-        titles = [t for t, d in tnd_items]
-        normal_titles = [self.normalizer(t) for t, d in tnd_items]
-        self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)
-        self.spell_checker.train_phrases(normal_titles)
-        self.ngram_matcher.train_phrases(titles, normal_titles)
-
+        if include_titles:
+            title_node_dict = self.library.get_title_node_dict(lang)
+            tnd_items = title_node_dict.items()
+            titles = [t for t, d in tnd_items]
+            normal_titles = [self.normalizer(t) for t, d in tnd_items]
+            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)
+            self.spell_checker.train_phrases(normal_titles)
+            self.ngram_matcher.train_phrases(titles, normal_titles)
         if include_categories:
             categories = self._get_main_categories(library.get_toc_tree().get_root())
             category_names = [c.primary_title(lang) for c in categories]
@@ -87,7 +90,34 @@ class AutoCompleter(object):
             self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
+        if include_lexicons:
+            # languages get muddy for lexicons
+            self.prefer_longest = False
+            wfs = WordFormSet({"generated_by": {"$ne": "replace_shorthand"}})
 
+            for wf in wfs:
+                self.title_trie[self.normalizer(wf.form)] = {
+                    "title": wf.form,
+                    "key": wf.form,
+                    "type": "word_form",
+                    "is_primary": True
+                }
+                if not hasattr(wf, "c_form"):
+                    continue
+                self.title_trie[self.normalizer(wf.c_form)] = {
+                    "title": wf.c_form,
+                    "key": wf.form,
+                    "type": "word_form",
+                    "is_primary": True
+                }
+
+            forms = [getattr(wf, "c_form", wf.form) for wf in wfs]
+            normal_forms = [self.normalizer(wf) for wf in forms]
+            self.spell_checker.train_phrases(forms)
+            self.ngram_matcher.train_phrases(forms, normal_forms)
+
+    def set_other_lang_ac(self, ac):
+        self.other_lang_ac = ac
 
     @staticmethod
     def _get_main_categories(otoc):
@@ -128,10 +158,9 @@ class AutoCompleter(object):
             return completions
 
         # No results. Try letter swap
-        if not redirected:
-            other_language = "he" if self.lang == "en" else "en"
+        if not redirected and self.other_lang_ac:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
-            return self.library.full_auto_completer(other_language).complete(swapped_string, limit, redirected=True)
+            return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
 
         return []
 
@@ -217,7 +246,8 @@ class Completions(object):
         """
 
         try:
-            all_continuations = self.auto_completer.title_trie.items(str)[::-1]
+            skip = -1 if self.auto_completer.prefer_longest else 1
+            all_continuations = self.auto_completer.title_trie.items(str)[::skip]
         except KeyError:
             return []
 
@@ -227,7 +257,7 @@ class Completions(object):
         non_primary_matches = []
         for k, v in all_continuations:
             if v["is_primary"] and v["key"] not in self.keys_covered:
-                if v["type"] == "ref":
+                if v["type"] == "ref" or v["type"] == "word_form":
                     self.completions += [v["title"]]
                 else:
                     self.completions.insert(0, v["title"])
