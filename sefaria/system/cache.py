@@ -57,14 +57,16 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, 
 
             # Inner scope variables are read-only so we set a new var
             _cache_key = cache_key
+            do_actual_func = False
 
             if not _cache_key:
                 key_args = args[:]
-                if isinstance(key_args[0], HttpRequest): # we dont want a HttpRequest to form part of the cache key, it wont be replicatable.
+                if len(key_args) and isinstance(key_args[0], HttpRequest): # we dont want a HttpRequest to form part of the cache key, it wont be replicatable.
                     key_args = key_args[1:]
                 _cache_key = cache_get_key(cache_prefix if cache_prefix else fn.__name__, *key_args, **kwargs)
 
-            if action in ["reset"]:
+            if action in ["reset", "set"]:
+                do_actual_func = True
                 try:
                     delete_cache_elem(_cache_key, cache_type=cache_type)
                 except:
@@ -75,7 +77,7 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, 
                 result = get_cache_elem(_cache_key, cache_type=cache_type)
 
             if not result:
-                if default_on_miss is False or action == "reset":
+                if default_on_miss is False or do_actual_func:
                     result = fn(*args, **kwargs)
                     set_cache_elem(_cache_key, result, timeout=timeout, cache_type=cache_type)
                 else:
