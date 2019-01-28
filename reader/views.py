@@ -1881,7 +1881,6 @@ simplified_toc = {}
 @json_response_decorator
 @django_cache(default_on_miss = True)
 def version_status_tree_api(request, lang=None):
-    key = lang or "none"
     def simplify_toc(toc_node, path):
         simple_nodes = []
         for x in toc_node:
