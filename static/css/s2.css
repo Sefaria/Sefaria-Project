@@ -5773,7 +5773,10 @@ sup.nechama {
     position: absolute;
     text-decoration: none;
 }
-
+.heLeft.bilingual .sheetContent .text sup.nechama,
+.heRight.bilingual .sheetContent .text sup.nechama {
+    margin-right: -28px;
+}
 .sheetItem.ref-display-none .ref {
   display: none;
 }
