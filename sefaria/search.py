@@ -544,16 +544,14 @@ class TextIndexer(object):
         cls.best_time_period = cls.curr_index.best_time_period()
         cls.trefs_seen = set()
         version_priority = 0
-        version = None
         if not merged:
             for priority, v in enumerate(cls.get_ref_version_list(oref)):
                 if v['versionTitle'] == version_title:
                     version_priority = priority
-                    version = v
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
-        doc = cls.make_text_index_document(tref, oref.he_normal(), version, lang, version_priority, content, categories)
+        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories)
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index_name, "text", doc, id)
 

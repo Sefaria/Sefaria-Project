@@ -200,8 +200,8 @@ urlpatterns += [
 
 # Search API
 urlpatterns += [
-    url(r'^api/dummy-search$', reader_views.dummy_search_api)
-    # url(r'^api/search$', reader_views.search_api)
+    url(r'^api/dummy-search$', reader_views.dummy_search_api),
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api)
 ]
 
 # Following API
