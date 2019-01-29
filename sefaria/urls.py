@@ -1,3 +1,4 @@
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
@@ -291,6 +292,8 @@ urlpatterns += [
     url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    url(r'^api/token/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    url(r'^api/token/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 # Compare Page

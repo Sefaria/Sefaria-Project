@@ -1,7 +1,7 @@
 # Django settings for sefaria project.
 
 import os.path
-
+from datetime import timedelta
 from django.utils.translation import ugettext_lazy as _
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
@@ -168,6 +168,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 LOCALE_PATHS = (
