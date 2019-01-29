@@ -88,3 +88,5 @@ def ensure_indices():
     db.word_form.ensure_index("c_form")
     db.term.ensure_index("titles.text", unique=True)
     db.lexicon_entry.ensure_index([("headword", pymongo.ASCENDING), ("parent_lexicon", pymongo.ASCENDING)])
+    db.user_story.ensure_index([("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)])
+

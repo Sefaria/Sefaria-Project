@@ -670,6 +670,7 @@ def home_feed(request):
         "desc": "",
     })
 
+
 def public_groups(request):
     props = base_props(request)
     title = _("Sefaria Groups")
@@ -2359,6 +2360,30 @@ def dictionary_api(request, word):
             return jsonResponse(result, callback=request.GET.get("callback", None))
     else:
         return jsonResponse({"error": "No information found for given word."})
+
+
+@catch_error_as_json
+def stories_api(request):
+    """
+    API for retrieving stories.
+    """
+
+    # if not request.user.is_authenticated:
+    #     return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+    page      = int(request.GET.get("page", 0))
+    page_size = int(request.GET.get("page_size", 10))
+
+    stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
+
+    return jsonResponse({
+                            "stories": stories.contents(),
+                            "page": page,
+                            "page_size": page_size,
+                            "count": stories.count()
+                        })
+
+
 
 
 @catch_error_as_json

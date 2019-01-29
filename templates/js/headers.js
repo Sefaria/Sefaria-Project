@@ -659,7 +659,7 @@
          	   sjs.loadMoreNotifications();
         	}
     	});
-    	sjs.loadMoreNotifications = function() {
+    	sjs.loadMoreStories = function() {
     		$.getJSON("/api/notifications?page=" + sjs.notificationsPage, function(data) {
     			if (data.count < data.page_size) {
     				$("#notifications").unbind("scroll");

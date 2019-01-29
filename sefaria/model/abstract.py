@@ -318,6 +318,9 @@ class AbstractMongoSet(collections.Iterable):
         self.max = len(self.records)
         return self
 
+    def contents(self, **kwargs):
+        return [r.contents(**kwargs) for r in self]
+
 
 def get_subclasses(c):
     subclasses = c.__subclasses__()

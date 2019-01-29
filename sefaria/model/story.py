@@ -59,7 +59,9 @@ Mapping of "type" to "storyForm":
     "index": "newIndex"
     "version": "newVersion"
 
+storyForms relate to React components.  There is an explicit mapping in HomeFeed.jsx 
 """
+
 
 class GlobalStory(Story):
 
@@ -78,10 +80,24 @@ class GlobalStory(Story):
     def _init_defaults(self):
         self.timestamp = int(time.time())
 
+    @staticmethod
+    def latest_id():
+        n = db.global_story.find_one({}, {"_id": 1}, sort=[["_id", -1]])
+        if not n:
+            return None
+        return n["_id"]
 
 
 class GlobalStorySet(abst.AbstractMongoSet):
     recordClass = GlobalStory
+
+    def __init__(self, query=None, page=0, limit=0, sort=None):
+        sort = sort or [["_id", -1]]
+        super(GlobalStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+
+    def register_for_user(self, uid):
+        for global_story in self:
+            UserStory().register_global_story(global_story, uid).save()
 
 
 class UserStory(Story):
@@ -120,13 +136,51 @@ class UserStory(Story):
             assert self.data
             assert self.storyForm
 
+    @staticmethod
+    def latest_global_for_user(uid):
+        n = db.user_story.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
+        return n["_id"] if n else None
+
+    def register_global_story(self, global_story, user_id):
+        self.is_global = True
+        self.global_story_id = global_story._id
+        self.uid = user_id
+        self.timestamp = global_story.timestamp
+        return self
+
     def contents(self, **kwargs):
         c = super(UserStory, self).contents(**kwargs)
         if self.is_global:
             g = GlobalStory().load_by_id(self.global_story_id)
             c.update(g.contents(**kwargs))
-        return c
+            del c["global_story_id"] 
 
 
 class UserStorySet(abst.AbstractMongoSet):
     recordClass = UserStory
+
+    def __init__(self, query=None, page=0, limit=0, sort=None):
+        sort = sort or [["date", -1]]
+        super(UserStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+
+    def _add_global_stories(self, uid):
+        """
+        Add user Notification records for any new GlobalNotifications
+        :return:
+        """
+        #todo: is there a quicker way to short circuit this, and avoid these queries, when it has recently been updated?
+        latest_id_for_user = UserStory.latest_global_for_user(uid)
+        latest_global_id = GlobalStory.latest_id()
+        if latest_global_id and (latest_global_id != latest_id_for_user):
+            if latest_id_for_user is None:
+                GlobalStorySet({}, limit=10).register_for_user(uid)
+            else:
+                GlobalStorySet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
+
+    def recent_for_user(self, uid, page=0, limit=10):
+        """
+        Loads recent notifications for uid.
+        """
+        self._add_global_stories(uid)
+        self.__init__(query={"uid": uid}, page=page, limit=limit)
+        return self

@@ -158,6 +158,7 @@ urlpatterns += [
     url(r'^api/notifications/?$', reader_views.notifications_api),
     url(r'^api/notifications/read', reader_views.notifications_read_api),
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
+    url(r'^api/stories/?$', reader_views.stories_api),
     url(r'^api/messages/?$', reader_views.messages_api),
 ]
 
