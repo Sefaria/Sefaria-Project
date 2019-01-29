@@ -58,7 +58,10 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
 
 def invalidate_linked(oref):
     for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
-        invalidate_ref(linkref)
+        try:
+            invalidate_ref(linkref)
+        except UnicodeDecodeError:
+            logger.warn(u"Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
 
 
 def invalidate_counts(indx):
