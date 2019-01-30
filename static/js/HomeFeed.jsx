@@ -58,9 +58,10 @@ class HomeFeed extends Component {
   //This is a pseudo Component.  It uses "storyForm" to determine the component to render.
   Story(props) {
     const components = {
-      newContent: NewContentStory,
-      newIndex:   NewIndexStory,
-      newVersion: NewVersionStory
+      newContent:   NewContentStory,
+      newIndex:     NewIndexStory,
+      newVersion:   NewVersionStory,
+      publishSheet: PublishSheetStory
     };
     const SpecificStory = components[props.storyForm];
     return <SpecificStory
@@ -178,6 +179,26 @@ class NewVersionStory extends Story {
           </div>
         </div>);
     }
+}
+
+class PublishSheetStory extends Story {
+  /* props.data: {
+      publisher_id
+      publisher_name
+      publisher_url
+      sheet_id
+      sheet_title
+      }
+   */
+  render() {
+      return (
+        <div className="story">
+          {this.dateBlock()}
+            <span className="int-en"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> published a new sheet <a href={"/sheets/" + this.props.data.sheet_id}>{this.props.data.sheet_title}</a>.</span>
+            <span className="int-he"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> פרסם/ה דף מקורות חדש, <a href={"/sheets/" + this.props.data.sheet_id}>{this.props.data.sheet_title}</a>.</span>
+        </div>
+      );
+  }
 }
 
 module.exports = HomeFeed;

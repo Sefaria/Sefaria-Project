@@ -53,6 +53,14 @@ def get_sheet(id=None):
 	s["_id"] = str(s["_id"])
 	return s
 
+
+def get_sheet_title(id = None):
+	assert id
+	s = db.sheets.find_one({"id": int(id)}, {"title", 1})
+	assert s
+	return s["title"]
+
+
 def get_sheet_node(sheet_id=None, node_id=None):
 	"""
 	Returns the source sheet with id.

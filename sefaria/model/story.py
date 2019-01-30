@@ -60,6 +60,13 @@ Mapping of "type" to "storyForm":
     "version": "newVersion"
 
 storyForms relate to React components.  There is an explicit mapping in HomeFeed.jsx 
+
+Other story forms:
+    "publishSheet"
+        "publisher_id"
+        "publisher_name" (derived)
+        "sheet_id"
+        "sheet_title" (derived) 
 """
 
 
@@ -154,7 +161,20 @@ class UserStory(Story):
             g = GlobalStory().load_by_id(self.global_story_id)
             c.update(g.contents(**kwargs))
             del c["global_story_id"]
+
+        # Add Derived Attributes
+        d = c["data"]
+        if "publisher_id" in d:
+            d["publisher_name"] = user_profile.user_name(d["publisher_id"])
+            d["publisher_url"] = user_profile.profile_url(d["publisher_id"])
+        if "sheet_id" in d:
+            from sefaria.sheets import get_sheet_title
+            d["sheet_name"] = get_sheet_title(d["sheet_id"])
+
         return c
+
+
+
 
 
 class UserStorySet(abst.AbstractMongoSet):
