@@ -560,11 +560,6 @@ class ReaderApp extends Component {
             hist.url = "groups";
             hist.mode = "publicGroups";
             break;
-          case "publicGroups":
-            hist.title = Sefaria._("Sefaria Groups");
-            hist.url = "groups";
-            hist.mode = "publicGroups";
-            break;
           case "myGroups":
             hist.title = Sefaria._("Sefaria Groups");
             hist.url = "my/groups";
@@ -594,6 +589,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("My User History");
             hist.url = "texts/history";
             hist.mode = "history";
+            break;
+          case "homefeed":
+            hist.title = Sefaria._("Sefaria Stories");
+            hist.url = "newhome";
+            hist.mode = "homefeed";
             break;
         }
       } else if (state.mode === "Text") {

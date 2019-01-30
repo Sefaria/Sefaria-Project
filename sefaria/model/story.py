@@ -6,11 +6,8 @@ notifications.py - handle user event notifications
 Writes to MongoDB Collection: notifications
 """
 
-import re
-import json
 import time
-
-from django.template.loader import render_to_string
+import bleach
 
 from . import abstract as abst
 from . import user_profile
@@ -169,7 +166,7 @@ class UserStory(Story):
             d["publisher_url"] = user_profile.profile_url(d["publisher_id"])
         if "sheet_id" in d:
             from sefaria.sheets import get_sheet_title
-            d["sheet_name"] = get_sheet_title(d["sheet_id"])
+            d["sheet_title"] = bleach.clean(get_sheet_title(d["sheet_id"]), strip=True, tags=())
 
         return c
 

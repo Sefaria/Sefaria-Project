@@ -56,7 +56,7 @@ def get_sheet(id=None):
 
 def get_sheet_title(id = None):
 	assert id
-	s = db.sheets.find_one({"id": int(id)}, {"title", 1})
+	s = db.sheets.find_one({"id": int(id)}, {"title": 1})
 	assert s
 	return s["title"]
 
