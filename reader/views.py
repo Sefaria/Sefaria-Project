@@ -2,6 +2,8 @@
 
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta, date
+from elasticsearch_dsl import Search
+from elasticsearch import Elasticsearch
 from sets import Set
 from random import choice
 from pprint import pprint
@@ -56,8 +58,9 @@ from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_i
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.helper.search import get_query_obj
 from django.utils.html import strip_tags
 
 if USE_VARNISH:
@@ -2322,7 +2325,12 @@ def dictionary_completion_api(request, word, lexicon=None):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
 
-    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    if lexicon is None:
+        ac = library.cross_lexicon_auto_completer()
+        rs = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+    else:
+        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
 
 
@@ -3619,37 +3627,23 @@ def dummy_search_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
-# def search_api(request):
-#     # dict to define request parameters and their default values. None means parameter is required
-#     params = {
-#         "query": None,
-#         "size": 10,
-#         "from": 0,
-#         "type": None,  #
-#         "get_filters": False,
-#         "applied_filters": [],
-#         "field": None,
-#         "sort_type": None,
-#         "exact": False
-#     }
-#     param_vals = {}
-#     for p in params:
-#         param_vals[p] = request.GET.get(p, )
-#     query = request.GET.get("q")
-#     """
-#              query: query string
-#              size: size of result set
-#              from: from what result to start
-#              type: "sheet" or "text"
-#              get_filters: if to fetch initial filters
-#              applied_filters: filter query by these filters
-#              field: field to query in elastic_search
-#              sort_type: chonological or relevance
-#              exact: if query is exact
-#              success: callback on success
-#              error: callback on error
-#     """
-#     size = request.GET.get("size")
+
+@csrf_exempt
+def search_wrapper_api(request):
+    if request.method == "POST":
+        if "json" in request.POST:
+            j = request.POST.get("json")  # using form-urlencoded
+        else:
+            j = request.body  # using content-type: application/json
+        j = json.loads(j)
+        es_client = Elasticsearch(SEARCH_ADMIN)
+        search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
+        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in j.items()})
+        response = search_obj.execute()
+        if response.success():
+            return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
+        return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @ensure_csrf_cookie

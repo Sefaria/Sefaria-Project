@@ -52,11 +52,11 @@ class ConnectionsPanel extends Component {
     }
     // Turn on the lexicon when receiving new words if they are less than 3
     // and don't span refs.
-    if (!prevProps.selectedWords &&
-        this.props.selectedWords &&
+    if (this.props.selectedWords &&
+        this.props.selectedWords !== prevProps.selectedWords &&
         this.props.selectedWords.match(/[\s:\u0590-\u05ff.]+/) &&
         this.props.selectedWords.split(" ").length < 3 &&
-        this.props.srefs.length == 1) {
+        this.props.srefs.length === 1) {
       this.props.setConnectionsMode("Lexicon");
     }
     // Go back to main sidebar when words are unselected
@@ -314,6 +314,7 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
+                    interfaceLang={this.props.interfaceLang}
       />);
 
     } else if (this.props.mode === "Tools") {
@@ -467,7 +468,7 @@ class ResourcesList extends Component {
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
@@ -493,7 +494,7 @@ class SheetNodeConnectionTools extends Component {
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
                 <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
 

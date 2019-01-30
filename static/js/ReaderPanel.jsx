@@ -1098,7 +1098,7 @@ class ReaderControls extends Component {
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
-      this.state.runningQuery.abort();
+      this.state.runningQuery.abort();  //todo: make work with promises
     }
   }
   render() {
@@ -1168,7 +1168,6 @@ class ReaderControls extends Component {
             historyObject={this.props.historyObject}
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}
-            interfaceLang={this.props.interfaceLang}
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);

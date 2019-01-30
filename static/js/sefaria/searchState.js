@@ -148,14 +148,13 @@ SearchState.metadataByType = {
     field: 'naive_lemmatizer',
     aggregation_field_array: ['path'],
     build_and_apply_filters: 'buildAndApplyTextFilters',  // func name from Search.js
-    make_filter_query: 'makeTextFilterQuery',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [  // this array defines the sort options available for each search type
       {
         type: 'relevance',
         name: 'Relevance',
         heName: 'רלוונטיות',
-        field: 'pagesheetrank',
+        fieldArray: ['pagesheetrank'],
         sort_method: 'score',  // if sort_method == 'score', it will combine the standard elasticsearch score with `field`
         score_missing: 0.04,  // this default value comes from the equation used to calculate pagesheetrank. see search.py where this field is created
       },
@@ -175,14 +174,13 @@ SearchState.metadataByType = {
     field: 'content',
     aggregation_field_array: ['group', 'tags'],
     build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
-    make_filter_query: 'makeSheetFilterQuery',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [
       {
         type: 'relevance',
         name: 'Relevance',
         heName: 'רלוונטיות',
-        field: null,
+        fieldArray: [],
         sort_method: 'score',
       },
       {

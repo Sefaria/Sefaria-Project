@@ -1,4 +1,6 @@
 # encoding=utf-8
+import django
+django.setup()
 from sefaria.model import *
 from sefaria.helper import schema
 from sefaria.system.exceptions import BookNameError
@@ -68,6 +70,15 @@ def setup_module():
         "chapter": root.create_skeleton()
     }).save()
 
+    # an empty version
+    v = Version({
+        "language": "en",
+        "title": "Delete Me",
+        "versionSource": "http://foobar.com",
+        "versionTitle": "Schema Test Blank",
+        "chapter": root.create_skeleton()
+    }).save()
+
     p1 = [['Part1 part1', 'Part1'], ['Part1'], ['Part1', '', 'part1']]
     chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
     chunk.text = p1
@@ -121,7 +132,7 @@ def teardown_module():
     ls.delete()
     ns = NoteSet({"ref": {"$regex": "Delete Me.*"}})
     ns.delete()
-    v = Version().load({'title': 'Delete Me'})
+    v = VersionSet({'title': 'Delete Me'})
     v.delete()
     i = Index().load({'title': 'Delete Me'})
     i.delete()
@@ -314,6 +325,8 @@ def test_change_node_structure():
     assert node.depth == 3
     chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
     assert chunk.text == [[['Part1 part1'], ['Part1']], [['Part1']], [['Part1'], [], ['part1']]]
+    blank_chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test Blank')
+    assert len(blank_chunk.text) == 0
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 1:1:1', 'Shabbat 2a:5'],}), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 2:1:1', 'Delete Me, Part2 2:1'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 3:1', 'Shabbat 2a:5'], }), Link)

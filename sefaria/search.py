@@ -540,20 +540,18 @@ class TextIndexer(object):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
         cls.merged = merged
         cls.index_name = index_name
-        cls.best_time_period = cls.curr_index.best_time_period()
         cls.curr_index = oref.index
+        cls.best_time_period = cls.curr_index.best_time_period()
         cls.trefs_seen = set()
         version_priority = 0
-        version = None
         if not merged:
             for priority, v in enumerate(cls.get_ref_version_list(oref)):
                 if v['versionTitle'] == version_title:
                     version_priority = priority
-                    version = v
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
-        doc = cls.make_text_index_document(tref, oref.he_normal(), version, lang, version_priority, content, categories)
+        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories)
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index_name, "text", doc, id)
 
@@ -619,9 +617,9 @@ class TextIndexer(object):
         else:
             comp_start_date = 3000  # far in the future
 
-        section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
+        # section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
 
-        pagerank = math.log(pagerank_dict[section_ref]) + 20 if section_ref in pagerank_dict else 1.0
+        pagerank = math.log(pagerank_dict[tref]) + 20 if tref in pagerank_dict else 1.0
         sheetrank = (1.0 + sheetrank_dict[tref]["count"] / 5)**2 if tref in sheetrank_dict else (1.0 / 5) ** 2
         return {
             "ref": tref,
