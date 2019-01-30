@@ -153,7 +153,8 @@ class UserStory(Story):
         if self.is_global:
             g = GlobalStory().load_by_id(self.global_story_id)
             c.update(g.contents(**kwargs))
-            del c["global_story_id"] 
+            del c["global_story_id"]
+        return c
 
 
 class UserStorySet(abst.AbstractMongoSet):

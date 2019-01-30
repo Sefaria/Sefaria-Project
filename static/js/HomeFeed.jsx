@@ -16,10 +16,7 @@ class HomeFeed extends Component {
       page: 0,
       loadedToEnd: false,
       loading: false,
-      updates: [],
-      submitting: false,
-      submitCount: 0,
-      error: null
+      stories: [],
     };
   }
   componentDidMount() {
@@ -35,14 +32,14 @@ class HomeFeed extends Component {
     }
   }
   getMoreStories() {
-    $.getJSON("/api/updates?page=" + this.state.page, this.loadMoreStories);
+    $.getJSON("/api/stories?page=" + this.state.page, this.loadMoreStories);
     this.setState({loading: true});
   }
   loadMoreStories(data) {
     if (data.count < data.page_size) {
       this.setState({loadedToEnd: true});
     }
-    this.setState({page: data.page + 1, loading: false, updates: this.state.updates.concat(data.updates)});
+    this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
   }
   /*
   onDelete(id) {
@@ -58,7 +55,7 @@ class HomeFeed extends Component {
   }
   */
 
-
+  //This is a pseudo Component.  It uses "storyForm" to determine the component to render.
   Story(props) {
     const components = {
       newContent: NewContentStory,
@@ -66,7 +63,12 @@ class HomeFeed extends Component {
       newVersion: NewVersionStory
     };
     const SpecificStory = components[props.storyForm];
-    return <SpecificStory data={props.data} />;
+    return <SpecificStory
+                storyForm={props.storyForm}
+                data={props.data}
+                timestamp={props.timestamp}
+                is_global={props.is_global}
+                key={props.timestamp} />;
   }
 
   render() {
@@ -79,17 +81,7 @@ class HomeFeed extends Component {
           <div className="contentInner">
 
             <div className="notificationsList">
-            {this.state.updates.map(u =>
-                <Story
-                    type={u.type}
-                    content={u.content}
-                    date={u.date}
-                    key={u._id}
-                    id={u._id}
-                    onDelete={this.onDelete}
-                    submitting={this.state.submitting}
-                />
-            )}
+            {this.state.stories.map(s => this.Story(s))}
             </div>
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -106,66 +98,85 @@ HomeFeed.propTypes = {
 
 
 class Story extends Component {
-
-  onDelete() {
-    // this.props.onDelete(this.props.id);
+  heTitle(title) {
+    return title && Sefaria.index(title)?Sefaria.index(title).heTitle:"";
   }
-  render() {
-    var title = this.props.content.index;
-    if (title) {
-      var heTitle = Sefaria.index(title)?Sefaria.index(title).heTitle:"";
-    }
+  url(title) {
+    return title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
+  }
+  date() {
+    return new Date(this.props.timestamp * 1000)
+  }
 
-    var url = Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
-
-    var d = new Date(this.props.date);
-
+  dateBlock() {
+    const d = this.date();
     return (
-      <div className="notification">
-        <div className="date">
+      <div className="date">
           <span className="int-en">{d.toLocaleDateString("en")}</span>
           <span className="int-he">{d.toLocaleDateString("he")}</span>
-          {Sefaria.is_moderator?<i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>:""}
-        </div>
-
-        {this.props.type == "index"?
-        <div>
-            <span className="int-en">New Text: <a href={url}>{title}</a></span>
-            <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
-        </div>
-        :""}
-
-        {this.props.type == "version"?
-        <div>
-            <span className="int-en">New { this.props.content.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.content.version}</span>
-            <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.content.language == "en"?"אנגלית":"עברית"} : {this.props.content.version}</span>
-        </div>
-        :""}
-
-        <div>
-            <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.content.en } } />
-            <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.content.he } } />
-        </div>
-
-
-      </div>);
+      </div>
+    );
   }
+  render() {}
 }
 
 Story.propTypes = {
+  storyForm: PropTypes.string,
+  timestamp: PropTypes.number,
+  is_global: PropTypes.bool,
   data:      PropTypes.object,
 };
 
 class NewContentStory extends Story {
     render() {
+      return (
+        <div className="story">
+          {this.dateBlock()}
+          <div>
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
+          </div>
+        </div>);
     }
 }
 class NewIndexStory extends Story {
     render() {
+      const title = this.props.data.index;
+      const heTitle = this.heTitle(title);
+      const url = this.url(title);
+
+      return (
+        <div className="story">
+          {this.dateBlock()}
+          <div>
+              <span className="int-en">New Text: <a href={url}>{title}</a></span>
+              <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
+          </div>
+          <div>
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
+          </div>
+        </div>);
     }
 }
 class NewVersionStory extends Story {
     render() {
+      const title = this.props.data.index;
+      const heTitle = this.heTitle(title);
+      const url = this.url(title);
+
+      return (
+        <div className="story">
+          {this.dateBlock()}
+          <div>
+              <span className="int-en">New { this.props.data.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.data.version}</span>
+              <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.data.language == "en"?"אנגלית":"עברית"} : {this.props.data.version}</span>
+          </div>
+          <div>
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
+          </div>
+        </div>);
     }
 }
 
