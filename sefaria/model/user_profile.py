@@ -100,6 +100,10 @@ class UserHistory(abst.AbstractMongoRecord):
             }
         return d
 
+    def _sanitize(self):
+        # UserHistory API is only open to post for your uid
+        pass
+
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
