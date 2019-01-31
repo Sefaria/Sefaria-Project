@@ -99,6 +99,25 @@ def daily_rambam(datetime_obj):
     }]
 
 
+@graceful_exception(logger=logger, return_value=[])
+def daily_rambam_three(datetime_obj):
+    rambam_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.daily_rambam_three.find_one({"date": {"$eq": datetime_obj}})
+    for rf in database_obj["refs"]:
+        rf = model.Ref(rf)
+        display_en = rf.normal().replace("Mishneh Torah, ", "")
+        display_he = rf.he_normal().replace(u"משנה תורה, ", u"")
+        rambam_items.append({
+            "title": {"en": "Daily Rambam Three Chapters", "he": u'הרבמ"ם היומי, שלוש פרקים'},
+            "displayValue": {"en": display_en, "he": display_he},
+            "url": rf.url(),
+            "order": 7,
+            "category": rf.index.get_primary_category()
+        })
+    return rambam_items
+
+
 def make_haftarah_by_custom_response_from_calendar_entry(db_haftara, custom, add_custom_to_display):
     shorthands = {
         "ashkenazi" : {"en": 'A', "he": u'א'},
@@ -174,6 +193,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += daily_929(datetime_obj)
     cal_items += daily_mishnayot(datetime_obj)
     cal_items += daily_rambam(datetime_obj)
+    cal_items += daily_rambam_three(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
