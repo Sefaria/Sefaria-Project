@@ -36,6 +36,7 @@ from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
 from reader.views import catchall
+from sefaria.sheets import clean_source
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -572,6 +573,11 @@ def save_sheet_api(request):
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 		else:
 			existing = None
+
+		cleaned_sources = []
+		for source in sheet["sources"]:
+			cleaned_sources.append(clean_source(source))
+		sheet["sources"] = cleaned_sources
 
 		if sheet.get("group", None):
 			# Quietly enforce group permissions
