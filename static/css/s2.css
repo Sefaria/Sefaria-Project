@@ -3078,6 +3078,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-left: 0;
   padding-right: 0;
 }
+.readerPanel.english .sheetItem.heOnly .en,
+.readerPanel.bilingual .sheetItem.heOnly .en {
+  display: none;
+}
+.readerPanel.hebrew .sheetItem.heOnly .he,
+.readerPanel.bilingual .sheetItem.heOnly .he {
+  display: inline;
+}
+.readerPanel.hebrew .sheetItem.enOnly .he,
+.readerPanel.bilingual .sheetItem.enOnly .he {
+  display: none;
+}
+.readerPanel.english .sheetItem.enOnly .en,
+.readerPanel.bilingual .sheetItem.enOnly .en {
+  display: inline;
+}
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he {
   float: right;
@@ -5662,6 +5678,12 @@ span.purim-emoji img{
   display: none;
 }
 
+.readerPanel.hebrew .sheetContent .sheetItem.segment.enOnly .sourceContentText.outsideBiText.en {
+  display: inline;
+}
+.readerPanel.english .sheetContent .sheetItem.segment.heOnly .sourceContentText.outsideBiText.he {
+  display: inline;
+}
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
@@ -5751,7 +5773,10 @@ sup.nechama {
     position: absolute;
     text-decoration: none;
 }
-
+.heLeft.bilingual .sheetContent .text sup.nechama,
+.heRight.bilingual .sheetContent .text sup.nechama {
+    margin-right: -28px;
+}
 .sheetItem.ref-display-none .ref {
   display: none;
 }

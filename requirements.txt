@@ -9,6 +9,7 @@ BeautifulSoup
 bleach==1.4.2
 rauth
 elasticsearch
+elasticsearch_dsl
 regex
 pytest
 mailchimp

@@ -348,12 +348,11 @@ class SheetSource extends Component {
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>);
-
       var containerClasses = classNames("sheetItem",
           "segment",
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.text && this.props.source.text.en && this.props.source.text.en == "..." ? "heOnly" : null,
-          this.props.source.text && this.props.source.text.he && this.props.source.text.he == "..." ? "enOnly" : null,
+          (this.props.source.text && this.props.source.text.en && this.props.source.text.en == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
+          (this.props.source.text && this.props.source.text.he && this.props.source.text.he == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,
           this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
@@ -508,6 +507,8 @@ class SheetOutsideBiText extends Component {
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",
+          this.props.source.outsideBiText.en == "..." || !this.props.source.outsideBiText.en ? "heOnly" : null,
+          this.props.source.outsideBiText.he == "..." || !this.props.source.outsideBiText.he ? "enOnly" : null,
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
           this.props.source.options ? this.props.source.options.indented : null
       )
