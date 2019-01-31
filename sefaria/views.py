@@ -13,7 +13,7 @@ from webpack_loader import utils as webpack_utils
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -27,6 +27,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.urls import resolve
+from django.urls.exceptions import Resolver404
 
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -335,13 +337,38 @@ def reset_index_cache_for_text(request, title):
 """@staff_member_required
 def view_cached_elem(request, title):
     return HttpResponse(get_template_cache('texts_list'), status=200)
-
+"""
 
 @staff_member_required
-def del_cached_elem(request, title):
-    delete_template_cache('texts_list')
-    toc_html = get_template_cache('texts_list')
-    return HttpResponse(toc_html, status=200)"""
+def reset_cached_api(request, apiurl):
+    """
+    This admin call gets the url of the original api that we wish to reset, backwards resolves that original function and gets its data back into cache
+    :param request:
+    :param apiurl:
+    :return:
+    """
+    from undecorated import undecorated
+    from importlib import import_module
+    try:
+        match = resolve("/api/{}".format(apiurl))
+        #mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
+        #func = mod.__getattribute__(match.func.func_name)
+
+        if "django_cache" in match.func.func_dict:
+            api_view = undecorated(match.func)
+            redecorated_api_view = scache.django_cache(action="reset")(api_view)
+            redecorated_api_view(request, *match.args, **match.kwargs)
+
+            return HttpResponseRedirect("/api/{}".format(apiurl))
+        else:
+            raise Http404("API not in cache")
+
+    except Resolver404 as re:
+        logger.warn("Attempted to reset invalid url")
+        raise Http404()
+    except Exception as e:
+        logger.warn("Unable to reset cache for {}".format(apiurl))
+        raise Http404()
 
 
 @staff_member_required
