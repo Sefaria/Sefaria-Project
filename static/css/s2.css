@@ -5867,3 +5867,19 @@ sup.nechama {
   padding: 20px 0;
   border-top: 4px solid transparent;
 }
+.storyFeed .story .storyTitle {
+  clear: both;
+  padding: 10px 0 20px;
+}
+.interface-english .storyFeed .story .storyTypeBlock {
+  float: left;
+}
+.interface-hebrew .storyFeed .story .storyTypeBlock {
+  float: right;
+}
+.interface-english .storyFeed .story .timeBlock {
+  float: right;
+}
+.interface-hebrew .storyFeed .story .timeBlock {
+  float: left;
+}

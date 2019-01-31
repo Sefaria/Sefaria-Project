@@ -110,17 +110,17 @@ class AbstractStory extends Component {
       Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
       Sefaria.palette.categoryColor("Other");
   }
-  date() {
-    return new Date(this.props.timestamp * 1000)
-  }
-  naturalDateBlock() {
+  naturalTimeBlock() {
       return (
-        <div className="naturaltime">
+        <div className="timeBlock smallText">
           <span className="int-en">{ this.props.natural_time.en } ago</span>
           <span className="int-he">&rlm;לפני { this.props.natural_time.he }</span>
         </div>);
   }
   /*
+  date() {
+    return new Date(this.props.timestamp * 1000)
+  }
   dateBlock() {
     const d = this.date();
     return (
@@ -147,11 +147,16 @@ class NewContentStory extends AbstractStory {
 
       return (
         <div className="story" style={cardStyle}>
-          {this.naturalDateBlock()}
-          <div>
+            <div className="storyTypeBlock sectionTitleText">
+                <span className="int-en">New Content</span>
+                <span className="int-he">תוכן חדש</span>
+            </div>
+            {this.naturalTimeBlock()}
+
+            <div className="storyBody systemText">
               <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
               <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
-          </div>
+            </div>
         </div>);
     }
 }
@@ -164,15 +169,19 @@ class NewIndexStory extends AbstractStory {
 
       return (
         <div className="story" style={cardStyle}>
-          {this.naturalDateBlock()}
-          <div>
-              <span className="int-en">New Text: <a href={url}>{title}</a></span>
-              <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
-          </div>
-          <div>
+            <div className="storyTypeBlock sectionTitleText">
+                <span className="int-en">New Text</span>
+                <span className="int-he">טקסט חדש</span>
+            </div>
+            {this.naturalTimeBlock()}
+            <div className="storyTitle pageTitle">
+                <span className="int-en">{title}</span>
+                <span className="int-he">{heTitle}</span>
+            </div>
+            <div className="storyBody systemText">
               <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
               <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
-          </div>
+            </div>
         </div>);
     }
 }
@@ -183,17 +192,27 @@ class NewVersionStory extends AbstractStory {
       const url = this.url(title);
       const cardStyle = {"border-color": this.indexColor(title)};
 
-      return (
-        <div className="story" style={cardStyle}>
-          {this.naturalDateBlock()}
-          <div>
+      /*
+         <div>
               <span className="int-en">New { this.props.data.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.data.version}</span>
               <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.data.language == "en"?"אנגלית":"עברית"} : {this.props.data.version}</span>
           </div>
-          <div>
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
-          </div>
+      */
+      return (
+        <div className="story" style={cardStyle}>
+            <div className="storyTypeBlock sectionTitleText">
+                <span className="int-en">New Version</span>
+                <span className="int-he">גרסה חדשה</span>
+            </div>
+            {this.naturalTimeBlock()}
+            <div className="storyTitle pageTitle">
+                <span className="int-en">{title}</span>
+                <span className="int-he">{heTitle}</span>
+            </div>
+            <div className="storyBody systemText">
+                <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
+                <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
+            </div>
         </div>);
     }
 }
@@ -209,12 +228,22 @@ class PublishSheetStory extends AbstractStory {
    */
   render() {
       const cardStyle = {"border-color": "#18345D"};
-
+    // <a href={"/sheets/" + this.props.data.sheet_id}>
       return (
         <div className="story" style={cardStyle}>
-          {this.naturalDateBlock()}
-            <span className="int-en"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> published a new sheet <a href={"/sheets/" + this.props.data.sheet_id}>{this.props.data.sheet_title}</a>.</span>
-            <span className="int-he"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> פרסם/ה דף מקורות חדש, <a href={"/sheets/" + this.props.data.sheet_id}>{this.props.data.sheet_title}</a>.</span>
+            <div className="storyTypeBlock sectionTitleText">
+                <span className="int-en">New Sheet</span>
+                <span className="int-he">דף מקורות חדש</span>
+            </div>
+            {this.naturalTimeBlock()}
+            <div className="storyTitle pageTitle">
+                <span className="int-en">{this.props.data.sheet_title}</span>
+                <span className="int-he">{this.props.data.sheet_title}</span>
+            </div>
+            <div className="storyBody systemText">
+                <span className="int-en"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> </span>
+                <span className="int-he"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> </span>
+            </div>
         </div>
       );
   }
