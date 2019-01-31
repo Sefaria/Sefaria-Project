@@ -953,10 +953,10 @@ class AbstractTextRecord(object):
         )
 
 
-class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaContent):
+class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
-
+    NOTE: AbstractTextRecord is inherited before AbastractMongoRecord in order to overwrite ALLOWED_TAGS
     Relates to a complete single record from the texts collection.
     """
     history_noun = 'text'
@@ -1017,6 +1017,10 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 self.priority = float(self.priority)
             except ValueError as e:
                 self.priority = None
+
+    def _sanitize(self):
+        # sanitization happens on TextChunk saving
+        pass
 
     def get_index(self):
         return library.get_index(self.title)

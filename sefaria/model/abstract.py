@@ -6,6 +6,7 @@ abstract.py - abstract classes for Sefaria models
 import collections
 import logging
 import copy
+import bleach
 
 #Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
@@ -34,6 +35,8 @@ class AbstractMongoRecord(object):
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     history_noun = None  # Label for history records
+    ALLOWED_TAGS = bleach.ALLOWED_TAGS + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
+    ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
     def __init__(self, attrs=None):
         if attrs is None:
@@ -107,6 +110,7 @@ class AbstractMongoRecord(object):
 
         self._normalize()
         self._validate()
+        self._sanitize()
         self._pre_save()
 
         props = self._saveable_attrs()
@@ -235,6 +239,16 @@ class AbstractMongoRecord(object):
 
     def _pre_save(self):
         pass
+
+    def _sanitize(self):
+        """
+        bleach all input to protect against security risks
+        """
+        all_attrs = self.required_attrs + self.optional_attrs
+        for attr in all_attrs:
+            val = getattr(self, attr, None)
+            if isinstance(val, basestring):
+                setattr(self, attr, bleach.clean(val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS))
 
     def same_record(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):

@@ -24,41 +24,44 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     if not isinstance(oref, Ref):
         return
     
-    if getattr(oref.index_node, "depth", False) and len(oref.sections) >= oref.index_node.depth - 1:
+    if getattr(oref.index_node, u"depth", False) and len(oref.sections) >= oref.index_node.depth - 1:
         oref = oref.section_ref()
 
     if version:
-        version = urllib.quote(version.replace(" ", "_").encode("utf-8"))
+        version = urllib.quote(version.replace(u" ", u"_").encode("utf-8"))
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
-        purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
         if version and lang:
             try:
                 purge_url(u"{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
             except Exception as e:
                 logger.exception(e)
         # Hacky to add these
-        purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
         if version and lang:
             try:
                 purge_url(u"{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
             except Exception as e:
                 logger.exception(e)
-        purge_url("{}/api/links/{}".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/links/{}".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
 
     # Ban anything underneath this section
-    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
-    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
+    manager.run(u"ban", u'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
+    manager.run(u"ban", u'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
 
 
 def invalidate_linked(oref):
     for linkref in {r.section_ref() for r in oref.linkset().refs_from(oref)}:
-        invalidate_ref(linkref)
+        try:
+            invalidate_ref(linkref)
+        except UnicodeDecodeError:
+            logger.warn(u"Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
 
 
 def invalidate_counts(indx):

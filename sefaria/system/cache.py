@@ -1,6 +1,11 @@
 
 import hashlib
 import sys
+from functools import wraps
+from django.http import HttpRequest
+
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from sefaria.settings import USE_VARNISH
@@ -37,30 +42,47 @@ def cache_get_key(*args, **kwargs):
     return key
 
 
-def django_cache_decorator(time=300, cache_key='', cache_type=None):
+def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, default_on_miss = False, default_on_miss_value=None, cache_type=None):
     """
     Easily add caching to a function in django
     """
-    cache_instance = get_cache_factory(cache_type)
     if not cache_key:
         cache_key = None
 
     def decorator(fn):
+        fn.func_dict["django_cache"] = True
+        @wraps(fn)
         def wrapper(*args, **kwargs):
             #logger.debug([args, kwargs])
 
             # Inner scope variables are read-only so we set a new var
             _cache_key = cache_key
+            do_actual_func = False
 
             if not _cache_key:
-                _cache_key = cache_get_key(fn.__name__, *args, **kwargs)
+                key_args = args[:]
+                if len(key_args) and isinstance(key_args[0], HttpRequest): # we dont want a HttpRequest to form part of the cache key, it wont be replicatable.
+                    key_args = key_args[1:]
+                _cache_key = cache_get_key(cache_prefix if cache_prefix else fn.__name__, *key_args, **kwargs)
 
-            #logger.debug(['_cach_key.......',_cache_key])
-            result = cache_instance.get(_cache_key)
+            if action in ["reset", "set"]:
+                do_actual_func = True
+                try:
+                    delete_cache_elem(_cache_key, cache_type=cache_type)
+                except:
+                    pass
+                result = None
+            else:
+                #logger.debug(['_cach_key.......',_cache_key])
+                result = get_cache_elem(_cache_key, cache_type=cache_type)
 
             if not result:
-                result = fn(*args, **kwargs)
-                cache_instance.set(_cache_key, result, time)
+                if default_on_miss is False or do_actual_func:
+                    result = fn(*args, **kwargs)
+                    set_cache_elem(_cache_key, result, timeout=timeout, cache_type=cache_type)
+                else:
+                    result = default_on_miss_value
+                    logger.critical("No cached data was found for {}".format(fn.__name__))
 
             return result
         return wrapper
@@ -73,9 +95,9 @@ def get_cache_elem(key, cache_type=None):
     return cache_instance.get(key)
 
 
-def set_cache_elem(key, value, duration = 600000, cache_type=None):
+def set_cache_elem(key, value, timeout = None, cache_type=None):
     cache_instance = get_cache_factory(cache_type)
-    return cache_instance.set(key, value, duration)
+    return cache_instance.set(key, value, timeout)
 
 
 def delete_cache_elem(key, cache_type=None):
