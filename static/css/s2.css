@@ -5861,3 +5861,9 @@ sup.nechama {
   opacity: 1;
   transition: all 0.75s ease;
 }
+
+.storyFeed .story {
+  margin: 20px 0;
+  padding: 20px 0;
+  border-top: 4px solid transparent;
+}

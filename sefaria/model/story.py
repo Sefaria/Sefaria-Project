@@ -8,10 +8,13 @@ Writes to MongoDB Collection: notifications
 
 import time
 import bleach
+from datetime import datetime
 
 from . import abstract as abst
 from . import user_profile
 from sefaria.system.database import db
+from sefaria.utils.util import concise_natural_time
+
 from sefaria.system.exceptions import InputError
 
 import logging
@@ -160,6 +163,10 @@ class UserStory(Story):
             del c["global_story_id"]
 
         # Add Derived Attributes
+        c["natural_time"] = {
+            "en": concise_natural_time(datetime.utcfromtimestamp(c["timestamp"]), lang="en"),
+            "he": concise_natural_time(datetime.utcfromtimestamp(c["timestamp"]), lang="he")
+        }
         d = c["data"]
         if "publisher_id" in d:
             d["publisher_name"] = user_profile.user_name(d["publisher_id"])
@@ -169,9 +176,6 @@ class UserStory(Story):
             d["sheet_title"] = bleach.clean(get_sheet_title(d["sheet_id"]), strip=True, tags=())
 
         return c
-
-
-
 
 
 class UserStorySet(abst.AbstractMongoSet):

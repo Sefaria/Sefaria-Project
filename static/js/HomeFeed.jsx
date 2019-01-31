@@ -57,31 +57,31 @@ class HomeFeed extends Component {
 
   //This is a pseudo Component.  It uses "storyForm" to determine the component to render.
   Story(props) {
-    const components = {
+    const storyForms = {
       newContent:   NewContentStory,
       newIndex:     NewIndexStory,
       newVersion:   NewVersionStory,
       publishSheet: PublishSheetStory
     };
-    const SpecificStory = components[props.storyForm];
-    return <SpecificStory
+    const StoryForm = storyForms[props.storyForm];
+    return <StoryForm
                 storyForm={props.storyForm}
                 data={props.data}
                 timestamp={props.timestamp}
+                natural_time={props.natural_time}
                 is_global={props.is_global}
                 key={props.timestamp} />;
   }
 
   render() {
-    const classes = {};
+    const classes = {"readerNavMenu": 1};
     const classStr = classNames(classes);
 
     return (
       <div className={classStr}>
         <div className="content hasFooter">
           <div className="contentInner">
-
-            <div className="notificationsList">
+            <div className="storyFeed">
             {this.state.stories.map(s => this.Story(s))}
             </div>
           </div>
@@ -98,17 +98,29 @@ HomeFeed.propTypes = {
 
 
 
-class Story extends Component {
+class AbstractStory extends Component {
   heTitle(title) {
     return title && Sefaria.index(title)?Sefaria.index(title).heTitle:"";
   }
   url(title) {
     return title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
   }
+  indexColor(title) {
+      return title && Sefaria.index(title) ?
+      Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
+      Sefaria.palette.categoryColor("Other");
+  }
   date() {
     return new Date(this.props.timestamp * 1000)
   }
-
+  naturalDateBlock() {
+      return (
+        <div className="naturaltime">
+          <span className="int-en">{ this.props.natural_time.en } ago</span>
+          <span className="int-he">&rlm;לפני { this.props.natural_time.he }</span>
+        </div>);
+  }
+  /*
   dateBlock() {
     const d = this.date();
     return (
@@ -117,22 +129,25 @@ class Story extends Component {
           <span className="int-he">{d.toLocaleDateString("he")}</span>
       </div>
     );
-  }
+  } */
   render() {}
 }
 
-Story.propTypes = {
+AbstractStory.propTypes = {
   storyForm: PropTypes.string,
   timestamp: PropTypes.number,
+  natural_time: PropTypes.object,
   is_global: PropTypes.bool,
   data:      PropTypes.object,
 };
 
-class NewContentStory extends Story {
+class NewContentStory extends AbstractStory {
     render() {
+      const cardStyle = {"border-color": "#18345D"};
+
       return (
-        <div className="story">
-          {this.dateBlock()}
+        <div className="story" style={cardStyle}>
+          {this.naturalDateBlock()}
           <div>
               <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
               <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
@@ -140,15 +155,16 @@ class NewContentStory extends Story {
         </div>);
     }
 }
-class NewIndexStory extends Story {
+class NewIndexStory extends AbstractStory {
     render() {
       const title = this.props.data.index;
       const heTitle = this.heTitle(title);
       const url = this.url(title);
+      const cardStyle = {"border-color": this.indexColor(title)};
 
       return (
-        <div className="story">
-          {this.dateBlock()}
+        <div className="story" style={cardStyle}>
+          {this.naturalDateBlock()}
           <div>
               <span className="int-en">New Text: <a href={url}>{title}</a></span>
               <span className="int-he">טקסט חדש זמין: <a href={url}>{heTitle}</a></span>
@@ -160,15 +176,16 @@ class NewIndexStory extends Story {
         </div>);
     }
 }
-class NewVersionStory extends Story {
+class NewVersionStory extends AbstractStory {
     render() {
       const title = this.props.data.index;
       const heTitle = this.heTitle(title);
       const url = this.url(title);
+      const cardStyle = {"border-color": this.indexColor(title)};
 
       return (
-        <div className="story">
-          {this.dateBlock()}
+        <div className="story" style={cardStyle}>
+          {this.naturalDateBlock()}
           <div>
               <span className="int-en">New { this.props.data.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.data.version}</span>
               <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.data.language == "en"?"אנגלית":"עברית"} : {this.props.data.version}</span>
@@ -181,7 +198,7 @@ class NewVersionStory extends Story {
     }
 }
 
-class PublishSheetStory extends Story {
+class PublishSheetStory extends AbstractStory {
   /* props.data: {
       publisher_id
       publisher_name
@@ -191,9 +208,11 @@ class PublishSheetStory extends Story {
       }
    */
   render() {
+      const cardStyle = {"border-color": "#18345D"};
+
       return (
-        <div className="story">
-          {this.dateBlock()}
+        <div className="story" style={cardStyle}>
+          {this.naturalDateBlock()}
             <span className="int-en"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> published a new sheet <a href={"/sheets/" + this.props.data.sheet_id}>{this.props.data.sheet_title}</a>.</span>
             <span className="int-he"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> פרסם/ה דף מקורות חדש, <a href={"/sheets/" + this.props.data.sheet_id}>{this.props.data.sheet_title}</a>.</span>
         </div>
