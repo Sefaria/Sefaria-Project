@@ -5869,7 +5869,7 @@ sup.nechama {
 }
 .storyFeed .story .storyTitle {
   clear: both;
-  padding: 10px 0 20px;
+  padding: 10px 0;
 }
 .interface-english .storyFeed .story .storyTypeBlock {
   float: left;
@@ -5882,4 +5882,22 @@ sup.nechama {
 }
 .interface-hebrew .storyFeed .story .timeBlock {
   float: left;
+}
+.storyFeed .story .storyBody {
+  clear: both;
+  padding: 10px 0;
+}
+.storyFeed .story .storyByLine {
+  padding: 10px 0 0;
+}
+.storyFeed .story .storyByLine img {
+    height: 40px;
+    width: 40px;
+    margin: 0;
+    border-radius: 20px;
+}
+.storyFeed .story .storyByLine span {
+  position: relative;
+  bottom: 12px;
+  left: 5px;
 }

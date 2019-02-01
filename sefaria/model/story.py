@@ -99,7 +99,7 @@ class GlobalStorySet(abst.AbstractMongoSet):
     recordClass = GlobalStory
 
     def __init__(self, query=None, page=0, limit=0, sort=None):
-        sort = sort or [["_id", -1]]
+        sort = sort or [["timestamp", -1]]
         super(GlobalStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
     def register_for_user(self, uid):
@@ -169,12 +169,15 @@ class UserStory(Story):
         }
         d = c["data"]
         if "publisher_id" in d:
-            d["publisher_name"] = user_profile.user_name(d["publisher_id"])
-            d["publisher_url"] = user_profile.profile_url(d["publisher_id"])
+            udata = user_profile.public_user_data(d["publisher_id"])
+            d["publisher_name"] = udata["name"]
+            d["publisher_url"] = udata["profileUrl"]
+            d["publisher_image"] = udata["imageUrl"]
         if "sheet_id" in d:
-            from sefaria.sheets import get_sheet_title
-            d["sheet_title"] = bleach.clean(get_sheet_title(d["sheet_id"]), strip=True, tags=())
-
+            from sefaria.sheets import get_sheet_metadata
+            metadata = get_sheet_metadata(d["sheet_id"])
+            d["sheet_title"] = bleach.clean(metadata["title"], strip=True, tags=()).strip()
+            d["sheet_summary"] = bleach.clean(metadata["summary"], strip=True, tags=()).strip()
         return c
 
 
@@ -182,7 +185,7 @@ class UserStorySet(abst.AbstractMongoSet):
     recordClass = UserStory
 
     def __init__(self, query=None, page=0, limit=0, sort=None):
-        sort = sort or [["date", -1]]
+        sort = sort or [["timestamp", -1]]
         super(UserStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
     def _add_global_stories(self, uid):

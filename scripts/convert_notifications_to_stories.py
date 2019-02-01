@@ -17,7 +17,7 @@ mappping = {
     "version": "newVersion"
 }
 
-pns = NotificationSet({"type": "sheet publish"})
+pns = NotificationSet({"type": "sheet publish"}, sort=[("_id", -1)])
 total = pns.count()
 print "Converting {} sheet publish notifications.".format(total)
 count = 0
@@ -40,7 +40,7 @@ for pn in pns:
 
 gns = GlobalNotificationSet(sort=[("_id", -1)])
 total = gns.count()
-print "Converting {} sheet publish notifications.".format(total)
+print "Converting {} global notifications.".format(total)
 count = 0
 for gn in gns:
     count += 1
@@ -48,10 +48,11 @@ for gn in gns:
         print "{}/{}".format(count, total)
     # write to global story
     assert isinstance(gn, GlobalNotification)
+    ts = int((gn.date - datetime(1970,1,1)).total_seconds())
     gs = GlobalStory({
         "storyForm": mappping[gn.type],
         "data": gn.content,
-        "timestamp": int((gn.date - datetime(1970,1,1)).total_seconds())
+        "timestamp": ts
     })
     gs.save()
 
@@ -59,6 +60,7 @@ for gn in gns:
     uns = NotificationSet({"is_global": True, "global_id": gn._id})
     for un in uns:
         us = UserStory(global_story=gs, uid=un.uid)
+        us.timestamp = ts
         us.save()
 
     # uns.delete()

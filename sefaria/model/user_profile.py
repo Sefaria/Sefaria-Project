@@ -535,10 +535,12 @@ def user_name(uid):
     data = public_user_data(uid)
     return data["name"]
 
+
 def profile_url(uid):
     """Returns url to user's profile"""
     data = public_user_data(uid)
     return data["profileUrl"]
+
 
 def user_link(uid):
     """Returns a string with an <a> tag linking to a users profile"""

@@ -222,13 +222,15 @@ class PublishSheetStory extends AbstractStory {
       publisher_id
       publisher_name
       publisher_url
+      publisher_image
       sheet_id
       sheet_title
-      }
+      sheet_summary
+    }
    */
   render() {
       const cardStyle = {"border-color": "#18345D"};
-    // <a href={"/sheets/" + this.props.data.sheet_id}>
+    //
       return (
         <div className="story" style={cardStyle}>
             <div className="storyTypeBlock sectionTitleText">
@@ -237,12 +239,22 @@ class PublishSheetStory extends AbstractStory {
             </div>
             {this.naturalTimeBlock()}
             <div className="storyTitle pageTitle">
-                <span className="int-en">{this.props.data.sheet_title}</span>
-                <span className="int-he">{this.props.data.sheet_title}</span>
+                <a href={"/sheets/" + this.props.data.sheet_id}>
+                    <span className="int-en">{this.props.data.sheet_title}</span>
+                    <span className="int-he">{this.props.data.sheet_title}</span>
+                </a>
             </div>
-            <div className="storyBody systemText">
-                <span className="int-en"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> </span>
-                <span className="int-he"><a href={this.props.data.publisher_url}>{this.props.data.publisher_name}</a> </span>
+            {this.props.data.sheet_summary?
+                <div className="storyBody systemText">
+                    <span className="int-en">{this.props.data.sheet_summary}</span>
+                    <span className="int-he">{this.props.data.sheet_summary}</span>
+                </div>:""}
+            <div className="storyByLine systemText">
+                <a href={this.props.data.publisher_url}>
+                    <img src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
+                    <span className="int-en">by {this.props.data.publisher_name}</span>
+                    <span className="int-he">{this.props.data.publisher_name}מאת </span>
+                </a>
             </div>
         </div>
       );
