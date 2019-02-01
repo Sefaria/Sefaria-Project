@@ -32,8 +32,8 @@ const {
 const {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuSavedButton,
   ReaderNavigationMenuDisplaySettingsButton,
+  SaveButton,
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet,
@@ -907,7 +907,9 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "homefeed") {
       var menu = (<HomeFeed
-                    interfaceLang={this.props.interfaceLang} />);
+                    interfaceLang={this.props.interfaceLang}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+      />);
 
     } else if (this.state.menuOpen === "updates") {
       var menu = (<UpdatesPanel
@@ -1165,11 +1167,11 @@ class ReaderControls extends Component {
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
-          <ReaderNavigationMenuSavedButton placeholder={true}/>
+          <SaveButton placeholder={true}/>
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton
+          <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}

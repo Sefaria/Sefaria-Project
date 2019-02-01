@@ -5,6 +5,9 @@ const Sefaria    = require('./sefaria/sefaria');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Footer     = require('./Footer');
+const {
+  SaveButton
+}                                = require('./Misc');
 import Component from 'react-class';
 
 
@@ -41,6 +44,7 @@ class HomeFeed extends Component {
     }
     this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
   }
+
   /*
   onDelete(id) {
     $.ajax({
@@ -143,7 +147,7 @@ AbstractStory.propTypes = {
 
 class NewContentStory extends AbstractStory {
     render() {
-      const cardStyle = {"border-color": "#18345D"};
+      const cardStyle = {"borderColor": "#18345D"};
 
       return (
         <div className="story" style={cardStyle}>
@@ -165,7 +169,7 @@ class NewIndexStory extends AbstractStory {
       const title = this.props.data.index;
       const heTitle = this.heTitle(title);
       const url = this.url(title);
-      const cardStyle = {"border-color": this.indexColor(title)};
+      const cardStyle = {"borderColor": this.indexColor(title)};
 
       return (
         <div className="story" style={cardStyle}>
@@ -190,7 +194,7 @@ class NewVersionStory extends AbstractStory {
       const title = this.props.data.index;
       const heTitle = this.heTitle(title);
       const url = this.url(title);
-      const cardStyle = {"border-color": this.indexColor(title)};
+      const cardStyle = {"borderColor": this.indexColor(title)};
 
       /*
          <div>
@@ -229,8 +233,12 @@ class PublishSheetStory extends AbstractStory {
     }
    */
   render() {
-      const cardStyle = {"border-color": "#18345D"};
-    //
+      const cardStyle = {"borderColor": "#18345D"};
+      const historyObject = {
+          ref: "Sheet " + this.props.data.sheet_id,
+          sheet_title: this.props.data.sheet_title,
+          versions: {} };
+
       return (
         <div className="story" style={cardStyle}>
             <div className="storyTypeBlock sectionTitleText">
@@ -249,12 +257,19 @@ class PublishSheetStory extends AbstractStory {
                     <span className="int-en">{this.props.data.sheet_summary}</span>
                     <span className="int-he">{this.props.data.sheet_summary}</span>
                 </div>:""}
-            <div className="storyByLine systemText">
-                <a href={this.props.data.publisher_url}>
-                    <img src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
-                    <span className="int-en">by {this.props.data.publisher_name}</span>
-                    <span className="int-he">{this.props.data.publisher_name}מאת </span>
-                </a>
+            <div className="bottomLine">
+                <div className="storyByLine systemText">
+                    <a href={this.props.data.publisher_url}>
+                        <img src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
+                        <span className="int-en">by {this.props.data.publisher_name}</span>
+                        <span className="int-he">{this.props.data.publisher_name}מאת </span>
+                    </a>
+                </div>
+                <SaveButton
+                    historyObject={historyObject}
+                    tooltip={true}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                />
             </div>
         </div>
       );

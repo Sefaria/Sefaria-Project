@@ -5887,8 +5887,19 @@ sup.nechama {
   clear: both;
   padding: 10px 0;
 }
-.storyFeed .story .storyByLine {
+.storyFeed .story .bottomLine {
+  display: flex;
+}
+.storyFeed .story .bottomLine .saveButton {
+    align-self: flex-end;
+    position: relative;
+    bottom: 12px;
+}
+
+.storyFeed .story .bottomLine .storyByLine {
+  width: 100%;
   padding: 10px 0 0;
+  margin: 0;
 }
 .storyFeed .story .storyByLine img {
     height: 40px;

@@ -144,7 +144,7 @@ class TextBlockLink extends Component {
             </div>
           </div>
           <div className="sideColorRight">
-            { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
+            { saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
             { !saved && naturalTime ?
               <span>
                 <span className="int-en">{ naturalTime.en }</span>
@@ -369,7 +369,7 @@ ReaderNavigationMenuMenuButton.propTypes = {
   onClick: PropTypes.func,
   compare: PropTypes.bool,
   interfaceLang: PropTypes.string
-}
+};
 
 
 class ReaderNavigationMenuCloseButton extends Component {
@@ -410,10 +410,10 @@ class ReaderNavigationMenuDisplaySettingsButton extends Component {
 ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
-}
+};
 
 
-class ReaderNavigationMenuSavedButton extends Component {
+class SaveButton extends Component {
   constructor(props) {
     super(props);
     this._posting = false;
@@ -485,7 +485,7 @@ class ReaderNavigationMenuSavedButton extends Component {
     );
   }
 }
-ReaderNavigationMenuSavedButton.propTypes = {
+SaveButton.propTypes = {
   historyObject: PropTypes.shape({
     ref: PropTypes.string,
     versions: PropTypes.object,
@@ -1097,7 +1097,7 @@ module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
-module.exports.ReaderNavigationMenuSavedButton           = ReaderNavigationMenuSavedButton;
+module.exports.SaveButton                                = SaveButton;
 module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
 module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
 module.exports.SignUpModal                               = SignUpModal;
