@@ -7,7 +7,6 @@ import regex as re
 from bson.objectid import ObjectId
 
 from sefaria.system.exceptions import DuplicateRecordError, InputError
-from sefaria.system.database import db
 from . import abstract as abst
 from . import text
 
@@ -269,13 +268,7 @@ def process_index_delete_in_links(indx, **kwargs):
 
 #get_link_counts() and get_book_link_collection() are used in Link Explorer.
 #They have some client formatting code in them; it may make sense to move them up to sefaria.client or sefaria.helper
-link_counts = {}
 def get_link_counts(cat1, cat2):
-    global link_counts
-    key = cat1 + "-" + cat2
-    if link_counts.get(key):
-        return link_counts[key]
-
     titles = []
     for c in [cat1, cat2]:
         ts = text.library.get_indexes_in_category(c)
@@ -288,11 +281,10 @@ def get_link_counts(cat1, cat2):
         for title2 in titles[1]:
             re1 = r"^{} \d".format(title1)
             re2 = r"^{} \d".format(title2)
-            links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
+            links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
             if links.count():
                 result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
 
-    link_counts[key] = result
     return result
 
 

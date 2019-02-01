@@ -19,7 +19,7 @@ from sefaria.model.user_profile import UserProfile, annotate_user_list, public_u
 from sefaria.model.group import Group, GroupSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
-from sefaria.system.cache import django_cache_decorator
+from sefaria.system.cache import django_cache
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
@@ -608,7 +608,7 @@ def get_last_updated_time(sheet_id):
 	return sheet["dateModified"]
 
 
-@django_cache_decorator(time=(60 * 60))
+@django_cache(timeout=(60 * 60))
 def public_tag_list(sort_by="alpha"):
 	"""
 	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")

@@ -6,11 +6,25 @@ from django.shortcuts import render_to_response
 
 from sefaria.client.util import jsonResponse
 import sefaria.system.exceptions as exps
+import sefaria.settings
 
 import logging
+import bleach
 logger = logging.getLogger(__name__)
 
 
+# TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
+def json_response_decorator(func):
+    """
+    A decorator thats takes a view response and turns it
+    into json. If a callback is added through GET or POST
+    the response is JSONP.
+    """
+
+    @wraps(func)
+    def decorator(request, *args, **kwargs):
+        return jsonResponse(func(request, *args, **kwargs), callback=request.GET.get("callback", None))
+    return decorator
 
 def catch_error_as_json(func):
     """
@@ -49,7 +63,6 @@ def catch_error_as_http(func):
     return wrapper
 
 
-
 def log(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -62,3 +75,21 @@ def log(func):
         logger.debug(msg)
         return result
     return wrapper
+
+
+def sanitize_get_params(func):
+    """
+    For view functions where first param is `request`
+    Uses bleach to protect against XSS attacks in GET requests
+    """
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        request.GET = request.GET.copy()  #  see https://stackoverflow.com/questions/18930234/django-modifying-the-request-object/18931697
+        for k, v in request.GET.items():
+            request.GET[k] = bleach.clean(v)
+        args = map(lambda a: bleach.clean(a) if isinstance(a, basestring) else a, args)  # while we're at it, clean any other vars passed
+        result = func(request, *args, **kwargs)
+        return result
+    return wrapper
+
+
