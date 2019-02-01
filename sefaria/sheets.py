@@ -17,6 +17,7 @@ from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.model.group import Group, GroupSet
+from sefaria.model.story import UserStory
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import django_cache
@@ -695,11 +696,10 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 	"""
 	Notify everyone who follows publisher_id about sheet_id's publication
 	"""
+	#todo: work on batch creation / save pattern
 	followers = FollowersSet(publisher_id)
 	for follower in followers.uids:
-		n = Notification({"uid": follower})
-		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
-		n.save()
+		UserStory.create_sheet_publish(follower, publisher_id, sheet_id).save()
 
 
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):

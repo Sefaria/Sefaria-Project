@@ -59,7 +59,7 @@ for gn in gns:
     # get user notifications that refer to this global
     uns = NotificationSet({"is_global": True, "global_id": gn._id})
     for un in uns:
-        us = UserStory(global_story=gs, uid=un.uid)
+        us = UserStory.from_global_story(un.uid, gs)
         us.timestamp = ts
         us.save()
 

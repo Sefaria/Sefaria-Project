@@ -104,7 +104,7 @@ class GlobalStorySet(abst.AbstractMongoSet):
 
     def register_for_user(self, uid):
         for global_story in self:
-            UserStory().register_global_story(global_story, uid).save()
+            UserStory.from_global_story(uid, global_story).save()
 
 
 class UserStory(Story):
@@ -124,13 +124,26 @@ class UserStory(Story):
         "data"               # required if is_global is false
     ]
 
-    def __init__(self, attrs=None, global_story=None, uid=None):
-        super(UserStory, self).__init__(attrs)
-        if uid is not None:
-            self.uid = uid
-        if global_story is not None:
-            self.is_global = True
-            self.global_story_id = global_story._id
+    # Pseudo Constructors
+    @classmethod
+    def from_global_story(cls, user_id, global_story):
+        return cls({
+            "is_global": True,
+            "global_story_id": global_story._id,
+            "uid": user_id,
+            "timestamp": global_story.timestamp
+        })
+
+    @classmethod
+    def create_sheet_publish(cls, user_id, publisher_id, sheet_id):
+        return cls({
+            "storyForm": "publishSheet",
+            "uid": user_id,
+            "data": {
+                "publisher": publisher_id,
+                "sheet_id": sheet_id
+            }
+        })
 
     def _init_defaults(self):
         self.timestamp = int(time.time())
@@ -148,12 +161,6 @@ class UserStory(Story):
         n = db.user_story.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
         return n["_id"] if n else None
 
-    def register_global_story(self, global_story, user_id):
-        self.is_global = True
-        self.global_story_id = global_story._id
-        self.uid = user_id
-        self.timestamp = global_story.timestamp
-        return self
 
     def contents(self, **kwargs):
         c = super(UserStory, self).contents(**kwargs)
@@ -209,3 +216,5 @@ class UserStorySet(abst.AbstractMongoSet):
         self._add_global_stories(uid)
         self.__init__(query={"uid": uid}, page=page, limit=limit)
         return self
+
+
