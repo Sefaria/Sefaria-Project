@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-notifications.py - handle user event notifications
-
-Writes to MongoDB Collection: notifications
+story.py
 """
 
 import time
@@ -14,8 +12,6 @@ from . import abstract as abst
 from . import user_profile
 from sefaria.system.database import db
 from sefaria.utils.util import concise_natural_time
-
-from sefaria.system.exceptions import InputError
 
 import logging
 logger = logging.getLogger(__name__)
