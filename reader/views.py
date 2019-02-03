@@ -3114,14 +3114,12 @@ def account_settings(request):
 
 
 @ensure_csrf_cookie
-def home(request):
+def old_home(request):
     """
     Homepage
     """
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
-    if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
-        return redirect("/texts")
 
     if request.user_agent.is_mobile:
         return mobile_home(request)

@@ -699,7 +699,7 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 	#todo: work on batch creation / save pattern
 	followers = FollowersSet(publisher_id)
 	for follower in followers.uids:
-		UserStory.create_sheet_publish(follower, publisher_id, sheet_id).save()
+		UserStory.from_sheet_publish(follower, publisher_id, sheet_id).save()
 
 
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):

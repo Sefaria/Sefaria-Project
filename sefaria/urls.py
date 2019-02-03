@@ -51,7 +51,6 @@ urlpatterns = [
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
-    url(r'^newhome/?$', reader_views.home_feed),
 ]
 
 # People Pages
@@ -346,7 +345,8 @@ static_pages = [
 
 # Static and Semi Static Content
 urlpatterns += [
-    url(r'^$', reader_views.home, name="home"),
+    url(r'^$', reader_views.home_feed),   # not static, but...
+    url(r'^oldhome/?$', reader_views.old_home),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),

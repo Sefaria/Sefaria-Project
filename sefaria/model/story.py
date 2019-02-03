@@ -135,7 +135,7 @@ class UserStory(Story):
         })
 
     @classmethod
-    def create_sheet_publish(cls, user_id, publisher_id, sheet_id):
+    def from_sheet_publish(cls, user_id, publisher_id, sheet_id):
         return cls({
             "storyForm": "publishSheet",
             "uid": user_id,
