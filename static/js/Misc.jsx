@@ -100,7 +100,7 @@ class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, naturalTime } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -145,10 +145,10 @@ class TextBlockLink extends Component {
           </div>
           <div className="sideColorRight">
             { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
-            { !saved && naturalTime ?
+            { !saved && timeStamp ?
               <span>
-                <span className="int-en">{ naturalTime.en }</span>
-                <span className="int-he">&rlm;{ naturalTime.he }</span>
+                <span className="int-en">{ Sefaria.util.naturalTime(timeStamp) }</span>
+                <span className="int-he">&rlm;{ Sefaria.util.naturalTime(timeStamp) }</span>
               </span>: null
             }
           </div>
@@ -179,7 +179,7 @@ TextBlockLink.propTypes = {
   saved:           PropTypes.bool,
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
-  naturalTime:     PropTypes.object,
+  timeStamp:       PropTypes.number,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},

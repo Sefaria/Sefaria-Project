@@ -1,11 +1,20 @@
 const $              = require('./sefariaJquery');
 const extend         = require('extend');
 const striptags      = require('striptags');
-
+const humanizeDuration = require('humanize-duration');
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static naturalTimePlural(n, singular, plural) {
+      return n <= 1 ? singular : plural;
+    }
+    static naturalTime(timeStamp) {
+      // given epoch time stamp, return string of time delta between `timeStamp` and now
+      const now = Util.epoch_time();
+      const language = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
+      return Util.sefariaHumanizeDuration(now - timeStamp, { language });
+    }
     static object_equals(a, b) {
         // simple object equality assuming values are primitive. see here
         // http://adripofjavascript.com/blog/drips/object-equality-in-javascript.html
@@ -773,8 +782,33 @@ Util.RefValidator.prototype = {
       this._lookupAndRoute(inString);
   }
 };
-
+const secsInDay = 24 * 60 * 60;
 Util._cookies = {};
 Util._scrollbarWidth = null;
+Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
+  units: ['y', 'mo', 'w', 'd', 'h', 'm', 's'],
+  largest: 1,
+  round: true,
+  unitMeasures: {
+    y: 365 * secsInDay,
+    mo: 30 * secsInDay,
+    w: 7 * secsInDay,
+    d: secsInDay,
+    h: 60 * 60,
+    m: 60,
+    s: 1,
+  },
+  languages: {
+    he: {  // add hebrew since it's not supported in the package
+      y: n => Util.naturalTimePlural(n, 'שנה', 'שנים'),
+      mo: n => Util.naturalTimePlural(n, 'חודש', 'חודשים'),
+      w: n => Util.naturalTimePlural(n, 'שבוע', 'שבועות'),
+      d: n => Util.naturalTimePlural(n, 'יום', 'ימים'),
+      h: n => Util.naturalTimePlural(n, 'שעה', 'שעות'),
+      m: n => Util.naturalTimePlural(n, 'דקה', 'דקות'),
+      s: n => Util.naturalTimePlural(n, 'שנייה', 'שניות'),
+    }
+  },
+});
 
 module.exports = Util;
