@@ -109,13 +109,51 @@ def daily_rambam_three(datetime_obj):
         display_en = rf.normal().replace("Mishneh Torah, ", "")
         display_he = rf.he_normal().replace(u"משנה תורה, ", u"")
         rambam_items.append({
-            "title": {"en": "Daily Rambam Three Chapters", "he": u'הרבמ"ם היומי, שלוש פרקים'},
+            "title": {"en": "Daily Rambam (3)", "he": u'הרבמ"ם היומי {}'.format(u"(3)")},
             "displayValue": {"en": display_en, "he": display_he},
             "url": rf.url(),
             "order": 7,
             "category": rf.index.get_primary_category()
         })
     return rambam_items
+
+
+@graceful_exception(logger=logger, return_value=[])
+def daf_weekly(datetime_obj):
+    """
+    :param datetime.datetime datetime_obj:
+    :return:
+    """
+    """
+    Weekday values in datetime start on Monday, i.e.
+    Monday = 0, Tuesday = 1, Wednesday = 2,... Sunday = 6 
+    We want to start on Sunday (a new daf is started every Sunday):
+    Sunday = 0, Monday = 1, Tuesday = 2,...
+    """
+    cur_weekday = (datetime_obj.weekday() + 1) % 7
+    sunday_obj = datetime_obj - datetime.timedelta(cur_weekday)
+    sunday_obj = datetime.datetime(sunday_obj.year, sunday_obj.month, sunday_obj.day)
+
+    daf = db.daf_weekly.find_one({"date": {"$eq": sunday_obj}})
+    daf_str = [daf["daf"]] if isinstance(daf["daf"], basestring) else daf["daf"]
+    daf_weekly_list = []
+
+    for d in daf_str:
+        rf = model.Ref(d)
+        display_val = rf.normal()
+        he_display_val = rf.he_normal()
+        if rf.index.get_primary_category() == "Talmud":
+            display_val = display_val[:-1]  # remove the a
+            he_display_val = he_display_val[:-2]  # remove the alef and the space before it
+
+        daf_weekly_list.append({
+            "title": {"en": "Daf Weekly", "he": u"דף שבועי"},
+            "displayValue": {"en": display_val, "he": he_display_val},
+            "url": rf.url(),
+            "order": 8,
+            "category": rf.index.get_primary_category()
+        })
+    return daf_weekly_list
 
 
 def make_haftarah_by_custom_response_from_calendar_entry(db_haftara, custom, add_custom_to_display):
@@ -194,6 +232,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += daily_mishnayot(datetime_obj)
     cal_items += daily_rambam(datetime_obj)
     cal_items += daily_rambam_three(datetime_obj)
+    cal_items += daf_weekly(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
