@@ -510,8 +510,10 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
             ref_name = ref_name.replace(index.title, v.get_index().title)
             chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
         ja = chunk.ja()
+        if ja.get_depth() == 0:
+            continue
 
-        if upsize_in_place or ja.get_depth() == 0:
+        if upsize_in_place:
             wrapper = chunk.text
             for i in range(delta):
                 wrapper = [wrapper]

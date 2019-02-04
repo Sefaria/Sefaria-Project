@@ -953,10 +953,10 @@ class AbstractTextRecord(object):
         )
 
 
-class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaContent):
+class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
-
+    NOTE: AbstractTextRecord is inherited before AbastractMongoRecord in order to overwrite ALLOWED_TAGS
     Relates to a complete single record from the texts collection.
     """
     history_noun = 'text'
@@ -1017,6 +1017,10 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 self.priority = float(self.priority)
             except ValueError as e:
                 self.priority = None
+
+    def _sanitize(self):
+        # sanitization happens on TextChunk saving
+        pass
 
     def get_index(self):
         return library.get_index(self.title)
@@ -3469,7 +3473,7 @@ class Ref(object):
             if as_list:
                 return [u"{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "u%s(%s)" % (escaped_book, u"|".join(patterns))
+                return u"%s(%s)" % (escaped_book, u"|".join(patterns))
 
     def ref_regex_query(self):
         """
@@ -4054,6 +4058,7 @@ class Library(object):
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
+        self._cross_lexicon_auto_completer = None
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4182,11 +4187,17 @@ class Library(object):
             lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True) for lang in self.langs
         }
 
+        for lang in self.langs:
+            self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
+
     def build_ref_auto_completer(self):
         from autospell import AutoCompleter
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
+
+        for lang in self.langs:
+            self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
 
     def build_lexicon_auto_completers(self):
         from autospell import LexiconTrie
@@ -4194,12 +4205,24 @@ class Library(object):
             lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
         }
 
+    def build_cross_lexicon_auto_completer(self):
+        from autospell import AutoCompleter
+        self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
+
+    def cross_lexicon_auto_completer(self):
+        if self._cross_lexicon_auto_completer is None:
+            logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
+            self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built cross lexicon auto completer.")
+        return self._cross_lexicon_auto_completer
+
     def lexicon_auto_completer(self, lexicon):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
             logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
+            logger.warning("Built {} auto completer.".format(lexicon))
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
@@ -4208,6 +4231,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
     def ref_auto_completer(self, lang):
@@ -4216,6 +4240,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built {} ref auto completer.".format(lang))
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):

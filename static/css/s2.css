@@ -137,7 +137,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   /* English content text that may contain Hebrew characters */
   font-family: 'Hebrew Text Font';
   src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
-  unicode-range: U+0590-05FF;
+  unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
   /* English system text that may contain Hebrew characters */
@@ -601,7 +601,7 @@ input.noselect {
   padding: 6px 0;
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
-  z-index: 1002 !important;
+  z-index: 1000000 !important;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .ui-autocomplete .ui-menu-item a {
@@ -3078,6 +3078,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-left: 0;
   padding-right: 0;
 }
+.readerPanel.english .sheetItem.heOnly .en,
+.readerPanel.bilingual .sheetItem.heOnly .en {
+  display: none;
+}
+.readerPanel.hebrew .sheetItem.heOnly .he,
+.readerPanel.bilingual .sheetItem.heOnly .he {
+  display: inline;
+}
+.readerPanel.hebrew .sheetItem.enOnly .he,
+.readerPanel.bilingual .sheetItem.enOnly .he {
+  display: none;
+}
+.readerPanel.english .sheetItem.enOnly .en,
+.readerPanel.bilingual .sheetItem.enOnly .en {
+  display: inline;
+}
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he {
   float: right;
@@ -4391,7 +4407,10 @@ a .button:hover {
 .entry + .entry {
   padding-top: 10px;
 }
-.lexicon-results .entry > div{
+.lexicon-results {
+  padding-top: 20px;
+}
+.lexicon-results .entry > div {
   padding: 1% 0 1% 0;
   margin: auto;
 }
@@ -4994,26 +5013,8 @@ body #keyboardInputMaster {
     box-shadow: none;
     border-radius: 0.3em;
 }
-body #keyboardInputMaster thead{
-    display: none;
-}
-body #keyboardInputMaster:before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 30px;
-  border-bottom: 10px solid #ccc;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-}
-body #keyboardInputMaster:after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 31px;
-  border-bottom: 9px solid #f9f9f9;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
+body #keyboardInputMaster thead {
+  display: none;
 }
 body #keyboardInputMaster tbody tr td table{
     border-spacing: 2px 2px;
@@ -5670,6 +5671,19 @@ span.purim-emoji img{
   display: block;
 }
 
+.readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
+  display: none;
+}
+.readerPanel.english .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.he {
+  display: none;
+}
+
+.readerPanel.hebrew .sheetContent .sheetItem.segment.enOnly .sourceContentText.outsideBiText.en {
+  display: inline;
+}
+.readerPanel.english .sheetContent .sheetItem.segment.heOnly .sourceContentText.outsideBiText.he {
+  display: inline;
+}
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
@@ -5759,7 +5773,10 @@ sup.nechama {
     position: absolute;
     text-decoration: none;
 }
-
+.heLeft.bilingual .sheetContent .text sup.nechama,
+.heRight.bilingual .sheetContent .text sup.nechama {
+    margin-right: -28px;
+}
 .sheetItem.ref-display-none .ref {
   display: none;
 }

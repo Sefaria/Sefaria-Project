@@ -1098,7 +1098,7 @@ class ReaderControls extends Component {
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
-      this.state.runningQuery.abort();
+      this.state.runningQuery.abort();  //todo: make work with promises
     }
   }
   render() {

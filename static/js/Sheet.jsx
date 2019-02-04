@@ -348,12 +348,11 @@ class SheetSource extends Component {
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>);
-
       var containerClasses = classNames("sheetItem",
           "segment",
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.text && this.props.source.text.en && this.props.source.text.en == "..." ? "heOnly" : null,
-          this.props.source.text && this.props.source.text.he && this.props.source.text.he == "..." ? "enOnly" : null,
+          (this.props.source.text && this.props.source.text.en && this.props.source.text.en == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
+          (this.props.source.text && this.props.source.text.he && this.props.source.text.he == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,
           this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
@@ -508,6 +507,8 @@ class SheetOutsideBiText extends Component {
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",
+          this.props.source.outsideBiText.en == "..." || !this.props.source.outsideBiText.en ? "heOnly" : null,
+          this.props.source.outsideBiText.he == "..." || !this.props.source.outsideBiText.he ? "enOnly" : null,
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
           this.props.source.options ? this.props.source.options.indented : null
       )
@@ -518,8 +519,8 @@ class SheetOutsideBiText extends Component {
               <span className="he"> <span
                 className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
             </div>
-        <div className="he sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
-        <div className="en sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
+        <div className="he sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
+        <div className="en sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
         <div className="clearFix"></div>
         {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>

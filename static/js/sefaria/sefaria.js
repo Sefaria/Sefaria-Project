@@ -665,14 +665,14 @@ Sefaria = extend(Sefaria, {
   _lexiconCompletions: {},
   lexiconCompletion: function(word, lexicon, callback) {
       word = word.trim();
-      var key = word + "/" + lexicon;
+      var key = lexicon ? word + "/" + lexicon : word;
       if (key in this._lexiconCompletions) {
           callback(this._lexiconCompletions[key]);
           return null;
       }
       return $.ajax({
           dataType: "json",
-          url: Sefaria.apiHost + "/api/words/completion/" + word + "/" + lexicon,
+          url: Sefaria.apiHost + "/api/words/completion/" + word + (lexicon ? "/" + lexicon : ""),
           success: function(data) {
               this._lexiconCompletions[key] = data;
               callback(data);
@@ -1745,6 +1745,7 @@ Sefaria = extend(Sefaria, {
     // Returns a string translating `name` into Hebrew.
     var categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
+      "Modern Commentary":    "פרשנות מודרנית",
       "Sheets":               "דפי מקורות",
       "Notes":                "הערות",
       "Community":            "קהילה"
@@ -1809,7 +1810,6 @@ Sefaria = extend(Sefaria, {
       "Aa": "א",
       "Decrease font size": "הקטן גופן",
       "Increase font size": "הגדל גופן",
-      "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
       "this comment":"הערה זו",
       "this source":"מקור זה",
       "was added to": "נוסף ל-",
@@ -1865,7 +1865,7 @@ Sefaria = extend(Sefaria, {
 
       //reader panel
       "Search" : "חיפוש",
-      //"Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
+      "Search Dictionary": "חפש במילון",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Versions": "גרסאות",
@@ -2103,7 +2103,7 @@ Sefaria.setup = function(data) {
     }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
-    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)
+    Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
 
