@@ -147,7 +147,7 @@ class ReaderNavigationMenu extends Component {
                   </div>);
       var calendar = Sefaria.calendars.map(function(item) {
           return (<TextBlockLink
-                    sref={item.sref}
+                    sref={item.ref}
                     url_string={item.url}
                     title={item.title["en"]}
                     heTitle={item.title["he"]}

@@ -37,7 +37,7 @@ def daily_929(datetime_obj):
         'title' : {'en':'929', 'he': u'929'},
         'displayValue': {'en':display_en, 'he': display_he},
         'url': rf.url(),
-        'sref': rf.normal(),
+        'ref': rf.normal(),
         'order': 4,
         'category': rf.index.get_primary_category()
     }]
@@ -63,7 +63,7 @@ def daf_yomi(datetime_obj):
             'title': {'en': 'Daf Yomi', 'he': u'דף יומי'},
             'displayValue': {'en': displayVal, 'he': heDisplayVal},
             'url': rf.url(),
-            'sref': rf.normal(),
+            'ref': rf.normal(),
             'order': 3,
             'category': rf.index.get_primary_category()
         })
@@ -80,7 +80,7 @@ def daily_mishnayot(datetime_obj):
         'title': {'en': 'Daily Mishnah', 'he': u'משנה יומית'},
         'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
         'url': rf.url(),
-        'sref': rf.normal(),
+        'ref': rf.normal(),
         'order': 5,
         'category': rf.index.get_primary_category()
     })
@@ -97,7 +97,7 @@ def daily_rambam(datetime_obj):
         'title': {'en': 'Daily Rambam', 'he': u'הרמב"ם היומי'},
         'displayValue': {'en': display_value_en, 'he': display_value_he},
         'url': rf.url(),
-        'sref': rf.normal(),
+        'ref': rf.normal(),
         'order': 6,
         'category': rf.index.get_primary_category()
     }]
@@ -116,7 +116,7 @@ def daily_rambam_three(datetime_obj):
             "title": {"en": "Daily Rambam (3)", "he": u'הרבמ"ם היומי {}'.format(u"(3)")},
             "displayValue": {"en": display_en, "he": display_he},
             "url": rf.url(),
-            "sref": rf.normal(),
+            "ref": rf.normal(),
             "order": 7,
             "category": rf.index.get_primary_category()
         })
@@ -152,10 +152,10 @@ def daf_weekly(datetime_obj):
             he_display_val = he_display_val[:-2]  # remove the alef and the space before it
 
         daf_weekly_list.append({
-            "title": {"en": "Daf Weekly", "he": u"דף שבועי"},
+            "title": {"en": "Daf a Week", "he": u"דף השבוע"},
             "displayValue": {"en": display_val, "he": he_display_val},
             "url": rf.url(),
-            "sref": rf.normal(),
+            "ref": rf.normal(),
             "order": 8,
             "category": rf.index.get_primary_category()
         })
@@ -175,7 +175,7 @@ def make_haftarah_by_custom_response_from_calendar_entry(db_haftara, custom, add
             'title': {'en': 'Haftarah', 'he': u'הפטרה'},
             'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
             'url': rf.url(),
-            'sref': rf.normal(),
+            'ref': rf.normal(),
             'order': 2,
             'category': rf.index.get_primary_category(),
         }
@@ -206,7 +206,7 @@ def make_parashah_response_from_calendar_entry(db_parasha):
         'title': {'en': 'Parashat Hashavua', 'he': u'פרשת השבוע'},
         'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
         'url': rf.url(),
-        'sref': rf.normal(),
+        'ref': rf.normal(),
         'order': 1,
         'category': rf.index.get_primary_category()
     }
