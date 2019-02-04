@@ -19,7 +19,7 @@ from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
-from sefaria.utils.util import epoch_time, concise_natural_time
+from sefaria.utils.util import epoch_time
 from django.utils import translation
 
 
@@ -93,11 +93,6 @@ class UserHistory(abst.AbstractMongoRecord):
                 del d["server_time_stamp"]
             except KeyError:
                 pass
-        if kwargs.get("natural_time", False):
-            d["natural_time"] = {
-                "en": concise_natural_time(datetime.utcfromtimestamp(d["time_stamp"]), lang="en"),
-                "he": concise_natural_time(datetime.utcfromtimestamp(d["time_stamp"]), lang="he")
-            }
         return d
 
     def _sanitize(self):
