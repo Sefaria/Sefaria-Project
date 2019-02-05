@@ -26,6 +26,7 @@ var renderReaderApp = function(props, data, timer) {
   data._uid           = props._uid;
   data.recentlyViewed = props.recentlyViewed;
 
+  SefariaReact.clearCache();
   SefariaReact.sefariaSetup(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());
@@ -44,6 +45,11 @@ var renderReaderApp = function(props, data, timer) {
 };
 
 server.post('/ReaderApp/:cachekey', function(req, res) {
+  log();
+  const used = process.memoryUsage();
+  for (let key in used) {
+    log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+  }
   var timer = {
     start: new Date(),
     elapsed: function() { return (new Date() - this.start); }

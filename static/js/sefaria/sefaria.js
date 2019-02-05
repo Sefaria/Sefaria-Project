@@ -2001,6 +2001,45 @@ Sefaria = extend(Sefaria, {
   }
 });
 
+Sefaria.clearCache = function() {
+  Sefaria.last_place = [];
+  Sefaria.saved = [];
+  Sefaria._parseRef = {};
+  Sefaria._texts = {};
+  Sefaria._refmap = {};
+  Sefaria._versions = {};
+  Sefaria._translateVersions = {};
+  Sefaria._index = {};
+  Sefaria._translateTerms = {};
+  Sefaria._shape = {};
+  Sefaria._indexDetails = {};
+  Sefaria._titleVariants = {};
+  Sefaria._lookups = {};
+  Sefaria._ref_lookups = {};
+  Sefaria._lexiconCompletions = {};
+  Sefaria._lexiconLookups = {};
+  Sefaria._links = {};
+  Sefaria._linkSummaries = {};
+  Sefaria._notes = {};
+  Sefaria._allPrivateNotes = null;
+  Sefaria._privateNotes = {};
+  Sefaria._related = {};
+  Sefaria._relatedPrivate = {};
+  Sefaria._topics = {};
+  Sefaria._topicList = null;
+  Sefaria._groups = {};
+  Sefaria._groupsList = null;
+  Sefaria.sheets._loadSheetByID = {};
+  Sefaria.sheets._trendingTags = null;
+  Sefaria.sheets._userTagList = null;
+  Sefaria.sheets._sheetsByTag = {};
+  Sefaria.sheets._userSheets = {};
+  Sefaria.sheets._publicSheets = {};
+  Sefaria.sheets._topSheets = null;
+  Sefaria.sheets._sheetsByRef = {};
+  Sefaria.sheets._userSheetsByRef = {};
+};
+
 Sefaria.unpackDataFromProps = function(props) {
   // Populate local cache with various data passed as a rider on props.
   var initialPanels = props.initialPanels || [];
