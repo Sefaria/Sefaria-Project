@@ -75,6 +75,7 @@ def register(request):
             p = UserProfile(id=user.id)
             p.assign_slug()
             p.join_invited_groups()
+            p.add_partner_group_by_email()
             p.settings["interface_language"] = request.interfaceLang
             p.save()
             if "noredirect" in request.POST:

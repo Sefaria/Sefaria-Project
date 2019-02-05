@@ -4,6 +4,7 @@ import re
 import bleach
 import sys
 import json
+import csv
 from datetime import datetime
 from random import randint
 
@@ -350,6 +351,19 @@ class UserProfile(object):
             dupe_count += 1
             self.slug = "%s%d" % (slug, dupe_count)
 
+        return self
+
+    def add_partner_group_by_email(self):
+        """
+        Sets the partner group if email pattern matches known school
+        """
+        email_pattern = self.email.split("@")[1]
+        tsv_file = csv.reader(open('data/private/schools.tsv', "rb"), delimiter="\t")
+        for row in tsv_file:
+            # if current rows 2nd value is equal to input, print that row
+            if email_pattern == row[1]:
+                self.partner_group = row[0]
+                return self
         return self
 
     def join_invited_groups(self):
