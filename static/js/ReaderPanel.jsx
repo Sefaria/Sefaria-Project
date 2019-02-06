@@ -308,7 +308,7 @@ class ReaderPanel extends Component {
     if (ref.constructor == Array) {
       // When called with an array, set highlight for the whole spanning range
       var refs = ref;
-      var currentlyVisibleRef = Sefaria.normRef(ref);
+      var currentlyVisibleRef = Sefaria.humanRef(ref);
       var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
       var highlightedRefs = [].concat.apply([], splitArray);
     } else {
