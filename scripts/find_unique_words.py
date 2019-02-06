@@ -20,7 +20,7 @@ def flatten(l):
 
 cutoff_length = 60000
 
-books = set(flatten([(library.get_dependant_indices(book_title=r, dependence_type="Commentary")) for r in library.get_indexes_in_category("Torah")]))
+books = set(flatten([(library.get_dependant_indices(book_title=r, dependence_type="Commentary")) for r in library.get_indexes_in_category("Tanakh")]))
 
 #books = list(books)[:5]
 

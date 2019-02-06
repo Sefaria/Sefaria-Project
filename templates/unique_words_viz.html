@@ -1,0 +1,228 @@
+
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load i18n %}
+
+{% block title %}{% trans "Unique Words used by Biblical Commentators" %}{% endblock %}
+
+{% block description %}{% trans "Explore how unique and verbose biblical commentators were." %}{% endblock %}
+
+{% block ogimage %}<meta property="og:image" content="/static/img/sefer-hachinukh-mitzvot.png"/>{% endblock %}
+{% block head %}
+    {% if not OFFLINE %}
+    <script src="https://use.typekit.net/aeg8div.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: ['Open Sans Hebrew:400,700:latin,hebrew' ]
+        }
+      });
+    </script>
+    <!-- Search Box -->
+    {% endif %}
+
+
+{%  endblock %}
+
+{% block css %}
+
+<style>
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.cells path {
+  fill: none;
+  pointer-events: all;
+}
+
+
+.tip {
+  position: absolute;
+  font-size: .8em;
+  text-align: center;
+  background-color: #333;
+  color: #fff;
+  padding: 5px;
+  opacity: 0;
+
+}
+
+#wrapper {
+   margin: auto;
+   margin-top: 60px;
+   width: 800px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+	<div id="wrapper">
+		<h1># of Unique Words Used Within a Torah Commentator's First 60,000 Words</h1>
+		<svg width="800" height="400"></svg>
+	</div>
+{% endblock %}
+
+
+
+{% block js %}
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script>
+
+
+
+var radius = 30
+
+
+var svg = d3.select("svg"),
+    margin = {top: 40, right: 40, bottom: 40, left: 40},
+    width = svg.attr("width") - margin.left - margin.right,
+    height = svg.attr("height") - margin.top - margin.bottom;
+
+    defs = svg.append("defs")
+
+var size = radius*2
+
+      var tip = d3.select("#wrapper").append("div")
+          .attr("class", "tip");
+
+
+var formatValue = d3.format(",d");
+
+var x = d3.scaleLinear()
+    .rangeRound([0, width]);
+
+var g = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("../static/files/commentators_torah_unique_words.csv", type, function(error, data) {
+  if (error) throw error;
+
+  x.domain(d3.extent(data, function(d) { return d.value; }));
+
+  var simulation = d3.forceSimulation(data)
+      .force("x", d3.forceX(function(d) { return x(d.value); }).strength(1))
+      .force("y", d3.forceY(height / 2))
+      .force("collide", d3.forceCollide(radius+2))
+      .stop();
+
+  for (var i = 0; i < 120; ++i) simulation.tick();
+
+
+  g.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x).ticks(3));
+
+
+
+    var img_id = function(d){ return "img_" + d.id.replace(/ /g,"_"); }
+    var img_url = function(d){
+    return "url(#img_" + d.data.id.replace(/ /g,"_") + ")"; }
+
+    var imgPattern = defs.selectAll("pattern").data(d3.merge([data]))
+    	.enter()
+    .append("pattern")
+        .attr("id", img_id)
+        .attr("width", 1)
+        .attr("height", 1)
+        .attr("patternUnits", "objectBoundingBox")
+    	.append("image")
+    		.attr("x", 0)
+    		.attr("y", 0)
+    		.attr("width", size)
+        .attr("height", size)
+        .attr("xlink:href", function(d) {
+
+          return "/static/img/author-headshots/"+ d.id+".jpg";
+        })
+
+
+  var cell = g.append("g")
+      .attr("class", "cells")
+    .selectAll("g").data(d3.voronoi()
+        .extent([[-margin.left, -margin.top], [width + margin.right, height + margin.top]])
+        .x(function(d) { return d.x; })
+        .y(function(d) { return d.y; })
+      .polygons(data)).enter().append("g")
+      .attr("class", function(d) { return "voronoi " + d.data.id.replace(/ /g,"_"); })
+      .on("mouseover",(function(d) {
+       	tip.html("<strong>"+d.data.id+"</strong>: "+formatValue(d.data.value)+" unique words used.");
+
+
+        d3.selectAll(".circle")
+ 		.style("opacity", .25)
+
+
+        var element = d3.selectAll(".circle."+d.data.id.replace(/ /g,"_"));
+        var circle_node = element.node().getBoundingClientRect();
+        element.style("stroke-width", "3")
+ 		.style("opacity", 1)
+		tip
+			.style("opacity", 1)
+			.style("left", circle_node.left-30 + "px")
+			.style("top", circle_node.top-25 + "px");
+
+
+       }))
+      .on("mouseout",  (function(d){
+
+      	tip.html('').style("opacity", 0);
+        d3.selectAll(".circle")
+ 		.style("opacity", 1)
+
+        .style("stroke-width", "1");
+
+		}));
+
+
+
+
+  cell.append("circle")
+      .attr("r", radius)
+      .attr("class", function(d) { return "circle " + d.data.id.replace(/ /g,"_"); })
+      .attr("cx", function(d) { return d.data.x; })
+      .attr("cy", function(d) { return d.data.y; })
+      .style("fill", img_url)
+      .style("stroke", "#000")
+      .style("stroke-width", "1")
+
+
+  cell.append("a")
+    .attr("xlink:href", function(d) { return "/person/" + d.data.id })
+    .attr("target", "_blank")
+    .append("path")
+      .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
+
+
+
+/*
+  cell.append("title")
+      .text(function(d) { return d.data.id + "\n" + formatValue(d.data.value); });
+*/
+
+});
+
+
+
+function type(d) {
+  if (!d.value) return;
+  d.value = +d.value;
+  return d;
+}
+
+</script>
+{% endblock %}
