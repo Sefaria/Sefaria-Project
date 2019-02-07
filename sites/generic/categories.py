@@ -2,23 +2,25 @@
 # indentation and inclusion of duplicate categories (like "Seder Moed")
 # is for readability only. The table of contents will follow this structure.
 CATEGORY_ORDER = [
-    "Poetry",
+    "Classics",
+        "Homer",
+        "Plutarch",
+    "Religion",
+        "Judaism",
+        "Christianity",
+        "Islam",
+        "Apocrypha",
     "Philosophy",
-    "Religious Texts",
-    "Non Fiction",
-    "Fiction",
     "Drama",
-    "Folklore"
+    "Poetry",
 ]
 
 TOP_CATEGORIES = [
-    "Poetry",
+    "Classics",
     "Philosophy",
-    "Religious Texts",
-    "Non Fiction",
-    "Fiction",
+    "Religion",
     "Drama",
-    "Folklore"
+    "Poetry",
 ]
 
 REVERSE_ORDER = [
