@@ -24,7 +24,6 @@ from diff_match_patch import diff_match_patch
 dmp = diff_match_patch()
 
 from . import abstract as abst
-from . import text
 from sefaria.system.database import db
 
 
@@ -146,6 +145,10 @@ class History(abst.AbstractMongoRecord):
         "score",    # rev_type: review
         "sheet"     # rev_type: publish sheet
     ]
+
+    def _sanitize(self):
+        # History should only ever be called internally with clean text. No need to sanitize
+        pass
 
     def pretty_print(self):
         pass

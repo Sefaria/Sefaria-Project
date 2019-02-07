@@ -261,11 +261,17 @@ def test_save():
     c.text = "Here's yet another translation for the eras"
     c.save()
 
+    # insert some nefarious code
+    c = TextChunk(Ref("Hadran 6"), "en", "Hadran Test")
+    c.text = 'Here\'s yet another translation for the eras <a href="javascript:alert(8007)">Click me</a>'
+    c.save()
+
     # verify
     c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
     assert c.text[2] == "Here's a translation for the eras"
     assert c.text[3] == "Here's yet another translation for the eras"
     assert c.text[4] == "Here's another translation for the eras"
+    assert c.text[5] == "Here's yet another translation for the eras <a>Click me</a>"
 
     # delete version
     v.delete()

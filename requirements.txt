@@ -9,6 +9,7 @@ BeautifulSoup
 bleach==1.4.2
 rauth
 elasticsearch
+elasticsearch_dsl
 regex
 pytest
 mailchimp
@@ -37,3 +38,4 @@ user-agents
 django-user-agents
 psycopg2
 django-easy-timezones
+undecorated

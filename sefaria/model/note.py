@@ -16,8 +16,8 @@ class Note(abst.AbstractMongoRecord):
     """
     collection    = 'notes'
     history_noun  = 'note'
-    allowed_tags  = ("i", "b", "br", "u", "strong", "em", "big", "small", "span", "div", "img", "a")
-    allowed_attrs = {
+    ALLOWED_TAGS  = ("i", "b", "br", "u", "strong", "em", "big", "small", "span", "div", "img", "a")
+    ALLOWED_ATTRS = {
                         '*': ['class'],
                         'a': ['href', 'rel'],
                         'img': ['src', 'alt'],
@@ -37,7 +37,6 @@ class Note(abst.AbstractMongoRecord):
 
     def _normalize(self):
         self.ref = Ref(self.ref).normal()
-        self.text = bleach.clean(self.text, tags=self.allowed_tags, attributes=self.allowed_attrs)
 
 
 class NoteSet(abst.AbstractMongoSet):

@@ -184,7 +184,7 @@ class ReaderNavigationMenu extends Component {
                     (<a className="resourcesLink outOfAppLink" href="/groups">
                         <img src="/static/img/group.svg" alt="Groups icon" />
                         <span className="int-en">Groups</span>
-                        <span className="int-he">הקבוצות</span>
+                        <span className="int-he">קבוצות</span>
                       </a>)
                       ];
 

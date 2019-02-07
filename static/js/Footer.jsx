@@ -118,7 +118,7 @@ class Footer extends Component {
               </a>
               <a href="/groups" className="outOfAppLink">
                   <span className="int-en">Groups</span>
-                  <span className="int-he">הקבוצות</span>
+                  <span className="int-he">קבוצות</span>
               </a>
               <a href="/updates" className="outOfAppLink">
                   <span className="int-en">New Additions</span>

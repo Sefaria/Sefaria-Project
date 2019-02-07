@@ -375,7 +375,6 @@ class ReaderTextTableOfContents extends Component {
                   />
                   :<div className="contentInner">
                   <div className="tocTop">
-                    <CategoryAttribution categories={categories} />
                     <a className="tocCategory" href={catUrl}>
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
@@ -391,6 +390,14 @@ class ReaderTextTableOfContents extends Component {
                         <span className="he">{heSection}</span>
                       </div>
                     : null}
+                    <CategoryAttribution categories={categories} />
+                    {details && details.dedication ?
+                        <div className="dedication">
+                          <span>
+                            <span className="en">{details.dedication.en}</span>
+                            <span className="he">{details.dedication.he}</span>
+                          </span>
+                        </div> : ""}
                     {detailsSection}
                   </div>
                   {this.isTextToc()?

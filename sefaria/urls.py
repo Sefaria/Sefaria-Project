@@ -194,8 +194,8 @@ urlpatterns += [
 
 # Search API
 urlpatterns += [
-    url(r'^api/dummy-search$', reader_views.dummy_search_api)
-    # url(r'^api/search$', reader_views.search_api)
+    url(r'^api/dummy-search$', reader_views.dummy_search_api),
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api)
 ]
 
 # Following API
@@ -283,7 +283,7 @@ urlpatterns += [
     url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
     url(r'^register/?$', sefaria_views.register, name='register'),
     url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
-    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
+    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
     url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
@@ -346,6 +346,7 @@ urlpatterns += [
     url(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     url(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
     url(r'^admin/reset/topics$', sefaria_views.rebuild_topics),
+    url(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),

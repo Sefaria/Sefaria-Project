@@ -57,7 +57,7 @@ class UserHistoryPanel extends Component {
           currVersions={item.versions}
           sheetOwner={item.sheet_owner}
           sheetTitle={item.sheet_title}
-          naturalTime={item.natural_time}
+          timeStamp={item.time_stamp}
           showSections={true}
           recentItem={true}
           sideColor={true}

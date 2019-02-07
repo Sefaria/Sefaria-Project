@@ -73,7 +73,7 @@ class PublicGroupsPanel extends Component {
           <div className="contentInner">
             <h1>
               <span className="int-en">Public Groups</span>
-              <span className="int-he">הקבוצות</span>
+              <span className="int-he">קבוצות</span>
             </h1>
             <center>
               <a className="button white" href="/groups/new">
