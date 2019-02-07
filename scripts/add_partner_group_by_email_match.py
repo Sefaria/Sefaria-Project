@@ -17,7 +17,7 @@ added_users = []
 total_users = 0
 
 
-with open('data/private/schools.tsv') as tsvfile:
+with open('/school-lookup-data/schools.tsv') as tsvfile:
     reader = csv.reader(tsvfile, delimiter='\t')
     for row in reader:
         user_count = 0
