@@ -2096,10 +2096,10 @@ class AddressHalakhah(AddressInteger):
     :class:`AddressType` for Halakhah/הלכה addresses
     """
     section_patterns = {
-        "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": ur"""(?:
-            (?:\u05d4\u05dc\u05db(?:\u05d4|\u05d5\u05ea)\s+)			# Halakhah spelled out, with a space after
-            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\u05db|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+        "en": ur"""(?:(?:[Hh]ala[ck]hah?)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1? 
+            (?:\u05d4\u05bb?\u05dc\u05b8?\u05db(?:\u05b8?\u05d4|\u05d5\u05b9?\u05ea)\s+)			# Halakhah spelled out, with a space after
+            |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3](?:['\u05f3\u05db]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
 
