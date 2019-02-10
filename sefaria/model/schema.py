@@ -2112,3 +2112,9 @@ class AddressSeif(AddressInteger):
             |(?:\u05e1(?:\u05e2|\u05e2\u05d9|\u05e7)?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
         )"""
     }
+
+class AddressSection(AddressInteger):
+    section_patterns = {
+        "en": ur"""(?:(?:([Ss]ection|§)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur""""""
+    }
