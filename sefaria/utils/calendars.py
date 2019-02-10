@@ -162,6 +162,24 @@ def daf_weekly(datetime_obj):
     return daf_weekly_list
 
 
+@graceful_exception(logger=logger, return_value=[])
+def halakhah_yomit(datetime_obj):
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    db_obj = db.halkhah_yomit.find_one({"date": {"$eq": datetime_obj}})
+    rf = model.Ref(db_obj["ref"])
+    display_en = rf.normal().replace("Shulchan Arkuh, ", "")
+    display_he = rf.he_normal()
+    halakha = {
+        "title": {"en": "Halakhah Yomit", "he": u"הלכה יומית"},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 9,
+        "category": rf.index.get_primary_category()
+    }
+    return [halakha]
+
+
 def make_haftarah_by_custom_response_from_calendar_entry(db_haftara, custom, add_custom_to_display):
     shorthands = {
         "ashkenazi" : {"en": 'A', "he": u'א'},
@@ -241,6 +259,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += daily_rambam(datetime_obj)
     cal_items += daily_rambam_three(datetime_obj)
     cal_items += daf_weekly(datetime_obj)
+    cal_items += halakhah_yomit(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
