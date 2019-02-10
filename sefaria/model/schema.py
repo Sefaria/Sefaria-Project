@@ -2057,9 +2057,10 @@ class AddressPerek(AddressInteger):
 
 class AddressMishnah(AddressInteger):
     section_patterns = {
-        "he": ur"""(?:
         "en": ur"""(?:(?:[Mm](ishnah?|s?\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur"""(?:\u05d1?                                                   # optional ב in front
+            (?:\u05de\u05b4?\u05e9\u05b0?\u05c1?\u05e0\u05b8?\u05d4\s)			# Mishna spelled out, with a space after
+            |(?:\u05de(?:["\u05f4]|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
         )"""
     }
 
@@ -2070,8 +2071,9 @@ class AddressVolume(AddressInteger):
     """
 
     section_patterns = {
-        "en": ur"""(?:(?:[Vv](olume|\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": ur"""(?:(?:\u05d1?\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
+        "en": ur"""(?:(?:[Vv](olumes?|\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?                                 # optional ב in front
+        (?:\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
          |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
         )
         """
