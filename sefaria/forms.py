@@ -13,7 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
-from captcha.widgets import ReCaptchaV2Checkbox, ReCaptchaV3
+from captcha.widgets import ReCaptchaV2Checkbox
 
 from sefaria.client.util import subscribe_to_list
 from sefaria.local_settings import DEBUG
@@ -37,8 +37,7 @@ class NewUserForm(EmailUserCreationForm):
     subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
 
     captcha_lang = "iw" if get_language() == 'he' else "en"
-    captcha = ReCaptchaField(widget=ReCaptchaV3)
-    """captcha = ReCaptchaField(
+    captcha = ReCaptchaField(
         widget=ReCaptchaV2Checkbox(
             attrs={
                 'data-theme': 'white'
@@ -46,7 +45,7 @@ class NewUserForm(EmailUserCreationForm):
             },
             #api_params={'hl': captcha_lang}
         )
-    )"""
+    )
     
     class Meta:
         model = User
