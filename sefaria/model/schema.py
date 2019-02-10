@@ -2113,6 +2113,6 @@ class AddressSeif(AddressInteger):
 
 class AddressSection(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:([Ss]ection|§)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": ur"""(?:(?:([Ss]ections?|§)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": ur""""""
     }
