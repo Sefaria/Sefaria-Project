@@ -2106,10 +2106,8 @@ class AddressHalakhah(AddressInteger):
 
 class AddressSeif(AddressInteger):
     section_patterns = {
-        "he": ur"""(?:
-            (?:\u05e1\u05e2\u05d9\u05e3\s+(?:\u05e7\u05d8\u05df)?)			# Seif spelled out, with a space after or Seif katan spelled out
-            |(?:\u05e1(?:\u05e2|\u05e2\u05d9|\u05e7)?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
         "en": ur"""(?:(?:[Ss][ae]if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+            (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+(?:\u05e7\u05d8\u05df)?)			# Seif spelled out, with a space after or Seif katan spelled out or with nikud
         )"""
     }
 
