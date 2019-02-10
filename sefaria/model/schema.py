@@ -2057,10 +2057,9 @@ class AddressPerek(AddressInteger):
 
 class AddressMishnah(AddressInteger):
     section_patterns = {
-        "en": None,
         "he": ur"""(?:
-            (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
-            |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
+        "en": ur"""(?:(?:[Mm](ishnah?|s?\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?                                                   # optional ב in front
         )"""
     }
 
