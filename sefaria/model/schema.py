@@ -2051,6 +2051,13 @@ class AddressPerek(AddressInteger):
         "he": ur"""(?:
             \u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
             |\u05e4\u05e8\u05e7(?:\u05d9\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
+
+class AddressPasuk(AddressInteger):
+    section_patterns = {
+        "en": ur"""(?:(?:([Vv](erses?|[vs]?\.)|[Pp]ass?u[kq]))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?                                        # optional ב in front
+            (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7\s*)    #pasuk spelled out, with a space after
+            |(?:\u05e4(?:["\u05f4]|'')?)         # or Peh (for 'pasuk') maybe followed by a quote of some sort
         )"""
     }
 
