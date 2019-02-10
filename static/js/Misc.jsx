@@ -860,7 +860,7 @@ class CategoryAttribution extends Component {
     var unlinkedContent = <span>
                             <span className="en">{attribution.english}</span>
                             <span className="he">{attribution.hebrew}</span>
-                          </span>
+                          </span>;
     return <div className="categoryAttribution">
             {this.props.linked ? linkedContent : unlinkedContent}
            </div>;
@@ -872,7 +872,7 @@ CategoryAttribution.propTypes = {
 };
 CategoryAttribution.defaultProps = {
   linked:     true,
-}
+};
 
 
 class SheetTagLink extends Component {
