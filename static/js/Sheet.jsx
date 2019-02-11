@@ -184,9 +184,6 @@ class SheetContent extends Component {
               div: ['style'],
               td: ['colspan'],
             },
-            allowedClasses: {
-             'sup': ['nechama'],
-            },
             allowedStyles: {
               '*': {
                 'color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
@@ -374,8 +371,8 @@ class SheetSource extends Component {
           {linkCountElement}
 
         {this.props.source.text && this.props.source.text.he && this.props.source.text.he != "" ?
-          <div className="he">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+            <div className="he">{this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup class="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
@@ -383,8 +380,8 @@ class SheetSource extends Component {
 
 
         {this.props.source.text && this.props.source.text.en && this.props.source.text.en != "" ?
-          <div className="en">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+          <div className="en">{this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup class="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>

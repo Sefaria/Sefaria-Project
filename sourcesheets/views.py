@@ -362,7 +362,22 @@ def delete_sheet_api(request, sheet_id):
 	if not sheet:
 		return jsonResponse({"error": "Sheet %d not found." % id})
 
-	if request.user.id != sheet["owner"]:
+	if not request.user.is_authenticated:
+		key = request.POST.get("apikey")
+		if not key:
+			return jsonResponse({"error": "You must be logged in or use an API key to delete a sheet."})
+		apikey = db.apikeys.find_one({"key": key})
+		if not apikey:
+			return jsonResponse({"error": "Unrecognized API key."})
+	else:
+		apikey = None
+
+	if apikey:
+		user = User.objects.get(id=apikey["uid"])
+	else:
+		user = request.user
+
+	if user.id != sheet["owner"]:
 		return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
 	db.sheets.remove({"id": id})
