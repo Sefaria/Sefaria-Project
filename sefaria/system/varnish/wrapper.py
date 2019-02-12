@@ -7,12 +7,14 @@ import urllib
 from common import manager, secret, purge_url, FRONT_END_URL
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
+from sefaria.utils.util import graceful_exception
 
 
 import logging
 logger = logging.getLogger(__name__)
 
 
+@graceful_exception(logger=logger, return_value=None, exception_type=UnicodeDecodeError)
 def invalidate_ref(oref, lang=None, version=None, purge=False):
     """
     Called when 'ref' is changed.
