@@ -1401,14 +1401,15 @@ a.readerNavCategory {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
-.readerTextTableOfContents .categoryAttribution {
-  color: #666;
+.readerTextTableOfContents .categoryAttribution,
+.readerTextTableOfContents .dedication {
   text-align: center;
-  font-size: 24px;
+  font-size: 18px;
   font-style: italic;
-  margin: 10px 0 28px;
+  margin: 28px 0;
 }
-.readerTextTableOfContents .categoryAttribution .he {
+.readerTextTableOfContents .categoryAttribution .he,
+.readerTextTableOfContents .dedication .he {
   font-style: normal;
 }
 .readerTextTableOfContents .tocTop {

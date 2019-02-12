@@ -201,12 +201,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "pubPlace",
         "errorMargin",
         "era",
-        "dependence", # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
-        "base_text_titles", # (list) the base book(s) this one is dependant on
-        "base_text_mapping", # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
-        "collective_title", # (str) string value for a group of index records - the former commentator name. Requires a matching term.
-        "is_cited",  # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
-        "lexiconName"  # For dictionaries - the name used in the Lexicon collection
+        "dependence",           # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
+        "base_text_titles",     # (list) the base book(s) this one is dependant on
+        "base_text_mapping",    # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
+        "collective_title",     # (str) string value for a group of index records - the former commentator name. Requires a matching term.
+        "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
+        "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
+        "dedication"            # (dict) Dedication texts, keyed by language
     ]
 
     def __unicode__(self):
