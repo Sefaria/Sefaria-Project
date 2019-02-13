@@ -113,7 +113,7 @@ def daily_rambam_three(datetime_obj):
         display_en = rf.normal().replace("Mishneh Torah, ", "")
         display_he = rf.he_normal().replace(u"משנה תורה, ", u"")
         rambam_items.append({
-            "title": {"en": "Daily Rambam (3)", "he": u'הרבמ"ם היומי {}'.format(u"(3)")},
+            "title": {"en": "Daily Rambam (3)", "he": u'הרמב"ם היומי {}'.format(u"(3)")},
             "displayValue": {"en": display_en, "he": display_he},
             "url": rf.url(),
             "ref": rf.normal(),
