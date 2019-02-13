@@ -378,6 +378,8 @@ def get_book_link_collection(book, cat):
     for link in links:
         l1 = re.match(link_re, link.refs[0])
         l2 = re.match(link_re, link.refs[1])
+        if not l1 or not l2:
+            continue
         ret.append({
             "r1": {"title": l1.group("title"), "loc": l1.group("loc")},
             "r2": {"title": l2.group("title"), "loc": l2.group("loc")}
