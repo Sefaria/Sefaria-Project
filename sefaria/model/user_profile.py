@@ -22,6 +22,7 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
+from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -353,7 +354,7 @@ class UserProfile(object):
         Sets the partner group if email pattern matches known school
         """
         email_pattern = self.email.split("@")[1]
-        tsv_file = csv.reader(open('/school-lookup-data/schools.tsv', "rb"), delimiter="\t")
+        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rb"), delimiter="\t")
         for row in tsv_file:
             # if current rows 2nd value is equal to input, print that row
             if email_pattern == row[1]:
