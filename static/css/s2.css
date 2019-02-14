@@ -108,7 +108,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-size: 16px;
   font-weight: normal;
   color: #666;
-  text-transform: uppercase,
+  text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 .smallText .int-he {
@@ -5512,7 +5512,7 @@ span.purim-emoji img{
 
 .sheetContent .ref {
   cursor: pointer;
-  color: #999;
+  color: black;
   font-size: 1em;
 }
 .sheetContent .ref a {
