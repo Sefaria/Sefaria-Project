@@ -113,7 +113,7 @@ def daily_rambam_three(datetime_obj):
         display_en = rf.normal().replace("Mishneh Torah, ", "")
         display_he = rf.he_normal().replace(u"משנה תורה, ", u"")
         rambam_items.append({
-            "title": {"en": "Daily Rambam (3)", "he": u'הרבמ"ם היומי {}'.format(u"(3)")},
+            "title": {"en": "Daily Rambam (3)", "he": u'הרמב"ם היומי {}'.format(u"(3)")},
             "displayValue": {"en": display_en, "he": display_he},
             "url": rf.url(),
             "ref": rf.normal(),
@@ -165,7 +165,7 @@ def daf_weekly(datetime_obj):
 @graceful_exception(logger=logger, return_value=[])
 def halakhah_yomit(datetime_obj):
     datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
-    db_obj = db.halkhah_yomit.find_one({"date": {"$eq": datetime_obj}})
+    db_obj = db.halakhah_yomit.find_one({"date": {"$eq": datetime_obj}})
     rf = model.Ref(db_obj["ref"])
     display_en = rf.normal().replace("Shulchan Arkuh, ", "")
     display_he = rf.he_normal()
