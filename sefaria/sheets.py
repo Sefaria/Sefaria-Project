@@ -357,7 +357,9 @@ def bleach_text(text):
 
 	ok_sheet_attrs = {'a': [ 'href', 'name', 'target' ],'img': [ 'src' ], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'],"*": ["class"]}
 
-	return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, strip=True)
+	ok_sheet_styles = ['color', 'background-color', 'text-align']
+
+	return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, styles=ok_sheet_styles, strip=True)
 
 
 
