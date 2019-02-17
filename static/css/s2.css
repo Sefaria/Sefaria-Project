@@ -5774,13 +5774,14 @@ span.purim-emoji img{
     position: absolute;
     text-decoration: none;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-
+    color: #000;
 }
 .en sup.sourcePrefix {
     margin-left: -35px;
     position: absolute;
     text-decoration: none;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #000;
 }
 .heLeft.bilingual .sheetContent .text sup.sourcePrefix,
 .heRight.bilingual .sheetContent .text sup.sourcePrefix {

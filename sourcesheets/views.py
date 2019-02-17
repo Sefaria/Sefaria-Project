@@ -351,7 +351,7 @@ def assigned_sheet(request, assignment_id):
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
 											})
-
+@csrf_exempt
 def delete_sheet_api(request, sheet_id):
 	"""
 	Deletes sheet with id, only if the requester is the sheet owner.
