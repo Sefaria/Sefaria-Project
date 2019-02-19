@@ -37,6 +37,10 @@ class UserHistory(abst.AbstractMongoRecord):
         "book",               # str: index title
         "saved",              # bool: True if saved
         "secondary",          # bool: True when view is from sidebar
+        "context_refs",       # list of ref strings: derived from ref
+        "categories",         # list of str: derived from ref
+        "authors"             # list of str: derived from ref
+
     ]
 
     optional_attrs = [
@@ -84,9 +88,10 @@ class UserHistory(abst.AbstractMongoRecord):
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
-
-        pass
-
+        r = Ref(self.ref)
+        self.context_refs   = [r.normal() for r in r.all_context_refs()]
+        self.categories     = r.index.categories
+        self.authors        = getattr(r.index, "authors", [])
 
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)

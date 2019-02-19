@@ -3209,12 +3209,21 @@ class Ref(object):
         """
         :return: a list of more general refs that contain this one - out too, and including, the book level
         """
-        current_level = self.index_node.depth - len(self.sections)
+
         refs = [self] if include_self else []
-        refs += [self.context_ref(n) for n in  range(current_level + 1, self.index_node.depth + 1)]
+        try:
+            current_level = self.index_node.depth - len(self.sections)
+            refs += [self.context_ref(n) for n in  range(current_level + 1, self.index_node.depth + 1)]
+        except AttributeError:  # If self is a Schema Node
+            pass
+
         n = self.index_node.parent
+
         while n is not None:
-            refs += [n.ref()]
+            try:
+                refs += [n.ref()]
+            except AttributeError:  # Jump over VirtualNodes
+                pass
             n = n.parent
         if not include_book:
             refs = refs[:-1]

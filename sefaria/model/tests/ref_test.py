@@ -135,6 +135,11 @@ class Test_Ref(object):
         assert Ref("Pesach Haggadah, Magid, First Fruits Declaration 2") .all_context_refs(include_self = False, include_book = True) == [Ref('Pesach Haggadah, Magid, First Fruits Declaration'), Ref('Pesach Haggadah, Magid'), Ref('Pesach Haggadah')]
         assert Ref("Pesach Haggadah, Magid, First Fruits Declaration 2") .all_context_refs(include_self = False, include_book = False) == [Ref('Pesach Haggadah, Magid, First Fruits Declaration'), Ref('Pesach Haggadah, Magid')]
 
+        # Don't choke on Schema nodes.
+        assert Ref("Pesach Haggadah, Magid").all_context_refs() == [Ref("Pesach Haggadah, Magid")]
+
+        # Don't choke on Virtual nodes
+        assert Ref(u"Jastrow, ג").all_context_refs() == [Ref(u"Jastrow, ג")]
 
     def test_context_ref(self):
         assert Ref("Genesis 2:3").context_ref().normal() == "Genesis 2"
