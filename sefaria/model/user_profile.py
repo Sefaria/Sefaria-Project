@@ -409,7 +409,7 @@ class UserProfile(object):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(natural_time=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
+            return [uh.contents() for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
         return UserHistorySet(query, sort=[("time_stamp", -1)])
 
     def to_DICT(self):

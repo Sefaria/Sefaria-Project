@@ -117,8 +117,8 @@ class AbstractStory extends Component {
   naturalTimeBlock() {
       return (
         <div className="timeBlock smallText">
-          <span className="int-en">{ this.props.natural_time.en } ago</span>
-          <span className="int-he">&rlm;לפני { this.props.natural_time.he }</span>
+          <span className="int-en">{ Sefaria.util.naturalTime(this.props.timestamp) } ago</span>
+          <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(this.props.timestamp) }</span>
         </div>);
   }
   /*

@@ -12,7 +12,6 @@ from . import user_profile
 from . import text
 
 from sefaria.system.database import db
-from sefaria.utils.util import concise_natural_time
 
 from sefaria.system.exceptions import InputError
 

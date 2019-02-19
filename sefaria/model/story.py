@@ -11,7 +11,6 @@ from datetime import datetime
 from . import abstract as abst
 from . import user_profile
 from sefaria.system.database import db
-from sefaria.utils.util import concise_natural_time
 
 import logging
 logger = logging.getLogger(__name__)
@@ -166,10 +165,6 @@ class UserStory(Story):
             del c["global_story_id"]
 
         # Add Derived Attributes
-        c["natural_time"] = {
-            "en": concise_natural_time(datetime.utcfromtimestamp(c["timestamp"]), lang="en"),
-            "he": concise_natural_time(datetime.utcfromtimestamp(c["timestamp"]), lang="he")
-        }
         d = c["data"]
         if "publisher_id" in d:
             udata = user_profile.public_user_data(d["publisher_id"])
