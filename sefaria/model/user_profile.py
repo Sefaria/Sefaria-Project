@@ -82,6 +82,12 @@ class UserHistory(abst.AbstractMongoRecord):
 
         super(UserHistory, self).__init__(attrs=attrs)
 
+    def _normalize(self):
+        # Derived values - used to make downstream queries quicker
+
+        pass
+
+
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):

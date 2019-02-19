@@ -124,6 +124,18 @@ class Test_Ref(object):
         assert Ref("Shabbat 7b").is_talmud()
         assert Ref("Rashi on Shabbat 2a:1:1").is_talmud()
 
+    def test_all_context_refs(self):
+        assert Ref('Rashi on Genesis 2:3:4').all_context_refs() == [Ref('Rashi on Genesis 2:3:4'), Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2')]
+        assert Ref('Rashi on Genesis 2:3:4').all_context_refs(include_self = False, include_book = True) == [Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2'), Ref('Rashi on Genesis')]
+        assert Ref('Rashi on Genesis 2:3:4').all_context_refs(include_self = False, include_book = False) == [Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2')]
+        assert Ref('Rashi on Genesis 2:3:4').all_context_refs(include_self = True, include_book = True) == [Ref('Rashi on Genesis 2:3:4'), Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2'), Ref('Rashi on Genesis')]
+
+        assert Ref("Pesach Haggadah, Magid, First Fruits Declaration 2") .all_context_refs() == [Ref('Pesach Haggadah, Magid, First Fruits Declaration 2'), Ref('Pesach Haggadah, Magid, First Fruits Declaration'), Ref('Pesach Haggadah, Magid')]
+        assert Ref("Pesach Haggadah, Magid, First Fruits Declaration 2") .all_context_refs(include_self = True, include_book = True) == [Ref('Pesach Haggadah, Magid, First Fruits Declaration 2'), Ref('Pesach Haggadah, Magid, First Fruits Declaration'), Ref('Pesach Haggadah, Magid'), Ref('Pesach Haggadah')]
+        assert Ref("Pesach Haggadah, Magid, First Fruits Declaration 2") .all_context_refs(include_self = False, include_book = True) == [Ref('Pesach Haggadah, Magid, First Fruits Declaration'), Ref('Pesach Haggadah, Magid'), Ref('Pesach Haggadah')]
+        assert Ref("Pesach Haggadah, Magid, First Fruits Declaration 2") .all_context_refs(include_self = False, include_book = False) == [Ref('Pesach Haggadah, Magid, First Fruits Declaration'), Ref('Pesach Haggadah, Magid')]
+
+
     def test_context_ref(self):
         assert Ref("Genesis 2:3").context_ref().normal() == "Genesis 2"
         assert Ref("Rashi on Genesis 2:3:1").context_ref().normal() == "Rashi on Genesis 2:3"

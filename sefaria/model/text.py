@@ -3205,6 +3205,21 @@ class Ref(object):
             size = 0
         return self.subrefs(size)
 
+    def all_context_refs(self, include_self = True, include_book = False):
+        """
+        :return: a list of more general refs that contain this one - out too, and including, the book level
+        """
+        current_level = self.index_node.depth - len(self.sections)
+        refs = [self] if include_self else []
+        refs += [self.context_ref(n) for n in  range(current_level + 1, self.index_node.depth + 1)]
+        n = self.index_node.parent
+        while n is not None:
+            refs += [n.ref()]
+            n = n.parent
+        if not include_book:
+            refs = refs[:-1]
+        return refs
+
     def context_ref(self, level=1):
         """
         :return: :class:`Ref` that is more general than this :class:`Ref`.
@@ -3226,7 +3241,6 @@ class Ref(object):
             if self.index_node.has_default_child():
                 return self.default_child_ref()
             return self
-
 
         if self._context is None:
             self._context = {}
