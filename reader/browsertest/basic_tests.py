@@ -100,6 +100,7 @@ class RecentInToc(AtomicTest):
         self.search_ref("Joshua 1")
         self.nav_to_history().click_toc_recent("Joshua 1")
         self.browse_to_ref("Berakhot 23b")
+        time.sleep(3)
         self.nav_to_history().click_toc_recent("Berakhot 23b")
 
 
