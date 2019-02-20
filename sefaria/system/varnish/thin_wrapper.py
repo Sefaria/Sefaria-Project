@@ -1,8 +1,13 @@
 # Varnish wrapper that does not depend on core code.  Used for the multiserver monitor.
 
 from common import manager, secret, purge_url, FRONT_END_URL
+from sefaria.utils.util import graceful_exception
+
+import logging
+logger = logging.getLogger(__name__)
 
 
+@graceful_exception(logger=logger, return_value=None)
 def invalidate_title(title):
     title = title.replace(" ", "_").replace(":", ".")
 

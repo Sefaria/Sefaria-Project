@@ -47,7 +47,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
-from sefaria.system.decorators import catch_error_as_json, json_response_decorator
+from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
@@ -344,6 +344,7 @@ def base_props(request):
     }
 
 
+@sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
     Handles views of ReaderApp that involve texts, connections, and text table of contents in panels.
@@ -517,6 +518,8 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
         text_list = text_list[0]
     return text_list
 
+
+@sanitize_get_params
 def texts_category_list(request, cats):
     """
     List of texts in a category.
@@ -582,7 +585,9 @@ def get_search_params(get_dict, i=None):
         "sheetFilterAggTypes": sheet_agg_types,
     }
 
+
 @ensure_csrf_cookie
+@sanitize_get_params
 def search(request):
     """
     Search or Search Results page.
@@ -612,6 +617,7 @@ def search(request):
     })
 
 
+@sanitize_get_params
 def sheets(request):
     """
     Source Sheets Home Page.
@@ -636,6 +642,7 @@ def sheets(request):
     })
 
 
+@sanitize_get_params
 def get_group_page(request, group, authenticated):
     props = base_props(request)
     props.update({
@@ -678,6 +685,7 @@ def my_notes(request):
     return menu_page(request, props, "myNotes", title)
 
 
+@sanitize_get_params
 def sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
@@ -764,7 +772,8 @@ def group_page(request, group):
     else:
         return get_group_page(request, group.name, False)
 
-@login_required()
+
+@login_required
 def edit_group_page(request, group=None):
     if group:
         group = group.replace("-", " ").replace("_", " ")
@@ -787,7 +796,7 @@ def groups_admin_page(request):
     return render(request, "groups.html", {"groups": groups})
 
 
-
+@sanitize_get_params
 def topics_page(request):
     """
     Page of sheets by tag.
@@ -812,6 +821,7 @@ def topics_page(request):
     })
 
 
+@sanitize_get_params
 def topic_page(request, topic):
     """
     Page of sheets by tag.
@@ -841,6 +851,7 @@ def topic_page(request, topic):
     })
 
 
+@sanitize_get_params
 def menu_page(request, props, page, title="", desc=""):
     """
     View for any App page that can described with the `menuOpen` param in React
@@ -1014,7 +1025,9 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
     })
 
 
+
 @ensure_csrf_cookie
+@sanitize_get_params
 def edit_text(request, ref=None, lang=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
@@ -1054,6 +1067,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                              })
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def edit_text_info(request, title=None, new_title=None):
     """
     Opens the Edit Text Info page.
@@ -1917,6 +1931,7 @@ def version_status_tree_api(request, lang=None):
     }
 
 
+@sanitize_get_params
 def visualize_library(request, lang=None, cats=None):
 
     template_vars = {"lang": lang or "",
@@ -1945,6 +1960,10 @@ def talmudic_relationships(request):
 def sefer_hachinukh_mitzvot(request):
     csv_file = "../static/files/mitzvot.csv"
     return render(request,'sefer_hachinukh_mitzvot.html', {"csv": csv_file})
+
+def unique_words_viz(request):
+    csv_file = "../static/files/commentators_torah_unique_words.csv"
+    return render(request,'unique_words_viz.html', {"csv": csv_file})
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -2674,6 +2693,7 @@ def recommend_topics_api(request, ref_list=None):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def global_activity(request, page=1):
     """
     Recent Activity page listing all recent actions and contributor leaderboards.
@@ -2708,6 +2728,7 @@ def global_activity(request, page=1):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def user_activity(request, slug, page=1):
     """
     Recent Activity page for a single user.
@@ -2746,6 +2767,7 @@ def user_activity(request, slug, page=1):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def segment_history(request, tref, lang, version, page=1):
     """
     View revision history for the text segment named by ref / lang / version.
@@ -2816,6 +2838,7 @@ def leaderboard(request):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def user_profile(request, username, page=1):
     """
     User's profile page.
@@ -3144,6 +3167,7 @@ def dashboard(request):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def translation_requests(request, completed_only=False, featured_only=False):
     """
     Page listing all outstnading translation requests.
@@ -3242,6 +3266,7 @@ def translation_request_api(request, tref):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def translation_flow(request, tref):
     """
     Assign a user a paritcular bit of text to translate within 'ref',
@@ -3395,6 +3420,7 @@ def translation_flow(request, tref):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def contest_splash(request, slug):
     """
     Splash page for contest.

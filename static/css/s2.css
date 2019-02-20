@@ -1401,14 +1401,15 @@ a.readerNavCategory {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
-.readerTextTableOfContents .categoryAttribution {
-  color: #666;
+.readerTextTableOfContents .categoryAttribution,
+.readerTextTableOfContents .dedication {
   text-align: center;
-  font-size: 24px;
+  font-size: 18px;
   font-style: italic;
-  margin: 10px 0 28px;
+  margin: 28px 0;
 }
-.readerTextTableOfContents .categoryAttribution .he {
+.readerTextTableOfContents .categoryAttribution .he,
+.readerTextTableOfContents .dedication .he {
   font-style: normal;
 }
 .readerTextTableOfContents .tocTop {
@@ -5768,14 +5769,28 @@ span.purim-emoji img{
   max-width: 100%;
 }
 
-sup.nechama {
+.he sup.sourcePrefix {
     margin-right: -35px;
     position: absolute;
     text-decoration: none;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #000;
 }
-.heLeft.bilingual .sheetContent .text sup.nechama,
-.heRight.bilingual .sheetContent .text sup.nechama {
+.en sup.sourcePrefix {
+    margin-left: -35px;
+    position: absolute;
+    text-decoration: none;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #000;
+}
+.heLeft.bilingual .sheetContent .text sup.sourcePrefix,
+.heRight.bilingual .sheetContent .text sup.sourcePrefix {
     margin-right: -28px;
+}
+
+.heLeft.bilingual .sheetContent .text .en sup.sourcePrefix,
+.heRight.bilingual .sheetContent .text .en sup.sourcePrefix {
+  display: none
 }
 .sheetItem.ref-display-none .ref {
   display: none;

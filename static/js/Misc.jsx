@@ -100,7 +100,7 @@ class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, naturalTime } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -122,11 +122,12 @@ class TextBlockLink extends Component {
     position = position || 0;
     const isSheet = book === 'Sheet';
     const classes  = classNames({refLink: !isSheet, sheetLink: isSheet, blockLink: 1, recentItem, calendarLink: (subtitle != null), saved });
+    url_string = url_string ? url_string : sref;
     let url;
     if (isSheet) {
-      url = `/sheets/${Sefaria.normRef(sref).replace('Sheet.','')}`
+      url = `/sheets/${Sefaria.normRef(url_string).replace('Sheet.','')}`
     } else {
-      url = "/" + Sefaria.normRef(sref) + Object.keys(currVersions)
+      url = "/" + Sefaria.normRef(url_string) + Object.keys(currVersions)
         .filter(vlang=>!!currVersions[vlang])
         .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
         .join("")
@@ -145,10 +146,10 @@ class TextBlockLink extends Component {
           </div>
           <div className="sideColorRight">
             { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
-            { !saved && naturalTime ?
+            { !saved && timeStamp ?
               <span>
-                <span className="int-en">{ naturalTime.en }</span>
-                <span className="int-he">&rlm;{ naturalTime.he }</span>
+                <span className="int-en">{ Sefaria.util.naturalTime(timeStamp) }</span>
+                <span className="int-he">&rlm;{ Sefaria.util.naturalTime(timeStamp) }</span>
               </span>: null
             }
           </div>
@@ -172,6 +173,7 @@ TextBlockLink.propTypes = {
   heTitle:         PropTypes.string,
   displayValue:    PropTypes.string,
   heDisplayValue:  PropTypes.string,
+  url_string:      PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
   position:        PropTypes.number,
@@ -179,7 +181,7 @@ TextBlockLink.propTypes = {
   saved:           PropTypes.bool,
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
-  naturalTime:     PropTypes.object,
+  timeStamp:       PropTypes.number,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
@@ -858,7 +860,7 @@ class CategoryAttribution extends Component {
     var unlinkedContent = <span>
                             <span className="en">{attribution.english}</span>
                             <span className="he">{attribution.hebrew}</span>
-                          </span>
+                          </span>;
     return <div className="categoryAttribution">
             {this.props.linked ? linkedContent : unlinkedContent}
            </div>;
@@ -870,7 +872,7 @@ CategoryAttribution.propTypes = {
 };
 CategoryAttribution.defaultProps = {
   linked:     true,
-}
+};
 
 
 class SheetTagLink extends Component {

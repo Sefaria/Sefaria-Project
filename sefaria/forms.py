@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
+from captcha.widgets import ReCaptchaV2Checkbox
 
 from sefaria.client.util import subscribe_to_list
 from sefaria.local_settings import DEBUG
@@ -34,11 +35,17 @@ class NewUserForm(EmailUserCreationForm):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
     subscribe_announce = forms.BooleanField(label=_("Receive important announcements"), help_text=_("Receive important announcements"), initial=True, required=False)
     subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
-    if not DEBUG:
-        attrs = {'theme': 'white'}
-        if get_language() == 'he':
-            attrs['lang'] = 'iw'
-        captcha = ReCaptchaField(attrs=attrs)
+
+    captcha_lang = "iw" if get_language() == 'he' else "en"
+    captcha = ReCaptchaField(
+        widget=ReCaptchaV2Checkbox(
+            attrs={
+                'data-theme': 'white'
+                #'data-size': 'compact',
+            },
+            #api_params={'hl': captcha_lang}
+        )
+    )
     
     class Meta:
         model = User
@@ -47,9 +54,7 @@ class NewUserForm(EmailUserCreationForm):
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1"]
-        if not DEBUG:
-            self.fields.keyOrder.append("captcha")
+        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha"]
         self.fields.keyOrder.append("subscribe_announce")
         self.fields.keyOrder.append("subscribe_educator")
 

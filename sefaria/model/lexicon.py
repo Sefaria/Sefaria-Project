@@ -29,6 +29,9 @@ class WordForm(abst.AbstractMongoRecord):
             query['form'] = {"$regex": "^"+query['form']+"$", "$options": "i"}
         return super(WordForm, self).load(query, proj=None)
 
+    def _sanitize(self):
+        pass
+
 
 class WordFormSet(abst.AbstractMongoSet):
     recordClass = WordForm
@@ -78,6 +81,17 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "parent_lexicon",
     ]
     optional_attrs = ["content"]
+
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
+    ALLOWED_ATTRS   = {
+        'span':['class', 'dir'],
+        'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
+        'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
+        'a': ['dir', 'class', 'href', 'data-ref'],
+    }
+
+    def _sanitize(self):
+        pass
 
     def factory(self, lexicon_name):
         pass

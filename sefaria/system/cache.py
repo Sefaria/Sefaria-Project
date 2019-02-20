@@ -35,7 +35,7 @@ def cache_get_key(*args, **kwargs):
     serialise = []
     for arg in args:
         serialise.append(str(arg))
-    for key,arg in kwargs.items():
+    for key,arg in sorted(kwargs.items(), key=lambda x: x[0]):
         serialise.append(str(key))
         serialise.append(str(arg))
     key = hashlib.md5("".join(serialise)).hexdigest()
