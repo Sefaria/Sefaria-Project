@@ -4,6 +4,7 @@ import re
 import bleach
 import sys
 import json
+import csv
 from datetime import datetime
 from random import randint
 
@@ -21,6 +22,7 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
+from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -345,6 +347,19 @@ class UserProfile(object):
             dupe_count += 1
             self.slug = "%s%d" % (slug, dupe_count)
 
+        return self
+
+    def add_partner_group_by_email(self):
+        """
+        Sets the partner group if email pattern matches known school
+        """
+        email_pattern = self.email.split("@")[1]
+        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rb"), delimiter="\t")
+        for row in tsv_file:
+            # if current rows 2nd value is equal to input, print that row
+            if email_pattern == row[1]:
+                self.partner_group = row[0]
+                return self
         return self
 
     def join_invited_groups(self):

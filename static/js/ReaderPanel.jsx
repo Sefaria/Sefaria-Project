@@ -678,6 +678,7 @@ class ReaderPanel extends Component {
           addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
+          toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
           sheetMetaData={this.state.sheet}
@@ -739,6 +740,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "sheet meta") {
       var menu = (<SheetMetadata
                     mode={this.state.menuOpen}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeSheetMetaData}
                     sheet={this.state.sheet}

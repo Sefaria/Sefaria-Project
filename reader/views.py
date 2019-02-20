@@ -1995,6 +1995,10 @@ def sefer_hachinukh_mitzvot(request):
     csv_file = "../static/files/mitzvot.csv"
     return render(request,'sefer_hachinukh_mitzvot.html', {"csv": csv_file})
 
+def unique_words_viz(request):
+    csv_file = "../static/files/commentators_torah_unique_words.csv"
+    return render(request,'unique_words_viz.html', {"csv": csv_file})
+
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
     """
