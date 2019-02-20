@@ -141,6 +141,8 @@ class Test_Ref(object):
         # Don't choke on Virtual nodes
         assert Ref(u"Jastrow, ג").all_context_refs() == [Ref(u"Jastrow, ג")]
 
+        assert Ref("Sheet 4:3").all_context_refs() == [Ref('Sheet 4:3'), Ref('Sheet 4')]
+
     def test_context_ref(self):
         assert Ref("Genesis 2:3").context_ref().normal() == "Genesis 2"
         assert Ref("Rashi on Genesis 2:3:1").context_ref().normal() == "Rashi on Genesis 2:3"

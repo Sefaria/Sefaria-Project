@@ -7,6 +7,8 @@ import json
 from datetime import datetime
 from random import randint
 
+from sefaria.system.exceptions import InputError
+
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
     from django.core.mail import EmailMultiAlternatives
@@ -39,8 +41,8 @@ class UserHistory(abst.AbstractMongoRecord):
         "secondary",          # bool: True when view is from sidebar
         "context_refs",       # list of ref strings: derived from ref
         "categories",         # list of str: derived from ref
-        "authors"             # list of str: derived from ref
-
+        "authors",            # list of str: derived from ref
+        "is_sheet"            # bool: is this a sheet ref?
     ]
 
     optional_attrs = [
@@ -48,6 +50,7 @@ class UserHistory(abst.AbstractMongoRecord):
         "num_times_read",     # int: legacy for migrating old recent views
         "sheet_title",        # str: for sheet history
         "sheet_owner",        # str: ditto
+        "sheet_id"            # int: ditto
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
@@ -88,10 +91,20 @@ class UserHistory(abst.AbstractMongoRecord):
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
-        r = Ref(self.ref)
-        self.context_refs   = [r.normal() for r in r.all_context_refs()]
-        self.categories     = r.index.categories
-        self.authors        = getattr(r.index, "authors", [])
+        try:
+            r = Ref(self.ref)
+            self.context_refs   = [r.normal() for r in r.all_context_refs()]
+            self.categories     = r.index.categories
+            self.authors        = getattr(r.index, "authors", [])
+            self.is_sheet       = r.index.title == "Sheet"
+            if self.is_sheet:
+                self.sheet_id = r.sections[0]
+
+        except InputError:   # Ref failed to resolve
+            self.context_refs   = [self.ref]
+            self.categories     = []
+            self.authors        = []
+            self.is_sheet       = False
 
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)
