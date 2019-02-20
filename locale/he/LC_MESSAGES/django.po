@@ -603,6 +603,15 @@ msgid ""
 "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
 msgstr "סייר חיבורים - מיצג גרפי של הקשרים בין המקרא לתלמוד | ספריא"
 
+#: templates/explore.html:4
+#, python-format
+msgid ""
+"Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
+"%(topCatTitle)s | Sefaria"
+msgstr ""
+"סייר חיבורים - מיצג גרפי של הקשרים בין %(bottomCatTitle)s ו%(topCatTitle)s | "
+"ספריא"
+
 #: templates/explore.html:6
 msgid ""
 "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
@@ -610,6 +619,16 @@ msgid ""
 msgstr ""
 "צפו בלמעלה מ30 אלף דוגמאות בהן התלמוד מצטט פסוקים מן המקרא. ניתן גם להתקרב "
 "ולצפות בקשרים המתייחסים לספר אחד או מסכת מסויימת."
+
+#: templates/explore.html:6
+#, python-format
+msgid ""
+"Visually explore quotations and connections between %(bottomCatTitle)s and "
+"%(topCatTitle)s. Zoom in to particular books either above or below to "
+"explore deeper."
+msgstr ""
+"סיירו חזותית וגלו ציטוטים וקישורים בין %(bottomCatTitle)s ו%(topCatTitle)s. "
+"ניתן גם להתקרב ולצפות בקשרים המתייחסים לספר אחד או מסכת מסויימת."
 
 #: templates/leaderboard.html:4
 msgid "Top Contributors | Sefaria"
@@ -1183,6 +1202,10 @@ msgstr ""
 msgid "Student-Teacher Relationships in the Talmud"
 msgstr "קשרי מורה-תלמיד בתלמוד"
 
+
+#: templates/talmudic_relationships.html:26
+msgid "Description goes here."
+msgstr ""
 
 #: templates/visual_library.html:4
 msgid "Visualizing the Sefaria Library"
