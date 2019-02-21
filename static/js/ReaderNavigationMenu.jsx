@@ -147,7 +147,8 @@ class ReaderNavigationMenu extends Component {
                   </div>);
       var calendar = Sefaria.calendars.map(function(item) {
           return (<TextBlockLink
-                    sref={item.url}
+                    sref={item.ref}
+                    url_string={item.url}
                     title={item.title["en"]}
                     heTitle={item.title["he"]}
                     displayValue={item.displayValue["en"]}
@@ -181,7 +182,7 @@ class ReaderNavigationMenu extends Component {
                     (<a className="resourcesLink outOfAppLink" href="/groups">
                         <img src="/static/img/group.svg" alt="Groups icon" />
                         <span className="int-en">Groups</span>
-                        <span className="int-he">הקבוצות</span>
+                        <span className="int-he">קבוצות</span>
                       </a>)
                       ];
       resources = (<div className="readerTocResources"><TwoBox content={resources} width={this.width} /></div>);

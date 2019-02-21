@@ -1436,7 +1436,6 @@ Sefaria = extend(Sefaria, {
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-        console.log("sync", history_item_array);
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
               data => { /*console.log("sync resp", data)*/ } );
@@ -1710,6 +1709,9 @@ Sefaria = extend(Sefaria, {
         sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
       }
       return sheets.length;
+    },
+    extractIdFromSheetRef: function (ref) {
+        return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1])
     }
   },
   _groups: {},
@@ -2103,7 +2105,7 @@ Sefaria.setup = function(data) {
     }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
-    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)
+    Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
 
