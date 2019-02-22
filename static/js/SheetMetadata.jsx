@@ -23,7 +23,6 @@ class SheetMetadata extends Component {
     super(props);
 
     this.state = {
-      showLogin: false,
       sheetCopyStatus: "Copy",
       copiedSheetId: null,
       viewerLikedSheet: this.props.sheet.likes ? this.props.sheet.likes.indexOf(Sefaria._uid) != -1 ? true : false : false,
@@ -31,6 +30,7 @@ class SheetMetadata extends Component {
     };
   }
   componentDidUpdate(prevProps, prevState) {
+      console.log(this.props)
     if ((this.props.settingsLanguage != prevProps.settingsLanguage)) {
       this.forceUpdate();
 
@@ -51,7 +51,7 @@ class SheetMetadata extends Component {
 
   toggleLike() {
     if (!Sefaria._uid) {
-        this.setState({showLogin: true});
+        this.props.toggleSignUpModal();
     } else if (!this.state.viewerLikedSheet) {
           this.setState({
               viewerLikedSheet: true,
@@ -144,7 +144,7 @@ class SheetMetadata extends Component {
 
   copySheet() {
     if (!Sefaria._uid) {
-      this.setState({showLogin: true});
+        this.props.toggleSignUpModal();
     } else if (this.state.sheetCopyStatus == "Copy") {
         this.setState({sheetCopyStatus: "Copying..."});
         this.ensureSheetData();
@@ -152,10 +152,6 @@ class SheetMetadata extends Component {
   }
 
   generateSheetMetaDataButtons() {
-    if (this.state.showLogin == true) {
-      return (<LoginPrompt fullPanel={true} />)
-    }
-    else {
       return (
          <div>
             <div className="int-en">
@@ -183,7 +179,6 @@ class SheetMetadata extends Component {
             {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}
          </div>
       )
-    }
 
 
   }

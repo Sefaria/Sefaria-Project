@@ -25,11 +25,20 @@ def redo_link_count_api(cat1, cat2):
     django_cache(action="set", cache_prefix='link_count_api')(get_link_counts)(cat1=cat1, cat2=cat2)
 
 
-
-
-
-
-
+def regenerate_all_used():
+    print "Regenerating all pairs currently used in Link Explorer"
+    used_pairs = (
+        ("Tanakh", "Bavli"),
+        ("Bavli", "Mishneh Torah"),
+        ("Bavli", "Shulchan Arukh"),
+        ("Mishneh Torah", "Shulchan Arukh"),
+        ("Tanakh", "Midrash Rabbah"),
+        ("Tanakh", "Mishneh Torah"),
+        ("Tanakh", "Shulchan Arukh"),
+    )
+    for pair in used_pairs:
+        redo_bare_links_api(pair[0], pair[1])
+        redo_link_count_api(pair[0], pair[1])
 
 
 """ The main function, runs when called from the CLI"""
@@ -37,6 +46,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--cat1", help="first category of text to calculate bare links")
     parser.add_argument("--cat2", help="second category of text to calculate bare links")
+    parser.add_argument("--all", action='store_true', help="run for all categories currently used in the link explorer")
     args = parser.parse_args()
-    redo_bare_links_api(args.cat1, args.cat2)
-    redo_link_count_api(args.cat1, args.cat2)
+    print args
+    if args.all:
+        regenerate_all_used()
+    else:
+        redo_bare_links_api(args.cat1, args.cat2)
+        redo_link_count_api(args.cat1, args.cat2)

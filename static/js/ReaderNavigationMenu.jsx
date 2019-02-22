@@ -85,7 +85,7 @@ class ReaderNavigationMenu extends Component {
                 <ReaderNavigationCategoryMenu
                   categories={this.props.categories}
                   category={this.props.categories.slice(-1)[0]}
-                  closeNav={this.onClose}
+                  closeNav={this.props.onClose}
                   setCategories={this.props.setCategories}
                   toggleLanguage={this.props.toggleLanguage}
                   openDisplaySettings={this.props.openDisplaySettings}
@@ -200,7 +200,7 @@ class ReaderNavigationMenu extends Component {
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <div className="readerNavTopStart">
-                  <ReaderNavigationMenuMenuButton onClick={this.onClose} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
+                  <ReaderNavigationMenuMenuButton onClick={this.props.onClose} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
                   <div className="searchBox">
                     <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                     <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />

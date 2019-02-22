@@ -1566,7 +1566,6 @@ def shape_api(request, title):
     The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
     If depth == 0, descends to end of tree
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
-
     """
 
     def _simple_shape(snode):
@@ -1575,12 +1574,46 @@ def shape_api(request, title):
 
         return {
             "section": snode.index.categories[-1],
-            "heTitle": snode.primary_title("he"),
-            "title": snode.primary_title("en"),
+            "heTitle": snode.full_title("he"),
+            "title": snode.full_title("en"),
             "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
             "chapters": shape,
             "book": snode.index.title,
+            "heBook": snode.index.get_title(lang="he"),
         }
+
+    def _collapse_book_leaf_shapes(leaf_shapes):
+        """Groups leaf node shapes for a single book into one object so that resulting list corresponds 1:1 to books"""
+        if type(leaf_shapes) != list:
+            return leaf_shapes
+
+        results = []
+        prev_shape = None
+        complex_book_in_progress = None
+
+        for shape in leaf_shapes:
+            if prev_shape and prev_shape["book"] != shape["book"]:
+                if complex_book_in_progress:
+                    results.append(complex_book_in_progress)
+                    complex_book_in_progress = None
+                else:
+                    results.append(prev_shape)
+            elif prev_shape:
+                complex_book_in_progress = complex_book_in_progress or {
+                    "isComplex": True,
+                    "section": prev_shape["section"],
+                    "length": prev_shape["length"],
+                    "chapters": [prev_shape],
+                    "book": prev_shape["book"],
+                    "heBook": prev_shape["heBook"],               
+                }
+                complex_book_in_progress["chapters"].append(shape)
+                complex_book_in_progress["length"] += shape["length"]
+            prev_shape = shape
+
+        results.append(complex_book_in_progress or prev_shape)
+
+        return results
 
     title = title.replace("_", " ")
 
@@ -1589,7 +1622,7 @@ def shape_api(request, title):
 
         # Leaf Node
         if sn and not sn.children:
-            res = _simple_shape(sn)
+            res = [_simple_shape(sn)]
 
         # Branch Node
         elif sn and sn.children:
@@ -1611,6 +1644,7 @@ def shape_api(request, title):
 
                 res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
 
+        res = _collapse_book_leaf_shapes(res)
         return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
@@ -1960,6 +1994,10 @@ def talmudic_relationships(request):
 def sefer_hachinukh_mitzvot(request):
     csv_file = "../static/files/mitzvot.csv"
     return render(request,'sefer_hachinukh_mitzvot.html', {"csv": csv_file})
+
+def unique_words_viz(request):
+    csv_file = "../static/files/commentators_torah_unique_words.csv"
+    return render(request,'unique_words_viz.html', {"csv": csv_file})
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -3659,7 +3697,7 @@ def serve_static(request, page):
 
 
 @ensure_csrf_cookie
-def explore(request, book1, book2, lang=None):
+def explore(request, topCat, bottomCat, book1, book2, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """
@@ -3668,7 +3706,92 @@ def explore(request, book1, book2, lang=None):
         if book:
             books.append(book)
 
-    template_vars =  {"books": json.dumps(books)}
+    if not topCat and not bottomCat:
+        topCat, bottomCat = "Tanakh", "Bavli"
+        urlRoot = "/explore"
+    else:
+        urlRoot = "/explore-" + topCat + "-and-" + bottomCat
+
+    (topCat, bottomCat) = [x.replace("-","") for x in (topCat, bottomCat)]
+
+    categories = {
+        "Tanakh": {
+            "title": "Tanakh",
+            "heTitle": 'התנ"ך',
+            "shapeParam": "Tanakh",
+            "linkCountParam": "Tanakh",
+        },
+        "Torah": {
+            "title": "Torah",
+            "heTitle": 'תורה',
+            "shapeParam": "Tanakh/Torah",
+            "linkCountParam": "Torah",
+        },
+        "Bavli": {
+            "title": "Talmud",
+            "heTitle": "התלמוד",
+            "shapeParam": "Talmud/Bavli",
+            "linkCountParam": "Bavli",
+            "talmudAddressed": True,
+        },
+        "Yerushalmi": {
+            "title": "Jerusalem Talmud",
+            "heTitle": "התלמוד ירושלמי",
+            "shapeParam": "Talmud/Yerushalmi",
+            "linkCountParam": "Yerushalmi",
+            "talmudAddressed": True,
+        },
+        "Mishnah": {
+            "title": "Mishnah",
+            "heTitle": "המשנה",
+            "shapeParam": "Mishnah",
+            "linkCountParam": "Mishnah",
+        },
+        "Tosefta": {
+            "title": "Tosefta",
+            "heTitle": "התוספתא",
+            "shapeParam": "Tanaitic/Tosefta",
+            "linkCountParam": "Tosefta",
+        },
+        "MidrashRabbah": {
+            "title": "Midrash Rabbah",
+            "heTitle": "מדרש רבה",
+            "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
+            "linkCountParam": "Midrash Rabbah",
+            "colorByBook": True,
+        },
+        "MishnehTorah": {
+            "title": "Mishneh Torah",
+            "heTitle": "משנה תורה",
+            "shapeParam": "Halakhah/Mishneh Torah",
+            "linkCountParam": "Mishneh Torah",
+            "labelBySection": True,
+        },
+        "ShulchanArukh": {
+            "title": "Shulchan Arukh",
+            "heTitle": "השולחן ערוך",
+            "shapeParam": "Halakhah/Shulchan Arukh",
+            "linkCountParam": "Shulchan Arukh",
+            "colorByBook": True,
+        },
+        "Zohar": {
+            "title": "Zohar",
+            "heTitle": "הזוהר",
+            "shapeParam": "Zohar",
+            "linkCountParam": "Zohar",
+            "talmudAddressed": True,
+        },
+    }
+
+    template_vars =  {
+        "books": json.dumps(books),
+        "categories": json.dumps(categories),
+        "topCat": topCat,
+        "bottomCat": bottomCat,
+        "topCatTitle": categories[topCat]["heTitle"] if request.interfaceLang == "hebrew" else categories[topCat]["title"],
+        "bottomCatTitle": categories[bottomCat]["heTitle"] if request.interfaceLang == "hebrew" else categories[bottomCat]["title"],
+        "urlRoot": urlRoot,
+    }
     if lang == "he": # Override language settings if 'he' is in URL
         request.contentLang = "hebrew"
 
