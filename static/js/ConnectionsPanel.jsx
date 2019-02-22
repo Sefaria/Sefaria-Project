@@ -695,16 +695,20 @@ class ToolsList extends Component {
     }.bind(this) : null;
 
     var addTranslation = function() {
-      var nextParam = "?next=" + Sefaria.util.currentPath();
-      Sefaria.track.event("Tools", "Add Translation Click", this.props.srefs[0],
-          {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
-      );
+      if (!Sefaria._uid) { this.props.toggleSignUpModal() }
+
+      else {
+          var nextParam = "?next=" + Sefaria.util.currentPath();
+          Sefaria.track.event("Tools", "Add Translation Click", this.props.srefs[0],
+              {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
+          );
+      }
     }.bind(this);
 
     return (
       <div>
         <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
-        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : addTranslation} />
+        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
