@@ -1000,7 +1000,7 @@ def export_to_drive(request, credential, sheet_id):
 	"""
 
 	http = credential.authorize(httplib2.Http())
-	service = build('drive', 'v3', http=http)
+	service = build('drive', 'v3', http=http, cache_discovery=False)
 
 	sheet = get_sheet(sheet_id)
 	if 'error' in sheet:
