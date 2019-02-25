@@ -6,6 +6,7 @@ Writes to MongoDB Collection: sheets
 """
 import regex
 import dateutil.parser
+import bleach
 from datetime import datetime, timedelta
 from bson.son import SON
 from collections import defaultdict
@@ -356,6 +357,37 @@ def is_valid_source(source):
 	if not ("ref" in source or "outsideText" in source or "outsideBiText" in source or "comment" in source or "media" in source):
 		return False
 	return True
+
+
+def bleach_text(text):
+	ok_sheet_tags = ['blockquote', 'p', 'a', 'ul', 'ol', 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike',
+			'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup']
+
+	ok_sheet_attrs = {'a': [ 'href', 'name', 'target' ],'img': [ 'src' ], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'],"*": ["class"]}
+
+	ok_sheet_styles = ['color', 'background-color', 'text-align']
+
+	return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, styles=ok_sheet_styles, strip=True)
+
+
+
+def clean_source(source):
+	if "ref" in source:
+		source["text"]["he"] = bleach_text(source["text"]["he"])
+		source["text"]["en"] = bleach_text(source["text"]["en"])
+
+	elif "outsideText" in source:
+		source["outsideText"] = bleach_text(source["outsideText"])
+
+	elif "comment" in source:
+		source["comment"] = bleach_text(source["comment"])
+
+	elif "outsideBiText" in source:
+		source["outsideBiText"]["he"] = bleach_text(source["outsideBiText"]["he"])
+		source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
+
+	return source
+
 
 
 def add_source_to_sheet(id, source, note=None):

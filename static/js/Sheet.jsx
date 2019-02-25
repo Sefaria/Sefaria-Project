@@ -184,9 +184,6 @@ class SheetContent extends Component {
               div: ['style'],
               td: ['colspan'],
             },
-            allowedClasses: {
-             'sup': ['nechama'],
-            },
             allowedStyles: {
               '*': {
                 'color': [/^\#(0x)?[0-9a-f]+$/i, /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/],
@@ -374,8 +371,8 @@ class SheetSource extends Component {
           {linkCountElement}
 
         {this.props.source.text && this.props.source.text.he && this.props.source.text.he != "" ?
-          <div className="he">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+            <div className="he">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
@@ -383,8 +380,8 @@ class SheetSource extends Component {
 
 
         {this.props.source.text && this.props.source.text.en && this.props.source.text.en != "" ?
-          <div className="en">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+          <div className="en">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
@@ -476,7 +473,7 @@ class SheetOutsideText extends Component {
               <span className="he"> <span
                 className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
             </div>
-        <div className={lang}>
+        <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></div>
         </div>
         <div className="clearFix"></div>
@@ -515,12 +512,21 @@ class SheetOutsideBiText extends Component {
     return (
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
-              <span className="he"> <span
-                className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+              <span className="en">
+                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+              </span>
+              <span className="he">
+                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+              </span>
             </div>
-        <div className="he sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
-        <div className="en sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
+          <div className="he">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
+          </div>
+          <div className="en">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
+          </div>
         <div className="clearFix"></div>
         {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>

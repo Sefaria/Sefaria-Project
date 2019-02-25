@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria" %}{% endblock %}
+{% block title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endblock %}
 
-{% block description %}{% trans "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper." %}{% endblock %}
+{% block description %}{% if urlRoot == "/explore" %}{% blocktrans %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endblock %}
 
 {% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
 
@@ -12,30 +12,27 @@
 {%  endblock %}
 
 {% block css %}
-	#languageToggle {
-		display: inline;
-	}
 
-	#languageToggle #bilingual {
-		display: none;
-	}
-
+    #linkExplorerPage {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
     svg {
       font-size: 9px;
     }
 
     #page-title {
-        fill: #555;
+        fill: #000;
         font-size: 30px;
         font-weight: lighter;
     }
 
-    #content.english #page-title{
-        font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    #content.interface-english #page-title {
+        font-family: "adobe-garamond-pro", Georgia, serif;
     }
-    #content.hebrew #page-title{
-        font-family: "Open Sans Hebrew", sans-serif;
+    #content.interface-hebrew #page-title {
+        font-family: "Heebo", sans-serif;
     }
+
     .book {
         fill-opacity: .7;
     }
@@ -122,52 +119,104 @@
         shape-rendering: crispEdges;
     }
 
-    .Torah {
-        fill: #1f77b4;
-    }
-    .Prophets {
-        fill: #ff7f0e;
-    }
-    .Writings {
-        fill: #2ca02c;
-    }
-    .Seder-Zeraim {
-        fill:  #d62728;
-    }
-    .Seder-Moed {
-        fill: #9467bd;
-    }
-    .Seder-Nashim {
-        fill: #8c564b;
-    }
-    .Seder-Nezikin {
-        fill: #e377c2;
-    }
-    .Seder-Kodashim {
-        fill: #7f7f7f;
-    }
-    .Seder-Tahorot {
-        fill: #bcbd22;
-    }
-
     .label {
         font-size: 18px;
     }
     #social-container {
-        position: relative;
-        width: 200px;
-        margin: 0 auto;
-        top: 720px;
-        padding: 0 0 0 33px;
+        text-align: center;
+        margin-top: -20px;
+        padding-bottom: 30px;
     }
 
     #social-container .fb-like {
         bottom: 5px;
     }
+    #explorerNav {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: stretch;
+        background-color: #F9F9F7;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 30px;
+    }
+
+    .interface-hebrew #explorerNav {
+        direction: rtl;
+        font-family: "Frank Ruehl Libre","Times New Roman",serif;
+    }
+
+    #explorerNav a {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 18px;
+        padding: 15px;
+        cursor: pointer;
+        color: #000;
+        border-top: 6px solid transparent;
+    }
+
+    .interface-english #explorerNav a .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+
+    .interface-hebrew #explorerNav a .int-he {
+        font-family: "Frank Ruehl Libre","Times New Roman",serif;
+        font-size: 22px;
+    }
+
+    #explorerNav a:hover {
+        text-decoration: none;
+    }
+
+    #explorerNav a.active {
+        background-color: white;
+    }
+
+    .showAfterLoad {
+        visibility: hidden;
+    }
 {% endblock %}
 
 {% block content %}
 <div id="linkExplorerPage">
+    
+    <div id="explorerNav" class="showAfterLoad">
+        <a href="/explore" style="border-top-color: #ccb479">
+            <span class="int-en">Tanakh & Talmud</span>
+            <span class="int-he">תנ"ך ותלמוד</span>
+        </a>
+        <a href="/explore-Bavli-and-Mishneh-Torah" style="border-top-color: #802f3e">
+            <span class="int-en">Talmud & <nobr>Mishneh Torah</nobr></span>
+            <span class="int-he">תלמוד <nobr>ומשנה תורה</nobr></span>
+        </a>
+        <a href="/explore-Bavli-and-Shulchan-Arukh" style="border-top-color: #802f3e">
+            <span class="int-en">Talmud & <nobr>Shulchan Arukh</nobr></span>
+            <span class="int-he">תלמוד <nobr>ושולחן ערוך</nobr></span>
+        </a>
+        <a href="/explore-Mishneh-Torah-and-Shulchan-Arukh" style="border-top-color: #802f3e">
+            <span class="int-en"><nobr>Mishneh Torah</nobr> & <nobr>Shulchan Arukh</nobr></span>
+            <span class="int-he"><nobr>משנה תורה</nobr> <nobr>ושולחן ערוך</nobr></span>
+        </a>
+        <a href="/explore-Tanakh-and-Midrash-Rabbah" style="border-top-color: #5d956f">
+            <span class="int-en">Tanakh & <nobr>Midrash Rabbah</nobr></span>
+            <span class="int-he">תנ"ך <nobr>ומדרש רבה</nobr></span>
+        </a>
+        <a href="/explore-Tanakh-and-Mishneh-Torah" style="border-top-color: #802f3e">
+            <span class="int-en">Tanakh & <nobr>Mishneh Torah</nobr></span>
+            <span class="int-he">תנ"ך <nobr>ומשנה תורה</nobr></span>
+        </a>
+        <a href="/explore-Tanakh-and-Shulchan-Arukh" style="border-top-color: #802f3e">
+            <span class="int-en">Tanakh & <nobr>Shulchan Arukh</nobr></span>
+            <span class="int-he">תנ"ך <nobr>ושולחן ערוך</nobr></span>
+        </a>
+    </div>
+
+    <div id="svgBefore"></div>
+
     <div id="fb-root"></div>
     <script>(function(d, s, id) {
       var js, fjs = d.getElementsByTagName(s)[0];
@@ -177,11 +226,24 @@
       fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));</script>
 
-    <div id="social-container">
+    <div id="social-container" class="showAfterLoad">
         <div class="fb-like" data-href="http://www.sefaria.org/explore" data-layout="button_count" data-width="300" data-action="like" data-show-faces="false" data-share="false"></div>
         <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.sefaria.org/explore" data-text="Visually explore all the relationships between Talmud and Tanakh" data-via="SefariaProject">Tweet</a>
         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
     </div>
+
+<!--
+    <div class="showAfterLoad">
+        <h2>Probably not to highlight</h2>
+        <ul>
+            <li><a href="/explore-Tanakh-and-Zohar">Tanakh & Zohar</a></li>
+            <li><a href="/explore-Mishnah-and-Tosefta">Mishnah & Tosefta</a></li>
+            <li><a href="/explore-Mishnah-and-Midrash-Rabbah">Mishnah & Midrash Rabbah</a></li>
+            <li><a href="/explore-Tosefta-and-Midrash-Rabbah">Tosefta & Midrash Rabbah</a></li>
+        </ul>
+    </div>
+-->
+
 </div>
 {% endblock %}
 
@@ -198,6 +260,10 @@
 <script>
     var GLOBALS = {
         books: {{ books|safe }},
+        categories: {{ categories|safe }},
+        topCat: "{{ topCat }}",
+        bottomCat: "{{ bottomCat }}",
+        urlRoot: "{{ urlRoot }}",
         interfaceLang: "{{ request.interfaceLang }}"
     }
 </script>

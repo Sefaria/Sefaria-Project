@@ -2285,8 +2285,19 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
+	var additionalRefData = ""
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
+	if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+		additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+	}
+	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"])) {
+		additionalRefData = additionalRefData + " data-prependrefwithen='"+source["options"]["PrependRefWithEn"]+"'";
+	}
+	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"])) {
+		additionalRefData = additionalRefData + " data-prependrefwithhe='"+source["options"]["PrependRefWithHe"]+"'";
+	}
+
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'"+additionalRefData+">"
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
 		+"<div class='he'>" +
@@ -2600,7 +2611,10 @@ function readSource($target) {
 							 sourceLanguage: sourceLanguage,
 							 sourceLayout: sourceLayout,
 							 sourceLangLayout: sourceLangLayout,
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 PrependRefWithEn: $target.attr("data-prependrefwithen") ? $target.attr("data-prependrefwithen") : "",
+							 PrependRefWithHe: $target.attr("data-prependrefwithhe") ? $target.attr("data-prependrefwithhe") : "",
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 		
 		
@@ -2623,7 +2637,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
@@ -2642,7 +2657,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	} else if ($target.hasClass("outsideWrapper")) {
@@ -2660,7 +2676,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	}
@@ -2680,7 +2697,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-            indented: sourceIndentLevel
+            indented: sourceIndentLevel,
+        	sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	}
