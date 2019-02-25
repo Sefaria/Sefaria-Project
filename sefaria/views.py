@@ -24,11 +24,14 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
+from rest_framework.decorators import api_view
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
@@ -59,6 +62,44 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def process_register_form(request, auth_method='session'):
+    form = NewUserForm(request.POST)
+    token_dict = None
+    if form.is_valid():
+        try:
+            with transaction.atomic():
+                new_user = form.save()
+                user = authenticate(email=form.cleaned_data['email'],
+                                    password=form.cleaned_data['password1'])
+                p = UserProfile(id=user.id)
+                p.assign_slug()
+                p.join_invited_groups()
+                if hasattr(request, "interfaceLang"):
+                    p.settings["interface_language"] = request.interfaceLang
+
+                p.save()
+        except Exception:
+            return {
+                "error": "something went wrong"
+            }
+        if auth_method == 'session':
+            auth_login(request, user)
+        elif auth_method == 'jwt':
+            token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
+    return {
+        k: v[0] if len(v) > 0 else unicode(v) for k, v in form.errors.items()
+    }, token_dict
+
+
+@api_view(["POST"])
+def register_api(request):
+    errors, token_dict = process_register_form(request, auth_method='jwt')
+    if len(errors) == 0:
+        return jsonResponse(token_dict)
+
+    return jsonResponse({"error": errors})
+
+
 def register(request):
     if request.user.is_authenticated:
         return redirect("login")
@@ -66,17 +107,8 @@ def register(request):
     next = request.GET.get('next', '')
 
     if request.method == 'POST':
-        form = NewUserForm(request.POST)
-        if form.is_valid():
-            new_user = form.save()
-            user = authenticate(email=form.cleaned_data['email'],
-                                password=form.cleaned_data['password1'])
-            auth_login(request, user)
-            p = UserProfile(id=user.id)
-            p.assign_slug()
-            p.join_invited_groups()
-            p.settings["interface_language"] = request.interfaceLang
-            p.save()
+        errors, _ = process_register_form(request)
+        if len(errors) == 0:
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
             elif "new?assignment=" in request.POST.get("next",""):
@@ -94,7 +126,6 @@ def register(request):
             form = NewUserForm(initial={'subscribe_educator': True})
         else:
             form = NewUserForm()
-
     return render(request, "registration/register.html", {'form': form, 'next': next})
 
 
