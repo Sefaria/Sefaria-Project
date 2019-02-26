@@ -193,6 +193,8 @@ GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
+PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = None
+
 """ to use logging, in any module:
 # import the logging library
 import logging

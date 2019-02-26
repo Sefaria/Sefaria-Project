@@ -58,8 +58,7 @@ urlpatterns += [
 
 # Visualizations / Link Explorer
 urlpatterns += [
-    url(r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/(?P<lang>\w\w)/?$', reader_views.explore),
-    url(r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', reader_views.explore),
+    url(r'^explore(-(?P<topCat>[\w-]+)-and-(?P<bottomCat>[\w-]+))?(/(?P<book1>[A-Za-z-,\']+))?(/(?P<book2>[A-Za-z-,\']+))?(/(?P<lang>\w\w)/?)?/?$', reader_views.explore),
     url(r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', reader_views.visualize_library),
     url(r'^visualize/library/?(?P<cats>.*)/?$', reader_views.visualize_library),
     url(r'^visualize/toc$', reader_views.visualize_toc),
@@ -67,6 +66,7 @@ urlpatterns += [
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
     url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
     url(r'^visualize/sefer-hachinukh-mitzvot$', reader_views.sefer_hachinukh_mitzvot),
+    url(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
 ]
 
 # Source Sheet Builder

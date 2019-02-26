@@ -308,7 +308,7 @@ class ReaderPanel extends Component {
     if (ref.constructor == Array) {
       // When called with an array, set highlight for the whole spanning range
       var refs = ref;
-      var currentlyVisibleRef = Sefaria.normRef(ref);
+      var currentlyVisibleRef = Sefaria.humanRef(ref);
       var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
       var highlightedRefs = [].concat.apply([], splitArray);
     } else {
@@ -317,7 +317,9 @@ class ReaderPanel extends Component {
       var highlightedRefs = [];
     }
     //console.log("- highlightedRefs: ", highlightedRefs)
-    this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
+    if (this.replaceHistory) {
+      this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
+    }
     this.conditionalSetState({
       mode: "Text",
       refs,
@@ -676,6 +678,7 @@ class ReaderPanel extends Component {
           addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
+          toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
           sheetMetaData={this.state.sheet}
@@ -737,6 +740,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "sheet meta") {
       var menu = (<SheetMetadata
                     mode={this.state.menuOpen}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeSheetMetaData}
                     sheet={this.state.sheet}

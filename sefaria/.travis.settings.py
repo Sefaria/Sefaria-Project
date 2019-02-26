@@ -121,6 +121,10 @@ GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "sefaria/gauth/client_secrets.json"
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
+AWS_ACCESS_KEY = None
+AWS_SECRET_KEY = None
+S3_BUCKET = "bucket-name"
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -203,3 +207,6 @@ LOGGING = {
         },
     }
 }
+
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+

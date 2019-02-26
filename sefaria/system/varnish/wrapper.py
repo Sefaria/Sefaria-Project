@@ -7,12 +7,14 @@ import urllib
 from common import manager, secret, purge_url, FRONT_END_URL
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
+from sefaria.utils.util import graceful_exception
 
 
 import logging
 logger = logging.getLogger(__name__)
 
 
+@graceful_exception(logger=logger, return_value=None, exception_type=UnicodeDecodeError)
 def invalidate_ref(oref, lang=None, version=None, purge=False):
     """
     Called when 'ref' is changed.
@@ -64,6 +66,7 @@ def invalidate_linked(oref):
             logger.warn(u"Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
 
 
+@graceful_exception(logger=logger, return_value=None, exception_type=UnicodeDecodeError)
 def invalidate_counts(indx):
     if isinstance(indx, Index):
         oref = Ref(indx.title)
@@ -83,6 +86,7 @@ def invalidate_counts(indx):
     # invalidate_ref(oref)
 
 
+@graceful_exception(logger=logger, return_value=None)
 def invalidate_index(indx):
     if isinstance(indx, Index):
         try:
@@ -103,6 +107,7 @@ def invalidate_index(indx):
     purge_url("{}/api/v2/index/{}?with_content_counts=1".format(FRONT_END_URL, url))
 
 
+@graceful_exception(logger=logger, return_value=None)
 def invalidate_title(title):
     title = title.replace(" ", "_").replace(":", ".")
     invalidate_index(title)

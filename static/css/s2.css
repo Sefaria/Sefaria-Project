@@ -5770,14 +5770,28 @@ span.purim-emoji img{
   max-width: 100%;
 }
 
-sup.nechama {
+.he sup.sourcePrefix {
     margin-right: -35px;
     position: absolute;
     text-decoration: none;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #000;
 }
-.heLeft.bilingual .sheetContent .text sup.nechama,
-.heRight.bilingual .sheetContent .text sup.nechama {
+.en sup.sourcePrefix {
+    margin-left: -35px;
+    position: absolute;
+    text-decoration: none;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #000;
+}
+.heLeft.bilingual .sheetContent .text sup.sourcePrefix,
+.heRight.bilingual .sheetContent .text sup.sourcePrefix {
     margin-right: -28px;
+}
+
+.heLeft.bilingual .sheetContent .text .en sup.sourcePrefix,
+.heRight.bilingual .sheetContent .text .en sup.sourcePrefix {
+  display: none
 }
 .sheetItem.ref-display-none .ref {
   display: none;
