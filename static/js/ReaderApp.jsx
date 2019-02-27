@@ -1485,12 +1485,20 @@ class ReaderApp extends Component {
   }
   showLibrary(categories) {
     if (this.props.multiPanel) {
-      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories})});
+      var headerState = this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories});
+      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+        headerState.settings.language = "english";
+      }
+      this.setState({header: headerState});
+
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
         this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
+      }
+      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+        this.state.panels[0].settings.language = "english";
       }
       this.setState({panels: this.state.panels});
     }
@@ -1618,6 +1626,7 @@ class ReaderApp extends Component {
     } else {
       widths = panelStates.map( panel => evenWidth );
     }
+
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header
                     initialState={this.state.header}
