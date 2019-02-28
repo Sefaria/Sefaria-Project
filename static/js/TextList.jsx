@@ -213,7 +213,6 @@ class TextList extends Component {
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
                         var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                        Sefaria.util.inArray(link.anchorRef, refs) === -1;
                         return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
                                   <TextRange
                                     panelPosition ={this.props.panelPosition}

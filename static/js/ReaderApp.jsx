@@ -1328,7 +1328,7 @@ class ReaderApp extends Component {
 
     if (panel.mode !== "Connections") {
       // No connections panel is open yet, splice in a new one
-      this.saveLastPlace(parentPanel, n);
+      this.saveLastPlace(parentPanel, n, true);
       newPanels.splice(n, 0, {});
       panel = newPanels[n];
       panel.filter = [];
@@ -1555,8 +1555,9 @@ class ReaderApp extends Component {
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
-  saveLastPlace(panel, n) {
-    const hasSidebar = this.doesPanelHaveSidebar(n);
+  saveLastPlace(panel, n, openingSidebar) {
+    //openingSidebar is true when you call `saveLastPlace` at the time you're opening the sidebar. In this case, `doesPanelHaveSidebar` will be false
+    const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
     // if panel is sheet, panel.refs isn't set
     if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
     Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
