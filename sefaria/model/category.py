@@ -9,6 +9,7 @@ from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import link as link
+from . import group as group
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -194,6 +195,18 @@ class TocTree(object):
                         break # Don't consider a category incomplete for containing incomplete commentaries
 
             self._path_hash[tuple(i.categories + [i.title])] = node
+
+        # Include Groups in TOC that has a `categories` field set
+        group_set = group.GroupSet({"categories": {"$exists": True}})
+        for g in group_set:
+            node = TocGroupNode(g)
+            cat  = self.lookup(node.categories)
+            if not cat:
+                logger.warning(u"Failed to find category for {}".format(node.categories))
+                continue
+            cat.append(node)
+           
+            self._path_hash[tuple(node.categories + [g.name])] = node
 
         self._sort()
 
@@ -425,6 +438,48 @@ class TocTextIndex(TocNode):
         "he": "heTitle"
     }
 
+
+class TocGroupNode(TocNode):
+    """
+    categories: Array(2)
+    name: "Some Group"
+    isGroup: true
+    enComplete: true
+    heComplete: true
+    """
+    def __init__(self, group_object):
+        self._group_object = group_object
+        group_contents = group_object.contents()
+        serial = {
+            "categories": group_contents["categories"],
+            "title": group_contents["name"],
+            "heTitle": u"א" + group_contents["name"], 
+            "isGroup": True,
+            "enComplete": True,
+            "heComplete": True,
+        }
+        super(TocGroupNode, self).__init__(serial)
+
+    def get_group_object(self):
+        return self._group_object
+
+    required_param_keys = [
+        "categories",
+        "title",
+        "heTitle",
+        "isGroup",
+    ]
+
+    optional_param_keys = [
+        "order",
+        "heComplete",
+        "enComplete",
+    ]
+
+    title_attrs = {
+        "en": "title",
+        "he": "heTitle",
+    }
 
 
 # Giant list ordering or categories

@@ -35,7 +35,8 @@ class Group(abst.AbstractMongoRecord):
         "pinned_sheets",    # list of sheet ids, pinned to top
         "listed",           # Bool, whether to list group publicly
         "moderationStatus", # string status code for moderator-set statuses
-        "tag_order",        # list of strings, display order for sheet tags       
+        "tag_order",        # list of strings, display order for sheet tags
+        "categories",       # list of strings, if present determines groups placement in Library TOC    
     ]
 
     def _normalize(self):

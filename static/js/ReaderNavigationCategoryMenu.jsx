@@ -220,21 +220,36 @@ class ReaderNavigationCategoryMenuContents extends Component {
                           </div>));
           }
         } else {
-          // Add a Text
-          var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-          const lastPlace = Sefaria.lastPlaceForText(item.title)
-          var ref =  lastPlace ? lastPlace.ref : item.firstSection;
-          var url = "/" + Sefaria.normRef(ref);
-          var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
-          var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
-          content.push((<a href={url}
-                          className={classes}
-                          data-ref={ref}
-                          key={"text." + this.props.nestLevel + "." + i}>
-                          <span className='en'>{title}</span>
-                          <span className='he'>{heTitle}</span>
-                        </a>
-                        ));
+          if (item.isGroup) {
+            // Add a Group
+            var url = "/groups/" + item.title.replace(/\s/g, "-");            
+            var classes = classNames({groupLink: 1, blockLink: 1, outOfAppLink: 1});
+            content.push((<a href={url}
+                            className={classes}
+                            data-group={item.title}
+                            key={"group." + this.props.nestLevel + "." + i}>
+                            <span className='en'>{item.title}</span>
+                            <span className='he'>{item.heTitle}</span>
+                          </a>
+                          ));
+          } else {
+            // Add a Text
+            var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
+            const lastPlace = Sefaria.lastPlaceForText(item.title)
+            var ref =  lastPlace ? lastPlace.ref : item.firstSection;
+            var url = "/" + Sefaria.normRef(ref);
+            var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
+            var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+            content.push((<a href={url}
+                            className={classes}
+                            data-ref={ref}
+                            key={"text." + this.props.nestLevel + "." + i}>
+                            <span className='en'>{title}</span>
+                            <span className='he'>{heTitle}</span>
+                          </a>
+                          ));
+
+          }
         }
       }
       var boxedContent = [];

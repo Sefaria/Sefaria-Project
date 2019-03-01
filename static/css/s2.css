@@ -1315,8 +1315,7 @@ a.readerNavCategory {
   text-align: center;
   unicode-bidi: plaintext;
 }
-.readerNavCategoryMenu .catLink,
-.readerNavCategoryMenu .refLink {
+.readerNavCategoryMenu .blockLink {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1331,13 +1330,10 @@ a.readerNavCategory {
   padding: 13px 8px 19px;
   border-radius: 7px;
 }
-.catLink:active,
 .blockLink:active,
-.catLink:active,
 .navButton:active,
 .readerNavCategory:active,
-.refLink:active,
-.resourceseLink {  /* likely a typo in this word but not sure if this this still applies */
+.resourcesLink:active { 
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {
@@ -1351,14 +1347,12 @@ a.readerNavCategory {
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink,
-.readerNavMenu .readerNavCategoryMenu .catLink {
+.readerNavMenu .readerNavCategoryMenu .blockLink {
   width: 100%;
   height: 100%;
   padding: 13px 8px 19px;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
-.readerNavMenu .catLink.incomplete {
+.readerNavMenu .readerNavCategoryMenu .blockLink.incomplete {
   opacity: 0.65;
 }
 .categoryColorLine {
