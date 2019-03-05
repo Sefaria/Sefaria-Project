@@ -65,7 +65,8 @@ class HomeFeed extends Component {
       newContent:   NewContentStory,
       newIndex:     NewIndexStory,
       newVersion:   NewVersionStory,
-      publishSheet: PublishSheetStory
+      publishSheet: PublishSheetStory,
+      author:       AuthorStory
     };
     const StoryForm = storyForms[props.storyForm];
     return <StoryForm
@@ -120,6 +121,11 @@ class AbstractStory extends Component {
           <span className="int-en">{ Sefaria.util.naturalTime(this.props.timestamp) } ago</span>
           <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(this.props.timestamp) }</span>
         </div>);
+  }
+  learnMoreLink(url) {
+      return (
+        <div className="learnMoreLink smallText"><a href={url}>Learn More ›</a></div>
+      );
   }
   /*
   date() {
@@ -221,6 +227,49 @@ class NewVersionStory extends AbstractStory {
     }
 }
 
+
+class AuthorStory extends AbstractStory {
+    /*
+       props.data: {
+         "author_key"
+         "example_work"
+         "author_names": {
+             "en"
+             "he"
+         }
+         "author_bios": {
+             "en"
+             "he"
+         }
+       }
+    */
+    render() {
+      const cardStyle = {"borderColor": this.indexColor(this.props.data.example_work)};
+      const url = "/person/" + this.props.data.author_key;
+
+        return (
+        <div className="story" style={cardStyle}>
+            <div className="storyTypeBlock sectionTitleText">
+                <span className="int-en">Author</span>
+                <span className="int-he">מחבר</span>
+            </div>
+            {this.naturalTimeBlock()}
+            <div className="storyTitle pageTitle">
+                <a href={url}>
+                    <span className="int-en">{this.props.data.author_names.en}</span>
+                    <span className="int-he">{this.props.data.author_names.he}</span>
+                </a>
+            </div>
+            <div className="storyBody systemText">
+                <span className="int-en">{this.props.data.author_bios.en}</span>
+                <span className="int-he">{this.props.data.author_bios.he}</span>
+            </div>
+            <div className="bottomLine">
+                {this.learnMoreLink(url)}
+            </div>
+        </div>);
+    }
+}
 class PublishSheetStory extends AbstractStory {
   /* props.data: {
       publisher_id

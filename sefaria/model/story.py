@@ -6,10 +6,12 @@ story.py
 
 import time
 import bleach
+import random
 from datetime import datetime
 
 from . import abstract as abst
 from . import user_profile
+from . import person
 from sefaria.system.database import db
 
 import logging
@@ -62,6 +64,16 @@ Other story forms:
         "publisher_name" (derived)
         "sheet_id"
         "sheet_title" (derived) 
+    "author"
+        "author_key"
+        "example_work"
+        "author_names" (derived)
+            "en"
+            "he"
+        "author_bios" (derived)
+            "en"
+            "he"
+        
 """
 
 
@@ -71,7 +83,7 @@ class GlobalStory(Story):
     history_noun = 'global story'
 
     required_attrs = [
-        "storyForm",     # Valid story forms are ...
+        "storyForm",     # Valid story forms ^^
         "data",
         "timestamp",
     ]
@@ -156,7 +168,6 @@ class UserStory(Story):
         n = db.user_story.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
         return n["_id"] if n else None
 
-
     def contents(self, **kwargs):
         c = super(UserStory, self).contents(**kwargs)
         if self.is_global:
@@ -176,6 +187,10 @@ class UserStory(Story):
             metadata = get_sheet_metadata(d["sheet_id"])
             d["sheet_title"] = bleach.clean(metadata["title"], strip=True, tags=()).strip()
             d["sheet_summary"] = bleach.clean(metadata["summary"], strip=True, tags=()).strip()
+        if "author_key" in d:
+            p = person.Person().load({"key": d["author_key"]})
+            d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
+            d["author_bios"] = {"en": p.enBio, "he": p.heBio}
         return c
 
 
@@ -207,5 +222,76 @@ class UserStorySet(abst.AbstractMongoSet):
         self._add_global_stories(uid)
         self.__init__(query={"uid": uid}, page=page, limit=limit)
         return self
+
+
+class AbstractStoryFactory(object):
+    @classmethod
+    def generate_story(cls):
+        pass
+
+    @classmethod
+    def _save_global_story(cls, form, data):
+        GlobalStory({
+            "storyForm": form,
+            "data": data
+        }).save()
+
+
+class RandomAuthorStoryFactory(AbstractStoryFactory):
+    @classmethod
+    def generate_story(cls):
+        p = cls._select_person()
+        assert isinstance(p, person.Person)
+        cls._save_global_story("author", {"author_key": p.key, "example_work": random.choice(p.get_indexes()).title})
+
+    @classmethod
+    def _select_person(cls):
+        eras = ["GN", "RI", "AH", "CO"]
+        ps = person.PersonSet({"era": {"$in": eras}})
+
+        p = random.choice(ps)
+        while not cls._can_use_person(p):
+            p = random.choice(ps)
+
+        #todo: Any way to avoid loading this whole set?
+        #todo: check against most recent X to avoid dupes.
+        return p
+
+    @classmethod
+    def _can_use_person(cls, p):
+        if not isinstance(p, person.Person):
+            return False
+        if not p.has_indexes():
+            return False
+        if not getattr(p, "enBio", False):
+            return False
+        if not getattr(p, "heBio", False):
+            return False
+
+        return True
+
+
+
+class RandomTopicFactory(AbstractStoryFactory):
+    """
+    cb = request.GET.get("callback", None)
+    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    if len(topics_filtered) == 0:
+        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
+        resp['Content-Type'] = "application/json; charset=utf-8"
+        return resp
+    random_topic = choice(topics_filtered)['tag']
+    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
+    try:
+        oref = Ref(random_source)
+        tref = oref.normal()
+        url = oref.url()
+    except Exception:
+        return random_by_topic_api(request)
+    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
+    resp['Content-Type'] = "application/json; charset=utf-8"
+    return resp
+    pass
+    """
 
 

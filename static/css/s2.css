@@ -5927,3 +5927,7 @@ span.purim-emoji img{
   bottom: 12px;
   left: 5px;
 }
+.learnMoreLink a {
+  text-decoration: none;
+  color:  #999;
+}

@@ -128,6 +128,7 @@ def subscribe(request, email):
     else:
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
+
 def generate_feedback(request):
 
     data = json.loads(request.POST.get('json', {}))
@@ -152,14 +153,11 @@ def generate_feedback(request):
         subject = "Feedback from website - " + fb_type.replace("_"," ")
         message_html = msg + "\n\n" + "URL: " + url
 
-
-
     try:
         send_email(subject, message_html, from_email, to_email)
         return jsonResponse({"status": "ok"})
     except:
         return jsonResponse({"error": _("Sorry, there was an error.")})
-
 
 
 def data_js(request):
@@ -173,7 +171,7 @@ def sefaria_js(request):
     """
     Packaged Sefaria.js.
     """
-    data_js = render_to_string("js/data.js",context={}, request=request)
+    data_js = render_to_string("js/data.js", context={}, request=request)
     webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
     bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
     with open(bundle_path, 'r') as file:
@@ -183,10 +181,10 @@ def sefaria_js(request):
         "sefaria_js": sefaria_js,
     }
 
-    return render(request,"js/sefaria.js", attrs, content_type= "text/javascript")
+    return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
 
 
-def linker_js(request,linker_version=None):
+def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
@@ -197,6 +195,7 @@ def linker_js(request,linker_version=None):
     linker_link = "js/linker.js" if linker_version is None else "js/linker.v"+linker_version+".js"
 
     return render(request,linker_link, attrs, content_type= "text/javascript")
+
 
 def old_linker_js(request):
     """
