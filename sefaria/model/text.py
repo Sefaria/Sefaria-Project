@@ -2187,6 +2187,7 @@ class Ref(object):
             pass
 
     def __reinit_tref(self, new_tref):
+        logger.warning(u"__reinit_tref from {} to {}".format(self.tref, new_tref))
         self.tref = new_tref
         self.__clean_tref()
         self._lang = "en"

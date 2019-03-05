@@ -150,10 +150,10 @@ class TextList extends Component {
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
       }
-      if (a.index_title == b.index_title) {
+      if (a.index_title === b.index_title) {
         return a.commentaryNum - b.commentaryNum;
       }
-      if (this.props.contentLang == "hebrew") {
+      if (this.props.contentLang === "hebrew") {
         var indexA = Sefaria.index(a.index_title);
         var indexB = Sefaria.index(b.index_title);
         return indexA.heTitle > indexB.heTitle ? 1 : -1;
@@ -208,7 +208,7 @@ class TextList extends Component {
     var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
-    var content = links.length == 0 ? message :
+    var content = links.length === 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ?
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
