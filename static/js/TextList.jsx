@@ -5,6 +5,7 @@ const {
   RecentFilterSet,
 }                = require('./ConnectionFilters');
 const React      = require('react');
+const ReactDOM   = require('react-dom');
 const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
 const TextRange  = require('./TextRange');
@@ -35,6 +36,12 @@ class TextList extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadConnections();
+    }
+    const didRender = prevState.linksLoaded && (!prevState.waitForText || prevState.textLoaded);
+    const willRender = this.state.linksLoaded && (!this.state.waitForText || this.state.textLoaded);
+    if (!didRender && willRender) {
+      // links text just loaded 
+      this.props.checkVisibleSegments();
     }
   }
   getSectionRef() {
@@ -169,33 +176,7 @@ class TextList extends Component {
       .filter(overlaps)
       .sort(sortConnections);
 
-    this.checkLinkScrollIntent(links);
     return links;
-  }
-  checkLinkScrollIntent(links) {
-    // make sure there is a filter and it corresponds to a single book
-    if (!this.props.filter || !this.props.filter.length || !Sefaria.index(this.props.filter[0])) { return; }
-    const initialFilter = this.props.filter;
-    const initialRefs = this.props.srefs;
-    this.scrollIntentTimer = this.props.checkIntentTimer(this.scrollIntentTimer, () => {
-      if (!this.didFilterChange(initialFilter, initialRefs, this.props.filter, this.props.srefs)) {
-        // TODO: add version info once we support that in links
-        Sefaria.saveUserHistory(links.map(l => ({
-            ref: l.sourceRef,
-            he_ref: l.sourceHeRef,
-            versions: {en: null, he: null},
-            book: l.index_title,
-            secondary: true,
-            language: this.props.contentLang,
-        })));
-      }
-    });
-  }
-  didFilterChange(prevFilter, prevRefs, nextFilter, nextRefs) {
-    if (!prevFilter || !nextFilter ||
-        !prevFilter.length || !nextFilter.length ||
-        (Sefaria.index(prevFilter[0]) !== Sefaria.index(nextFilter[0]))) { return true; }
-    return !prevRefs.compare(nextRefs);
   }
   render() {
     var refs               = this.props.srefs;
@@ -268,7 +249,7 @@ TextList.propTypes = {
   openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
   selectedWords:           PropTypes.string,
-  checkIntentTimer:        PropTypes.func.isRequired,
+  checkVisibleSegments:    PropTypes.func.isRequired,
 };
 
 
