@@ -504,11 +504,12 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, uid=None):
+def get_sheets_for_ref(tref, uid=None, in_group=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
+	If `in_group` (list) is present, only return sheets in one of the listed groups. 
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -519,6 +520,8 @@ def get_sheets_for_ref(tref, uid=None):
 		query["owner"] = uid
 	else:
 		query["status"] = "public"
+	if in_group:
+		query["group"] = {"$in": in_group}
 	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
@@ -558,11 +561,8 @@ def get_sheets_for_ref(tref, uid=None):
 
 			if "group" in sheet:
 				group = Group().load({"name": sheet["group"]})
-
-				try:
-					sheet["groupLogo"] = group.imageUrl
-				except:
-					sheet["groupLogo"] = None
+				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
+				sheet["groupCategories"] = getattr(group, "categories", None)
 
 
 			sheet_data = {
@@ -576,7 +576,9 @@ def get_sheets_for_ref(tref, uid=None):
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
 				"options": 		   sheet["options"],
 				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
+				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
+				"groupCategories": sheet.get("groupCategories", None),
 			    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),

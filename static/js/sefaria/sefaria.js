@@ -724,7 +724,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
+       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -1111,7 +1111,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   relatedApi: function(ref, callback) {
-    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
       if ("error" in data) {
         return;

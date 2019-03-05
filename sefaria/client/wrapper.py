@@ -8,6 +8,7 @@ from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.model.user_profile import user_link, public_user_data
+from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.hebrew import hebrew_term
 
 
@@ -124,6 +125,13 @@ def format_note_object_for_client(note):
     return com
 
 
+def format_sheet_as_link(sheet):
+    sheet["category"]        = sheet["groupCategories"][0]
+    sheet["collectiveTitle"] = {"en": sheet["group"], "he": sheet["group"]}
+    sheet["isSheet"]         = True
+    return sheet
+
+
 def get_notes(oref, public=True, uid=None, context=1):
     """
     Returns a list of notes related to ref.
@@ -136,10 +144,11 @@ def get_notes(oref, public=True, uid=None, context=1):
     return notes
 
 
-def get_links(tref, with_text=True):
+def get_links(tref, with_text=True, with_sheet_links=False):
     """
     Return a list of links tied to 'ref' in client format.
-    If with_text, retrieve texts for each link.
+    If `with_text`, retrieve texts for each link.
+    If `with_sheet_links` include sheet results for sheets in groups which are listed in the TOC.
     """
     links = []
     oref = Ref(tref)
@@ -265,4 +274,12 @@ def get_links(tref, with_text=True):
             links += base_links
 
     links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
+
+
+    if with_sheet_links:
+        groups = GroupSet({"categories": {"$exists": 1}}).distinct("name")
+        sheet_links = get_sheets_for_ref(tref, in_group=groups)
+        formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
+        links += formatted_sheet_links
+
     return links

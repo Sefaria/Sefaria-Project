@@ -1,4 +1,5 @@
 const {
+  SheetListing,
   LoadingMessage,
 }                = require('./Misc');
 const {
@@ -212,26 +213,35 @@ class TextList extends Component {
                   this.state.waitForText && !this.state.textLoaded ?
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
-                        var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                        return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
-                                  <TextRange
-                                    panelPosition ={this.props.panelPosition}
-                                    sref={link.sourceRef}
-                                    hideTitle={hideTitle}
-                                    numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                    basetext={false}
-                                    onRangeClick={this.props.onTextClick}
-                                    onCitationClick={this.props.onCitationClick}
-                                    onNavigationClick={this.props.onNavigationClick}
-                                    onCompareClick={this.props.onCompareClick}
-                                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-                                    inlineReference={link.inline_reference}/>
-                                    {Sefaria.is_moderator || Sefaria.is_editor ?
-                                    <EditorLinkOptions
-                                      _id={link._id}
-                                      onDataChange={ this.onDataChange } />
-                                    : null}
-                                </div>);
+                        if (link.isSheet) {
+                          return (<SheetListing 
+                                    sheet={link} 
+                                    handleSheetClick={this.props.handleSheetClick}
+                                    connectedRefs={this.props.srefs}
+                                    key={i + link.anchorRef} />);
+                        } else {
+                          var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
+                          return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
+                                    <TextRange
+                                      panelPosition ={this.props.panelPosition}
+                                      sref={link.sourceRef}
+                                      hideTitle={hideTitle}
+                                      numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                      basetext={false}
+                                      onRangeClick={this.props.onTextClick}
+                                      onCitationClick={this.props.onCitationClick}
+                                      onNavigationClick={this.props.onNavigationClick}
+                                      onCompareClick={this.props.onCompareClick}
+                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                                      inlineReference={link.inline_reference}/>
+                                      {Sefaria.is_moderator || Sefaria.is_editor ?
+                                      <EditorLinkOptions
+                                        _id={link._id}
+                                        onDataChange={ this.onDataChange } />
+                                      : null}
+                                  </div>);
+
+                        }
                       }, this);
     return (
         <div>
@@ -264,6 +274,7 @@ TextList.propTypes = {
   onCompareClick:          PropTypes.func,
   onOpenConnectionsClick:  PropTypes.func,
   onDataChange:            PropTypes.func,
+  handleSheetClick:        PropTypes.func,
   openNav:                 PropTypes.func,
   openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,

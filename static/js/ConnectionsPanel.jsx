@@ -4,6 +4,7 @@ const {
   LoginPrompt,
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
+  SheetListing,
   Note,
   FeedbackBox,
 }                            = require('./Misc');
@@ -184,9 +185,7 @@ class ConnectionsPanel extends Component {
       else {
           return false
       }
-
   }
-
   render() {
     var content = null;
     if (!this.state.linksLoaded) {
@@ -252,6 +251,7 @@ class ConnectionsPanel extends Component {
                     onNavigationClick={this.props.onNavigationClick}
                     onCompareClick={this.props.onCompareClick}
                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                    handleSheetClick={this.props.handleSheetClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
@@ -615,63 +615,6 @@ class PublicSheetsList extends Component {
 }
 PublicSheetsList.propTypes = {
   srefs: PropTypes.array.isRequired,
-};
-
-
-class SheetListing extends Component {
-  // A source sheet listed in the Sidebar
-  handleSheetClick(e, sheet) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
-      //console.log("Sheet Click Handled");
-    if (Sefaria._uid == this.props.sheet.owner) {
-      Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
-    } else {
-      Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
-    }
-    this.props.handleSheetClick(e,sheet);
-  }
-  handleSheetOwnerClick() {
-    Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
-  }
-  handleSheetTagClick(tag) {
-    Sefaria.track.event("Tools", "Sheet Tag Click", tag);
-  }
-  render() {
-    var sheet = this.props.sheet;
-    var viewsIcon = sheet.public ?
-      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
-      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
-
-    return (
-      <div className="sheet" key={sheet.sheetUrl}>
-        <div className="sheetInfo">
-          <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
-              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
-            </a>
-            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
-          </div>
-          {viewsIcon}
-        </div>
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
-          <span className="sheetTitleText">{sheet.title}</span>
-        </a>
-        <div className="sheetTags">
-          {sheet.tags.map(function(tag, i) {
-            var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-            return (<a href={"/sheets/tags/" + tag}
-                        target="_blank"
-                        className="sheetTag"
-                        key={tag}
-                        onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
-          }.bind(this))}
-        </div>
-      </div>);
-  }
-}
-SheetListing.propTypes = {
-  sheet: PropTypes.object.isRequired,
 };
 
 
