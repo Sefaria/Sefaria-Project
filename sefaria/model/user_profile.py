@@ -37,6 +37,7 @@ class UserHistory(abst.AbstractMongoRecord):
         "versions",           # dict: {en: str, he: str}
         "time_stamp",         # int: time this ref was read in epoch time
         "server_time_stamp",  # int: time this was saved on the server in epoch time
+        "datetime",           # datetime: converted from time_stamp
         "last_place",         # bool: True if this is the last ref read for this user in this book
         "book",               # str: index title
         "saved",              # bool: True if saved
@@ -93,6 +94,7 @@ class UserHistory(abst.AbstractMongoRecord):
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
+        self.datetime = datetime.utcfromtimestamp(self.time_stamp)
         try:
             r = Ref(self.ref)
             self.context_refs   = [r.normal() for r in r.all_context_refs()]
