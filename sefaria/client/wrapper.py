@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
+from sefaria.model.text import library
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.hebrew import hebrew_term
@@ -280,7 +281,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
 
 
     if with_sheet_links:
-        groups = GroupSet({"toc": {"$exists": 1}}).distinct("name")
+        groups = library.get_groups_in_library()
         sheet_links = get_sheets_for_ref(tref, in_group=groups)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
         links += formatted_sheet_links

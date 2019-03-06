@@ -156,6 +156,7 @@ class TocTree(object):
         self._root.add_primary_titles("TOC", u"שרש")
         self._path_hash = {}
         self._library = lib
+        self._groups_in_library = []
 
         # Store first section ref.
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
@@ -199,6 +200,7 @@ class TocTree(object):
         # Include Groups in TOC that has a `toc` field set
         group_set = group.GroupSet({"toc": {"$exists": True}})
         for g in group_set:
+            self._groups_in_library.append(g.name)
             node = TocGroupNode(g)
             categories = node.categories
             cat  = self.lookup(node.categories)
@@ -272,6 +274,9 @@ class TocTree(object):
 
     def get_serialized_toc(self):
         return self._root.serialize()["contents"]
+
+    def get_groups_in_library(self):
+        return self._groups_in_library
 
     def flatten(self):
         """
