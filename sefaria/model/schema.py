@@ -588,7 +588,7 @@ class TreeNode(object):
         :param child: TreeNode
         :return: Integer
         """
-        if child.parent.is_virtual:
+        if child.parent and child.parent.is_virtual:
             return child.parent.get_child_order(child)
         return self.all_children().index(child) + 1
 
