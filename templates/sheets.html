@@ -566,9 +566,9 @@
                 {% else %}
                 <a id="likeButton" class="button{% if viewer_is_liker %} liked{% endif %}" role="button">
                     {% if viewer_is_liker %}
-                        <span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span>
+                        <span class="int-en">Remove saved</span><span class="int-he">ביטול סימון "אהבתי"</span>
                     {% else %}
-                        <span class="int-en">Like</span><span class="int-he">אהבתי</span>
+                        <span class="int-en">Save</span><span class="int-he">אהבתי</span>
                     {% endif %}
                 </a>
                 <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
@@ -669,7 +669,7 @@
         <div class="metadataOpenDetails">
             <div>
                 <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views
-                {% endif %}</span> · <span class="likes" id="likeInfo-en"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span>{% if can_edit %}<span
+                {% endif %}</span> · <span class="likes" id="likeInfo-en"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Save{% else %}Saves{% endif %}</span>{% if can_edit %}<span
                         class="editButton">Edit</span>{% endif %}</span>
                 <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{% if sheet.views == 1%}צפייה אחת{% else %}{{ sheet.views }}
                 צפיות{% endif %}</span> · <span class="likes" id="likeInfo-he"><span id="likeCount">{{like_count}}</span>

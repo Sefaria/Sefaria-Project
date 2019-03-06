@@ -25,7 +25,7 @@ class SheetMetadata extends Component {
     this.state = {
       sheetCopyStatus: "Copy",
       copiedSheetId: null,
-      viewerLikedSheet: this.props.sheet.likes ? this.props.sheet.likes.indexOf(Sefaria._uid) != -1 ? true : false : false,
+      viewerSavedSheet: this.props.sheet.likes ? this.props.sheet.likes.indexOf(Sefaria._uid) != -1 ? true : false : false,
       sheetLikeAdjustment: 0,
     };
   }
@@ -52,16 +52,16 @@ class SheetMetadata extends Component {
   toggleLike() {
     if (!Sefaria._uid) {
         this.props.toggleSignUpModal();
-    } else if (!this.state.viewerLikedSheet) {
+    } else if (!this.state.viewerSavedSheet) {
           this.setState({
-              viewerLikedSheet: true,
+              viewerSavedSheet: true,
               sheetLikeAdjustment: this.state.sheetLikeAdjustment+1,
           });
           $.post("/api/sheets/" + this.props.sheet.id + "/like");
 
     } else {
           this.setState({
-              viewerLikedSheet: false,
+              viewerSavedSheet: false,
               sheetLikeAdjustment:  this.state.sheetLikeAdjustment-1,
           });
           $.post("/api/sheets/" + this.props.sheet.id + "/unlike");
@@ -157,7 +157,7 @@ class SheetMetadata extends Component {
             <div className="int-en">
                 {Sefaria._uid == this.props.sheet.owner ?
                     <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">Edit Sheet</a> :
-                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? "Unlike" : "Like"}</a>
+                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerSavedSheet ? "Unlike" : "Like"}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
 
@@ -167,7 +167,7 @@ class SheetMetadata extends Component {
             <div className="int-he">
                 {Sefaria._uid == this.props.sheet.owner ?
                     <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">ערוך</a> :
-                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerLikedSheet ? Sefaria._("Unlike") : Sefaria._("Like")}</a>
+                    <a href="#" className="button white" role="button" onClick={this.toggleLike}>{this.state.viewerSavedSheet ? Sefaria._("Unlike") : Sefaria._("Like")}</a>
                 }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
 
