@@ -196,13 +196,14 @@ class TocTree(object):
 
             self._path_hash[tuple(i.categories + [i.title])] = node
 
-        # Include Groups in TOC that has a `categories` field set
-        group_set = group.GroupSet({"categories": {"$exists": True}})
+        # Include Groups in TOC that has a `toc` field set
+        group_set = group.GroupSet({"toc": {"$exists": True}})
         for g in group_set:
             node = TocGroupNode(g)
+            categories = node.categories
             cat  = self.lookup(node.categories)
             if not cat:
-                logger.warning(u"Failed to find category for {}".format(node.categories))
+                logger.warning(u"Failed to find category for {}".format(categories))
                 continue
             cat.append(node)
            
@@ -451,9 +452,9 @@ class TocGroupNode(TocNode):
         self._group_object = group_object
         group_contents = group_object.contents()
         serial = {
-            "categories": group_contents["categories"],
-            "title": group_contents["name"],
-            "heTitle": u"א" + group_contents["name"], 
+            "categories": group_contents["toc"]["categories"],
+            "title": group_contents["toc"]["title"],
+            "heTitle": group_contents["toc"]["heTitle"], 
             "isGroup": True,
             "enComplete": True,
             "heComplete": True,

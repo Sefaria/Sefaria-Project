@@ -3859,6 +3859,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .note .noteText {
   font-size: 16px;
 }
+.textList .textListTextRangeBox + .sheet {
+  margin-top: 24px;
+}
 .textRange .numberLabel {
   position: absolute;
   top: 14px;
@@ -4662,6 +4665,10 @@ h2.splitHeader .he {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #000;
   text-align: center;
+}
+.groupPage .groupDescription .he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
 }
 .groupPage .tabs {
   text-align: center;

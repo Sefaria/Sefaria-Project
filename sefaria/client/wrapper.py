@@ -126,8 +126,11 @@ def format_note_object_for_client(note):
 
 
 def format_sheet_as_link(sheet):
-    sheet["category"]        = sheet["groupCategories"][0]
-    sheet["collectiveTitle"] = {"en": sheet["group"], "he": sheet["group"]}
+    sheet["category"]        = sheet["groupTOC"]["categories"][0]
+    sheet["collectiveTitle"] = {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["index_title"]     = sheet["groupTOC"]["title"]
+    sheet["sourceRef"]       = sheet["title"]
+    sheet["sourceHeRef"]     = sheet["title"]
     sheet["isSheet"]         = True
     return sheet
 
@@ -277,7 +280,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
 
 
     if with_sheet_links:
-        groups = GroupSet({"categories": {"$exists": 1}}).distinct("name")
+        groups = GroupSet({"toc": {"$exists": 1}}).distinct("name")
         sheet_links = get_sheets_for_ref(tref, in_group=groups)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
         links += formatted_sheet_links

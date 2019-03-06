@@ -60,7 +60,9 @@ class SheetsNav extends Component {
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
                         group={this.props.group}
-                        width={this.state.width} />);
+                        width={this.state.width}
+                        toggleLanguage={this.props.toggleLanguage}
+                        interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage
@@ -98,14 +100,16 @@ class SheetsNav extends Component {
   }
 }
 SheetsNav.propTypes = {
-  multiPanel:      PropTypes.bool,
   tag:             PropTypes.string,
   tagSort:         PropTypes.string,
   close:           PropTypes.func.isRequired,
   openNav:         PropTypes.func.isRequired,
   setSheetTag:     PropTypes.func.isRequired,
   setSheetTagSort: PropTypes.func.isRequired,
-  hideNavHeader:   PropTypes.bool
+  toggleLanguage:  PropTypes.func.isRequired,
+  hideNavHeader:   PropTypes.bool,
+  multiPanel:      PropTypes.bool,
+  interfaceLang:   PropTypes.string,
 };
 
 

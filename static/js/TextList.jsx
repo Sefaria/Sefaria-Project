@@ -148,18 +148,21 @@ class TextList extends Component {
     var sectionRef         = this.getSectionRef();
 
     var sortConnections = function(a, b) {
+      // Sort according this which verse the link connects to
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
       }
       if (a.index_title == b.index_title) {
+        // For Sheet links of the same group sort by title
+        if (a.isSheet && b.isSheet) {
+          return a.title > b.title ? 1 : -1;
+        }
+        // For text links of same text/commentary use content order, set by server
         return a.commentaryNum - b.commentaryNum;
       }
       if (this.props.contentLang == "hebrew") {
-        var indexA = Sefaria.index(a.index_title);
-        var indexB = Sefaria.index(b.index_title);
-        return indexA.heTitle > indexB.heTitle ? 1 : -1;
-      }
-      else {
+        return a.sourceHeRef > b.sourceHeRef ? 1 : -1;
+      } else {
         return a.sourceRef > b.sourceRef ? 1 : -1;
       }
     }.bind(this);
@@ -214,10 +217,12 @@ class TextList extends Component {
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
                         if (link.isSheet) {
+                          var hideAuthor = link.index_title == this.props.filter[0];
                           return (<SheetListing 
                                     sheet={link} 
                                     handleSheetClick={this.props.handleSheetClick}
                                     connectedRefs={this.props.srefs}
+                                    hideAuthor={hideAuthor}
                                     key={i + link.anchorRef} />);
                         } else {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";

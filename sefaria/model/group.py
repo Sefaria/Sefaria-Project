@@ -21,12 +21,12 @@ class Group(abst.AbstractMongoRecord):
 
     required_attrs = [
         "name",          # string name of group
-        "admins",        # array or uids
-        "publishers",    # array of uids
-        "members",       # array of uids
+        "admins",        # list or uids
+        "publishers",    # list of uids
+        "members",       # list of uids
     ]
     optional_attrs = [
-        "invitations",      # array of dictionaries representing outstanding invitations
+        "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url for group website
         "headerUrl",        # url of an image to use in header
@@ -36,7 +36,13 @@ class Group(abst.AbstractMongoRecord):
         "listed",           # Bool, whether to list group publicly
         "moderationStatus", # string status code for moderator-set statuses
         "tag_order",        # list of strings, display order for sheet tags
-        "categories",       # list of strings, if present determines groups placement in Library TOC    
+        "toc",              # object signaling inclusion in TOC with fields
+                                # `catogories` - list
+                                # `title` - string
+                                # `heTitle` - string
+                                # `desscription` - string
+                                # `heDescption`
+                                # These fields will override `name` and `description for display
     ]
 
     def _normalize(self):

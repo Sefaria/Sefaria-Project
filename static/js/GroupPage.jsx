@@ -1,4 +1,5 @@
 const {
+  LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
   SheetTagLink,
@@ -156,16 +157,28 @@ class GroupPage extends Component {
 
                 <div className="groupInfo">
                   <h1>
-                    <span className="int-en">{this.props.group}</span>
-                    <span className="int-he">{this.props.group}</span>
+                    {group.toc ? 
+                    <span>
+                      { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                      <span className="en">{group.toc.title}</span>
+                      <span className="he">{group.toc.heTitle}</span>
+                    </span>
+                    : group.name }
                   </h1>
 
                   {group.websiteUrl ?
                     <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
                     : null }
 
-                  {group.description ?
-                    <div className="groupDescription">{group.description}</div>
+                  {group.description || group.toc ?
+                    <div className="groupDescription">
+                      {group.toc ? 
+                      <span>
+                        <span className="en">{group.toc.description}</span>
+                        <span className="he">{group.toc.heDescription}</span>
+                      </span>
+                      : group.description }
+                    </div>
                     : null }
                 </div>
 

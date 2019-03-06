@@ -562,7 +562,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			if "group" in sheet:
 				group = Group().load({"name": sheet["group"]})
 				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
-				sheet["groupCategories"] = getattr(group, "categories", None)
+				sheet["groupTOC"]        = getattr(group, "toc", None)
 
 
 			sheet_data = {
@@ -578,7 +578,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
 				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
-				"groupCategories": sheet.get("groupCategories", None),
+				"groupTOC":        sheet.get("groupTOC", None),
 			    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),

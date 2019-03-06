@@ -530,8 +530,7 @@ class SheetListing extends Component {
       <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
       : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
 
-    return (
-      <div className="sheet" key={sheet.sheetUrl}>
+    var sheetInfo = this.props.hideAuthor ? null :
         <div className="sheetInfo">
           <div className="sheetUser">
             <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
@@ -541,6 +540,10 @@ class SheetListing extends Component {
           </div>
           {viewsIcon}
         </div>
+
+    return (
+      <div className="sheet" key={sheet.sheetUrl}>
+        {sheetInfo}
         <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{sheet.title}</span>
@@ -562,6 +565,7 @@ SheetListing.propTypes = {
   sheet:            PropTypes.object.isRequired,
   connectedRefs:    PropTypes.array.isRequired,
   handleSheetClick: PropTypes.func.isRequired,
+  hideAuthor:       PropTypes.bool,
 };
 
 
