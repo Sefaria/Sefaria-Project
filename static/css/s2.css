@@ -5901,17 +5901,22 @@ span.purim-emoji img{
 .storyFeed .story .storyBody {
   clear: both;
   padding: 10px 0;
+  text-align: justify;
 }
 .storyFeed .story .bottomLine {
   display: flex;
 }
 .storyFeed .story .bottomLine .saveButton {
-    align-self: flex-end;
-    position: relative;
+  align-self: flex-end;
+  position: relative;
+}
+
+.storyFeed .story .bottomLine .storyByLine + .saveButton {
     bottom: 12px;
 }
 
-.storyFeed .story .bottomLine .storyByLine {
+.storyFeed .story .bottomLine .storyByLine,
+.storyFeed .story .bottomLine .learnMoreLink {
   width: 100%;
   padding: 10px 0 0;
   margin: 0;

@@ -29,7 +29,7 @@ class HomeFeed extends Component {
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
     var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 100;
+    var margin = 600;
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreStories();
     }
@@ -45,28 +45,18 @@ class HomeFeed extends Component {
     this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
   }
 
-  /*
-  onDelete(id) {
-    $.ajax({
-        url: '/api/updates/' + id,
-        type: 'DELETE',
-        success: function(result) {
-          if (result.status == "ok") {
-              this.setState({updates: this.state.updates.filter(u => u._id != id)});
-          }
-        }.bind(this)
-    });
-  }
-  */
-
-  //This is a pseudo Component.  It uses "storyForm" to determine the component to render.
+  // This is a pseudo Component.  It uses "storyForm" to determine the component to render.
+  // It's important that it's capitalized, so that React treats it as a component.
   Story(props) {
     const storyForms = {
       newContent:   NewContentStory,
       newIndex:     NewIndexStory,
       newVersion:   NewVersionStory,
       publishSheet: PublishSheetStory,
-      author:       AuthorStory
+      author:       AuthorStory,
+      textPassage:  TextPassageStory,
+      topic:        TopicStory,
+      sheets:       SheetsStory
     };
     const StoryForm = storyForms[props.storyForm];
     return <StoryForm
@@ -116,30 +106,23 @@ class AbstractStory extends Component {
       Sefaria.palette.categoryColor("Other");
   }
   naturalTimeBlock() {
+      if (!this.props.timestamp) return "";
       return (
         <div className="timeBlock smallText">
           <span className="int-en">{ Sefaria.util.naturalTime(this.props.timestamp) } ago</span>
           <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(this.props.timestamp) }</span>
         </div>);
   }
-  learnMoreLink(url) {
+  readMoreLink(url) {
       return (
-        <div className="learnMoreLink smallText"><a href={url}>Learn More ›</a></div>
+        <div className="learnMoreLink smallText">
+            <a href={url}>
+                <span className="int-en">Read More ›</span>
+                <span className="int-he">קרא עוד ›</span>
+            </a>
+        </div>
       );
   }
-  /*
-  date() {
-    return new Date(this.props.timestamp * 1000)
-  }
-  dateBlock() {
-    const d = this.date();
-    return (
-      <div className="date">
-          <span className="int-en">{d.toLocaleDateString("en")}</span>
-          <span className="int-he">{d.toLocaleDateString("he")}</span>
-      </div>
-    );
-  } */
   render() {}
 }
 
@@ -163,7 +146,7 @@ class NewContentStory extends AbstractStory {
             </div>
             {this.naturalTimeBlock()}
 
-            <div className="storyBody systemText">
+            <div className="storyBody contentText">
               <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
               <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
             </div>
@@ -188,7 +171,7 @@ class NewIndexStory extends AbstractStory {
                 <span className="int-en">{title}</span>
                 <span className="int-he">{heTitle}</span>
             </div>
-            <div className="storyBody systemText">
+            <div className="storyBody contentText">
               <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
               <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
             </div>
@@ -219,15 +202,13 @@ class NewVersionStory extends AbstractStory {
                 <span className="int-en">{title}</span>
                 <span className="int-he">{heTitle}</span>
             </div>
-            <div className="storyBody systemText">
+            <div className="storyBody contentText">
                 <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
                 <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
             </div>
         </div>);
     }
 }
-
-
 class AuthorStory extends AbstractStory {
     /*
        props.data: {
@@ -260,12 +241,12 @@ class AuthorStory extends AbstractStory {
                     <span className="int-he">{this.props.data.author_names.he}</span>
                 </a>
             </div>
-            <div className="storyBody systemText">
+            <div className="storyBody contentText">
                 <span className="int-en">{this.props.data.author_bios.en}</span>
                 <span className="int-he">{this.props.data.author_bios.he}</span>
             </div>
             <div className="bottomLine">
-                {this.learnMoreLink(url)}
+                {this.readMoreLink(url)}
             </div>
         </div>);
     }
@@ -302,7 +283,7 @@ class PublishSheetStory extends AbstractStory {
                 </a>
             </div>
             {this.props.data.sheet_summary?
-                <div className="storyBody systemText">
+                <div className="storyBody contentText">
                     <span className="int-en">{this.props.data.sheet_summary}</span>
                     <span className="int-he">{this.props.data.sheet_summary}</span>
                 </div>:""}
@@ -324,5 +305,81 @@ class PublishSheetStory extends AbstractStory {
       );
   }
 }
+
+class TextPassageStory extends AbstractStory {
+    /*
+       props.data: {
+         "ref"
+         "index"
+         "story_type" : {
+            "he"
+            "en"
+         }
+         "title" : {
+            "he"
+            "en"
+         }
+         "text" : {
+            "he"
+            "en"
+         }
+       }
+    */
+
+    /*
+    static default_title() {
+        return {
+          en: "Text",
+          he: ""
+        }
+    }
+    static default_type() {
+        return {
+          en: "Text",
+          he: ""
+        }
+    }
+    */
+    render() {
+      const cardStyle = {"borderColor": this.indexColor(this.props.data.index)};
+      const historyObject = {
+          ref: this.props.data.ref,
+          versions: {} };
+      const url = "/" + Sefaria.normRef(this.props.data.ref);
+      // const storyType = this.props.data.story_type || this.default_type();
+      // const title = this.props.data.title || this.default_title();
+
+      return (
+        <div className="story" style={cardStyle}>
+            <div className="storyTypeBlock sectionTitleText">
+                <span className="int-en">{this.props.data.story_type.en}</span>
+                <span className="int-he">{this.props.data.story_type.he}</span>
+            </div>
+            {this.naturalTimeBlock()}
+            <div className="storyTitle pageTitle">
+                <a href={"/sheets/" + this.props.data.sheet_id}>
+                    <span className="int-en">{this.props.data.title.en}</span>
+                    <span className="int-he">{this.props.data.title.he}</span>
+                </a>
+            </div>
+            <div className="storyBody contentText">
+                <span className="en" dangerouslySetInnerHTML={ {__html: this.props.data.text.en + " "} }/>
+                <span className="he" dangerouslySetInnerHTML={ {__html: this.props.data.text.he + " "} }/>
+            </div>
+            <div className="bottomLine">
+                {this.readMoreLink(url)}
+                <SaveButton
+                    historyObject={historyObject}
+                    tooltip={true}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                />
+            </div>
+        </div>
+      );
+    }
+}
+class TopicStory extends AbstractStory {}
+class SheetsStory extends AbstractStory {}
+
 
 module.exports = HomeFeed;

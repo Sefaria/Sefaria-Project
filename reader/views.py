@@ -2434,10 +2434,44 @@ def stories_api(request):
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
 
+    lead_stories = []
+    if page == 0:
+        most_recent = UserHistorySet({"uid": request.user.id, "last_place": True, "secondary": False}, sort=[("time_stamp", -1)], limit=1)[0]
+        if most_recent:
+            r = Ref(most_recent.ref)
+            if not r.is_segment_level():
+                r = r.padded_ref().subref(1)
+            tc_en = TextChunk(r, "en", most_recent.versions.get("en"))
+            tc_he = TextChunk(r, "he", most_recent.versions.get("he"))
+            keep_reading = {
+              "storyForm": "textPassage",
+              "data": {
+                  "ref": r.normal(),
+                  "index": r.index.title,
+                  "story_type": {"en": "Keep Reading", "he": u"קרא עוד"},
+                  "title": {"en": r.normal(), "he": r.he_normal()},
+                  "text": {"en": tc_en.text, "he": tc_he.text}
+                }
+            }
+            lead_stories += [keep_reading]
+            """
+        cal = {
+          "storyForm": "textPassage",
+          "data": {
+              "ref": "",
+              "index": "",
+              "story_type": {},
+              "title": {},
+              "text": {}
+          }
+        }
+        lead_stories += [cal]
+        """
+
     stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
 
     return jsonResponse({
-                            "stories": stories.contents(),
+                            "stories": lead_stories + stories.contents(),
                             "page": page,
                             "page_size": page_size,
                             "count": stories.count()
