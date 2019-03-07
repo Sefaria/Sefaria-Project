@@ -2448,7 +2448,7 @@ def stories_api(request):
               "data": {
                   "ref": r.normal(),
                   "index": r.index.title,
-                  "story_type": {"en": "Keep Reading", "he": u"קרא עוד"},
+                  "lead_title": {"en": "Keep Reading", "he": u"קרא עוד"},
                   "title": {"en": r.normal(), "he": r.he_normal()},
                   "text": {"en": tc_en.text, "he": tc_he.text}
                 }

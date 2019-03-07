@@ -73,6 +73,22 @@ Other story forms:
         "author_bios" (derived)
             "en"
             "he"
+    "textPassage"            
+         "ref"
+         "index"  (derived)
+         "lead_title"
+            "he"
+            "en"
+         "title" 
+            "he"
+            "en"
+         "text"   (derived)
+            "he"
+            "en"       
+         "language"   # oneOf(english, hebrew, bilingual) - optional - forces display language
+    "topic" 
+    "topicList" 
+    "sheetList"
         
 """
 
@@ -225,40 +241,55 @@ class UserStorySet(abst.AbstractMongoSet):
 
 
 class AbstractStoryFactory(object):
-    @classmethod
-    def generate_story(cls):
+    def _data_object(self, **kwargs):
         pass
 
-    @classmethod
-    def _save_global_story(cls, form, data):
-        GlobalStory({
-            "storyForm": form,
-            "data": data
-        }).save()
+    def _story_form(self, **kwargs):
+        pass
+
+    def _create_global_story(self, **kwargs):
+        return GlobalStory({
+            "storyForm": self._story_form(**kwargs),
+            "data": self._data_object(**kwargs)
+        })
+
+    def _create_user_story(self, **kwargs):
+        uid = kwargs["uid"]
+        return UserStory({
+            "uid": uid,
+            "data": self._data_object(**kwargs),
+            "storyForm": self._story_form(**kwargs)
+        })
 
 
-class RandomAuthorStoryFactory(AbstractStoryFactory):
-    @classmethod
-    def generate_story(cls):
-        p = cls._select_person()
-        assert isinstance(p, person.Person)
-        cls._save_global_story("author", {"author_key": p.key, "example_work": random.choice(p.get_indexes()).title})
+class AuthorStoryFactory(AbstractStoryFactory):
 
-    @classmethod
-    def _select_person(cls):
+    def _data_object(self, **kwargs):
+        prs = kwargs["person"]
+        assert isinstance(prs, person.Person)
+        return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
+
+    def _story_form(self, **kwargs):
+        return "author"
+
+    def create_random_global_story(self):
+        p = self._select_random_person()
+        story = self._create_global_story(person=p)
+        story.save()
+
+    def _select_random_person(self):
         eras = ["GN", "RI", "AH", "CO"]
         ps = person.PersonSet({"era": {"$in": eras}})
 
         p = random.choice(ps)
-        while not cls._can_use_person(p):
+        while not self._can_use_person(p):
             p = random.choice(ps)
 
         #todo: Any way to avoid loading this whole set?
         #todo: check against most recent X to avoid dupes.
         return p
 
-    @classmethod
-    def _can_use_person(cls, p):
+    def _can_use_person(self, p):
         if not isinstance(p, person.Person):
             return False
         if not p.has_indexes():
@@ -269,7 +300,6 @@ class RandomAuthorStoryFactory(AbstractStoryFactory):
             return False
 
         return True
-
 
 
 class RandomTopicFactory(AbstractStoryFactory):

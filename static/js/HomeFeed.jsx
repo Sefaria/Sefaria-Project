@@ -56,7 +56,8 @@ class HomeFeed extends Component {
       author:       AuthorStory,
       textPassage:  TextPassageStory,
       topic:        TopicStory,
-      sheets:       SheetsStory
+      topicList:    TopicListStory,
+      sheetList:    SheetListStory
     };
     const StoryForm = storyForms[props.storyForm];
     return <StoryForm
@@ -311,7 +312,8 @@ class TextPassageStory extends AbstractStory {
        props.data: {
          "ref"
          "index"
-         "story_type" : {
+         "language"   # oneOf(english, hebrew, bilingual) - optional - forces display language
+         "lead_title" : {
             "he"
             "en"
          }
@@ -326,34 +328,18 @@ class TextPassageStory extends AbstractStory {
        }
     */
 
-    /*
-    static default_title() {
-        return {
-          en: "Text",
-          he: ""
-        }
-    }
-    static default_type() {
-        return {
-          en: "Text",
-          he: ""
-        }
-    }
-    */
     render() {
       const cardStyle = {"borderColor": this.indexColor(this.props.data.index)};
       const historyObject = {
           ref: this.props.data.ref,
           versions: {} };
       const url = "/" + Sefaria.normRef(this.props.data.ref);
-      // const storyType = this.props.data.story_type || this.default_type();
-      // const title = this.props.data.title || this.default_title();
 
       return (
         <div className="story" style={cardStyle}>
             <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">{this.props.data.story_type.en}</span>
-                <span className="int-he">{this.props.data.story_type.he}</span>
+                <span className="int-en">{this.props.data.lead_title.en}</span>
+                <span className="int-he">{this.props.data.lead_title.he}</span>
             </div>
             {this.naturalTimeBlock()}
             <div className="storyTitle pageTitle">
@@ -379,7 +365,9 @@ class TextPassageStory extends AbstractStory {
     }
 }
 class TopicStory extends AbstractStory {}
-class SheetsStory extends AbstractStory {}
+class SheetListStory extends AbstractStory {}
+class TopicListStory extends AbstractStory {}
+
 
 
 module.exports = HomeFeed;
