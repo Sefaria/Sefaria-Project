@@ -338,14 +338,14 @@ class TextPassageStory extends AbstractStory {
       return (
         <div className="story" style={cardStyle}>
             <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">{this.props.data.lead_title.en}</span>
-                <span className="int-he">{this.props.data.lead_title.he}</span>
+                <span className="int-en">{this.props.data.lead_titles.en}</span>
+                <span className="int-he">{this.props.data.lead_titles.he}</span>
             </div>
             {this.naturalTimeBlock()}
             <div className="storyTitle pageTitle">
                 <a href={"/sheets/" + this.props.data.sheet_id}>
-                    <span className="int-en">{this.props.data.title.en}</span>
-                    <span className="int-he">{this.props.data.title.he}</span>
+                    <span className="int-en">{this.props.data.titles.en}</span>
+                    <span className="int-he">{this.props.data.titles.he}</span>
                 </a>
             </div>
             <div className="storyBody contentText">

@@ -12,6 +12,7 @@ from datetime import datetime
 from . import abstract as abst
 from . import user_profile
 from . import person
+from . import text
 from sefaria.system.database import db
 
 import logging
@@ -74,18 +75,19 @@ Other story forms:
             "en"
             "he"
     "textPassage"            
-         "ref"
+         "ref"  
          "index"  (derived)
-         "lead_title"
+         "lead_titles"
             "he"
             "en"
-         "title" 
+         "titles" - optional - derived from ref, if not present
             "he"
             "en"
          "text"   (derived)
             "he"
             "en"       
-         "language"   # oneOf(english, hebrew, bilingual) - optional - forces display language
+         "versions",     # dict: {en: str, he: str} - optional
+         "language"      # oneOf(english, hebrew, bilingual) - optional - forces display language
     "topic" 
     "topicList" 
     "sheetList"
@@ -193,6 +195,15 @@ class UserStory(Story):
 
         # Add Derived Attributes
         d = c["data"]
+        if "ref" in d:
+            oref = text.Ref(d["ref"])
+            d["index"] = oref.index.title
+            if not oref.is_segment_level():
+                oref = oref.padded_ref().subref(1)
+            d["text"] = {  # todo: should we allow this to be stored, alternatively?
+                "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).text,
+                "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).text
+            }
         if "publisher_id" in d:
             udata = user_profile.public_user_data(d["publisher_id"])
             d["publisher_name"] = udata["name"]
@@ -241,20 +252,25 @@ class UserStorySet(abst.AbstractMongoSet):
 
 
 class AbstractStoryFactory(object):
+    # Implemented at concrete level
+    # Returns a dictionary with the story attributes
     def _data_object(self, **kwargs):
         pass
 
+    # Implemented at concrete level
+    # Generally simply returns a string, e.g. "textPassage"
     def _story_form(self, **kwargs):
         pass
 
-    def _create_global_story(self, **kwargs):
+    def _generate_global_story(self, **kwargs):
         return GlobalStory({
             "storyForm": self._story_form(**kwargs),
             "data": self._data_object(**kwargs)
         })
 
-    def _create_user_story(self, **kwargs):
-        uid = kwargs["uid"]
+    def _generate_user_story(self, **kwargs):
+        uid = kwargs.get("uid")
+        assert uid
         return UserStory({
             "uid": uid,
             "data": self._data_object(**kwargs),
@@ -262,10 +278,41 @@ class AbstractStoryFactory(object):
         })
 
 
+class TextPassageStoryFactory(AbstractStoryFactory):
+    # This seems like it needs thought
+    leads = {
+        "Keep Reading": {"en": "Keep Reading", "he": u"קרא עוד"},
+        "Take Another Look": {"en": "Take Another Look", "he": u"קרא עוד"},
+        "Pick Up Where You Left Off": {"en": "Pick Up Where You Left Off", "he": u"קרא עוד"},
+        "Review": {"en": "Review", "he": u"קרא עוד"},
+    }
+
+    def _data_object(self, **kwargs):
+        ref = kwargs.get("ref")
+        assert ref
+        oref = text.Ref(ref)
+
+        d = {
+            "ref": oref.normal(),
+            "lead_titles": self.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"}),
+            "titles": kwargs.get("titles", {"en": oref.normal(), "he": oref.he_normal()})
+        }
+        if kwargs.get("versions"):
+            d["versions"] = kwargs.get("versions")
+        return d
+
+    def _story_form(self, **kwargs):
+        return "textPassage"
+
+    def generate_from_user_history(self, hist, **kwargs):
+        assert isinstance(hist, user_profile.UserHistory)
+        return self._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, **kwargs)
+
+
 class AuthorStoryFactory(AbstractStoryFactory):
 
     def _data_object(self, **kwargs):
-        prs = kwargs["person"]
+        prs = kwargs.get("person")
         assert isinstance(prs, person.Person)
         return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
 
@@ -274,7 +321,7 @@ class AuthorStoryFactory(AbstractStoryFactory):
 
     def create_random_global_story(self):
         p = self._select_random_person()
-        story = self._create_global_story(person=p)
+        story = self._generate_global_story(person=p)
         story.save()
 
     def _select_random_person(self):

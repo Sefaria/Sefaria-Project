@@ -2438,22 +2438,8 @@ def stories_api(request):
     if page == 0:
         most_recent = UserHistorySet({"uid": request.user.id, "last_place": True, "secondary": False}, sort=[("time_stamp", -1)], limit=1)[0]
         if most_recent:
-            r = Ref(most_recent.ref)
-            if not r.is_segment_level():
-                r = r.padded_ref().subref(1)
-            tc_en = TextChunk(r, "en", most_recent.versions.get("en"))
-            tc_he = TextChunk(r, "he", most_recent.versions.get("he"))
-            keep_reading = {
-              "storyForm": "textPassage",
-              "data": {
-                  "ref": r.normal(),
-                  "index": r.index.title,
-                  "lead_title": {"en": "Keep Reading", "he": u"קרא עוד"},
-                  "title": {"en": r.normal(), "he": r.he_normal()},
-                  "text": {"en": tc_en.text, "he": tc_he.text}
-                }
-            }
-            lead_stories += [keep_reading]
+            stry = TextPassageStoryFactory().generate_from_user_history(most_recent, lead="Keep Reading")
+            lead_stories += [stry.contents()]
             """
         cal = {
           "storyForm": "textPassage",
