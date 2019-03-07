@@ -134,7 +134,7 @@ def group_sheets(group, authenticated):
 		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
 
 	response = {
-		"sheets": sheet_list(query=query, sort=[["title", 1]]),
+		"sheets": sheet_list(query=query),
 	}
 	return response
 
