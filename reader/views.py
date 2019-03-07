@@ -2450,8 +2450,9 @@ def stories_api(request):
 
     if page == 1:
         # Show an old saved story
-        saved_item = choice(user.get_user_history(saved=True, secondary=False, sheets=False))
-        if saved_item:
+        saved = user.get_user_history(saved=True, secondary=False, sheets=False)
+        if saved.count() > 2:
+            saved_item = choice(saved)
             stry = TextPassageStoryFactory().generate_from_user_history(saved_item, lead="Take Another Look")
             lead_stories += [stry.contents()]
 
