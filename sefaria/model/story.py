@@ -198,6 +198,7 @@ class UserStory(Story):
         if "ref" in d:
             oref = text.Ref(d["ref"])
             d["index"] = oref.index.title
+            oref = oref.starting_ref()
             if not oref.is_segment_level():
                 oref = oref.padded_ref().subref(1)
             d["text"] = {  # todo: should we allow this to be stored, alternatively?
@@ -273,8 +274,8 @@ class AbstractStoryFactory(object):
         assert uid
         return UserStory({
             "uid": uid,
-            "data": self._data_object(**kwargs),
-            "storyForm": self._story_form(**kwargs)
+            "storyForm": self._story_form(**kwargs),
+            "data": self._data_object(**kwargs)
         })
 
 
@@ -282,9 +283,9 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     # This seems like it needs thought
     leads = {
         "Keep Reading": {"en": "Keep Reading", "he": u"קרא עוד"},
-        "Take Another Look": {"en": "Take Another Look", "he": u"קרא עוד"},
-        "Pick Up Where You Left Off": {"en": "Pick Up Where You Left Off", "he": u"קרא עוד"},
-        "Review": {"en": "Review", "he": u"קרא עוד"},
+        "Take Another Look": {"en": "Take Another Look", "he": u"תסתכל עוד"},
+        "Pick Up Where You Left Off": {"en": "Pick Up Where You Left Off", "he": u"התחל במקום שבו הפסקת"},
+        "Review": {"en": "Review", "he": u"לחזר"},
     }
 
     def _data_object(self, **kwargs):
@@ -294,15 +295,27 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
         d = {
             "ref": oref.normal(),
-            "lead_titles": self.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"}),
             "titles": kwargs.get("titles", {"en": oref.normal(), "he": oref.he_normal()})
         }
+        if kwargs.get("leads"):
+            d["lead_titles"] = kwargs.get("leads")
+        else:
+            d["lead_titles"] = self.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"})
+
         if kwargs.get("versions"):
             d["versions"] = kwargs.get("versions")
         return d
 
     def _story_form(self, **kwargs):
         return "textPassage"
+
+    def generate_calendar(self, uid, key="Parashat Hashavua", **kwargs):
+        from sefaria.utils.calendars import get_keyed_calendar_items
+        cal = get_keyed_calendar_items()[key]
+        ref = cal["ref"]
+        titles = cal["displayValue"]
+        leads = cal["title"]
+        return self._generate_user_story(uid=uid, ref=ref, leads=leads, titles=titles, **kwargs)
 
     def generate_from_user_history(self, hist, **kwargs):
         assert isinstance(hist, user_profile.UserHistory)

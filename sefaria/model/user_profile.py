@@ -432,14 +432,16 @@ class UserProfile(object):
             self.interrupting_messages.remove(message)
             self.save()
 
-    def get_user_history(self, oref=None, saved=None, secondary=None, last_place=None, serialized=False):
+    def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
         """
 
         :param oref:
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
         :param last_place: ditto
+        :param sheets: ditto
         :param serialized: for return from API call
+        :param limit: Passed on to Mongo to limit # of results
         :return:
         """
         query = {"uid": self.id}
@@ -449,13 +451,15 @@ class UserProfile(object):
             query["$or"] = ref_clauses
         if saved is not None:
             query["saved"] = saved
+        if sheets is not None:
+            query["is_sheet"] = sheets
         if secondary is not None:
             query["secondary"] = secondary
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
-        return UserHistorySet(query, sort=[("time_stamp", -1)])
+            return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
+        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
 
     def to_DICT(self):
         """Return a json serializble dictionary this profile"""

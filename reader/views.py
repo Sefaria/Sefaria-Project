@@ -2435,24 +2435,29 @@ def stories_api(request):
     page_size = int(request.GET.get("page_size", 10))
 
     lead_stories = []
+    user = UserProfile(id=request.user.id)
+
     if page == 0:
-        most_recent = UserHistorySet({"uid": request.user.id, "last_place": True, "secondary": False}, sort=[("time_stamp", -1)], limit=1)[0]
+        # Keep Reading Most recent
+        most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
         if most_recent:
             stry = TextPassageStoryFactory().generate_from_user_history(most_recent, lead="Keep Reading")
             lead_stories += [stry.contents()]
-            """
-        cal = {
-          "storyForm": "textPassage",
-          "data": {
-              "ref": "",
-              "index": "",
-              "story_type": {},
-              "title": {},
-              "text": {}
-          }
-        }
+
+        # Parasha
+        cal = TextPassageStoryFactory().generate_calendar(request.user.id).contents()
         lead_stories += [cal]
-        """
+
+    if page == 1:
+        # Show an old saved story
+        saved_item = choice(user.get_user_history(saved=True, secondary=False, sheets=False))
+        if saved_item:
+            stry = TextPassageStoryFactory().generate_from_user_history(saved_item, lead="Take Another Look")
+            lead_stories += [stry.contents()]
+
+        # Daf Yomi
+        cal = TextPassageStoryFactory().generate_calendar(request.user.id, "Daf Yomi").contents()
+        lead_stories += [cal]
 
     stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
 
@@ -3592,7 +3597,7 @@ def digitized_by_sefaria(request):
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
     diaspora = request.GET.get("diaspora", "1")
-    calendars = get_keyed_calendar_items() # TODO Support israel / customs
+    calendars = get_keyed_calendar_items()  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
 
