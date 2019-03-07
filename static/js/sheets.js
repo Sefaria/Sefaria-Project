@@ -2959,7 +2959,7 @@ function buildSource($target, source, appendOrInsert) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + additionalRefData +"'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'"+additionalRefData+"><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 			appendInlineAddButton() + "</div>";
@@ -2980,7 +2980,7 @@ function buildSource($target, source, appendOrInsert) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node +additionalRefData+ "'>"+
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
 								"<div class='he'>" + source.outsideBiText.he + "</div>" + 
@@ -3005,7 +3005,7 @@ function buildSource($target, source, appendOrInsert) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + additionalRefData + "'>"+
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3049,7 +3049,7 @@ function buildSource($target, source, appendOrInsert) {
 		}
 
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + additionalRefData + "'>"+
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
