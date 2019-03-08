@@ -2287,13 +2287,13 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var additionalRefData = ""
 
-	if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+	if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
 		additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 	}
-	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"])) {
+	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"]) && (source["options"]["PrependRefWithEn"] != "")) {
 		additionalRefData = additionalRefData + " data-prependrefwithen='"+source["options"]["PrependRefWithEn"]+"'";
 	}
-	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"])) {
+	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"]) && (source["options"]["PrependRefWithHe"] != "")) {
 		additionalRefData = additionalRefData + " data-prependrefwithhe='"+source["options"]["PrependRefWithHe"]+"'";
 	}
 
@@ -2955,7 +2955,7 @@ function buildSource($target, source, appendOrInsert) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 
 		additionalRefData = "";
-		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 
@@ -2976,7 +2976,7 @@ function buildSource($target, source, appendOrInsert) {
 		}
 	} else if ("outsideBiText" in source) {
 		additionalRefData = "";
-		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
@@ -3001,7 +3001,7 @@ function buildSource($target, source, appendOrInsert) {
 		}
 	} else if ("outsideText" in source) {
 		additionalRefData = "";
-		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
