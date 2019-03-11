@@ -133,6 +133,21 @@ class GroupPage extends Component {
         </div>);
       }.bind(this)) : null;
 
+    if (this.props.group == "גיליונות נחמה"){
+      var parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
+
+      groupTagList.sort( function (a, b) {
+        var A = a["key"], B = b["key"];
+
+        if (parshaOrder.indexOf(A) > parshaOrder.indexOf(B)) {
+          return 1;
+        } else {
+          return -1;
+        }
+
+      });
+    }
+
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
