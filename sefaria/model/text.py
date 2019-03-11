@@ -3650,7 +3650,7 @@ class Ref(object):
         key = "/".join(cats + [self.index.title])
         try:
             base = library.category_id_dict()[key]
-            if self.index.is_complex():
+            if self.index.is_complex() and self.index_node.parent:
                 child_order = self.index.nodes.get_child_order(self.index_node)
                 base += unicode(format(child_order, '03')) if isinstance(child_order, int) else child_order
 
