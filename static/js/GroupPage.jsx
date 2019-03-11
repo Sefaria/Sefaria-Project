@@ -18,7 +18,7 @@ class GroupPage extends Component {
     super(props);
 
     this.state = {
-      showTags: false,
+      showTags: this.props.group == "גיליונות נחמה" ? true : false,
       sheetFilterTag: null,
       sheetSort: "date",
       tab: "sheets"
