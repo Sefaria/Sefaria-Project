@@ -458,6 +458,7 @@ class TocGroupNode(TocNode):
         group_contents = group_object.contents()
         serial = {
             "categories": group_contents["toc"]["categories"],
+            "name": group_contents["name"],
             "title": group_contents["toc"]["title"],
             "heTitle": group_contents["toc"]["heTitle"], 
             "isGroup": True,
@@ -471,6 +472,7 @@ class TocGroupNode(TocNode):
 
     required_param_keys = [
         "categories",
+        "name",
         "title",
         "heTitle",
         "isGroup",

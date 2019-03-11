@@ -222,11 +222,11 @@ class ReaderNavigationCategoryMenuContents extends Component {
         } else {
           if (item.isGroup) {
             // Add a Group
-            var url = "/groups/" + item.title.replace(/\s/g, "-");            
+            var url = "/groups/" + item.name.replace(/\s/g, "-");
             var classes = classNames({groupLink: 1, blockLink: 1, outOfAppLink: 1});
             content.push((<a href={url}
                             className={classes}
-                            data-group={item.title}
+                            data-group={item.name}
                             key={"group." + this.props.nestLevel + "." + i}>
                             <span className='en'>{item.title}</span>
                             <span className='he'>{item.heTitle}</span>
