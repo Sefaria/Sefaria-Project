@@ -189,8 +189,8 @@ class GroupPage extends Component {
                     <div className="groupDescription">
                       {group.toc ? 
                       <span>
-                        <span className="en">{group.toc.description}</span>
-                        <span className="he">{group.toc.heDescription}</span>
+                        <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
+                        <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
                       </span>
                       : group.description }
                     </div>

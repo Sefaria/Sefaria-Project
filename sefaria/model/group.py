@@ -2,6 +2,8 @@
 group.py
 Writes to MongoDB Collection: groups
 """
+import bleach
+
 from django.utils.translation import ugettext as _
 
 from . import abstract as abst
@@ -54,6 +56,12 @@ class Group(abst.AbstractMongoRecord):
             else:
                 # Allows include protocol
                 self.websiteUrl = "https://" + website
+
+        toc = getattr(self, "toc", None)
+        if toc:
+            tags = ["b", "i", "br"]
+            toc["description"] = bleach.clean(toc["description"], tags=tags)
+            toc["heDescription"] = bleach.clean(toc["heDescription"], tags=tags)
 
     def _validate(self):
         assert super(Group, self)._validate()
