@@ -917,6 +917,12 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
+@login_required
+def story_editor(request):
+    props = base_props(request)
+    title = _("Story Editor")
+    return menu_page(request, props, "story_editor", title)
+
 
 @login_required
 def account(request):
@@ -2433,34 +2439,42 @@ def stories_api(request):
 
     page      = int(request.GET.get("page", 0))
     page_size = int(request.GET.get("page_size", 10))
+    only_global = bool(request.GET.get("only_global", False))
+
+    if not request.user.is_authenticated:
+        only_global = True
+        user = None
+    else:
+        user = UserProfile(id=request.user.id)
 
     lead_stories = []
-    user = UserProfile(id=request.user.id)
+    if only_global or not user:
+        stories = GlobalStorySet(limit=page_size, page=page)
+    else:
+        if page == 0:
+            # Keep Reading Most recent
+            most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
+            if most_recent:
+                stry = TextPassageStoryFactory().generate_from_user_history(most_recent, lead="Keep Reading")
+                lead_stories += [stry.contents()]
 
-    if page == 0:
-        # Keep Reading Most recent
-        most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
-        if most_recent:
-            stry = TextPassageStoryFactory().generate_from_user_history(most_recent, lead="Keep Reading")
-            lead_stories += [stry.contents()]
+            # Parasha
+            cal = TextPassageStoryFactory().generate_calendar(request.user.id).contents()
+            lead_stories += [cal]
 
-        # Parasha
-        cal = TextPassageStoryFactory().generate_calendar(request.user.id).contents()
-        lead_stories += [cal]
+        if page == 1:
+            # Show an old saved story
+            saved = user.get_user_history(saved=True, secondary=False, sheets=False)
+            if saved.count() > 2:
+                saved_item = choice(saved)
+                stry = TextPassageStoryFactory().generate_from_user_history(saved_item, lead="Take Another Look")
+                lead_stories += [stry.contents()]
 
-    if page == 1:
-        # Show an old saved story
-        saved = user.get_user_history(saved=True, secondary=False, sheets=False)
-        if saved.count() > 2:
-            saved_item = choice(saved)
-            stry = TextPassageStoryFactory().generate_from_user_history(saved_item, lead="Take Another Look")
-            lead_stories += [stry.contents()]
+            # Daf Yomi
+            cal = TextPassageStoryFactory().generate_calendar(request.user.id, "Daf Yomi").contents()
+            lead_stories += [cal]
 
-        # Daf Yomi
-        cal = TextPassageStoryFactory().generate_calendar(request.user.id, "Daf Yomi").contents()
-        lead_stories += [cal]
-
-    stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
+        stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
 
     return jsonResponse({
                             "stories": lead_stories + stories.contents(),
@@ -2475,14 +2489,16 @@ def stories_api(request):
 @catch_error_as_json
 def updates_api(request, gid=None):
     """
-    API for retrieving general notifications.
+    API for posting global stories.
     """
 
     if request.method == "GET":
+        return {"error": "Not implemented."}
+        """
         page      = int(request.GET.get("page", 0))
         page_size = int(request.GET.get("page_size", 10))
 
-        notifications = GlobalNotificationSet({},limit=page_size, page=page)
+        notifications = GlobalNotificationSet({}, limit=page_size, page=page)
 
         return jsonResponse({
                                 "updates": notifications.contents(),
@@ -2490,7 +2506,7 @@ def updates_api(request, gid=None):
                                 "page_size": page_size,
                                 "count": notifications.count()
                             })
-
+        """
     elif request.method == "POST":
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2501,11 +2517,11 @@ def updates_api(request, gid=None):
                 return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add announcements."})
+                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
 
             payload = json.loads(request.POST.get("json"))
             try:
-                GlobalNotification(payload).save()
+                GlobalStory(payload).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
@@ -2515,7 +2531,7 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    GlobalNotification(payload).save()
+                    GlobalStory(payload).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
@@ -2530,7 +2546,7 @@ def updates_api(request, gid=None):
         if request.user.is_staff:
             @csrf_protect
             def protected_post(request):
-                GlobalNotification().load_by_id(gid).delete()
+                GlobalStory().load_by_id(gid).delete()
                 return jsonResponse({"status": "ok"})
 
             return protected_post(request)

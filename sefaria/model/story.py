@@ -21,17 +21,40 @@ logger = logging.getLogger(__name__)
 
 class Story(abst.AbstractMongoRecord):
 
-    def _normalize(self):
-        pass
+    def contents(self, **kwargs):
+        c = super(Story, self).contents(**kwargs)
 
-    def _validate(self):
-        pass
+        # Add Derived Attributes
+        if "data" not in c:
+            return c
 
-    def _init_defaults(self):
-        pass
+        d = c["data"]
+        if "ref" in d:
+            oref = text.Ref(d["ref"])
+            d["index"] = oref.index.title
+            oref = oref.starting_ref()
+            if not oref.is_segment_level():
+                oref = oref.padded_ref().subref(1)
+            d["text"] = {  # todo: should we allow this to be stored, alternatively?
+                "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).text,
+                "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).text
+            }
+        if "publisher_id" in d:
+            udata = user_profile.public_user_data(d["publisher_id"])
+            d["publisher_name"] = udata["name"]
+            d["publisher_url"] = udata["profileUrl"]
+            d["publisher_image"] = udata["imageUrl"]
+        if "sheet_id" in d:
+            from sefaria.sheets import get_sheet_metadata
+            metadata = get_sheet_metadata(d["sheet_id"])
+            d["sheet_title"] = bleach.clean(metadata["title"], strip=True, tags=()).strip()
+            d["sheet_summary"] = bleach.clean(metadata["summary"], strip=True, tags=()).strip()
+        if "author_key" in d:
+            p = person.Person().load({"key": d["author_key"]})
+            d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
+            d["author_bios"] = {"en": p.enBio, "he": p.heBio}
 
-    def toJSON(self):
-        pass   # needed?
+        return c
 
 
 """
@@ -181,45 +204,20 @@ class UserStory(Story):
             assert self.data
             assert self.storyForm
 
-    @staticmethod
-    def latest_global_for_user(uid):
-        n = db.user_story.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
-        return n["_id"] if n else None
-
     def contents(self, **kwargs):
         c = super(UserStory, self).contents(**kwargs)
+
         if self.is_global:
             g = GlobalStory().load_by_id(self.global_story_id)
             c.update(g.contents(**kwargs))
             del c["global_story_id"]
 
-        # Add Derived Attributes
-        d = c["data"]
-        if "ref" in d:
-            oref = text.Ref(d["ref"])
-            d["index"] = oref.index.title
-            oref = oref.starting_ref()
-            if not oref.is_segment_level():
-                oref = oref.padded_ref().subref(1)
-            d["text"] = {  # todo: should we allow this to be stored, alternatively?
-                "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).text,
-                "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).text
-            }
-        if "publisher_id" in d:
-            udata = user_profile.public_user_data(d["publisher_id"])
-            d["publisher_name"] = udata["name"]
-            d["publisher_url"] = udata["profileUrl"]
-            d["publisher_image"] = udata["imageUrl"]
-        if "sheet_id" in d:
-            from sefaria.sheets import get_sheet_metadata
-            metadata = get_sheet_metadata(d["sheet_id"])
-            d["sheet_title"] = bleach.clean(metadata["title"], strip=True, tags=()).strip()
-            d["sheet_summary"] = bleach.clean(metadata["summary"], strip=True, tags=()).strip()
-        if "author_key" in d:
-            p = person.Person().load({"key": d["author_key"]})
-            d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
-            d["author_bios"] = {"en": p.enBio, "he": p.heBio}
         return c
+
+    @staticmethod
+    def latest_global_for_user(uid):
+        n = db.user_story.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
+        return n["_id"] if n else None
 
 
 class UserStorySet(abst.AbstractMongoSet):

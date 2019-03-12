@@ -11,6 +11,30 @@ const {
 import Component from 'react-class';
 
 
+  // This is a pseudo Component.  It uses "storyForm" to determine the component to render.
+  // It's important that it's capitalized, so that React treats it as a component.
+function Story(props) {
+    const storyForms = {
+      newContent:   NewContentStory,
+      newIndex:     NewIndexStory,
+      newVersion:   NewVersionStory,
+      publishSheet: PublishSheetStory,
+      author:       AuthorStory,
+      textPassage:  TextPassageStory,
+      topic:        TopicStory,
+      topicList:    TopicListStory,
+      sheetList:    SheetListStory
+    };
+    const StoryForm = storyForms[props.storyForm];
+    return <StoryForm
+                storyForm={props.storyForm}
+                data={props.data}
+                timestamp={props.timestamp}
+                natural_time={props.natural_time}
+                is_global={props.is_global}
+                key={props.timestamp} />;
+}
+
 class HomeFeed extends Component {
   constructor(props) {
     super(props);
@@ -45,30 +69,6 @@ class HomeFeed extends Component {
     this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
   }
 
-  // This is a pseudo Component.  It uses "storyForm" to determine the component to render.
-  // It's important that it's capitalized, so that React treats it as a component.
-  Story(props) {
-    const storyForms = {
-      newContent:   NewContentStory,
-      newIndex:     NewIndexStory,
-      newVersion:   NewVersionStory,
-      publishSheet: PublishSheetStory,
-      author:       AuthorStory,
-      textPassage:  TextPassageStory,
-      topic:        TopicStory,
-      topicList:    TopicListStory,
-      sheetList:    SheetListStory
-    };
-    const StoryForm = storyForms[props.storyForm];
-    return <StoryForm
-                storyForm={props.storyForm}
-                data={props.data}
-                timestamp={props.timestamp}
-                natural_time={props.natural_time}
-                is_global={props.is_global}
-                key={props.timestamp} />;
-  }
-
   render() {
     const classes = {"readerNavMenu": 1};
     const classStr = classNames(classes);
@@ -78,7 +78,7 @@ class HomeFeed extends Component {
         <div className="content hasFooter">
           <div className="contentInner">
             <div className="storyFeed">
-            {this.state.stories.map(s => this.Story(s))}
+            {this.state.stories.map(s => Story(s))}
             </div>
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -90,6 +90,221 @@ class HomeFeed extends Component {
 }
 HomeFeed.propTypes = {
   interfaceLang:  PropTypes.string
+};
+
+
+class StoryEditor extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      page: 0,
+      loadedToEnd: false,
+      loading: false,
+      stories: [],
+      submitting: false,
+      submitCount: 0,
+      error: null
+    };
+  }
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.getMoreNotifications();
+  }
+  handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 600;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreNotifications();
+    }
+  }
+  getMoreNotifications() {
+    $.getJSON("/api/stories?only_global=1&page=" + this.state.page, this.loadMoreNotifications);
+    this.setState({loading: true});
+  }
+  loadMoreNotifications(data) {
+    if (data.count < data.page_size) {
+      this.setState({loadedToEnd: true});
+    }
+    this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
+  }
+  onDelete(id) {
+    $.ajax({
+        url: '/api/updates/' + id,
+        type: 'DELETE',
+        success: function(result) {
+          if (result.status == "ok") {
+              this.setState({stories: this.state.stories.filter(u => u._id != id)});
+          }
+        }.bind(this)
+    });
+  }
+  handleSubmit(type, content) {
+    this.setState({"submitting": true, "error": null});
+    var payload = {
+      storyForm: type,
+      data: content
+    };
+    $.ajax({
+      url: "/api/updates",
+      dataType: 'json',
+      type: 'POST',
+      data: {json: JSON.stringify(payload)},
+      success: function(data) {
+        if (data.status == "ok") {
+          payload.date = Date();
+          this.state.stories.unshift(payload);
+          this.setState({submitting: false, stories: this.state.stories, submitCount: this.state.submitCount + 1});
+        } else {
+          this.setState({"error": "Error - " + data.error});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({"error": "Error - " + err.toString()});
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  }
+  render() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">Stories</span>
+              <span className="int-he">עדכונים</span>
+            </h1>
+
+            {Sefaria.is_moderator?<NewStoryForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
+
+            <div className="notificationsList">
+            {this.state.stories.map(s => Story(s))}
+            </div>
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>);
+  }
+}
+StoryEditor.propTypes = {
+  interfaceLang:  PropTypes.string
+};
+
+/*
+{this.state.updates.map(u =>
+    <SingleUpdate
+        type={u.type}
+        content={u.content}
+        date={u.date}
+        key={u._id}
+        id={u._id}
+        onDelete={this.onDelete}
+        submitting={this.state.submitting}
+    />
+)} */
+
+class NewStoryForm extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: ''};
+  }
+  componentWillReceiveProps(nextProps) {
+    this.setState({"error": nextProps.error});
+  }
+  handleEnChange(e) {
+    this.setState({en: e.target.value, error: null});
+  }
+  handleHeChange(e) {
+    this.setState({he: e.target.value, error: null});
+  }
+  handleTypeChange(e) {
+    this.setState({type: e.target.value, error: null});
+  }
+  handleIndexChange(e) {
+    this.setState({index: e.target.value, error: null});
+  }
+  handleVersionChange(e) {
+    this.setState({version: e.target.value, error: null});
+  }
+  handleLanguageChange(e) {
+    this.setState({language: e.target.value, error: null});
+  }
+  handleSubmit(e) {
+    e.preventDefault();
+    var content = {
+      "en": this.state.en.trim(),
+      "he": this.state.he.trim()
+    };
+    if (this.state.type == "newContent") {
+      if (!this.state.en || !this.state.he) {
+        this.setState({"error": "Both Hebrew and English are required"});
+        return;
+      }
+    } else {
+      if (!this.state.index) {
+        this.setState({"error": "Index is required"});
+        return;
+      }
+      content["index"] = this.state.index.trim();
+    }
+    if (this.state.type == "newVersion") {
+      if (!this.state.version || !this.state.language) {
+        this.setState({"error": "Version is required"});
+        return;
+      }
+      content["version"] = this.state.version.trim();
+      content["language"] = this.state.language.trim();
+    }
+    this.props.handleSubmit(this.state.type, content);
+
+  }
+  render() {
+    return (
+      <form className="globalUpdateForm" onSubmit={this.handleSubmit}>
+        <div>
+          <input type="radio" name="type" value="newIndex" onChange={this.handleTypeChange} checked={this.state.type=="newIndex"}/>Index&nbsp;&nbsp;
+          <input type="radio" name="type" value="newVersion" onChange={this.handleTypeChange} checked={this.state.type=="newVersion"}/>Version&nbsp;&nbsp;
+          <input type="radio" name="type" value="newContent" onChange={this.handleTypeChange} checked={this.state.type=="newContent"}/>General&nbsp;&nbsp;
+        </div>
+        <div>
+          {(this.state.type != "newContent")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
+          {(this.state.type == "newVersion")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
+          {(this.state.type == "newVersion")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
+            <option value="en">English</option>
+            <option value="he">Hebrew</option>
+          </select>:""}
+        </div>
+        <div>
+          <textarea
+            placeholder="English Description (optional for Index and Version)"
+            onChange={this.handleEnChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <div>
+          <textarea
+            placeholder="Hebrew Description (optional for Index and Version)"
+            onChange={this.handleHeChange}
+            rows="3"
+            cols="80"
+          />
+        </div>
+        <input type="submit" value="Submit" disabled={this.props.submitting}/>
+        <span className="error">{this.state.error}</span>
+      </form>
+    );
+  }
+}
+NewStoryForm.propTypes = {
+  error:               PropTypes.string,
+  handleSubmit:        PropTypes.func
 };
 
 
@@ -126,7 +341,6 @@ class AbstractStory extends Component {
   }
   render() {}
 }
-
 AbstractStory.propTypes = {
   storyForm: PropTypes.string,
   timestamp: PropTypes.number,
@@ -154,6 +368,7 @@ class NewContentStory extends AbstractStory {
         </div>);
     }
 }
+
 class NewIndexStory extends AbstractStory {
     render() {
       const title = this.props.data.index;
@@ -179,6 +394,7 @@ class NewIndexStory extends AbstractStory {
         </div>);
     }
 }
+
 class NewVersionStory extends AbstractStory {
     render() {
       const title = this.props.data.index;
@@ -210,6 +426,7 @@ class NewVersionStory extends AbstractStory {
         </div>);
     }
 }
+
 class AuthorStory extends AbstractStory {
     /*
        props.data: {
@@ -252,6 +469,7 @@ class AuthorStory extends AbstractStory {
         </div>);
     }
 }
+
 class PublishSheetStory extends AbstractStory {
   /* props.data: {
       publisher_id
@@ -364,10 +582,14 @@ class TextPassageStory extends AbstractStory {
       );
     }
 }
+
 class TopicStory extends AbstractStory {}
+
 class SheetListStory extends AbstractStory {}
+
 class TopicListStory extends AbstractStory {}
 
 
 
-module.exports = HomeFeed;
+module.exports.HomeFeed = HomeFeed;
+module.exports.StoryEditor = StoryEditor;

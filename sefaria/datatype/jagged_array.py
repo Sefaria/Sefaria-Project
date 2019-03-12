@@ -666,6 +666,7 @@ class JaggedTextArray(JaggedArray):
                 return True
         return False
 
+
 class JaggedIntArray(JaggedArray):
     def add(self, other):
         return self.__add__(other)

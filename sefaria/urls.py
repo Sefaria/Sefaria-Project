@@ -51,6 +51,7 @@ urlpatterns = [
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
+    url(r'^story_editor/?$', reader_views.story_editor),
 ]
 
 # People Pages

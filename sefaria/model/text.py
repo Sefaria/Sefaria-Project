@@ -1538,7 +1538,6 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-
     def nonempty_segment_refs(self):
         """
 
@@ -1593,7 +1592,6 @@ class TextChunk(AbstractTextRecord):
                 matches += [(r, m, cleaned)]
 
         return matches
-
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True, ret_ja=False):
         """

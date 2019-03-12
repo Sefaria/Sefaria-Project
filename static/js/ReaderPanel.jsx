@@ -23,7 +23,10 @@ const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
 const UpdatesPanel              = require('./UpdatesPanel');
-const HomeFeed                  = require('./HomeFeed');
+const {
+  HomeFeed,
+  StoryEditor
+}                               = require('./HomeFeed');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
   MyGroupsPanel,
@@ -916,9 +919,13 @@ class ReaderPanel extends Component {
       />);
 
     } else if (this.state.menuOpen === "updates") {
+      //todo: make this a redirect to homepage
       var menu = (<UpdatesPanel
                     interfaceLang={this.props.interfaceLang} />);
 
+    } else if (this.state.menuOpen === "story_editor") {
+      var menu = (<StoryEditor
+                    interfaceLang={this.props.interfaceLang} />);
     } else if (this.state.menuOpen === "modtools") {
       var menu = (<ModeratorToolsPanel
                     interfaceLang={this.props.interfaceLang} />);
