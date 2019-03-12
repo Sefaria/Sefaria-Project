@@ -127,7 +127,7 @@ def format_note_object_for_client(note):
 
 
 def format_sheet_as_link(sheet):
-    sheet["category"]        = sheet["groupTOC"]["categories"][0]
+    sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
     sheet["collectiveTitle"] = {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
     sheet["index_title"]     = sheet["groupTOC"]["title"]
     sheet["sourceRef"]       = sheet["title"]
