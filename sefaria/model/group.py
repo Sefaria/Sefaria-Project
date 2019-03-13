@@ -43,7 +43,7 @@ class Group(abst.AbstractMongoRecord):
                                 # `title` - string
                                 # `heTitle` - string
                                 # `desscription` - string
-                                # `heDescption`
+                                # `heDescription` - string
                                 # These fields will override `name` and `description for display
     ]
 
@@ -59,9 +59,10 @@ class Group(abst.AbstractMongoRecord):
 
         toc = getattr(self, "toc", None)
         if toc:
-            tags = ["b", "i", "br"]
-            toc["description"] = bleach.clean(toc["description"], tags=tags)
-            toc["heDescription"] = bleach.clean(toc["heDescription"], tags=tags)
+            tags = ["b", "i", "br", "span"]
+            attrs = {"span": ["class"]}
+            toc["description"] = bleach.clean(toc["description"], tags=tags, attributes=attrs)
+            toc["heDescription"] = bleach.clean(toc["heDescription"], tags=tags, attributes=attrs)
 
     def _validate(self):
         assert super(Group, self)._validate()

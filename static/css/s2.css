@@ -4670,6 +4670,10 @@ h2.splitHeader .he {
   font-family: "Heebo", sans-serif;
   font-size: 16px;
 }
+.groupPage .groupDescription .en .dedication {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-style: italic;
+}
 .groupPage .tabs {
   text-align: center;
   margin-bottom: 60px;
