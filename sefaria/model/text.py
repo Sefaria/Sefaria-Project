@@ -13,7 +13,7 @@ import bleach
 import json
 import itertools
 from collections import defaultdict
-
+from bs4 import BeautifulSoup
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
@@ -901,6 +901,59 @@ class AbstractTextRecord(object):
             return self.ja().flatten_to_string()
         else:
             return ""
+
+    def as_sized_string(self, min_char=180, max_char=300):
+        """
+        Return a starting substring of this text.
+        If the entire text is less than min_char, return the entire text.
+        If a segment boundary occurs between min_char and max_char, split there.
+        Otherwise, attempt to break on a period, semicolon, or comma between min_char and max_char.
+        Otherwise, break on a space between min_char and max_char.
+        :param min_char:
+        :param max_char:
+        :return:
+        """
+        balance = lambda doc: str(BeautifulSoup(doc, "html.parser"))
+
+        as_array = self.ja().flatten_to_array()
+
+        previous_state = None
+        accumulator = u''
+
+        for segment in as_array:
+            joiner = u" " if previous_state else u""
+
+            previous_state = accumulator
+            accumulator += joiner + segment
+
+            cur_len = len(accumulator)
+            prev_len = len(previous_state)
+            # If a segment boundary occurs between min_char and max_char, return.
+            # Get the longest instance where that's true.
+            if cur_len > max_char >= prev_len >= min_char:
+                return previous_state
+
+            # We're too big, and the previous chunk was too small.  Break on a signal character.
+            if cur_len > max_char and min_char > prev_len:
+
+                # get target lengths
+                at_least = min_char - prev_len
+                at_most = max_char - prev_len
+
+                # A match w/ the period includes the period, handle it first.
+                for candidate in [pos for pos, char in enumerate(segment) if char == u"."][::-1]:
+                    if at_least <= candidate+1 <= at_most:
+                        return balance(previous_state + joiner + segment[:candidate+1])
+
+                for bchar in u";, ":
+                    # enumerate all places where this char is in segment
+                    for candidate in [pos for pos, char in enumerate(segment) if char == bchar][::-1]:
+                        if at_least <= candidate <= at_most:
+                            return balance(previous_state + joiner + segment[:candidate])
+
+        # We've reached the end, it's not longer than max_char, and it's what we've got.
+        return accumulator
+
 
     @classmethod
     def sanitize_text(cls, t):
