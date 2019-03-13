@@ -32,12 +32,9 @@ class Story(abst.AbstractMongoRecord):
         if "ref" in d:
             oref = text.Ref(d["ref"])
             d["index"] = oref.index.title
-            oref = oref.starting_ref()
-            if not oref.is_segment_level():
-                oref = oref.padded_ref().subref(1)
             d["text"] = {  # todo: should we allow this to be stored, alternatively?
-                "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).text,
-                "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).text
+                "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).as_sized_string(),
+                "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).as_sized_string()
             }
         if "publisher_id" in d:
             udata = user_profile.public_user_data(d["publisher_id"])

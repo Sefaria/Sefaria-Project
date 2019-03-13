@@ -902,7 +902,7 @@ class AbstractTextRecord(object):
         else:
             return ""
 
-    def as_sized_string(self, min_char=180, max_char=300):
+    def as_sized_string(self, min_char=240, max_char=360):
         """
         Return a starting substring of this text.
         If the entire text is less than min_char, return the entire text.
@@ -931,7 +931,10 @@ class AbstractTextRecord(object):
             # If a segment boundary occurs between min_char and max_char, return.
             # Get the longest instance where that's true.
             if cur_len > max_char >= prev_len >= min_char:
-                return previous_state
+                if previous_state[-1] == u".":
+                    return previous_state[:-1] + u"…"
+                else:
+                    return previous_state + u"…"
 
             # We're too big, and the previous chunk was too small.  Break on a signal character.
             if cur_len > max_char and min_char > prev_len:
@@ -940,16 +943,11 @@ class AbstractTextRecord(object):
                 at_least = min_char - prev_len
                 at_most = max_char - prev_len
 
-                # A match w/ the period includes the period, handle it first.
-                for candidate in [pos for pos, char in enumerate(segment) if char == u"."][::-1]:
-                    if at_least <= candidate+1 <= at_most:
-                        return balance(previous_state + joiner + segment[:candidate+1])
-
-                for bchar in u";, ":
+                for bchar in u".;, ":
                     # enumerate all places where this char is in segment
                     for candidate in [pos for pos, char in enumerate(segment) if char == bchar][::-1]:
                         if at_least <= candidate <= at_most:
-                            return balance(previous_state + joiner + segment[:candidate])
+                            return balance(previous_state + joiner + segment[:candidate] + u"…")
 
         # We've reached the end, it's not longer than max_char, and it's what we've got.
         return accumulator
