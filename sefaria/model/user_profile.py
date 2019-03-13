@@ -101,6 +101,26 @@ class UserHistory(abst.AbstractMongoRecord):
         # UserHistory API is only open to post for your uid
         pass
 
+    @classmethod
+    def save_history_item(cls, uid, hist, time_stamp=None):
+        if time_stamp is None:
+            time_stamp = epoch_time()
+        hist["uid"] = uid
+        if "he_ref" not in hist or "book" not in hist:
+            oref = Ref(hist["ref"])
+            hist["he_ref"] = oref.he_normal()
+            hist["book"] = oref.index.title
+        hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
+
+        action = hist.pop("action", None)
+        saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
+        uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
+            "saved": saved,
+            "server_time_stamp": hist["server_time_stamp"]
+        })
+        uh.save()
+        return uh
+
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory

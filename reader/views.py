@@ -3004,21 +3004,7 @@ def profile_sync_api(request):
                     ret["settings"] = profile.settings
             elif field == "user_history":
                 for hist in field_data:
-                    hist["uid"] = request.user.id
-                    if "he_ref" not in hist or "book" not in hist:
-                        oref = Ref(hist["ref"])
-                        hist["he_ref"] = oref.he_normal()
-                        hist["book"] = oref.index.title
-                    hist["server_time_stamp"] = now if "server_time_stamp" not in hist else hist[
-                        "server_time_stamp"]  # DEBUG: helpful to include this field for debugging
-
-                    action = hist.pop("action", None)
-                    saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
-                    uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
-                        "saved": saved,
-                        "server_time_stamp": hist["server_time_stamp"]
-                    })
-                    uh.save()
+                    uh = UserHistory.save_history_item(request.user.id, hist, now)
                     ret["created"] = uh.contents(for_api=True)
         return jsonResponse(ret)
 
