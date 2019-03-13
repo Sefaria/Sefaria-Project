@@ -17,8 +17,8 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.group import Group, GroupSet
-from sefaria.model.story import UserStory
+from sefaria.model.group import Group
+from sefaria.model.story import UserStory, UserStorySet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import django_cache
@@ -322,21 +322,20 @@ def save_sheet(sheet, user_id, search_override=False):
 		if sheet["status"] == "public" and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
-			record_sheet_publication(sheet["id"], user_id)
+			record_sheet_publication(sheet["id"], user_id)  # record history
 			broadcast_sheet_publication(user_id, sheet["id"])
 		if sheet["status"] != "public":
 			# UNPUBLISH
-			delete_sheet_publication(sheet["id"], user_id)
-			NotificationSet({"type": "sheet publish",
-								"content.publisher_id": user_id,
-								"content.sheet_id": sheet["id"]
+			delete_sheet_publication(sheet["id"], user_id)  # remove history
+			UserStorySet({"storyForm": "publishSheet",
+								"data.publisher": user_id,
+								"data.sheet_id": sheet["id"]
 							}).delete()
 
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
 	if "tags" in sheet:
 		update_sheet_tags(sheet["id"], sheet["tags"])
-
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		try:

@@ -199,12 +199,6 @@ class Notification(abst.AbstractMongoRecord):
         self.content["sheet_id"] = sheet_id
         return self
 
-    def make_sheet_publish(self, publisher_id=None, sheet_id=None):
-        self.type                 = "sheet publish"
-        self.content["publisher"] = publisher_id
-        self.content["sheet_id"]  = sheet_id
-        return self        
-
     def make_message(self, sender_id=None, message=None):
         """Make this Notification for a user message event"""
         self.type               = "message"
