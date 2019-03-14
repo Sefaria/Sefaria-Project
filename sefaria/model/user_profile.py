@@ -121,6 +121,25 @@ class UserHistory(abst.AbstractMongoRecord):
         uh.save()
         return uh
 
+    @staticmethod
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, serialized=False):
+        query = {}
+        if uid is not None:
+            query["uid"] = uid
+        if oref is not None:
+            regex_list = oref.context_ref().regex(as_list=True)
+            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
+            query["$or"] = ref_clauses
+        if saved is not None:
+            query["saved"] = saved
+        if secondary is not None:
+            query["secondary"] = secondary
+        if last_place is not None:
+            query["last_place"] = last_place
+        if serialized:
+            return [uh.contents() for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
+        return UserHistorySet(query, sort=[("time_stamp", -1)])
+
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
@@ -424,7 +443,7 @@ class UserProfile(object):
 
     def get_user_history(self, oref=None, saved=None, secondary=None, last_place=None, serialized=False):
         """
-
+        personal user history
         :param oref:
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
@@ -432,20 +451,8 @@ class UserProfile(object):
         :param serialized: for return from API call
         :return:
         """
-        query = {"uid": self.id}
-        if oref is not None:
-            regex_list = oref.context_ref().regex(as_list=True)
-            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
-            query["$or"] = ref_clauses
-        if saved is not None:
-            query["saved"] = saved
-        if secondary is not None:
-            query["secondary"] = secondary
-        if last_place is not None:
-            query["last_place"] = last_place
-        if serialized:
-            return [uh.contents(natural_time=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
-        return UserHistorySet(query, sort=[("time_stamp", -1)])
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, last_place=last_place, serialized=serialized)
+
 
     def to_DICT(self):
         """Return a json serializble dictionary this profile"""

@@ -1605,7 +1605,7 @@ def shape_api(request, title):
                     "length": prev_shape["length"],
                     "chapters": [prev_shape],
                     "book": prev_shape["book"],
-                    "heBook": prev_shape["heBook"],               
+                    "heBook": prev_shape["heBook"],
                 }
                 complex_book_in_progress["chapters"].append(shape)
                 complex_book_in_progress["length"] += shape["length"]
@@ -3011,9 +3011,37 @@ def profile_sync_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def get_url_params_user_history(request):
+    saved = request.GET.get("saved", None)
+    if saved is not None:
+        saved = bool(int(saved))
+    secondary = request.GET.get("secondary", None)
+    if secondary is not None:
+        secondary = bool(int(secondary))
+    last_place = request.GET.get("last_place", None)
+    if last_place is not None:
+        last_place = bool(int(last_place))
+    tref = request.GET.get("tref", None)
+    oref = Ref(tref) if tref else None
+    return saved, secondary, last_place, oref
+
+
+def saved_history_for_ref(request):
+    """
+    GET API for saved history of a ref
+    :tref: Ref associated with history item
+    """
+    if request.method == "GET":
+        _, _, _, oref = get_url_params_user_history(request)
+        if oref is None:
+            return jsonResponse({"error": "Must specify 'tref' param"})
+        return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def profile_get_user_history(request):
     """
-    GET API for user history. optional URL params are
+    GET API for user history for a particular user. optional URL params are
     :saved: bool. True if you only want saved items. None if you dont care
     :secondary: bool. True if you only want secondary items. None if you dont care
     :tref: Ref associated with history item
@@ -3025,17 +3053,7 @@ def profile_get_user_history(request):
         history = json.loads(urlparse.unquote(request.COOKIES.get("user_history", '[]')))
         return jsonResponse(history + recents)
     if request.method == "GET":
-        saved = request.GET.get("saved", None)
-        if saved is not None:
-            saved = bool(int(saved))
-        secondary = request.GET.get("secondary", None)
-        if secondary is not None:
-            secondary = bool(int(secondary))
-        last_place = request.GET.get("last_place", None)
-        if last_place is not None:
-            last_place = bool(int(last_place))
-        tref = request.GET.get("tref", None)
-        oref = Ref(tref) if tref else None
+        saved, secondary, last_place, oref = get_url_params_user_history(request)
         user = UserProfile(id=request.user.id)
         return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
