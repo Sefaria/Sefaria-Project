@@ -39,3 +39,5 @@ django-user-agents
 psycopg2
 django-easy-timezones
 undecorated
+apscheduler
+pytz

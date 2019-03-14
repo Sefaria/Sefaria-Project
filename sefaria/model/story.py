@@ -250,27 +250,31 @@ class UserStorySet(abst.AbstractMongoSet):
 class AbstractStoryFactory(object):
     # Implemented at concrete level
     # Returns a dictionary with the story attributes
-    def _data_object(self, **kwargs):
+    @classmethod
+    def _data_object(cls, **kwargs):
         pass
 
     # Implemented at concrete level
     # Generally simply returns a string, e.g. "textPassage"
-    def _story_form(self, **kwargs):
+    @classmethod
+    def _story_form(cls, **kwargs):
         pass
 
-    def _generate_global_story(self, **kwargs):
+    @classmethod
+    def _generate_global_story(cls, **kwargs):
         return GlobalStory({
-            "storyForm": self._story_form(**kwargs),
-            "data": self._data_object(**kwargs)
+            "storyForm": cls._story_form(**kwargs),
+            "data": cls._data_object(**kwargs)
         })
 
-    def _generate_user_story(self, **kwargs):
+    @classmethod
+    def _generate_user_story(cls, **kwargs):
         uid = kwargs.get("uid")
         assert uid
         return UserStory({
             "uid": uid,
-            "storyForm": self._story_form(**kwargs),
-            "data": self._data_object(**kwargs)
+            "storyForm": cls._story_form(**kwargs),
+            "data": cls._data_object(**kwargs)
         })
 
 
@@ -283,7 +287,8 @@ class TextPassageStoryFactory(AbstractStoryFactory):
         "Review": {"en": "Review", "he": u"לחזר"},
     }
 
-    def _data_object(self, **kwargs):
+    @classmethod
+    def _data_object(cls, **kwargs):
         ref = kwargs.get("ref")
         assert ref
         oref = text.Ref(ref)
@@ -295,56 +300,86 @@ class TextPassageStoryFactory(AbstractStoryFactory):
         if kwargs.get("leads"):
             d["lead_titles"] = kwargs.get("leads")
         else:
-            d["lead_titles"] = self.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"})
+            d["lead_titles"] = cls.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"})
 
         if kwargs.get("versions"):
             d["versions"] = kwargs.get("versions")
         return d
 
-    def _story_form(self, **kwargs):
+    @classmethod
+    def _story_form(cls, **kwargs):
         return "textPassage"
 
-    def generate_calendar(self, uid, key="Parashat Hashavua", **kwargs):
+    ###
+
+    @classmethod
+    def create_daf_yomi(cls, **kwargs):
+        cls.generate_calendar(key="Daf Yomi", **kwargs).save()
+
+    @classmethod
+    def create_parasha(cls, **kwargs):
+        cls.generate_calendar(key="Parashat Hashavua", **kwargs).save()
+
+    @classmethod
+    def create_haftarah(cls, **kwargs):
+        cls.generate_calendar(key="Haftarah", **kwargs).save()
+
+    @classmethod
+    def create_929(cls, **kwargs):
+        cls.generate_calendar(key="929", **kwargs).save()
+
+    @classmethod
+    def create_daily_mishnah(cls, **kwargs):
+        cls.generate_calendar(key="Daily Mishnah", **kwargs).save()
+
+    ###
+    @classmethod
+    def generate_calendar(cls, key="Parashat Hashavua", **kwargs):
         from sefaria.utils.calendars import get_keyed_calendar_items
         cal = get_keyed_calendar_items()[key]
         ref = cal["ref"]
         titles = cal["displayValue"]
         leads = cal["title"]
-        return self._generate_user_story(uid=uid, ref=ref, leads=leads, titles=titles, **kwargs)
+        return cls._generate_global_story(ref=ref, leads=leads, titles=titles, **kwargs)
 
-    def generate_from_user_history(self, hist, **kwargs):
+    @classmethod
+    def generate_from_user_history(cls, hist, **kwargs):
         assert isinstance(hist, user_profile.UserHistory)
         return self._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, **kwargs)
 
 
 class AuthorStoryFactory(AbstractStoryFactory):
-
-    def _data_object(self, **kwargs):
+    @classmethod
+    def _data_object(cls, **kwargs):
         prs = kwargs.get("person")
         assert isinstance(prs, person.Person)
         return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
 
-    def _story_form(self, **kwargs):
+    @classmethod
+    def _story_form(cls, **kwargs):
         return "author"
 
-    def create_random_global_story(self):
-        p = self._select_random_person()
-        story = self._generate_global_story(person=p)
+    @classmethod
+    def create_random_global_story(cls):
+        p = cls._select_random_person()
+        story = cls._generate_global_story(person=p)
         story.save()
 
-    def _select_random_person(self):
+    @classmethod
+    def _select_random_person(cls):
         eras = ["GN", "RI", "AH", "CO"]
         ps = person.PersonSet({"era": {"$in": eras}})
 
         p = random.choice(ps)
-        while not self._can_use_person(p):
+        while not cls._can_use_person(p):
             p = random.choice(ps)
 
         #todo: Any way to avoid loading this whole set?
         #todo: check against most recent X to avoid dupes.
         return p
 
-    def _can_use_person(self, p):
+    @classmethod
+    def _can_use_person(cls, p):
         if not isinstance(p, person.Person):
             return False
         if not p.has_indexes():

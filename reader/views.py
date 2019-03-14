@@ -2451,6 +2451,9 @@ def stories_api(request):
     if only_global or not user:
         stories = GlobalStorySet(limit=page_size, page=page)
     else:
+        stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
+
+    """
         if page == 0:
             # Keep Reading Most recent
             most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
@@ -2473,8 +2476,7 @@ def stories_api(request):
             # Daf Yomi
             cal = TextPassageStoryFactory().generate_calendar(request.user.id, "Daf Yomi").contents()
             lead_stories += [cal]
-
-        stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
+    """
 
     return jsonResponse({
                             "stories": lead_stories + stories.contents(),
