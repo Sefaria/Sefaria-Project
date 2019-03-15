@@ -485,6 +485,7 @@ class UserSheetsStory extends AbstractStory {
         "publisher_name" (derived)
         "publisher_url" (derived)
         "publisher_image" (derived)
+        "publisher_position" (derived)
         "sheet_ids"
         "sheets" (derived)
             [{"sheet_id"
@@ -496,6 +497,12 @@ class UserSheetsStory extends AbstractStory {
       const cardStyle = {"borderColor": "#18345D"};
 
       this.props.data.sheets.forEach(this.amendSheetObject);
+      const positionBlock = (this.props.data.publisher_position) ?
+            <div className="storySubTitle systemText">
+                <span className="int-en">{this.props.data.publisher_position}</span>
+                <span className="int-he">{this.props.data.publisher_position}</span>
+            </div>
+          :"";
       return (
         <div className="story" style={cardStyle}>
 
@@ -510,7 +517,7 @@ class UserSheetsStory extends AbstractStory {
                     <span className="int-he">{this.props.data.publisher_name}</span>
                 </a>
             </div>
-
+            {positionBlock}
             <div className="storySheetList">
                 {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
                     <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
@@ -535,6 +542,7 @@ class PublishSheetStory extends AbstractStory {
       publisher_name
       publisher_url
       publisher_image
+      publisher_position
       sheet_id
       sheet_title
       sheet_summary

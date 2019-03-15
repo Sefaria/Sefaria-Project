@@ -5891,6 +5891,10 @@ span.purim-emoji img{
 .storyFeed .story .storyTitle {
   padding: 10px 0;
 }
+.storyFeed .story .storySubTitle .int-en,
+.storyFeed .story .storySubTitle .int-he {
+  color: #666;
+}
 .storyFeed .story img.storyProfileImage {
     height: 64px;
     width: 64px;
@@ -5922,10 +5926,10 @@ span.purim-emoji img{
 }
 .storyFeed .story .storySheetListItem {
   display: flex;
-  padding-top: 20px;
+  padding-top: 32px;
 }
 .storyFeed .story .storySheetListItem + .storySheetListItem {
-  padding-top: 32px;
+  padding-top: 20px;
 }
 
 .storyFeed .story .storySheetListItem .storySheetListItemTitle {

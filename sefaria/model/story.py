@@ -55,6 +55,7 @@ class Story(abst.AbstractMongoRecord):
             d["publisher_name"] = udata["name"]
             d["publisher_url"] = udata["profileUrl"]
             d["publisher_image"] = udata["imageUrl"]
+            d["publisher_position"] = udata["position"]
         if "sheet_id" in d:
             d.update(self._sheet_metadata(d["sheet_id"]))
         if "sheet_ids" in d:
@@ -98,6 +99,7 @@ Other story forms:
         "publisher_name" (derived)
         "publisher_url" (derived)
         "publisher_image" (derived)
+        "publisher_position" (derived)
         "sheet_id"
         "sheet_title" (derived) 
         "sheet_summary" (derived)
@@ -115,6 +117,7 @@ Other story forms:
         "publisher_name" (derived)
         "publisher_url" (derived)
         "publisher_image" (derived)
+        "publisher_position" (derived)
         "sheet_ids"
         "sheets" (derived)
             [{"sheet_id"
