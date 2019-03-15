@@ -330,6 +330,14 @@ class AbstractStory extends Component {
           <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(this.props.timestamp) }</span>
         </div>);
   }
+  amendSheetObject(sheet) {
+      sheet.history_object = {
+          ref: "Sheet " + sheet.sheet_id,
+          sheet_title: sheet.sheet_title,
+          versions: {}
+      };
+      return sheet;
+  }
   readMoreLink(url) {
       return (
         <div className="learnMoreLink smallText">
@@ -487,16 +495,7 @@ class UserSheetsStory extends AbstractStory {
   render() {
       const cardStyle = {"borderColor": "#18345D"};
 
-      const addHistoryObjectToSheet = function(sheet) {
-          sheet.history_object = {
-              ref: "Sheet " + sheet.sheet_id,
-              sheet_title: sheet.sheet_title,
-              versions: {}
-          };
-          return sheet;
-      };
-      this.props.data.sheets.forEach(addHistoryObjectToSheet);
-
+      this.props.data.sheets.forEach(this.amendSheetObject);
       return (
         <div className="story" style={cardStyle}>
 
@@ -513,7 +512,7 @@ class UserSheetsStory extends AbstractStory {
             </div>
 
             <div className="storySheetList">
-                {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" id={i}>
+                {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
                     <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
                         <span className="int-en">{sheet.sheet_title}</span>
                         <span className="int-he">{sheet.sheet_title}</span>
@@ -543,10 +542,7 @@ class PublishSheetStory extends AbstractStory {
    */
   render() {
       const cardStyle = {"borderColor": "#18345D"};
-      const historyObject = {
-          ref: "Sheet " + this.props.data.sheet_id,
-          sheet_title: this.props.data.sheet_title,
-          versions: {} };
+      const sheet = this.amendSheetObject(this.props.data);  // Bit messy.
 
       return (
         <div className="story" style={cardStyle}>
@@ -556,15 +552,15 @@ class PublishSheetStory extends AbstractStory {
             </div>
             {this.naturalTimeBlock()}
             <div className="storyTitle pageTitle">
-                <a href={"/sheets/" + this.props.data.sheet_id}>
-                    <span className="int-en">{this.props.data.sheet_title}</span>
-                    <span className="int-he">{this.props.data.sheet_title}</span>
+                <a href={"/sheets/" + sheet.sheet_id}>
+                    <span className="int-en">{sheet.sheet_title}</span>
+                    <span className="int-he">{sheet.sheet_title}</span>
                 </a>
             </div>
-            {this.props.data.sheet_summary?
+            {sheet.sheet_summary?
                 <div className="storyBody contentText">
-                    <span className="int-en">{this.props.data.sheet_summary}</span>
-                    <span className="int-he">{this.props.data.sheet_summary}</span>
+                    <span className="int-en">{sheet.sheet_summary}</span>
+                    <span className="int-he">{sheet.sheet_summary}</span>
                 </div>:""}
             <div className="bottomLine">
                 <div className="storyByLine systemText">
@@ -575,7 +571,7 @@ class PublishSheetStory extends AbstractStory {
                     </a>
                 </div>
                 <SaveButton
-                    historyObject={historyObject}
+                    historyObject={sheet.history_object}
                     tooltip={true}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                 />

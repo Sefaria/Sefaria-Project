@@ -9,6 +9,7 @@ import bleach
 import random
 from datetime import datetime
 
+from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from . import abstract as abst
 from . import user_profile
@@ -25,9 +26,10 @@ class Story(abst.AbstractMongoRecord):
     def _sheet_metadata(sheet_id, return_id=False):
         from sefaria.sheets import get_sheet_metadata
         metadata = get_sheet_metadata(sheet_id)
+
         d = {
-            "sheet_title": bleach.clean(metadata["title"], strip=True, tags=()).strip(),
-            "sheet_summary": bleach.clean(metadata["summary"], strip=True, tags=()).strip() if "summary" in metadata else ""
+            "sheet_title": strip_tags(metadata["title"]),
+            "sheet_summary": strip_tags(metadata["summary"]) if "summary" in metadata else ""
         }
         if return_id:
             d["sheet_id"] = sheet_id
