@@ -2451,7 +2451,7 @@ def stories_api(request):
     if only_global or not user:
         stories = GlobalStorySet(limit=page_size, page=page)
     else:
-        stories = UserStorySet().recent_for_user(request.user.id, limit=page_size, page=page)
+        stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page)
 
     """
         if page == 0:

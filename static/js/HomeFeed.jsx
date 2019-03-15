@@ -6,7 +6,8 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Footer     = require('./Footer');
 const {
-  SaveButton
+  SaveButton,
+  FollowButton
 }                                = require('./Misc');
 import Component from 'react-class';
 
@@ -462,11 +463,13 @@ class AuthorStory extends AbstractStory {
                 <span className="int-he">מחבר</span>
             </div>
             {this.naturalTimeBlock()}
-            <div className="storyTitle pageTitle">
-                <a href={url}>
-                    <span className="int-en">{this.props.data.author_names.en}</span>
-                    <span className="int-he">{this.props.data.author_names.he}</span>
-                </a>
+            <div className="storyTitleBlock">
+                <div className="storyTitle pageTitle">
+                    <a href={url}>
+                        <span className="int-en">{this.props.data.author_names.en}</span>
+                        <span className="int-he">{this.props.data.author_names.he}</span>
+                    </a>
+                </div>
             </div>
             <div className="storyBody contentText">
                 <span className="int-en">{this.props.data.author_bios.en}</span>
@@ -486,6 +489,7 @@ class UserSheetsStory extends AbstractStory {
         "publisher_url" (derived)
         "publisher_image" (derived)
         "publisher_position" (derived)
+        "publisher_followed" (derived)
         "sheet_ids"
         "sheets" (derived)
             [{"sheet_id"
@@ -517,6 +521,7 @@ class UserSheetsStory extends AbstractStory {
                     </a>
                 </div>
                 {positionBlock}
+                <FollowButton large={true} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
             </div>
             <img className="storyProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storySheetList">
@@ -544,6 +549,7 @@ class PublishSheetStory extends AbstractStory {
       publisher_url
       publisher_image
       publisher_position
+      publisher_followed (derived)
       sheet_id
       sheet_title
       sheet_summary
@@ -560,11 +566,13 @@ class PublishSheetStory extends AbstractStory {
                 <span className="int-he">דף מקורות חדש</span>
             </div>
             {this.naturalTimeBlock()}
-            <div className="storyTitle pageTitle">
-                <a href={"/sheets/" + sheet.sheet_id}>
-                    <span className="int-en">{sheet.sheet_title}</span>
-                    <span className="int-he">{sheet.sheet_title}</span>
-                </a>
+            <div className="storyTitleBlock">
+                <div className="storyTitle pageTitle">
+                    <a href={"/sheets/" + sheet.sheet_id}>
+                        <span className="int-en">{sheet.sheet_title}</span>
+                        <span className="int-he">{sheet.sheet_title}</span>
+                    </a>
+                </div>
             </div>
             {sheet.sheet_summary?
                 <div className="storyBody contentText">
@@ -625,11 +633,13 @@ class TextPassageStory extends AbstractStory {
                 <span className="int-he">{this.props.data.lead_titles.he}</span>
             </div>
             {this.naturalTimeBlock()}
-            <div className="storyTitle pageTitle">
-                <a href={"/sheets/" + this.props.data.sheet_id}>
-                    <span className="int-en">{this.props.data.titles.en}</span>
-                    <span className="int-he">{this.props.data.titles.he}</span>
-                </a>
+            <div className="storyTitleBlock">
+                <div className="storyTitle pageTitle">
+                    <a href={"/sheets/" + this.props.data.sheet_id}>
+                        <span className="int-en">{this.props.data.titles.en}</span>
+                        <span className="int-he">{this.props.data.titles.he}</span>
+                    </a>
+                </div>
             </div>
             <div className="storyBody contentText">
                 <span className="en" dangerouslySetInnerHTML={ {__html: this.props.data.text.en + " "} }/>

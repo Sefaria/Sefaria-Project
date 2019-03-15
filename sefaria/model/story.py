@@ -15,6 +15,7 @@ from . import abstract as abst
 from . import user_profile
 from . import person
 from . import text
+from . import following
 
 import logging
 logger = logging.getLogger(__name__)
@@ -100,6 +101,7 @@ Other story forms:
         "publisher_url" (derived)
         "publisher_image" (derived)
         "publisher_position" (derived)
+        "publisher_followed" (derived)
         "sheet_id"
         "sheet_title" (derived) 
         "sheet_summary" (derived)
@@ -118,6 +120,7 @@ Other story forms:
         "publisher_url" (derived)
         "publisher_image" (derived)
         "publisher_position" (derived)
+        "publisher_followed" (derived)
         "sheet_ids"
         "sheets" (derived)
             [{"sheet_id"
@@ -238,6 +241,10 @@ class UserStory(Story):
             c.update(g.contents(**kwargs))
             del c["global_story_id"]
 
+        d = c.get("data")
+        if kwargs.get("followees") and d and "publisher_id" in d:
+            d["publisher_followed"] = d["publisher_id"] in kwargs.get("followees")
+
         return c
 
     @staticmethod
@@ -249,11 +256,17 @@ class UserStory(Story):
 class UserStorySet(abst.AbstractMongoSet):
     recordClass = UserStory
 
-    def __init__(self, query=None, page=0, limit=0, sort=None):
+    def __init__(self, query=None, page=0, limit=0, sort=None, uid=None):
         sort = sort or [["timestamp", -1]]
+        query = query or {}
+        self.uid = uid
+        if uid:
+            query["uid"] = uid
+
         super(UserStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
-    def _add_global_stories(self, uid):
+    @staticmethod
+    def _add_global_stories(uid):
         """
         Add user Notification records for any new GlobalNotifications
         :return:
@@ -267,13 +280,20 @@ class UserStorySet(abst.AbstractMongoSet):
             else:
                 GlobalStorySet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
 
-    def recent_for_user(self, uid, page=0, limit=10):
+    def contents(self, **kwargs):
+        if self.uid:
+            followees = following.FolloweesSet(self.uid).uids
+            return super(UserStorySet, self).contents(followees=followees, **kwargs)
+        else:
+            return super(UserStorySet, self).contents(**kwargs)
+
+    @classmethod
+    def recent_for_user(cls, uid, page=0, limit=10):
         """
-        Loads recent notifications for uid.
+        Loads recent stories for uid.
         """
-        self._add_global_stories(uid)
-        self.__init__(query={"uid": uid}, page=page, limit=limit)
-        return self
+        cls._add_global_stories(uid)
+        return cls(uid=uid, page=page, limit=limit)
 
 
 '''

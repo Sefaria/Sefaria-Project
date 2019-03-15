@@ -5877,6 +5877,32 @@ span.purim-emoji img{
   transition: all 0.75s ease;
 }
 
+.largeFollowButton {
+  display: inline-block;
+  padding: 10px;
+  height: 16px;
+  width: 59px;
+  text-align: center;
+  background: #18345d;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 1px 1px 1px #ccc;
+  border: 1px solid #ccc;
+}
+.largeFollowButton.following {
+  background: #fff;
+  color: #666;
+}
+
+.smallFollowButton {
+  display: block;
+  height: 20px;
+  background: #fff;
+  color: #444;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
 .storyFeed .story {
   margin: 20px 0;
   padding: 20px 0;
@@ -5893,6 +5919,9 @@ span.purim-emoji img{
 }
 .storyFeed .story .storyTitle {
   padding: 10px 0;
+}
+.storyFeed .story .storySubTitle {
+  padding-bottom: 10px;
 }
 .storyFeed .story .storySubTitle .int-en,
 .storyFeed .story .storySubTitle .int-he {
