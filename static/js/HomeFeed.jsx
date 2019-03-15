@@ -23,7 +23,8 @@ function Story(props) {
       textPassage:  TextPassageStory,
       topic:        TopicStory,
       topicList:    TopicListStory,
-      sheetList:    SheetListStory
+      sheetList:    SheetListStory,
+      userSheets:   UserSheetsStory
     };
     const StoryForm = storyForms[props.storyForm];
     return <StoryForm
@@ -470,6 +471,65 @@ class AuthorStory extends AbstractStory {
     }
 }
 
+class UserSheetsStory extends AbstractStory {
+    /* props.data: {
+        "publisher_id"
+        "publisher_name" (derived)
+        "publisher_url" (derived)
+        "publisher_image" (derived)
+        "sheet_ids"
+        "sheets" (derived)
+            [{"sheet_id"
+              "sheet_title"
+              "sheet_summary"}, {...}]
+      }
+    */
+  render() {
+      const cardStyle = {"borderColor": "#18345D"};
+
+      const addHistoryObjectToSheet = function(sheet) {
+          sheet.history_object = {
+              ref: "Sheet " + sheet.sheet_id,
+              sheet_title: sheet.sheet_title,
+              versions: {}
+          };
+          return sheet;
+      };
+      this.props.data.sheets.forEach(addHistoryObjectToSheet);
+
+      return (
+        <div className="story" style={cardStyle}>
+
+            <img className="storyProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
+            <div className="storyTypeBlock sectionTitleText">
+                <span className="int-en">People</span>
+                <span className="int-he">קהילה</span>
+            </div>
+            <div className="storyTitle pageTitle">
+                <a href={this.props.data.publisher_url}>
+                    <span className="int-en">{this.props.data.publisher_name}</span>
+                    <span className="int-he">{this.props.data.publisher_name}</span>
+                </a>
+            </div>
+
+            <div className="storySheetList">
+                {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" id={i}>
+                    <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
+                        <span className="int-en">{sheet.sheet_title}</span>
+                        <span className="int-he">{sheet.sheet_title}</span>
+                    </a>
+                    <SaveButton
+                        historyObject={sheet.history_object}
+                        tooltip={true}
+                        toggleSignUpModal={this.props.toggleSignUpModal}
+                    />
+                </div>)}
+            </div>
+
+        </div>
+      );
+  }
+}
 class PublishSheetStory extends AbstractStory {
   /* props.data: {
       publisher_id

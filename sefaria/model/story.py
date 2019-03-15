@@ -9,17 +9,29 @@ import bleach
 import random
 from datetime import datetime
 
+from sefaria.system.database import db
 from . import abstract as abst
 from . import user_profile
 from . import person
 from . import text
-from sefaria.system.database import db
 
 import logging
 logger = logging.getLogger(__name__)
 
 
 class Story(abst.AbstractMongoRecord):
+
+    @staticmethod
+    def _sheet_metadata(sheet_id, return_id=False):
+        from sefaria.sheets import get_sheet_metadata
+        metadata = get_sheet_metadata(sheet_id)
+        d = {
+            "sheet_title": bleach.clean(metadata["title"], strip=True, tags=()).strip(),
+            "sheet_summary": bleach.clean(metadata["summary"], strip=True, tags=()).strip() if "summary" in metadata else ""
+        }
+        if return_id:
+            d["sheet_id"] = sheet_id
+        return d
 
     def contents(self, **kwargs):
         c = super(Story, self).contents(**kwargs)
@@ -42,10 +54,9 @@ class Story(abst.AbstractMongoRecord):
             d["publisher_url"] = udata["profileUrl"]
             d["publisher_image"] = udata["imageUrl"]
         if "sheet_id" in d:
-            from sefaria.sheets import get_sheet_metadata
-            metadata = get_sheet_metadata(d["sheet_id"])
-            d["sheet_title"] = bleach.clean(metadata["title"], strip=True, tags=()).strip()
-            d["sheet_summary"] = bleach.clean(metadata["summary"], strip=True, tags=()).strip()
+            d.update(self._sheet_metadata(d["sheet_id"]))
+        if "sheet_ids" in d:
+            d["sheets"] = [self._sheet_metadata(i, return_id=True) for i in d["sheet_ids"]]
         if "author_key" in d:
             p = person.Person().load({"key": d["author_key"]})
             d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
@@ -83,8 +94,11 @@ Other story forms:
     "publishSheet"
         "publisher_id"
         "publisher_name" (derived)
+        "publisher_url" (derived)
+        "publisher_image" (derived)
         "sheet_id"
         "sheet_title" (derived) 
+        "sheet_summary" (derived)
     "author"
         "author_key"
         "example_work"
@@ -94,6 +108,16 @@ Other story forms:
         "author_bios" (derived)
             "en"
             "he"
+    "userSheets"
+        "publisher_id"
+        "publisher_name" (derived)
+        "publisher_url" (derived)
+        "publisher_image" (derived)
+        "sheet_ids"
+        "sheets" (derived)
+            [{"sheet_id"
+              "sheet_title" 
+              "sheet_summary"}, {...}]
     "textPassage"            
          "ref"  
          "index"  (derived)
@@ -247,6 +271,11 @@ class UserStorySet(abst.AbstractMongoSet):
         return self
 
 
+'''
+###   Story Factories ###
+'''
+
+
 class AbstractStoryFactory(object):
     # Implemented at concrete level
     # Returns a dictionary with the story attributes
@@ -345,7 +374,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     @classmethod
     def generate_from_user_history(cls, hist, **kwargs):
         assert isinstance(hist, user_profile.UserHistory)
-        return self._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, **kwargs)
+        return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, **kwargs)
 
 
 class AuthorStoryFactory(AbstractStoryFactory):
@@ -392,7 +421,36 @@ class AuthorStoryFactory(AbstractStoryFactory):
         return True
 
 
-class RandomTopicFactory(AbstractStoryFactory):
+class UserSheetsFactory(AbstractStoryFactory):
+    """
+    "userSheets"
+        "user_id"
+        "sheet_ids"
+        "sheets" (derived)
+    """
+    @classmethod
+    def _data_object(cls, **kwargs):
+        author_uid = kwargs.get("author_uid")
+        sheets = db.sheets.find({"owner": int(author_uid)}, {"id": 1}).sort([["views", -1]]).limit(4)
+        sheet_ids = [s["id"] for s in sheets]
+        return {"publisher_id": author_uid, "sheet_ids": sheet_ids}
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "userSheets"
+
+    @classmethod
+    def create_global_story(cls, author_uid, **kwargs):
+        story = cls._generate_global_story(author_uid=author_uid)
+        story.save()
+
+    @classmethod
+    def create_user_story(cls, uid, author_uid, **kwargs):
+        story = cls._generate_user_story(uid=uid, author_uid=author_uid)
+        story.save()
+
+
+class TopicFactory(AbstractStoryFactory):
     """
     cb = request.GET.get("callback", None)
     topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())

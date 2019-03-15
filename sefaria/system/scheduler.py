@@ -7,7 +7,7 @@ from pytz import utc
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 from sefaria.system.database import client
-from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, RandomTopicFactory
+from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, TopicFactory
 
 jobstores = {'default': MongoDBJobStore(client=client)}
 scheduler = BlockingScheduler(jobstores=jobstores, timezone=utc)

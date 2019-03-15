@@ -5882,20 +5882,34 @@ span.purim-emoji img{
   padding: 20px 0;
   border-top: 4px solid transparent;
 }
+.interface-english .storyFeed .story .storyTitle {
+  clear: left;
+}
+.interface-hebrew .storyFeed .story .storyTitle {
+  clear: right;
+}
 .storyFeed .story .storyTitle {
-  clear: both;
   padding: 10px 0;
+}
+.storyFeed .story img.storyProfileImage {
+    height: 64px;
+    width: 64px;
+    margin: 0;
+    border-radius: 32px;
 }
 .interface-english .storyFeed .story .storyTypeBlock {
   float: left;
+  padding: 10px 0;
 }
 .interface-hebrew .storyFeed .story .storyTypeBlock {
   float: right;
 }
-.interface-english .storyFeed .story .timeBlock {
+.interface-english .storyFeed .story .timeBlock,
+.interface-english .storyFeed .story .storyProfileImage {
   float: right;
 }
-.interface-hebrew .storyFeed .story .timeBlock {
+.interface-hebrew .storyFeed .story .timeBlock,
+.interface-hebrew .storyFeed .story .storyProfileImage {
   float: left;
 }
 .storyFeed .story .storyBody {
@@ -5903,6 +5917,24 @@ span.purim-emoji img{
   padding: 10px 0;
   text-align: justify;
 }
+.storyFeed .story .storySheetList {
+
+}
+.storyFeed .story .storySheetListItem {
+  display: flex;
+  padding-top: 20px;
+}
+.storyFeed .story .storySheetListItem + .storySheetListItem {
+  padding-top: 32px;
+}
+
+.storyFeed .story .storySheetListItem .storySheetListItemTitle {
+  width: 100%;
+}
+.storyFeed .story .storySheetListItem .saveButton {
+  align-self: flex-end;
+}
+
 .storyFeed .story .bottomLine {
   display: flex;
 }
@@ -5921,6 +5953,7 @@ span.purim-emoji img{
   padding: 10px 0 0;
   margin: 0;
 }
+
 .storyFeed .story .storyByLine img {
     height: 40px;
     width: 40px;
