@@ -505,19 +505,20 @@ class UserSheetsStory extends AbstractStory {
           :"";
       return (
         <div className="story" style={cardStyle}>
-
-            <img className="storyProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storyTypeBlock sectionTitleText">
                 <span className="int-en">People</span>
                 <span className="int-he">קהילה</span>
             </div>
-            <div className="storyTitle pageTitle">
-                <a href={this.props.data.publisher_url}>
-                    <span className="int-en">{this.props.data.publisher_name}</span>
-                    <span className="int-he">{this.props.data.publisher_name}</span>
-                </a>
+            <div className="storyTitleBlock">
+                <div className="storyTitle pageTitle">
+                    <a href={this.props.data.publisher_url}>
+                        <span className="int-en">{this.props.data.publisher_name}</span>
+                        <span className="int-he">{this.props.data.publisher_name}</span>
+                    </a>
+                </div>
+                {positionBlock}
             </div>
-            {positionBlock}
+            <img className="storyProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storySheetList">
                 {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
                     <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>

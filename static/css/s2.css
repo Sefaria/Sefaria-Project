@@ -5882,11 +5882,14 @@ span.purim-emoji img{
   padding: 20px 0;
   border-top: 4px solid transparent;
 }
-.interface-english .storyFeed .story .storyTitle {
-  clear: left;
+.interface-english .storyFeed .story .storyTitleBlock {
+  clear: both;
 }
-.interface-hebrew .storyFeed .story .storyTitle {
-  clear: right;
+.interface-english .storyFeed .story .storyTitleBlock {
+  float: left;
+}
+.interface-hebrew .storyFeed .story .storyTitleBlock {
+  float: right;
 }
 .storyFeed .story .storyTitle {
   padding: 10px 0;
@@ -5922,7 +5925,7 @@ span.purim-emoji img{
   text-align: justify;
 }
 .storyFeed .story .storySheetList {
-
+  clear: both;
 }
 .storyFeed .story .storySheetListItem {
   display: flex;
