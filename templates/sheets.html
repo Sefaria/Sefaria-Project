@@ -662,10 +662,10 @@
         <div class="metadataOpenDetails">
             <div>
                 <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views
-                {% endif %}</span> · {% if can_edit %}<span
+                {% endif %}</span>{% if can_edit %} · <span
                         class="editButton">Edit</span>{% endif %}</span>
                 <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{% if sheet.views == 1%}צפייה אחת{% else %}{{ sheet.views }}
-                צפיות{% endif %}</span> · {% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
+                צפיות{% endif %}</span>{% if can_edit %} · <span class="editButton">עריכה</span>{% endif %}</span>
             </div>
             {% if sheet.via %}
             <div id="via">
