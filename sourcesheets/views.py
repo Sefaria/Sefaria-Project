@@ -595,7 +595,9 @@ def save_sheet_api(request):
 		sheet["sources"] = cleaned_sources
 
 		sheet["title"] = bleach_text(sheet["title"])
-		sheet["summary"] = bleach_text(sheet["summary"])
+
+		if "summary" in sheet:
+			sheet["summary"] = bleach_text(sheet["summary"])
 
 		if sheet.get("group", None):
 			# Quietly enforce group permissions
