@@ -5879,10 +5879,11 @@ span.purim-emoji img{
 
 .largeFollowButton {
   display: inline-block;
-  padding: 10px;
+  padding: 7px;
   height: 16px;
   width: 59px;
   text-align: center;
+  cursor: pointer;
   background: #18345d;
   color: #fff;
   border-radius: 8px;
@@ -5891,16 +5892,30 @@ span.purim-emoji img{
 }
 .largeFollowButton.following {
   background: #fff;
+}
+.largeFollowButton.following span {
   color: #666;
 }
 
 .smallFollowButton {
-  display: block;
-  height: 20px;
+  height: 18px;
+  width: 68px;
+  padding: 1px;
+  text-align: center;
+  cursor: pointer;
   background: #fff;
-  color: #444;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 4px;
+  margin-left: 15px;
+  display: none;
+}
+
+.smallFollowButton.smallText span {
+  color: #444;
+}
+
+.storyByLine:hover .smallFollowButton {
+  display: inline-block;
 }
 
 .storyFeed .story {
@@ -5973,6 +5988,7 @@ span.purim-emoji img{
 
 .storyFeed .story .bottomLine {
   display: flex;
+  clear: both;
 }
 .storyFeed .story .bottomLine .saveButton {
   align-self: flex-end;
@@ -5985,8 +6001,8 @@ span.purim-emoji img{
 
 .storyFeed .story .bottomLine .storyByLine,
 .storyFeed .story .bottomLine .learnMoreLink {
-  width: 100%;
-  padding: 10px 0 0;
+  /* width: 100%; */
+  padding: 10px 15px 0 0;
   margin: 0;
 }
 
@@ -5995,12 +6011,16 @@ span.purim-emoji img{
     width: 40px;
     margin: 0;
     border-radius: 20px;
+    /* float: left; */
 }
-.storyFeed .story .storyByLine span {
-  position: relative;
-  bottom: 12px;
-  left: 5px;
+.storyFeed .story .storyByLine .authorText {
+  display: inline-block;
 }
+.storyFeed .story .storyByLine .authorPosition,
+.storyFeed .story .storyByLine .authorName {
+  display: block;
+}
+
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;

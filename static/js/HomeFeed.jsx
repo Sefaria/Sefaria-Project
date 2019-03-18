@@ -555,9 +555,17 @@ class PublishSheetStory extends AbstractStory {
       sheet_summary
     }
    */
+
   render() {
       const cardStyle = {"borderColor": "#18345D"};
       const sheet = this.amendSheetObject(this.props.data);  // Bit messy.
+      const hasPosition = !!this.props.data.publisher_position;
+      const positionBlock = hasPosition ?
+            <div className="systemText authorPosition">
+                <span className="int-en">{this.props.data.publisher_position}</span>
+                <span className="int-he">{this.props.data.publisher_position}</span>
+            </div>
+          :"";
 
       return (
         <div className="story" style={cardStyle}>
@@ -573,6 +581,11 @@ class PublishSheetStory extends AbstractStory {
                         <span className="int-he">{sheet.sheet_title}</span>
                     </a>
                 </div>
+                <SaveButton
+                    historyObject={sheet.history_object}
+                    tooltip={true}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                />
             </div>
             {sheet.sheet_summary?
                 <div className="storyBody contentText">
@@ -580,18 +593,21 @@ class PublishSheetStory extends AbstractStory {
                     <span className="int-he">{sheet.sheet_summary}</span>
                 </div>:""}
             <div className="bottomLine">
-                <div className="storyByLine systemText">
+                <div className="storyByLine">
                     <a href={this.props.data.publisher_url}>
                         <img src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
-                        <span className="int-en">by {this.props.data.publisher_name}</span>
-                        <span className="int-he">{this.props.data.publisher_name}מאת </span>
                     </a>
+                    <div className="authorText">
+                        <div className="authorName">
+                            <a className="systemText" href={this.props.data.publisher_url}>
+                                <span className="int-en">by {this.props.data.publisher_name}</span>
+                                <span className="int-he">{this.props.data.publisher_name}מאת </span>
+                            </a>
+                            <FollowButton large={false} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
+                        </div>
+                        {positionBlock}
+                    </div>
                 </div>
-                <SaveButton
-                    historyObject={sheet.history_object}
-                    tooltip={true}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                />
             </div>
         </div>
       );

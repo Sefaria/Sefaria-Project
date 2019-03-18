@@ -497,6 +497,7 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+
 class FollowButton extends Component {
   constructor(props) {
     super(props);
@@ -537,14 +538,15 @@ class FollowButton extends Component {
       smallFollowButton: !this.props.large,
       following: this.state.following,
       hovering: this.state.hovering,
+      smallText: true,
     });
     const en_text = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
     const he_text = this.state.following ? this.state.hovering ? "הפסק לעקוב":"עוקב":"עקוב";
     return <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
-            <span className="int-en smallText">
+            <span className="int-en">
                 {en_text}
             </span>
-            <span className="int-he smallText">
+            <span className="int-he">
                 {he_text}
             </span>
           </div>
