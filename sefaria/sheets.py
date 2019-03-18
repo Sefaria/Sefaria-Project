@@ -58,7 +58,7 @@ def get_sheet(id=None):
 
 def get_sheet_metadata(id = None):
 	assert id
-	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "summary": 1, "ownerImageUrl": 1})
+	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
 	return s
 
 

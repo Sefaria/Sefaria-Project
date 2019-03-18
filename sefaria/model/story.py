@@ -30,10 +30,25 @@ class Story(abst.AbstractMongoRecord):
 
         d = {
             "sheet_title": strip_tags(metadata["title"]),
-            "sheet_summary": strip_tags(metadata["summary"]) if "summary" in metadata else ""
+            "sheet_summary": strip_tags(metadata["summary"]) if "summary" in metadata else "",
+            "publisher_id": metadata["owner"]
         }
         if return_id:
             d["sheet_id"] = sheet_id
+        return d
+
+    @staticmethod
+    def _publisher_metadata(publisher_id, return_id=False):
+        udata = user_profile.public_user_data(publisher_id)
+        d = {
+            "publisher_name": udata["name"],
+            "publisher_url": udata["profileUrl"],
+            "publisher_image": udata["imageUrl"],
+            "publisher_position": udata["position"],
+        }
+        if return_id:
+            d["publisher_id"] = publisher_id
+
         return d
 
     def contents(self, **kwargs):
@@ -52,15 +67,14 @@ class Story(abst.AbstractMongoRecord):
                 "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).as_sized_string()
             }
         if "publisher_id" in d:
-            udata = user_profile.public_user_data(d["publisher_id"])
-            d["publisher_name"] = udata["name"]
-            d["publisher_url"] = udata["profileUrl"]
-            d["publisher_image"] = udata["imageUrl"]
-            d["publisher_position"] = udata["position"]
+            d.update(self._publisher_metadata(d["publisher_id"]))
         if "sheet_id" in d:
             d.update(self._sheet_metadata(d["sheet_id"]))
         if "sheet_ids" in d:
             d["sheets"] = [self._sheet_metadata(i, return_id=True) for i in d["sheet_ids"]]
+            if "publisher_id" not in d:
+                for sheet_dict in d["sheets"]:
+                    sheet_dict.update(self._publisher_metadata(sheet_dict["publisher_id"]))
         if "author_key" in d:
             p = person.Person().load({"key": d["author_key"]})
             d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
@@ -125,7 +139,25 @@ Other story forms:
         "sheets" (derived)
             [{"sheet_id"
               "sheet_title" 
-              "sheet_summary"}, {...}]
+              "sheet_summary"}, {...}]  
+
+    "sheetList"
+        "titles"
+            "he"
+            "en"
+        "sheet_ids"
+        "sheets" (derived)    
+            [{"sheet_id"
+              "sheet_title" 
+              "sheet_summary"}, 
+              "publisher_id"
+              "publisher_name" (derived)
+              "publisher_url" (derived)
+              "publisher_image" (derived)
+              "publisher_position" (derived)
+              "publisher_followed" (derived)
+            },
+            {...}]
     "textPassage"            
          "ref"  
          "index"  (derived)
@@ -242,8 +274,13 @@ class UserStory(Story):
             del c["global_story_id"]
 
         d = c.get("data")
-        if kwargs.get("followees") and d and "publisher_id" in d:
-            d["publisher_followed"] = d["publisher_id"] in kwargs.get("followees")
+        followees = kwargs.get("followees")
+        if followees and d:
+            if "publisher_id" in d:
+                d["publisher_followed"] = d["publisher_id"] in followees
+            elif "sheets" in d:
+                for sheet in d["sheets"]:
+                    sheet["publisher_followed"] = sheet["publisher_id"] in followees
 
         return c
 
@@ -466,12 +503,42 @@ class UserSheetsFactory(AbstractStoryFactory):
 
     @classmethod
     def create_global_story(cls, author_uid, **kwargs):
-        story = cls._generate_global_story(author_uid=author_uid)
+        story = cls._generate_global_story(author_uid=author_uid, **kwargs)
         story.save()
 
     @classmethod
     def create_user_story(cls, uid, author_uid, **kwargs):
-        story = cls._generate_user_story(uid=uid, author_uid=author_uid)
+        story = cls._generate_user_story(uid=uid, author_uid=author_uid, **kwargs)
+        story.save()
+
+
+class SheetListFactory(AbstractStoryFactory):
+    """
+    "sheetList"
+        "titles"
+        "sheet_ids"
+        "sheets" (derived)
+    """
+    @classmethod
+    def _data_object(cls, **kwargs):
+        return {
+            "sheet_ids": kwargs.get("sheet_ids"),
+            "titles": {"en": "Recommended for You" ,
+                       "he":  u"מומלץ"}
+        }
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "sheetList"
+
+    @classmethod
+    def create_global_story(cls, sheet_ids, **kwargs):
+        story = cls._generate_global_story(sheet_ids=sheet_ids, **kwargs)
+        story.save()
+
+    @classmethod
+    def create_user_story(cls, uid, sheet_ids, **kwargs):
+        story = cls._generate_user_story(uid=uid, sheet_ids=sheet_ids, **kwargs)
         story.save()
 
 
