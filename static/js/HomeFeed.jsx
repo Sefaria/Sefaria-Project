@@ -349,6 +349,54 @@ class AbstractStory extends Component {
         </div>
       );
   }
+  storyTypeBlock(en, he) {
+      return (
+        <div className="storyTypeBlock sectionTitleText">
+            <span className="int-en">{en}</span>
+            <span className="int-he">{he}</span>
+        </div>
+      );
+  }
+  storyTitleBlock(en, he, url) {
+      if (url)  {
+          return (
+                <div className="storyTitleBlock">
+                    <div className="storyTitle pageTitle">
+                        <a href={url}>
+                            <span className="int-en">{en}</span>
+                            <span className="int-he">{he}</span>
+                        </a>
+                    </div>
+                </div>
+          );
+      } else {
+          return (
+                <div className="storyTitleBlock">
+                    <div className="storyTitle pageTitle">
+                        <span className="int-en">{en}</span>
+                        <span className="int-he">{he}</span>
+                    </div>
+                </div>
+          );
+      }
+  }
+  storyBodyBlock(en, he, dangerously) {
+      if (dangerously) {
+        return (
+            <div className="storyBody contentText">
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
+            </div>
+        );
+      } else {
+          return (
+            <div className="storyBody contentText">
+              <span className="int-en">{en}</span>
+              <span className="int-he">{he}</span>
+            </div>
+          );
+      }
+  }
   render() {}
 }
 AbstractStory.propTypes = {
@@ -365,16 +413,9 @@ class NewContentStory extends AbstractStory {
 
       return (
         <div className="story" style={cardStyle}>
-            <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">New Content</span>
-                <span className="int-he">תוכן חדש</span>
-            </div>
+            {this.storyTypeBlock("New Content", "תוכן חדש")}
             {this.naturalTimeBlock()}
-
-            <div className="storyBody contentText">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
-            </div>
+            {this.storyBodyBlock(this.props.data.en, this.props.data.he, true)}
         </div>);
     }
 }
@@ -388,23 +429,15 @@ class NewIndexStory extends AbstractStory {
 
       return (
         <div className="story" style={cardStyle}>
-            <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">New Text</span>
-                <span className="int-he">טקסט חדש</span>
-            </div>
+            {this.storyTypeBlock("New Text", "טקסט חדש")}
             {this.naturalTimeBlock()}
-            <div className="storyTitle pageTitle">
-                <span className="int-en">{title}</span>
-                <span className="int-he">{heTitle}</span>
-            </div>
-            <div className="storyBody contentText">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
-            </div>
+            {this.storyTitleBlock(title, heTitle, url)}
+            {this.storyBodyBlock(this.props.data.en, this.props.data.he, true)}
         </div>);
     }
 }
 
+// Todo: merge the class above and below.  They're nearly identical.
 class NewVersionStory extends AbstractStory {
     render() {
       const title = this.props.data.index;
@@ -420,19 +453,10 @@ class NewVersionStory extends AbstractStory {
       */
       return (
         <div className="story" style={cardStyle}>
-            <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">New Version</span>
-                <span className="int-he">גרסה חדשה</span>
-            </div>
+            {this.storyTypeBlock("New Version", "גרסה חדשה")}
             {this.naturalTimeBlock()}
-            <div className="storyTitle pageTitle">
-                <span className="int-en">{title}</span>
-                <span className="int-he">{heTitle}</span>
-            </div>
-            <div className="storyBody contentText">
-                <span className="int-en" dangerouslySetInnerHTML={ {__html: this.props.data.en } } />
-                <span className="int-he" dangerouslySetInnerHTML={ {__html: this.props.data.he } } />
-            </div>
+            {this.storyTitleBlock(title, heTitle, url)}
+            {this.storyBodyBlock(this.props.data.en, this.props.data.he, true)}
         </div>);
     }
 }
@@ -458,23 +482,11 @@ class AuthorStory extends AbstractStory {
 
         return (
         <div className="story" style={cardStyle}>
-            <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">Author</span>
-                <span className="int-he">מחבר</span>
-            </div>
+            {this.storyTypeBlock("Author", "מחבר")}
             {this.naturalTimeBlock()}
-            <div className="storyTitleBlock">
-                <div className="storyTitle pageTitle">
-                    <a href={url}>
-                        <span className="int-en">{this.props.data.author_names.en}</span>
-                        <span className="int-he">{this.props.data.author_names.he}</span>
-                    </a>
-                </div>
-            </div>
-            <div className="storyBody contentText">
-                <span className="int-en">{this.props.data.author_bios.en}</span>
-                <span className="int-he">{this.props.data.author_bios.he}</span>
-            </div>
+            {this.storyTitleBlock(this.props.data.author_names.en, this.props.data.author_names.he, url)}
+            {this.storyBodyBlock(this.props.data.author_bios.en, this.props.data.author_bios.he)}
+
             <div className="bottomLine">
                 {this.readMoreLink(url)}
             </div>
@@ -502,17 +514,14 @@ class UserSheetsStory extends AbstractStory {
 
       this.props.data.sheets.forEach(this.amendSheetObject);
       const positionBlock = (this.props.data.publisher_position) ?
-            <div className="storySubTitle systemText">
+           <div className="storySubTitle systemText">
                 <span className="int-en">{this.props.data.publisher_position}</span>
                 <span className="int-he">{this.props.data.publisher_position}</span>
             </div>
           :"";
       return (
         <div className="story" style={cardStyle}>
-            <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">People</span>
-                <span className="int-he">קהילה</span>
-            </div>
+            {this.storyTypeBlock("People", "קהילה")}
             <div className="storyTitleBlock">
                 <div className="storyTitle pageTitle">
                     <a href={this.props.data.publisher_url}>
@@ -523,7 +532,7 @@ class UserSheetsStory extends AbstractStory {
                 {positionBlock}
                 <FollowButton large={true} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
             </div>
-            <img className="storyProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
+            <img className="mediumProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storySheetList">
                 {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
                     <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
@@ -542,6 +551,63 @@ class UserSheetsStory extends AbstractStory {
       );
   }
 }
+
+class SheetListStory extends AbstractStory {
+/*
+        "sheet_ids"
+        "sheets" (derived)
+            [{"sheet_id"
+              "sheet_title"
+              "sheet_summary"},
+              "publisher_id"
+              "publisher_name" (derived)
+              "publisher_url" (derived)
+              "publisher_image" (derived)
+              "publisher_position" (derived)
+              "publisher_followed" (derived)
+            },
+            {...}]
+ */
+    render() {
+      const cardStyle = {"borderColor": "#18345D"};
+      this.props.data.sheets.forEach(this.amendSheetObject);
+
+      return (
+        <div className="story" style={cardStyle}>
+            {this.storyTypeBlock("Sheets", "דפים")}
+            {this.storyTitleBlock(this.props.data.titles.en, this.props.data.titles.he)}
+
+            <div className="storySheetList">
+                {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
+                    <a href={sheet.publisher_url}>
+                        <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
+                    </a>
+                    <div className="authorText">
+                        <div className="authorName">
+                            <a className="systemText" href={sheet.publisher_url}>
+                                <span className="int-en">{sheet.publisher_name}</span>
+                                <span className="int-he">{sheet.publisher_name}</span>
+                            </a>
+                            <FollowButton large={false} uid={sheet.publisher_id} following={sheet.publisher_followed}/>
+                        </div>
+                        <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
+                            <span className="int-en">{sheet.sheet_title}</span>
+                            <span className="int-he">{sheet.sheet_title}</span>
+                        </a>
+                    </div>
+                    <SaveButton
+                        historyObject={sheet.history_object}
+                        tooltip={true}
+                        toggleSignUpModal={this.props.toggleSignUpModal}
+                    />
+                </div>)}
+            </div>
+        </div>
+      );
+    }
+}
+
+
 class PublishSheetStory extends AbstractStory {
   /* props.data: {
       publisher_id
@@ -569,10 +635,7 @@ class PublishSheetStory extends AbstractStory {
 
       return (
         <div className="story" style={cardStyle}>
-            <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">New Sheet</span>
-                <span className="int-he">דף מקורות חדש</span>
-            </div>
+            {this.storyTypeBlock("New Sheet", "דף מקורות חדש")}
             {this.naturalTimeBlock()}
             <div className="storyTitleBlock">
                 <div className="storyTitle pageTitle">
@@ -587,15 +650,12 @@ class PublishSheetStory extends AbstractStory {
                     toggleSignUpModal={this.props.toggleSignUpModal}
                 />
             </div>
-            {sheet.sheet_summary?
-                <div className="storyBody contentText">
-                    <span className="int-en">{sheet.sheet_summary}</span>
-                    <span className="int-he">{sheet.sheet_summary}</span>
-                </div>:""}
+            {sheet.sheet_summary?this.storyBodyBlock(sheet.sheet_summary, sheet.sheet_summary):""}
+
             <div className="bottomLine">
                 <div className="storyByLine">
                     <a href={this.props.data.publisher_url}>
-                        <img src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
+                        <img className="smallProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
                     </a>
                     <div className="authorText">
                         <div className="authorName">
@@ -644,23 +704,11 @@ class TextPassageStory extends AbstractStory {
 
       return (
         <div className="story" style={cardStyle}>
-            <div className="storyTypeBlock sectionTitleText">
-                <span className="int-en">{this.props.data.lead_titles.en}</span>
-                <span className="int-he">{this.props.data.lead_titles.he}</span>
-            </div>
+            {this.storyTypeBlock(this.props.data.lead_titles.en, this.props.data.lead_titles.he)}
             {this.naturalTimeBlock()}
-            <div className="storyTitleBlock">
-                <div className="storyTitle pageTitle">
-                    <a href={"/sheets/" + this.props.data.sheet_id}>
-                        <span className="int-en">{this.props.data.titles.en}</span>
-                        <span className="int-he">{this.props.data.titles.he}</span>
-                    </a>
-                </div>
-            </div>
-            <div className="storyBody contentText">
-                <span className="en" dangerouslySetInnerHTML={ {__html: this.props.data.text.en + " "} }/>
-                <span className="he" dangerouslySetInnerHTML={ {__html: this.props.data.text.he + " "} }/>
-            </div>
+            {this.storyTitleBlock(this.props.data.titles.en, this.props.data.titles.he, url)}
+            {this.storyBodyBlock(this.props.data.text.en + " ", this.props.data.text.he + " ", true)}
+
             <div className="bottomLine">
                 {this.readMoreLink(url)}
                 <SaveButton
@@ -674,11 +722,14 @@ class TextPassageStory extends AbstractStory {
     }
 }
 
-class TopicStory extends AbstractStory {}
+class TopicStory extends AbstractStory {
 
-class SheetListStory extends AbstractStory {}
+}
 
-class TopicListStory extends AbstractStory {}
+
+class TopicListStory extends AbstractStory {
+
+}
 
 
 
