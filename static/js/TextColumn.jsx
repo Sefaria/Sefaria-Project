@@ -288,6 +288,7 @@ class TextColumn extends Component {
         sref={ref}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
+        textHighlights={this.props.textHighlights}
         hideTitle={isDictionary}
         basetext={true}
         withContext={true}
@@ -361,7 +362,8 @@ TextColumn.propTypes = {
   onTextLoad:             PropTypes.func,
   panelsOpen:             PropTypes.number,
   hasSidebar:             PropTypes.bool,
-  layoutWidth:            PropTypes.number
+  layoutWidth:            PropTypes.number,
+  textHighlights:         PropTypes.array,
 };
 
 

@@ -650,6 +650,7 @@ class ReaderPanel extends Component {
           panelsOpen={this.props.panelsOpen}
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
+          textHighlights={this.state.textHighlights}
           key={title + "-TextColumn"} />);
     }
 

@@ -841,6 +841,7 @@ class ReaderApp extends Component {
       mySheetSort:             state.mySheetSort             || "date",
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
+      textHighlights:          state.textHighlights          || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1274,12 +1275,13 @@ class ReaderApp extends Component {
   }
   openPanel(ref, currVersions, options) {
     // Opens a text panel, replacing all panels currently open.
-    //todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-
+    // options can contain {
+    //  'textHighlights': array of strings to highlight in focused segment. used when clicking on search query result
+    // }
     this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
-    this.openPanelAt(0, ref, currVersions);
+    this.openPanelAt(0, ref, currVersions, options);
   }
-  async openPanelAt(n, ref, currVersions) {
+  async openPanelAt(n, ref, currVersions, options) {
     // Open a new panel after `n` with the new ref
 
     // If book level, Open book toc
@@ -1306,7 +1308,7 @@ class ReaderApp extends Component {
         var highlightedRefs = [];
       }
       //console.log("Higlighted refs:", highlightedRefs)
-      panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text"});
+      panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text", ...options });
     }
 
     var newPanels = this.state.panels.slice();

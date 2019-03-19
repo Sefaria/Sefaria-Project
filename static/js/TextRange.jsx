@@ -296,7 +296,8 @@ class TextRange extends Component {
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
-                            this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
+                            this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
+      const textHighlights = highlight && !!this.props.textHighlights ? this.props.textHighlights : null;
       var parashahHeader = null;
         if (this.props.showParashahHeaders) {
         var parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
@@ -313,16 +314,17 @@ class TextRange extends Component {
         }
       }
       segment.he = strip_text_re ? segment.he.replace(strip_text_re, "") : segment.he;
-      return (<span key={i + segment.ref}>
-                { parashahHeader }
-                <TextSegment
-
+      return (
+        <span key={i + segment.ref}>
+          { parashahHeader }
+          <TextSegment
             sref={segment.ref}
             enLangCode={this.props.currVersions.en && /.+\[([a-z][a-z])\]$/g.test(this.props.currVersions.en) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.en)[1] : 'en'}
             heLangCode={this.props.currVersions.he && /.+\[([a-z][a-z])\]$/g.test(this.props.currVersions.he) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.he)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
+            textHighlights={textHighlights}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
             linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
@@ -330,8 +332,9 @@ class TextRange extends Component {
             panelPosition={this.props.panelPosition}
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
-            onFootnoteClick={this.onFootnoteClick}/>
-            </span>
+            onFootnoteClick={this.onFootnoteClick}
+          />
+        </span>
       );
     }.bind(this));
     textSegments = textSegments.length ? textSegments : null;
@@ -447,6 +450,7 @@ TextRange.propTypes = {
   layoutWidth:            PropTypes.number,
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
+  textHighlights:         PropTypes.array,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -510,6 +514,14 @@ class TextSegment extends Component {
     });
     return $newElement.html();
   }
+  addHighlights(text) {
+    if (!!this.props.textHighlights) {
+      const reg = new RegExp(`(${this.props.textHighlights.join("|")})`, 'g');
+      console.log("REg", reg, this.props.sref);
+      return text.replace(reg, '<b>$1</b>');
+    }
+    return text;
+  }
   render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
@@ -533,9 +545,11 @@ class TextSegment extends Component {
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      he = this.formatItag("he", he)
-      en = this.formatItag("en", en)
+      he = this.formatItag("he", he);
+      en = this.formatItag("en", en);
     }
+    he = this.addHighlights(he);
+    en = this.addHighlights(en);
 
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
@@ -560,6 +574,7 @@ TextSegment.propTypes = {
   en:              PropTypes.string,
   he:              PropTypes.string,
   highlight:       PropTypes.bool,
+  textHighlights:  PropTypes.array,
   segmentNumber:   PropTypes.number,
   showLinkCount:   PropTypes.bool,
   linkCount:       PropTypes.number,
