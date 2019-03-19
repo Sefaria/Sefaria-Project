@@ -5899,8 +5899,8 @@ span.purim-emoji img{
 
 .smallFollowButton {
   height: 18px;
+  line-height: 18px;
   width: 68px;
-  padding: 1px;
   text-align: center;
   cursor: pointer;
   background: #fff;
@@ -5908,13 +5908,15 @@ span.purim-emoji img{
   border-radius: 4px;
   margin-left: 15px;
   display: none;
+  letter-spacing: normal;
 }
 
 .smallFollowButton.smallText span {
   color: #666;
 }
 
-.storyByLine:hover .smallFollowButton {
+.storyByLine:hover .smallFollowButton,
+.authorName:hover .smallFollowButton {
   display: inline-block;
 }
 
@@ -5979,10 +5981,10 @@ span.purim-emoji img{
 }
 .storyFeed .story .storySheetListItem {
   display: flex;
-  padding-top: 32px;
+  padding-top: 26px;
 }
 .storyFeed .story .storySheetListItem + .storySheetListItem {
-  padding-top: 20px;
+  padding-top: 24px;
 }
 
 .storyFeed .story .storySheetListItem .storySheetListItemTitle {
@@ -6011,14 +6013,19 @@ span.purim-emoji img{
   margin: 0;
 }
 
-.storyFeed .story .storyByLine .authorText {
+.storyFeed .story .authorText {
   display: inline-block;
   padding: 0 10px;
-  line-height: 20px;
+  line-height: 22px;
+  width: 100%;
+  letter-spacing: 2px;
 }
 .storyFeed .story .storyByLine .authorPosition,
 .storyFeed .story .storyByLine .authorName {
   display: block;
+}
+.storySheetListItem .authorName span {
+  color: #999;
 }
 .systemText.authorPosition span {
   color: #999;
