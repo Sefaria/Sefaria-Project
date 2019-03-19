@@ -1820,6 +1820,7 @@ Sefaria = extend(Sefaria, {
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
+      "Source Sheets": "דפי מקורות", 
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",

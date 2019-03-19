@@ -36,8 +36,8 @@ class SheetsNav extends Component {
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   }
   render() {
-    var enTitle = this.props.tag || "Source Sheets";
-    var heTitle = this.props.tag || "דפי מקורות";
+    var enTitle = this.props.tag ? (this.props.tag == "sefaria-groups" ? null : this.props.tag) : "Source Sheets";
+    var heTitle = Sefaria.hebrewTerm(enTitle);
 
     if (this.props.tag == "My Sheets") {
       var content = (<MySheetsPage
@@ -89,11 +89,11 @@ class SheetsNav extends Component {
                  (<div className="readerNavTop searchOnly" key="navTop">
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-                    <div className="readerOptions"></div>
                     <h2>
                       <span className="int-en">{enTitle}</span>
                       <span className="int-he">{heTitle}</span>
                     </h2>
+                    <div className="readerOptions"></div>
                   </div>)}
               {content}
             </div>);
