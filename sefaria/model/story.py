@@ -142,14 +142,20 @@ Other story forms:
               "sheet_summary"}, {...}]  
 
     "sheetList"
-        "titles"
+        "lead_title" : {
             "he"
             "en"
+        }
+        "title" : {
+            "he"
+            "en"
+        }
+        "group_image" (optional)
         "sheet_ids"
-        "sheets" (derived)    
+        "sheets" (derived)
             [{"sheet_id"
-              "sheet_title" 
-              "sheet_summary"}, 
+              "sheet_title"
+              "sheet_summary"},
               "publisher_id"
               "publisher_name" (derived)
               "publisher_url" (derived)
@@ -158,6 +164,27 @@ Other story forms:
               "publisher_followed" (derived)
             },
             {...}]
+    "groupSheetList"
+        "title" : {
+            "he"
+            "en"
+        }
+        "group_image"
+        "group_url"
+        "sheet_ids"
+        "sheets" (derived)
+            [{"sheet_id"
+              "sheet_title"
+              "sheet_summary"},
+              "publisher_id"
+              "publisher_name" (derived)
+              "publisher_url" (derived)
+              "publisher_image" (derived)
+              "publisher_position" (derived)
+              "publisher_followed" (derived)
+            },
+            {...}]
+
     "textPassage"            
          "ref"  
          "index"  (derived)
@@ -512,24 +539,117 @@ class UserSheetsFactory(AbstractStoryFactory):
         story.save()
 
 
-class SheetListFactory(AbstractStoryFactory):
+class GroupSheetListFactory(AbstractStoryFactory):
     """
-    "sheetList"
-        "titles"
+        "title" : {
+            "he"
+            "en"
+        }
+        "group_image"
+        "group_url"
+        "group_name"
         "sheet_ids"
         "sheets" (derived)
+            [{"sheet_id"
+              "sheet_title"
+              "sheet_summary"},
+              "publisher_id"
+              "publisher_name" (derived)
+              "publisher_url" (derived)
+              "publisher_image" (derived)
+              "publisher_position" (derived)
+              "publisher_followed" (derived)
+            },
+            {...}]
+
     """
     @classmethod
     def _data_object(cls, **kwargs):
+        from sefaria.model.group import Group
+        sheet_ids = kwargs.get("sheet_ids")
+        g = Group().load({"name": kwargs.get("group_name")})
+        assert g
+        return {
+            "sheet_ids": sheet_ids,
+            "group_image": getattr(g, "imageUrl", ""),
+            "group_url": g.url,
+            "title": {"en": g.name, "he": g.name}
+        }
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "groupSheetList"
+
+    @classmethod
+    def create_global_story(cls, group_name, sheet_ids, **kwargs):
+        story = cls._generate_global_story(group_name=group_name, sheet_ids=sheet_ids, **kwargs)
+        story.save()
+
+    @classmethod
+    def create_user_story(cls, uid, group_name, sheet_ids, **kwargs):
+        story = cls._generate_user_story(uid=uid, group_name=group_name, sheet_ids=sheet_ids, **kwargs)
+        story.save()
+
+
+class SheetListFactory(AbstractStoryFactory):
+    """
+        "title" : {
+            "he"
+            "en"
+        }
+        "sheet_ids"
+        "sheets" (derived)
+            [{"sheet_id"
+              "sheet_title"
+              "sheet_summary"},
+              "publisher_id"
+              "publisher_name" (derived)
+              "publisher_url" (derived)
+              "publisher_image" (derived)
+              "publisher_position" (derived)
+              "publisher_followed" (derived)
+            },
+            {...}]
+
+    """
+    @classmethod
+    def _data_object(cls, **kwargs):
+        title = kwargs.get("lead_title", {"en": "Recommended for You", "he": u"מומלץ"})
+
         return {
             "sheet_ids": kwargs.get("sheet_ids"),
-            "titles": {"en": "Recommended for You" ,
-                       "he":  u"מומלץ"}
+            "title": title,
         }
 
     @classmethod
     def _story_form(cls, **kwargs):
         return "sheetList"
+
+    @classmethod
+    def _group_story_data(cls, group_id, sheet_ids):
+        from sefaria.model.group import Group
+        g = Group().load_by_id(group_id)
+        img = getattr(g, "imageUrl", "")
+        return {
+            "sheet_ids": sheet_ids,
+            "group_image": img,
+            "lead_title": {"en": "Group", "he": u"קבוצה"},
+            "title": {"en": g.name, "he": g.name}
+        }
+
+    @classmethod
+    def create_global_group_story(cls, group_name, sheet_ids, **kwargs):
+        data = cls._group_story_data(group_name, sheet_ids)
+        data.update(kwargs)
+        story = cls._generate_global_story(kwargs=data)
+        story.save()
+
+    @classmethod
+    def create_user_group_story(cls, uid, group_name, sheet_ids, **kwargs):
+        data = cls._group_story_data(group_name, sheet_ids)
+        data.update(kwargs)
+        story = cls._generate_user_story(uid=uid, kwargs=data)
+        story.save()
 
     @classmethod
     def create_global_story(cls, sheet_ids, **kwargs):
