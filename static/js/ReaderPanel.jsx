@@ -903,14 +903,20 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "publicGroups") {
-      var menu = (<PublicGroupsPanel />);
+      var menu = (<PublicGroupsPanel 
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "myGroups") {
-      var menu = (<MyGroupsPanel />);
+      var menu = (<MyGroupsPanel 
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "updates") {
       var menu = (<UpdatesPanel
-                    interfaceLang={this.props.interfaceLang} />);
+                    interfaceLang={this.props.interfaceLang}
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")} />);
 
     } else if (this.state.menuOpen === "modtools") {
       var menu = (<ModeratorToolsPanel

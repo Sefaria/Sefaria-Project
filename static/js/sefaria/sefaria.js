@@ -1809,6 +1809,7 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
+      "Public Groups": "קבוצות",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",

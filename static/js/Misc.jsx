@@ -498,6 +498,35 @@ ReaderNavigationMenuSavedButton.propTypes = {
 };
 
 
+class SinglePanelNavHeader extends Component {
+  render() {
+    var enTitle = this.props.enTitle;
+    var heTitle = this.props.heTitle || Sefaria.hebrewTerm(enTitle);
+    var colorCat = this.props.colorLineCategory || "Other";
+    return (
+      <div className="readerNavTop searchOnly">
+          <CategoryColorLine category={colorCat} />
+          <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
+          <h2>
+            <span className="int-en">{enTitle}</span>
+            <span className="int-he">{heTitle}</span>
+          </h2>
+          {this.props.showDisplaySettings ?
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            : <div className="readerOptions"></div> }
+      </div>);
+  }
+}
+SinglePanelNavHeader.propTypes = {
+  navHome:             PropTypes.func.isRequired,
+  enTitle:             PropTypes.string,
+  heTitle:             PropTypes.string, 
+  showDisplaySettings: PropTypes.bool,
+  openDisplaySettings: PropTypes.func,
+  colorLineCategory:   PropTypes.string,
+};
+
+
 class CategoryColorLine extends Component {
   render() {
     var style = {backgroundColor: Sefaria.palette.categoryColor(this.props.category)};
@@ -1165,6 +1194,7 @@ module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuM
 module.exports.ReaderNavigationMenuSavedButton           = ReaderNavigationMenuSavedButton;
 module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
 module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
+module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
 module.exports.SignUpModal                               = SignUpModal;
 module.exports.SheetListing                              = SheetListing;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;

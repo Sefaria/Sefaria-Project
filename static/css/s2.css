@@ -201,9 +201,11 @@ input.noselect {
 }
 #panelWrapBox {
   position: absolute;
-  top: 60px;
   height: calc(100% - 60px);
   box-sizing: border-box;
+}
+.multiPanel #panelWrapBox {
+  top: 60px;
 }
 #panelWrapBox.wrapBoxScroll {
   overflow-x: scroll;
@@ -1276,7 +1278,7 @@ a.readerNavCategory {
 .readerNavCategoryMenu {
   height: 100%;
 }
-.readerNavCategoryMenu .content {
+..multiPanel .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
 }
 .readerNavCategoryMenu .content .category,
@@ -2932,6 +2934,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0;
 }
 .narrowColumn .textRange.basetext {
+}
+.narrowColumn .content .contentInner {
+  padding: 0 15px;
 }
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
