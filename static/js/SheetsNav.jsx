@@ -60,6 +60,8 @@ class SheetsNav extends Component {
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
                         group={this.props.group}
+                        setGroupTag={this.props.setGroupTag}
+                        tag={this.props.groupTag}
                         width={this.state.width}
                         toggleLanguage={this.props.toggleLanguage}
                         interfaceLang={this.props.interfaceLang} />);

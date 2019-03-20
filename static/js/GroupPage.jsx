@@ -18,9 +18,11 @@ class GroupPage extends Component {
   constructor(props) {
     super(props);
 
+    this.showTagsByDefault = this.props.group == "גיליונות נחמה";
+
     this.state = {
-      showTags: this.props.group == "גיליונות נחמה",
-      sheetFilterTag: null,
+      showTags: this.showTagsByDefault,
+      sheetFilterTag: this.props.tag,
       sheetSort: "date",
       tab: "sheets"
     };
@@ -31,6 +33,17 @@ class GroupPage extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (!this.state.showTags && prevState.showTags && $(".content").scrollTop() > 570) {
       $(".content").scrollTop(570);
+    }
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.tag !== this.state.sheetFilterTag) {
+      this.setState({sheetFilterTag: nextProps.tag});
+      if (this.showTagsByDefault && nextProps.tag == null) {
+        this.setState({showTags: true});
+      }
+      if (nextProps.tag !== null) {
+        this.setState({showTags: false});
+      }
     }
   }
   onDataLoad(data) {
@@ -80,14 +93,21 @@ class GroupPage extends Component {
     this.setState({tab: tab});
   }
   toggleSheetTags() {
-    this.state.showTags ? this.setState({showTags: false}) : this.setState({showTags: true});
+    if (this.state.showTags) {
+      this.setState({showTags: false});
+    } else {
+      this.setState({showTags: true, sheetFilterTag: null});
+      this.props.setGroupTag(null);
+    }
   }
   setSheetTag(tag) {
     this.setState({sheetFilterTag: tag, showTags: false});
+    this.props.setGroupTag(tag);
   }
   handleTagButtonClick (tag) {
     if (tag == this.state.sheetFilterTag) {
       this.setState({sheetFilterTag: null, showTags: false});
+      this.props.setGroupTag(null);
     } else {
       this.setSheetTag(tag);
     }
