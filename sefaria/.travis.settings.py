@@ -1,6 +1,7 @@
 # local settings used by travis CI builds
 import os
 import os.path
+from local_settings_example import *
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
