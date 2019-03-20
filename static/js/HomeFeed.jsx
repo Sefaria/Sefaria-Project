@@ -34,7 +34,7 @@ function Story(props) {
                 data={props.data}
                 timestamp={props.timestamp}
                 natural_time={props.natural_time}
-                is_global={props.is_global}
+                is_shared={props.is_shared}
                 key={props.timestamp} />;
 }
 
@@ -413,7 +413,7 @@ AbstractStory.propTypes = {
   storyForm: PropTypes.string,
   timestamp: PropTypes.number,
   natural_time: PropTypes.object,
-  is_global: PropTypes.bool,
+  is_shared: PropTypes.bool,
   data:      PropTypes.object,
 };
 

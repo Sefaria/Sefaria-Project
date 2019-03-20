@@ -23,7 +23,7 @@ from link import Link, LinkSet, get_link_counts, get_book_link_collection, get_b
 from note import Note, NoteSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet, GlobalNotification, GlobalNotificationSet
-from story import GlobalStory, UserStory, GlobalStorySet, UserStorySet, TextPassageStoryFactory, AuthorStoryFactory, \
+from story import SharedStory, UserStory, SharedStorySet, UserStorySet, TextPassageStoryFactory, AuthorStoryFactory, \
     TopicFactory, UserSheetsFactory, SheetListFactory, GroupSheetListFactory
 from interrupting_message import InterruptingMessage
 from queue import IndexQueue, IndexQueueSet

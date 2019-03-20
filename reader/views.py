@@ -2449,7 +2449,7 @@ def stories_api(request):
 
     lead_stories = []
     if only_global or not user:
-        stories = GlobalStorySet(limit=page_size, page=page)
+        stories = SharedStorySet(limit=page_size, page=page)
     else:
         stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page)
 
@@ -2523,7 +2523,7 @@ def updates_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                GlobalStory(payload).save()
+                SharedStory(payload).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
@@ -2533,7 +2533,7 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    GlobalStory(payload).save()
+                    SharedStory(payload).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
@@ -2548,7 +2548,7 @@ def updates_api(request, gid=None):
         if request.user.is_staff:
             @csrf_protect
             def protected_post(request):
-                GlobalStory().load_by_id(gid).delete()
+                SharedStory().load_by_id(gid).delete()
                 return jsonResponse({"status": "ok"})
 
             return protected_post(request)

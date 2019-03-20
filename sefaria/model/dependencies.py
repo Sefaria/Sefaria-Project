@@ -97,7 +97,7 @@ subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garde
 
 # Notifications, Stories
 subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  notification.GlobalNotification, "delete")
-subscribe(cascade_delete(story.UserStorySet, "global_story_id", "_id"),   story.GlobalStory, "delete")
+subscribe(cascade_delete(story.UserStorySet, "shared_story_id", "_id"), story.SharedStory, "delete")
 
 # Groups
 subscribe(group.process_group_name_change_in_sheets,                         group.Group, "attributeChange", "name")

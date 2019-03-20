@@ -7,7 +7,7 @@ from datetime import datetime
 from sefaria.system.database import db
 
 
-db.drop_collection("global_story")
+db.drop_collection("shared_story")
 db.drop_collection("user_story")
 
 # Convert Global Notifications
@@ -49,7 +49,7 @@ for gn in gns:
     # write to global story
     assert isinstance(gn, GlobalNotification)
     ts = int((gn.date - datetime(1970,1,1)).total_seconds())
-    gs = GlobalStory({
+    gs = SharedStory({
         "storyForm": mappping[gn.type],
         "data": gn.content,
         "timestamp": ts
@@ -59,7 +59,7 @@ for gn in gns:
     # get user notifications that refer to this global
     uns = NotificationSet({"is_global": True, "global_id": gn._id})
     for un in uns:
-        us = UserStory.from_global_story(un.uid, gs)
+        us = UserStory.from_shared_story(un.uid, gs)
         us.timestamp = ts
         us.save()
 

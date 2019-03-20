@@ -206,10 +206,10 @@ Other story forms:
 """
 
 
-class GlobalStory(Story):
+class SharedStory(Story):
 
-    collection   = 'global_story'
-    history_noun = 'global story'
+    collection   = 'shared_story'
+    history_noun = 'shared story'
 
     required_attrs = [
         "storyForm",     # Valid story forms ^^
@@ -225,22 +225,22 @@ class GlobalStory(Story):
 
     @staticmethod
     def latest_id():
-        n = db.global_story.find_one({}, {"_id": 1}, sort=[["_id", -1]])
+        n = db.shared_story.find_one({}, {"_id": 1}, sort=[["_id", -1]])
         if not n:
             return None
         return n["_id"]
 
 
-class GlobalStorySet(abst.AbstractMongoSet):
-    recordClass = GlobalStory
+class SharedStorySet(abst.AbstractMongoSet):
+    recordClass = SharedStory
 
     def __init__(self, query=None, page=0, limit=0, sort=None):
         sort = sort or [["timestamp", -1]]
-        super(GlobalStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+        super(SharedStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
     def register_for_user(self, uid):
-        for global_story in self:
-            UserStory.from_global_story(uid, global_story).save()
+        for shared_story in self:
+            UserStory.from_shared_story(uid, shared_story).save()
 
 
 class UserStory(Story):
@@ -250,24 +250,24 @@ class UserStory(Story):
 
     required_attrs = [
         "uid",
-        "is_global",
+        "is_shared",
         "timestamp"
     ]
 
     optional_attrs = [
-        "global_story_id",   # required if is_global is true
-        "storyForm",         # required if is_global is false
-        "data"               # required if is_global is false
+        "shared_story_id",   # required if is_shared is true
+        "storyForm",         # required if is_shared is false
+        "data"               # required if is_shared is false
     ]
 
     # Pseudo Constructors
     @classmethod
-    def from_global_story(cls, user_id, global_story):
+    def from_shared_story(cls, user_id, shared_story):
         return cls({
-            "is_global": True,
-            "global_story_id": global_story._id,
+            "is_shared": True,
+            "shared_story_id": shared_story._id,
             "uid": user_id,
-            "timestamp": global_story.timestamp
+            "timestamp": shared_story.timestamp
         })
 
     @classmethod
@@ -283,11 +283,11 @@ class UserStory(Story):
 
     def _init_defaults(self):
         self.timestamp = int(time.time())
-        self.is_global = False
+        self.is_shared = False
 
     def _validate(self):
-        if self.is_global:
-            assert self.global_story_id is not None
+        if self.is_shared:
+            assert self.shared_story_id is not None
         else:
             assert self.data
             assert self.storyForm
@@ -295,10 +295,10 @@ class UserStory(Story):
     def contents(self, **kwargs):
         c = super(UserStory, self).contents(**kwargs)
 
-        if self.is_global:
-            g = GlobalStory().load_by_id(self.global_story_id)
+        if self.is_shared:
+            g = SharedStory().load_by_id(self.shared_story_id)
             c.update(g.contents(**kwargs))
-            del c["global_story_id"]
+            del c["shared_story_id"]
 
         d = c.get("data")
         followees = kwargs.get("followees")
@@ -312,8 +312,8 @@ class UserStory(Story):
         return c
 
     @staticmethod
-    def latest_global_for_user(uid):
-        n = db.user_story.find_one({"uid": uid, "is_global": True}, {"_id": 1}, sort=[["_id", -1]])
+    def latest_shared_for_user(uid):
+        n = db.user_story.find_one({"uid": uid, "is_shared": True}, {"_id": 1}, sort=[["_id", -1]])
         return n["_id"] if n else None
 
 
@@ -330,19 +330,19 @@ class UserStorySet(abst.AbstractMongoSet):
         super(UserStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
     @staticmethod
-    def _add_global_stories(uid):
+    def _add_shared_stories(uid):
         """
-        Add user Notification records for any new GlobalNotifications
+        Add user story records for any new shared stories
         :return:
         """
         #todo: is there a quicker way to short circuit this, and avoid these queries, when it has recently been updated?
-        latest_id_for_user = UserStory.latest_global_for_user(uid)
-        latest_global_id = GlobalStory.latest_id()
-        if latest_global_id and (latest_global_id != latest_id_for_user):
+        latest_id_for_user = UserStory.latest_shared_for_user(uid)
+        latest_shared_id = SharedStory.latest_id()
+        if latest_shared_id and (latest_shared_id != latest_id_for_user):
             if latest_id_for_user is None:
-                GlobalStorySet({}, limit=10).register_for_user(uid)
+                SharedStorySet({}, limit=10).register_for_user(uid)
             else:
-                GlobalStorySet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
+                SharedStorySet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
 
     def contents(self, **kwargs):
         if self.uid:
@@ -356,7 +356,7 @@ class UserStorySet(abst.AbstractMongoSet):
         """
         Loads recent stories for uid.
         """
-        cls._add_global_stories(uid)
+        cls._add_shared_stories(uid)
         return cls(uid=uid, page=page, limit=limit)
 
 
@@ -379,8 +379,8 @@ class AbstractStoryFactory(object):
         pass
 
     @classmethod
-    def _generate_global_story(cls, **kwargs):
-        return GlobalStory({
+    def _generate_shared_story(cls, **kwargs):
+        return SharedStory({
             "storyForm": cls._story_form(**kwargs),
             "data": cls._data_object(**kwargs)
         })
@@ -458,7 +458,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
         ref = cal["ref"]
         titles = cal["displayValue"]
         leads = cal["title"]
-        return cls._generate_global_story(ref=ref, leads=leads, titles=titles, **kwargs)
+        return cls._generate_shared_story(ref=ref, leads=leads, titles=titles, **kwargs)
 
     @classmethod
     def generate_from_user_history(cls, hist, **kwargs):
@@ -478,9 +478,9 @@ class AuthorStoryFactory(AbstractStoryFactory):
         return "author"
 
     @classmethod
-    def create_random_global_story(cls):
+    def create_random_shared_story(cls):
         p = cls._select_random_person()
-        story = cls._generate_global_story(person=p)
+        story = cls._generate_shared_story(person=p)
         story.save()
 
     @classmethod
@@ -529,8 +529,8 @@ class UserSheetsFactory(AbstractStoryFactory):
         return "userSheets"
 
     @classmethod
-    def create_global_story(cls, author_uid, **kwargs):
-        story = cls._generate_global_story(author_uid=author_uid, **kwargs)
+    def create_shared_story(cls, author_uid, **kwargs):
+        story = cls._generate_shared_story(author_uid=author_uid, **kwargs)
         story.save()
 
     @classmethod
@@ -581,8 +581,8 @@ class GroupSheetListFactory(AbstractStoryFactory):
         return "groupSheetList"
 
     @classmethod
-    def create_global_story(cls, group_name, sheet_ids, **kwargs):
-        story = cls._generate_global_story(group_name=group_name, sheet_ids=sheet_ids, **kwargs)
+    def create_shared_story(cls, group_name, sheet_ids, **kwargs):
+        story = cls._generate_shared_story(group_name=group_name, sheet_ids=sheet_ids, **kwargs)
         story.save()
 
     @classmethod
@@ -638,10 +638,10 @@ class SheetListFactory(AbstractStoryFactory):
         }
 
     @classmethod
-    def create_global_group_story(cls, group_name, sheet_ids, **kwargs):
+    def create_shared_group_story(cls, group_name, sheet_ids, **kwargs):
         data = cls._group_story_data(group_name, sheet_ids)
         data.update(kwargs)
-        story = cls._generate_global_story(kwargs=data)
+        story = cls._generate_shared_story(kwargs=data)
         story.save()
 
     @classmethod
@@ -652,8 +652,8 @@ class SheetListFactory(AbstractStoryFactory):
         story.save()
 
     @classmethod
-    def create_global_story(cls, sheet_ids, **kwargs):
-        story = cls._generate_global_story(sheet_ids=sheet_ids, **kwargs)
+    def create_shared_story(cls, sheet_ids, **kwargs):
+        story = cls._generate_shared_story(sheet_ids=sheet_ids, **kwargs)
         story.save()
 
     @classmethod
