@@ -5931,6 +5931,10 @@ span.purim-emoji img{
 .interface-english .storyFeed .story .storyTitleBlock {
   float: left;
 }
+.publishSheetStory .saveButton  {
+  float: right;
+  padding-top: 20px;
+}
 .interface-hebrew .storyFeed .story .storyTitleBlock {
   float: right;
 }

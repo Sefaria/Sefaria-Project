@@ -313,6 +313,15 @@ NewStoryForm.propTypes = {
 
 
 class AbstractStory extends Component {
+  storyClasses() {
+    const thisClass = this.constructor.name;
+    const lowerCaseClass = thisClass[0].toLowerCase() + thisClass.slice(1);
+
+    const classes = {"story" : 1};
+    classes[lowerCaseClass] = 1;
+
+    return classNames(classes);
+  }
   heTitle(title) {
     return title && Sefaria.index(title)?Sefaria.index(title).heTitle:"";
   }
@@ -413,7 +422,7 @@ class NewContentStory extends AbstractStory {
       const cardStyle = {"borderColor": "#18345D"};
 
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("New Content", "תוכן חדש")}
             {this.naturalTimeBlock()}
             {this.storyBodyBlock(this.props.data.en, this.props.data.he, true)}
@@ -429,7 +438,7 @@ class NewIndexStory extends AbstractStory {
       const cardStyle = {"borderColor": this.indexColor(title)};
 
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("New Text", "טקסט חדש")}
             {this.naturalTimeBlock()}
             {this.storyTitleBlock(title, heTitle, url)}
@@ -453,7 +462,7 @@ class NewVersionStory extends AbstractStory {
           </div>
       */
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("New Version", "גרסה חדשה")}
             {this.naturalTimeBlock()}
             {this.storyTitleBlock(title, heTitle, url)}
@@ -482,7 +491,7 @@ class AuthorStory extends AbstractStory {
       const url = "/person/" + this.props.data.author_key;
 
         return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("Author", "מחבר")}
             {this.naturalTimeBlock()}
             {this.storyTitleBlock(this.props.data.author_names.en, this.props.data.author_names.he, url)}
@@ -521,7 +530,7 @@ class UserSheetsStory extends AbstractStory {
             </div>
           :"";
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("People", "קהילה")}
             <div className="storyTitleBlock">
                 <div className="storyTitle pageTitle">
@@ -581,7 +590,7 @@ class GroupSheetListStory extends AbstractStory {
       this.props.data.sheets.forEach(this.amendSheetObject);
 
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("Group", "קבוצה")}
             {this.storyTitleBlock(this.props.data.title.en, this.props.data.title.he)}
             <img className="mediumProfileImage" src={this.props.data.group_image} alt={this.props.data.title.en}/>
@@ -644,7 +653,7 @@ class SheetListStory extends AbstractStory {
       this.props.data.sheets.forEach(this.amendSheetObject);
 
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("Sheets", "דפים")}
             {this.storyTitleBlock(this.props.data.title.en, this.props.data.title.he)}
 
@@ -705,22 +714,15 @@ class PublishSheetStory extends AbstractStory {
           :"";
 
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock("New Sheet", "דף מקורות חדש")}
             {this.naturalTimeBlock()}
-            <div className="storyTitleBlock">
-                <div className="storyTitle pageTitle">
-                    <a href={"/sheets/" + sheet.sheet_id}>
-                        <span className="int-en">{sheet.sheet_title}</span>
-                        <span className="int-he">{sheet.sheet_title}</span>
-                    </a>
-                </div>
-                <SaveButton
-                    historyObject={sheet.history_object}
-                    tooltip={true}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                />
-            </div>
+            {this.storyTitleBlock(sheet.sheet_title, sheet.sheet_title, "/sheets/" + sheet.sheet_id)}
+            <SaveButton
+                historyObject={sheet.history_object}
+                tooltip={true}
+                toggleSignUpModal={this.props.toggleSignUpModal}
+            />
             {sheet.sheet_summary?this.storyBodyBlock(sheet.sheet_summary, sheet.sheet_summary):""}
 
             <div className="bottomLine">
@@ -774,7 +776,7 @@ class TextPassageStory extends AbstractStory {
       const url = "/" + Sefaria.normRef(this.props.data.ref);
 
       return (
-        <div className="story" style={cardStyle}>
+        <div className={this.storyClasses()} style={cardStyle}>
             {this.storyTypeBlock(this.props.data.lead_titles.en, this.props.data.lead_titles.he)}
             {this.naturalTimeBlock()}
             {this.storyTitleBlock(this.props.data.titles.en, this.props.data.titles.he, url)}
