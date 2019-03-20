@@ -19,7 +19,7 @@ class GroupPage extends Component {
     super(props);
 
     this.state = {
-      showTags: this.props.group == "גיליונות נחמה" ? true : false,
+      showTags: this.props.group == "גיליונות נחמה",
       sheetFilterTag: null,
       sheetSort: "date",
       tab: "sheets"
@@ -27,6 +27,11 @@ class GroupPage extends Component {
   }
   componentDidMount() {
     this.ensureData();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (!this.state.showTags && prevState.showTags && $(".content").scrollTop() > 570) {
+      $(".content").scrollTop(570);
+    }
   }
   onDataLoad(data) {
     this.forceUpdate();
@@ -139,13 +144,11 @@ class GroupPage extends Component {
 
       groupTagList.sort( function (a, b) {
         var A = a["key"], B = b["key"];
+        var orderA = parshaOrder.indexOf(A), orderB = parshaOrder.indexOf(B);
 
-        if (parshaOrder.indexOf(A) > parshaOrder.indexOf(B)) {
-          return 1;
-        } else {
-          return -1;
-        }
-
+        if (orderA == -1) { return 1; }
+        if (orderB == -1) { return -1; }
+        return orderA > orderB ? 1 : -1;
       });
     }
 
@@ -242,9 +245,9 @@ class GroupPage extends Component {
 
                   {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
 
-                  {sheets.length ?
-                    sheets
-                    : (isMember ?
+                  {sheets.length && !this.state.showTags ? sheets : null}
+
+                  {!sheets.length ? (isMember ?
                           <div className="emptyMessage">
                             <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
                             <span className="int-he"> לא קיימים דפי מקורות בקבוצה <a href="/sheets/new">צור דף מקורות</a>.</span>
@@ -252,7 +255,7 @@ class GroupPage extends Component {
                         : <div className="emptyMessage">
                             <span className="int-en">There are no public sheets in this group yet.</span>
                             <span className="int-he">לא קיימים דפי מקורות פומביים בקבוצה</span>
-                          </div>)}
+                          </div>) : null}
                   </div>
                   : null }
 
