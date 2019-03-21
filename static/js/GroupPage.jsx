@@ -263,7 +263,7 @@ class GroupPage extends Component {
                     </h2>
                     : null }
 
-                  {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+                  {this.state.showTags ? <div className="tagsList"><TwoOrThreeBox content={groupTagList} width={this.props.width} /></div> : null}
 
                   {sheets.length && !this.state.showTags ? sheets : null}
 

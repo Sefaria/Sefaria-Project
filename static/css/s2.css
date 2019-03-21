@@ -1317,7 +1317,8 @@ a.readerNavCategory {
   text-align: center;
   unicode-bidi: plaintext;
 }
-.readerNavCategoryMenu .blockLink {
+.readerNavCategoryMenu .blockLink,
+.gridBox .navButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1349,7 +1350,8 @@ a.readerNavCategory {
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
 }
-.readerNavMenu .readerNavCategoryMenu .blockLink {
+.readerNavMenu .readerNavCategoryMenu .blockLink,
+.gridBox .navButton {
   width: 100%;
   height: 100%;
   padding: 13px 8px 19px;
@@ -2454,18 +2456,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .similar-trigger-box i {
   padding: 0 5px;
 }
-
 .searchContent .sheet_result .owner_image {
   height: 30px;
   width: 30px;
   align-self: flex-start;
 }
-
 .searchContent .sheet_result {
   height: auto;
   margin: 15px 0;
 }
-
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }

@@ -196,7 +196,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
               // Create a link to a subcategory
               var url = "/texts/" + newCats.join("/");
               var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
-              var classes = classNames({catLink: 1, incomplete: incomplete});
+              var classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
               content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
