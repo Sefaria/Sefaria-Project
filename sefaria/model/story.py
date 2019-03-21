@@ -52,7 +52,7 @@ class Story(abst.AbstractMongoRecord):
         return d
 
     def contents(self, **kwargs):
-        c = super(Story, self).contents(**kwargs)
+        c = super(Story, self).contents(with_string_id=True, **kwargs)
 
         # Add Derived Attributes
         if "data" not in c:

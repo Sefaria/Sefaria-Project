@@ -143,9 +143,38 @@ class StoryEditor extends Component {
         }.bind(this)
     });
   }
-  handleSubmit(type, content) {
+  removeDraft(timestamp) {
+      this.setState({stories: this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp)});
+  }
+  handleReflect(type, content) {
     this.setState({"submitting": true, "error": null});
-    var payload = {
+    const payload = {
+      storyForm: type,
+      data: content
+    };
+    $.ajax({
+        url: "/api/story_reflector",
+        dataType: 'json',
+        type: 'POST',
+        data: {json: JSON.stringify(payload)},
+        success: function (data) {
+            if ("error" in data) {
+              this.setState({"error": "Error - " + data.error});
+            } else {
+                data["draft"] = true;
+                this.state.stories.unshift(data);
+                this.setState({submitting: false, stories: this.state.stories, submitCount: this.state.submitCount + 1});
+            }
+        }.bind(this),
+        error: function (xhr, status, err) {
+            this.setState({"error": "Error - " + err.toString()});
+            console.error(this.props.url, status, err.toString());
+        }.bind(this)
+    });
+  }
+  handlePublish(type, content) {
+    this.setState({"submitting": true, "error": null});
+    const payload = {
       storyForm: type,
       data: content
     };
@@ -182,10 +211,20 @@ class StoryEditor extends Component {
               <span className="int-he">עדכונים</span>
             </h1>
 
-            {Sefaria.is_moderator?<NewStoryForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
+            {Sefaria.is_moderator?<NewStoryForm handleReflect={this.handleReflect} key={this.state.submitCount} error={this.state.error}/>:""}
 
-            <div className="notificationsList">
-            {this.state.stories.map(s => Story(s))}
+            <div className="storyFeed">
+            {this.state.stories.map(s =>
+                [
+                    Story(s),
+                    <StoryEditBar
+                        onDelete={this.onDelete}
+                        removeDraft={this.removeDraft}
+                        handlePublish={this.handlePublish}
+                        isDraft={s.draft}
+                        key={s.timestamp + "e"}
+                        story={s}/>
+                ]).flat() }
             </div>
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -197,6 +236,34 @@ class StoryEditor extends Component {
 }
 StoryEditor.propTypes = {
   interfaceLang:  PropTypes.string
+};
+
+class StoryEditBar extends Component {
+    handlePublish() {
+        this.props.handlePublish(this.story.storyForm, this.story.data)
+    }
+    onDelete() {
+        if(this.props.isDraft) {
+            this.props.removeDraft();
+        } else {
+            this.props.onDelete(this.props.story._id);
+        }
+    }
+    render() {
+        if (!Sefaria.is_moderator) {return}
+        return (<div>
+            {(this.props.isDraft)?<div onClick={this.handlePublish}>Publish Draft</div>:""}
+            <i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>
+        </div>);
+    }
+}
+StoryEditBar.propTypes = {
+  interfaceLang:     PropTypes.string,
+  onDelete:          PropTypes.func,
+  handlePublish:     PropTypes.func,
+  removeDraft:       PropTypes.func,
+  isDraft:           PropTypes.bool,
+  story:             PropTypes.object
 };
 
 /*
@@ -238,7 +305,7 @@ class NewStoryForm extends Component {
   handleLanguageChange(e) {
     this.setState({language: e.target.value, error: null});
   }
-  handleSubmit(e) {
+  handleReflect(e) {
     e.preventDefault();
     var content = {
       "en": this.state.en.trim(),
@@ -264,12 +331,12 @@ class NewStoryForm extends Component {
       content["version"] = this.state.version.trim();
       content["language"] = this.state.language.trim();
     }
-    this.props.handleSubmit(this.state.type, content);
+    this.props.handleReflect(this.state.type, content);
 
   }
   render() {
     return (
-      <form className="globalUpdateForm" onSubmit={this.handleSubmit}>
+      <form className="globalUpdateForm" onSubmit={this.handleReflect}>
         <div>
           <input type="radio" name="type" value="newIndex" onChange={this.handleTypeChange} checked={this.state.type=="newIndex"}/>Index&nbsp;&nbsp;
           <input type="radio" name="type" value="newVersion" onChange={this.handleTypeChange} checked={this.state.type=="newVersion"}/>Version&nbsp;&nbsp;
@@ -299,7 +366,7 @@ class NewStoryForm extends Component {
             cols="80"
           />
         </div>
-        <input type="submit" value="Submit" disabled={this.props.submitting}/>
+        <input type="submit" value="Preview" disabled={this.props.submitting}/>
         <span className="error">{this.state.error}</span>
       </form>
     );
@@ -307,7 +374,7 @@ class NewStoryForm extends Component {
 }
 NewStoryForm.propTypes = {
   error:               PropTypes.string,
-  handleSubmit:        PropTypes.func
+  handleReflect:        PropTypes.func
 };
 
 

@@ -91,7 +91,7 @@ class PageLoader extends Component {
         lang: this.props.lang,
  nextChapter: null
     };
-  //this.handleSubmit = this.handleSubmit.bind(this);
+  //this.handlePublish = this.handlePublish.bind(this);
   }
 
   componentWillMount() {

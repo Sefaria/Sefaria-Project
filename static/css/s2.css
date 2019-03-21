@@ -4251,7 +4251,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   color: red;
   padding: 0 10px;
-  font-size: 75%;
+  font-size: 125%;
   cursor: pointer;
 }
 .sefariaLogo {

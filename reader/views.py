@@ -2486,6 +2486,25 @@ def stories_api(request):
                         })
 
 
+@staff_member_required
+def story_reflector(request):
+    """
+    Show what a story will look like.
+    :param request:
+    :return:
+    """
+    assert request.user.is_authenticated and request.user.is_staff and request.method == "POST"
+
+    @csrf_protect
+    def protected_post(request):
+        payload = json.loads(request.POST.get("json"))
+        try:
+            s = SharedStory(payload)
+            return jsonResponse(s.contents())
+        except AssertionError as e:
+            return jsonResponse({"error": e.message})
+
+    return protected_post(request)
 
 
 @catch_error_as_json

@@ -184,7 +184,7 @@ class AbstractMongoRecord(object):
             del d[self.id_field]
         except KeyError:
             pass
-        if kwargs.get("with_string_id", False):
+        if kwargs.get("with_string_id", False) and hasattr(self, "_id"):
             d["_id"] = str(self._id)
         return d
 

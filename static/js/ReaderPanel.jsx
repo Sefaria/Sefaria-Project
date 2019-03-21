@@ -918,11 +918,11 @@ class ReaderPanel extends Component {
                     toggleSignUpModal={this.props.toggleSignUpModal}
       />);
 
-    } else if (this.state.menuOpen === "updates") {
+    /* } else if (this.state.menuOpen === "updates") {
       //todo: make this a redirect to homepage
       var menu = (<UpdatesPanel
                     interfaceLang={this.props.interfaceLang} />);
-
+    */
     } else if (this.state.menuOpen === "story_editor") {
       var menu = (<StoryEditor
                     interfaceLang={this.props.interfaceLang} />);
