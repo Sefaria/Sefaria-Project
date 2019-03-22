@@ -280,8 +280,8 @@ def get_links(tref, with_text=True, with_sheet_links=False):
     links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
 
 
-    if with_sheet_links:
-        groups = library.get_groups_in_library()
+    groups = library.get_groups_in_library()
+    if with_sheet_links and len(groups):
         sheet_links = get_sheets_for_ref(tref, in_group=groups)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
         links += formatted_sheet_links

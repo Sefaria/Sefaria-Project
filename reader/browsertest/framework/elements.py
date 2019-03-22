@@ -569,7 +569,7 @@ class AbstractTest(object):
 
     def load_private_groups(self):
         self.driver.get(self.base_url + "/my/groups")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".myGroupsPanel .button")))
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".groupsList")))
         return self
 
     # Editing
