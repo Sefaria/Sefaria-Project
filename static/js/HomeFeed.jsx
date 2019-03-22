@@ -380,6 +380,55 @@ NewStoryForm.propTypes = {
 };
 
 
+const NaturalTimeBlock = ({timestamp}) => (<div className="timeBlock smallText">
+          <span className="int-en">{ Sefaria.util.naturalTime(timestamp) } ago</span>
+          <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(timestamp) }</span>
+        </div>);
+
+const ReadMoreLink = ({url}) => (<div className="learnMoreLink smallText">
+            <a href={url}>
+                <span className="int-en">Read More ›</span>
+                <span className="int-he">קרא עוד ›</span>
+            </a>
+        </div>);
+
+const StoryTypeBlock = ({en, he}) => (<div className="storyTypeBlock sectionTitleText">
+            <span className="int-en">{en}</span>
+            <span className="int-he">{he}</span>
+        </div>);
+
+const StoryTitleBlock = ({en, he, url}) => {
+    if (url) {
+          return <div className="storyTitleBlock">
+                    <div className="storyTitle pageTitle">
+                        <a href={url}>
+                            <span className="int-en">{en}</span>
+                            <span className="int-he">{he}</span>
+                        </a>
+                    </div>
+                </div>;
+      } else {
+          return <div className="storyTitleBlock">
+                    <div className="storyTitle pageTitle">
+                        <span className="int-en">{en}</span>
+                        <span className="int-he">{he}</span>
+                    </div>
+                </div>;
+      }};
+
+const StoryBodyBlock = ({en, he, dangerously}) => {
+      if (dangerously) {
+        return (<div className="storyBody contentText">
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
+            </div>);
+      } else {
+          return (<div className="storyBody contentText">
+              <span className="int-en">{en}</span>
+              <span className="int-he">{he}</span>
+            </div>);
+      }
+};
 
 class AbstractStory extends Component {
   storyClasses() {
@@ -402,14 +451,6 @@ class AbstractStory extends Component {
       Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
       Sefaria.palette.categoryColor("Other");
   }
-  naturalTimeBlock() {
-      if (!this.props.timestamp) return "";
-      return (
-        <div className="timeBlock smallText">
-          <span className="int-en">{ Sefaria.util.naturalTime(this.props.timestamp) } ago</span>
-          <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(this.props.timestamp) }</span>
-        </div>);
-  }
   amendSheetObject(sheet) {
       sheet.history_object = {
           ref: "Sheet " + sheet.sheet_id,
@@ -418,72 +459,14 @@ class AbstractStory extends Component {
       };
       return sheet;
   }
-  readMoreLink(url) {
-      return (
-        <div className="learnMoreLink smallText">
-            <a href={url}>
-                <span className="int-en">Read More ›</span>
-                <span className="int-he">קרא עוד ›</span>
-            </a>
-        </div>
-      );
-  }
-  storyTypeBlock(en, he) {
-      return (
-        <div className="storyTypeBlock sectionTitleText">
-            <span className="int-en">{en}</span>
-            <span className="int-he">{he}</span>
-        </div>
-      );
-  }
-  storyTitleBlock(en, he, url) {
-      if (url)  {
-          return (
-                <div className="storyTitleBlock">
-                    <div className="storyTitle pageTitle">
-                        <a href={url}>
-                            <span className="int-en">{en}</span>
-                            <span className="int-he">{he}</span>
-                        </a>
-                    </div>
-                </div>
-          );
-      } else {
-          return (
-                <div className="storyTitleBlock">
-                    <div className="storyTitle pageTitle">
-                        <span className="int-en">{en}</span>
-                        <span className="int-he">{he}</span>
-                    </div>
-                </div>
-          );
-      }
-  }
-  storyBodyBlock(en, he, dangerously) {
-      if (dangerously) {
-        return (
-            <div className="storyBody contentText">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
-            </div>
-        );
-      } else {
-          return (
-            <div className="storyBody contentText">
-              <span className="int-en">{en}</span>
-              <span className="int-he">{he}</span>
-            </div>
-          );
-      }
-  }
   render() {}
 }
 AbstractStory.propTypes = {
-  storyForm: PropTypes.string,
-  timestamp: PropTypes.number,
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
   natural_time: PropTypes.object,
-  is_shared: PropTypes.bool,
-  data:      PropTypes.object,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
 };
 
 class NewContentStory extends AbstractStory {
@@ -492,9 +475,9 @@ class NewContentStory extends AbstractStory {
 
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("New Content", "תוכן חדש")}
-            {this.naturalTimeBlock()}
-            {this.storyBodyBlock(this.props.data.en, this.props.data.he, true)}
+            <StoryTypeBlock en="New Content" he="תוכן חדש"/>
+            <NaturalTimeBlock timestamp={this.props.timestamp}/>
+            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
         </div>);
     }
 }
@@ -508,10 +491,10 @@ class NewIndexStory extends AbstractStory {
 
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("New Text", "טקסט חדש")}
-            {this.naturalTimeBlock()}
-            {this.storyTitleBlock(title, heTitle, url)}
-            {this.storyBodyBlock(this.props.data.en, this.props.data.he, true)}
+            <StoryTypeBlock en="New Text" he="טקסט חדש"/>
+            <NaturalTimeBlock timestamp={this.props.timestamp}/>
+            <StoryTitleBlock en={title} he={heTitle} url={url} />
+            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
         </div>);
     }
 }
@@ -532,10 +515,10 @@ class NewVersionStory extends AbstractStory {
       */
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("New Version", "גרסה חדשה")}
-            {this.naturalTimeBlock()}
-            {this.storyTitleBlock(title, heTitle, url)}
-            {this.storyBodyBlock(this.props.data.en, this.props.data.he, true)}
+            <StoryTypeBlock en="New Version" he="גרסה חדשה" />
+            <NaturalTimeBlock timestamp={this.props.timestamp}/>
+            <StoryTitleBlock en={title} he={heTitle} url={url} />
+            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
         </div>);
     }
 }
@@ -555,19 +538,20 @@ class AuthorStory extends AbstractStory {
          }
        }
     */
+
     render() {
       const cardStyle = {"borderColor": this.indexColor(this.props.data.example_work)};
       const url = "/person/" + this.props.data.author_key;
 
         return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("Author", "מחבר")}
-            {this.naturalTimeBlock()}
-            {this.storyTitleBlock(this.props.data.author_names.en, this.props.data.author_names.he, url)}
-            {this.storyBodyBlock(this.props.data.author_bios.en, this.props.data.author_bios.he)}
+            <StoryTypeBlock en="Author" he="מחבר" />
+            <NaturalTimeBlock timestamp={this.props.timestamp}/>
+            <StoryTitleBlock en={this.props.data.author_names.en} he={this.props.data.author_names.he} url={url} />
+            <StoryBodyBlock en={this.props.data.author_bios.en} he={this.props.data.author_bios.he}/>
 
             <div className="bottomLine">
-                {this.readMoreLink(url)}
+                <ReadMoreLink url={url}/>
             </div>
         </div>);
     }
@@ -600,7 +584,7 @@ class UserSheetsStory extends AbstractStory {
           :"";
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("People", "קהילה")}
+            <StoryTypeBlock en="People" he="קהילה" />
             <div className="storyTitleBlock">
                 <div className="storyTitle pageTitle">
                     <a href={this.props.data.publisher_url}>
@@ -660,8 +644,9 @@ class GroupSheetListStory extends AbstractStory {
 
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("Group", "קבוצה")}
-            {this.storyTitleBlock(this.props.data.title.en, this.props.data.title.he)}
+            <StoryTypeBlock en="Group" he="קבוצה" />
+            <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
+
             <img className="mediumProfileImage" src={this.props.data.group_image} alt={this.props.data.title.en}/>
 
             <div className="storySheetList">
@@ -723,8 +708,9 @@ class SheetListStory extends AbstractStory {
 
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("Sheets", "דפים")}
-            {this.storyTitleBlock(this.props.data.title.en, this.props.data.title.he)}
+            <StoryTypeBlock en="Sheets" he="דפים" />
+            <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
+
 
             <div className="storySheetList">
                 {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
@@ -784,15 +770,16 @@ class PublishSheetStory extends AbstractStory {
 
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock("New Sheet", "דף מקורות חדש")}
-            {this.naturalTimeBlock()}
-            {this.storyTitleBlock(sheet.sheet_title, sheet.sheet_title, "/sheets/" + sheet.sheet_id)}
+            <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
+            <NaturalTimeBlock timestamp={this.props.timestamp}/>
+            <StoryTitleBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}/>
+
             <SaveButton
                 historyObject={sheet.history_object}
                 tooltip={true}
                 toggleSignUpModal={this.props.toggleSignUpModal}
             />
-            {sheet.sheet_summary?this.storyBodyBlock(sheet.sheet_summary, sheet.sheet_summary):""}
+            {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:""}
 
             <div className="bottomLine">
                 <div className="storyByLine">
@@ -846,13 +833,14 @@ class TextPassageStory extends AbstractStory {
 
       return (
         <div className={this.storyClasses()} style={cardStyle}>
-            {this.storyTypeBlock(this.props.data.lead_titles.en, this.props.data.lead_titles.he)}
-            {this.naturalTimeBlock()}
-            {this.storyTitleBlock(this.props.data.titles.en, this.props.data.titles.he, url)}
-            {this.storyBodyBlock(this.props.data.text.en + " ", this.props.data.text.he + " ", true)}
+            <StoryTypeBlock en={this.props.data.lead_title.en} he={this.props.data.lead_title.he} />
+            <NaturalTimeBlock timestamp={this.props.timestamp}/>
+            <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
+            <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>
+
 
             <div className="bottomLine">
-                {this.readMoreLink(url)}
+                <ReadMoreLink url={url}/>
                 <SaveButton
                     historyObject={historyObject}
                     tooltip={true}
