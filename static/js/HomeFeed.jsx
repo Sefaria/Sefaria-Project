@@ -247,11 +247,11 @@ class StoryEditBar extends Component {
     };
   }
     handlePublish() {
-        this.props.handlePublish(this.story.storyForm, this.story.data)
+        this.props.handlePublish(this.props.story.storyForm, this.props.story.data)
     }
     onDelete() {
         if(this.props.isDraft) {
-            this.props.removeDraft();
+            this.props.removeDraft(this.props.story.timestamp);
         } else {
             this.setState({deleting: true});
             this.props.onDelete(this.props.story._id);
@@ -260,9 +260,10 @@ class StoryEditBar extends Component {
     render() {
         if (!Sefaria.is_moderator) {return}
         return (<div>
-            {(this.props.isDraft)?<div onClick={this.handlePublish}>Publish Draft</div>:""}
+            {(this.props.isDraft)?<div className="story-action-button" onClick={this.handlePublish}>Publish</div>:""}
             {this.state.deleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
-            <i className="fa fa-times-circle delete-update-button" onClick={this.onDelete} aria-hidden="true"/>}
+            <div className="story-action-button" onClick={this.onDelete}>Delete</div>
+            }
         </div>);
     }
 }

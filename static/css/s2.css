@@ -4247,13 +4247,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 5px;
   margin: 8px;
 }
-.delete-update-button {
+
+.story-action-button {
   display: inline-block;
-  color: red;
-  padding: 0 10px;
-  font-size: 125%;
+  background: #CB6158;
+  padding: 0 15px;
+  margin: 0 8px;
+  width: 60px;
+  text-align: center;
+  height: 19px;
+  color: #fff;
   cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 1px 1px 1px #ccc;
+  border: 1px solid #ccc;
 }
+
 .lds-ring {
   display: inline-block;
   position: relative;
