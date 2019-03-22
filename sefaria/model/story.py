@@ -59,6 +59,10 @@ class Story(abst.AbstractMongoRecord):
             return c
 
         d = c["data"]
+        if "version" in d and "language" in d and "versions" not in d:
+            # NewVersion records have just one version.
+            d["versions"][d["language"]] = d["version"]
+
         if "ref" in d:
             oref = text.Ref(d["ref"])
             d["index"] = oref.index.title
@@ -66,15 +70,19 @@ class Story(abst.AbstractMongoRecord):
                 "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).as_sized_string(),
                 "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).as_sized_string()
             }
+
         if "publisher_id" in d:
             d.update(self._publisher_metadata(d["publisher_id"]))
+
         if "sheet_id" in d:
             d.update(self._sheet_metadata(d["sheet_id"]))
+
         if "sheet_ids" in d:
             d["sheets"] = [self._sheet_metadata(i, return_id=True) for i in d["sheet_ids"]]
             if "publisher_id" not in d:
                 for sheet_dict in d["sheets"]:
                     sheet_dict.update(self._publisher_metadata(sheet_dict["publisher_id"]))
+
         if "author_key" in d:
             p = person.Person().load({"key": d["author_key"]})
             d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
@@ -188,10 +196,10 @@ Other story forms:
     "textPassage"            
          "ref"  
          "index"  (derived)
-         "lead_titles"
+         "lead_title"
             "he"
             "en"
-         "titles" - optional - derived from ref, if not present
+         "title" - optional - derived from ref, if not present
             "he"
             "en"
          "text"   (derived)
@@ -396,6 +404,108 @@ class AbstractStoryFactory(object):
         })
 
 
+#todo: convert this into a Free Form story
+class NewContentStoryFactory(object):
+    """
+    newContent
+        "he"    : hebrew long description
+        "en"    : english long description
+    """
+    @classmethod
+    def _data_object(cls, **kwargs):
+        return {"en": kwargs.get("en"),
+                "he": kwargs.get("he")}
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "newContent"
+
+
+class NewIndexStoryFactory(object):
+    """
+    newIndex
+        "index" : title of index
+        "ref"     ref of example passage (optional)
+        "he"    : hebrew long description (optional)
+        "en"    : english long description (optional)
+
+    """
+
+    @classmethod
+    def _data_object(cls, **kwargs):
+        from sefaria.model import library, Version
+
+        i = library.get_index(kwargs.get("index"))
+        assert i
+
+        d = { "index": i.title }
+
+        ref = kwargs.get("ref")
+        if ref:
+            oref = text.Ref(ref)
+            d["ref"] = oref.normal()
+
+        if kwargs.get("he"):
+            d["he"] = kwargs.get("he")
+
+        if kwargs.get("en"):
+            d["en"] = kwargs.get("en")
+
+        return d
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "newIndex"
+
+
+class NewVersionStoryFactory(object):
+    """
+       newVersion
+            "index"     : title of index
+            "version"   : version title
+            "language"  : "en" or "he"
+            "ref"       : ref of example passage (optional)
+            "he"        : hebrew long description (optional)
+            "en"        : english long description (optional)
+    """
+
+    @classmethod
+    def _data_object(cls, **kwargs):
+        from sefaria.model import library, Version
+
+        i = library.get_index(kwargs.get("index"))
+        assert i
+
+        v = Version().load({
+            "language": kwargs.get("language"),
+            "title": i.title,
+            "versionTitle": kwargs.get("version")
+        })
+        assert v
+        d = {
+                "index": i.title,
+                "version": v.versionTitle,
+                "language": v.language
+            }
+
+        ref = kwargs.get("ref")
+        if ref:
+            oref = text.Ref(ref)
+            d["ref"] = oref.normal()
+
+        if kwargs.get("he"):
+            d["he"] = kwargs.get("he")
+
+        if kwargs.get("en"):
+            d["en"] = kwargs.get("en")
+
+        return d
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "newVersion"
+
+
 class TextPassageStoryFactory(AbstractStoryFactory):
     # This seems like it needs thought
     leads = {
@@ -413,12 +523,12 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
         d = {
             "ref": oref.normal(),
-            "titles": kwargs.get("titles", {"en": oref.normal(), "he": oref.he_normal()})
+            "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()})
         }
         if kwargs.get("leads"):
-            d["lead_titles"] = kwargs.get("leads")
+            d["lead_title"] = kwargs.get("lead")
         else:
-            d["lead_titles"] = cls.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"})
+            d["lead_title"] = cls.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"})
 
         if kwargs.get("versions"):
             d["versions"] = kwargs.get("versions")
@@ -456,9 +566,9 @@ class TextPassageStoryFactory(AbstractStoryFactory):
         from sefaria.utils.calendars import get_keyed_calendar_items
         cal = get_keyed_calendar_items()[key]
         ref = cal["ref"]
-        titles = cal["displayValue"]
-        leads = cal["title"]
-        return cls._generate_shared_story(ref=ref, leads=leads, titles=titles, **kwargs)
+        title = cal["displayValue"]
+        lead = cal["title"]
+        return cls._generate_shared_story(ref=ref, lead=lead, title=title, **kwargs)
 
     @classmethod
     def generate_from_user_history(cls, hist, **kwargs):
