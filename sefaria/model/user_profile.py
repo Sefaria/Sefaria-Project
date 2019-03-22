@@ -131,6 +131,47 @@ class UserHistory(abst.AbstractMongoRecord):
         # UserHistory API is only open to post for your uid
         pass
 
+    @classmethod
+    def save_history_item(cls, uid, hist, time_stamp=None):
+        if time_stamp is None:
+            time_stamp = epoch_time()
+        hist["uid"] = uid
+        if "he_ref" not in hist or "book" not in hist:
+            oref = Ref(hist["ref"])
+            hist["he_ref"] = oref.he_normal()
+            hist["book"] = oref.index.title
+        hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
+
+        action = hist.pop("action", None)
+        saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
+        uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
+            "saved": saved,
+            "server_time_stamp": hist["server_time_stamp"]
+        })
+        uh.save()
+        return uh
+
+    @staticmethod
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
+        query = {}
+        if uid is not None:
+            query["uid"] = uid
+        if oref is not None:
+            regex_list = oref.context_ref().regex(as_list=True)
+            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
+            query["$or"] = ref_clauses
+        if saved is not None:
+            query["saved"] = saved
+        if sheets is not None:
+            query["is_sheet"] = sheets
+        if secondary is not None:
+            query["secondary"] = secondary
+        if last_place is not None:
+            query["last_place"] = last_place
+        if serialized:
+            return [uh.contents() for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
+        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
+
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
@@ -434,7 +475,7 @@ class UserProfile(object):
 
     def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
         """
-
+        personal user history
         :param oref:
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
@@ -444,22 +485,9 @@ class UserProfile(object):
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-        query = {"uid": self.id}
-        if oref is not None:
-            regex_list = oref.context_ref().regex(as_list=True)
-            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
-            query["$or"] = ref_clauses
-        if saved is not None:
-            query["saved"] = saved
-        if sheets is not None:
-            query["is_sheet"] = sheets
-        if secondary is not None:
-            query["secondary"] = secondary
-        if last_place is not None:
-            query["last_place"] = last_place
-        if serialized:
-            return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
-        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
+
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
+                                            last_place=last_place, serialized=serialized, limit=limit)
 
     def to_DICT(self):
         """Return a json serializble dictionary this profile"""
