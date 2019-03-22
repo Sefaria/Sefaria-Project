@@ -656,7 +656,7 @@
 	    sjs.notificationsPage = 1;
 	    $('#notifications').bind('scroll', function() {
         	if($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) {
-         	   sjs.loadMoreNotifications();
+         	   sjs.loadMoreStories();
         	}
     	});
     	sjs.loadMoreStories = function() {

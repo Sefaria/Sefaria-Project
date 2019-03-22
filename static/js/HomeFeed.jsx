@@ -14,21 +14,23 @@ import Component from 'react-class';
 
   // This is a pseudo Component.  It uses "storyForm" to determine the component to render.
   // It's important that it's capitalized, so that React treats it as a component.
-function Story(props) {
-    const storyForms = {
-      newContent:   NewContentStory,
-      newIndex:     NewIndexStory,
-      newVersion:   NewVersionStory,
-      publishSheet: PublishSheetStory,
-      author:       AuthorStory,
-      textPassage:  TextPassageStory,
-      topic:        TopicStory,
-      topicList:    TopicListStory,
-      sheetList:    SheetListStory,
-      userSheets:   UserSheetsStory,
-      groupSheetList: GroupSheetListStory
+function storyForms() {
+    return {
+        newContent:     NewContentStory,
+        newIndex:       NewIndexStory,
+        newVersion:     NewVersionStory,
+        publishSheet:   PublishSheetStory,
+        author:         AuthorStory,
+        textPassage:    TextPassageStory,
+        topic:          TopicStory,
+        topicList:      TopicListStory,
+        sheetList:      SheetListStory,
+        userSheets:     UserSheetsStory,
+        groupSheetList: GroupSheetListStory
     };
-    const StoryForm = storyForms[props.storyForm];
+}
+function Story(props) {
+    const StoryForm = storyForms()[props.storyForm];
     return <StoryForm
                 storyForm={props.storyForm}
                 data={props.data}
@@ -95,7 +97,6 @@ HomeFeed.propTypes = {
   interfaceLang:  PropTypes.string
 };
 
-
 class StoryEditor extends Component {
   constructor(props) {
     super(props);
@@ -112,21 +113,21 @@ class StoryEditor extends Component {
   }
   componentDidMount() {
     $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
-    this.getMoreNotifications();
+    this.getMoreStories();
   }
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
     var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
     var margin = 600;
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-      this.getMoreNotifications();
+      this.getMoreStories();
     }
   }
-  getMoreNotifications() {
-    $.getJSON("/api/stories?only_global=1&page=" + this.state.page, this.loadMoreNotifications);
+  getMoreStories() {
+    $.getJSON("/api/stories?only_global=1&page=" + this.state.page, this.loadMoreStories);
     this.setState({loading: true});
   }
-  loadMoreNotifications(data) {
+  loadMoreStories(data) {
     if (data.count < data.page_size) {
       this.setState({loadedToEnd: true});
     }
@@ -276,23 +277,11 @@ StoryEditBar.propTypes = {
   story:             PropTypes.object
 };
 
-/*
-{this.state.updates.map(u =>
-    <SingleUpdate
-        type={u.type}
-        content={u.content}
-        date={u.date}
-        key={u._id}
-        id={u._id}
-        onDelete={this.onDelete}
-        submitting={this.state.submitting}
-    />
-)} */
 
 class NewStoryForm extends Component {
   constructor(props) {
     super(props);
-    this.state = {type: 'index', index: '', language: 'en', version: '', en: '', he: '', error: ''};
+    this.state = {type: 'newIndex', index: '', language: 'en', version: '', en: '', he: '', error: ''};
   }
   componentWillReceiveProps(nextProps) {
     this.setState({"error": nextProps.error});
@@ -348,9 +337,12 @@ class NewStoryForm extends Component {
     return (
       <form className="globalUpdateForm" onSubmit={this.handleReflect}>
         <div>
-          <input type="radio" name="type" value="newIndex" onChange={this.handleTypeChange} checked={this.state.type=="newIndex"}/>Index&nbsp;&nbsp;
-          <input type="radio" name="type" value="newVersion" onChange={this.handleTypeChange} checked={this.state.type=="newVersion"}/>Version&nbsp;&nbsp;
-          <input type="radio" name="type" value="newContent" onChange={this.handleTypeChange} checked={this.state.type=="newContent"}/>General&nbsp;&nbsp;
+            <label>
+                Story Type:
+                <select value={this.state.type} onChange={this.handleTypeChange}>
+                    {Object.entries(storyForms()).map(e => <option value={e[0]} key={e[0]}>{e[1].name.replace(/([a-z])([A-Z])/g, '$1 $2')}</option>)}
+                </select>
+            </label>
         </div>
         <div>
           {(this.state.type != "newContent")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
