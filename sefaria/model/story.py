@@ -65,7 +65,8 @@ class Story(abst.AbstractMongoRecord):
 
         if "ref" in d:
             oref = text.Ref(d["ref"])
-            d["index"] = oref.index.title
+            if "index" not in d:
+                d["index"] = oref.index.title
             d["text"] = {  # todo: should we allow this to be stored, alternatively?
                 "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).as_sized_string(),
                 "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).as_sized_string()

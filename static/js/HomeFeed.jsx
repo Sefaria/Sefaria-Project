@@ -380,55 +380,6 @@ NewStoryForm.propTypes = {
 };
 
 
-const NaturalTimeBlock = ({timestamp}) => (<div className="timeBlock smallText">
-          <span className="int-en">{ Sefaria.util.naturalTime(timestamp) } ago</span>
-          <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(timestamp) }</span>
-        </div>);
-
-const ReadMoreLink = ({url}) => (<div className="learnMoreLink smallText">
-            <a href={url}>
-                <span className="int-en">Read More ›</span>
-                <span className="int-he">קרא עוד ›</span>
-            </a>
-        </div>);
-
-const StoryTypeBlock = ({en, he}) => (<div className="storyTypeBlock sectionTitleText">
-            <span className="int-en">{en}</span>
-            <span className="int-he">{he}</span>
-        </div>);
-
-const StoryTitleBlock = ({en, he, url}) => {
-    if (url) {
-          return <div className="storyTitleBlock">
-                    <div className="storyTitle pageTitle">
-                        <a href={url}>
-                            <span className="int-en">{en}</span>
-                            <span className="int-he">{he}</span>
-                        </a>
-                    </div>
-                </div>;
-      } else {
-          return <div className="storyTitleBlock">
-                    <div className="storyTitle pageTitle">
-                        <span className="int-en">{en}</span>
-                        <span className="int-he">{he}</span>
-                    </div>
-                </div>;
-      }};
-
-const StoryBodyBlock = ({en, he, dangerously}) => {
-      if (dangerously) {
-        return (<div className="storyBody contentText">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
-            </div>);
-      } else {
-          return (<div className="storyBody contentText">
-              <span className="int-en">{en}</span>
-              <span className="int-he">{he}</span>
-            </div>);
-      }
-};
 
 class AbstractStory extends Component {
   storyClasses() {
@@ -489,12 +440,15 @@ class NewIndexStory extends AbstractStory {
       const url = this.url(title);
       const cardStyle = {"borderColor": this.indexColor(title)};
 
+
       return (
         <div className={this.storyClasses()} style={cardStyle}>
             <StoryTypeBlock en="New Text" he="טקסט חדש"/>
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
+            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>:""}
+            {this.props.data.ref?<ReadMoreLine ref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
         </div>);
     }
 }
@@ -519,6 +473,8 @@ class NewVersionStory extends AbstractStory {
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
+            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>:""}
+            {this.props.data.ref?<ReadMoreLine ref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
         </div>);
     }
 }
@@ -742,7 +698,6 @@ class SheetListStory extends AbstractStory {
     }
 }
 
-
 class PublishSheetStory extends AbstractStory {
   /* props.data: {
       publisher_id
@@ -826,9 +781,6 @@ class TextPassageStory extends AbstractStory {
 
     render() {
       const cardStyle = {"borderColor": this.indexColor(this.props.data.index)};
-      const historyObject = {
-          ref: this.props.data.ref,
-          versions: {} };
       const url = "/" + Sefaria.normRef(this.props.data.ref);
 
       return (
@@ -837,16 +789,7 @@ class TextPassageStory extends AbstractStory {
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
             <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>
-
-
-            <div className="bottomLine">
-                <ReadMoreLink url={url}/>
-                <SaveButton
-                    historyObject={historyObject}
-                    tooltip={true}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                />
-            </div>
+            <ReadMoreLine ref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>
         </div>
       );
     }
@@ -862,6 +805,79 @@ class TopicListStory extends AbstractStory {
 }
 
 
+const NaturalTimeBlock = ({timestamp}) => (<div className="timeBlock smallText">
+          <span className="int-en">{ Sefaria.util.naturalTime(timestamp) } ago</span>
+          <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(timestamp) }</span>
+        </div>);
+
+const ReadMoreLink = ({url}) => (<div className="learnMoreLink smallText">
+            <a href={url}>
+                <span className="int-en">Read More ›</span>
+                <span className="int-he">קרא עוד ›</span>
+            </a>
+        </div>);
+
+
+const StoryTypeBlock = ({en, he}) => (<div className="storyTypeBlock sectionTitleText">
+            <span className="int-en">{en}</span>
+            <span className="int-he">{he}</span>
+        </div>);
+
+const StoryTitleBlock = ({en, he, url}) => {
+    if (url) {
+          return <div className="storyTitleBlock">
+                    <div className="storyTitle pageTitle">
+                        <a href={url}>
+                            <span className="int-en">{en}</span>
+                            <span className="int-he">{he}</span>
+                        </a>
+                    </div>
+                </div>;
+      } else {
+          return <div className="storyTitleBlock">
+                    <div className="storyTitle pageTitle">
+                        <span className="int-en">{en}</span>
+                        <span className="int-he">{he}</span>
+                    </div>
+                </div>;
+      }};
+
+const StoryBodyBlock = ({en, he, dangerously}) => {
+      if (dangerously) {
+        return (<div className="storyBody contentText">
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
+            </div>);
+      } else {
+          return (<div className="storyBody contentText">
+              <span className="int-en">{en}</span>
+              <span className="int-he">{he}</span>
+            </div>);
+      }
+};
+class ReadMoreLine extends Component {
+    render() {
+      const historyObject = {
+          ref: this.props.ref,
+          versions: {} };
+      const url = "/" + Sefaria.normRef(this.props.ref);
+
+        return (
+            <div className="bottomLine">
+                <ReadMoreLink url={url}/>
+                <SaveButton
+                    historyObject={historyObject}
+                    tooltip={true}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                />
+            </div>);
+    }
+}
+ReadMoreLine.propTypes = {
+  ref:                  PropTypes.string,
+  toggleSignUpModal:    PropTypes.func,
+  versions:             PropTypes.object
+};
 
 module.exports.HomeFeed = HomeFeed;
 module.exports.StoryEditor = StoryEditor;
