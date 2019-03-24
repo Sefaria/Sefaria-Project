@@ -411,7 +411,7 @@
                                 return;
                             }
                             var source = ns.sources[e.getAttribute('data-ref')];
-                            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he"));
+                            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he")+"&utm_source=sef_linker");
                             if (mode == "popup-hover") {
                                 e.addEventListener('mouseover', function(event) {
                                     showPopup(this, mode);

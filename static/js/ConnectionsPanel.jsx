@@ -4,6 +4,7 @@ const {
   LoginPrompt,
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
+  SheetListing,
   Note,
   FeedbackBox,
 }                            = require('./Misc');
@@ -251,9 +252,7 @@ class ConnectionsPanel extends Component {
       else {
           return false
       }
-
   }
-
   render() {
     var content = null;
     if (!this.state.linksLoaded) {
@@ -278,6 +277,7 @@ class ConnectionsPanel extends Component {
                     showBooks={false}
                     multiPanel={this.props.multiPanel}
                     filter={this.props.filter}
+                    nodeRef={this.props.nodeRef}
                     contentLang={this.props.contentLang}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
@@ -297,6 +297,7 @@ class ConnectionsPanel extends Component {
                     category={this.props.connectionsCategory}
                     showBooks={true}
                     multiPanel={this.props.multiPanel}
+                    nodeRef={this.props.nodeRef}
                     contentLang={this.props.contentLang}
                     filter={this.props.filter}
                     setFilter={this.props.setFilter}
@@ -309,6 +310,7 @@ class ConnectionsPanel extends Component {
                     srefs={this.checkSrefs(this.props.srefs)}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
+                    nodeRef={this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     multiPanel={this.props.multiPanel}
                     contentLang={this.props.contentLang}
@@ -319,6 +321,7 @@ class ConnectionsPanel extends Component {
                     onNavigationClick={this.props.onNavigationClick}
                     onCompareClick={this.props.onCompareClick}
                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                    handleSheetClick={this.props.handleSheetClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
@@ -327,6 +330,7 @@ class ConnectionsPanel extends Component {
                   />);
 
     } else if (this.props.mode === "Sheets") {
+      var connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
       content = (<div>
                   <AddToSourceSheetBox
                     srefs={this.props.srefs}
@@ -344,6 +348,7 @@ class ConnectionsPanel extends Component {
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
                   <MySheetsList
                     srefs={this.props.srefs}
+                    connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
                   /> : null }
@@ -351,6 +356,7 @@ class ConnectionsPanel extends Component {
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
                   <PublicSheetsList
                     srefs={this.props.srefs}
+                    connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
                   /> : null }
@@ -583,11 +589,12 @@ class ConnectionsSummary extends Component {
   // If `category` is present, shows a single category, otherwise all categories.
   // If `showBooks`, show specific text counts beneath each category.
   render() {
-    var refs       = this.props.srefs;
-    var summary    = Sefaria.linkSummary(refs);
-    var oref       = Sefaria.ref(refs[0]);
-    var isTopLevel = !this.props.category;
-    var baseCat    = oref ? oref["categories"][0] : null;
+    var refs          = this.props.srefs;
+    var excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
+    var summary       = Sefaria.linkSummary(refs, excludedSheet);
+    var oref          = Sefaria.ref(refs[0]);
+    var isTopLevel    = !this.props.category;
+    var baseCat       = oref ? oref["categories"][0] : null;
 
     if (!summary) { return (<LoadingMessage />); }
 
@@ -656,14 +663,18 @@ class MySheetsList extends Component {
   // List of my sheets for a ref in the Sidebar
   render() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.map(function(sheet) {
+    var content = sheets.length ? sheets.filter(sheet => { 
+      // Don't show sheets as connections to themselves
+      return sheet.id !== this.props.connectedSheet;
+    }).map(sheet => {
       return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
 }
 MySheetsList.propTypes = {
-  srefs: PropTypes.array.isRequired,
+  srefs:          PropTypes.array.isRequired,
+  connectedSheet: PropTypes.string,
 };
 
 
@@ -671,10 +682,10 @@ class PublicSheetsList extends Component {
   // List of public sheets for a ref in the sidebar
   render() {
     var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.filter(function(sheet) {
-      // My sheets are show already in MySheetList
-      return sheet.owner !== Sefaria._uid;
-    }).map(function(sheet) {
+    var content = sheets.length ? sheets.filter(sheet => {
+      // My sheets are shown already in MySheetList
+      return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
+    }).map(sheet => {
       return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
@@ -682,63 +693,7 @@ class PublicSheetsList extends Component {
 }
 PublicSheetsList.propTypes = {
   srefs: PropTypes.array.isRequired,
-};
-
-
-class SheetListing extends Component {
-  // A source sheet listed in the Sidebar
-  handleSheetClick(e, sheet) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
-      //console.log("Sheet Click Handled");
-    if (Sefaria._uid == this.props.sheet.owner) {
-      Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
-    } else {
-      Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
-    }
-    this.props.handleSheetClick(e,sheet);
-  }
-  handleSheetOwnerClick() {
-    Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
-  }
-  handleSheetTagClick(tag) {
-    Sefaria.track.event("Tools", "Sheet Tag Click", tag);
-  }
-  render() {
-    var sheet = this.props.sheet;
-    var viewsIcon = sheet.public ?
-      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
-      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
-
-    return (
-      <div className="sheet" key={sheet.sheetUrl}>
-        <div className="sheetInfo">
-          <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
-              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
-            </a>
-            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
-          </div>
-          {viewsIcon}
-        </div>
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
-          <span className="sheetTitleText">{sheet.title}</span>
-        </a>
-        <div className="sheetTags">
-          {sheet.tags.map(function(tag, i) {
-            var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-            return (<a href={"/sheets/tags/" + tag}
-                        target="_blank"
-                        className="sheetTag"
-                        key={tag}
-                        onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
-          }.bind(this))}
-        </div>
-      </div>);
-  }
-}
-SheetListing.propTypes = {
-  sheet: PropTypes.object.isRequired,
+  connectedSheet: PropTypes.string,
 };
 
 

@@ -426,8 +426,6 @@ def groups_post_api(request, group_name=None):
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
 
-			from pprint import pprint
-			pprint(group)
 			existing.load_from_dict(group)
 			existing.save()
 		else:
@@ -595,7 +593,9 @@ def save_sheet_api(request):
 		sheet["sources"] = cleaned_sources
 
 		sheet["title"] = bleach_text(sheet["title"])
-		sheet["summary"] = bleach_text(sheet["summary"])
+
+		if "summary" in sheet:
+			sheet["summary"] = bleach_text(sheet["summary"])
 
 		if sheet.get("group", None):
 			# Quietly enforce group permissions

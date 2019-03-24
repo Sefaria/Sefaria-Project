@@ -9,6 +9,7 @@ from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import link as link
+from . import group as group
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -155,6 +156,7 @@ class TocTree(object):
         self._root.add_primary_titles("TOC", u"שרש")
         self._path_hash = {}
         self._library = lib
+        self._groups_in_library = []
 
         # Store first section ref.
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
@@ -194,6 +196,20 @@ class TocTree(object):
                         break # Don't consider a category incomplete for containing incomplete commentaries
 
             self._path_hash[tuple(i.categories + [i.title])] = node
+
+        # Include Groups in TOC that has a `toc` field set
+        group_set = group.GroupSet({"toc": {"$exists": True}})
+        for g in group_set:
+            self._groups_in_library.append(g.name)
+            node = TocGroupNode(g)
+            categories = node.categories
+            cat  = self.lookup(node.categories)
+            if not cat:
+                logger.warning(u"Failed to find category for {}".format(categories))
+                continue
+            cat.append(node)
+           
+            self._path_hash[tuple(node.categories + [g.name])] = node
 
         self._sort()
 
@@ -258,6 +274,9 @@ class TocTree(object):
 
     def get_serialized_toc(self):
         return self._root.serialize()["contents"]
+
+    def get_groups_in_library(self):
+        return self._groups_in_library
 
     def flatten(self):
         """
@@ -425,6 +444,50 @@ class TocTextIndex(TocNode):
         "he": "heTitle"
     }
 
+
+class TocGroupNode(TocNode):
+    """
+    categories: Array(2)
+    name: "Some Group"
+    isGroup: true
+    enComplete: true
+    heComplete: true
+    """
+    def __init__(self, group_object):
+        self._group_object = group_object
+        group_contents = group_object.contents()
+        serial = {
+            "categories": group_contents["toc"]["categories"],
+            "name": group_contents["name"],
+            "title": group_contents["toc"]["title"],
+            "heTitle": group_contents["toc"]["heTitle"], 
+            "isGroup": True,
+            "enComplete": True,
+            "heComplete": True,
+        }
+        super(TocGroupNode, self).__init__(serial)
+
+    def get_group_object(self):
+        return self._group_object
+
+    required_param_keys = [
+        "categories",
+        "name",
+        "title",
+        "heTitle",
+        "isGroup",
+    ]
+
+    optional_param_keys = [
+        "order",
+        "heComplete",
+        "enComplete",
+    ]
+
+    title_attrs = {
+        "en": "title",
+        "he": "heTitle",
+    }
 
 
 # Giant list ordering or categories
