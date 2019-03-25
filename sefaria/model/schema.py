@@ -588,7 +588,7 @@ class TreeNode(object):
         :param child: TreeNode
         :return: Integer
         """
-        if child.parent.is_virtual:
+        if child.parent and child.parent.is_virtual:
             return child.parent.get_child_order(child)
         return self.all_children().index(child) + 1
 
@@ -598,8 +598,9 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     A tree node that has a collection of titles - as contained in a TitleGroup instance.
     In this class, node titles, terms, 'default', and combined titles are handled.
     """
-    after_title_delimiter_re = ur"(?:[,.: \r\n]|(?:to))+"  # should be an arg?  \r\n are for html matches
-    after_address_delimiter_ref = ur"[,.: \r\n]+"
+
+    after_title_delimiter_re = ur"(?:[,.:\s]|(?:to|\u05d5?\u05d1?(\u05e1\u05d5\u05e3|\u05e8\u05d9\u05e9)))+"  # should be an arg?  \r\n are for html matches
+    after_address_delimiter_ref = ur"[,.:\s]+"
     title_separators = [u", "]
 
     def __init__(self, serial=None, **kwargs):
@@ -908,7 +909,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += ur'(?:(?:' + addr_regex + ur')|(?:[\[({]' + addr_regex + ur'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-            reg += ur"(?=[.,:;?! })\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
+            reg += ur"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else ur"(?=\W|$)" if not kwargs.get("terminated") else ur"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
@@ -928,7 +929,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
             #TODO However, most false positives will be filtered out in library._get_ref_from_match()
 
-            reg += ur"(?:\s*[-\u2010-\u2015\u05BE]\s*"  # maybe there's a dash (either n or m dash) and a range
+            reg += ur"(?:\s*([-\u2010-\u2015\u05be]|to)\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += ur"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0" if not kwargs.get("for_js") else None
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
@@ -1922,8 +1923,8 @@ class AddressTalmud(AddressType):
     :class:`AddressType` for Talmud style Daf + Amud addresses
     """
     section_patterns = {
-        "en": None,
-        "he": ur"(\u05d3[\u05e3\u05e4\u05f3']\s+)"			# Daf, spelled with peh, peh sofit, geresh, or single quote
+        "en": ur"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
 
     def _core_regex(self, lang, group_id=None):
@@ -2001,9 +2002,9 @@ class AddressTalmud(AddressType):
             else:
                 punctuation = kwargs.get("punctuation", True)
                 if i > daf_num * 2:
-                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05D1"
+                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d1"
                 else:
-                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05D0"
+                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d0"
 
         return daf
 
@@ -2078,20 +2079,29 @@ class AddressAliyah(AddressInteger):
 
 class AddressPerek(AddressInteger):
     section_patterns = {
-        "en": ur"""(?:(?:Chapter|chapter|Perek|perek|s\.|ch\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": ur"""(?:
-            \u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
-            |\u05e4\u05e8\u05e7(?:\u05d9\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
+        "en": ur"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?\u05e4(?:"|\u05f4|''|'\s)                  # Peh (for 'perek') maybe followed by a quote of some sort
+        |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
+        )"""
+    }
+    
+
+class AddressPasuk(AddressInteger):
+    section_patterns = {
+        "en": ur"""(?:(?:([Vv](erses?|[vs]?\.)|[Pp]ass?u[kq]))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?                                        # optional ב in front
+            (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7\s*)    #pasuk spelled out, with a space after
+            |(?:\u05e4(?:["\u05f4]|'')?)         # or Peh (for 'pasuk') maybe followed by a quote of some sort
         )"""
     }
 
 
 class AddressMishnah(AddressInteger):
     section_patterns = {
-        "en": None,
-        "he": ur"""(?:
-            (?:\u05de\u05e9\u05e0\u05d4\s)			# Mishna spelled out, with a space after
-            |(?:\u05de(?:"|\u05f4|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
+        "en": ur"""(?:(?:[Mm](ishnah?|s?\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?                                                   # optional ב in front
+            (?:\u05de\u05b4?\u05e9\u05b0?\u05c1?\u05e0\u05b8?\u05d4\s)			# Mishna spelled out, with a space after
+            |(?:\u05de(?:["\u05f4]|'')?)				# or Mem (for 'mishna') maybe followed by a quote of some sort
         )"""
     }
 
@@ -2102,10 +2112,9 @@ class AddressVolume(AddressInteger):
     """
 
     section_patterns = {
-        "en": ur"""(?:(?:Volume|volume)?\s+)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": ur"""
-        (?:
-          (?:\u05d7(?:\u05dc\u05e7|'|\u05f3)\s+)  # Helek - spelled out or followed by a ' or a geresh - followed by space
+        "en": ur"""(?:(?:[Vv](olumes?|\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?                                 # optional ב in front
+        (?:\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
          |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
         )
         """
@@ -2114,10 +2123,10 @@ class AddressVolume(AddressInteger):
 
 class AddressSiman(AddressInteger):
     section_patterns = {
-        "en": None,
-        "he": ur"""(?:
-            (?:\u05e1\u05d9\u05de\u05df\s+)			# Siman spelled out, with a space after
-            |(?:\u05e1\u05d9(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
+        "en": ur"""(?:(?:[Ss]iman)?\s*)""",
+        "he": ur"""(?:\u05d1?
+            (?:\u05e1\u05b4?\u05d9\u05de\u05b8?\u05df\s+)			# Siman spelled out with optional nikud, with a space after
+            |(?:\u05e1\u05d9(?:["\u05f4'\u05f3](?:['\u05f3]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
         )"""
     }
 
@@ -2127,19 +2136,25 @@ class AddressHalakhah(AddressInteger):
     :class:`AddressType` for Halakhah/הלכה addresses
     """
     section_patterns = {
-        "en": ur"""(?:(?:Halakhah|halakhah)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": ur"""(?:
-            (?:\u05d4\u05dc\u05db(?:\u05d4|\u05d5\u05ea)\s+)			# Halakhah spelled out, with a space after
-            |(?:\u05d4\u05dc?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\u05db|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+        "en": ur"""(?:(?:[Hh]ala[ck]hah?)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1? 
+            (?:\u05d4\u05bb?\u05dc\u05b8?\u05db(?:\u05b8?\u05d4|\u05d5\u05b9?\u05ea)\s+)			# Halakhah spelled out, with a space after
+            |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3](?:['\u05f3\u05db]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
 
 
 class AddressSeif(AddressInteger):
     section_patterns = {
-        "en": None,
-        "he": ur"""(?:
-            (?:\u05e1\u05e2\u05d9\u05e3\s+(?:\u05e7\u05d8\u05df)?)			# Seif spelled out, with a space after or Seif katan spelled out
-            |(?:\u05e1(?:\u05e2|\u05e2\u05d9|\u05e7)?(?:"|\u05f4|['\u05f3](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
+        "en": ur"""(?:(?:[Ss][ae]if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur"""(?:\u05d1?
+            (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+(?:\u05e7\u05d8\u05df)?)			# Seif spelled out, with a space after or Seif katan spelled out or with nikud
+            |(?:\u05e1(?:\u05e2\u05d9?|\u05e7)?(?:['\u05f3"\u05f4](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
         )"""
+    }
+
+class AddressSection(AddressInteger):
+    section_patterns = {
+        "en": ur"""(?:(?:([Ss]ections?|§)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": ur""""""
     }

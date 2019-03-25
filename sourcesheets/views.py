@@ -36,7 +36,7 @@ from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
 from reader.views import catchall
-from sefaria.sheets import clean_source
+from sefaria.sheets import clean_source, bleach_text
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -594,6 +594,9 @@ def save_sheet_api(request):
 			cleaned_sources.append(clean_source(source))
 		sheet["sources"] = cleaned_sources
 
+		sheet["title"] = bleach_text(sheet["title"])
+		sheet["summary"] = bleach_text(sheet["summary"])
+
 		if sheet.get("group", None):
 			# Quietly enforce group permissions
 			if sheet["group"] not in [g["name"] for g in get_user_groups(user.id)]:
@@ -1000,7 +1003,7 @@ def export_to_drive(request, credential, sheet_id):
 	"""
 
 	http = credential.authorize(httplib2.Http())
-	service = build('drive', 'v3', http=http)
+	service = build('drive', 'v3', http=http, cache_discovery=False)
 
 	sheet = get_sheet(sheet_id)
 	if 'error' in sheet:

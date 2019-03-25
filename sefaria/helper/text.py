@@ -281,7 +281,7 @@ def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, u
     modify_text_by_function(title, vtitle, lang, replacer, uid)
 
 
-def replace_roman_numerals(text, allow_lowercase=False):
+def replace_roman_numerals(text, allow_lowercase=False, only_lowercase=False):
     """
     Replaces any roman numerals in 'text' with digits.
     Currently only looks for a roman numeral followed by a comma or period, then a space, then a digit.
@@ -291,8 +291,11 @@ def replace_roman_numerals(text, allow_lowercase=False):
     be rewritten as "(5:15)". 
     """
     import roman
-    flag = re.I if allow_lowercase else 0
-    regex = re.compile(u"((^|[{\[( ])[{\[( ]*)(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))($|[.,;\])}: ]+)(\d)?", flag)
+    if only_lowercase:
+        regex = re.compile(u"((^|[{\[( ])[{\[( ]*)(m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3}))(\. ?)(\d)?")
+    else:
+        flag = re.I if allow_lowercase else 0
+        regex = re.compile(u"((^|[{\[( ])[{\[( ]*)(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))($|[.,;\])}: ]+)(\d)?", flag)
 
 
     def replace_roman_numerals_in_match(m):

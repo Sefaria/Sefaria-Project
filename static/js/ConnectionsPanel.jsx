@@ -31,6 +31,7 @@ import Component             from 'react-class';
 class ConnectionsPanel extends Component {
   constructor(props) {
     super(props);
+    this._savedHistorySegments = new Set();
     this.state = {
       flashMessage: null,
       currObjectVersions: {en: null, he: null},
@@ -42,9 +43,12 @@ class ConnectionsPanel extends Component {
     this._isMounted = true;
     this.loadData();
     this.getCurrentVersions();
+    this.debouncedCheckVisibleSegments = Sefaria.util.debounce(this.checkVisibleSegments, 100);
+    this.addScrollListener();
   }
   componentWillUnmount() {
     this._isMounted = false;
+    this.removeScrollListener();
   }
   componentDidUpdate(prevProps, prevState) {
     if (!prevProps.srefs.compare(this.props.srefs)) {
@@ -70,6 +74,69 @@ class ConnectionsPanel extends Component {
         prevProps.srefs[0]            !== this.props.srefs[0]) {
       this.getCurrentVersions();
     }
+
+    if (prevProps.mode !== 'TextList' && this.props.mode === 'TextList') {
+      this.removeScrollListener();
+      this.addScrollListener();
+    }
+  }
+  addScrollListener() {
+    this.$scrollView = $(".connectionsPanel .texts");
+    if (this.$scrollView[0]) {
+      this.$scrollView[0].addEventListener("scroll", this.handleScroll);
+    }
+  }
+  removeScrollListener() {
+    if (!!this.$scrollView && this.$scrollView[0]) {
+      this.$scrollView[0].removeEventListener("scroll", this.handleScroll);
+    }
+  }
+  handleScroll(event) {
+    this.debouncedCheckVisibleSegments();
+  }
+  checkVisibleSegments() {
+    if (!this._isMounted || !this.props.filter || !this.props.filter.length) { return; }
+    const initialFilter = this.props.filter;
+    const initialRefs = this.props.srefs;
+    this.$scrollView.find(".textListTextRangeBox .textRange").each((i, element) => {
+      if (!this.isSegmentVisible(element)) { return; }
+      const callback = this.onIntentTimer.bind(null, element, initialFilter, initialRefs);
+      this.props.checkIntentTimer(null, callback);  // instead of saving timer, we want to have multiple timers running because multiple segments can be on screen
+    });
+  }
+  onIntentTimer(element, initialFilter, initialRefs) {
+    if (
+      !this._isMounted                ||
+      !this.isSegmentVisible(element) ||
+      this.didFilterChange(initialFilter, initialRefs, this.props.filter, this.props.srefs)
+    ) { return; }
+    const ref = element.getAttribute('data-ref');
+    if (this._savedHistorySegments.has(ref)) { return; }
+    const parsedRef = Sefaria.parseRef(ref);
+    // TODO: add version info once we support that in links
+    Sefaria.saveUserHistory({
+      ref,
+      versions: {en: null, he: null},
+      book: parsedRef.book,
+      language: this.props.contentLang,
+      secondary: true,
+    });
+    this._savedHistorySegments.add(ref);
+  }
+  isSegmentVisible(segment) {
+    const threshold = 100;
+    const $segment = $(segment);
+    const top = $segment.offset().top - this.$scrollView.offset().top;
+    const bottom = $segment.outerHeight() + top;
+    return top < this.$scrollView.outerHeight() - threshold && bottom > threshold;
+  }
+  didFilterChange(prevFilter, prevRefs, nextFilter, nextRefs) {
+    if (
+      !prevFilter || !nextFilter ||
+      !prevFilter.length || !nextFilter.length ||
+      prevFilter[0] !== nextFilter[0]
+    ) { return true; }
+    return !prevRefs.compare(nextRefs);
   }
   sectionRef() {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
@@ -256,7 +323,7 @@ class ConnectionsPanel extends Component {
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
                     selectedWords={this.props.selectedWords}
-                    checkIntentTimer={this.props.checkIntentTimer}
+                    checkVisibleSegments={this.checkVisibleSegments}
                   />);
 
     } else if (this.props.mode === "Sheets") {
@@ -695,16 +762,20 @@ class ToolsList extends Component {
     }.bind(this) : null;
 
     var addTranslation = function() {
-      var nextParam = "?next=" + Sefaria.util.currentPath();
-      Sefaria.track.event("Tools", "Add Translation Click", this.props.srefs[0],
-          {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
-      );
+      if (!Sefaria._uid) { this.props.toggleSignUpModal() }
+
+      else {
+          var nextParam = "?next=" + Sefaria.util.currentPath();
+          Sefaria.track.event("Tools", "Add Translation Click", this.props.srefs[0],
+              {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
+          );
+      }
     }.bind(this);
 
     return (
       <div>
         <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
-        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : addTranslation} />
+        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
