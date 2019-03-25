@@ -1,4 +1,7 @@
 # encoding=utf-8
+import django
+django.setup()
+
 from sefaria.model import *
 from sefaria.helper.schema import change_node_structure
 
@@ -26,7 +29,8 @@ def change_sa():
     :return:
     '''
 
-    SA_ind = [u'Shulchan Arukh, Choshen Mishpat', u'Shulchan Arukh, Even HaEzer', u'Shulchan Arukh, Orach Chayim']
+    SA_ind = [u'Shulchan Arukh, Choshen Mishpat', u'Shulchan Arukh, Even HaEzer',
+              u'Shulchan Arukh, Orach Chayim', u"Shulchan Arukh, Yoreh De'ah"]
     for title in SA_ind:
         node = library.get_schema_node(title)
         change_node_structure(node, node.sectionNames, address_types=['Siman', 'Seif'])
@@ -42,7 +46,20 @@ def change_tur():
         change_node_structure(tur, tur.sectionNames, address_types=['Siman', 'Seif'])
 
 
+def change_tanakh():
+    '''
+    changes addressTypes of all Tanakh books to ['Perek', 'Pasuk']
+    :return:
+    '''
+
+    tanakh = library.get_indexes_in_category("Tanakh")
+    for book in tanakh:
+        node = library.get_schema_node(book)
+        change_node_structure(node, node.sectionNames, address_types=['Perek', 'Pasuk'])
+
+
 if __name__ == "__main__":
-    change_mishneh_torah()
-    change_sa()
-    change_tur()
+    # change_mishneh_torah()
+    # change_sa()
+    # change_tur()
+    change_tanakh()
