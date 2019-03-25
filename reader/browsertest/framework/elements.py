@@ -262,7 +262,7 @@ class AbstractTest(object):
         ttl.click()
 
     def click_chapter(self, cptr):
-        chapter_selector = '#panel-0 > div > div.content > div > div:nth-child(3) > div > div.tocLevel > div > div > div > a:nth-child('+ cptr + ')'
+        chapter_selector = 'div.content div div:nth-child(3) div div.tocLevel div div div a:nth-child('+ cptr + ')'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
         )
@@ -375,6 +375,11 @@ class AbstractTest(object):
 
     def click_notes_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
+        try:
+            self.close_join_sefaria_popup()
+        except NoSuchElementException:
+            # you're signed in which means you opened notes. go back to resources
+            self.click_resources_on_sidebar()
 
     def click_about_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
@@ -383,7 +388,7 @@ class AbstractTest(object):
         self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
 
     def click_tools_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(6) > span:nth-child(2)')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(7) > span:nth-child(2)')
 
     def click_share_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
@@ -393,6 +398,10 @@ class AbstractTest(object):
 
     def click_add_connection_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
+
+    def close_join_sefaria_popup(self):
+        self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
+        self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
 
     def close_popup_with_accept(self):
         try:
@@ -544,16 +553,16 @@ class AbstractTest(object):
 
 
     def click_youtube_link(self):
-        self.click_object_by_css_selector('.last > a:nth-child(6) > span:nth-child(1)')
+        self.click_object_by_css_selector('.last > a:nth-child(7) > span:nth-child(1)')
 
     def click_blog_link(self):
-        self.click_object_by_css_selector('a.outOfAppLink:nth-child(8) > span:nth-child(1)')
+        self.click_object_by_css_selector('.last > a:nth-child(8) > span:nth-child(1)')
 
-    def click_forum_link(self):
-        self.click_object_by_css_selector('a.outOfAppLink:nth-child(9) > span:nth-child(1)')
+    def click_instagram_link(self):
+        self.click_object_by_css_selector('.last > a:nth-child(10) > span:nth-child(1)')
 
     def click_email_link(self):
-        self.click_object_by_css_selector('a.outOfAppLink:nth-child(10) > span:nth-child(1)')
+        self.click_object_by_css_selector('.last > a:nth-child(11) > span:nth-child(1)')
 
     def click_sidebar_email_link(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
@@ -569,7 +578,7 @@ class AbstractTest(object):
 
 
     def toggle_on_text_settings(self):
-        self.click_object_by_css_selector('#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.rightButtons > div > img')
+        self.click_object_by_css_selector('#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.rightButtons > div:nth-child(2) > img')
 
     def toggle_off_text_settings(self):
         self.click_object_by_css_selector("#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.leftButtons > a")
@@ -692,9 +701,6 @@ class AbstractTest(object):
     def is_vocalization_toggleSet_displayed(self):
         return self.is_object_displayed("div[class='toggleSet vowels']")
 
-    def is_sidebar_recent_title_displayed(self):
-        return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(1) > h2 > span.int-en')
-
     def is_sidebar_browse_title_displayed(self):
         return self.is_object_displayed('#panel-1 > div > div.content > div > div:nth-child(2) > h2 > span.int-en')
 
@@ -799,8 +805,8 @@ class AbstractTest(object):
 
     def click_masechet_and_chapter(self, masechet, cptr):
         #The Masechtot and Chapters 1 based index
-        masechet_selector = '#panel-0 > div > div.content > div > div:nth-child(3) > div > div.tocLevel > div:nth-child(' + masechet + ') > span > span.en > i'
-        chapter_selector = '#panel-0 > div > div.content > div > div:nth-child(3) > div > div.tocLevel > div:nth-child(' + masechet + ') > div > div > a:nth-child(' + cptr + ')'
+        masechet_selector = 'div.content div div:nth-child(3) div div.tocContent div.tocLevel div:nth-child(' + masechet + ') span span.en i'
+        chapter_selector = 'div.content div div:nth-child(3) div div.tocContent div.tocLevel div:nth-child(' + masechet + ') div a:nth-child(' + cptr + ')'
 
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, masechet_selector))
@@ -1018,8 +1024,9 @@ class AbstractTest(object):
     def scroll_reader_panel_to_bottom(self):
         # todo: untested
         # todo: handle multiple panels
+        # jiggle the screen after scrolling to coerce the next section to load
         self.driver.execute_script(
-            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight;"
+            "var a = document.getElementsByClassName('textColumn')[0]; a.scrollTop = a.scrollHeight; setTimeout(function() { a.scrollTop = a.scrollHeight - 700; }, 100);"
         )
         return self
 
