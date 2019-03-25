@@ -36,7 +36,7 @@ from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
 from reader.views import catchall
-from sefaria.sheets import clean_source
+from sefaria.sheets import clean_source, bleach_text
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -426,8 +426,6 @@ def groups_post_api(request, group_name=None):
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
 
-			from pprint import pprint
-			pprint(group)
 			existing.load_from_dict(group)
 			existing.save()
 		else:
@@ -593,6 +591,11 @@ def save_sheet_api(request):
 		for source in sheet["sources"]:
 			cleaned_sources.append(clean_source(source))
 		sheet["sources"] = cleaned_sources
+
+		sheet["title"] = bleach_text(sheet["title"])
+
+		if "summary" in sheet:
+			sheet["summary"] = bleach_text(sheet["summary"])
 
 		if sheet.get("group", None):
 			# Quietly enforce group permissions

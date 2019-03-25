@@ -87,6 +87,7 @@ urlpatterns += [
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
+    url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
 

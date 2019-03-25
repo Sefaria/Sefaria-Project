@@ -36,8 +36,8 @@ class SheetsNav extends Component {
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   }
   render() {
-    var enTitle = this.props.tag || "Source Sheets";
-    var heTitle = this.props.tag || "דפי מקורות";
+    var enTitle = this.props.tag ? (this.props.tag == "sefaria-groups" ? null : this.props.tag) : "Source Sheets";
+    var heTitle = Sefaria.hebrewTerm(enTitle);
 
     if (this.props.tag == "My Sheets") {
       var content = (<MySheetsPage
@@ -60,7 +60,11 @@ class SheetsNav extends Component {
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
                         group={this.props.group}
-                        width={this.state.width} />);
+                        setGroupTag={this.props.setGroupTag}
+                        tag={this.props.groupTag}
+                        width={this.state.width}
+                        toggleLanguage={this.props.toggleLanguage}
+                        interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage
@@ -87,25 +91,27 @@ class SheetsNav extends Component {
                  (<div className="readerNavTop searchOnly" key="navTop">
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-                    <div className="readerOptions"></div>
                     <h2>
                       <span className="int-en">{enTitle}</span>
                       <span className="int-he">{heTitle}</span>
                     </h2>
+                    <div className="readerOptions"></div>
                   </div>)}
               {content}
             </div>);
   }
 }
 SheetsNav.propTypes = {
-  multiPanel:      PropTypes.bool,
   tag:             PropTypes.string,
   tagSort:         PropTypes.string,
   close:           PropTypes.func.isRequired,
   openNav:         PropTypes.func.isRequired,
   setSheetTag:     PropTypes.func.isRequired,
   setSheetTagSort: PropTypes.func.isRequired,
-  hideNavHeader:   PropTypes.bool
+  toggleLanguage:  PropTypes.func.isRequired,
+  hideNavHeader:   PropTypes.bool,
+  multiPanel:      PropTypes.bool,
+  interfaceLang:   PropTypes.string,
 };
 
 

@@ -258,6 +258,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 
     return panel
 
+
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
@@ -650,6 +651,7 @@ def get_group_page(request, group, authenticated):
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
         "initialGroup":     group,
+        "initialGroupTag":  request.GET.get("tag", None)
     })
     group = GroupSet({"name": group})
     if not len(group):
@@ -1606,7 +1608,7 @@ def shape_api(request, title):
                     "length": prev_shape["length"],
                     "chapters": [prev_shape],
                     "book": prev_shape["book"],
-                    "heBook": prev_shape["heBook"],               
+                    "heBook": prev_shape["heBook"],
                 }
                 complex_book_in_progress["chapters"].append(shape)
                 complex_book_in_progress["length"] += shape["length"]
@@ -1700,7 +1702,8 @@ def links_api(request, link_id_or_ref=None):
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
-        return jsonResponse(get_links(link_id_or_ref, with_text), callback)
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if request.method == "POST":
         def _internal_do_post(request, link, uid, **kwargs):
@@ -1888,7 +1891,7 @@ def related_api(request, tref):
         response = {"error": "You must be logged in to access private content."}
     else:
         response = {
-            "links": get_links(tref, with_text=False),
+            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
         }
@@ -3005,30 +3008,44 @@ def profile_sync_api(request):
                     ret["settings"] = profile.settings
             elif field == "user_history":
                 for hist in field_data:
-                    hist["uid"] = request.user.id
-                    if "he_ref" not in hist or "book" not in hist:
-                        oref = Ref(hist["ref"])
-                        hist["he_ref"] = oref.he_normal()
-                        hist["book"] = oref.index.title
-                    hist["server_time_stamp"] = now if "server_time_stamp" not in hist else hist[
-                        "server_time_stamp"]  # DEBUG: helpful to include this field for debugging
-
-                    action = hist.pop("action", None)
-                    saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
-                    uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
-                        "saved": saved,
-                        "server_time_stamp": hist["server_time_stamp"]
-                    })
-                    uh.save()
+                    uh = UserHistory.save_history_item(request.user.id, hist, now)
                     ret["created"] = uh.contents(for_api=True)
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def get_url_params_user_history(request):
+    saved = request.GET.get("saved", None)
+    if saved is not None:
+        saved = bool(int(saved))
+    secondary = request.GET.get("secondary", None)
+    if secondary is not None:
+        secondary = bool(int(secondary))
+    last_place = request.GET.get("last_place", None)
+    if last_place is not None:
+        last_place = bool(int(last_place))
+    tref = request.GET.get("tref", None)
+    oref = Ref(tref) if tref else None
+    return saved, secondary, last_place, oref
+
+
+def saved_history_for_ref(request):
+    """
+    GET API for saved history of a ref
+    :tref: Ref associated with history item
+    """
+    if request.method == "GET":
+        _, _, _, oref = get_url_params_user_history(request)
+        if oref is None:
+            return jsonResponse({"error": "Must specify 'tref' param"})
+        return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def profile_get_user_history(request):
     """
-    GET API for user history. optional URL params are
+    GET API for user history for a particular user. optional URL params are
     :saved: bool. True if you only want saved items. None if you dont care
     :secondary: bool. True if you only want secondary items. None if you dont care
     :tref: Ref associated with history item
@@ -3040,17 +3057,7 @@ def profile_get_user_history(request):
         history = json.loads(urlparse.unquote(request.COOKIES.get("user_history", '[]')))
         return jsonResponse(history + recents)
     if request.method == "GET":
-        saved = request.GET.get("saved", None)
-        if saved is not None:
-            saved = bool(int(saved))
-        secondary = request.GET.get("secondary", None)
-        if secondary is not None:
-            secondary = bool(int(secondary))
-        last_place = request.GET.get("last_place", None)
-        if last_place is not None:
-            last_place = bool(int(last_place))
-        tref = request.GET.get("tref", None)
-        oref = Ref(tref) if tref else None
+        saved, secondary, last_place, oref = get_url_params_user_history(request)
         user = UserProfile(id=request.user.id)
         return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})

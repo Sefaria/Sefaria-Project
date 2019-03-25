@@ -1,4 +1,5 @@
 const {
+  LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
   SheetTagLink,
@@ -17,15 +18,33 @@ class GroupPage extends Component {
   constructor(props) {
     super(props);
 
+    this.showTagsByDefault = this.props.group == "גיליונות נחמה";
+
     this.state = {
-      showTags: false,
-      sheetFilterTag: null,
+      showTags: this.showTagsByDefault,
+      sheetFilterTag: this.props.tag,
       sheetSort: "date",
       tab: "sheets"
     };
   }
   componentDidMount() {
     this.ensureData();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (!this.state.showTags && prevState.showTags && $(".content").scrollTop() > 570) {
+      $(".content").scrollTop(570);
+    }
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.tag !== this.state.sheetFilterTag) {
+      this.setState({sheetFilterTag: nextProps.tag});
+      if (this.showTagsByDefault && nextProps.tag == null) {
+        this.setState({showTags: true});
+      }
+      if (nextProps.tag !== null) {
+        this.setState({showTags: false});
+      }
+    }
   }
   onDataLoad(data) {
     this.forceUpdate();
@@ -74,14 +93,21 @@ class GroupPage extends Component {
     this.setState({tab: tab});
   }
   toggleSheetTags() {
-    this.state.showTags ? this.setState({showTags: false}) : this.setState({showTags: true});
+    if (this.state.showTags) {
+      this.setState({showTags: false});
+    } else {
+      this.setState({showTags: true, sheetFilterTag: null});
+      this.props.setGroupTag(null);
+    }
   }
   setSheetTag(tag) {
     this.setState({sheetFilterTag: tag, showTags: false});
+    this.props.setGroupTag(tag);
   }
   handleTagButtonClick (tag) {
     if (tag == this.state.sheetFilterTag) {
       this.setState({sheetFilterTag: null, showTags: false});
+      this.props.setGroupTag(null);
     } else {
       this.setSheetTag(tag);
     }
@@ -133,6 +159,19 @@ class GroupPage extends Component {
         </div>);
       }.bind(this)) : null;
 
+    if (this.props.group == "גיליונות נחמה"){
+      var parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
+
+      groupTagList.sort( function (a, b) {
+        var A = a["key"], B = b["key"];
+        var orderA = parshaOrder.indexOf(A), orderB = parshaOrder.indexOf(B);
+
+        if (orderA == -1) { return 1; }
+        if (orderB == -1) { return -1; }
+        return orderA > orderB ? 1 : -1;
+      });
+    }
+
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
     }.bind(this)) : sheets;
@@ -156,16 +195,28 @@ class GroupPage extends Component {
 
                 <div className="groupInfo">
                   <h1>
-                    <span className="int-en">{this.props.group}</span>
-                    <span className="int-he">{this.props.group}</span>
+                    {group.toc ? 
+                    <span>
+                      { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                      <span className="en">{group.toc.title}</span>
+                      <span className="he">{group.toc.heTitle}</span>
+                    </span>
+                    : group.name }
                   </h1>
 
                   {group.websiteUrl ?
                     <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
                     : null }
 
-                  {group.description ?
-                    <div className="groupDescription">{group.description}</div>
+                  {group.description || group.toc ?
+                    <div className="groupDescription">
+                      {group.toc ? 
+                      <span>
+                        <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
+                        <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
+                      </span>
+                      : group.description }
+                    </div>
                     : null }
                 </div>
 
@@ -212,11 +263,11 @@ class GroupPage extends Component {
                     </h2>
                     : null }
 
-                  {this.state.showTags ? <TwoOrThreeBox content={groupTagList} width={this.props.width} /> : null}
+                  {this.state.showTags ? <div className="tagsList"><TwoOrThreeBox content={groupTagList} width={this.props.width} /></div> : null}
 
-                  {sheets.length ?
-                    sheets
-                    : (isMember ?
+                  {sheets.length && !this.state.showTags ? sheets : null}
+
+                  {!sheets.length ? (isMember ?
                           <div className="emptyMessage">
                             <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
                             <span className="int-he"> לא קיימים דפי מקורות בקבוצה <a href="/sheets/new">צור דף מקורות</a>.</span>
@@ -224,7 +275,7 @@ class GroupPage extends Component {
                         : <div className="emptyMessage">
                             <span className="int-en">There are no public sheets in this group yet.</span>
                             <span className="int-he">לא קיימים דפי מקורות פומביים בקבוצה</span>
-                          </div>)}
+                          </div>) : null}
                   </div>
                   : null }
 

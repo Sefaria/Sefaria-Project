@@ -5,11 +5,12 @@ logger = logging.getLogger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError
+from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import link as link
-from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
+from . import group as group
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -156,6 +157,7 @@ class TocTree(object):
         self._root.add_primary_titles("TOC", u"שרש")
         self._path_hash = {}
         self._library = lib
+        self._groups_in_library = []
 
         # Store first section ref.
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
@@ -195,6 +197,20 @@ class TocTree(object):
                         break # Don't consider a category incomplete for containing incomplete commentaries
 
             self._path_hash[tuple(i.categories + [i.title])] = node
+
+        # Include Groups in TOC that has a `toc` field set
+        group_set = group.GroupSet({"toc": {"$exists": True}})
+        for g in group_set:
+            self._groups_in_library.append(g.name)
+            node = TocGroupNode(g)
+            categories = node.categories
+            cat  = self.lookup(node.categories)
+            if not cat:
+                logger.warning(u"Failed to find category for {}".format(categories))
+                continue
+            cat.append(node)
+           
+            self._path_hash[tuple(node.categories + [g.name])] = node
 
         self._sort()
 
@@ -259,6 +275,9 @@ class TocTree(object):
 
     def get_serialized_toc(self):
         return self._root.serialize().get("contents", [])
+
+    def get_groups_in_library(self):
+        return self._groups_in_library
 
     def flatten(self):
         """
@@ -426,3 +445,178 @@ class TocTextIndex(TocNode):
         "he": "heTitle"
     }
 
+<<<<<<< HEAD
+=======
+
+class TocGroupNode(TocNode):
+    """
+    categories: Array(2)
+    name: "Some Group"
+    isGroup: true
+    enComplete: true
+    heComplete: true
+    """
+    def __init__(self, group_object):
+        self._group_object = group_object
+        group_contents = group_object.contents()
+        serial = {
+            "categories": group_contents["toc"]["categories"],
+            "name": group_contents["name"],
+            "title": group_contents["toc"]["title"],
+            "heTitle": group_contents["toc"]["heTitle"], 
+            "isGroup": True,
+            "enComplete": True,
+            "heComplete": True,
+        }
+        super(TocGroupNode, self).__init__(serial)
+
+    def get_group_object(self):
+        return self._group_object
+
+    required_param_keys = [
+        "categories",
+        "name",
+        "title",
+        "heTitle",
+        "isGroup",
+    ]
+
+    optional_param_keys = [
+        "order",
+        "heComplete",
+        "enComplete",
+    ]
+
+    title_attrs = {
+        "en": "title",
+        "he": "heTitle",
+    }
+
+
+# Giant list ordering or categories
+# indentation and inclusion of duplicate categories (like "Seder Moed")
+# is for readability only. The table of contents will follow this structure.
+ORDER = [
+    "Tanakh",
+        "Torah",
+            "Genesis",
+            "Exodus",
+            "Leviticus",
+            "Numbers",
+            "Deuteronomy",
+        "Prophets",
+        "Writings",
+        "Targum",
+            'Onkelos Genesis',
+            'Onkelos Exodus',
+            'Onkelos Leviticus',
+            'Onkelos Numbers',
+            'Onkelos Deuteronomy',
+            'Targum Jonathan on Genesis',
+            'Targum Jonathan on Exodus',
+            'Targum Jonathan on Leviticus',
+            'Targum Jonathan on Numbers',
+            'Targum Jonathan on Deuteronomy',
+        'Rashi',
+    "Mishnah",
+        "Seder Zeraim",
+        "Seder Moed",
+        "Seder Nashim",
+        "Seder Nezikin",
+        "Seder Kodashim",
+        "Seder Tahorot",
+    "Talmud",
+        "Bavli",
+                "Seder Zeraim",
+                "Seder Moed",
+                "Seder Nashim",
+                "Seder Nezikin",
+                "Seder Kodashim",
+                "Seder Tahorot",
+        "Yerushalmi",
+                "Seder Zeraim",
+                "Seder Moed",
+                "Seder Nashim",
+                "Seder Nezikin",
+                "Seder Kodashim",
+                "Seder Tahorot",
+        "Tosafot",
+        "Rif",
+    "Midrash",
+        "Aggadic Midrash",
+            "Midrash Rabbah",
+        "Halachic Midrash",
+    "Halakhah",
+        "Mishneh Torah",
+            'Introduction',
+            'Sefer Madda',
+            'Sefer Ahavah',
+            'Sefer Zemanim',
+            'Sefer Nashim',
+            'Sefer Kedushah',
+            'Sefer Haflaah',
+            'Sefer Zeraim',
+            'Sefer Avodah',
+            'Sefer Korbanot',
+            'Sefer Taharah',
+            'Sefer Nezikim',
+            'Sefer Kinyan',
+            'Sefer Mishpatim',
+            'Sefer Shoftim',
+        "Shulchan Arukh",
+    "Kabbalah",
+        "Zohar",
+    'Liturgy',
+        'Siddur',
+        'Haggadah',
+        'High Holidays',
+        'Piyutim',
+    'Philosophy',
+    "Tanaitic",
+        "Tosefta",
+            "Seder Zeraim",
+            "Seder Moed",
+            "Seder Nashim",
+            "Seder Nezikin",
+            "Seder Kodashim",
+            "Seder Tahorot",
+        "Masechtot Ketanot",
+    'Chasidut',
+        "Early Works",
+        "Breslov",
+        "R' Tzadok HaKohen",
+    'Musar',
+    'Responsa',
+        "Rashba",
+        "Rambam",
+    'Apocrypha',
+    'Modern Works',
+    "Reference",
+    'Other',
+    'Tosafot',
+]
+
+TOP_CATEGORIES = [
+    "Tanakh",
+    "Mishnah",
+    "Talmud",
+    "Midrash",
+    "Halakhah",
+    "Kabbalah",
+    "Liturgy",
+    "Philosophy",
+    "Tanaitic",
+    "Chasidut",
+    "Musar",
+    "Responsa",
+    "Apocrypha",
+    "Modern Works",
+    "Reference",
+    "Other"
+]
+
+REVERSE_ORDER = [
+    'Commentary'  # Uch, STILL special casing commentary here... anything to be done??
+]
+
+>>>>>>> deploy

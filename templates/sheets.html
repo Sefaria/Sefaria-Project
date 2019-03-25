@@ -564,13 +564,6 @@
                     <span class="int-he">תצוגה בספריא</span>
                 </a>
                 {% else %}
-                <a id="likeButton" class="button{% if viewer_is_liker %} liked{% endif %}" role="button">
-                    {% if viewer_is_liker %}
-                        <span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span>
-                    {% else %}
-                        <span class="int-en">Like</span><span class="int-he">אהבתי</span>
-                    {% endif %}
-                </a>
                 <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
                     <span class="int-en">View in Library</span>
                     <span class="int-he">תצוגה בספריא</span>
@@ -669,11 +662,10 @@
         <div class="metadataOpenDetails">
             <div>
                 <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views
-                {% endif %}</span> · <span class="likes" id="likeInfo-en"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span>{% if can_edit %}<span
+                {% endif %}</span>{% if can_edit %}<span
                         class="editButton">Edit</span>{% endif %}</span>
                 <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{% if sheet.views == 1%}צפייה אחת{% else %}{{ sheet.views }}
-                צפיות{% endif %}</span> · <span class="likes" id="likeInfo-he"><span id="likeCount">{{like_count}}</span>
-                    {% if like_count == 1%}סימון{% else %}סימוני{% endif %} אהבתי</span>{% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
+                צפיות{% endif %}</span>{% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
             </div>
             {% if sheet.via %}
             <div id="via">

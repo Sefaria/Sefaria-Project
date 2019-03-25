@@ -177,7 +177,7 @@ class SheetContent extends Component {
               'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
               'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup' ],
             allowedAttributes: {
-              a: [ 'href', 'name', 'target' ],
+              a: [ 'href', 'name', 'target', 'class' ],
               img: [ 'src' ],
               p: ['style'],
               span: ['style'],
@@ -323,11 +323,18 @@ class SheetContent extends Component {
 
 class SheetSource extends Component {
   sheetSourceClick(event) {
-    if(event.target.tagName.toLowerCase() === 'a') {
+      if(event.target.tagName.toLowerCase() === 'a') {
       if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
         window.open(event.target.href, "_blank");
         event.preventDefault();
       }
+    }
+
+    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
+        event.preventDefault();
+        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
+        this.props.handleClick(ref,event);
+        event.stopPropagation();
     }
 
     else {
@@ -408,6 +415,13 @@ class SheetComment extends Component {
       }
     }
 
+    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
+        event.preventDefault();
+        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
+        this.props.handleClick(ref,event);
+        event.stopPropagation();
+    }
+
     else {
         this.props.onSegmentClick(this.props.source);
     }
@@ -449,6 +463,13 @@ class SheetOutsideText extends Component {
         window.open(event.target.href, "_blank");
         event.preventDefault();
       }
+    }
+
+    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
+        event.preventDefault();
+        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
+        this.props.handleClick(ref,event);
+        event.stopPropagation();
     }
 
     else {
@@ -494,6 +515,13 @@ class SheetOutsideBiText extends Component {
         window.open(event.target.href, "_blank");
         event.preventDefault();
       }
+    }
+
+    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
+        event.preventDefault();
+        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
+        this.props.handleClick(ref,event);
+        event.stopPropagation();
     }
 
     else {
@@ -547,6 +575,14 @@ class SheetMedia extends Component {
         event.preventDefault();
       }
     }
+
+    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
+        event.preventDefault();
+        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
+        this.props.handleClick(ref,event);
+        event.stopPropagation();
+    }
+
 
     else {
         this.props.onSegmentClick(this.props.source);

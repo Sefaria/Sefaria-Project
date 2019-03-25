@@ -122,6 +122,7 @@ class ReaderApp extends Component {
           navigationTopic: props.initialTopic,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
+          navigationGroupTag: props.initialGroupTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -156,6 +157,7 @@ class ReaderApp extends Component {
         navigationTopic: props.initialTopic,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
+        navigationGroupTag: props.initialGroupTag,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -273,8 +275,8 @@ class ReaderApp extends Component {
   }
   handlePopState(event) {
     var state = event.state;
-    // console.log("Pop - " + window.location.pathname);
-    // console.log(state);
+    //console.log("Pop - " + window.location.pathname);
+    //console.log(state);
     if (state) {
       this.justPopped = true;
       // history does not preserve custom objects
@@ -395,8 +397,6 @@ class ReaderApp extends Component {
       const nextTextSearchState = new SearchState(next.textSearchState);
       const nextSheetSearchState = new SearchState(next.sheetSearchState);
 
-
-
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
@@ -409,6 +409,7 @@ class ReaderApp extends Component {
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
+          (prev.navigationGroupTag !== next.navigationGroupTag) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
@@ -512,6 +513,9 @@ class ReaderApp extends Component {
           case "sheets":
             if (states[i].sheetsGroup) {
                 hist.url   = "groups/" + state.sheetsGroup.replace(/\s/g,"-");
+                if (states[i].navigationGroupTag) {
+                  hist.url  += "?tag=" + state.navigationGroupTag.replace("#","%23");
+                }
                 hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Group");
                 hist.mode  = "sheets tag";
             } else if (states[i].navigationSheetTag) {
@@ -801,7 +805,6 @@ class ReaderApp extends Component {
       history.pushState(hist.state, hist.title, hist.url);
       //console.log("Push History - " + hist.url);
       this.trackPageview();
-      //console.log(hist);
     }
 
     $("title").html(hist.title);
@@ -826,6 +829,7 @@ class ReaderApp extends Component {
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
+      navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
@@ -1330,7 +1334,7 @@ class ReaderApp extends Component {
 
     if (panel.mode !== "Connections") {
       // No connections panel is open yet, splice in a new one
-      this.saveLastPlace(parentPanel, n);
+      this.saveLastPlace(parentPanel, n, true);
       newPanels.splice(n, 0, {});
       panel = newPanels[n];
       panel.filter = [];
@@ -1565,8 +1569,9 @@ class ReaderApp extends Component {
   doesPanelHaveSidebar(n) {
     return this.state.panels.length > n+1 && this.state.panels[n+1].mode == "Connections";
   }
-  saveLastPlace(panel, n) {
-    const hasSidebar = this.doesPanelHaveSidebar(n);
+  saveLastPlace(panel, n, openingSidebar) {
+    //openingSidebar is true when you call `saveLastPlace` at the time you're opening the sidebar. In this case, `doesPanelHaveSidebar` will be false
+    const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
     // if panel is sheet, panel.refs isn't set
     if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
     Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));

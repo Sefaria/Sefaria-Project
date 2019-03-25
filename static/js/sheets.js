@@ -2287,13 +2287,13 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var additionalRefData = ""
 
-	if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+	if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
 		additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 	}
-	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"])) {
+	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"]) && (source["options"]["PrependRefWithEn"] != "")) {
 		additionalRefData = additionalRefData + " data-prependrefwithen='"+source["options"]["PrependRefWithEn"]+"'";
 	}
-	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"])) {
+	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"]) && (source["options"]["PrependRefWithHe"] != "")) {
 		additionalRefData = additionalRefData + " data-prependrefwithhe='"+source["options"]["PrependRefWithHe"]+"'";
 	}
 
@@ -2904,7 +2904,7 @@ function buildSource($target, source, appendOrInsert) {
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;	
 	}
-	
+
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		addSource(q, source, appendOrInsert, $target);
@@ -2954,7 +2954,12 @@ function buildSource($target, source, appendOrInsert) {
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
+
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'"+additionalRefData+"><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 			appendInlineAddButton() + "</div>";
@@ -2970,8 +2975,12 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	} else if ("outsideBiText" in source) {
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
 								"<div class='he'>" + source.outsideBiText.he + "</div>" + 
@@ -2991,8 +3000,12 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	} else if ("outsideText" in source) {
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3030,9 +3043,13 @@ function buildSource($target, source, appendOrInsert) {
 		else {
 			mediaLink = '';
 		}
-		
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
+
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +

@@ -3650,7 +3650,7 @@ class Ref(object):
         key = "/".join(cats + [self.index.title])
         try:
             base = library.category_id_dict()[key]
-            if self.index.is_complex():
+            if self.index.is_complex() and self.index_node.parent:
                 child_order = self.index.nodes.get_child_order(self.index_node)
                 base += unicode(format(child_order, '03')) if isinstance(child_order, int) else child_order
 
@@ -4155,6 +4155,9 @@ class Library(object):
             from sefaria.model.category import TocTree
             self._toc_tree = TocTree(self)
         return self._toc_tree
+
+    def get_groups_in_library(self):
+        return self._toc_tree.get_groups_in_library()
 
     def get_search_filter_toc(self, rebuild=False):
         """

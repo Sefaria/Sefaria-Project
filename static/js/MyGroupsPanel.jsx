@@ -1,5 +1,6 @@
 const {
   LoadingMessage,
+  SinglePanelNavHeader,
 }                = require('./Misc');
 const React      = require('react');
 const PropTypes  = require('prop-types');
@@ -22,18 +23,27 @@ class MyGroupsPanel extends Component {
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
+        {this.props.multiPanel ? null :
+          <SinglePanelNavHeader
+            enTitle="My Groups"
+            heTitle="הקבוצות שלי"
+            navHome={this.props.navHome}
+            showDisplaySettings={false}/>
+        }
         <div className="content hasFooter">
           <div className="contentInner">
+            {this.props.multiPanel ?
             <h1>
               <span className="int-en">My Groups</span>
               <span className="int-he">הקבוצות שלי</span>
-            </h1>
+            </h1> : null }
+            {this.props.multiPanel ? 
             <center>
               <a className="button white" href="/groups/new">
                 <span className="int-en">Create a Group</span>
                 <span className="int-he">צור קבוצה</span>
               </a>
-            </center>
+            </center> : null }
 
             <div className="groupsList">
               { groupsList ?
@@ -69,18 +79,26 @@ class PublicGroupsPanel extends Component {
     var classStr = classNames(classes);
     return (
       <div className={classStr}>
+        {this.props.multiPanel ? null :
+          <SinglePanelNavHeader
+            enTitle="Public Groups"
+            navHome={this.props.navHome}
+            showDisplaySettings={false}/>
+        }
         <div className="content hasFooter">
           <div className="contentInner">
+            {this.props.multiPanel ? 
             <h1>
               <span className="int-en">Public Groups</span>
               <span className="int-he">קבוצות</span>
-            </h1>
+            </h1> : null}
+            {this.props.multiPanel ? 
             <center>
               <a className="button white" href="/groups/new">
                 <span className="int-en">Create a Group</span>
                 <span className="int-he">צור קבוצה</span>
               </a>  
-            </center>
+            </center> : null}
 
             <div className="groupsList">
               { groupsList ?
