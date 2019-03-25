@@ -2287,13 +2287,13 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var additionalRefData = ""
 
-	if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+	if ("sourcePrefix" in source["options"]) {
 		additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 	}
-	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"])) {
+	if ("PrependRefWithEn" in source["options"]) {
 		additionalRefData = additionalRefData + " data-prependrefwithen='"+source["options"]["PrependRefWithEn"]+"'";
 	}
-	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"])) {
+	if ("PrependRefWithHe" in source["options"]) {
 		additionalRefData = additionalRefData + " data-prependrefwithhe='"+source["options"]["PrependRefWithHe"]+"'";
 	}
 
