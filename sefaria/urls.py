@@ -322,6 +322,7 @@ static_pages = [
     "privacy-policy",
     "coming-soon",
     "shraga-silverstein",
+    "henry-and-julia-koschitzky-apps",
     "adin-even-israel-steinsaltz",
     "william-davidson-talmud",
     "linker",
