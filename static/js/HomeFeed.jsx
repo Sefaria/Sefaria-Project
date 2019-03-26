@@ -14,8 +14,9 @@ import Component from 'react-class';
 
   // This is a pseudo Component.  It uses "storyForm" to determine the component to render.
   // It's important that it's capitalized, so that React treats it as a component.
-function storyForms() {
-    return {
+
+function Story(props) {
+    const storyForms = {
         newContent:     NewContentStory,
         newIndex:       NewIndexStory,
         newVersion:     NewVersionStory,
@@ -28,9 +29,7 @@ function storyForms() {
         userSheets:     UserSheetsStory,
         groupSheetList: GroupSheetListStory
     };
-}
-function Story(props) {
-    const StoryForm = storyForms()[props.storyForm];
+    const StoryForm = storyForms[props.storyForm];
     return <StoryForm
                 storyForm={props.storyForm}
                 data={props.data}
@@ -147,32 +146,14 @@ class StoryEditor extends Component {
   removeDraft(timestamp) {
       this.setState({stories: this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp)});
   }
-  handleReflect(type, content) {
-    this.setState({"submitting": true, "error": null});
-    const payload = {
-      storyForm: type,
-      data: content
-    };
-    $.ajax({
-        url: "/api/story_reflector",
-        dataType: 'json',
-        type: 'POST',
-        data: {json: JSON.stringify(payload)},
-        success: function (data) {
-            if ("error" in data) {
-              this.setState({"error": "Error - " + data.error});
-            } else {
-                data["draft"] = true;
-                this.state.stories.unshift(data);
-                this.setState({submitting: false, stories: this.state.stories, submitCount: this.state.submitCount + 1});
-            }
-        }.bind(this),
-        error: function (xhr, status, err) {
-            this.setState({"error": "Error - " + err.toString()});
-            console.error(this.props.url, status, err.toString());
-        }.bind(this)
-    });
+  addStory(story) {
+        this.state.stories.unshift(data);
+        this.setState({stories: this.state.stories});
+        //submitting: false, submitCount: this.state.submitCount + 1
   }
+  /*
+
+  */
   handlePublish(type, content) {
     this.setState({"submitting": true, "error": null});
     const payload = {
@@ -212,7 +193,7 @@ class StoryEditor extends Component {
               <span className="int-he">עדכונים</span>
             </h1>
 
-            {Sefaria.is_moderator?<NewStoryForm handleReflect={this.handleReflect} key={this.state.submitCount} error={this.state.error}/>:""}
+            {Sefaria.is_moderator?<NewStoryForm addStory={this.addStory}/>:""}
 
             <div className="storyFeed">
             {this.state.stories.map(s =>
@@ -278,26 +259,110 @@ StoryEditBar.propTypes = {
 };
 
 
+function withButton(WrappedFormComponent, addStory) {
+  // ...and returns another component...
+  return class extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            submitting: 'false',
+            error: null,
+            form: null
+        };
+    }
+    handleReflect(type, content) {
+        this.setState({"submitting": true, "error": null});
+        $.ajax({
+            url: "/api/story_reflector",
+            dataType: 'json',
+            type: 'POST',
+            data: {json: JSON.stringify(this.state.form.payload())},
+            success: function (data) {
+                if ("error" in data) {
+                  this.setState({"error": "Error - " + data.error});
+                } else {
+                    data["draft"] = true;
+                    addStory(data);
+                    this.setState({submitting: false});
+                }
+            }.bind(this),
+            error: function (xhr, status, err) {
+                this.setState({"error": "Error - " + err.toString()});
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    }
+    recordFormRef(r) {
+        this.setState({form: r});
+    }
+    render() {
+      // ... and renders the wrapped component with the fresh data!
+      // Notice that we pass through any additional props
+      const disabled = (this.state.submitting ||
+          (this.state.form && (!this.state.form.isValid())));
+
+      return <div>
+        <WrappedFormComponent ref={this.recordFormRef} {...this.props} />
+        <input type="button" value="Preview" disabled={disabled} onClick={this.handleReflect}/>
+        <span className="error">{this.state.error}</span>
+      </div>
+    }
+  };
+}
+class NewIndexStoryForm extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            type: 'newIndex',
+            error: ''
+        };
+        this.refs = {};
+    }
+    payload() {
+        const d = { index: this.refs.index.getValue() };
+        ["ref","en","he"].forEach(p => {if (!!this.refs[p].getValue()) {d[p] = this.refs[p].getValue()}});
+        return {
+          storyForm: this.state.type,
+          data: d
+        };
+    }
+    isValid() {
+        return Object.values(this.refs).every(e => e.isValid());
+    }
+    recordRef(field) {
+        return ref => this.refs[field] = ref;
+    }
+    render() {
+        return (
+            <div>
+                <StoryFormIndexField ref={this.recordRef("index")}/>
+                <StoryFormTextField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
+                <StoryFormTextField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
+                <StoryFormRefField ref={this.recordRef("ref")} />
+            </div>);
+    }
+}
+NewIndexStoryForm.propTypes = {
+    setPayload: PropTypes.func
+};
+
 class NewStoryForm extends Component {
   constructor(props) {
     super(props);
-    this.state = {type: 'newIndex', index: '', language: 'en', version: '', en: '', he: '', error: ''};
+    this.state = {
+        typeName: 'New Index',
+        type: "newIndex",
+        data: {},
+        error: ''
+    };
   }
   componentWillReceiveProps(nextProps) {
     this.setState({"error": nextProps.error});
   }
-  handleEnChange(e) {
-    this.setState({en: e.target.value, error: null});
+  handleTypeNameChange(e) {
+    this.setState({typeName: e.target.value, error: null});
   }
-  handleHeChange(e) {
-    this.setState({he: e.target.value, error: null});
-  }
-  handleTypeChange(e) {
-    this.setState({type: e.target.value, error: null});
-  }
-  handleIndexChange(e) {
-    this.setState({index: e.target.value, error: null});
-  }
+
   handleVersionChange(e) {
     this.setState({version: e.target.value, error: null});
   }
@@ -333,17 +398,42 @@ class NewStoryForm extends Component {
     this.props.handleReflect(this.state.type, content);
 
   }
+  editForms() {
+    return {
+        "New Index":       NewIndexStoryForm,
+        /*
+        newContent:     NewContentStory,
+        newVersion:     NewVersionStory,
+        publishSheet:   PublishSheetStory,
+        author:         AuthorStory,
+        textPassage:    TextPassageStory,
+        topic:          TopicStory,
+        topicList:      TopicListStory,
+        sheetList:      SheetListStory,
+        userSheets:     UserSheetsStory,
+        groupSheetList: GroupSheetListStory
+        */
+    };
+  }
+
   render() {
-    return (
-      <form className="globalUpdateForm" onSubmit={this.handleReflect}>
-        <div>
-            <label>
-                Story Type:
-                <select value={this.state.type} onChange={this.handleTypeChange}>
-                    {Object.entries(storyForms()).map(e => <option value={e[0]} key={e[0]}>{e[1].name.replace(/([a-z])([A-Z])/g, '$1 $2')}</option>)}
-                </select>
-            </label>
-        </div>
+      const EditForm = withButton(this.editForms()[this.state.type], this.props.addStory);
+
+      return (
+          <div className="globalUpdateForm">
+              <div>
+                  <label>
+                      Story Type:
+                      <select value={this.state.typeName} onChange={this.handleTypeNameChange}>
+                          {Object.entries(this.editForms()).map(e => <option value={e[0]} key={e[0]}>{e[0]}</option>)}
+                      </select>
+                  </label>
+              </div>
+              <EditForm/>
+          </div>
+      );
+  }
+  /*
         <div>
           {(this.state.type != "newContent")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
           {(this.state.type == "newVersion")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
@@ -352,27 +442,8 @@ class NewStoryForm extends Component {
             <option value="he">Hebrew</option>
           </select>:""}
         </div>
-        <div>
-          <textarea
-            placeholder="English Description (optional for Index and Version)"
-            onChange={this.handleEnChange}
-            rows="3"
-            cols="80"
-          />
-        </div>
-        <div>
-          <textarea
-            placeholder="Hebrew Description (optional for Index and Version)"
-            onChange={this.handleHeChange}
-            rows="3"
-            cols="80"
-          />
-        </div>
-        <input type="submit" value="Preview" disabled={this.props.submitting}/>
-        <span className="error">{this.state.error}</span>
-      </form>
-    );
-  }
+   */
+
 }
 NewStoryForm.propTypes = {
   error:               PropTypes.string,
@@ -382,15 +453,6 @@ NewStoryForm.propTypes = {
 
 
 class AbstractStory extends Component {
-  storyClasses() {
-    const thisClass = this.constructor.name;
-    const lowerCaseClass = thisClass[0].toLowerCase() + thisClass.slice(1);
-
-    const classes = {"story" : 1};
-    classes[lowerCaseClass] = 1;
-
-    return classNames(classes);
-  }
   heTitle(title) {
     return title && Sefaria.index(title)?Sefaria.index(title).heTitle:"";
   }
@@ -420,36 +482,185 @@ AbstractStory.propTypes = {
   data:         PropTypes.object,
 };
 
+class StoryFrame extends Component {
+
+    render() {
+      const classes = {story: 1};
+      classes[this.props.cls] = 1;
+      const cnames = classNames(classes);
+
+      const cardStyle = {"borderColor": this.props.cardColor || "#18345D"};
+
+      return <div className={cnames} style={cardStyle}>
+            {this.props.children}
+        </div>;
+    }
+}
+StoryFrame.propTypes = {
+    cls:        PropTypes.string,
+    cardColor:  PropTypes.string
+};
+
 class NewContentStory extends AbstractStory {
     render() {
-      const cardStyle = {"borderColor": "#18345D"};
-
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+          <StoryFrame cls="newContentStory">
             <StoryTypeBlock en="New Content" he="תוכן חדש"/>
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
-        </div>);
+          </StoryFrame>);
     }
 }
 
+
+class StoryFormIndexField extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        isValid: false,
+        value: '',
+        error: ''
+    };
+  }
+    getValue() {
+        return this.state.value;
+    }
+    isValid() {
+        return (this.state.value && (!this.state.error));
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+    render() {
+      return <div>
+        <input type="text" placeholder="Index Title" onChange={this.handleChange} />
+      </div>;
+  }
+}
+
+class StoryFormVersionFields extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        isValid: false,
+        value: '',
+        error: ''
+    };
+  }
+    getValue() {
+      return this.state.value;
+    }
+    isValid() {
+      return (this.state.value && (!this.state.error));
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+    render() {}
+}
+
+class StoryFormTextField extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        isValid: false,
+        value: '',
+        error: ''
+    };
+  }
+    getValue() {
+      return this.state.value;
+    }
+    isValid() {
+      return (this.state.value && (!this.state.error));
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+    render() {
+      return <div>
+        <textarea
+            placeholder={this.props.placeholder}
+            onChange={this.handleChange}
+            rows="3"
+            cols="80" />
+      </div>;
+    }
+}
+
+class StoryFormRefField extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isValid: false,
+            value: '',
+            error: ''
+        };
+    }
+
+    getValue() {
+      return this.state.value;
+    }
+
+    isValid() {
+      return (this.state.value && (!this.state.error));
+    }
+
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+
+    render() {
+        return <div>
+            <input type="text" placeholder="Ref" onChange={this.handleChange}/>
+        </div>;
+    }
+}
+
+class StoryFormUserField extends Component {
+
+}
+class StoryFormAuthorField extends Component {
+
+}
+class StoryFormSheetfield extends  Component {
+
+}
+
+
+
 class NewIndexStory extends AbstractStory {
+
     render() {
       const title = this.props.data.index;
       const heTitle = this.heTitle(title);
       const url = this.url(title);
-      const cardStyle = {"borderColor": this.indexColor(title)};
-
 
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+        <StoryFrame cls="newIndexStory" cardColor={this.indexColor(title)}>
             <StoryTypeBlock en="New Text" he="טקסט חדש"/>
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
             {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>:""}
-            {this.props.data.ref?<ReadMoreLine ref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
-        </div>);
+            {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
+        </StoryFrame>);
     }
 }
 
@@ -459,7 +670,6 @@ class NewVersionStory extends AbstractStory {
       const title = this.props.data.index;
       const heTitle = this.heTitle(title);
       const url = this.url(title);
-      const cardStyle = {"borderColor": this.indexColor(title)};
 
       /*
          <div>
@@ -468,14 +678,14 @@ class NewVersionStory extends AbstractStory {
           </div>
       */
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+        <StoryFrame cls="newVersionStory" cardColor={this.indexColor(title)}>
             <StoryTypeBlock en="New Version" he="גרסה חדשה" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
             {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>:""}
-            {this.props.data.ref?<ReadMoreLine ref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
-        </div>);
+            {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
+        </StoryFrame>);
     }
 }
 
@@ -496,11 +706,10 @@ class AuthorStory extends AbstractStory {
     */
 
     render() {
-      const cardStyle = {"borderColor": this.indexColor(this.props.data.example_work)};
       const url = "/person/" + this.props.data.author_key;
 
         return (
-        <div className={this.storyClasses()} style={cardStyle}>
+        <StoryFrame cls="authorStory" cardColor={this.indexColor(this.props.data.example_work)}>
             <StoryTypeBlock en="Author" he="מחבר" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.author_names.en} he={this.props.data.author_names.he} url={url} />
@@ -509,7 +718,7 @@ class AuthorStory extends AbstractStory {
             <div className="bottomLine">
                 <ReadMoreLink url={url}/>
             </div>
-        </div>);
+        </StoryFrame>);
     }
 }
 
@@ -529,8 +738,6 @@ class UserSheetsStory extends AbstractStory {
       }
     */
   render() {
-      const cardStyle = {"borderColor": "#18345D"};
-
       this.props.data.sheets.forEach(this.amendSheetObject);
       const positionBlock = (this.props.data.publisher_position) ?
            <div className="storySubTitle systemText">
@@ -538,8 +745,9 @@ class UserSheetsStory extends AbstractStory {
                 <span className="int-he">{this.props.data.publisher_position}</span>
             </div>
           :"";
+
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+        <StoryFrame cls="userSheetsStory">
             <StoryTypeBlock en="People" he="קהילה" />
             <div className="storyTitleBlock">
                 <div className="storyTitle pageTitle">
@@ -565,8 +773,7 @@ class UserSheetsStory extends AbstractStory {
                     />
                 </div>)}
             </div>
-
-        </div>
+        </StoryFrame>
       );
   }
 }
@@ -595,11 +802,10 @@ class GroupSheetListStory extends AbstractStory {
             {...}]
  */
     render() {
-      const cardStyle = {"borderColor": "#18345D"};
       this.props.data.sheets.forEach(this.amendSheetObject);
 
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+        <StoryFrame cls="groupSheetListStory">
             <StoryTypeBlock en="Group" he="קבוצה" />
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
 
@@ -630,7 +836,7 @@ class GroupSheetListStory extends AbstractStory {
                     />
                 </div>)}
             </div>
-        </div>
+        </StoryFrame>
       );
     }
 
@@ -659,11 +865,10 @@ class SheetListStory extends AbstractStory {
             {...}]
  */
     render() {
-      const cardStyle = {"borderColor": "#18345D"};
       this.props.data.sheets.forEach(this.amendSheetObject);
 
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+        <StoryFrame cls="sheetListStory">
             <StoryTypeBlock en="Sheets" he="דפים" />
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
 
@@ -693,7 +898,7 @@ class SheetListStory extends AbstractStory {
                     />
                 </div>)}
             </div>
-        </div>
+        </StoryFrame>
       );
     }
 }
@@ -713,7 +918,6 @@ class PublishSheetStory extends AbstractStory {
    */
 
   render() {
-      const cardStyle = {"borderColor": "#18345D"};
       const sheet = this.amendSheetObject(this.props.data);  // Bit messy.
       const hasPosition = !!this.props.data.publisher_position;
       const positionBlock = hasPosition ?
@@ -724,7 +928,8 @@ class PublishSheetStory extends AbstractStory {
           :"";
 
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+
+        <StoryFrame cls="sheetListStory">
             <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}/>
@@ -753,7 +958,7 @@ class PublishSheetStory extends AbstractStory {
                     </div>
                 </div>
             </div>
-        </div>
+        </StoryFrame>
       );
   }
 }
@@ -780,17 +985,16 @@ class TextPassageStory extends AbstractStory {
     */
 
     render() {
-      const cardStyle = {"borderColor": this.indexColor(this.props.data.index)};
       const url = "/" + Sefaria.normRef(this.props.data.ref);
 
       return (
-        <div className={this.storyClasses()} style={cardStyle}>
+        <StoryFrame cls="textPassageStory" cardColor={this.indexColor(this.props.data.index)}>
             <StoryTypeBlock en={this.props.data.lead_title.en} he={this.props.data.lead_title.he} />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
             <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>
-            <ReadMoreLine ref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>
-        </div>
+            <ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>
+        </StoryFrame>
       );
     }
 }
@@ -858,9 +1062,9 @@ const StoryBodyBlock = ({en, he, dangerously}) => {
 class ReadMoreLine extends Component {
     render() {
       const historyObject = {
-          ref: this.props.ref,
+          dref: this.props.ref,
           versions: {} };
-      const url = "/" + Sefaria.normRef(this.props.ref);
+      const url = "/" + Sefaria.normRef(this.props.dref);
 
         return (
             <div className="bottomLine">
