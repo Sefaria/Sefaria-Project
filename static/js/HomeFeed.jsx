@@ -96,362 +96,6 @@ HomeFeed.propTypes = {
   interfaceLang:  PropTypes.string
 };
 
-class StoryEditor extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      page: 0,
-      loadedToEnd: false,
-      loading: false,
-      stories: [],
-      submitting: false,
-      submitCount: 0,
-      error: null
-    };
-  }
-  componentDidMount() {
-    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
-    this.getMoreStories();
-  }
-  handleScroll() {
-    if (this.state.loadedToEnd || this.state.loading) { return; }
-    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 600;
-    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-      this.getMoreStories();
-    }
-  }
-  getMoreStories() {
-    $.getJSON("/api/stories?only_global=1&page=" + this.state.page, this.loadMoreStories);
-    this.setState({loading: true});
-  }
-  loadMoreStories(data) {
-    if (data.count < data.page_size) {
-      this.setState({loadedToEnd: true});
-    }
-    this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
-  }
-  onDelete(id) {
-    $.ajax({
-        url: '/api/updates/' + id,
-        type: 'DELETE',
-        success: function(result) {
-          if (result.status == "ok") {
-              this.setState({stories: this.state.stories.filter(u => u._id != id)});
-          }
-        }.bind(this)
-    });
-  }
-  removeDraft(timestamp) {
-      this.setState({stories: this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp)});
-  }
-  addStory(story) {
-        this.state.stories.unshift(data);
-        this.setState({stories: this.state.stories});
-        //submitting: false, submitCount: this.state.submitCount + 1
-  }
-  /*
-
-  */
-  handlePublish(type, content) {
-    this.setState({"submitting": true, "error": null});
-    const payload = {
-      storyForm: type,
-      data: content
-    };
-    $.ajax({
-      url: "/api/updates",
-      dataType: 'json',
-      type: 'POST',
-      data: {json: JSON.stringify(payload)},
-      success: function(data) {
-        if (data.status == "ok") {
-          payload.date = Date();
-          this.state.stories.unshift(payload);
-          this.setState({submitting: false, stories: this.state.stories, submitCount: this.state.submitCount + 1});
-        } else {
-          this.setState({"error": "Error - " + data.error});
-        }
-      }.bind(this),
-      error: function(xhr, status, err) {
-        this.setState({"error": "Error - " + err.toString()});
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  }
-  render() {
-    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
-
-    return (
-      <div className={classStr}>
-        <div className="content hasFooter">
-          <div className="contentInner">
-            <h1>
-              <span className="int-en">Stories</span>
-              <span className="int-he">עדכונים</span>
-            </h1>
-
-            {Sefaria.is_moderator?<NewStoryForm addStory={this.addStory}/>:""}
-
-            <div className="storyFeed">
-            {this.state.stories.map(s =>
-                [
-                    Story(s),
-                    <StoryEditBar
-                        onDelete={this.onDelete}
-                        removeDraft={this.removeDraft}
-                        handlePublish={this.handlePublish}
-                        isDraft={s.draft}
-                        key={s.timestamp + "e"}
-                        story={s}/>
-                ]).flat() }
-            </div>
-          </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
-        </div>
-      </div>);
-  }
-}
-StoryEditor.propTypes = {
-  interfaceLang:  PropTypes.string
-};
-
-class StoryEditBar extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      deleting: false
-    };
-  }
-    handlePublish() {
-        this.props.handlePublish(this.props.story.storyForm, this.props.story.data)
-    }
-    onDelete() {
-        if(this.props.isDraft) {
-            this.props.removeDraft(this.props.story.timestamp);
-        } else {
-            this.setState({deleting: true});
-            this.props.onDelete(this.props.story._id);
-        }
-    }
-    render() {
-        if (!Sefaria.is_moderator) {return}
-        return (<div>
-            {(this.props.isDraft)?<div className="story-action-button" onClick={this.handlePublish}>Publish</div>:""}
-            {this.state.deleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
-            <div className="story-action-button" onClick={this.onDelete}>Delete</div>
-            }
-        </div>);
-    }
-}
-StoryEditBar.propTypes = {
-  interfaceLang:     PropTypes.string,
-  onDelete:          PropTypes.func,
-  handlePublish:     PropTypes.func,
-  removeDraft:       PropTypes.func,
-  isDraft:           PropTypes.bool,
-  story:             PropTypes.object
-};
-
-
-function withButton(WrappedFormComponent, addStory) {
-  // ...and returns another component...
-  return class extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            submitting: 'false',
-            error: null,
-            form: null
-        };
-    }
-    handleReflect(type, content) {
-        this.setState({"submitting": true, "error": null});
-        $.ajax({
-            url: "/api/story_reflector",
-            dataType: 'json',
-            type: 'POST',
-            data: {json: JSON.stringify(this.state.form.payload())},
-            success: function (data) {
-                if ("error" in data) {
-                  this.setState({"error": "Error - " + data.error});
-                } else {
-                    data["draft"] = true;
-                    addStory(data);
-                    this.setState({submitting: false});
-                }
-            }.bind(this),
-            error: function (xhr, status, err) {
-                this.setState({"error": "Error - " + err.toString()});
-                console.error(this.props.url, status, err.toString());
-            }.bind(this)
-        });
-    }
-    recordFormRef(r) {
-        this.setState({form: r});
-    }
-    render() {
-      // ... and renders the wrapped component with the fresh data!
-      // Notice that we pass through any additional props
-      const disabled = (this.state.submitting ||
-          (this.state.form && (!this.state.form.isValid())));
-
-      return <div>
-        <WrappedFormComponent ref={this.recordFormRef} {...this.props} />
-        <input type="button" value="Preview" disabled={disabled} onClick={this.handleReflect}/>
-        <span className="error">{this.state.error}</span>
-      </div>
-    }
-  };
-}
-class NewIndexStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            type: 'newIndex',
-            error: ''
-        };
-        this.refs = {};
-    }
-    payload() {
-        const d = { index: this.refs.index.getValue() };
-        ["ref","en","he"].forEach(p => {if (!!this.refs[p].getValue()) {d[p] = this.refs[p].getValue()}});
-        return {
-          storyForm: this.state.type,
-          data: d
-        };
-    }
-    isValid() {
-        return Object.values(this.refs).every(e => e.isValid());
-    }
-    recordRef(field) {
-        return ref => this.refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormIndexField ref={this.recordRef("index")}/>
-                <StoryFormTextField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
-                <StoryFormTextField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
-                <StoryFormRefField ref={this.recordRef("ref")} />
-            </div>);
-    }
-}
-NewIndexStoryForm.propTypes = {
-    setPayload: PropTypes.func
-};
-
-class NewStoryForm extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        typeName: 'New Index',
-        type: "newIndex",
-        data: {},
-        error: ''
-    };
-  }
-  componentWillReceiveProps(nextProps) {
-    this.setState({"error": nextProps.error});
-  }
-  handleTypeNameChange(e) {
-    this.setState({typeName: e.target.value, error: null});
-  }
-
-  handleVersionChange(e) {
-    this.setState({version: e.target.value, error: null});
-  }
-  handleLanguageChange(e) {
-    this.setState({language: e.target.value, error: null});
-  }
-  handleReflect(e) {
-    e.preventDefault();
-    var content = {
-      "en": this.state.en.trim(),
-      "he": this.state.he.trim()
-    };
-    if (this.state.type == "newContent") {
-      if (!this.state.en || !this.state.he) {
-        this.setState({"error": "Both Hebrew and English are required"});
-        return;
-      }
-    } else {
-      if (!this.state.index) {
-        this.setState({"error": "Index is required"});
-        return;
-      }
-      content["index"] = this.state.index.trim();
-    }
-    if (this.state.type == "newVersion") {
-      if (!this.state.version || !this.state.language) {
-        this.setState({"error": "Version is required"});
-        return;
-      }
-      content["version"] = this.state.version.trim();
-      content["language"] = this.state.language.trim();
-    }
-    this.props.handleReflect(this.state.type, content);
-
-  }
-  editForms() {
-    return {
-        "New Index":       NewIndexStoryForm,
-        /*
-        newContent:     NewContentStory,
-        newVersion:     NewVersionStory,
-        publishSheet:   PublishSheetStory,
-        author:         AuthorStory,
-        textPassage:    TextPassageStory,
-        topic:          TopicStory,
-        topicList:      TopicListStory,
-        sheetList:      SheetListStory,
-        userSheets:     UserSheetsStory,
-        groupSheetList: GroupSheetListStory
-        */
-    };
-  }
-
-  render() {
-      const EditForm = withButton(this.editForms()[this.state.type], this.props.addStory);
-
-      return (
-          <div className="globalUpdateForm">
-              <div>
-                  <label>
-                      Story Type:
-                      <select value={this.state.typeName} onChange={this.handleTypeNameChange}>
-                          {Object.entries(this.editForms()).map(e => <option value={e[0]} key={e[0]}>{e[0]}</option>)}
-                      </select>
-                  </label>
-              </div>
-              <EditForm/>
-          </div>
-      );
-  }
-  /*
-        <div>
-          {(this.state.type != "newContent")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
-          {(this.state.type == "newVersion")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
-          {(this.state.type == "newVersion")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
-            <option value="en">English</option>
-            <option value="he">Hebrew</option>
-          </select>:""}
-        </div>
-   */
-
-}
-NewStoryForm.propTypes = {
-  error:               PropTypes.string,
-  handleReflect:        PropTypes.func
-};
-
-
-
 class AbstractStory extends Component {
   heTitle(title) {
     return title && Sefaria.index(title)?Sefaria.index(title).heTitle:"";
@@ -482,25 +126,6 @@ AbstractStory.propTypes = {
   data:         PropTypes.object,
 };
 
-class StoryFrame extends Component {
-
-    render() {
-      const classes = {story: 1};
-      classes[this.props.cls] = 1;
-      const cnames = classNames(classes);
-
-      const cardStyle = {"borderColor": this.props.cardColor || "#18345D"};
-
-      return <div className={cnames} style={cardStyle}>
-            {this.props.children}
-        </div>;
-    }
-}
-StoryFrame.propTypes = {
-    cls:        PropTypes.string,
-    cardColor:  PropTypes.string
-};
-
 class NewContentStory extends AbstractStory {
     render() {
       return (
@@ -511,139 +136,6 @@ class NewContentStory extends AbstractStory {
           </StoryFrame>);
     }
 }
-
-
-class StoryFormIndexField extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        isValid: false,
-        value: '',
-        error: ''
-    };
-  }
-    getValue() {
-        return this.state.value;
-    }
-    isValid() {
-        return (this.state.value && (!this.state.error));
-    }
-    handleChange(e) {
-        this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-
-    }
-    render() {
-      return <div>
-        <input type="text" placeholder="Index Title" onChange={this.handleChange} />
-      </div>;
-  }
-}
-
-class StoryFormVersionFields extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        isValid: false,
-        value: '',
-        error: ''
-    };
-  }
-    getValue() {
-      return this.state.value;
-    }
-    isValid() {
-      return (this.state.value && (!this.state.error));
-    }
-    handleChange(e) {
-        this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-
-    }
-    render() {}
-}
-
-class StoryFormTextField extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        isValid: false,
-        value: '',
-        error: ''
-    };
-  }
-    getValue() {
-      return this.state.value;
-    }
-    isValid() {
-      return (this.state.value && (!this.state.error));
-    }
-    handleChange(e) {
-        this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-
-    }
-    render() {
-      return <div>
-        <textarea
-            placeholder={this.props.placeholder}
-            onChange={this.handleChange}
-            rows="3"
-            cols="80" />
-      </div>;
-    }
-}
-
-class StoryFormRefField extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isValid: false,
-            value: '',
-            error: ''
-        };
-    }
-
-    getValue() {
-      return this.state.value;
-    }
-
-    isValid() {
-      return (this.state.value && (!this.state.error));
-    }
-
-    handleChange(e) {
-        this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-
-    }
-
-    render() {
-        return <div>
-            <input type="text" placeholder="Ref" onChange={this.handleChange}/>
-        </div>;
-    }
-}
-
-class StoryFormUserField extends Component {
-
-}
-class StoryFormAuthorField extends Component {
-
-}
-class StoryFormSheetfield extends  Component {
-
-}
-
-
 
 class NewIndexStory extends AbstractStory {
 
@@ -1008,6 +500,24 @@ class TopicListStory extends AbstractStory {
 
 }
 
+class StoryFrame extends Component {
+
+    render() {
+      const classes = {story: 1};
+      classes[this.props.cls] = 1;
+      const cnames = classNames(classes);
+
+      const cardStyle = {"borderColor": this.props.cardColor || "#18345D"};
+
+      return <div className={cnames} style={cardStyle}>
+            {this.props.children}
+        </div>;
+    }
+}
+StoryFrame.propTypes = {
+    cls:        PropTypes.string,
+    cardColor:  PropTypes.string
+};
 
 const NaturalTimeBlock = ({timestamp}) => (<div className="timeBlock smallText">
           <span className="int-en">{ Sefaria.util.naturalTime(timestamp) } ago</span>
@@ -1082,6 +592,492 @@ ReadMoreLine.propTypes = {
   toggleSignUpModal:    PropTypes.func,
   versions:             PropTypes.object
 };
+
+
+
+class StoryEditor extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      page: 0,
+      loadedToEnd: false,
+      loading: false,
+      stories: [],
+      submitting: false,
+      submitCount: 0,
+      error: null
+    };
+  }
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    this.getMoreStories();
+  }
+  handleScroll() {
+    if (this.state.loadedToEnd || this.state.loading) { return; }
+    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var margin = 600;
+    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+      this.getMoreStories();
+    }
+  }
+  getMoreStories() {
+    $.getJSON("/api/stories?only_global=1&page=" + this.state.page, this.loadMoreStories);
+    this.setState({loading: true});
+  }
+  loadMoreStories(data) {
+    if (data.count < data.page_size) {
+      this.setState({loadedToEnd: true});
+    }
+    this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
+  }
+  onDelete(id) {
+    $.ajax({
+        url: '/api/updates/' + id,
+        type: 'DELETE',
+        success: function(result) {
+          if (result.status == "ok") {
+              this.setState({stories: this.state.stories.filter(u => u._id != id)});
+          }
+        }.bind(this)
+    });
+  }
+  removeDraft(timestamp) {
+      this.setState({stories: this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp)});
+  }
+  addStory(story) {
+        this.state.stories.unshift(data);
+        this.setState({stories: this.state.stories});
+        //submitting: false, submitCount: this.state.submitCount + 1
+  }
+  /*
+
+  */
+  handlePublish(type, content) {
+    this.setState({"submitting": true, "error": null});
+    const payload = {
+      storyForm: type,
+      data: content
+    };
+    $.ajax({
+      url: "/api/updates",
+      dataType: 'json',
+      type: 'POST',
+      data: {json: JSON.stringify(payload)},
+      success: function(data) {
+        if (data.status == "ok") {
+          payload.date = Date();
+          this.state.stories.unshift(payload);
+          this.setState({submitting: false, stories: this.state.stories, submitCount: this.state.submitCount + 1});
+        } else {
+          this.setState({"error": "Error - " + data.error});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        this.setState({"error": "Error - " + err.toString()});
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  }
+  render() {
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classStr = classNames(classes);
+
+    return (
+      <div className={classStr}>
+        <div className="content hasFooter">
+          <div className="contentInner">
+            <h1>
+              <span className="int-en">Stories</span>
+              <span className="int-he">עדכונים</span>
+            </h1>
+
+            {Sefaria.is_moderator?<NewStoryForm addStory={this.addStory}/>:""}
+
+            <div className="storyFeed">
+            {this.state.stories.map(s =>
+                [
+                    Story(s),
+                    <StoryEditBar
+                        onDelete={this.onDelete}
+                        removeDraft={this.removeDraft}
+                        handlePublish={this.handlePublish}
+                        isDraft={s.draft}
+                        key={s.timestamp + "e"}
+                        story={s}/>
+                ]).flat() }
+            </div>
+          </div>
+          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
+            <Footer />
+          </footer>
+        </div>
+      </div>);
+  }
+}
+StoryEditor.propTypes = {
+  interfaceLang:  PropTypes.string
+};
+
+class StoryEditBar extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      deleting: false
+    };
+  }
+    handlePublish() {
+        this.props.handlePublish(this.props.story.storyForm, this.props.story.data)
+    }
+    onDelete() {
+        if(this.props.isDraft) {
+            this.props.removeDraft(this.props.story.timestamp);
+        } else {
+            this.setState({deleting: true});
+            this.props.onDelete(this.props.story._id);
+        }
+    }
+    render() {
+        if (!Sefaria.is_moderator) {return}
+        return (<div>
+            {(this.props.isDraft)?<div className="story-action-button" onClick={this.handlePublish}>Publish</div>:""}
+            {this.state.deleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
+            <div className="story-action-button" onClick={this.onDelete}>Delete</div>
+            }
+        </div>);
+    }
+}
+StoryEditBar.propTypes = {
+  interfaceLang:     PropTypes.string,
+  onDelete:          PropTypes.func,
+  handlePublish:     PropTypes.func,
+  removeDraft:       PropTypes.func,
+  isDraft:           PropTypes.bool,
+  story:             PropTypes.object
+};
+
+function withButton(WrappedFormComponent, addStory) {
+  // ...and returns another component...
+  return class extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            submitting: 'false',
+            error: null,
+            form: null
+        };
+    }
+    handleReflect(type, content) {
+        this.setState({"submitting": true, "error": null});
+        $.ajax({
+            url: "/api/story_reflector",
+            dataType: 'json',
+            type: 'POST',
+            data: {json: JSON.stringify(this.state.form.payload())},
+            success: function (data) {
+                if ("error" in data) {
+                  this.setState({"error": "Error - " + data.error});
+                } else {
+                    data["draft"] = true;
+                    addStory(data);
+                    this.setState({submitting: false});
+                }
+            }.bind(this),
+            error: function (xhr, status, err) {
+                this.setState({"error": "Error - " + err.toString()});
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    }
+    recordFormRef(r) {
+        this.setState({form: r});
+    }
+    render() {
+      // ... and renders the wrapped component with the fresh data!
+      // Notice that we pass through any additional props
+      const disabled = (this.state.submitting ||
+          (this.state.form && (!this.state.form.isValid())));
+
+      return <div>
+        <WrappedFormComponent ref={this.recordFormRef} {...this.props} />
+        <input type="button" value="Preview" disabled={disabled} onClick={this.handleReflect}/>
+        <span className="error">{this.state.error}</span>
+      </div>
+    }
+  };
+}
+
+class NewIndexStoryForm extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            type: 'newIndex',
+            error: ''
+        };
+        this.refs = {};
+    }
+    payload() {
+        const d = { index: this.refs.index.getValue() };
+        ["ref","en","he"].forEach(p => {if (!!this.refs[p].getValue()) {d[p] = this.refs[p].getValue()}});
+        return {
+          storyForm: this.state.type,
+          data: d
+        };
+    }
+    isValid() {
+        return Object.values(this.refs).every(e => e.isValid());
+    }
+    recordRef(field) {
+        return ref => this.refs[field] = ref;
+    }
+    render() {
+        return (
+            <div>
+                <StoryFormIndexField ref={this.recordRef("index")}/>
+                <StoryFormTextField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
+                <StoryFormTextField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
+                <StoryFormRefField ref={this.recordRef("ref")} />
+            </div>);
+    }
+}
+NewIndexStoryForm.propTypes = {
+    setPayload: PropTypes.func
+};
+
+class NewStoryForm extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        typeName: 'New Index',
+        type: "newIndex",
+        data: {},
+        error: ''
+    };
+  }
+  componentWillReceiveProps(nextProps) {
+    this.setState({"error": nextProps.error});
+  }
+  handleTypeNameChange(e) {
+    this.setState({typeName: e.target.value, error: null});
+  }
+
+  handleVersionChange(e) {
+    this.setState({version: e.target.value, error: null});
+  }
+  handleLanguageChange(e) {
+    this.setState({language: e.target.value, error: null});
+  }
+  handleReflect(e) {
+    e.preventDefault();
+    var content = {
+      "en": this.state.en.trim(),
+      "he": this.state.he.trim()
+    };
+    if (this.state.type == "newContent") {
+      if (!this.state.en || !this.state.he) {
+        this.setState({"error": "Both Hebrew and English are required"});
+        return;
+      }
+    } else {
+      if (!this.state.index) {
+        this.setState({"error": "Index is required"});
+        return;
+      }
+      content["index"] = this.state.index.trim();
+    }
+    if (this.state.type == "newVersion") {
+      if (!this.state.version || !this.state.language) {
+        this.setState({"error": "Version is required"});
+        return;
+      }
+      content["version"] = this.state.version.trim();
+      content["language"] = this.state.language.trim();
+    }
+    this.props.handleReflect(this.state.type, content);
+
+  }
+  editForms() {
+    return {
+        "New Index":       NewIndexStoryForm,
+        /*
+        newContent:     NewContentStory,
+        newVersion:     NewVersionStory,
+        publishSheet:   PublishSheetStory,
+        author:         AuthorStory,
+        textPassage:    TextPassageStory,
+        topic:          TopicStory,
+        topicList:      TopicListStory,
+        sheetList:      SheetListStory,
+        userSheets:     UserSheetsStory,
+        groupSheetList: GroupSheetListStory
+        */
+    };
+  }
+
+  render() {
+      const EditForm = withButton(this.editForms()[this.state.type], this.props.addStory);
+
+      return (
+          <div className="globalUpdateForm">
+              <div>
+                  <label>
+                      Story Type:
+                      <select value={this.state.typeName} onChange={this.handleTypeNameChange}>
+                          {Object.entries(this.editForms()).map(e => <option value={e[0]} key={e[0]}>{e[0]}</option>)}
+                      </select>
+                  </label>
+              </div>
+              <EditForm/>
+          </div>
+      );
+  }
+  /*
+        <div>
+          {(this.state.type != "newContent")?<input type="text" placeholder="Index Title" onChange={this.handleIndexChange} />:""}
+          {(this.state.type == "newVersion")?<input type="text" placeholder="Version Title" onChange={this.handleVersionChange}/>:""}
+          {(this.state.type == "newVersion")?<select type="text" placeholder="Version Language" onChange={this.handleLanguageChange}>
+            <option value="en">English</option>
+            <option value="he">Hebrew</option>
+          </select>:""}
+        </div>
+   */
+
+}
+NewStoryForm.propTypes = {
+  error:               PropTypes.string,
+  handleReflect:        PropTypes.func
+};
+
+class StoryFormIndexField extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        isValid: false,
+        value: '',
+        error: ''
+    };
+  }
+    getValue() {
+        return this.state.value;
+    }
+    isValid() {
+        return (this.state.value && (!this.state.error));
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+    render() {
+      return <div>
+        <input type="text" placeholder="Index Title" onChange={this.handleChange} />
+      </div>;
+  }
+}
+
+class StoryFormVersionFields extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        isValid: false,
+        value: '',
+        error: ''
+    };
+  }
+    getValue() {
+      return this.state.value;
+    }
+    isValid() {
+      return (this.state.value && (!this.state.error));
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+    render() {}
+}
+
+class StoryFormTextField extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        isValid: false,
+        value: '',
+        error: ''
+    };
+  }
+    getValue() {
+      return this.state.value;
+    }
+    isValid() {
+      return (this.state.value && (!this.state.error));
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+    render() {
+      return <div>
+        <textarea
+            placeholder={this.props.placeholder}
+            onChange={this.handleChange}
+            rows="3"
+            cols="80" />
+      </div>;
+    }
+}
+
+class StoryFormRefField extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isValid: false,
+            value: '',
+            error: ''
+        };
+    }
+
+    getValue() {
+      return this.state.value;
+    }
+
+    isValid() {
+      return (this.state.value && (!this.state.error));
+    }
+
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+
+    render() {
+        return <div>
+            <input type="text" placeholder="Ref" onChange={this.handleChange}/>
+        </div>;
+    }
+}
+
+class StoryFormUserField extends Component {
+
+}
+class StoryFormAuthorField extends Component {
+
+}
+class StoryFormSheetfield extends  Component {
+
+}
 
 module.exports.HomeFeed = HomeFeed;
 module.exports.StoryEditor = StoryEditor;
