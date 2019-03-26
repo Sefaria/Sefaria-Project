@@ -333,6 +333,7 @@ class TextRange extends Component {
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
             onFootnoteClick={this.onFootnoteClick}
+            unsetTextHighlight={this.props.unsetTextHighlight}
           />
         </span>
       );
@@ -446,6 +447,7 @@ TextRange.propTypes = {
   onCompareClick:         PropTypes.func,
   onOpenConnectionsClick: PropTypes.func,
   showBaseText:           PropTypes.func,
+  unsetTextHighlight:     PropTypes.func,
   panelsOpen:             PropTypes.number, // used?
   layoutWidth:            PropTypes.number,
   showActionLinks:        PropTypes.bool,
@@ -469,6 +471,11 @@ class TextSegment extends Component {
         || this.props.he !== nextProps.he)                    { return true; }
 
     return false;
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.highlight !== prevProps.highlight && !!this.props.textHighlights) {
+      this.props.unsetTextHighlight();
+    }
   }
   handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -515,10 +522,10 @@ class TextSegment extends Component {
     return $newElement.html();
   }
   addHighlights(text) {
+    // for adding in highlights to query results in Reader
     if (!!this.props.textHighlights) {
       const reg = new RegExp(`(${this.props.textHighlights.join("|")})`, 'g');
-      console.log("REg", reg, this.props.sref);
-      return text.replace(reg, '<b>$1</b>');
+      return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
     }
     return text;
   }
@@ -581,7 +588,8 @@ TextSegment.propTypes = {
   filter:          PropTypes.array,
   onCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,
-  onFootnoteClick: PropTypes.func
+  onFootnoteClick: PropTypes.func,
+  unsetTextHighlight: PropTypes.func,
 };
 
 

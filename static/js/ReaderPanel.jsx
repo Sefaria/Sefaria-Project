@@ -651,6 +651,7 @@ class ReaderPanel extends Component {
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
+          unsetTextHighlight={this.props.unsetTextHighlight}
           key={title + "-TextColumn"} />);
     }
 
@@ -1041,6 +1042,7 @@ ReaderPanel.propTypes = {
   selectVersion:               PropTypes.func,
   viewExtendedNotes:           PropTypes.func,
   backFromExtendedNotes:       PropTypes.func,
+  unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
   updateSearchTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,

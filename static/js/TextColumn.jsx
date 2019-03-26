@@ -305,6 +305,7 @@ class TextColumn extends Component {
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
         layoutWidth={this.props.layoutWidth}
+        unsetTextHighlight={this.props.unsetTextHighlight}
         key={ref} />);
     }.bind(this));
 
@@ -364,6 +365,7 @@ TextColumn.propTypes = {
   hasSidebar:             PropTypes.bool,
   layoutWidth:            PropTypes.number,
   textHighlights:         PropTypes.array,
+  unsetTextHighlight:     PropTypes.func,
 };
 
 

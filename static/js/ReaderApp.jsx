@@ -986,6 +986,9 @@ class ReaderApp extends Component {
       tempSetState: (typeof n === 'undefined') ? this.setHeaderState : this.setPanelState.bind(this, n),
     };
   }
+  unsetTextHighlight(n) {
+    this.setPanelState(n, { textHighlights: null });
+  }
   _getSearchStateName(type) { return `${type}SearchState`; }
   _getSearchState(state, type) { return !!state && state[this._getSearchStateName(type)]; }
   updateQueryInHeader(query) {
@@ -1657,6 +1660,7 @@ class ReaderApp extends Component {
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
+      var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateSearchTab                = this.updateSearchTab.bind(null, i);
       var updateAvailableFilters         = this.updateAvailableFilters.bind(null, i);
@@ -1706,6 +1710,7 @@ class ReaderApp extends Component {
                       viewExtendedNotes={viewExtendedNotes}
                       backFromExtendedNotes={backFromExtendedNotes}
                       setDefaultOption={this.setDefaultOption}
+                      unsetTextHighlight={unsetTextHighlight}
                       onQueryChange={updateQuery}
                       updateSearchTab={updateSearchTab}
                       updateSearchFilter={updateSearchFilter}
