@@ -594,6 +594,11 @@ ReadMoreLine.propTypes = {
 };
 
 
+/*                      *
+ *                      *
+ *    Story Editing     *
+ *                      *
+ */
 
 class StoryEditor extends Component {
   constructor(props) {
@@ -645,7 +650,7 @@ class StoryEditor extends Component {
   removeDraft(timestamp) {
       this.setState({stories: this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp)});
   }
-  addStory(story) {
+  addStory(data) {
         this.state.stories.unshift(data);
         this.setState({stories: this.state.stories});
         //submitting: false, submitCount: this.state.submitCount + 1
@@ -763,10 +768,11 @@ function withButton(WrappedFormComponent, addStory) {
     constructor(props) {
         super(props);
         this.state = {
-            submitting: 'false',
+            submitting: false,
             error: null,
-            form: null
         };
+        this.formRef = React.createRef();
+        this.handleReflect = this.handleReflect.bind(this);
     }
     handleReflect(type, content) {
         this.setState({"submitting": true, "error": null});
@@ -774,7 +780,7 @@ function withButton(WrappedFormComponent, addStory) {
             url: "/api/story_reflector",
             dataType: 'json',
             type: 'POST',
-            data: {json: JSON.stringify(this.state.form.payload())},
+            data: {json: JSON.stringify(this.formRef.current.payload())},
             success: function (data) {
                 if ("error" in data) {
                   this.setState({"error": "Error - " + data.error});
@@ -790,20 +796,17 @@ function withButton(WrappedFormComponent, addStory) {
             }.bind(this)
         });
     }
-    recordFormRef(r) {
-        this.setState({form: r});
-    }
     render() {
       // ... and renders the wrapped component with the fresh data!
       // Notice that we pass through any additional props
       const disabled = (this.state.submitting ||
-          (this.state.form && (!this.state.form.isValid())));
+          (this.formRef.current && (!this.formRef.current.isValid())));
 
       return <div>
-        <WrappedFormComponent ref={this.recordFormRef} {...this.props} />
+        <WrappedFormComponent ref={this.formRef} {...this.props} />
         <input type="button" value="Preview" disabled={disabled} onClick={this.handleReflect}/>
         <span className="error">{this.state.error}</span>
-      </div>
+      </div>;
     }
   };
 }
@@ -815,21 +818,21 @@ class NewIndexStoryForm extends Component {
             type: 'newIndex',
             error: ''
         };
-        this.refs = {};
+        this.field_refs = {};
     }
     payload() {
-        const d = { index: this.refs.index.getValue() };
-        ["ref","en","he"].forEach(p => {if (!!this.refs[p].getValue()) {d[p] = this.refs[p].getValue()}});
+        const d = { index: this.field_refs.index.getValue() };
+        ["ref","en","he"].forEach(p => {if (!!this.field_refs[p].getValue()) {d[p] = this.field_refs[p].getValue()}});
         return {
           storyForm: this.state.type,
           data: d
         };
     }
     isValid() {
-        return Object.values(this.refs).every(e => e.isValid());
+        return Object.values(this.field_refs).every(e => e.isValid());
     }
     recordRef(field) {
-        return ref => this.refs[field] = ref;
+        return ref => this.field_refs[field] = ref;
     }
     render() {
         return (
@@ -916,7 +919,7 @@ class NewStoryForm extends Component {
   }
 
   render() {
-      const EditForm = withButton(this.editForms()[this.state.type], this.props.addStory);
+      const EditForm = withButton(this.editForms()[this.state.typeName], this.props.addStory);
 
       return (
           <div className="globalUpdateForm">
@@ -946,7 +949,8 @@ class NewStoryForm extends Component {
 }
 NewStoryForm.propTypes = {
   error:               PropTypes.string,
-  handleReflect:        PropTypes.func
+  handleReflect:        PropTypes.func,
+  addStory:         PropTypes.func
 };
 
 class StoryFormIndexField extends Component {

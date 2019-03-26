@@ -61,7 +61,7 @@ class Story(abst.AbstractMongoRecord):
         d = c["data"]
         if "version" in d and "language" in d and "versions" not in d:
             # NewVersion records have just one version.
-            d["versions"][d["language"]] = d["version"]
+            d["versions"] = {d["language"]: d["version"]}
 
         if "ref" in d:
             oref = text.Ref(d["ref"])
