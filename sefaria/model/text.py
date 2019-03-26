@@ -4156,6 +4156,9 @@ class Library(object):
             self._toc_tree = TocTree(self)
         return self._toc_tree
 
+    def get_groups_in_library(self):
+        return self._toc_tree.get_groups_in_library()
+
     def get_search_filter_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,

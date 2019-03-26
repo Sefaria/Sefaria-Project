@@ -201,9 +201,11 @@ input.noselect {
 }
 #panelWrapBox {
   position: absolute;
-  top: 60px;
   height: calc(100% - 60px);
   box-sizing: border-box;
+}
+.multiPanel #panelWrapBox {
+  top: 60px;
 }
 #panelWrapBox.wrapBoxScroll {
   overflow-x: scroll;
@@ -1276,7 +1278,7 @@ a.readerNavCategory {
 .readerNavCategoryMenu {
   height: 100%;
 }
-.readerNavCategoryMenu .content {
+..multiPanel .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
 }
 .readerNavCategoryMenu .content .category,
@@ -1315,8 +1317,8 @@ a.readerNavCategory {
   text-align: center;
   unicode-bidi: plaintext;
 }
-.readerNavCategoryMenu .catLink,
-.readerNavCategoryMenu .refLink {
+.readerNavCategoryMenu .blockLink,
+.gridBox .navButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1331,13 +1333,10 @@ a.readerNavCategory {
   padding: 13px 8px 19px;
   border-radius: 7px;
 }
-.catLink:active,
 .blockLink:active,
-.catLink:active,
 .navButton:active,
 .readerNavCategory:active,
-.refLink:active,
-.resourceseLink {  /* likely a typo in this word but not sure if this this still applies */
+.resourcesLink:active { 
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {
@@ -1351,14 +1350,13 @@ a.readerNavCategory {
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink,
-.readerNavMenu .readerNavCategoryMenu .catLink {
+.readerNavMenu .readerNavCategoryMenu .blockLink,
+.gridBox .navButton {
   width: 100%;
   height: 100%;
   padding: 13px 8px 19px;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
-.readerNavMenu .catLink.incomplete {
+.readerNavMenu .readerNavCategoryMenu .blockLink.incomplete {
   opacity: 0.65;
 }
 .categoryColorLine {
@@ -2458,18 +2456,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .similar-trigger-box i {
   padding: 0 5px;
 }
-
 .searchContent .sheet_result .owner_image {
   height: 30px;
   width: 30px;
   align-self: flex-start;
 }
-
 .searchContent .sheet_result {
   height: auto;
   margin: 15px 0;
 }
-
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -2938,6 +2933,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0;
 }
 .narrowColumn .textRange.basetext {
+}
+.narrowColumn .content .contentInner {
+  padding: 0 15px;
 }
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
@@ -3865,6 +3863,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .note .noteText {
   font-size: 16px;
 }
+.textList .textListTextRangeBox + .sheet {
+  margin-top: 24px;
+}
 .textRange .numberLabel {
   position: absolute;
   top: 14px;
@@ -4668,6 +4669,14 @@ h2.splitHeader .he {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #000;
   text-align: center;
+}
+.groupPage .groupDescription .he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+}
+.groupPage .groupDescription .en .dedication {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-style: italic;
 }
 .groupPage .tabs {
   text-align: center;

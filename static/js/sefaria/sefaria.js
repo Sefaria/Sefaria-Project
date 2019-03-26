@@ -724,7 +724,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
+       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -830,13 +830,25 @@ Sefaria = extend(Sefaria, {
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
     });
   },
+  _filterSheetFromLinks: function(links, sheetID) {
+    links = links.filter(link => !link.isSheet || link.id !== sheetID );
+    return links;
+  },
+  _dedupeLinks: function(links) {
+    const key = (link) => [link.anchorRef, link.sourceRef, link.type].join("|");
+    let dedupedLinks = {};
+    links.map((link) => {dedupedLinks[key(link)] = link});
+    return Object.values(dedupedLinks);
+  },
   _linkSummaries: {},
-  linkSummary: function(ref) {
+  linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
+    // If `excludedSheet` is present, exclude links to that sheet ID. 
 
     var normRef = Sefaria.humanRef(ref);
-    if (normRef in this._linkSummaries) { return this._linkSummaries[normRef]; }
+    var cacheKey = normRef + excludedSheet;
+    if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
       var links = this.links(ref);
     } else {
@@ -845,7 +857,10 @@ Sefaria = extend(Sefaria, {
         var newlinks = Sefaria.links(r);
         links = links.concat(newlinks);
       });
+      links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     }
+
+    links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
 
     var summary = {};
     for (var i = 0; i < links.length; i++) {
@@ -911,7 +926,7 @@ Sefaria = extend(Sefaria, {
       orderB = orderB == -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
-    Sefaria._linkSummaries[Sefaria.humanRef(ref)] = summaryList;
+    Sefaria._linkSummaries[cacheKey] = summaryList;
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
@@ -1111,7 +1126,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   relatedApi: function(ref, callback) {
-    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
       if ("error" in data) {
         return;
@@ -1664,6 +1679,14 @@ Sefaria = extend(Sefaria, {
             sheets = sheets.concat(newSheets);
           }
         });
+        // sheets anchored to spanning refs may cause duplicates
+        var seen = {};
+        var deduped = [];
+        sheets.map(sheet => { 
+          if (!seen[sheet.id]) { deduped.push(sheet); }
+          seen[sheet.id] = true; 
+        });
+        sheets = deduped;
       }
       if (sheets) {
         if (cb) { cb(sheets); }
@@ -1793,6 +1816,7 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
+      "Public Groups": "קבוצות",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
@@ -1804,6 +1828,7 @@ Sefaria = extend(Sefaria, {
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
+      "Source Sheets": "דפי מקורות", 
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",

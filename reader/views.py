@@ -257,6 +257,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 
     return panel
 
+
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
@@ -649,6 +650,7 @@ def get_group_page(request, group, authenticated):
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
         "initialGroup":     group,
+        "initialGroupTag":  request.GET.get("tag", None)
     })
     group = GroupSet({"name": group})
     if not len(group):
@@ -1699,7 +1701,8 @@ def links_api(request, link_id_or_ref=None):
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
-        return jsonResponse(get_links(link_id_or_ref, with_text), callback)
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if request.method == "POST":
         def _internal_do_post(request, link, uid, **kwargs):
@@ -1887,7 +1890,7 @@ def related_api(request, tref):
         response = {"error": "You must be logged in to access private content."}
     else:
         response = {
-            "links": get_links(tref, with_text=False),
+            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
         }
