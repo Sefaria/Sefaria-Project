@@ -240,34 +240,8 @@ class GroupSheetListStory extends AbstractStory {
         <StoryFrame cls="groupSheetListStory">
             <StoryTypeBlock en="Group" he="קבוצה" />
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
-
             <img className="mediumProfileImage" src={this.props.data.group_image} alt={this.props.data.title.en}/>
-
-            <div className="storySheetList">
-                {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
-                    <a href={sheet.publisher_url}>
-                        <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
-                    </a>
-                    <div className="authorText">
-                        <div className="authorName">
-                            <a className="systemText" href={sheet.publisher_url}>
-                                <span className="int-en">{sheet.publisher_name}</span>
-                                <span className="int-he">{sheet.publisher_name}</span>
-                            </a>
-                            <FollowButton large={false} uid={sheet.publisher_id} following={sheet.publisher_followed}/>
-                        </div>
-                        <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
-                            <span className="int-en">{sheet.sheet_title}</span>
-                            <span className="int-he">{sheet.sheet_title}</span>
-                        </a>
-                    </div>
-                    <SaveButton
-                        historyObject={sheet.history_object}
-                        tooltip={true}
-                        toggleSignUpModal={this.props.toggleSignUpModal}
-                    />
-                </div>)}
-            </div>
+            <StorySheetList sheets={this.props.data.sheets} />
         </StoryFrame>
       );
     }
@@ -303,33 +277,7 @@ class SheetListStory extends AbstractStory {
         <StoryFrame cls="sheetListStory">
             <StoryTypeBlock en="Sheets" he="דפים" />
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
-
-
-            <div className="storySheetList">
-                {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
-                    <a href={sheet.publisher_url}>
-                        <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
-                    </a>
-                    <div className="authorText">
-                        <div className="authorName">
-                            <a className="systemText" href={sheet.publisher_url}>
-                                <span className="int-en">{sheet.publisher_name}</span>
-                                <span className="int-he">{sheet.publisher_name}</span>
-                            </a>
-                            <FollowButton large={false} uid={sheet.publisher_id} following={sheet.publisher_followed}/>
-                        </div>
-                        <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
-                            <span className="int-en">{sheet.sheet_title}</span>
-                            <span className="int-he">{sheet.sheet_title}</span>
-                        </a>
-                    </div>
-                    <SaveButton
-                        historyObject={sheet.history_object}
-                        tooltip={true}
-                        toggleSignUpModal={this.props.toggleSignUpModal}
-                    />
-                </div>)}
-            </div>
+            <StorySheetList sheets={this.props.data.sheets} />
         </StoryFrame>
       );
     }
@@ -433,12 +381,31 @@ class TextPassageStory extends AbstractStory {
 
 class TopicStory extends AbstractStory {
 
+    render() {
+        return (
+            <StoryFrame cls="topicStory">
+                <StoryTypeBlock en="Topic" he="" />
+                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
+                <!-- See All link -->
+                <!-- Source List -->
+            </StoryFrame>
+        );
+    }
 }
 
 
 class TopicListStory extends AbstractStory {
 
+
 }
+
+
+
+/*          *
+*   Pieces   *
+*            *
+*            *
+ */
 
 class StoryFrame extends Component {
 
@@ -455,7 +422,7 @@ class StoryFrame extends Component {
     }
 }
 StoryFrame.propTypes = {
-    cls:        PropTypes.string,
+    cls:        PropTypes.string,   // Story type as class name
     cardColor:  PropTypes.string
 };
 
@@ -509,6 +476,35 @@ const StoryBodyBlock = ({en, he, dangerously}) => {
             </div>);
       }
 };
+const StorySheetList = sheets => (
+    <div className="storySheetList">
+        {sheets.map((sheet, i) => <StorySheetListItem key={i} sheet={sheet} />)}
+    </div>
+);
+const StorySheetListItem = sheet => (
+    <div className="storySheetListItem">
+        <a href={sheet.publisher_url}>
+            <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
+        </a>
+        <div className="authorText">
+            <div className="authorName">
+                <a className="systemText" href={sheet.publisher_url}>
+                    <span className="int-en">{sheet.publisher_name}</span>
+                    <span className="int-he">{sheet.publisher_name}</span>
+                </a>
+                <FollowButton large={false} uid={sheet.publisher_id} following={sheet.publisher_followed}/>
+            </div>
+            <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
+                <span className="int-en">{sheet.sheet_title}</span>
+                <span className="int-he">{sheet.sheet_title}</span>
+            </a>
+        </div>
+        <SaveButton
+            historyObject={sheet.history_object}
+            tooltip={true}
+            toggleSignUpModal={this.props.toggleSignUpModal}
+        />
+    </div>);
 class ReadMoreLine extends Component {
     render() {
       const historyObject = {
