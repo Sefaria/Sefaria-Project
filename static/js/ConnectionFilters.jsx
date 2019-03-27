@@ -27,6 +27,7 @@ class CategoryFilter extends Component {
                 book={book.book}
                 heBook={book.heBook}
                 count={book.count}
+                hasEnglish={book.hasEnglish}
                 category={this.props.category}
                 hideColors={true}
                 updateRecent={true}
@@ -43,7 +44,7 @@ class CategoryFilter extends Component {
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
     var innerFilter = (
       <div className={innerClasses} data-name={this.props.category}>
-        <span className="en">{this.props.category}{count}</span>
+        <span className="en">{this.props.category}{count}{this.props.hasEnglish ? <EnglishAvailableTag /> : null}</span>
         <span className="he">{this.props.heCategory}{count}</span>
       </div>);
     var wrappedFilter = <a href={url} onClick={handleClick}>{innerFilter}</a>;
@@ -62,6 +63,7 @@ CategoryFilter.propTypes = {
   heCategory:             PropTypes.string.isRequired,
   showBooks:              PropTypes.bool.isRequired,
   count:                  PropTypes.number.isRequired,
+  hasEnglish:             PropTypes.bool.isRequired,
   books:                  PropTypes.array.isRequired,
   filter:                 PropTypes.array.isRequired,
   updateRecent:           PropTypes.bool.isRequired,
@@ -97,7 +99,7 @@ class TextFilter extends Component {
       <a href={url} onClick={this.handleClick}>
         <div data-name={name} className={classes} style={style} >
             <div className={upperClass}>
-              <span className="en">{this.props.book}{count}</span>
+              <span className="en">{this.props.book}{count}{this.props.hasEnglish ? <EnglishAvailableTag /> : null}</span>
               <span className="he">{this.props.heBook}{count}</span>
             </div>
         </div>
@@ -116,6 +118,12 @@ TextFilter.propTypes = {
   filterSuffix:    PropTypes.string,  // Optionally add a string to the filter parameter set (but not displayed)
 };
 
+
+class EnglishAvailableTag extends Component {
+  render() {
+    return <div className="englishAvailableTag">EN</div>
+  }
+}
 
 class RecentFilterSet extends Component {
   // A toggle-able listing of currently and recently used text filters.

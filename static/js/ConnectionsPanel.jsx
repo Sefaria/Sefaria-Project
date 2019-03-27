@@ -633,6 +633,7 @@ class ConnectionsSummary extends Component {
           showBooks={this.props.showBooks}
           count={cat.count}
           books={books}
+          hasEnglish={cat.hasEnglish}
           filter={this.props.filter}
           updateRecent={true}
           setFilter={this.props.setFilter}

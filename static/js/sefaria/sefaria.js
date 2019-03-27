@@ -867,16 +867,20 @@ Sefaria = extend(Sefaria, {
       var link = links[i];
       // Count Category
       if (link.category in summary) {
-        summary[link.category].count += 1
+        summary[link.category].count += 1;
+        summary[link.category].hasEnglish = summary[link.category].hasEnglish || link.sourceHasEn;
+
       } else {
-        summary[link.category] = {count: 1, books: {}};
+        summary[link.category] = {count: 1, books: {}, hasEnglish: link.sourceHasEn};
       }
       var category = summary[link.category];
       // Count Book
       if (link["collectiveTitle"]["en"] in category.books) {
         category.books[link["collectiveTitle"]["en"]].count += 1;
+        category.books[link["collectiveTitle"]["en"]].hasEnglish = category.books[link["collectiveTitle"]["en"]].hasEnglish || link.sourceHasEn;
+
       } else {
-        category.books[link["collectiveTitle"]["en"]] = {count: 1};
+        category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
       }
     }
     // Add Zero counts for every commentator in this section not already in list
