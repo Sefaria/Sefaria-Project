@@ -111,7 +111,7 @@ Global Notification "type" attrs that got converted:
         "en"        : english long description (optional)
 
 Mapping of "type" to "storyForm":
-    "general": "newContent"
+    "general": "freeText"
     "index": "newIndex"
     "version": "newVersion"
 
@@ -406,9 +406,9 @@ class AbstractStoryFactory(object):
 
 
 #todo: convert this into a Free Form story
-class NewContentStoryFactory(object):
+class FreeTextStoryFactory(object):
     """
-    newContent
+    freeText
         "he"    : hebrew long description
         "en"    : english long description
     """
@@ -419,7 +419,7 @@ class NewContentStoryFactory(object):
 
     @classmethod
     def _story_form(cls, **kwargs):
-        return "newContent"
+        return "freeText"
 
 
 class NewIndexStoryFactory(object):

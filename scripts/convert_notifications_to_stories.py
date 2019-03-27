@@ -12,7 +12,7 @@ db.drop_collection("user_story")
 
 # Convert Global Notifications
 mappping = {
-    "general": "newContent",
+    "general": "freeText",
     "index": "newIndex",
     "version": "newVersion"
 }
