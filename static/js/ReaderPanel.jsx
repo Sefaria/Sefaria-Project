@@ -23,10 +23,8 @@ const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
 const UpdatesPanel              = require('./UpdatesPanel');
-const {
-  HomeFeed,
-  StoryEditor
-}                               = require('./HomeFeed');
+const HomeFeed                  = require('./HomeFeed');
+const StoryEditor               = require('./StoryEditor');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
   MyGroupsPanel,
