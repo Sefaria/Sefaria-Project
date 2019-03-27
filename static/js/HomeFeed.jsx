@@ -17,7 +17,7 @@ import Component from 'react-class';
 
 function Story(props) {
     const storyForms = {
-        freeText:     FreeTextStory,
+        freeText:       FreeTextStory,
         newIndex:       NewIndexStory,
         newVersion:     NewVersionStory,
         publishSheet:   PublishSheetStory,
@@ -773,11 +773,11 @@ class CreateStoryForm extends Component {
 
   editForms() {
     return {
+        "Free Text":       FreeTextStoryForm,
         "New Index":       NewIndexStoryForm,
         "New Version":     NewVersionStoryForm,
 
         /*
-        freeText:     FreeTextStory,
         publishSheet:   PublishSheetStory,
         author:         AuthorStory,
         textPassage:    TextPassageStory,
@@ -825,7 +825,11 @@ function withButton(WrappedFormComponent, addStory) {
         this.formRef = React.createRef();
         this.handleReflect = this.handleReflect.bind(this);
     }
-    handleReflect(type, content) {
+    handleReflect() {
+        if (!this.formRef.current.isValid()) {
+            this.setState({"error": "Incomplete"});
+            return;
+        }
         this.setState({"submitting": true, "error": null});
         $.ajax({
             url: "/api/story_reflector",
@@ -861,6 +865,51 @@ function withButton(WrappedFormComponent, addStory) {
     }
   };
 }
+
+
+class FreeTextStoryForm extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            type: 'freeText',
+            error: ''
+        };
+        this.field_refs = {};
+    }
+    payload() {
+        const d = {
+            en: this.field_refs.en.getValue(),
+            he: this.field_refs.he.getValue(),
+        };
+        return {
+          storyForm: this.state.type,
+          data: d
+        };
+    }
+    isValid() {
+        if (!Object.values(this.field_refs).every(e => e.isValid())) {
+            return false;
+        }
+        // Required Fields
+        if (!["en","he"].every(k => this.field_refs[k].getValue())) {
+            return false;
+        }
+        return true;
+    }
+    recordRef(field) {
+        return ref => this.field_refs[field] = ref;
+    }
+    render() {
+        return (
+            <div>
+                <StoryFormTextField ref={this.recordRef("en")} placeholder="English"/>
+                <StoryFormTextField ref={this.recordRef("he")} placeholder="Hebrew"/>
+            </div>);
+    }
+}
+FreeTextStoryForm.propTypes = {
+    setPayload: PropTypes.func
+};
 
 class NewVersionStoryForm extends Component {
     constructor(props) {
@@ -904,6 +953,10 @@ class NewVersionStoryForm extends Component {
             </div>);
     }
 }
+NewVersionStoryForm.propTypes = {
+    setPayload: PropTypes.func
+};
+
 class NewIndexStoryForm extends Component {
     constructor(props) {
         super(props);
