@@ -3640,6 +3640,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.englishAvailableTag {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  color: #666;
+  border: 1px solid #666;
+  border-radius: 3px;
+  float: right;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0px 3px;
+}
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
 }
