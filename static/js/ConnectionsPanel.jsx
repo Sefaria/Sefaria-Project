@@ -612,13 +612,32 @@ class ConnectionsSummary extends Component {
       // Single Category Summary
       summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));
       if (summary.length == 0) {
-        summary = [{category: this.props.category, books: [], count: 0}];
+        summary = [{category: this.props.category, books: [], count: 0, hasEnglish: false}];
       }
 
     } else if (isTopLevel) {
-      // Top Level summary, don't show Quoting or Modern Commentary
-      summary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
+      
+      // Hide Quoting or Modern Commentary from the top level view
+      var topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
+      // But include Quoting and Modern Commentary counts and english mark in top level Commentary section
+      var subCommentaryCats = summary.filter(cat => (cat.category.indexOf("Commentary") > 1));
+      if (subCommentaryCats.length && summary[0].category !== "Commentary") {
+        // handle case of having Modern/Quoting Commentary, but no Commentary
+        var topSummary = [{category: "Commentary", count: 0, books: [], hasEnglish: false}].concat(topSummary);
+      } else if (subCommentaryCats.length && summary[0].category === "Commentary") {
+        // If Commentary object is present and we have sub commentary counts to add, replace the object
+        // so we can add to the count without changing the underlying object.
+        var topSummary = [{category: "Commentary", count: summary[0].count, books: [], hasEnglish: summary[0].hasEnglish}].concat(topSummary.slice(1))
+      }
+      subCommentaryCats.map(cat => {
+        topSummary[0].count += cat.count;
+        topSummary[0].hasEnglish = cat.hasEnglish || summary[0].hasEnglish;
+      });
+
+      summary = topSummary;
     }
+
+    console.log(summary)
 
     var connectionsSummary = summary.map(function(cat, i) {
 
