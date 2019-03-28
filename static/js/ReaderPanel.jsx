@@ -415,6 +415,9 @@ class ReaderPanel extends Component {
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
   }
+  setGroupTag (tag) {
+    this.conditionalSetState({navigationGroupTag: tag});
+  }
   setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
     // If updateRecent is true, include the current setting in the list of recent filters.
@@ -846,12 +849,14 @@ class ReaderPanel extends Component {
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
-                    group={this.state.sheetsGroup}
                     tagSort={this.state.tagSort}
+                    group={this.state.sheetsGroup}
+                    groupTag={this.state.navigationGroupTag}
                     mySheetSort={this.state.mySheetSort}
                     setMySheetSort={this.setMySheetSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
+                    setGroupTag={this.setGroupTag}
                     key={"SheetsNav"} />);
 
     } else if (this.state.menuOpen === "topics") {
@@ -905,10 +910,14 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "publicGroups") {
-      var menu = (<PublicGroupsPanel />);
+      var menu = (<PublicGroupsPanel 
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "myGroups") {
-      var menu = (<MyGroupsPanel />);
+      var menu = (<MyGroupsPanel 
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "homefeed") {
       var menu = (<HomeFeed
@@ -924,6 +933,12 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "story_editor") {
       var menu = (<StoryEditor
                     interfaceLang={this.props.interfaceLang} />);
+
+    /* todo: do we need this here?
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")} />);
+                    */
+
     } else if (this.state.menuOpen === "modtools") {
       var menu = (<ModeratorToolsPanel
                     interfaceLang={this.props.interfaceLang} />);

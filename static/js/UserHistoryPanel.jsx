@@ -41,7 +41,6 @@ class UserHistoryPanel extends Component {
     }
   }
   navHome() {
-    this.props.setCategories([]);
     this.props.openNav();
   }
   render() {
@@ -82,11 +81,11 @@ class UserHistoryPanel extends Component {
           <div className={navTopClasses}>
             <CategoryColorLine category={"Other"} />
             <ReaderNavigationMenuMenuButton onClick={this.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
-            {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
             <h2>
               <span className="int-en">Recent</span>
               <span className="int-he">נצפו לאחרונה</span>
             </h2>
+            {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
         </div>}
         <div className={contentClasses}>
           <div className="contentInner">

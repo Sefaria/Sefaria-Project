@@ -213,9 +213,20 @@
   font-style: italic;
   margin-bottom: 25px;
 }
+.static h1 p.tagline {
+  margin-top: 25px;
+  margin-bottom: 0px;
+}
 .static-text {
   margin: 0;
   text-align: justify
+}
+.static .quotation {
+  text-align: center;
+  font-weight: bold;
+}
+.static .quotation.he {
+  font-family: frank ruehl libre,taamey frank,times new roman,serif;
 }
 #homePage {
   overflow: hidden;

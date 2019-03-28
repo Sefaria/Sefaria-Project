@@ -257,6 +257,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 
     return panel
 
+
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
@@ -649,6 +650,7 @@ def get_group_page(request, group, authenticated):
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
         "initialGroup":     group,
+        "initialGroupTag":  request.GET.get("tag", None)
     })
     group = GroupSet({"name": group})
     if not len(group):
@@ -1723,7 +1725,8 @@ def links_api(request, link_id_or_ref=None):
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
-        return jsonResponse(get_links(link_id_or_ref, with_text), callback)
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if request.method == "POST":
         def _internal_do_post(request, link, uid, **kwargs):
@@ -1911,7 +1914,7 @@ def related_api(request, tref):
         response = {"error": "You must be logged in to access private content."}
     else:
         response = {
-            "links": get_links(tref, with_text=False),
+            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
         }
@@ -1948,45 +1951,11 @@ def version_status_api(request):
 
 
 
-simplified_toc = {}
 
 @json_response_decorator
 @django_cache(default_on_miss = True)
 def version_status_tree_api(request, lang=None):
-    def simplify_toc(toc_node, path):
-        simple_nodes = []
-        for x in toc_node:
-            node_name = x.get("category", None) or x.get("title", None)
-            node_path = path + [node_name]
-            simple_node = {
-                "name": node_name,
-                "path": node_path
-            }
-            if "category" in x:
-                if "contents" not in x:
-                    continue
-                simple_node["type"] = "category"
-                simple_node["children"] = simplify_toc(x["contents"], node_path)
-            elif "title" in x:
-                query = {"title": x["title"]}
-                if lang:
-                    query["language"] = lang
-                simple_node["type"] = "index"
-                simple_node["children"] = [{
-                    "name": u"{} ({})".format(v.versionTitle, v.language),
-                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
-                    "size": v.word_count(),
-                    "type": "version"
-                } for v in VersionSet(query)]
-            simple_nodes.append(simple_node)
-        return simple_nodes
-
-    result = simplify_toc(library.get_toc(), [])
-    return {
-        "name": "Whole Library" + " ({})".format(lang) if lang else "",
-        "path": [],
-        "children": result
-    }
+    return library.simplify_toc(lang, library.get_toc(), [])
 
 
 @sanitize_get_params
