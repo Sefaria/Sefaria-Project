@@ -4906,6 +4906,46 @@ class Library(object):
 
         return d
 
+    def simplify_toc(self, lang=None, toc_node=None, path=None):
+        toc_node = toc_node if toc_node else self.get_toc()
+        path = path if len(path) else []
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": node_path
+            }
+            if "category" in x:
+                if "contents" not in x:
+                    continue
+                simple_node["type"] = "category"
+                simple_node["children"] = self.simplify_toc(lang, x["contents"], node_path)
+            elif "title" in x:
+                query = {"title": x["title"]}
+                if lang:
+                    query["language"] = lang
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                    "name": u"{} ({})".format(v.versionTitle, v.language),
+                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                    "size": v.word_count(),
+                    "type": "version"
+                } for v in VersionSet(query)]
+            simple_nodes.append(simple_node)
+
+        if toc_node is None and path is None:
+            return {
+                "name": "Whole Library" + " ({})".format(lang) if lang else "",
+                "path": [],
+                "children": simple_nodes
+            }
+        else:
+            return simple_nodes
+
+
+
 library = Library()
 
 
