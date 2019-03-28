@@ -24,7 +24,7 @@ from note import Note, NoteSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet, GlobalNotification, GlobalNotificationSet
 from story import SharedStory, UserStory, SharedStorySet, UserStorySet, TextPassageStoryFactory, AuthorStoryFactory, \
-    TopicFactory, UserSheetsFactory, SheetListFactory, GroupSheetListFactory
+    TopicTextsStoryFactory, UserSheetsFactory, SheetListFactory, GroupSheetListFactory, TopicListStoryFactory
 from interrupting_message import InterruptingMessage
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks

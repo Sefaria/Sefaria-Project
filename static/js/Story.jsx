@@ -19,7 +19,7 @@ function Story(props) {
         publishSheet:   PublishSheetStory,
         author:         AuthorStory,
         textPassage:    TextPassageStory,
-        topic:          TopicStory,
+        topicTexts:     TopicTextsStory,
         topicList:      TopicListStory,
         sheetList:      SheetListStory,
         userSheets:     UserSheetsStory,
@@ -372,8 +372,16 @@ class TextPassageStory extends AbstractStory {
     }
 }
 
-class TopicStory extends AbstractStory {
-
+class TopicTextsStory extends AbstractStory {
+/*
+    "topicTexts"
+        "title"
+            "en"
+            "he"
+        "refs"
+        "texts" (derived)
+            [{"ref", "en","he"}, ...]
+ */
     render() {
         return (
             <StoryFrame cls="topicStory">
@@ -388,7 +396,9 @@ class TopicStory extends AbstractStory {
 
 
 class TopicListStory extends AbstractStory {
-
+/*
+    topics
+ */
 
 }
 

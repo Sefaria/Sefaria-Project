@@ -9,6 +9,7 @@ import bleach
 import random
 from datetime import datetime
 
+from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from . import abstract as abst
@@ -71,7 +72,13 @@ class Story(abst.AbstractMongoRecord):
                 "en": text.TextChunk(oref, "en", d.get("versions", {}).get("en")).as_sized_string(),
                 "he": text.TextChunk(oref, "he", d.get("versions", {}).get("he")).as_sized_string()
             }
-
+        if "refs" in d:
+            orefs = [text.Ref(r) for r in d["refs"]]
+            d["texts"] = [{
+                "en": text.TextChunk(oref, "en").as_sized_string(),
+                "he": text.TextChunk(oref, "he").as_sized_string(),
+                "ref": oref.normal()
+            } for oref in orefs]
         if "publisher_id" in d:
             d.update(self._publisher_metadata(d["publisher_id"]))
 
@@ -208,9 +215,15 @@ Other story forms:
             "en"       
          "versions",     # dict: {en: str, he: str} - optional
          "language"      # oneOf(english, hebrew, bilingual) - optional - forces display language
-    "topic" 
-    "topicList" 
-    "sheetList"
+    "topicTexts"
+        "title"
+            "en"
+            "he"
+        "refs"
+        "texts" (derived)
+            [{"en","he"}, ...]
+    "topicList"
+        "topics" 
         
 """
 
@@ -509,12 +522,6 @@ class NewVersionStoryFactory(object):
 
 class TextPassageStoryFactory(AbstractStoryFactory):
     # This seems like it needs thought
-    leads = {
-        "Keep Reading": {"en": "Keep Reading", "he": u"קרא עוד"},
-        "Take Another Look": {"en": "Take Another Look", "he": u"תסתכל עוד"},
-        "Pick Up Where You Left Off": {"en": "Pick Up Where You Left Off", "he": u"התחל במקום שבו הפסקת"},
-        "Review": {"en": "Review", "he": u"לחזר"},
-    }
 
     @classmethod
     def _data_object(cls, **kwargs):
@@ -528,11 +535,10 @@ class TextPassageStoryFactory(AbstractStoryFactory):
         }
         if kwargs.get("leads"):
             d["lead_title"] = kwargs.get("lead")
-        else:
-            d["lead_title"] = cls.leads.get(kwargs.get("lead"), {"en": "Read", "he": u"קרא"})
 
         if kwargs.get("versions"):
             d["versions"] = kwargs.get("versions")
+
         return d
 
     @classmethod
@@ -773,26 +779,70 @@ class SheetListFactory(AbstractStoryFactory):
         story.save()
 
 
-class TopicFactory(AbstractStoryFactory):
+class TopicListStoryFactory(AbstractStoryFactory):
     """
-    cb = request.GET.get("callback", None)
-    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
-    if len(topics_filtered) == 0:
-        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
-        resp['Content-Type'] = "application/json; charset=utf-8"
-        return resp
-    random_topic = choice(topics_filtered)['tag']
-    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
-    try:
-        oref = Ref(random_source)
-        tref = oref.normal()
-        url = oref.url()
-    except Exception:
-        return random_by_topic_api(request)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
-    resp['Content-Type'] = "application/json; charset=utf-8"
-    return resp
-    pass
+    "topicList"
+
+    """
+    @classmethod
+    def _data_object(cls, **kwargs):
+        days = kwargs.get("days", 14)
+        from sefaria import sheets
+        tags = sheets.recent_public_tags(days=days, ntags=8)
+        normal_tags = [text.Term.normalize(tag["tag"]) for tag in tags]
+        return {"topics": normal_tags}
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "topicList"
+
+    @classmethod
+    def create_shared_story(cls, topic, **kwargs):
+        cls._generate_shared_story(topic=topic, **kwargs).save()
+
+
+class TopicTextsStoryFactory(AbstractStoryFactory):
+    """
+    "topicTexts"
+        "title"
+            "en"
+            "he"
+        "refs"
+        "texts" (derived)
+            [{"ref", "en","he"}, ...]
     """
 
+    @classmethod
+    def _data_object(cls, **kwargs):
+        t = kwargs.get("topic")
+        trefs = kwargs.get("refs")
+        num = kwargs.get("num", 2)
+
+        t = text.Term.normalize(t)
+
+        if not trefs:
+            from . import topic
+            topic_manager = topic.get_topics()
+            topic_obj = topic_manager.get(t)
+            trefs = [pair[0] for pair in topic_obj.sources[:num]]
+
+        normal_refs = [text.Ref(ref).normal() for ref in trefs]
+
+        d = {
+            "title": {
+                "en": t,
+                "he": hebrew_term(t)
+            },
+            "refs": normal_refs
+        }
+
+        return d
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "topicTexts"
+
+    @classmethod
+    def create_shared_story(cls, topic, **kwargs):
+        cls._generate_shared_story(topic=topic, **kwargs).save()
 

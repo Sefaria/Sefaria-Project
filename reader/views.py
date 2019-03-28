@@ -2498,6 +2498,8 @@ def story_reflector(request):
     @csrf_protect
     def protected_post(request):
         payload = json.loads(request.POST.get("json"))
+        factory = request.POST.get("factory")
+        method = request.POST.get("method")
         try:
             s = SharedStory(payload)
             return jsonResponse(s.contents())
