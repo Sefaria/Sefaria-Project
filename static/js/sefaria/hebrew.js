@@ -65,6 +65,10 @@ class Hebrew {
   static stripNikkud(rawString) {
     return rawString.replace(/[\u0591-\u05C7]/g,"");
   }
+  static getCantillationRegex(rawString) {
+    // given a Hebrew string, return regex that allows for arbitrary cantillation in between letters
+    return rawString.split("").join("[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]*");
+  }
   static isHebrew(text) {
     // Returns true if text is (mostly) Hebrew
     // Examines up to the first 60 characters, ignoring punctuation and numbers
