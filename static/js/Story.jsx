@@ -30,7 +30,6 @@ function Story(props) {
                 storyForm={props.storyForm}
                 data={props.data}
                 timestamp={props.timestamp}
-                natural_time={props.natural_time}
                 is_shared={props.is_shared}
                 key={props.timestamp} />;
 }
@@ -61,7 +60,6 @@ class AbstractStory extends Component {
 AbstractStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
-  natural_time: PropTypes.object,
   is_shared:    PropTypes.bool,
   data:         PropTypes.object,
 };
@@ -181,16 +179,11 @@ class UserSheetsStory extends AbstractStory {
       return (
         <StoryFrame cls="userSheetsStory">
             <StoryTypeBlock en="People" he="קהילה" />
-            <div className="storyTitleBlock">
-                <div className="storyTitle pageTitle">
-                    <a href={this.props.data.publisher_url}>
-                        <span className="int-en">{this.props.data.publisher_name}</span>
-                        <span className="int-he">{this.props.data.publisher_name}</span>
-                    </a>
-                </div>
+            <StoryTitleBlock en={this.props.data.publisher_name} he={this.props.data.publisher_name} url={this.props.data.publisher_url}>
                 {positionBlock}
                 <FollowButton large={true} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
-            </div>
+            </StoryTitleBlock>
+
             <img className="mediumProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storySheetList">
                 {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
@@ -453,6 +446,7 @@ const StoryTitleBlock = ({en, he, url}) => {
                             <span className="int-he">{he}</span>
                         </a>
                     </div>
+                  {this.props.children}
                 </div>;
       } else {
           return <div className="storyTitleBlock">
