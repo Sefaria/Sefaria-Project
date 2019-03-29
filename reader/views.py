@@ -1928,45 +1928,11 @@ def version_status_api(request):
 
 
 
-simplified_toc = {}
 
 @json_response_decorator
 @django_cache(default_on_miss = True)
 def version_status_tree_api(request, lang=None):
-    def simplify_toc(toc_node, path):
-        simple_nodes = []
-        for x in toc_node:
-            node_name = x.get("category", None) or x.get("title", None)
-            node_path = path + [node_name]
-            simple_node = {
-                "name": node_name,
-                "path": node_path
-            }
-            if "category" in x:
-                if "contents" not in x:
-                    continue
-                simple_node["type"] = "category"
-                simple_node["children"] = simplify_toc(x["contents"], node_path)
-            elif "title" in x:
-                query = {"title": x["title"]}
-                if lang:
-                    query["language"] = lang
-                simple_node["type"] = "index"
-                simple_node["children"] = [{
-                    "name": u"{} ({})".format(v.versionTitle, v.language),
-                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
-                    "size": v.word_count(),
-                    "type": "version"
-                } for v in VersionSet(query)]
-            simple_nodes.append(simple_node)
-        return simple_nodes
-
-    result = simplify_toc(library.get_toc(), [])
-    return {
-        "name": "Whole Library" + " ({})".format(lang) if lang else "",
-        "path": [],
-        "children": result
-    }
+    return library.simplify_toc(lang, library.get_toc(), [])
 
 
 @sanitize_get_params
