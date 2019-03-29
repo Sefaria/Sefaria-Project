@@ -164,11 +164,9 @@ class UserSheetsStory extends AbstractStory {
     */
   render() {
       const positionBlock = (this.props.data.publisher_position) ?
-           <div className="storySubTitle systemText">
-                <span className="int-en">{this.props.data.publisher_position}</span>
-                <span className="int-he">{this.props.data.publisher_position}</span>
-            </div>
-          :"";
+            <SimpleBlock classes="systemText storySubTitle"
+              en={this.props.data.publisher_position}
+              he={this.props.data.publisher_position}/>:"";
 
       return (
         <StoryFrame cls="userSheetsStory">
@@ -290,12 +288,10 @@ class PublishSheetStory extends AbstractStory {
                   sheet_title: sheet.sheet_title,
                   versions: {}};
       const hasPosition = !!this.props.data.publisher_position;
-      const positionBlock = hasPosition ?
-            <div className="systemText authorPosition">
-                <span className="int-en">{this.props.data.publisher_position}</span>
-                <span className="int-he">{this.props.data.publisher_position}</span>
-            </div>
-          :"";
+      const positionBlock = hasPosition ? <SimpleBlock
+              classes="systemText authorPosition"
+              en={this.props.data.publisher_position}
+              he={this.props.data.publisher_position}/>:"";
 
       return (
 
@@ -440,46 +436,59 @@ StoryFrame.propTypes = {
     cardColor:  PropTypes.string
 };
 
-const NaturalTimeBlock = ({timestamp}) => (<div className="topTailBlock smallText">
-          <span className="int-en">{ Sefaria.util.naturalTime(timestamp) } ago</span>
-          <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(timestamp) }</span>
-        </div>);
+const NaturalTimeBlock = ({timestamp}) => <SimpleBlock
+        classes = "topTailBlock smallText"
+        en = {Sefaria.util.naturalTime(timestamp) + " ago"}
+        he = {"&rlm;לפני " + Sefaria.util.naturalTime(timestamp)}
+    />;
 
-const SeeAllLink = ({url}) => (
-    <div className="topTailBlock smallText">
-        <a href={url}>
-              <span className="int-en">See All</span>
-              <span className="int-he">ראה הכל</span>
-        </a>
-    </div>);
+const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>;
 
-const StoryTypeBlock = ({en, he}) => (<div className="storyTypeBlock sectionTitleText">
-            <span className="int-en">{en}</span>
-            <span className="int-he">{he}</span>
-        </div>);
+const StoryTypeBlock = ({en, he}) => <SimpleBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
 
 class StoryTitleBlock extends Component {
     render() {
         if (this.props.url) {
             return <div className="storyTitleBlock">
-                <div className="storyTitle pageTitle">
-                    <a href={this.props.url}>
-                        <span className="int-en">{this.props.en}</span>
-                        <span className="int-he">{this.props.he}</span>
-                    </a>
-                </div>
+                <SimpleLinkedBlock classes="storyTitle pageTitle" url={this.props.url} he={this.props.he} en={this.props.en}/>
                 {this.props.children}
             </div>;
         } else {
             return <div className="storyTitleBlock">
-                <div className="storyTitle pageTitle">
-                    <span className="int-en">{this.props.en}</span>
-                    <span className="int-he">{this.props.he}</span>
-                </div>
+                <SimpleBlock en={this.props.en} he={this.props.he} classes="storyTitle pageTitle"/>
             </div>;
         }
     };
 }
+
+const SimpleBlock = ({en, he, classes}) => (
+        <div className={classes}>
+          <span className="int-en">{en}</span>
+          <span className="int-he">{he}</span>
+        </div>
+    );
+SimpleBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    classes: PropTypes.string
+};
+
+const SimpleLinkedBlock = ({en, he, url, classes}) => (
+        <div className={classes}>
+            <a href={url}>
+              <span className="int-en">{en}</span>
+              <span className="int-he">{he}</span>
+            </a>
+        </div>
+    );
+
+SimpleBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    url: PropTypes.string,
+    classes: PropTypes.string
+
+};
 
 const StoryBodyBlock = ({en, he, dangerously}) => {
       if (dangerously) {
@@ -488,10 +497,7 @@ const StoryBodyBlock = ({en, he, dangerously}) => {
               <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
             </div>);
       } else {
-          return (<div className="storyBody contentText">
-              <span className="int-en">{en}</span>
-              <span className="int-he">{he}</span>
-            </div>);
+          return <SimpleBlock classes="storyBody contentText" en={en} he={he}/>;
       }
 };
 
@@ -504,7 +510,7 @@ const StoryTextListItem = ({text, toggleSignupModal}) => (
     <div className="storyTextListItem">
         <StoryBodyBlock en={text.en} he={text.he} dangerously={true} />
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignupModal}>
-            <StoryBodyBlock en={text.ref} he={text.heRef} />
+            <SimpleBlock en={text.ref} he={text.heRef} classes="contentText citationLine"/>
         </SaveLine>
     </div>
 );
@@ -581,16 +587,7 @@ ReadMoreLine.propTypes = {
   versions:             PropTypes.object
 };
 
-const ReadMoreLink = ({url}) => (
-    <div className="learnMoreLink smallText">
-        <a href={url}>
-            <span className="int-en">Read More ›</span>
-            <span className="int-he">קרא עוד ›</span>
-        </a>
-    </div>
-);
-
-
+const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
 
 
 module.exports = Story;

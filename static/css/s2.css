@@ -6069,6 +6069,10 @@ span.purim-emoji img{
   align-self: center;
 }
 
+.storyFeed .story .citationLine.contentText .int-en,
+.storyFeed .story .citationLine.contentText .int-he {
+  color: #999;
+}
 .storyFeed .story .authorText {
   display: inline-block;
   padding: 0 10px;
