@@ -4,14 +4,17 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const {
   SaveButton,
-  FollowButton
+  FollowButton,
+    Link,
+    TwoBox,
+    BlockLink
 }                                = require('./Misc');
 import Component from 'react-class';
 
 
 // This is a pseudo Component.  It uses `storyForms` to determine the component to render.
 // It's important that it's capitalized, so that React treats it as a component.
-function Story(props) {
+function Story(story_props, indx, ...props) {
     const storyForms = {
         freeText:       FreeTextStory,
         newIndex:       NewIndexStory,
@@ -25,13 +28,14 @@ function Story(props) {
         userSheets:     UserSheetsStory,
         groupSheetList: GroupSheetListStory
     };
-    const StoryForm = storyForms[props.storyForm];
+    const StoryForm = storyForms[story_props.storyForm];
     return <StoryForm
-                storyForm={props.storyForm}
-                data={props.data}
-                timestamp={props.timestamp}
-                is_shared={props.is_shared}
-                key={props.timestamp} />;
+                storyForm={story_props.storyForm}
+                data={story_props.data}
+                timestamp={story_props.timestamp}
+                is_shared={story_props.is_shared}
+                key={story_props.timestamp + "-" + indx}
+                {...props} />;
 }
 
 //todo: ix-nay on the heritance-iay
@@ -62,6 +66,8 @@ AbstractStory.propTypes = {
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
   data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
 };
 
 class FreeTextStory extends AbstractStory {
@@ -234,7 +240,7 @@ class GroupSheetListStory extends AbstractStory {
             <StoryTypeBlock en="Group" he="קבוצה" />
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
             <img className="mediumProfileImage" src={this.props.data.group_image} alt={this.props.data.title.en}/>
-            <StorySheetList sheets={this.props.data.sheets} />
+            <StorySheetList sheets={this.props.data.sheets} toggleSignupModal={this.props.toggleSignupModal}/>
         </StoryFrame>
       );
     }
@@ -270,7 +276,7 @@ class SheetListStory extends AbstractStory {
         <StoryFrame cls="sheetListStory">
             <StoryTypeBlock en="Sheets" he="דפים" />
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
-            <StorySheetList sheets={this.props.data.sheets} />
+            <StorySheetList sheets={this.props.data.sheets} toggleSignupModal={this.props.toggleSignupModal}/>
         </StoryFrame>
       );
     }
@@ -380,34 +386,51 @@ class TopicTextsStory extends AbstractStory {
             "he"
         "refs"
         "texts" (derived)
-            [{"ref", "en","he"}, ...]
+            [{"ref", "heRef", "en","he"}, ...]
  */
     render() {
         return (
-            <StoryFrame cls="topicStory">
+            <StoryFrame cls="topicTextsStory">
                 <StoryTypeBlock en="Topic" he="" />
-                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
-                <!-- See All link -->
-                <!-- Source List -->
+                <SeeAllLink url="/topics/"/>
+                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={"/topics/" + this.props.data.title.en}/>
+                <StoryTextList texts={this.props.data.texts} />
             </StoryFrame>
         );
     }
 }
 
 
+
 class TopicListStory extends AbstractStory {
 /*
-    topics
+    "topicList"
+        topics: [{en, he}, ...]
  */
-
+    render() {
+        return (
+            <StoryFrame cls="topicListStory">
+                <StoryTypeBlock en="Topics" he="נושאים"/>
+                <SeeAllLink url="/topics/"/>
+                <StoryTitleBlock en="Trending Recently" he="פופולרי"/>
+                <TwoBox content={this.props.data.topics.map(topic =>
+                    <BlockLink
+                        title={topic.en}
+                        heTitle={topic.he}
+                        target={"/topics/" + topic.en}
+                        interfaceLink={true}/>
+                )}/>
+            </StoryFrame>
+        )
+    }
 }
 
 
 
-/*          *
-*   Pieces   *
-*            *
-*            *
+ /****************************
+*           Pieces            *
+*                             *
+*                             *
  */
 
 class StoryFrame extends Component {
@@ -429,43 +452,46 @@ StoryFrame.propTypes = {
     cardColor:  PropTypes.string
 };
 
-const NaturalTimeBlock = ({timestamp}) => (<div className="timeBlock smallText">
+const NaturalTimeBlock = ({timestamp}) => (<div className="topTailBlock smallText">
           <span className="int-en">{ Sefaria.util.naturalTime(timestamp) } ago</span>
           <span className="int-he">&rlm;לפני { Sefaria.util.naturalTime(timestamp) }</span>
         </div>);
 
-const ReadMoreLink = ({url}) => (<div className="learnMoreLink smallText">
-            <a href={url}>
-                <span className="int-en">Read More ›</span>
-                <span className="int-he">קרא עוד ›</span>
-            </a>
-        </div>);
-
+const SeeAllLink = ({url}) => (
+    <div className="topTailBlock smallText">
+        <a href={url}>
+              <span className="int-en">See All</span>
+              <span className="int-he">ראה הכל</span>
+        </a>
+    </div>);
 
 const StoryTypeBlock = ({en, he}) => (<div className="storyTypeBlock sectionTitleText">
             <span className="int-en">{en}</span>
             <span className="int-he">{he}</span>
         </div>);
 
-const StoryTitleBlock = ({en, he, url}) => {
-    if (url) {
-          return <div className="storyTitleBlock">
-                    <div className="storyTitle pageTitle">
-                        <a href={url}>
-                            <span className="int-en">{en}</span>
-                            <span className="int-he">{he}</span>
-                        </a>
-                    </div>
-                  {this.props.children}
-                </div>;
-      } else {
-          return <div className="storyTitleBlock">
-                    <div className="storyTitle pageTitle">
-                        <span className="int-en">{en}</span>
-                        <span className="int-he">{he}</span>
-                    </div>
-                </div>;
-      }};
+class StoryTitleBlock extends Component {
+    render() {
+        if (this.props.url) {
+            return <div className="storyTitleBlock">
+                <div className="storyTitle pageTitle">
+                    <a href={this.props.url}>
+                        <span className="int-en">{this.props.en}</span>
+                        <span className="int-he">{this.props.he}</span>
+                    </a>
+                </div>
+                {this.props.children}
+            </div>;
+        } else {
+            return <div className="storyTitleBlock">
+                <div className="storyTitle pageTitle">
+                    <span className="int-en">{this.props.en}</span>
+                    <span className="int-he">{this.props.he}</span>
+                </div>
+            </div>;
+        }
+    };
+}
 
 const StoryBodyBlock = ({en, he, dangerously}) => {
       if (dangerously) {
@@ -480,12 +506,27 @@ const StoryBodyBlock = ({en, he, dangerously}) => {
             </div>);
       }
 };
-const StorySheetList = sheets => (
-    <div className="storySheetList">
-        {sheets.map((sheet, i) => <StorySheetListItem key={i} sheet={sheet} />)}
+
+const StoryTextList = ({texts, toggleSignupModal}) => (
+    <div className="storyTextList">
+        {texts.map((text,i) => <StoryTextListItem text={text} key={i} toggleSignupModal={toggleSignupModal} />)}
     </div>
 );
-const StorySheetListItem = sheet => (
+const StoryTextListItem = ({text, toggleSignupModal}) => (
+    <div className="storyTextListItem">
+        <StoryBodyBlock en={text.en} he={text.he} dangerously={true} />
+        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignupModal}>
+            <StoryBodyBlock en={text.ref} he={text.heRef} />
+        </SaveLine>
+    </div>
+);
+const StorySheetList = ({sheets, toggleSignUpModal}) => (
+    <div className="storySheetList">
+        {sheets.map((sheet, i) => <StorySheetListItem sheet={sheet} key={i} toggleSignUpModal={toggleSignUpModal}/>)}
+    </div>
+);
+
+const StorySheetListItem = ({sheet, toggleSignUpModal}) => (
     <div className="storySheetListItem">
         <a href={sheet.publisher_url}>
             <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
@@ -506,19 +547,20 @@ const StorySheetListItem = sheet => (
         <SaveButton
             historyObject={sheet.history_object}
             tooltip={true}
-            toggleSignUpModal={this.props.toggleSignUpModal}
+            toggleSignUpModal={toggleSignUpModal}
         />
     </div>);
-class ReadMoreLine extends Component {
+
+class SaveLine extends Component {
     render() {
       const historyObject = {
-          dref: this.props.ref,
-          versions: {} };
-      const url = "/" + Sefaria.normRef(this.props.dref);
+          ref: this.props.dref,
+          versions: this.props.versions || {}
+      };
 
         return (
             <div className="bottomLine">
-                <ReadMoreLink url={url}/>
+                {this.props.children}
                 <SaveButton
                     historyObject={historyObject}
                     tooltip={true}
@@ -527,11 +569,33 @@ class ReadMoreLine extends Component {
             </div>);
     }
 }
-ReadMoreLine.propTypes = {
-  ref:                  PropTypes.string,
+SaveLine.propTypes = {
+  dref:                  PropTypes.string,
   toggleSignUpModal:    PropTypes.func,
   versions:             PropTypes.object
 };
+
+const ReadMoreLine = (props) => (
+    <SaveLine {...props}>
+        <ReadMoreLink url={"/" + Sefaria.normRef(props.dref)}/>
+    </SaveLine>
+);
+ReadMoreLine.propTypes = {
+  dref:                  PropTypes.string,
+  toggleSignUpModal:    PropTypes.func,
+  versions:             PropTypes.object
+};
+
+const ReadMoreLink = ({url}) => (
+    <div className="learnMoreLink smallText">
+        <a href={url}>
+            <span className="int-en">Read More ›</span>
+            <span className="int-he">קרא עוד ›</span>
+        </a>
+    </div>
+);
+
+
 
 
 module.exports = Story;

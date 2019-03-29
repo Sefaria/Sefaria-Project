@@ -6021,11 +6021,11 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTypeBlock {
   float: right;
 }
-.interface-english .storyFeed .story .timeBlock,
+.interface-english .storyFeed .story .topTailBlock,
 .interface-english .storyFeed .story .mediumProfileImage {
   float: right;
 }
-.interface-hebrew .storyFeed .story .timeBlock,
+.interface-hebrew .storyFeed .story .topTailBlock,
 .interface-hebrew .storyFeed .story .mediumProfileImage {
   float: left;
 }
@@ -6049,7 +6049,7 @@ span.purim-emoji img{
   width: 100%;
 }
 .storyFeed .story .storySheetListItem .saveButton {
-  align-self: flex-end;
+  /* align-self: flex-end; */
 }
 
 .storyFeed .story .bottomLine {
@@ -6092,4 +6092,11 @@ span.purim-emoji img{
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;
+}
+
+.storyFeed .story .storyTextList {
+
+}
+.storyFeed .story .storyTextList .storyTextListItem {
+
 }

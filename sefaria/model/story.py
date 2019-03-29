@@ -77,7 +77,8 @@ class Story(abst.AbstractMongoRecord):
             d["texts"] = [{
                 "en": text.TextChunk(oref, "en").as_sized_string(),
                 "he": text.TextChunk(oref, "he").as_sized_string(),
-                "ref": oref.normal()
+                "ref": oref.normal(),
+                "heRef": oref.he_normal()
             } for oref in orefs]
         if "publisher_id" in d:
             d.update(self._publisher_metadata(d["publisher_id"]))
@@ -533,7 +534,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             "ref": oref.normal(),
             "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()})
         }
-        if kwargs.get("leads"):
+        if kwargs.get("lead"):
             d["lead_title"] = kwargs.get("lead")
 
         if kwargs.get("versions"):
@@ -743,32 +744,6 @@ class SheetListFactory(AbstractStoryFactory):
         return "sheetList"
 
     @classmethod
-    def _group_story_data(cls, group_id, sheet_ids):
-        from sefaria.model.group import Group
-        g = Group().load_by_id(group_id)
-        img = getattr(g, "imageUrl", "")
-        return {
-            "sheet_ids": sheet_ids,
-            "group_image": img,
-            "lead_title": {"en": "Group", "he": u"קבוצה"},
-            "title": {"en": g.name, "he": g.name}
-        }
-
-    @classmethod
-    def create_shared_group_story(cls, group_name, sheet_ids, **kwargs):
-        data = cls._group_story_data(group_name, sheet_ids)
-        data.update(kwargs)
-        story = cls._generate_shared_story(kwargs=data)
-        story.save()
-
-    @classmethod
-    def create_user_group_story(cls, uid, group_name, sheet_ids, **kwargs):
-        data = cls._group_story_data(group_name, sheet_ids)
-        data.update(kwargs)
-        story = cls._generate_user_story(uid=uid, kwargs=data)
-        story.save()
-
-    @classmethod
     def create_shared_story(cls, sheet_ids, **kwargs):
         story = cls._generate_shared_story(sheet_ids=sheet_ids, **kwargs)
         story.save()
@@ -782,23 +757,25 @@ class SheetListFactory(AbstractStoryFactory):
 class TopicListStoryFactory(AbstractStoryFactory):
     """
     "topicList"
+        topics: [{en, he}, ...]
 
     """
     @classmethod
     def _data_object(cls, **kwargs):
         days = kwargs.get("days", 14)
         from sefaria import sheets
-        tags = sheets.recent_public_tags(days=days, ntags=8)
+        tags = sheets.recent_public_tags(days=days, ntags=6)
         normal_tags = [text.Term.normalize(tag["tag"]) for tag in tags]
-        return {"topics": normal_tags}
+        # todo: handle possibility of Hebrew terms trending.
+        return {"topics": [{"en": tag, "he": hebrew_term(tag)} for tag in normal_tags]}
 
     @classmethod
     def _story_form(cls, **kwargs):
         return "topicList"
 
     @classmethod
-    def create_shared_story(cls, topic, **kwargs):
-        cls._generate_shared_story(topic=topic, **kwargs).save()
+    def create_shared_story(cls, **kwargs):
+        cls._generate_shared_story(**kwargs).save()
 
 
 class TopicTextsStoryFactory(AbstractStoryFactory):
@@ -809,7 +786,7 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
             "he"
         "refs"
         "texts" (derived)
-            [{"ref", "en","he"}, ...]
+            [{"ref", "heRef", "en","he"}, ...]
     """
 
     @classmethod
