@@ -53,6 +53,7 @@ palette.categoryColor = function(cat) {
   // For unknown categories, map the string a color (random, but stable)
   const colors = Object.values(palette.colors);
   let idx = 0;
+  cat = typeof cat == "string" ? cat : "";
   cat.split("").map(letter => {idx += letter.charCodeAt(0);});
   idx = idx % colors.length;
 
