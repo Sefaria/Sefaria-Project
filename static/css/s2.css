@@ -6052,23 +6052,21 @@ span.purim-emoji img{
   /* align-self: flex-end; */
 }
 
-.storyFeed .story .bottomLine {
+.storyFeed .story .saveLine {
   display: flex;
   clear: both;
 }
-.storyFeed .story .bottomLine .saveButton {
-  align-self: flex-end;
-  position: relative;
+.storyFeed .story .saveLine .beforeSave {
+  width: 100%;
 }
-
-.storyFeed .story .bottomLine .storyByLine + .saveButton {
-    bottom: 12px;
+.interface-hebrew .story .saveLine .beforeSave {
+  padding-left: 10px;
 }
-
-.storyFeed .story .bottomLine .storyByLine,
-.storyFeed .story .bottomLine .learnMoreLink {
-  padding: 10px 15px 0 0;
-  margin: 0;
+.interface-english .story .saveLine .beforeSave {
+  padding-right: 10px;
+}
+.storyFeed .story .saveLine .saveButton {
+  align-self: center;
 }
 
 .storyFeed .story .authorText {
@@ -6078,10 +6076,26 @@ span.purim-emoji img{
   width: 100%;
   letter-spacing: 2px;
 }
-.storyFeed .story .storyByLine .authorPosition,
-.storyFeed .story .storyByLine .authorName {
+
+.storyFeed .story .authorByLine {
+  display: flex;
+}
+
+.storyFeed .story .authorByLine .authorByLineText {
+  letter-spacing: 2px;
+  padding: 0 10px;
+  line-height: 22px;
+}
+
+.storyFeed .story .authorByLine .authorPosition,
+.storyFeed .story .authorByLine .authorName {
   display: block;
 }
+.storyFeed .story .saveLine .authorByLine + .saveButton {
+  position: relative;
+  bottom: 12px;
+}
+
 .storySheetListItem .authorName span {
   color: #999;
 }

@@ -51,14 +51,6 @@ class AbstractStory extends Component {
       Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
       Sefaria.palette.categoryColor("Other");
   }
-  amendSheetObject(sheet) {
-      sheet.history_object = {
-          ref: "Sheet " + sheet.sheet_id,
-          sheet_title: sheet.sheet_title,
-          versions: {}
-      };
-      return sheet;
-  }
   render() {}
 }
 AbstractStory.propTypes = {
@@ -150,10 +142,7 @@ class AuthorStory extends AbstractStory {
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.author_names.en} he={this.props.data.author_names.he} url={url} />
             <StoryBodyBlock en={this.props.data.author_bios.en} he={this.props.data.author_bios.he}/>
-
-            <div className="bottomLine">
-                <ReadMoreLink url={url}/>
-            </div>
+            <ReadMoreLink url={url}/>
         </StoryFrame>);
     }
 }
@@ -174,7 +163,6 @@ class UserSheetsStory extends AbstractStory {
       }
     */
   render() {
-      this.props.data.sheets.forEach(this.amendSheetObject);
       const positionBlock = (this.props.data.publisher_position) ?
            <div className="storySubTitle systemText">
                 <span className="int-en">{this.props.data.publisher_position}</span>
@@ -198,7 +186,11 @@ class UserSheetsStory extends AbstractStory {
                         <span className="int-he">{sheet.sheet_title}</span>
                     </a>
                     <SaveButton
-                        historyObject={sheet.history_object}
+                        historyObject={{
+                            ref: "Sheet " + sheet.sheet_id,
+                            sheet_title: sheet.sheet_title,
+                            versions: {}
+                        }}
                         tooltip={true}
                         toggleSignUpModal={this.props.toggleSignUpModal}
                     />
@@ -233,8 +225,6 @@ class GroupSheetListStory extends AbstractStory {
             {...}]
  */
     render() {
-      this.props.data.sheets.forEach(this.amendSheetObject);
-
       return (
         <StoryFrame cls="groupSheetListStory">
             <StoryTypeBlock en="Group" he="קבוצה" />
@@ -270,8 +260,6 @@ class SheetListStory extends AbstractStory {
             {...}]
  */
     render() {
-      this.props.data.sheets.forEach(this.amendSheetObject);
-
       return (
         <StoryFrame cls="sheetListStory">
             <StoryTypeBlock en="Sheets" he="דפים" />
@@ -297,7 +285,10 @@ class PublishSheetStory extends AbstractStory {
    */
 
   render() {
-      const sheet = this.amendSheetObject(this.props.data);  // Bit messy.
+      const sheet = this.props.data;
+      const historyObject = {ref: "Sheet " + sheet.sheet_id,
+                  sheet_title: sheet.sheet_title,
+                  versions: {}};
       const hasPosition = !!this.props.data.publisher_position;
       const positionBlock = hasPosition ?
             <div className="systemText authorPosition">
@@ -311,30 +302,27 @@ class PublishSheetStory extends AbstractStory {
         <StoryFrame cls="sheetListStory">
             <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <StoryTitleBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}/>
-
-            <SaveButton
-                historyObject={sheet.history_object}
-                tooltip={true}
-                toggleSignUpModal={this.props.toggleSignUpModal}
-            />
+            <SaveLine historyObject={historyObject} toggleSignUpModal={this.props.toggleSignUpModal}>
+                <StoryTitleBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}/>
+            </SaveLine>
             {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:""}
 
-            <div className="bottomLine">
-                <div className="storyByLine">
+            <div className="authorByLine">
+                <div className="authorByLineImage">
                     <a href={this.props.data.publisher_url}>
                         <img className="smallProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
                     </a>
-                    <div className="authorText">
-                        <div className="authorName">
-                            <a className="systemText" href={this.props.data.publisher_url}>
-                                <span className="int-en">by {this.props.data.publisher_name}</span>
-                                <span className="int-he">{this.props.data.publisher_name}מאת </span>
-                            </a>
-                            <FollowButton large={false} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
-                        </div>
-                        {positionBlock}
+                </div>
+
+                <div className="authorByLineText">
+                    <div className="authorName">
+                        <a className="systemText" href={this.props.data.publisher_url}>
+                            <span className="int-en">by {this.props.data.publisher_name}</span>
+                            <span className="int-he">{this.props.data.publisher_name}מאת </span>
+                        </a>
+                        <FollowButton large={false} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
                     </div>
+                    {positionBlock}
                 </div>
             </div>
         </StoryFrame>
@@ -545,7 +533,11 @@ const StorySheetListItem = ({sheet, toggleSignUpModal}) => (
             </a>
         </div>
         <SaveButton
-            historyObject={sheet.history_object}
+            historyObject={{
+                ref: "Sheet " + sheet.sheet_id,
+                sheet_title: sheet.sheet_title,
+                versions: {}
+            }}
             tooltip={true}
             toggleSignUpModal={toggleSignUpModal}
         />
@@ -553,14 +545,16 @@ const StorySheetListItem = ({sheet, toggleSignUpModal}) => (
 
 class SaveLine extends Component {
     render() {
-      const historyObject = {
+      const historyObject = this.props.historyObject || {
           ref: this.props.dref,
           versions: this.props.versions || {}
       };
 
         return (
-            <div className="bottomLine">
-                {this.props.children}
+            <div className="saveLine">
+                <div className="beforeSave">
+                    {this.props.children}
+                </div>
                 <SaveButton
                     historyObject={historyObject}
                     tooltip={true}
@@ -570,7 +564,8 @@ class SaveLine extends Component {
     }
 }
 SaveLine.propTypes = {
-  dref:                  PropTypes.string,
+  historyObject:        PropTypes.object,   // One or
+  dref:                 PropTypes.string,   // the other
   toggleSignUpModal:    PropTypes.func,
   versions:             PropTypes.object
 };
