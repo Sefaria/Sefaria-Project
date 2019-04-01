@@ -32,7 +32,8 @@ class HomeFeed extends Component {
     }
   }
   getMoreStories() {
-    $.getJSON("/api/stories?page=" + this.state.page, this.loadMoreStories);
+    const url = "/api/stories?" + (this.props.onlyGlobalStories ? "only_global=1" : "") + "&page=" + this.state.page;
+    $.getJSON(url, this.loadMoreStories);
     this.setState({loading: true});
   }
   loadMoreStories(data) {
@@ -63,7 +64,8 @@ class HomeFeed extends Component {
 }
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignupModal:  PropTypes.func,
+  onlyGlobalStories:  PropTypes.bool
 };
 
 module.exports = HomeFeed;

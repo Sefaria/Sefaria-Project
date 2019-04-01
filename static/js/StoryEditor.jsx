@@ -89,7 +89,7 @@ class StoryEditor extends Component {
     });
   }
   render() {
-    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classes = {systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
 
     return (
