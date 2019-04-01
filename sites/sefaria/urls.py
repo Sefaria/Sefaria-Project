@@ -42,7 +42,8 @@ static_pages = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
-    url(r'^$', reader_views.home, name="home"),
+    #url(r'^$', reader_views.home, name="home"),
+    url(r'^$', reader_views.home_feed),
     url(r'^oldhome/?$', reader_views.old_home),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
