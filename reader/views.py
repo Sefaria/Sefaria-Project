@@ -2402,42 +2402,50 @@ def stories_api(request):
         user = UserProfile(id=request.user.id)
 
     lead_stories = []
+    count = 0
     if only_global or not user:
-        stories = SharedStorySet(limit=page_size, page=page)
+        stories = SharedStorySet(limit=page_size, page=page).contents()
+        count = len(stories)
     else:
-        stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page)
-
-    """
-        if page == 0:
-            # Keep Reading Most recent
-            most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
-            if most_recent:
-                stry = TextPassageStoryFactory().generate_from_user_history(most_recent, lead="Keep Reading")
-                lead_stories += [stry.contents()]
-
-            # Parasha
-            cal = TextPassageStoryFactory().generate_calendar(request.user.id).contents()
-            lead_stories += [cal]
-
-        if page == 1:
-            # Show an old saved story
-            saved = user.get_user_history(saved=True, secondary=False, sheets=False)
-            if saved.count() > 2:
-                saved_item = choice(saved)
-                stry = TextPassageStoryFactory().generate_from_user_history(saved_item, lead="Take Another Look")
-                lead_stories += [stry.contents()]
-
-            # Daf Yomi
-            cal = TextPassageStoryFactory().generate_calendar(request.user.id, "Daf Yomi").contents()
-            lead_stories += [cal]
-    """
+        stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+        count = len(stories)
+        stories = addDynamicStories(stories, user, page)
 
     return jsonResponse({
-                            "stories": lead_stories + stories.contents(),
+                            "stories": stories,
                             "page": page,
                             "page_size": page_size,
-                            "count": stories.count()
+                            "count": count
                         })
+
+
+def addDynamicStories(stories, user, page):
+    """
+
+    :param stories: Array of Story.contents() dicts
+    :param user: UserProfile object
+    :param page: Which page of stories are we rendering - 0 based
+    :return: Array of Story.contents() dicts.
+    """
+    if page == 0:
+        # Keep Reading Most recent
+        most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
+        if most_recent:
+            stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
+                    lead_title={"en": "Keep Reading", "he": u"המשך לקרוא"})
+            stories = [stry.contents()] + stories
+
+    if page == 1:
+        # Show an old saved story
+        saved = user.get_user_history(saved=True, secondary=False, sheets=False)
+        if saved.count() > 2:
+            saved_item = choice(saved)
+            stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
+                    lead_title={"en": "Take Another Look", "he": u"קרא עוד"})
+            stories = [stry.contents()] + stories
+
+    return stories
+
 
 
 @staff_member_required
@@ -2452,13 +2460,24 @@ def story_reflector(request):
     @csrf_protect
     def protected_post(request):
         payload = json.loads(request.POST.get("json"))
-        factory = request.POST.get("factory")
-        method = request.POST.get("method")
-        try:
-            s = SharedStory(payload)
-            return jsonResponse(s.contents())
-        except AssertionError as e:
-            return jsonResponse({"error": e.message})
+        factory_name = request.POST.get("factory")
+        method_name = request.POST.get("method")
+        if factory_name and method_name:
+            try:
+                import sefaria.model.story as s
+                factory = getattr(s, factory_name)
+                method = getattr(factory, method_name)
+                s = method(**payload)
+                return jsonResponse(s.contents())
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+        else:
+            #Treat payload as attrs to story object
+            try:
+                s = SharedStory(payload)
+                return jsonResponse(s.contents())
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
 
     return protected_post(request)
 
@@ -2471,19 +2490,7 @@ def updates_api(request, gid=None):
 
     if request.method == "GET":
         return {"error": "Not implemented."}
-        """
-        page      = int(request.GET.get("page", 0))
-        page_size = int(request.GET.get("page_size", 10))
 
-        notifications = GlobalNotificationSet({}, limit=page_size, page=page)
-
-        return jsonResponse({
-                                "updates": notifications.contents(),
-                                "page": page,
-                                "page_size": page_size,
-                                "count": notifications.count()
-                            })
-        """
     elif request.method == "POST":
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")

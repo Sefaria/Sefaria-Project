@@ -522,8 +522,6 @@ class NewVersionStoryFactory(object):
 
 
 class TextPassageStoryFactory(AbstractStoryFactory):
-    # This seems like it needs thought
-
     @classmethod
     def _data_object(cls, **kwargs):
         ref = kwargs.get("ref")
