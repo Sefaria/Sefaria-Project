@@ -461,14 +461,15 @@ TextRange.defaultProps = {
 
 class TextSegment extends Component {
   shouldComponentUpdate(nextProps) {
-    if (this.props.highlight !== nextProps.highlight)         { return true; }
-    if (this.props.showLinkCount !== nextProps.showLinkCount) { return true; }
-    if (this.props.linkCount !== nextProps.linkCount)         { return true; }
-    if (!!this.props.filter !== !!nextProps.filter)           { return true; }
+    if (this.props.highlight !== nextProps.highlight)           { return true; }
+    if (this.props.textHighlights !== nextProps.textHighlights) { return true; }
+    if (this.props.showLinkCount !== nextProps.showLinkCount)   { return true; }
+    if (this.props.linkCount !== nextProps.linkCount)           { return true; }
+    if (!!this.props.filter !== !!nextProps.filter)             { return true; }
     if (this.props.filter && nextProps.filter &&
-        !this.props.filter.compare(nextProps.filter))         { return true; }
+        !this.props.filter.compare(nextProps.filter))           { return true; }
     if (this.props.en !== nextProps.en
-        || this.props.he !== nextProps.he)                    { return true; }
+        || this.props.he !== nextProps.he)                      { return true; }
 
     return false;
   }
