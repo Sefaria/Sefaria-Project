@@ -350,7 +350,7 @@ def reset_cached_api(request, apiurl):
     :return:
     """
     from undecorated import undecorated
-    from importlib import import_module
+    # from importlib import import_module
     try:
         match = resolve("/api/{}".format(apiurl))
         #mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
