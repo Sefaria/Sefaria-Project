@@ -525,7 +525,7 @@ class TextSegment extends Component {
   addHighlights(text) {
     // for adding in highlights to query results in Reader
     if (!!this.props.textHighlights) {
-      const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getCantillationRegex(h) : h);
+      const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getNikkudRegex(h) : h);
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
       console.log(reg);
       return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
