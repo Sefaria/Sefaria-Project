@@ -38,12 +38,15 @@ class Footer extends Component {
     }
   }
   render() {
+    if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
+
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
     let currentPath = Sefaria.util.currentPath();
     let currentPathEncoded = encodeURIComponent(currentPath);
     let next = currentPathEncoded ? currentPathEncoded : '?home';
     return (
+      <footer id="footer" className="static sans">
         <div id="footerInner">
           <div className="section">
 
@@ -234,6 +237,7 @@ class Footer extends Component {
               </div>
           </div>
         </div>
+      </footer>
     );
   }
 }

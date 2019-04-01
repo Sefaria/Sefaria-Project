@@ -4,14 +4,15 @@ calendar.py - functions for looking up information relating texts to dates.
 
 Uses MongoDB collections: dafyomi, parshiot
 """
-import sefaria.model as model
-from sefaria.system.database import db
-import p929
-from sefaria.utils.util import graceful_exception
-from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 import datetime
+import p929
 from django.utils import timezone
 
+import sefaria.model as model
+from sefaria.system.database import db
+from sefaria.utils.util import graceful_exception
+from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
+from sefaria.site.site_settings import SITE_SETTINGS
 
 import logging
 logger = logging.getLogger(__name__)
@@ -251,6 +252,8 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
 
 
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
+    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+        return []
     cal_items  = []
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora, custom=custom)
     cal_items += daf_yomi(datetime_obj)

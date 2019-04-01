@@ -533,8 +533,8 @@ class TextSegment extends Component {
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      he = this.formatItag("he", he)
-      en = this.formatItag("en", en)
+      he = this.formatItag("he", he);
+      en = this.formatItag("en", en);
     }
 
     var classes=classNames({ segment: 1,

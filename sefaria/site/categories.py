@@ -1,0 +1,7 @@
+from sefaria.settings import SITE_PACKAGE
+
+__temp = __import__(SITE_PACKAGE + ".categories", fromlist=["CATEGORY_ORDER","TOP_CATEGORIES","REVERSE_ORDER"])
+
+CATEGORY_ORDER = __temp.CATEGORY_ORDER
+TOP_CATEGORIES = __temp.TOP_CATEGORIES
+REVERSE_ORDER = __temp.REVERSE_ORDER

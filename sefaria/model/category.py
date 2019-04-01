@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError
+from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
@@ -224,14 +225,14 @@ class TocTree(object):
 
             try:
                 # First sort by global order list below
-                return ORDER.index(title)
+                return CATEGORY_ORDER.index(title)
 
             except ValueError:
                 # Sort top level Commentary categories just below theit base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
-                        return ORDER.index(temp_cat_name) + 0.5
+                        return CATEGORY_ORDER.index(temp_cat_name) + 0.5
 
                 # Sort by an eplicit `order` field if present
                 # otherwise into two alphabetical list for complete and incomplete.
@@ -250,9 +251,9 @@ class TocTree(object):
         d["firstSection"] = vs.get("first_section_ref", None)
         d["heComplete"]   = vs.get("heComplete", False)
         d["enComplete"]   = vs.get("enComplete", False)
-        if title in ORDER:
+        if title in CATEGORY_ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
-            d["order"] = ORDER.index(title)
+            d["order"] = CATEGORY_ORDER.index(title)
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
@@ -273,7 +274,7 @@ class TocTree(object):
         return self._root
 
     def get_serialized_toc(self):
-        return self._root.serialize()["contents"]
+        return self._root.serialize().get("contents", [])
 
     def get_groups_in_library(self):
         return self._groups_in_library
@@ -488,131 +489,3 @@ class TocGroupNode(TocNode):
         "en": "title",
         "he": "heTitle",
     }
-
-
-# Giant list ordering or categories
-# indentation and inclusion of duplicate categories (like "Seder Moed")
-# is for readability only. The table of contents will follow this structure.
-ORDER = [
-    "Tanakh",
-        "Torah",
-            "Genesis",
-            "Exodus",
-            "Leviticus",
-            "Numbers",
-            "Deuteronomy",
-        "Prophets",
-        "Writings",
-        "Targum",
-            'Onkelos Genesis',
-            'Onkelos Exodus',
-            'Onkelos Leviticus',
-            'Onkelos Numbers',
-            'Onkelos Deuteronomy',
-            'Targum Jonathan on Genesis',
-            'Targum Jonathan on Exodus',
-            'Targum Jonathan on Leviticus',
-            'Targum Jonathan on Numbers',
-            'Targum Jonathan on Deuteronomy',
-        'Rashi',
-    "Mishnah",
-        "Seder Zeraim",
-        "Seder Moed",
-        "Seder Nashim",
-        "Seder Nezikin",
-        "Seder Kodashim",
-        "Seder Tahorot",
-    "Talmud",
-        "Bavli",
-                "Seder Zeraim",
-                "Seder Moed",
-                "Seder Nashim",
-                "Seder Nezikin",
-                "Seder Kodashim",
-                "Seder Tahorot",
-        "Yerushalmi",
-                "Seder Zeraim",
-                "Seder Moed",
-                "Seder Nashim",
-                "Seder Nezikin",
-                "Seder Kodashim",
-                "Seder Tahorot",
-        "Tosafot",
-        "Rif",
-    "Midrash",
-        "Aggadic Midrash",
-            "Midrash Rabbah",
-        "Halachic Midrash",
-    "Halakhah",
-        "Mishneh Torah",
-            'Introduction',
-            'Sefer Madda',
-            'Sefer Ahavah',
-            'Sefer Zemanim',
-            'Sefer Nashim',
-            'Sefer Kedushah',
-            'Sefer Haflaah',
-            'Sefer Zeraim',
-            'Sefer Avodah',
-            'Sefer Korbanot',
-            'Sefer Taharah',
-            'Sefer Nezikim',
-            'Sefer Kinyan',
-            'Sefer Mishpatim',
-            'Sefer Shoftim',
-        "Shulchan Arukh",
-    "Kabbalah",
-        "Zohar",
-    'Liturgy',
-        'Siddur',
-        'Haggadah',
-        'High Holidays',
-        'Piyutim',
-    'Philosophy',
-    "Tanaitic",
-        "Tosefta",
-            "Seder Zeraim",
-            "Seder Moed",
-            "Seder Nashim",
-            "Seder Nezikin",
-            "Seder Kodashim",
-            "Seder Tahorot",
-        "Masechtot Ketanot",
-    'Chasidut',
-        "Early Works",
-        "Breslov",
-        "R' Tzadok HaKohen",
-    'Musar',
-    'Responsa',
-        "Rashba",
-        "Rambam",
-    'Apocrypha',
-    'Modern Works',
-    "Reference",
-    'Other',
-    'Tosafot',
-]
-
-TOP_CATEGORIES = [
-    "Tanakh",
-    "Mishnah",
-    "Talmud",
-    "Midrash",
-    "Halakhah",
-    "Kabbalah",
-    "Liturgy",
-    "Philosophy",
-    "Tanaitic",
-    "Chasidut",
-    "Musar",
-    "Responsa",
-    "Apocrypha",
-    "Modern Works",
-    "Reference",
-    "Other"
-]
-
-REVERSE_ORDER = [
-    'Commentary'  # Uch, STILL special casing commentary here... anything to be done??
-]
-

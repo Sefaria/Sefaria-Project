@@ -510,7 +510,7 @@ const StoryTextListItem = ({text, toggleSignupModal}) => (
     <div className="storyTextListItem">
         <StoryBodyBlock en={text.en} he={text.he} dangerously={true} />
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignupModal}>
-            <SimpleBlock en={text.ref} he={text.heRef} classes="contentText citationLine"/>
+            <SimpleLinkedBlock url={"/" + Sefaria.normRef(text.ref)} en={text.ref} he={text.heRef} classes="contentText citationLine"/>
         </SaveLine>
     </div>
 );

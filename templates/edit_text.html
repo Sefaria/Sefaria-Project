@@ -203,8 +203,7 @@
 
 	{% include "elements/login_prompt.html" with msg="Please log in to add or edit." %}
 
-
-<footer id="footer" class="interface-{{ interfaceLang }}" style="display:none"></footer>
+<div id="footerContainer"></div>
 
 {% autoescape off %}
 	{% if request.user.is_authenticated %}
