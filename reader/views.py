@@ -668,22 +668,6 @@ def get_group_page(request, group, authenticated):
     })
 
 
-def home_feed(request):
-    props = base_props(request)
-
-    props.update({
-        "initialMenu": "homefeed"
-    })
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON": propsJSON,
-        "html": html,
-        "title": "Sefaria Stories",
-        "desc": "",
-    })
-
-
 def public_groups(request):
     props = base_props(request)
     title = _("Sefaria Groups")
@@ -3190,16 +3174,45 @@ def account_settings(request):
                               })
 
 
+def enable_home_feed(request):
+    resp = home(request, True)
+    resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
+    return resp
+
+
+def disable_home_feed(request):
+    resp = home(request, False)
+    resp.delete_cookie("home_feed")
+    return resp
+
+
 @ensure_csrf_cookie
-def old_home(request):
+def home(request, show_feed=None):
     """
     Homepage
     """
-    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
-        return redirect("/texts")
-        
+    if show_feed is None:
+        show_feed = request.COOKIES.get("home_feed", None)
+
+    if show_feed:
+        props = base_props(request)
+
+        props.update({
+            "initialMenu": "homefeed"
+        })
+        propsJSON = json.dumps(props)
+        html = render_react_component("ReaderApp", propsJSON)
+        return render(request, 'base.html', {
+            "propsJSON": propsJSON,
+            "html": html,
+            "title": "Sefaria Stories",
+            "desc": "",
+        })
+
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
+    if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
+        return redirect("/texts")
 
     if request.user_agent.is_mobile:
         return mobile_home(request)
