@@ -1955,7 +1955,7 @@ def version_status_api(request):
 @json_response_decorator
 @django_cache(default_on_miss = True)
 def version_status_tree_api(request, lang=None):
-    return library.simplify_toc(lang, library.get_toc(), [])
+    return library.simplify_toc(lang=lang)
 
 
 @sanitize_get_params

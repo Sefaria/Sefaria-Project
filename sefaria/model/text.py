@@ -4981,7 +4981,7 @@ class Library(object):
 
     def simplify_toc(self, lang=None, toc_node=None, path=None):
         toc_node = toc_node if toc_node else self.get_toc()
-        path = path if len(path) else []
+        path = path if path else []
         simple_nodes = []
         for x in toc_node:
             node_name = x.get("category", None) or x.get("title", None)

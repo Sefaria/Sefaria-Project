@@ -17,6 +17,8 @@ class AccountPanel extends Component {
     $(".inAppLink").on("click", this.props.handleInAppLinkClick);
   }
   render() {
+    const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
+    const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
@@ -31,7 +33,7 @@ class AccountPanel extends Component {
     var learnContent = [
       (<BlockLink interfaceLink={true} target="/about" title="About" heTitle="אודות" />),
       (<BlockLink interfaceLink={true} target="/help" title="Help" heTitle="עזרה" />),
-      (<BlockLink interfaceLink={true} target="http://blog.sefaria.org" title="Blog" heTitle="בלוג" />),
+      (<BlockLink interfaceLink={true} target={blgURL} title="Blog" heTitle="בלוג" />),
       (<BlockLink interfaceLink={true} target="/faq" title="FAQ" heTitle="שאלות נפוצות" />),
       (<BlockLink interfaceLink={true} target="/educators" title="Educators" heTitle="מחנכים" />),
       (<BlockLink interfaceLink={true} target="/team" title="Team" heTitle="צוות" />)
@@ -49,7 +51,7 @@ class AccountPanel extends Component {
     contributeContent = (<TwoOrThreeBox content={contributeContent} width={width} />);
 
     var connectContent = [
-      (<BlockLink interfaceLink={true} target="http://www.facebook.com/sefaria.org" title="Facebook" heTitle="פייסבוק" />),
+      (<BlockLink interfaceLink={true} target={fbURL} title="Facebook" heTitle="פייסבוק" />),
       (<BlockLink interfaceLink={true} target="http://twitter.com/SefariaProject" title="Twitter" heTitle="טוויטר" />),
       (<BlockLink interfaceLink={true} target="http://www.youtube.com/user/SefariaProject" title="YouTube" heTitle="יוטיוב" />),
       (<BlockLink interfaceLink={true} target="http://www.github.com/Sefaria" title="GitHub" heTitle="גיטהאב" />),
