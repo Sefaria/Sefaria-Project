@@ -59,6 +59,7 @@ from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from django.utils.html import strip_tags
@@ -130,7 +131,7 @@ def render_react_component(component, props):
     Returns HTML.
     """
     if not USE_NODE:
-        return render_to_string("elements/loading.html")
+        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
 
@@ -158,11 +159,11 @@ def render_react_component(component, props):
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
                 ))
-            return render_to_string("elements/loading.html")
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
             logger.exception("Node error: Fell back to client-side rendering.")
-            return render_to_string("elements/loading.html")
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
 
 def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
@@ -256,6 +257,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
 
     return panel
+
 
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
@@ -649,6 +651,7 @@ def get_group_page(request, group, authenticated):
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
         "initialGroup":     group,
+        "initialGroupTag":  request.GET.get("tag", None)
     })
     group = GroupSet({"name": group})
     if not len(group):
@@ -876,7 +879,7 @@ def mobile_home(request):
 
 def texts_list(request):
     props = base_props(request)
-    title = _("The Sefaria Library")
+    title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, props, "navigation", title, desc)
 
@@ -1699,7 +1702,8 @@ def links_api(request, link_id_or_ref=None):
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
-        return jsonResponse(get_links(link_id_or_ref, with_text), callback)
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if request.method == "POST":
         def _internal_do_post(request, link, uid, **kwargs):
@@ -1887,7 +1891,7 @@ def related_api(request, tref):
         response = {"error": "You must be logged in to access private content."}
     else:
         response = {
-            "links": get_links(tref, with_text=False),
+            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
         }
@@ -1924,45 +1928,11 @@ def version_status_api(request):
 
 
 
-simplified_toc = {}
 
 @json_response_decorator
 @django_cache(default_on_miss = True)
 def version_status_tree_api(request, lang=None):
-    def simplify_toc(toc_node, path):
-        simple_nodes = []
-        for x in toc_node:
-            node_name = x.get("category", None) or x.get("title", None)
-            node_path = path + [node_name]
-            simple_node = {
-                "name": node_name,
-                "path": node_path
-            }
-            if "category" in x:
-                if "contents" not in x:
-                    continue
-                simple_node["type"] = "category"
-                simple_node["children"] = simplify_toc(x["contents"], node_path)
-            elif "title" in x:
-                query = {"title": x["title"]}
-                if lang:
-                    query["language"] = lang
-                simple_node["type"] = "index"
-                simple_node["children"] = [{
-                    "name": u"{} ({})".format(v.versionTitle, v.language),
-                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
-                    "size": v.word_count(),
-                    "type": "version"
-                } for v in VersionSet(query)]
-            simple_nodes.append(simple_node)
-        return simple_nodes
-
-    result = simplify_toc(library.get_toc(), [])
-    return {
-        "name": "Whole Library" + " ({})".format(lang) if lang else "",
-        "path": [],
-        "children": result
-    }
+    return library.simplify_toc(lang=lang)
 
 
 @sanitize_get_params
@@ -3118,6 +3088,9 @@ def home(request):
     """
     Homepage
     """
+    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+        return redirect("/texts")
+        
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
     if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:

@@ -122,6 +122,7 @@ class ReaderApp extends Component {
           navigationTopic: props.initialTopic,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
+          navigationGroupTag: props.initialGroupTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -156,6 +157,7 @@ class ReaderApp extends Component {
         navigationTopic: props.initialTopic,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
+        navigationGroupTag: props.initialGroupTag,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -273,8 +275,8 @@ class ReaderApp extends Component {
   }
   handlePopState(event) {
     var state = event.state;
-    // console.log("Pop - " + window.location.pathname);
-    // console.log(state);
+    //console.log("Pop - " + window.location.pathname);
+    //console.log(state);
     if (state) {
       this.justPopped = true;
       // history does not preserve custom objects
@@ -395,8 +397,6 @@ class ReaderApp extends Component {
       const nextTextSearchState = new SearchState(next.textSearchState);
       const nextSheetSearchState = new SearchState(next.sheetSearchState);
 
-
-
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
@@ -409,6 +409,7 @@ class ReaderApp extends Component {
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
           (prev.navigationSheetTag !== next.navigationSheetTag) ||
+          (prev.navigationGroupTag !== next.navigationGroupTag) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
@@ -452,6 +453,8 @@ class ReaderApp extends Component {
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var panels = headerPanel ? [this.state.header] : this.state.panels;
     var states = [];
+    var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
+
     for (var i = 0; i < panels.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
       states[i] = this.clonePanel(panels[i], true);
@@ -468,7 +471,7 @@ class ReaderApp extends Component {
             break;
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._("Sefaria") : Sefaria._("The Sefaria Library");
+            hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
             hist.title = hist.title;
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
@@ -476,19 +479,19 @@ class ReaderApp extends Component {
           case "text toc":
             var ref    = state.refs.slice(-1)[0];
             var bookTitle  = ref ? Sefaria.parseRef(ref).index : "404";
-            hist.title = Sefaria._v(bookTitle) + " | " + Sefaria._("Sefaria");
+            hist.title = Sefaria._v(bookTitle) + " | " + Sefaria._(siteName);
             hist.url   = bookTitle.replace(/ /g, "_");
             hist.mode  = "text toc";
             break;
           case "book toc":
             var bookTitle = state.bookRef;
-            hist.title = Sefaria._v(bookTitle) + " | " + Sefaria._("Sefaria");
+            hist.title = Sefaria._v(bookTitle) + " | " + Sefaria._(siteName);
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
             break;
           case "sheet meta":
             var sheetTitle = state.sheet.title.stripHtml();
-            hist.title = Sefaria._("Sefaria Source Sheets")+": " + sheetTitle;
+            hist.title = Sefaria._(siteName + " Source Sheets")+": " + sheetTitle;
             hist.url = i == 0 ? "sheets/"+ state.sheet.id : "sheet&s="+ state.sheet.id;
             hist.mode = "sheet meta";
             break;
@@ -501,7 +504,7 @@ class ReaderApp extends Component {
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
             hist.title = state.searchQuery ? state.searchQuery + " | " : "";
-            hist.title += Sefaria._("Sefaria Search");
+            hist.title += Sefaria._(siteName + " Search");
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` +
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
               state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
@@ -510,73 +513,76 @@ class ReaderApp extends Component {
           case "sheets":
             if (states[i].sheetsGroup) {
                 hist.url   = "groups/" + state.sheetsGroup.replace(/\s/g,"-");
-                hist.title = state.sheetsGroup + " | " + Sefaria._("Sefaria Group");
+                if (states[i].navigationGroupTag) {
+                  hist.url  += "?tag=" + state.navigationGroupTag.replace("#","%23");
+                }
+                hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Group");
                 hist.mode  = "sheets tag";
             } else if (states[i].navigationSheetTag) {
               if (states[i].navigationSheetTag == "My Sheets") {
                 hist.url   = "sheets/private";
-                hist.title = Sefaria._("My Source Sheets | Sefaria Source Sheets");
+                hist.title = Sefaria._("My Source Sheets | " + siteName + " Source Sheets");
                 hist.mode  = "sheets tag";
               }
               else if (states[i].navigationSheetTag == "All Sheets") {
                 hist.url   = "sheets/tags/" + state.navigationSheetTag;
-                hist.title = Sefaria._("Public Source Sheets | Sefaria Source Sheets");
+                hist.title = Sefaria._("Public Source Sheets | " + siteName + " Source Sheets");
                 hist.mode  = "sheets tag";
               }
               else {
                 hist.url   = "sheets/tags/" + state.navigationSheetTag.replace("#","%23");
-                hist.title = state.navigationSheetTag + " | " + Sefaria._("Sefaria Source Sheets");
+                hist.title = state.navigationSheetTag + " | " + Sefaria._(siteName + " Source Sheets");
                 hist.mode  = "sheets tag";
               }
             } else {
               hist.url   = "sheets";
-              hist.title = Sefaria._("Sefaria Source Sheets");
+              hist.title = Sefaria._(siteName + " Source Sheets");
               hist.mode  = "sheets";
             }
             break;
           case "topics":
             if (states[i].navigationTopic) {
               hist.url   = "topics/" + state.navigationTopic;
-              hist.title = state.navigationTopic + " | " + Sefaria._("Sefaria");
+              hist.title = state.navigationTopic + " | " + Sefaria._(siteName);
               hist.mode  = "topic";
             } else {
               hist.url   = "topics";
-              hist.title = Sefaria._("Topics | Sefaria");
+              hist.title = Sefaria._("Topics | " + siteName);
               hist.mode  = "topics";
             }
             break;
           case "account":
-            hist.title = Sefaria._("Sefaria Account");
+            hist.title = Sefaria._(siteName + " Account");
             hist.url   = "account";
             hist.mode  = "account";
             break;
           case "notifications":
-            hist.title = Sefaria._("Sefaria Notifcations");
+            hist.title = Sefaria._(siteName + " Notifcations");
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
           case "publicGroups":
-            hist.title = Sefaria._("Sefaria Groups");
+            hist.title = Sefaria._(siteName + " Groups");
             hist.url = "groups";
             hist.mode = "publicGroups";
             break;
           case "publicGroups":
-            hist.title = Sefaria._("Sefaria Groups");
+            hist.title = Sefaria._(siteName + " Groups");
             hist.url = "groups";
             hist.mode = "publicGroups";
             break;
           case "myGroups":
-            hist.title = Sefaria._("Sefaria Groups");
+            hist.title = Sefaria._(siteName + " Groups");
             hist.url = "my/groups";
             hist.mode = "myGroups";
             break;
           case "myNotes":
-            hist.title = Sefaria._("My Notes on Sefaria");
+            hist.title = Sefaria._("My Notes on " + siteName);
             hist.url = "my/notes";
             hist.mode = "myNotes";
             break;
           case "updates":
-            hist.title = Sefaria._("New Additions to the Sefaria Library");
+            hist.title = Sefaria._("New Additions to the " + siteName + " Library");
             hist.url = "updates";
             hist.mode = "updates";
             break;
@@ -623,7 +629,7 @@ class ReaderApp extends Component {
         }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
-        hist.mode     = "Connections"
+        hist.mode     = "Connections";
 
 
       } else if (state.mode === "TextAndConnections") {
@@ -799,7 +805,6 @@ class ReaderApp extends Component {
       history.pushState(hist.state, hist.title, hist.url);
       //console.log("Push History - " + hist.url);
       this.trackPageview();
-      //console.log(hist);
     }
 
     $("title").html(hist.title);
@@ -824,6 +829,7 @@ class ReaderApp extends Component {
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationSheetTag:      state.sheetsTag               || null,
+      navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
@@ -1488,12 +1494,20 @@ class ReaderApp extends Component {
   }
   showLibrary(categories) {
     if (this.props.multiPanel) {
-      this.setState({header: this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories})});
+      var headerState = this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories});
+      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+        headerState.settings.language = "english";
+      }
+      this.setState({header: headerState});
+
     } else {
       if (this.state.panels.length) {
         this.state.panels[0].menuOpen = "navigation";
       } else {
         this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
+      }
+      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+        this.state.panels[0].settings.language = "english";
       }
       this.setState({panels: this.state.panels});
     }
@@ -1622,6 +1636,7 @@ class ReaderApp extends Component {
     } else {
       widths = panelStates.map( panel => evenWidth );
     }
+
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header
                     initialState={this.state.header}

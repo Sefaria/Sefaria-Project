@@ -65,7 +65,7 @@ class ReaderPanel extends Component {
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
-        language:      "bilingual",
+        language:      Sefaria._siteSettings.TORAH_SPECIFIC ? "binlinual" : "english",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
@@ -412,6 +412,9 @@ class ReaderPanel extends Component {
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
+  }
+  setGroupTag (tag) {
+    this.conditionalSetState({navigationGroupTag: tag});
   }
   setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -846,12 +849,14 @@ class ReaderPanel extends Component {
                     hideNavHeader={this.props.hideNavHeader}
                     toggleLanguage={this.toggleLanguage}
                     tag={this.state.navigationSheetTag}
-                    group={this.state.sheetsGroup}
                     tagSort={this.state.tagSort}
+                    group={this.state.sheetsGroup}
+                    groupTag={this.state.navigationGroupTag}
                     mySheetSort={this.state.mySheetSort}
                     setMySheetSort={this.setMySheetSort}
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
+                    setGroupTag={this.setGroupTag}
                     key={"SheetsNav"} />);
 
     } else if (this.state.menuOpen === "topics") {
@@ -905,14 +910,20 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "publicGroups") {
-      var menu = (<PublicGroupsPanel />);
+      var menu = (<PublicGroupsPanel 
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "myGroups") {
-      var menu = (<MyGroupsPanel />);
+      var menu = (<MyGroupsPanel 
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "updates") {
       var menu = (<UpdatesPanel
-                    interfaceLang={this.props.interfaceLang} />);
+                    interfaceLang={this.props.interfaceLang}
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")} />);
 
     } else if (this.state.menuOpen === "modtools") {
       var menu = (<ModeratorToolsPanel
@@ -1150,12 +1161,12 @@ class ReaderControls extends Component {
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
         <div className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
-            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            { title ? (<i className="fa fa-angle-down invisible"></i>) : null }
             { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
             { this.props.sheet? <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div> :
             <div><span className="en">{title}</span>
             <span className="he">{heTitle}</span></div> }
-            { title ? (<i className="fa fa-caret-down"></i>) : null }
+            { title ? (<i className="fa fa-angle-down"></i>) : null }
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
           <div onClick={(e) => {e.stopPropagation();}}>
@@ -1249,12 +1260,18 @@ class ReaderDisplayOptionsMenu extends Component {
     }
   }
   render() {
+
+    var hasHebrew = !!this.props.currentData().he.length;
+    var hasEnglish = !!this.props.currentData().text.length;
+    var singleLanguage = !(hasHebrew && hasEnglish);
+    var showLangaugeToggle = Sefaria._siteSettings.TORAH_SPECIFIC || !singleLanguage;
+
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
       {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
       {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
-    var languageToggle = (
+    var languageToggle = showLangaugeToggle ? (
         <ToggleSet
           role="radiogroup"
           ariaLabel="Language toggle"
@@ -1262,7 +1279,7 @@ class ReaderDisplayOptionsMenu extends Component {
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />);
+          settings={this.props.settings} />) : null;
 
     var layoutOptions = [
       {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
@@ -1392,6 +1409,7 @@ ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
   currentBook:   PropTypes.func,
+  currentData:   PropTypes.func,
   menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,

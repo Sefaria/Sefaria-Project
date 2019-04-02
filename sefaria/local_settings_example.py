@@ -64,6 +64,7 @@ CACHES = {
     }
 }"""
 
+SITE_PACKAGE = "sites.sefaria"
 
 
 

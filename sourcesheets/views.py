@@ -426,8 +426,6 @@ def groups_post_api(request, group_name=None):
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
 
-			from pprint import pprint
-			pprint(group)
 			existing.load_from_dict(group)
 			existing.save()
 		else:

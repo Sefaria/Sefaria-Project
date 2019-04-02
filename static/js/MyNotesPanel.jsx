@@ -68,7 +68,7 @@ class MyNotesPanel extends Component {
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-                { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                { this.props.multiPanel && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                 <span className="int-en">My Notes</span>
                 <span className="int-he">הרשומות שלי</span>
               </h1>
@@ -87,9 +87,7 @@ class MyNotesPanel extends Component {
             </div>
 
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }
