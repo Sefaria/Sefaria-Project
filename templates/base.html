@@ -79,11 +79,6 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer',"{{ GOOGLE_TAG_MANAGER_CODE }}");</script>
     <!-- End Google Tag Manager -->
-    {% else  %}
-    <script>
-        window.ga = function(){};
-        window.ga._mock = true;
-    </script>
     {% endif %}
 
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
