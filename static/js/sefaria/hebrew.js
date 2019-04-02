@@ -67,7 +67,7 @@ class Hebrew {
   }
   static getNikkudRegex(rawString) {
     // given a Hebrew string, return regex that allows for arbitrary nikkud in between letters
-    return this.stripNikkud(rawString).split("").join("[\u0591-\u05C7]*?");
+    return this.stripNikkud(rawString).split("").join("[\u0591-\u05C7]*");
   }
   static isHebrew(text) {
     // Returns true if text is (mostly) Hebrew
