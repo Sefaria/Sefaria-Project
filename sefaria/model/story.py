@@ -829,7 +829,7 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
         topics_filtered = filter(lambda x: x['count'] > 15, topic.get_topics().list())
         random_topic = random.choice(topics_filtered)['tag']
 
-        cls._generate_shared_story(topic=random_topic, **kwargs).save()
+        return cls._generate_shared_story(topic=random_topic, **kwargs)
 
     @classmethod
     def create_random_shared_story(cls, **kwargs):
