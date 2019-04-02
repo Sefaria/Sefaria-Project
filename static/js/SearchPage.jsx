@@ -61,11 +61,7 @@ class SearchPage extends Component {
                           </div>
                       </div>
                     </div>
-                    { this.props.panelsOpen === 1 ?
-                      <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                        <Footer />
-                      </footer>
-                      : null }
+                    { this.props.panelsOpen === 1 ? <Footer /> : null }
                   </div>
                 </div>);
     }

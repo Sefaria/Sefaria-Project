@@ -33,6 +33,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
@@ -52,8 +53,6 @@ def init_pagesheetrank_dicts():
         sheetrank_dict = {}
 
 init_pagesheetrank_dicts()
-all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
@@ -84,8 +83,12 @@ def delete_version(index, version, lang):
 
     refs = []
 
-    if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
-        refs += index.all_section_refs()
+    if SITE_SETTINGS["TORAH_SPECIFIC"]:
+        all_gemara_indexes = library.get_indexes_in_category("Bavli")
+        davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
+        if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
+            refs += index.all_section_refs()
+    
     refs += index.all_segment_refs()
 
     for ref in refs:

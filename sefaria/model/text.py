@@ -4533,7 +4533,9 @@ class Library(object):
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
-    #todo: onlyused in  bio scripts
+
+
+    #todo: only used in bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -4907,8 +4909,9 @@ class Library(object):
         return d
 
     def simplify_toc(self, lang=None, toc_node=None, path=None):
+        is_root = toc_node is None and path is None
         toc_node = toc_node if toc_node else self.get_toc()
-        path = path if len(path) else []
+        path = path if path else []
         simple_nodes = []
         for x in toc_node:
             node_name = x.get("category", None) or x.get("title", None)
@@ -4935,7 +4938,7 @@ class Library(object):
                 } for v in VersionSet(query)]
             simple_nodes.append(simple_node)
 
-        if toc_node is None and path is None:
+        if is_root:
             return {
                 "name": "Whole Library" + " ({})".format(lang) if lang else "",
                 "path": [],

@@ -10,7 +10,7 @@ from sefaria.model.link import get_book_link_collection, get_link_counts
 
 def regenerate_version_status_tree():
     for lang in [None, "he", "en"]:
-        django_cache(action="set", cache_prefix='version_status_tree_api')(library.simplify_toc)(lang, library.get_toc(), [])
+        django_cache(action="set", cache_prefix='version_status_tree_api')(library.simplify_toc)(lang=lang if lang else "")
 
 
 def regenerate_bare_links_api(cat1, cat2):

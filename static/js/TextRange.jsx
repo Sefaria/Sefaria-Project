@@ -113,7 +113,7 @@ class TextRange extends Component {
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
-    } else if (data.spanning) {
+    } else if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       //console.log("Re-rewriting spanning ref")
@@ -533,8 +533,8 @@ class TextSegment extends Component {
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      he = this.formatItag("he", he)
-      en = this.formatItag("en", en)
+      he = this.formatItag("he", he);
+      en = this.formatItag("en", en);
     }
 
     var classes=classNames({ segment: 1,

@@ -46,6 +46,8 @@ CACHES = {
     }
 }
 
+SITE_PACKAGE = "sites.sefaria"
+
 SECRET_KEY = 'insert your long random secret key here !'
 
 

@@ -2,6 +2,7 @@ from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
+import django.contrib.auth.views as django_auth_views
 
 from emailusernames.forms import EmailAuthenticationForm
 
@@ -14,12 +15,7 @@ import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
-
-import reader.views as reader_views
-import sefaria.views as sefaria_views
-import sourcesheets.views as sheets_views
-import sefaria.gauth.views as gauth_views
-import django.contrib.auth.views as django_auth_views
+from sefaria.site.urls import site_urlpatterns
 
 
 admin.autodiscover()
@@ -308,70 +304,6 @@ urlpatterns += [
     url(r'^vgarden/custom/(?P<key>.*)$', reader_views.custom_visual_garden_page),  # legacy.  Used for "maggid" and "ecology"
 ]
 
-static_pages = [
-    "about",
-    "donate",
-    "strategy",
-    "supporters",
-    "team",
-    "help",
-    "connect",
-    "visualizations",
-    "jobs",
-    "terms",
-    "privacy-policy",
-    "coming-soon",
-    "shraga-silverstein",
-    "henry-and-julia-koschitzky-apps",
-    "adin-even-israel-steinsaltz",
-    "william-davidson-talmud",
-    "linker",
-    "ios",
-    "mobile",
-    "sefaria-edition",
-    "sefaria-community-translation",
-    "contributed-to-sefaria",
-    "translation-guidelines",
-    "transliteration-guidelines",
-    "even-haezer-guidelines",
-    "random-walk-through-torah",
-    "educators",
-    "the-sefaria-story",
-    "aramaic-translation-contest",
-    "newsletter",
-    "shavuot-map-2018",
-    "testimonials",
-    "torah-tab",
-]
-
-# Static and Semi Static Content
-urlpatterns += [
-    url(r'^$', reader_views.home, name="home"),
-    url(r'^metrics/?$', reader_views.metrics),
-    url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
-    url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
-]
-
-
-# Redirects to Forum, Wiki, etc
-urlpatterns += [
-    url(r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
-    url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
-    url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
-    url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
-    url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
-    url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
-    url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
-    url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
-    url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
-]
-
-urlpatterns +=[
-    url(r'^textmap/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria-Text-Map-June-2016.pdf')),
-    url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
-    url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
-    url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
-]
 
 # Sefaria.js -- Packaged JavaScript
 urlpatterns += [
@@ -433,7 +365,6 @@ urlpatterns += [
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
     url(r'^admin/?', include(admin.site.urls)),
-
 ]
 
 # Stats API - return CSV
@@ -448,6 +379,9 @@ urlpatterns += [
     url(r'^gauth/callback$', gauth_views.auth_return, name="gauth_callback"),
 ]
 
+# Site specific URLS loaded from
+urlpatterns += site_urlpatterns
+
 # Sheets in a reader panel
 urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
@@ -458,6 +392,7 @@ urlpatterns += [
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
 ]
+
 
 if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible
