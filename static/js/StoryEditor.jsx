@@ -62,7 +62,7 @@ class StoryEditor extends Component {
         this.state.stories.unshift(data);
         this.setState({stories: this.state.stories});
   }
-  handlePublish(type, content) {
+  handlePublish(type, content, timestamp) {
     this.setState({"submitting": true, "error": null});
     const payload = {
       storyForm: type,
@@ -76,8 +76,9 @@ class StoryEditor extends Component {
       success: function(data) {
         if (data.status == "ok") {
           payload.date = Date();
-          this.state.stories.unshift(payload);
-          this.setState({submitting: false, stories: this.state.stories});
+          const stories = this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp);
+          stories.unshift(payload);
+          this.setState({submitting: false, stories: stories});
         } else {
           this.setState({"error": "Error - " + data.error});
         }
@@ -104,15 +105,15 @@ class StoryEditor extends Component {
             {Sefaria.is_moderator?<CreateStoryForm addStory={this.addStory}/>:""}
 
             <div className="storyFeed">
-            {this.state.stories.map(s =>
+            {this.state.stories.map((s,i) =>
                 [
-                    Story(s),
+                    Story(s,i),
                     <StoryEditBar
                         onDelete={this.onDelete}
                         removeDraft={this.removeDraft}
                         handlePublish={this.handlePublish}
                         isDraft={s.draft}
-                        key={s.timestamp + "e"}
+                        key={s.timestamp + "-" + i + "-editor"}
                         story={s}/>
                 ]).flat() }
             </div>
@@ -134,7 +135,7 @@ class StoryEditBar extends Component {
     };
   }
     handlePublish() {
-        this.props.handlePublish(this.props.story.storyForm, this.props.story.data)
+        this.props.handlePublish(this.props.story.storyForm, this.props.story.data, this.props.story.timestamp)
     }
     onDelete() {
         if(this.props.isDraft) {
@@ -182,11 +183,11 @@ class CreateStoryForm extends Component {
 
   editForms() {
     return {
-        "Free Text":       FreeTextStoryForm,
-        "New Index":       NewIndexStoryForm,
-        "New Version":     NewVersionStoryForm,
-        "Text Passage":    TextPassageStoryForm,
-
+        "Free Text":        FreeTextStoryForm,
+        "New Index":        NewIndexStoryForm,
+        "New Version":      NewVersionStoryForm,
+        "Text Passage":     TextPassageStoryForm,
+        "Topic":            TopicStoryForm
         /*
         publishSheet:   PublishSheetStory,
         author:         AuthorStory,
@@ -276,6 +277,44 @@ function withButton(WrappedFormComponent, addStory) {
 }
 
 
+class TopicStoryForm extends  Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            error: ''
+        };
+        this.field_refs = {};
+    }
+    payload() {
+        return {
+          factory: "TopicTextsStoryFactory",
+          method: "_generate_shared_story",
+          topic: this.field_refs.topic.getValue()
+        };
+    }
+    isValid() {
+
+        if (!Object.values(this.field_refs).every(e => e.isValid())) {
+            return false;
+        }
+        // Required Fields
+        if (!["topic"].every(k => this.field_refs[k].getValue())) {
+            return false;
+        }
+        return true;
+    }
+    recordRef(field) {
+        return ref => this.field_refs[field] = ref;
+    }
+    render() {
+        return (
+            <div>
+                <StoryFormTextField placeholder="Topic" ref={this.recordRef("topic")} />
+            </div>);
+    }
+
+}
+
 class TextPassageStoryForm extends Component {
     constructor(props) {
         super(props);
@@ -314,7 +353,7 @@ class TextPassageStoryForm extends Component {
     }
 }
 TextPassageStoryForm.propTypes = {
-    setPayload: PropTypes.func
+    
 };
 
 class FreeTextStoryForm extends Component {
@@ -352,13 +391,13 @@ class FreeTextStoryForm extends Component {
     render() {
         return (
             <div>
-                <StoryFormTextField ref={this.recordRef("en")} placeholder="English"/>
-                <StoryFormTextField ref={this.recordRef("he")} placeholder="Hebrew"/>
+                <StoryFormTextareaField ref={this.recordRef("en")} placeholder="English"/>
+                <StoryFormTextareaField ref={this.recordRef("he")} placeholder="Hebrew"/>
             </div>);
     }
 }
 FreeTextStoryForm.propTypes = {
-    setPayload: PropTypes.func
+    
 };
 
 class NewVersionStoryForm extends Component {
@@ -397,14 +436,14 @@ class NewVersionStoryForm extends Component {
             <div>
                 <StoryFormIndexField ref={this.recordRef("index")}/>
                 <StoryFormVersionFields ref={this.recordRef("version")}/>
-                <StoryFormTextField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
-                <StoryFormTextField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
+                <StoryFormTextareaField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
+                <StoryFormTextareaField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
                 <StoryFormRefField ref={this.recordRef("ref")} />
             </div>);
     }
 }
 NewVersionStoryForm.propTypes = {
-    setPayload: PropTypes.func
+    
 };
 
 class NewIndexStoryForm extends Component {
@@ -442,15 +481,21 @@ class NewIndexStoryForm extends Component {
         return (
             <div>
                 <StoryFormIndexField ref={this.recordRef("index")}/>
-                <StoryFormTextField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
-                <StoryFormTextField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
+                <StoryFormTextareaField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
+                <StoryFormTextareaField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
                 <StoryFormRefField ref={this.recordRef("ref")} />
             </div>);
     }
 }
 NewIndexStoryForm.propTypes = {
-    setPayload: PropTypes.func
+    
 };
+
+
+
+/*          Fields              */
+
+
 
 class StoryFormIndexField extends Component {
   constructor(props) {
@@ -528,7 +573,7 @@ class StoryFormVersionFields extends Component {
     }
 }
 
-class StoryFormTextField extends Component {
+class StoryFormTextareaField extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -561,6 +606,38 @@ class StoryFormTextField extends Component {
       </div>;
     }
 }
+
+class StoryFormTextField extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        value: '',
+        error: ''
+    };
+  }
+    getValue() {
+        return this.state.value.trim();
+    }
+    isValid() {
+      return (this.state.value && (!this.state.error));
+    }
+    handleChange(e) {
+        this.setState({value: e.target.value});
+        this.validate();
+    }
+    validate() {
+
+    }
+    render() {
+      return <div>
+            <input type="text" value={this.state.value} placeholder={this.props.placeholder} onChange={this.handleChange}/>
+            <span className="error">{this.state.error}</span>
+      </div>;
+    }
+}
+StoryFormTextField.propTypes = {
+    placeholder: PropTypes.string
+};
 
 class StoryFormRefField extends Component {
     constructor(props) {

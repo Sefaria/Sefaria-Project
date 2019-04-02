@@ -2460,10 +2460,13 @@ def story_reflector(request):
     @csrf_protect
     def protected_post(request):
         payload = json.loads(request.POST.get("json"))
-        factory_name = request.POST.get("factory")
-        method_name = request.POST.get("method")
+
+        factory_name = payload.get("factory")
+        method_name = payload.get("method")
         if factory_name and method_name:
             try:
+                del payload["factory"]
+                del payload["method"]
                 import sefaria.model.story as s
                 factory = getattr(s, factory_name)
                 method = getattr(factory, method_name)
