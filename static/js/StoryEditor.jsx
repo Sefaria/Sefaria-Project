@@ -76,7 +76,7 @@ class StoryEditor extends Component {
       success: function(data) {
         if (data.status == "ok") {
           payload.date = Date();
-          const stories = this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp);
+          const stories = this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp); // Get rid of draft.
           stories.unshift(payload);
           this.setState({submitting: false, stories: stories});
         } else {
