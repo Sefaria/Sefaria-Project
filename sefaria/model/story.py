@@ -18,6 +18,7 @@ from . import person
 from . import text
 from . import following
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -821,3 +822,15 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     def create_shared_story(cls, topic, **kwargs):
         cls._generate_shared_story(topic=topic, **kwargs).save()
 
+    @classmethod
+    def generate_random_shared_story(cls, **kwargs):
+        from . import topic
+
+        topics_filtered = filter(lambda x: x['count'] > 15, topic.get_topics().list())
+        random_topic = random.choice(topics_filtered)['tag']
+
+        cls._generate_shared_story(topic=random_topic, **kwargs).save()
+
+    @classmethod
+    def create_random_shared_story(cls, **kwargs):
+        cls.generate_random_shared_story(**kwargs).save()
