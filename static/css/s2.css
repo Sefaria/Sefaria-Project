@@ -6108,6 +6108,12 @@ span.purim-emoji img{
   color: #999;
 }
 
+.storyFeed a {
+  color: #000;
+}
+.storyFeed .storyBody a {
+  text-decoration: underline;
+}
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;

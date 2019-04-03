@@ -40,31 +40,7 @@ function Story(story_props, indx, ...props) {
                 {...props} />;
 }
 
-//todo: ix-nay on the heritance-iay
-class AbstractStory extends Component {
-  heTitle(title) {
-    return title && Sefaria.index(title)?Sefaria.index(title).heTitle:"";
-  }
-  url(title) {
-    return title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
-  }
-  indexColor(title) {
-      return title && Sefaria.index(title) ?
-      Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
-      Sefaria.palette.categoryColor("Other");
-  }
-  render() {}
-}
-AbstractStory.propTypes = {
-  storyForm:    PropTypes.string,
-  timestamp:    PropTypes.number,
-  is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
-  interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
-};
-
-class FreeTextStory extends AbstractStory {
+class FreeTextStory extends Component {
     render() {
       return (
           <StoryFrame cls="freeTextStory">
@@ -74,16 +50,24 @@ class FreeTextStory extends AbstractStory {
           </StoryFrame>);
     }
 }
+FreeTextStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class NewIndexStory extends AbstractStory {
+class NewIndexStory extends Component {
 
     render() {
       const title = this.props.data.index;
-      const heTitle = this.heTitle(title);
-      const url = this.url(title);
+      const heTitle = Sefaria.hebrewTerm(title);
+      const url = title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
 
       return (
-        <StoryFrame cls="newIndexStory" cardColor={this.indexColor(title)}>
+        <StoryFrame cls="newIndexStory" cardColor={Sefaria.palette.indexColor(title)}>
             <StoryTypeBlock en="New Text" he="טקסט חדש"/>
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
@@ -93,13 +77,21 @@ class NewIndexStory extends AbstractStory {
         </StoryFrame>);
     }
 }
+NewIndexStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
 // Todo: merge the class above and below.  They're nearly identical.
-class NewVersionStory extends AbstractStory {
+class NewVersionStory extends Component {
     render() {
       const title = this.props.data.index;
-      const heTitle = this.heTitle(title);
-      const url = this.url(title);
+      const heTitle = Sefaria.hebrewTerm(title);
+      const url = title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
 
       /*
          <div>
@@ -108,7 +100,7 @@ class NewVersionStory extends AbstractStory {
           </div>
       */
       return (
-        <StoryFrame cls="newVersionStory" cardColor={this.indexColor(title)}>
+        <StoryFrame cls="newVersionStory" cardColor={Sefaria.palette.indexColor(title)}>
             <StoryTypeBlock en="New Version" he="גרסה חדשה" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
@@ -118,8 +110,16 @@ class NewVersionStory extends AbstractStory {
         </StoryFrame>);
     }
 }
+NewVersionStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class AuthorStory extends AbstractStory {
+class AuthorStory extends Component {
     /*
        props.data: {
          "author_key"
@@ -139,7 +139,7 @@ class AuthorStory extends AbstractStory {
       const url = "/person/" + this.props.data.author_key;
 
         return (
-        <StoryFrame cls="authorStory" cardColor={this.indexColor(this.props.data.example_work)}>
+        <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(this.props.data.example_work)}>
             <StoryTypeBlock en="Author" he="מחבר" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.author_names.en} he={this.props.data.author_names.he} url={url} />
@@ -148,8 +148,16 @@ class AuthorStory extends AbstractStory {
         </StoryFrame>);
     }
 }
+AuthorStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class UserSheetsStory extends AbstractStory {
+class UserSheetsStory extends Component {
     /* props.data: {
         "publisher_id"
         "publisher_name" (derived)
@@ -197,8 +205,16 @@ class UserSheetsStory extends AbstractStory {
       );
   }
 }
+UserSheetsStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class GroupSheetListStory extends AbstractStory {
+class GroupSheetListStory extends Component {
 /*
         "title" : {
             "he"
@@ -231,11 +247,17 @@ class GroupSheetListStory extends AbstractStory {
         </StoryFrame>
       );
     }
-
-
 }
+GroupSheetListStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class SheetListStory extends AbstractStory {
+class SheetListStory extends Component {
 /*
 
         "title" : {
@@ -266,8 +288,16 @@ class SheetListStory extends AbstractStory {
       );
     }
 }
+SheetListStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class PublishSheetStory extends AbstractStory {
+class PublishSheetStory extends Component {
   /* props.data: {
       publisher_id
       publisher_name
@@ -311,7 +341,7 @@ class PublishSheetStory extends AbstractStory {
 
                 <div className="authorByLineText">
                     <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={this.props.data.publisher_url}
-                        en={"by " + this.props.data.publisher_name} he={"מאת " + this.props.data.publisher_name}>
+                        en={this.props.data.publisher_name} he={this.props.data.publisher_name}>
                         <FollowButton large={false} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
                     </SimpleLinkedBlock>
                     {positionBlock}
@@ -321,8 +351,16 @@ class PublishSheetStory extends AbstractStory {
       );
   }
 }
+PublishSheetStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class TextPassageStory extends AbstractStory {
+class TextPassageStory extends Component {
     /*
        props.data: {
          "ref"
@@ -345,9 +383,9 @@ class TextPassageStory extends AbstractStory {
 
     render() {
       const url = "/" + Sefaria.normRef(this.props.data.ref);
-      const lead = this.props.data.lead_title || {en: "Read", he: "קרא"};
+      const lead = this.props.data.lead_title || {en: "Read More", he: "קרא עוד"};
       return (
-        <StoryFrame cls="textPassageStory" cardColor={this.indexColor(this.props.data.index)}>
+        <StoryFrame cls="textPassageStory" cardColor={Sefaria.palette.indexColor(this.props.data.index)}>
             <StoryTypeBlock en={lead.en} he={lead.he} />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
@@ -357,8 +395,16 @@ class TextPassageStory extends AbstractStory {
       );
     }
 }
+TextPassageStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
-class TopicTextsStory extends AbstractStory {
+class TopicTextsStory extends Component {
 /*
     "topicTexts"
         "title"
@@ -379,10 +425,17 @@ class TopicTextsStory extends AbstractStory {
         );
     }
 }
+TopicTextsStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
 
-
-class TopicListStory extends AbstractStory {
+class TopicListStory extends Component {
 /*
     "topicList"
         topics: [{en, he}, ...]
@@ -404,7 +457,14 @@ class TopicListStory extends AbstractStory {
         )
     }
 }
-
+TopicListStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
 
  /****************************

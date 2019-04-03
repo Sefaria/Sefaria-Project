@@ -16,7 +16,6 @@ def add_jobs(scheduler):
                       day_of_week="tue,thu", hour="10")
 
 
-
 def _add_calendar_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_parasha, "cron", id="Parasha", replace_existing=True,
                       day_of_week="fri, sun", hour="0", minute="0")
