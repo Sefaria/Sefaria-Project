@@ -413,11 +413,14 @@ class AbstractStoryFactory(object):
     def _generate_user_story(cls, **kwargs):
         uid = kwargs.get("uid")
         assert uid
-        return UserStory({
+        d = {
             "uid": uid,
             "storyForm": cls._story_form(**kwargs),
             "data": cls._data_object(**kwargs)
-        })
+        }
+        if kwargs.get("timestamp"):
+            d["timestamp"] = kwargs.get("timestamp")
+        return UserStory(d)
 
 
 #todo: convert this into a Free Form story
@@ -580,7 +583,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     @classmethod
     def generate_from_user_history(cls, hist, **kwargs):
         assert isinstance(hist, user_profile.UserHistory)
-        return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, **kwargs)
+        return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
 
 
 class AuthorStoryFactory(AbstractStoryFactory):

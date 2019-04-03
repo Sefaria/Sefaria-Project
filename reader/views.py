@@ -2445,7 +2445,6 @@ def addDynamicStories(stories, user, page):
     return stories
 
 
-
 @staff_member_required
 def story_reflector(request):
     """

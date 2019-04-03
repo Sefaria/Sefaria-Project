@@ -5,7 +5,6 @@ const PropTypes  = require('prop-types');
 const {
   SaveButton,
   FollowButton,
-    Link,
     TwoBox,
     BlockLink,
     SimpleLinkedBlock,
@@ -60,7 +59,6 @@ FreeTextStory.propTypes = {
 };
 
 class NewIndexStory extends Component {
-
     render() {
       const title = this.props.data.index;
       const heTitle = Sefaria.hebrewTerm(title);
