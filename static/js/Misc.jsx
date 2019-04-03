@@ -207,6 +207,35 @@ LanguageToggleButton.propTypes = {
 };
 
 
+const SimpleBlock = ({en, he, classes}) => (
+        <div className={classes}>
+          <span className="int-en">{en}</span>
+          <span className="int-he">{he}</span>
+        </div>
+    );
+SimpleBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    classes: PropTypes.string
+};
+
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children}) => (
+        <div className={classes}>
+            <a href={url} className={aclasses}>
+              <span className="int-en">{en}</span>
+              <span className="int-he">{he}</span>
+            </a>
+            {children}
+        </div>
+    );
+SimpleLinkedBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    url: PropTypes.string,
+    classes: PropTypes.string,
+    aclasses: PropTypes.string
+};
+
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
@@ -1236,7 +1265,8 @@ class CookiesNotification extends Component {
 }
 
 
-
+module.exports.SimpleBlock                               = SimpleBlock;
+module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;

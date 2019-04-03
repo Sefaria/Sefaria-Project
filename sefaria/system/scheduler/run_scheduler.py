@@ -6,7 +6,6 @@ Runs a blocking scheduler
 
 import django
 django.setup()
-from . import scheduler
+import scheduler
 
 s = scheduler.run_blocking_scheduler()
-s.print_jobs()

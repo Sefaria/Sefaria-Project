@@ -1,7 +1,7 @@
 from pytz import utc
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 from sefaria.system.database import client
-from . import jobs
+import jobs
 
 
 def _run_scheduler(SchedulerClass):
@@ -14,7 +14,7 @@ def _run_scheduler(SchedulerClass):
 
 def run_blocking_scheduler():
     from apscheduler.schedulers.blocking import BlockingScheduler
-    return _run_scheduler(BlockingScheduler)
+    _run_scheduler(BlockingScheduler)
 
 
 def run_background_scheduler():

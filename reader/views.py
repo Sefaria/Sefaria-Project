@@ -2401,8 +2401,6 @@ def stories_api(request):
     else:
         user = UserProfile(id=request.user.id)
 
-    lead_stories = []
-    count = 0
     if only_global or not user:
         stories = SharedStorySet(limit=page_size, page=page).contents()
         count = len(stories)
@@ -2432,7 +2430,7 @@ def addDynamicStories(stories, user, page):
         most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
         if most_recent:
             stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
-                    lead_title={"en": "Keep Reading", "he": u"המשך לקרוא"})
+                    lead={"en": "Keep Reading", "he": u"המשך לקרוא"})
             stories = [stry.contents()] + stories
 
     if page == 1:
@@ -2441,7 +2439,7 @@ def addDynamicStories(stories, user, page):
         if saved.count() > 2:
             saved_item = choice(saved)
             stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
-                    lead_title={"en": "Take Another Look", "he": u"קרא עוד"})
+                    lead={"en": "Take Another Look", "he": u"קרא עוד"})
             stories = [stry.contents()] + stories
 
     return stories

@@ -7,7 +7,9 @@ const {
   FollowButton,
     Link,
     TwoBox,
-    BlockLink
+    BlockLink,
+    SimpleLinkedBlock,
+    SimpleBlock
 }                                = require('./Misc');
 import Component from 'react-class';
 
@@ -178,21 +180,18 @@ class UserSheetsStory extends AbstractStory {
 
             <img className="mediumProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storySheetList">
-                {this.props.data.sheets.map((sheet, i) => <div className="storySheetListItem" key={i}>
-                    <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
-                        <span className="int-en">{sheet.sheet_title}</span>
-                        <span className="int-he">{sheet.sheet_title}</span>
-                    </a>
-                    <SaveButton
-                        historyObject={{
-                            ref: "Sheet " + sheet.sheet_id,
-                            sheet_title: sheet.sheet_title,
-                            versions: {}
-                        }}
-                        tooltip={true}
-                        toggleSignUpModal={this.props.toggleSignUpModal}
-                    />
-                </div>)}
+                {this.props.data.sheets.map((sheet, i) =>
+                    <SimpleLinkedBlock key={i} en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}
+                                       classes="storySheetListItem" aclasses="contentText storySheetListItemTitle">
+
+                        <SaveButton tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}
+                            historyObject={{
+                                ref: "Sheet " + sheet.sheet_id,
+                                sheet_title: sheet.sheet_title,
+                                versions: {}
+                            }}/>
+                    </SimpleLinkedBlock>
+                )}
             </div>
         </StoryFrame>
       );
@@ -311,13 +310,10 @@ class PublishSheetStory extends AbstractStory {
                 </div>
 
                 <div className="authorByLineText">
-                    <div className="authorName">
-                        <a className="systemText" href={this.props.data.publisher_url}>
-                            <span className="int-en">by {this.props.data.publisher_name}</span>
-                            <span className="int-he">{this.props.data.publisher_name}מאת </span>
-                        </a>
+                    <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={this.props.data.publisher_url}
+                        en={"by " + this.props.data.publisher_name} he={"מאת " + this.props.data.publisher_name}>
                         <FollowButton large={false} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
-                    </div>
+                    </SimpleLinkedBlock>
                     {positionBlock}
                 </div>
             </div>
@@ -461,34 +457,6 @@ class StoryTitleBlock extends Component {
     };
 }
 
-const SimpleBlock = ({en, he, classes}) => (
-        <div className={classes}>
-          <span className="int-en">{en}</span>
-          <span className="int-he">{he}</span>
-        </div>
-    );
-SimpleBlock.propTypes = {
-    en: PropTypes.string,
-    he: PropTypes.string,
-    classes: PropTypes.string
-};
-
-const SimpleLinkedBlock = ({en, he, url, classes}) => (
-        <div className={classes}>
-            <a href={url}>
-              <span className="int-en">{en}</span>
-              <span className="int-he">{he}</span>
-            </a>
-        </div>
-    );
-
-SimpleBlock.propTypes = {
-    en: PropTypes.string,
-    he: PropTypes.string,
-    url: PropTypes.string,
-    classes: PropTypes.string
-
-};
 
 const StoryBodyBlock = ({en, he, dangerously}) => {
       if (dangerously) {
