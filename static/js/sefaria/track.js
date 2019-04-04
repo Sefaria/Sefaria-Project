@@ -1,17 +1,25 @@
 var ga;
 if (typeof window !== 'undefined' && typeof window.ga === "function" ) {
   ga = window.ga;
+  var trackerName = ga.getAll()[0].get("name"); // Google Tag Manager assigns a Tracker Name
+  window.onerror = function(msg, url, lineNumber) {
+      ga(trackerName + ".send", 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
+  };
 } else {
   ga = function() {}; // Fail gracefully if we reach one of these methods server side
   ga._mock = true;
+  var trackerName = "mock";
 }
+var SET = trackerName + ".set";
+var SEND = trackerName + ".send";
+
 
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
     static event(category, action, label, value, options) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
-        ga('send', 'event', category, action, label, value, options);
-        //console.log('send', 'event', category, action, label, value, options);
+        ga(SEND, 'event', category, action, label, value, options);
+        //console.log(SEND, 'event', category, action, label, value, options);
         if (ga._mock && value && value.hitCallback) {
           // When Google Analytics isn't being used, trigger hitCallback immediately.
           value.hitCallback();
@@ -24,50 +32,50 @@ class Track {
         }
     }
     static pageview(url) {
-        ga('set', 'page', url);
-        ga('send', 'pageview');
+        ga(SET, 'page', url);
+        ga(SEND, 'pageview');
     }
     static setPrimaryCategory(category_name) {
-        ga('set', 'contentGroup1', category_name);
+        ga(SET, 'contentGroup1', category_name);
     }
     static setSecondaryCategory(category_name) {
-        ga('set', 'contentGroup2', category_name);
+        ga(SET, 'contentGroup2', category_name);
     }
     static setContentLanguage(language) {
-        ga('set', 'contentGroup5', language);
+        ga(SET, 'contentGroup5', language);
     }
     static setNumberOfPanels(val) {
-        ga('set', 'dimension1', val);
+        ga(SET, 'dimension1', val);
     }
     static setBookName(val) {
-        ga('set', 'dimension2', val);
-        ga('set', 'contentGroup3', val);
+        ga(SET, 'dimension2', val);
+        ga(SET, 'contentGroup3', val);
     }
     static setRef(val) {
-        ga('set', 'dimension3', val);
+        ga(SET, 'dimension3', val);
     }
     static setVersionTitle(val) {
-        ga('set', 'dimension4', val);
+        ga(SET, 'dimension4', val);
     }
     static setPageType(val) {
-        ga('set', 'dimension5', val);
+        ga(SET, 'dimension5', val);
     }
     static setSidebars(val) {
-        ga('set', 'dimension6', val);
+        ga(SET, 'dimension6', val);
     }
     static setUserLoggedIn(bool) {
-        ga('set', 'dimension7', bool? "Logged In": "Logged Out");
+        ga(SET, 'dimension7', bool? "Logged In": "Logged Out");
     }
     static setUserPartnerGroup(val) {
-        ga('set', 'dimension8', val);
+        ga(SET, 'dimension8', val);
     }
     static setUserPartnerRole(val) {
-        ga('set', 'dimension9', val);
+        ga(SET, 'dimension9', val);
     }
     static setUserID(val) {
         var sval = String(val);
-        ga('set', 'userId', sval);
-        ga('set', 'dimension10', sval);
+        ga(SET, 'userId', sval);
+        ga(SET, 'dimension10', sval);
     }
     static setUserData(loggedIn, partner_group, partner_role, analytics_uid) {
         this.setUserLoggedIn(loggedIn);
