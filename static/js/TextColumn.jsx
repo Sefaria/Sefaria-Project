@@ -101,7 +101,7 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
-    console.log("handle text load");
+    //console.log("handle text load");
     this.setScrollPosition();
     this.adjustInfiniteScroll();
   }

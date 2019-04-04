@@ -1,5 +1,5 @@
 var ga;
-if (typeof window !== 'undefined' && typeof window.ga === "function" ) {
+if (typeof window !== 'undefined' && typeof window.ga === "function" && typeof window.ga.getAll == "function") {
   ga = window.ga;
   var trackerName = ga.getAll()[0].get("name"); // Google Tag Manager assigns a Tracker Name
   window.onerror = function(msg, url, lineNumber) {
