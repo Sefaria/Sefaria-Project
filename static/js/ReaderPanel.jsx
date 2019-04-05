@@ -1274,19 +1274,25 @@ class ReaderDisplayOptionsMenu extends Component {
       return 2;
     }
   }
-  render() {
+  showLangaugeToggle() {
+    if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
-    var hasHebrew = !!this.props.currentData().he.length;
-    var hasEnglish = !!this.props.currentData().text.length;
+    var data = this.props.currentData();
+    if (!data) return true // Sheets don't have currentData, also show for now (4x todo)
+
+    var hasHebrew = !!data.he.length;
+    var hasEnglish = !!data.text.length;
     var singleLanguage = !(hasHebrew && hasEnglish);
-    var showLangaugeToggle = Sefaria._siteSettings.TORAH_SPECIFIC || !singleLanguage;
 
+    return !singleLanguage;
+  }
+  render() {
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
       {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
       {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
-    var languageToggle = showLangaugeToggle ? (
+    var languageToggle = this.showLangaugeToggle() ? (
         <ToggleSet
           role="radiogroup"
           ariaLabel="Language toggle"

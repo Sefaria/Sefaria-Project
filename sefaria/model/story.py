@@ -746,6 +746,20 @@ class SheetListFactory(AbstractStoryFactory):
         return "sheetList"
 
     @classmethod
+    def _get_featured_ids(cls, k):
+        shts = db.sheets.find({"is_featured":True}, {"id":1})
+        ids = [s["id"] for s in shts]
+        return random.sample(ids, k)
+
+    @classmethod
+    def create_shared_featured_story(cls, **kwargs):
+        cls.create_shared_story(cls._get_featured_ids(4), **kwargs)
+
+    @classmethod
+    def create_user_featured_story(cls, uid, **kwargs):
+        cls.create_user_story(uid, cls._get_featured_ids(4), **kwargs)
+
+    @classmethod
     def create_shared_story(cls, sheet_ids, **kwargs):
         story = cls._generate_shared_story(sheet_ids=sheet_ids, **kwargs)
         story.save()

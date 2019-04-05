@@ -388,7 +388,6 @@ def clean_source(source):
 	return source
 
 
-
 def add_source_to_sheet(id, source, note=None):
 	"""
 	Add source to sheet 'id'.
@@ -600,12 +599,12 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),
+				"is_featured":     sheet.get("is_featured", False),
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
 			}
 
 			results.append(sheet_data)
-
 
 	return results
 
@@ -694,7 +693,6 @@ def add_visual_data(sheet_id, visualNodes, zoom):
 	"""
 	db.sheets.update({"id": sheet_id},{"$unset": { "visualNodes": "", "zoom": "" } })
 	db.sheets.update({"id": sheet_id},{"$push": {"visualNodes": {"$each": visualNodes},"zoom" : zoom}})
-
 
 
 def add_like_to_sheet(sheet_id, uid):
@@ -789,6 +787,7 @@ class Sheet(abstract.AbstractMongoRecord):
 	]
 	optional_attrs = [
 		"generatedBy",  # this had been required, but it's not always there.
+		"is_featured",  # boolean - show this sheet, unsolicited.
 		"included_refs",
 		"views",
 		"nextNode",
