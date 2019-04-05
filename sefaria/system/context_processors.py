@@ -57,7 +57,7 @@ def global_settings(request):
         "SEARCH_URL":             SEARCH_HOST,
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
         "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
-        "GOOGLE_ANALYTICS_CODE":  GOOGLE_ANALYTICS_CODE,
+        "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
         "GLOBAL_WARNING":         GLOBAL_WARNING,
