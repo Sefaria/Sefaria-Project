@@ -88,7 +88,7 @@ def delete_version(index, version, lang):
         davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
         if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
             refs += index.all_section_refs()
-    
+
     refs += index.all_segment_refs()
 
     for ref in refs:
@@ -511,7 +511,10 @@ class TextIndexer(object):
             cls.trefs_seen = set()
             cls._bulk_actions = []
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
-            cls.best_time_period = cls.curr_index.best_time_period()
+            try:
+                cls.best_time_period = cls.curr_index.best_time_period()
+            except ValueError:
+                cls.best_time_period = None
             for v in vlist:
                 if v.versionTitle == u"Yehoyesh's Yiddish Tanakh Translation [yi]":
                     print "skipping yiddish. we don't like yiddish"
@@ -544,7 +547,10 @@ class TextIndexer(object):
         cls.merged = merged
         cls.index_name = index_name
         cls.curr_index = oref.index
-        cls.best_time_period = cls.curr_index.best_time_period()
+        try:
+            cls.best_time_period = cls.curr_index.best_time_period()
+        except ValueError:
+            cls.best_time_period = None
         cls.trefs_seen = set()
         version_priority = 0
         if not merged:
