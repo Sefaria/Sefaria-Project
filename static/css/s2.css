@@ -5980,19 +5980,20 @@ span.purim-emoji img{
   padding: 20px 0;
   border-top: 4px solid transparent;
 }
-.interface-english .storyFeed .story .storyTitleBlock {
+.storyFeed .story .storyTitleBlock {
   clear: both;
 }
 .interface-english .storyFeed .story .storyTitleBlock {
   float: left;
 }
+.interface-hebrew .storyFeed .story .storyTitleBlock {
+  float: right;
+}
 .publishSheetStory .saveButton  {
   float: right;
   padding-top: 20px;
 }
-.interface-hebrew .storyFeed .story .storyTitleBlock {
-  float: right;
-}
+
 .storyFeed .story .storyTitle {
   padding: 10px 0;
 }

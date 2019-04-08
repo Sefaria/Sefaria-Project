@@ -493,7 +493,7 @@ StoryFrame.propTypes = {
 const NaturalTimeBlock = ({timestamp}) => <SimpleBlock
         classes = "topTailBlock smallText"
         en = {Sefaria.util.naturalTime(timestamp) + " ago"}
-        he = {"&rlm;לפני " + Sefaria.util.naturalTime(timestamp)}
+        he = {"לפני " + Sefaria.util.naturalTime(timestamp)}
     />;
 
 const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>;
