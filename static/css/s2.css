@@ -996,10 +996,16 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.readerPanel.hebrew .navToggles {
+    direction: rtl;
+}
 .readerNavMenu .navToggles {
-  text-align: center;
-  margin-bottom: 40px;
-  margin-top: -10px;
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: -10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 .readerNavMenu .navToggles .navTogglesDivider {
   color: #ccc;
