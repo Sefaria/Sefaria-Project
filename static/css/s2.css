@@ -996,10 +996,16 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.readerPanel.hebrew .navToggles {
+    direction: rtl;
+}
 .readerNavMenu .navToggles {
-  text-align: center;
-  margin-bottom: 40px;
-  margin-top: -10px;
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: -10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 .readerNavMenu .navToggles .navTogglesDivider {
   color: #ccc;
@@ -1121,9 +1127,10 @@ a.resourcesLink {
   color: #000;
 }
 .readerNavCategory {
+.readerNavCategory {
   background-color: white;
   text-transform: uppercase;
-  font-family: "adobe-garamond-pro", Georgia;
+  font-family: "adobe-garamond-pro", Georgia, serif;
   text-align: center;
   font-size: 18px;
   padding: 0 10px;
@@ -1303,10 +1310,10 @@ a.readerNavCategory {
 .readerNavMenu .navButton,
 .readerTextTableOfContents .refLink {
   display: block;
-  margin: 0px;
+  margin: 0;
   padding: 14px 8px;
   box-sizing: border-box;
-  box-shadow: 0px 1px 3px rgb(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgb(0,0,0.2);
   border-top: 4px solid transparent;
   color: #000;
   font-size: 18px;
@@ -6125,4 +6132,10 @@ span.purim-emoji img{
 }
 .storyFeed .story .storyTextList .storyTextListItem {
 
+}
+
+.segment .queryTextHighlight {
+  background-color: #D2DCFF;
+  padding-left: 2px;
+  padding-right: 2px;
 }
