@@ -4940,7 +4940,7 @@ class Library(object):
 
         if is_root:
             return {
-                "name": "Whole Library" + " ({})".format(lang) if lang else "",
+                "name": "Whole Library" + " ({})".format(lang if lang else ""),
                 "path": [],
                 "children": simple_nodes
             }
