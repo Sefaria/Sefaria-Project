@@ -76,9 +76,7 @@ class NotificationsPanel extends Component {
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
               (<LoginPrompt fullPanel={true} />) }
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }

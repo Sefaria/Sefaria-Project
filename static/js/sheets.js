@@ -144,7 +144,7 @@ $(function() {
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
 				addSource(q, undefined, "insert", $target);
-				sjs.track.sheets("Add Source", ref);
+				Sefaria.track.sheets("Add Source", ref);
         cleanupActiveSource($target);
 
 			}
@@ -169,7 +169,7 @@ $(function() {
             $("#inlineAddSourceOK").addClass("disabled");
             $("#sheet").click();
         });
-		sjs.track.sheets("Add Source", ref);
+		Sefaria.track.sheets("Add Source", ref);
 	});
 	$(document).on("keydown", "#inlineAddSourceOK", function(e) {
 		if (e.which == 13) {
@@ -284,7 +284,7 @@ $(function() {
 
 	// Printing
 	$("#print").click(function(){
-		sjs.track.sheets("Print Sheet");
+		Sefaria.track.sheets("Print Sheet");
 		window.print() 
 	});
 
@@ -514,7 +514,7 @@ $(function() {
 		$(".fa-check", $(this)).removeClass("hidden");
 		var group = $(this).attr("data-group");
 		if (group != "None") {
-			sjs.track.sheets("Share with Group", group);
+			Sefaria.track.sheets("Share with Group", group);
 			var groupUrl = group.replace(/ /g, "-");
 			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
 				.closest("a").attr("href", "/groups/" + groupUrl );
@@ -528,7 +528,7 @@ $(function() {
 
 			
 		} else {
-			sjs.track.sheets("Unshare Sheet with Group", group);
+			Sefaria.track.sheets("Unshare Sheet with Group", group);
 			$("#sheetHeader").hide();
 
 			$(".groupSharing").hide();
@@ -567,7 +567,7 @@ $(function() {
 		var resetSource = function(option) {
 			var loadClosure = function(data) {
 				loadSource(data, $target, option);
-        		sjs.track.sheets("Reset Source", data.ref);
+        		Sefaria.track.sheets("Reset Source", data.ref);
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);
@@ -581,14 +581,14 @@ $(function() {
 	$("#removeNikkudot").click(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
-		sjs.track.sheets("Remove Nikkudot");
+		Sefaria.track.sheets("Remove Nikkudot");
 		autoSave();
 	});
 
 	$("#splitSourceToSegment").click(function() {
 		var $target = $(".activeSource").find(".text");
 		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
-		sjs.track.sheets("Auto Split Segments");
+		Sefaria.track.sheets("Auto Split Segments");
 	});
 
 	$("#addSourceTitle").click(function() {
@@ -604,7 +604,7 @@ $(function() {
 			.closest(".sheetItem")
 			.addClass("hasCustom");
 
-		sjs.track.sheets("Edit Source Title", ref);
+		Sefaria.track.sheets("Edit Source Title", ref);
 	});
 
 
@@ -898,13 +898,13 @@ $(function() {
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
-    		sjs.track.sheets("Unlike", sjs.current.id);
+    		Sefaria.track.sheets("Unlike", sjs.current.id);
 		} else {
 			$(this).addClass("liked").text(_("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
-    		sjs.track.sheets("Like", sjs.current.id);
+    		Sefaria.track.sheets("Like", sjs.current.id);
 		}
 	});
 	$(".likes").click(function(e) {
@@ -1580,7 +1580,7 @@ $(function() {
 				autoSave();
 				setSourceNumbers();
 			}
-			sjs.track.sheets("Remove Source");
+			Sefaria.track.sheets("Remove Source");
 
 		 });
 
@@ -1620,7 +1620,7 @@ $(function() {
 			.addClass("hasCustom");
 
 		e.stopPropagation();
-		sjs.track.sheets("Edit Source Title", ref);
+		Sefaria.track.sheets("Edit Source Title", ref);
 	});
 
 
@@ -1634,7 +1634,7 @@ $(function() {
 		var resetSource = function(option) {
 			var loadClosure = function(data) { 
 				loadSource(data, $target, option);
-        		sjs.track.sheets("Reset Source", data.ref);
+        		Sefaria.track.sheets("Reset Source", data.ref);
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);	
@@ -1659,7 +1659,7 @@ $(function() {
 					};
 					buildSource($("#sources"), source);
 				}
-        		sjs.track.sheets("Add Parasha", parasha);
+        		Sefaria.track.sheets("Add Parasha", parasha);
 			}
 		});
 
@@ -1967,7 +1967,7 @@ $(function() {
 		} else {
 			$("#biLayoutToggleSource").removeClass("disabled");
 		}
-		sjs.track.sheets("Change Source Layout Button");
+		Sefaria.track.sheets("Change Source Layout Button");
 	});
 
 
@@ -1988,7 +1988,7 @@ $(function() {
 				$("#biLayoutToggleSource").removeClass("disabled");
 			}
 		}
-		sjs.track.sheets("Change Source Language Button");
+		Sefaria.track.sheets("Change Source Language Button");
 	});
 	
 	// Change Language Layout via modal
@@ -1998,7 +1998,7 @@ $(function() {
 		$(this).addClass("active");
 		$target.removeClass("heLeft heRight")
 			.addClass($(this).attr("id").replace("Source",""));
-		sjs.track.sheets("Change Source Language Layout Button");
+		Sefaria.track.sheets("Change Source Language Layout Button");
 	});
 
 	
@@ -2010,7 +2010,7 @@ $(function() {
 		$target.removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
 		$("#overrideLayoutModal, #overlay").hide();
 		autoSave();
-		sjs.track.sheets("Reset Source Layout to Default");
+		Sefaria.track.sheets("Reset Source Layout to Default");
 	});
 
 
@@ -2111,13 +2111,13 @@ $(function() {
 			sjs.current.promptedToPublish = Date();
 			$("#sourceSheetShareSelect").val('public');
 			autoSave();
-			sjs.track.sheets("Publish Prompt Accept");
+			Sefaria.track.sheets("Publish Prompt Accept");
 		});
 		$("#publishPromptModal .later").click(function(){
 			$("#publishPromptModal #prompt").hide();
 			$("#publishPromptModal #notPublished").show();
 			sjs.current.promptedToPublish = Date();
-			sjs.track.sheets("Publish Prompt Decline");
+			Sefaria.track.sheets("Publish Prompt Decline");
 
 		});
 		$("#publishPromptModal .ok").click(function(){
@@ -2285,8 +2285,19 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
+	var additionalRefData = ""
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
+	if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+		additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+	}
+	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"]) && (source["options"]["PrependRefWithEn"] != "")) {
+		additionalRefData = additionalRefData + " data-prependrefwithen='"+source["options"]["PrependRefWithEn"]+"'";
+	}
+	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"]) && (source["options"]["PrependRefWithHe"] != "")) {
+		additionalRefData = additionalRefData + " data-prependrefwithhe='"+source["options"]["PrependRefWithHe"]+"'";
+	}
+
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'"+additionalRefData+">"
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
 		+"<div class='he'>" +
@@ -2460,7 +2471,7 @@ function readSheet() {
 		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
 
 		if (sjs.current.status == "unlisted" && sheet["status"] == "public" ) {
-				sjs.track.sheets("Sheet Published");
+				Sefaria.track.sheets("Sheet Published");
 		}
 
 		switch ($("#sourceSheetShareSelect").val()) {
@@ -2600,7 +2611,10 @@ function readSource($target) {
 							 sourceLanguage: sourceLanguage,
 							 sourceLayout: sourceLayout,
 							 sourceLangLayout: sourceLangLayout,
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 PrependRefWithEn: $target.attr("data-prependrefwithen") ? $target.attr("data-prependrefwithen") : "",
+							 PrependRefWithHe: $target.attr("data-prependrefwithhe") ? $target.attr("data-prependrefwithhe") : "",
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 		
 		
@@ -2623,7 +2637,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
@@ -2642,7 +2657,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	} else if ($target.hasClass("outsideWrapper")) {
@@ -2660,7 +2676,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	}
@@ -2680,7 +2697,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-            indented: sourceIndentLevel
+            indented: sourceIndentLevel,
+        	sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	}
@@ -2703,7 +2721,7 @@ function validateSheet(sheet) {
 
 function handleSave() {
 	if (!sjs._uid) {
-		sjs.track.sheets("Logged out Save Attempt");
+		Sefaria.track.sheets("Logged out Save Attempt");
 		return alert("Sorry I can't save what you've got here: you need to be signed in to save."); 
 	}
 	sjs.loading = false;
@@ -2711,7 +2729,7 @@ function handleSave() {
 
 	var sheet = readSheet();
 	saveSheet(sheet, true);
-	sjs.track.sheets("Save New Sheet");
+	Sefaria.track.sheets("Save New Sheet");
 }
 
 
@@ -2886,7 +2904,7 @@ function buildSource($target, source, appendOrInsert) {
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;	
 	}
-	
+
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		addSource(q, source, appendOrInsert, $target);
@@ -2936,7 +2954,12 @@ function buildSource($target, source, appendOrInsert) {
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
+
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'"+additionalRefData+"><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 			appendInlineAddButton() + "</div>";
@@ -2952,8 +2975,12 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	} else if ("outsideBiText" in source) {
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
 								"<div class='he'>" + source.outsideBiText.he + "</div>" + 
@@ -2973,8 +3000,12 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	} else if ("outsideText" in source) {
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3012,9 +3043,13 @@ function buildSource($target, source, appendOrInsert) {
 		else {
 			mediaLink = '';
 		}
-		
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
+
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
 							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3264,7 +3299,7 @@ function rebuildUpdatedSheet(data) {
 	// Rebuild the current sheet and 
 	if (data.dateModified < sjs.current.dateModified) {
 		// If the update is older than the timestamp on the current sheet, ignore it
-		sjs.track.event("Sheets", "Error", "Out of sequence update request.");
+		Sefaria.track.event("Sheets", "Error", "Out of sequence update request.");
 		return;
 	}
 
@@ -3416,7 +3451,7 @@ $("#addToSheetModal .ok").click(function(){
 				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
 			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
 			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
-			sjs.track.sheets("Source Copied");
+			Sefaria.track.sheets("Source Copied");
 		}
 	}
 
@@ -3451,7 +3486,7 @@ function copySheet() {
 function exportToDrive() {
 	$("#overlay").show();
 	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
-	sjs.track.sheets("Export to Google Drive");
+	Sefaria.track.sheets("Export to Google Drive");
 
 	$.ajax({
 	  type: "POST",
@@ -3678,7 +3713,7 @@ function promptToPublish() {
 
 	$("#publishPromptModal").show();
 	$("#overlay").show();
-	sjs.track.sheets("Publish Prompt");
+	Sefaria.track.sheets("Publish Prompt");
 
 
 }

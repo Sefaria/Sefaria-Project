@@ -1,6 +1,7 @@
 # local settings used by travis CI builds
 import os
 import os.path
+from local_settings_example import *
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
@@ -45,6 +46,8 @@ CACHES = {
     }
 }
 
+SITE_PACKAGE = "sites.sefaria"
+
 SECRET_KEY = 'insert your long random secret key here !'
 
 
@@ -79,6 +82,7 @@ NODE_HOST = "http://localhost:4040"
 SEFARIA_DATA_PATH = '{}/data'.format(HOME_DIR)  # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
 
+GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None
 MIXPANEL_CODE = 'you mixpanel code here'
@@ -118,6 +122,10 @@ GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "sefaria/gauth/client_secrets.json"
 
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
+
+AWS_ACCESS_KEY = None
+AWS_SECRET_KEY = None
+S3_BUCKET = "bucket-name"
 
 LOGGING = {
     'version': 1,
@@ -201,3 +209,6 @@ LOGGING = {
         },
     }
 }
+
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+

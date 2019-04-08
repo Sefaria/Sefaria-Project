@@ -28,7 +28,7 @@ class ReaderNavigationMenu extends Component {
 
     this.width = 1000;
     this.state = {
-      showMore: false
+      showMore: Sefaria.toc.length < 9,
     };
   }
   componentDidMount() {
@@ -85,7 +85,7 @@ class ReaderNavigationMenu extends Component {
                 <ReaderNavigationCategoryMenu
                   categories={this.props.categories}
                   category={this.props.categories.slice(-1)[0]}
-                  closeNav={this.onClose}
+                  closeNav={this.props.onClose}
                   setCategories={this.props.setCategories}
                   toggleLanguage={this.props.toggleLanguage}
                   openDisplaySettings={this.props.openDisplaySettings}
@@ -145,9 +145,12 @@ class ReaderNavigationMenu extends Component {
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
                   </div>);
+
+
       var calendar = Sefaria.calendars.map(function(item) {
           return (<TextBlockLink
-                    sref={item.url}
+                    sref={item.ref}
+                    url_string={item.url}
                     title={item.title["en"]}
                     heTitle={item.title["he"]}
                     displayValue={item.displayValue["en"]}
@@ -157,6 +160,7 @@ class ReaderNavigationMenu extends Component {
                     recentItem={false} />)
       });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
+
 
       var resources = [(<a className="resourcesLink" href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" alt="source sheets icon" />
@@ -184,6 +188,11 @@ class ReaderNavigationMenu extends Component {
                         <span className="int-he">קבוצות</span>
                       </a>)
                       ];
+
+      const torahSpecificResources = ["/visualizations", "/people"];
+      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+        resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
+      }
       resources = (<div className="readerTocResources"><TwoBox content={resources} width={this.width} /></div>);
 
 
@@ -199,7 +208,7 @@ class ReaderNavigationMenu extends Component {
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <div className="readerNavTopStart">
-                  <ReaderNavigationMenuMenuButton onClick={this.onClose} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
+                  <ReaderNavigationMenuMenuButton onClick={this.props.onClose} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
                   <div className="searchBox">
                     <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                     <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={this.handleSearchKeyUp} />
@@ -226,15 +235,13 @@ class ReaderNavigationMenu extends Component {
 
 
       var title = (<h1>
-                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-                    <span className="int-en">The Sefaria Library</span>
-                    <span className="int-he">האוסף של ספריא</span>
+                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+                     <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                    <span className="int-en">{Sefaria._siteSettings.LIBRARY_NAME.en}</span>
+                    <span className="int-he">{Sefaria._siteSettings.LIBRARY_NAME.he}</span>
                   </h1>);
 
-      var footer = this.props.compare ? null :
-                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                      <Footer />
-                    </footer> );
+      var footer = this.props.compare ? null : <Footer />;
       var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
       var contentClasses = classNames({content: 1, hasFooter: footer != null});
       return(<div className={classes} onClick={this.props.handleClick} key="0">
@@ -244,7 +251,7 @@ class ReaderNavigationMenu extends Component {
                   { this.props.compare ? null : title }
                   { topUserData }
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
-                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} />
+                  { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
                   { this.props.multiPanel ? null : siteLinks }
                 </div>

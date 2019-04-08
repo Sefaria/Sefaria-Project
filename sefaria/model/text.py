@@ -201,12 +201,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "pubPlace",
         "errorMargin",
         "era",
-        "dependence", # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
-        "base_text_titles", # (list) the base book(s) this one is dependant on
-        "base_text_mapping", # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
-        "collective_title", # (str) string value for a group of index records - the former commentator name. Requires a matching term.
-        "is_cited",  # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
-        "lexiconName"  # For dictionaries - the name used in the Lexicon collection
+        "dependence",           # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
+        "base_text_titles",     # (list) the base book(s) this one is dependant on
+        "base_text_mapping",    # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
+        "collective_title",     # (str) string value for a group of index records - the former commentator name. Requires a matching term.
+        "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
+        "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
+        "dedication"            # (dict) Dedication texts, keyed by language
     ]
 
     def __unicode__(self):
@@ -3649,7 +3650,7 @@ class Ref(object):
         key = "/".join(cats + [self.index.title])
         try:
             base = library.category_id_dict()[key]
-            if self.index.is_complex():
+            if self.index.is_complex() and self.index_node.parent:
                 child_order = self.index.nodes.get_child_order(self.index_node)
                 base += unicode(format(child_order, '03')) if isinstance(child_order, int) else child_order
 
@@ -4155,6 +4156,9 @@ class Library(object):
             self._toc_tree = TocTree(self)
         return self._toc_tree
 
+    def get_groups_in_library(self):
+        return self._toc_tree.get_groups_in_library()
+
     def get_search_filter_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
@@ -4529,7 +4533,9 @@ class Library(object):
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
-    #todo: onlyused in  bio scripts
+
+
+    #todo: only used in bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -4901,6 +4907,47 @@ class Library(object):
                 d.update(self.category_id_dict(c["contents"], key, val))
 
         return d
+
+    def simplify_toc(self, lang=None, toc_node=None, path=None):
+        is_root = toc_node is None and path is None
+        toc_node = toc_node if toc_node else self.get_toc()
+        path = path if path else []
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": node_path
+            }
+            if "category" in x:
+                if "contents" not in x:
+                    continue
+                simple_node["type"] = "category"
+                simple_node["children"] = self.simplify_toc(lang, x["contents"], node_path)
+            elif "title" in x:
+                query = {"title": x["title"]}
+                if lang:
+                    query["language"] = lang
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                    "name": u"{} ({})".format(v.versionTitle, v.language),
+                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                    "size": v.word_count(),
+                    "type": "version"
+                } for v in VersionSet(query)]
+            simple_nodes.append(simple_node)
+
+        if is_root:
+            return {
+                "name": "Whole Library" + " ({})".format(lang if lang else ""),
+                "path": [],
+                "children": simple_nodes
+            }
+        else:
+            return simple_nodes
+
+
 
 library = Library()
 

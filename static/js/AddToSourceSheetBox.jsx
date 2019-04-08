@@ -61,7 +61,7 @@ class AddToSourceSheetBox extends Component {
   }
   toggleSheetList() {
     if (!Sefaria._uid) {
-      this.setState({showLogin: true});
+      this.props.toggleSignUpModal()
     } else {
       this.setState({sheetListOpen: !this.state.sheetListOpen});
     }
@@ -70,7 +70,7 @@ class AddToSourceSheetBox extends Component {
     this.setState({selectedSheet: sheet, sheetListOpen: false});
   }
   copyNodeToSourceSheet() {
-    if (!Sefaria._uid) { this.setState({showLogin: true}); }
+    if (!Sefaria._uid) { this.props.toggleSignUpModal() }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
     if (!this.props.nodeRef) {
       this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
@@ -83,7 +83,7 @@ class AddToSourceSheetBox extends Component {
     }
   }
   addToSourceSheet() {
-    if (!Sefaria._uid) { this.setState({showLogin: true}); }
+    if (!Sefaria._uid) { this.props.toggleSignUpModal() }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
     if (this.props.addToSourceSheet) {
       this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);

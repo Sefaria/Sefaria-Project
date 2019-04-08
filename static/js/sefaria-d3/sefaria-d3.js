@@ -4,28 +4,18 @@ var Sefaria = require('sefaria');
 
 class SD3 {
 
-    static talmudScale(direction, left_point, right_point, chap_lengths) {
-        /*  Returns a D3 scale object for the Talmud:Integer addressed jagged array described by chap_lengths
+    static textScale(direction, left_point, right_point, shape, section_address_type) {
+        /*  Returns a D3 scale object for the text described by shape
 
             direction: "ltr" or "rtl"
             left_point: The leftmost px value
             right_point:  The rightmost px value
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
-        */
-        return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "talmud"));
-    }
+            shape: an object describing the shape of the text available from the Shape API
+            section_address_type: "talmud" or "integer"
 
-    static integerScale(direction, left_point, right_point, chap_lengths) {
-        /*  Returns a D3 scale object for the Integer:Integer addressed jagged array described by chap_lengths
-
-            direction: "ltr" or "rtl"
-            left_point: The leftmost px value
-            right_point:  The rightmost px value
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
         */
-        return this._jaggedArrayScale(direction, left_point, right_point, this._jaggedArrayDomain(chap_lengths, "integer"));
+        var domain = this._textDomain(shape, section_address_type);
+        return this._jaggedArrayScale(direction, left_point, right_point, domain);
     }
 
     static _jaggedArrayScale(direction, left_point, right_point, domain) {
@@ -44,6 +34,21 @@ class SD3 {
             .rangePoints(rangePoints);
     }
 
+    static _textDomain(shape, section_address_type) {
+        if (shape.isComplex) {
+            var domain = [];
+            shape.chapters.map(sectionShape => {
+                var sectionDomain = this._jaggedArrayDomain(sectionShape.chapters, section_address_type);
+                sectionDomain = sectionDomain.map(i => sectionShape.title + " " + i );
+                domain = domain.concat(sectionDomain);
+            });
+        } else {
+            var domain = this._jaggedArrayDomain(shape.chapters, section_address_type);
+            domain = domain.map(i => shape.book + " " + i );            
+        }
+        return domain;
+    }
+
     static _jaggedArrayDomain(chap_lengths, section_address_type) {
         /*  Returns an array of all of the valid address portions, as strings.
 
@@ -54,17 +59,33 @@ class SD3 {
 
         var domain = [];
         var section;
-        for (var i = 0; i < chap_lengths.length; ++i) {
-            if (section_address_type == "talmud") {
-                section = Sefaria.hebrew.intToDaf(i);
-                if (chap_lengths[i] > 0) {
-                    domain.push(section); // To support refs to e.g. "7b"
-                }
-            } else {
-                section = i+1;
+
+        if (typeof chap_lengths == "number") {
+            // Depth 1
+            for (var i = 0; i < chap_lengths; ++i) {
+                domain.push((i+1).toString());
             }
-            for (var j = 1; j <= chap_lengths[i]; ++j) {
-                domain.push(section + ":" + j)
+            return domain;
+        }
+
+        for (var i = 0; i < chap_lengths.length; ++i) {
+            if (Array.isArray(chap_lengths[i])) {
+                // Depth 3
+                var sectionDomain = this._jaggedArrayDomain(chap_lengths[i], section_address_type);
+                sectionDomain.map(sectionRef => domain.push(i+1 + ":" + sectionRef))
+            } else {
+                // Depth 2
+                if (section_address_type == "talmud") {
+                    section = Sefaria.hebrew.intToDaf(i);
+                } else {
+                    section = i+1;
+                }
+                if (chap_lengths[i] > 0) {
+                    domain.push(section); // To support refs to sections e.g. "7b"
+                }
+                for (var j = 1; j <= chap_lengths[i]; ++j) {
+                    domain.push(section + ":" + j)
+                }
             }
         }
         return domain;
@@ -80,8 +101,13 @@ class SD3 {
             scale: the underlying D3 scale function
          */
         return function(i) {
+            /* 
             if(i.indexOf(":") < 0) {
                 i = i + ":1"; //Make chapter refs point to first verse
+            }
+            */
+            if(i.indexOf("-") > -1) {
+                i = i.split("-")[0]; // Make ranges point to start only
             }
             var res = scale(i);
             if (res == undefined) { console.log(i + " -> " + res); }
@@ -89,48 +115,33 @@ class SD3 {
         };
     }
 
-    static talmudRefTicks(chap_lengths, skip) {
+    static talmudRefTicks(shape, skip) {
         /*  Returns an array of strings, in Talmud format, to be used as ticks on an Axis.
 
-
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
-            skip: the number of sections to skip, between ticks
-                If not provided, a default value will be chosen based on the number of sections
+            shape: an object describing the shape of the text available from the Shape API
+            skip: the number of segments to skip, between ticks
+                If not provided, a default value will be chosen based on the number of segments
          */
-        var last_index = chap_lengths.length - 1;
-        skip = skip || (last_index < 80) ? 4 :
-            (last_index < 120) ? 6 :
-                10;
-
-        var ticks = [];
-        ticks.push("2a");
-        for (var i = skip + 2; i < last_index - 2; i = i + skip) {
-            ticks.push(Sefaria.hebrew.intToDaf(i));
-        }
-        ticks.push(Sefaria.hebrew.intToDaf(last_index));
+        var domain = this._textDomain(shape, "talmud");
+        skip = skip || parseInt(domain.length / 12);
+        var ticks = domain.filter((e,i) => i % skip == 0);
+        ticks = ticks.map(ref => ref.lastIndexOf(":") > -1 ? ref.slice(0, ref.lastIndexOf(":")) : ref);  
 
         return ticks;
     }
 
-    static integerRefTicks(chap_lengths, skip) {
+    static integerRefTicks(shape, skip) {
         /*  Returns an array of strings, in Integer:Integer format, to be used as ticks on an Axis.
-            Assumes depth 2 (Would this work w/ Depth 3, as is?)
 
-            chap_lengths: An array of integers - the number of segments in each sequential sections
-                These are available through `api/shape`.
-            skip: the number of sections to skip, between ticks
-                If not provided, a default value will be chosen based on the number of sections
+            shape: an object describing the shape of the text available from the Shape API
+            skip: the number of segments to skip, between ticks
+                If not provided, a default value will be chosen based on the number of segments
          */
-        var last_index = chap_lengths.length;
-        skip = skip || (last_index < 40) ? 1 :
-            (last_index < 90) ? 2 :
-                6;
+        var domain = this._textDomain(shape, "integer");
+        skip = skip || parseInt(domain.length / 30);
+        var ticks = domain.filter((e,i) => i % skip == 0);
+        ticks = ticks.map(ref => ref.lastIndexOf(":") > -1 ? ref.slice(0, ref.lastIndexOf(":")) : ref);  
 
-        var ticks = [];
-        for (var i = 1; i <= last_index; i = i + skip) {
-            ticks.push(i + ":1");
-        }
         return ticks;
     }
 

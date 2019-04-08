@@ -64,6 +64,7 @@ CACHES = {
     }
 }"""
 
+SITE_PACKAGE = "sites.sefaria"
 
 
 
@@ -142,6 +143,7 @@ DOMAIN_LANGUAGES = {
     "http://english.example.org": "english",
 }
 
+GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'
@@ -191,6 +193,8 @@ GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
+
+PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = None
 
 """ to use logging, in any module:
 # import the logging library

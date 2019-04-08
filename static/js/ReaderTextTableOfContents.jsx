@@ -223,8 +223,15 @@ class ReaderTextTableOfContents extends Component {
             onClick={this.toggleVersionsDropDownOpen}
             onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
             <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
-              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
-              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              {Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <span>
+                <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+                <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              </span> :
+              <span>
+                <span className="int-en">{`${numVersions["en"]}`}</span>
+                <span className="int-he">{`${numVersions["en"]}`}</span>
+              </span> }
             </div>
             <div className="versionSectionTitle">
               <span className="int-en">Versions</span>
@@ -232,8 +239,15 @@ class ReaderTextTableOfContents extends Component {
               {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
             </div>
             <div className="versionSectionSummary">
-              <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
-              <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              {Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <span>
+                <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
+                <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+              </span> :
+              <span>
+                <span className="int-en">{`${numVersions["en"]}`}</span>
+                <span className="int-he">{`${numVersions["en"]}`}</span>
+              </span> }
             </div>
           </h2>
           { this.state.versionsDropDownOpen ?
@@ -260,49 +274,38 @@ class ReaderTextTableOfContents extends Component {
       var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
       var dl_versions = [<option key="/" value="0" dir="auto" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
       var pdVersions = versions.filter(this.isVersionPublicDomain);
-      if (cv && cv.merged) {
-        var other_lang = cv.language == "he" ? "en" : "he";
-        dl_versions = dl_versions.concat([
-          <option dir="auto" value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language} data-version="merged">
-              {Sefaria.interfaceLang == "hebrew" ? "גרסה משולבת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
-          </option>,
-          <option dir="auto" value={"merged/" + other_lang} key={"merged/" + other_lang} data-lang={other_lang} data-version="merged">
-              {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבת` + `(${languageInHebrew[other_lang]})` : `Merged Version (${other_lang})`}
-          </option>
-        ]);
-        dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
-            {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
-              </option>
-        ));
-      }
-      else if (cv) {
-        if (this.isVersionPublicDomain(cv)) {
-          dl_versions.push(<option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>
-            {Sefaria.interfaceLang == "hebrew" ? "גרסה נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Version (${cv.language})`}
-          </option>);
+      var addMergedFor = pdVersions.map(v => v.language).unique(); // Only show merged option for languages we have
+      if (cv) {
+        if (cv.merged) {
+          // Add option for current merged Version
+          dl_versions = dl_versions.concat([
+            <option dir="auto" value={"merged/" + cv.language} key={"merged/" + cv.language} data-lang={cv.language}>
+                {Sefaria.interfaceLang == "hebrew" ? "גרסה משולבת נוכחית" + `(${languageInHebrew[cv.language]})` :`Current Merged Version (${cv.language})`}
+            </option>]);
+          addMergedFor = addMergedFor.filter(lang => lang !== cv.language); // Don't add option for this merged language again
+        } else {
+          // Add Option for current non-merged version
+          if (this.isVersionPublicDomain(cv)) {
+            var versionTitleInHebrew = cv.versionTitleInHebrew || cv.versionTitle;
+            dl_versions.push(
+            <option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>
+              {Sefaria.interfaceLang == "hebrew" ? `${versionTitleInHebrew} (גרסה נוכחית, ${languageInHebrew[cv.language]})` : `${cv.versionTitle} (Current Version, ${cv.language})`}
+            </option>);
+          }
         }
-        dl_versions = dl_versions.concat([
-          <option dir="auto" value="merged/he" key="merged/he">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (עברית)" :"Merged Version (he)"}</option>,
-          <option dir="auto" value="merged/en" key="merged/en">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (אנגלית)" :"Merged Version (en)"}</option>
-        ]);
-        dl_versions = dl_versions.concat(pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle).map(v =>
-          <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
-              {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
-              </option>
-        ));
+        pdVersions = pdVersions.filter(v => v.language != cv.language || v.versionTitle != cv.versionTitle); // Don't show current version again
       }
-      else {
-        dl_versions = dl_versions.concat([
-          <option dir="auto" value="merged/he" key="merged/he">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (עברית)" :"Merged Version (he)"}</option>,
-          <option dir="auto" value="merged/en" key="merged/en">{Sefaria.interfaceLang == "hebrew" ?"גרסה משולבת (אנגלית)" :"Merged Version (en)"}</option>
-        ]);
-        dl_versions = dl_versions.concat(pdVersions.map(v =>
-          <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
-              {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
-              </option>
-        ));
-      }
+      dl_versions = dl_versions.concat(pdVersions.map(v =>
+        <option dir="auto" value={v.versionTitle + "/" + v.language} key={v.versionTitle + "/" + v.language}>
+            {(Sefaria.interfaceLang == "hebrew" && v.versionTitleInHebrew) ? `${v.versionTitleInHebrew} (${languageInHebrew[v.language]})` : `${v.versionTitle} (${v.language})`}
+        </option>
+      ));
+      dl_versions = dl_versions.concat(addMergedFor.map(lang =>
+        <option dir="auto" value={`merged/${lang}`} key={`merged/${lang}`}>
+          {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבת (${languageInHebrew[lang]})` : `Merged Version (${lang})`}
+        </option>,
+      ));
+      
       var downloadButton = <div className="versionDownloadButton">
           <div className="downloadButtonInner">
             <span className="int-en">Download</span>
@@ -372,7 +375,6 @@ class ReaderTextTableOfContents extends Component {
                   />
                   :<div className="contentInner">
                   <div className="tocTop">
-                    <CategoryAttribution categories={categories} />
                     <a className="tocCategory" href={catUrl}>
                       <span className="en">{category}</span>
                       <span className="he">{Sefaria.hebrewTerm(category)}</span>
@@ -388,6 +390,14 @@ class ReaderTextTableOfContents extends Component {
                         <span className="he">{heSection}</span>
                       </div>
                     : null}
+                    <CategoryAttribution categories={categories} />
+                    {details && details.dedication ?
+                        <div className="dedication">
+                          <span>
+                            <span className="en">{details.dedication.en}</span>
+                            <span className="he">{details.dedication.he}</span>
+                          </span>
+                        </div> : ""}
                     {detailsSection}
                   </div>
                   {this.isTextToc()?
@@ -417,7 +427,7 @@ class ReaderTextTableOfContents extends Component {
                   </div>
                   : <LoadingMessage />}
                   {versionSection}
-                  {isDictionary ? "" : downloadSection}
+                  {isDictionary ? null : downloadSection}
                 </div>}
               </div>
             </div>);
@@ -442,6 +452,7 @@ ReaderTextTableOfContents.propTypes = {
   extendedNotes:    PropTypes.string,
   extendedNotesHebrew: PropTypes.string
 };
+
 
 class TextDetails extends Component {
  render() {

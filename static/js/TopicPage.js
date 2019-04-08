@@ -83,7 +83,7 @@ class TopicPage extends Component {
                   </Link>
                 </h2>
                 <h1>
-                  { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                  { this.props.multiPanel && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                   <span className="int-en">{this.props.topic}</span>
                   <span className="int-he">{Sefaria.hebrewTerm(this.props.topic)}</span>
                 </h1>
@@ -130,9 +130,7 @@ class TopicPage extends Component {
             </div>
 
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }
