@@ -5886,3 +5886,8 @@ span.purim-emoji img{
   opacity: 1;
   transition: all 0.75s ease;
 }
+.segment .queryTextHighlight {
+  background-color: #D2DCFF;
+  padding-left: 2px;
+  padding-right: 2px;
+}
