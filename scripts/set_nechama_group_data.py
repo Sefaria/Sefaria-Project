@@ -8,9 +8,6 @@ from sefaria.model.group import Group
 
 g = Group().load({"name": u"גיליונות נחמה"})
 
-g = Group().load({"name": u"Hillel Educators"})
-
-
 g.toc = {
 	"categories": ["Tanakh", "Commentary"],
 	"title": "The Nechama Leibowitz Collection",
