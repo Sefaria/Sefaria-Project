@@ -583,7 +583,11 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     @classmethod
     def generate_from_user_history(cls, hist, **kwargs):
         assert isinstance(hist, user_profile.UserHistory)
-        return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
+        if hist.is_sheet:
+            stripped_title = strip_tags(hist.sheet_title)
+            return cls._generate_user_story(uid=hist.uid, title={"en": stripped_title, "he": stripped_title}, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
+        else:
+            return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
 
 
 class AuthorStoryFactory(AbstractStoryFactory):
