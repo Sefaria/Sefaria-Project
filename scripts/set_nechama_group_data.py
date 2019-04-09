@@ -8,12 +8,15 @@ from sefaria.model.group import Group
 
 g = Group().load({"name": u"גיליונות נחמה"})
 
+g = Group().load({"name": u"Hillel Educators"})
+
+
 g.toc = {
 	"categories": ["Tanakh", "Commentary"],
 	"title": "The Nechama Leibowitz Collection",
 	"heTitle": u"גיליונות נחמה",
 	"description": "<span class='dedication'>Dedicated in loving memory of our mother and grandmother Miriam Magda Reichner.<br>The Rubinstein family — Toronto, Canada & Raanana, Israel.</span>",
-	"heDescription": u"לעילוי נשמת אמנו וסבתנו מרים רייכנער<br>נדבת משפחת רובינשטיין. טורונטו, קנדה — רעננה, ישראל"
+	"heDescription": u"<span class='dedication'>לעילוי נשמת אמנו וסבתנו מרים רייכנער<br>נדבת משפחת רובינשטיין. טורונטו, קנדה — רעננה, ישראל<span class='dedication'>"
 }
 
 g.save()
