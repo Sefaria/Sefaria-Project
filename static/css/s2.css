@@ -3660,8 +3660,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .englishAvailableTag {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: uppercase;
-  color: #666;
-  border: 1px solid #666;
+  color: #999;
+  border: 1px solid #CCC;
   border-radius: 3px;
   float: right;
   font-size: 12px;
