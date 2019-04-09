@@ -7,13 +7,16 @@ def add_jobs(scheduler):
     _add_calendar_jobs(scheduler)
 
     scheduler.add_job(TopicListStoryFactory.create_shared_story,  "cron", id="TopicList", replace_existing=True,
-                      day_of_week="mon,wed,fri", hour="10")
+                      day_of_week="mon,wed,fri", hour="2", minute="2")
 
     scheduler.add_job(TopicTextsStoryFactory.create_random_shared_story,  "cron", id="RandTopic", replace_existing=True,
-                      day_of_week="tue,thu,sun", hour="10")
+                      day_of_week="tue,thu,sun", hour="2", minute="4")
 
     scheduler.add_job(AuthorStoryFactory.create_random_shared_story, "cron", id="RandAuthor", replace_existing=True,
-                      day_of_week="tue,thu", hour="10")
+                      day_of_week="tue,thu", hour="2", minute="6")
+
+    scheduler.add_job(SheetListFactory.create_shared_featured_story, "cron", id="FeaturedSheets", replace_existing=True,
+                      day_of_week="wed", hour="2", minute="8")
 
 
 def _add_calendar_jobs(scheduler):

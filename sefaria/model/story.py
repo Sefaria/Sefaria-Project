@@ -403,6 +403,13 @@ class AbstractStoryFactory(object):
         pass
 
     @classmethod
+    def _generate_story(cls, **kwargs):
+        if kwargs.get("uid"):
+            return cls._generate_user_story(**kwargs)
+        else:
+            return cls._generate_shared_story(**kwargs)
+
+    @classmethod
     def _generate_shared_story(cls, **kwargs):
         return SharedStory({
             "storyForm": cls._story_form(**kwargs),
@@ -738,7 +745,7 @@ class SheetListFactory(AbstractStoryFactory):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        title = kwargs.get("lead_title", {"en": "Recommended for You", "he": u"מומלץ"})
+        title = kwargs.get("title", {"en": "Recommended for You", "he": u"מומלץ"})
 
         return {
             "sheet_ids": kwargs.get("sheet_ids"),
@@ -756,22 +763,27 @@ class SheetListFactory(AbstractStoryFactory):
         return random.sample(ids, k)
 
     @classmethod
-    def create_shared_featured_story(cls, **kwargs):
-        cls.create_shared_story(cls._get_featured_ids(3), **kwargs)
+    def _get_topic_sheet_ids(cls, topic, k=3):
+        from sefaria.sheets import SheetSet
+        sheets = SheetSet({"tags": topic, "status":"public"}, proj={"id":1}, sort=[("views", -1)], limit=k)
+        return [s.id for s in sheets]
 
     @classmethod
-    def create_user_featured_story(cls, uid, **kwargs):
-        cls.create_user_story(uid, cls._get_featured_ids(3), **kwargs)
+    def generate_topic_story(cls, topic, **kwargs):
+        t = text.Term.normalize(topic)
+        return cls._generate_story(sheet_ids=cls._get_topic_sheet_ids(topic), title={"en": t, "he": hebrew_term(t)}, **kwargs)
 
     @classmethod
-    def create_shared_story(cls, sheet_ids, **kwargs):
-        story = cls._generate_shared_story(sheet_ids=sheet_ids, **kwargs)
-        story.save()
+    def create_topic_story(cls, topic, **kwargs):
+        cls.generate_topic_story(topic, **kwargs).save()
 
     @classmethod
-    def create_user_story(cls, uid, sheet_ids, **kwargs):
-        story = cls._generate_user_story(uid=uid, sheet_ids=sheet_ids, **kwargs)
-        story.save()
+    def generate_featured_story(cls, **kwargs):
+        return cls._generate_story(sheet_ids=cls._get_featured_ids(3), title={"en": "Popular", "he": u"מומלץ"}, **kwargs)
+
+    @classmethod
+    def create_featured_story(cls, **kwargs):
+        cls.generate_featured_story(**kwargs).save()
 
 
 class TopicListStoryFactory(AbstractStoryFactory):

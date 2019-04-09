@@ -187,7 +187,9 @@ class CreateStoryForm extends Component {
         "New Index":        NewIndexStoryForm,
         "New Version":      NewVersionStoryForm,
         "Text Passage":     TextPassageStoryForm,
-        "Topic":            TopicStoryForm
+        "Topic Sources":    TopicSourcesStoryForm,
+        "Topic Sheets":     TopicSheetsStoryForm
+
         /*
         publishSheet:   PublishSheetStory,
         author:         AuthorStory,
@@ -277,7 +279,7 @@ function withButton(WrappedFormComponent, addStory) {
 }
 
 
-class TopicStoryForm extends  Component {
+class TopicSourcesStoryForm extends  Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -312,7 +314,43 @@ class TopicStoryForm extends  Component {
                 <StoryFormTextField placeholder="Topic" ref={this.recordRef("topic")} />
             </div>);
     }
+}
 
+class TopicSheetsStoryForm extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            error: ''
+        };
+        this.field_refs = {};
+    }
+    payload() {
+        return {
+          factory: "SheetListFactory",
+          method: "generate_topic_story",
+          topic: this.field_refs.topic.getValue()
+        };
+    }
+    isValid() {
+
+        if (!Object.values(this.field_refs).every(e => e.isValid())) {
+            return false;
+        }
+        // Required Fields
+        if (!["topic"].every(k => this.field_refs[k].getValue())) {
+            return false;
+        }
+        return true;
+    }
+    recordRef(field) {
+        return ref => this.field_refs[field] = ref;
+    }
+    render() {
+        return (
+            <div>
+                <StoryFormTextField placeholder="Topic" ref={this.recordRef("topic")} />
+            </div>);
+    }
 }
 
 class TextPassageStoryForm extends Component {
