@@ -65,6 +65,10 @@ class Hebrew {
   static stripNikkud(rawString) {
     return rawString.replace(/[\u0591-\u05C7]/g,"");
   }
+  static getNikkudRegex(rawString) {
+    // given a Hebrew string, return regex that allows for arbitrary nikkud in between letters
+    return this.stripNikkud(rawString).split("").join("[\u0591-\u05C7]*");
+  }
   static isHebrew(text) {
     // Returns true if text is (mostly) Hebrew
     // Examines up to the first 60 characters, ignoring punctuation and numbers

@@ -996,10 +996,16 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.readerPanel.hebrew .navToggles {
+    direction: rtl;
+}
 .readerNavMenu .navToggles {
-  text-align: center;
-  margin-bottom: 40px;
-  margin-top: -10px;
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: -10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 .readerNavMenu .navToggles .navTogglesDivider {
   color: #ccc;
@@ -2696,6 +2702,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   cursor: pointer;
 }
+.rightButtons .readerOptions {
+  vertical-align: middle;
+}
+.rightButtons .readerOptions:hover {
+  text-decoration: none;
+}
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
   margin-top: 6px;
@@ -2755,12 +2767,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .readerTextVersion .en{
   unicode-bidi: bidi-override;
 }
-.readerControls .readerTextToc .fa-caret-down {
+.readerControls .readerTextToc .fa {
   color: #999;
+  font-weight: bold;
   margin: 0 7px;
   vertical-align: 0px;
 }
-.readerControls .readerTextToc .fa-caret-down.invisible {
+.readerControls .readerTextToc .fa.invisible {
   visibility: hidden;
 }
 .bilingual .readerTextToc .he {
@@ -2768,6 +2781,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerOptions img {
   height: 16px;
+}
+.readerOptions .textIcon {
+  font-size: 22px;
+  line-height: 60px;
 }
 .dark .readerOptions img {
 
@@ -4688,6 +4705,11 @@ h2.splitHeader .he {
 .groupPage .groupDescription .en .dedication {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-style: italic;
+  font-size: 18px;
+}
+.groupPage .groupDescription .he .dedication {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
 }
 .groupPage .tabs {
   text-align: center;
@@ -5219,27 +5241,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: block;
   color: #999;
 }
-#footer.interface-hebrew, .interface-hebrew #footer{
+.interface-hebrew #footer{
   direction: rtl;
   text-align: right;
 }
-#footer.interface-english .int-he, .interface-english #footer .int-he {
+.interface-english #footer .int-he {
   display: none;
 }
-/*
-#footer.interface-english .int-en, .interface-english #footer .int-en {
-  display: inline;
-}
-*/
-#footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
+.interface-hebrew #footer .int-he {
   display: inline;
   text-align: right;
 }
-/*
-#footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
-  display: none;
-}
-*/
 #footerInner {
   max-width: 1000px;
   margin: 0 auto;
@@ -5250,10 +5262,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 200px;
   margin: 20px 0;
 }
-#footer.interface-english .section, .interface-english #footer .section {
+.interface-english #footer .section {
   text-align: left;
 }
-#footer.interface-hebrew .section, .interface-hebrew #footer .section {
+.interface-hebrew #footer .section {
   text-align: right;
 }
 #footer .section .header {
@@ -5266,7 +5278,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   float: right;
   text-align: right;
 }
-#footer.interface-hebrew .section.last, .interface-hebrew #footer .section.last {
+.interface-hebrew #footer .section.last {
   float: left;
   text-align: left;
 }
@@ -5306,10 +5318,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   top: 10px;
   right: 12px;
 }
-#footer.interface-hebrew #newsletterInput {
+.interface-hebrew #footer #newsletterInput {
   padding: 8px 16px 11px 32px;
 }
-#footer.interface-hebrew #newsletterFooterBox img {
+.interface-hebrew #footer #newsletterFooterBox img {
   right: auto;
   left: 12px;
   transform: scale(-1, 1);
@@ -5337,7 +5349,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-left: 4px;
   margin-top: 4px;
 }
-#footer.interface-hebrew #twitterButton {
+.interface-hebrew #footer #twitterButton {
   margin-left: 0;
   margin-right: 4px;
 }
@@ -5895,4 +5907,9 @@ span.purim-emoji img{
 .tooltip-toggle:hover::before, .tooltip-toggle:hover::after {
   opacity: 1;
   transition: all 0.75s ease;
+}
+.segment .queryTextHighlight {
+  background-color: #D2DCFF;
+  padding-left: 2px;
+  padding-right: 2px;
 }

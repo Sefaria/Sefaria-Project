@@ -46,6 +46,8 @@ CACHES = {
     }
 }
 
+SITE_PACKAGE = "sites.sefaria"
+
 SECRET_KEY = 'insert your long random secret key here !'
 
 
@@ -80,6 +82,7 @@ NODE_HOST = "http://localhost:4040"
 SEFARIA_DATA_PATH = '{}/data'.format(HOME_DIR)  # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
 
+GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None
 MIXPANEL_CODE = 'you mixpanel code here'

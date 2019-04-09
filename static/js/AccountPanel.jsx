@@ -59,10 +59,7 @@ class AccountPanel extends Component {
       (<BlockLink interfaceLink={true} target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
-
-    var footer =  (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                    <Footer />
-                    </footer> );
+    
 
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -79,11 +76,11 @@ class AccountPanel extends Component {
               <span className="int-he">חשבון משתמש</span>
             </h1>
            <ReaderNavigationMenuSection content={accountContent} />
-           <ReaderNavigationMenuSection title="Learn" heTitle="לימוד" content={learnContent} />
-           <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} />
-           <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} />
+           {Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Learn" heTitle="לימוד" content={learnContent} /> : null }
+           {Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Contribute" heTitle="עשייה" content={contributeContent} /> : null }
+           {Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Connect" heTitle="התחברות" content={connectContent} /> : null }
           </div>
-            {footer}
+          <Footer />
         </div>
       </div>
       );

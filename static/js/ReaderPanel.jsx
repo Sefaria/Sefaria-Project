@@ -65,7 +65,7 @@ class ReaderPanel extends Component {
       recentFilters: [],
       recentVersionFilters: [],
       settings: props.initialState.settings || {
-        language:      "bilingual",
+        language:      Sefaria._siteSettings.TORAH_SPECIFIC ? "binlinual" : "english",
         layoutDefault: "segmented",
         layoutTalmud:  "continuous",
         layoutTanakh:  "segmented",
@@ -653,6 +653,8 @@ class ReaderPanel extends Component {
           panelsOpen={this.props.panelsOpen}
           layoutWidth={this.props.layoutWidth}
           filter={this.state.filter}
+          textHighlights={this.state.textHighlights}
+          unsetTextHighlight={this.props.unsetTextHighlight}
           key={title + "-TextColumn"} />);
     }
 
@@ -1051,6 +1053,7 @@ ReaderPanel.propTypes = {
   selectVersion:               PropTypes.func,
   viewExtendedNotes:           PropTypes.func,
   backFromExtendedNotes:       PropTypes.func,
+  unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
   updateSearchTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
@@ -1158,12 +1161,12 @@ class ReaderControls extends Component {
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
         <div className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
           <a href={url} aria-label={"Show table of contents for " + title} >
-            { title ? (<i className="fa fa-caret-down invisible"></i>) : null }
+            { title ? (<i className="fa fa-angle-down invisible"></i>) : null }
             { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
             { this.props.sheet? <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div> :
             <div><span className="en">{title}</span>
             <span className="he">{heTitle}</span></div> }
-            { title ? (<i className="fa fa-caret-down"></i>) : null }
+            { title ? (<i className="fa fa-angle-down"></i>) : null }
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
           <div onClick={(e) => {e.stopPropagation();}}>
@@ -1256,13 +1259,25 @@ class ReaderDisplayOptionsMenu extends Component {
       return 2;
     }
   }
+  showLangaugeToggle() {
+    if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
+
+    var data = this.props.currentData();
+    if (!data) return true // Sheets don't have currentData, also show for now (4x todo)
+
+    var hasHebrew = !!data.he.length;
+    var hasEnglish = !!data.text.length;
+    var singleLanguage = !(hasHebrew && hasEnglish);
+
+    return !singleLanguage;
+  }
   render() {
     var languageOptions = [
       {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
       {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
       {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
-    var languageToggle = (
+    var languageToggle = this.showLangaugeToggle() ? (
         <ToggleSet
           role="radiogroup"
           ariaLabel="Language toggle"
@@ -1270,7 +1285,7 @@ class ReaderDisplayOptionsMenu extends Component {
           name="language"
           options={languageOptions}
           setOption={this.props.setOption}
-          settings={this.props.settings} />);
+          settings={this.props.settings} />) : null;
 
     var layoutOptions = [
       {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
@@ -1400,6 +1415,7 @@ ReaderDisplayOptionsMenu.propTypes = {
   setOption:     PropTypes.func.isRequired,
   currentLayout: PropTypes.func.isRequired,
   currentBook:   PropTypes.func,
+  currentData:   PropTypes.func,
   menuOpen:      PropTypes.string,
   multiPanel:    PropTypes.bool.isRequired,
   width:         PropTypes.number.isRequired,

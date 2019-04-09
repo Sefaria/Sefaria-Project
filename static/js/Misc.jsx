@@ -371,7 +371,7 @@ ReaderNavigationMenuMenuButton.propTypes = {
   onClick: PropTypes.func,
   compare: PropTypes.bool,
   interfaceLang: PropTypes.string
-}
+};
 
 
 class ReaderNavigationMenuCloseButton extends Component {
@@ -397,22 +397,26 @@ class ReaderNavigationMenuCloseButton extends Component {
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    return (<div
+    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ? 
+      <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
+      <span className="textIcon">Aa</span>;
+    return (<a
               className="readerOptions"
               tabIndex="0"
               role="button"
               aria-haspopup="true"
+              aria-label="Toggle Reader Menu Display Settings"
               style={style}
               onClick={this.props.onClick}
-              onKeyPress={e => {e.charCode == 13 ? this.props.onClick(e):null}}>
-                <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} />
-            </div>);
+              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+              {icon}
+            </a>);
   }
 }
 ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
-}
+};
 
 
 class ReaderNavigationMenuSavedButton extends Component {
@@ -626,6 +630,7 @@ class Note extends Component {
               </div>);
   }
 }
+
 Note.propTypes = {
   text:            PropTypes.string.isRequired,
   ownerName:       PropTypes.string,
@@ -682,7 +687,7 @@ class SignUpModal extends Component {
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
-            <h2>{Sefaria._("Join Sefaria.")}</h2>
+            <h2>{Sefaria._("Join " + Sefaria._siteSettings.SITE_NAME.en + ".")}</h2>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
