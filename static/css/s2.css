@@ -6041,18 +6041,10 @@ span.purim-emoji img{
   clear: both;
 }
 .storyFeed .story .storySheetListItem {
-  display: flex;
-  padding-top: 26px;
+  padding-top: 20px;
 }
-.storyFeed .story .storySheetListItem + .storySheetListItem {
-  padding-top: 24px;
-}
-
-.storyFeed .story .storySheetListItem .storySheetListItemTitle {
-  width: 100%;
-}
-.storyFeed .story .storySheetListItem .saveButton {
-  /* align-self: flex-end; */
+.storyFeed .story .storySheetList .storyTitle span {
+  font-size: 20px;
 }
 
 .storyFeed .story .saveLine {
@@ -6103,9 +6095,6 @@ span.purim-emoji img{
   bottom: 12px;
 }
 
-.storySheetListItem .authorName span {
-  color: #999;
-}
 .systemText.authorPosition span {
   color: #999;
 }
@@ -6119,13 +6108,6 @@ span.purim-emoji img{
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;
-}
-
-.storyFeed .story .storyTextList {
-
-}
-.storyFeed .story .storyTextList .storyTextListItem {
-
 }
 
 .segment .queryTextHighlight {

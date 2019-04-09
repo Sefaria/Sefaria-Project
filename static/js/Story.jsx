@@ -91,12 +91,6 @@ class NewVersionStory extends Component {
       const heTitle = Sefaria.hebrewTerm(title);
       const url = title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
 
-      /*
-         <div>
-              <span className="int-en">New { this.props.data.language == "en"?"English":"Hebrew"} version of <a href={url}>{title}</a>: {this.props.data.version}</span>
-              <span className="int-he">גרסה חדשה של <a href={url}>{heTitle}</a> ב{ this.props.data.language == "en"?"אנגלית":"עברית"} : {this.props.data.version}</span>
-          </div>
-      */
       return (
         <StoryFrame cls="newVersionStory" cardColor={Sefaria.palette.indexColor(title)}>
             <StoryTypeBlock en="New Version" he="גרסה חדשה" />
@@ -187,16 +181,13 @@ class UserSheetsStory extends Component {
             <img className="mediumProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storySheetList">
                 {this.props.data.sheets.map((sheet, i) =>
-                    <SimpleLinkedBlock key={i} en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}
-                                       classes="storySheetListItem" aclasses="contentText storySheetListItemTitle">
-
-                        <SaveButton tooltip={true} toggleSignUpModal={this.props.toggleSignUpModal}
-                            historyObject={{
-                                ref: "Sheet " + sheet.sheet_id,
-                                sheet_title: sheet.sheet_title,
-                                versions: {}
-                            }}/>
-                    </SimpleLinkedBlock>
+                    <div className="storySheetListItem">
+                        <SaveLine toggleSignUpModal={this.props.toggleSignupModal} historyObject={{ref: "Sheet " + sheet.sheet_id,
+                                sheet_title: sheet.sheet_title, versions: {} }}>
+                            <SimpleLinkedBlock key={i} en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}
+                                       classes="" aclasses="contentText"/>
+                        </SaveLine>
+                    </div>
                 )}
             </div>
         </StoryFrame>
@@ -310,41 +301,11 @@ class PublishSheetStory extends Component {
    */
 
   render() {
-      const sheet = this.props.data;
-      const historyObject = {ref: "Sheet " + sheet.sheet_id,
-                  sheet_title: sheet.sheet_title,
-                  versions: {}};
-      const hasPosition = !!this.props.data.publisher_position;
-      const positionBlock = hasPosition ? <SimpleBlock
-              classes="systemText authorPosition"
-              en={this.props.data.publisher_position}
-              he={this.props.data.publisher_position}/>:"";
-
       return (
-
-        <StoryFrame cls="sheetListStory">
+        <StoryFrame cls="publishSheetStory">
             <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <SaveLine historyObject={historyObject} toggleSignUpModal={this.props.toggleSignUpModal}>
-                <StoryTitleBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}/>
-            </SaveLine>
-            {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:""}
-
-            <div className="authorByLine">
-                <div className="authorByLineImage">
-                    <a href={this.props.data.publisher_url}>
-                        <img className="smallProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
-                    </a>
-                </div>
-
-                <div className="authorByLineText">
-                    <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={this.props.data.publisher_url}
-                        en={this.props.data.publisher_name} he={this.props.data.publisher_name}>
-                        <FollowButton large={false} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
-                    </SimpleLinkedBlock>
-                    {positionBlock}
-                </div>
-            </div>
+            <SheetBlock sheet={this.props.data} toggleSignUpModal={this.props.toggleSignUpModal}/>
         </StoryFrame>
       );
   }
@@ -358,6 +319,7 @@ PublishSheetStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
+//todo: This might be a sheet!!
 class TextPassageStory extends Component {
     /*
        props.data: {
@@ -445,11 +407,7 @@ class TopicListStory extends Component {
                 <SeeAllLink url="/topics/"/>
                 <StoryTitleBlock en="Trending Recently" he="פופולרי"/>
                 <TwoBox content={this.props.data.topics.map(topic =>
-                    <BlockLink
-                        title={topic.en}
-                        heTitle={topic.he}
-                        target={"/topics/" + topic.en}
-                        interfaceLink={true}/>
+                    <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + topic.en} interfaceLink={true}/>
                 )}/>
             </StoryFrame>
         )
@@ -466,10 +424,10 @@ TopicListStory.propTypes = {
 
 
  /****************************
+*                             *
 *           Pieces            *
 *                             *
-*                             *
- */
+ *****************************/
 
 class StoryFrame extends Component {
 
@@ -540,40 +498,51 @@ const StoryTextListItem = ({text, toggleSignupModal}) => (
         </SaveLine>
     </div>
 );
+
 const StorySheetList = ({sheets, toggleSignUpModal}) => (
     <div className="storySheetList">
-        {sheets.map((sheet, i) => <StorySheetListItem sheet={sheet} key={i} toggleSignUpModal={toggleSignUpModal}/>)}
+        {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} toggleSignUpModal={toggleSignUpModal}/>)}
     </div>
 );
 
-const StorySheetListItem = ({sheet, toggleSignUpModal}) => (
-    <div className="storySheetListItem">
-        <a href={sheet.publisher_url}>
-            <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
-        </a>
-        <div className="authorText">
-            <div className="authorName">
-                <a className="systemText" href={sheet.publisher_url}>
-                    <span className="int-en">{sheet.publisher_name}</span>
-                    <span className="int-he">{sheet.publisher_name}</span>
+
+const SheetBlock = ({sheet,  toggleSignUpModal}) => {
+      const historyObject = {ref: "Sheet " + sheet.sheet_id,
+                  sheet_title: sheet.sheet_title,
+                  versions: {}};
+      const hasPosition = !!sheet.publisher_position;
+      const positionBlock = hasPosition ? <SimpleBlock
+              classes="systemText authorPosition"
+              en={sheet.publisher_position}
+              he={sheet.publisher_position}/>:"";
+
+      return (<div className="storySheetListItem">
+        <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
+            <StoryTitleBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}/>
+        </SaveLine>
+        {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:""}
+
+        <div className="authorByLine">
+            <div className="authorByLineImage">
+                <a href={sheet.publisher_url}>
+                    <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
                 </a>
-                <FollowButton large={false} uid={sheet.publisher_id} following={sheet.publisher_followed}/>
             </div>
-            <a className="contentText storySheetListItemTitle" href={"/sheets/" + sheet.sheet_id}>
-                <span className="int-en">{sheet.sheet_title}</span>
-                <span className="int-he">{sheet.sheet_title}</span>
-            </a>
+
+            <div className="authorByLineText">
+                <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={sheet.publisher_url}
+                    en={sheet.publisher_name} he={sheet.publisher_name}>
+                    <FollowButton large={false} uid={sheet.publisher_id} following={sheet.publisher_followed}/>
+                </SimpleLinkedBlock>
+                {positionBlock}
+            </div>
         </div>
-        <SaveButton
-            historyObject={{
-                ref: "Sheet " + sheet.sheet_id,
-                sheet_title: sheet.sheet_title,
-                versions: {}
-            }}
-            tooltip={true}
-            toggleSignUpModal={toggleSignUpModal}
-        />
-    </div>);
+      </div>);
+};
+SheetBlock.propTypes = {
+    sheet: PropTypes.object
+};
+
 
 class SaveLine extends Component {
     render() {
