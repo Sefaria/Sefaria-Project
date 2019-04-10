@@ -388,11 +388,11 @@ class ReaderTextTableOfContents extends Component {
                       </div>
                     : null}
                     <CategoryAttribution categories={categories} />
-                    {details && details.dedication ?
+                    {this.state.indexDetails && this.state.indexDetails.dedication ?
                         <div className="dedication">
                           <span>
-                            <span className="en">{details.dedication.en}</span>
-                            <span className="he">{details.dedication.he}</span>
+                            <span className="en">{this.state.indexDetails.dedication.en}</span>
+                            <span className="he">{this.state.indexDetails.dedication.he}</span>
                           </span>
                         </div> : ""}
                     {detailsSection}
