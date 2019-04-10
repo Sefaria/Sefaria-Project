@@ -601,6 +601,8 @@ class AuthorStoryFactory(AbstractStoryFactory):
     @classmethod
     def _data_object(cls, **kwargs):
         prs = kwargs.get("person")
+        if isinstance(prs, basestring):
+            prs = person.Person().load({"key": prs})
         assert isinstance(prs, person.Person)
         return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
 
@@ -765,7 +767,7 @@ class SheetListFactory(AbstractStoryFactory):
     @classmethod
     def _get_topic_sheet_ids(cls, topic, k=3):
         from sefaria.sheets import SheetSet
-        sheets = SheetSet({"tags": topic, "status":"public"}, proj={"id":1}, sort=[("views", -1)], limit=k)
+        sheets = SheetSet({"tags": topic, "status": "public"}, proj={"id": 1}, sort=[("views", -1)], limit=k)
         return [s.id for s in sheets]
 
     @classmethod

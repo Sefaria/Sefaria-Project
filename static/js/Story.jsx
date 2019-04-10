@@ -181,8 +181,8 @@ class UserSheetsStory extends Component {
             <img className="mediumProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
             <div className="storySheetList">
                 {this.props.data.sheets.map(sheet =>
-                    <div className="storySheetListItem">
-                        <SaveLine key={sheet.sheet_id} toggleSignUpModal={this.props.toggleSignupModal} historyObject={{ref: "Sheet " + sheet.sheet_id,
+                    <div className="storySheetListItem" key={sheet.sheet_id}>
+                        <SaveLine toggleSignUpModal={this.props.toggleSignupModal} historyObject={{ref: "Sheet " + sheet.sheet_id,
                                 sheet_title: sheet.sheet_title, versions: {} }}>
                             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} aclasses="contentText"/>
                         </SaveLine>
