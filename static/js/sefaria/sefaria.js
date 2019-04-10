@@ -276,9 +276,8 @@ Sefaria = extend(Sefaria, {
   },
   _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts.
-  text: function(ref, settings = null, cb = null) {
-    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
-    settings = settings || {};
+  _complete_text_settings: function(s = null) {
+    let settings = s || {};
     settings = {
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
@@ -288,6 +287,36 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
+    return settings;
+  },
+  getText: function(ref, settings) {
+    // returns a promise
+    settings = this._complete_text_settings(settings);
+    const key = this._textKey(ref, settings);
+
+    return new Promise((resolve, reject) => {
+        if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
+            const data = this._getOrBuildTextData(key, ref, settings);
+            resolve(data);
+        }
+        const saveData = data => {
+            if (Array.isArray(data)) {
+                data.map(d => this._saveText(d, settings))
+            } else {
+                this._saveText(data, settings);
+            }
+            return data;
+        };
+        resolve(
+            this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
+                .then(saveData)
+        );
+    });
+  },
+  text: function(ref, settings = null, cb = null) {
+    // To be deprecated in favor of `getText`
+    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
+    settings = this._complete_text_settings(settings);
     var key = this._textKey(ref, settings);
     if (!cb) {
       return this._getOrBuildTextData(key, ref, settings);
@@ -302,16 +331,9 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   textApi: function(ref, settings, cb) {
-    settings = settings || {};
-    settings = {
-      commentary: settings.commentary || 0,
-      context:    settings.context    || 0,
-      pad:        settings.pad        || 0,
-      enVersion:  settings.enVersion  || null,
-      heVersion:  settings.heVersion  || null,
-      multiple:   settings.multiple   || 0,
-      wrapLinks: ("wrapLinks" in settings) ? settings.wrapLinks : 1
-    };
+    // Used only by `text` method, above.
+    // To be deprecated in favor of `getText`
+    settings = this._complete_text_settings(settings);
     return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
       if (Array.isArray(data)) {
           data.map(d => this._saveText(d, settings))
@@ -385,14 +407,15 @@ Sefaria = extend(Sefaria, {
     return key;
   },
   _getOrBuildTextData: function(key, ref, settings) {
-    var cached = this._texts[key];
+    let cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      var segmentData  = Sefaria.util.clone(this.text(cached.ref, extend(settings, {context: 0})));
-      var contextData  = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
+      let segmentData  = Sefaria.util.clone(this.text(cached.ref, extend(settings, {context: 0})));
+      let contextData  = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
+      // Should we be saving the built data?
     }
   },
   _saveText: function(data, settings) {
@@ -548,8 +571,24 @@ Sefaria = extend(Sefaria, {
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   _indexDetails: {},
+  hasIndexDetails: title => {title in this._indexDetails},
+  getIndexDetails: function(title) {
+    return new Promise((resolve, reject) => {
+        var details = title in this._indexDetails ? this._indexDetails[title] : null;
+        if (details) {
+          resolve(details);
+        } else {
+            var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
+            this._api(url, data => {
+                Sefaria._indexDetails[title] = data;
+                resolve(data);
+            });
+        }
+    });
+  },
   indexDetails: function(title, cb) {
     // Returns detailed index record for `title` which includes info like author and description
+    console.log("The indexDetails method is deprecated.  Please use getIndexDetails.");
     var details = title in this._indexDetails ? this._indexDetails[title] : null;
     if (details) {
       if (cb) {cb(details)}
@@ -618,11 +657,12 @@ Sefaria = extend(Sefaria, {
       callback(result);
     } else if (callback) {
       // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
-      var openApiCalls = Object.keys(Sefaria._apiCallbacks);
+      // todo: Ugly.  Breaks abstraction.
+      var openApiCalls = Object.keys(Sefaria._ajaxObjects);
       var urlPattern = "/api/texts/" + Sefaria.normRef(ref);
       for (var i = 0; i < openApiCalls.length; i++) {
         if (openApiCalls[i].startsWith(urlPattern)) {
-          Sefaria._apiCallbacks[openApiCalls[i]].splice(0, 0, callback);
+          Sefaria._ajaxObjects[openApiCalls[i]].then(callback);
         }
       }
       // If no open calls found, call the texts API.
@@ -711,12 +751,36 @@ Sefaria = extend(Sefaria, {
 
   },
   _links: {},
+  /*
+  hasLinks: function(ref) {
+      return ref in this._links;
+  },
+  */
+  getLinks: function(ref) {
+    // When there is an error in the returned data, this calls `reject` rather than returning empty.
+    return new Promise((resolve, reject) => {
+        ref = Sefaria.humanRef(ref);
+        if (ref in this._links) {
+            resolve(this._links[ref]);
+        } else {
+            let url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
+            let p = this._promiseAPI(url)
+                .then(data => {
+                    if ("error" in data) reject(data);
+                    this._saveLinkData(ref, data);
+                    return data;
+                });
+            resolve(p);
+        }
+    });
+  },
   links: function(ref, cb) {
     // Returns a list of links known for `ref`.
     // WARNING: calling this function with spanning refs can cause bad state in cache.
     // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
     // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
     // Fixing this generally on the client side requires more understanding of ref logic.
+    console.log("Method Sefaria.links() is deprecated in favor of Sefaria.getLinks()");
     ref = Sefaria.humanRef(ref);
     if (!cb) {
       return this._links[ref] || [];
@@ -1399,6 +1463,15 @@ Sefaria = extend(Sefaria, {
     }
     return attribution;
   },
+  getPassages: function(refs) {
+      // refs: list of ref strings
+      // resolves to dictionary mapping ref to sugya ref
+    return new Promise((resolve, reject) => {
+        let url = Sefaria.apiHost + "/api/passages/" + refs.join("|");
+        let p = this._promiseAPI(url);
+        resolve(p);
+    });
+  },
   areVersionsEqual(v1, v2) {
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
     return v1.en == v2.en && v1.he == v2.he;
@@ -2019,10 +2092,17 @@ Sefaria = extend(Sefaria, {
       this.booksDict[this.books[i]] = 1;
     }
   },
-  _apiCallbacks: {},
-  _ajaxObjects: {},
+  _ajaxObjects: {},   // These are jqXHR objects, which implement the Promise interface
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
+    // This method will be deprecated, in favor of _promiseAPI
+    //
+    if (url in this._ajaxObjects) {
+      return this._ajaxObjects[url].then(callback);
+    }
+    return this._promiseAPI(url).then(callback);
+
+    /*
     if (url in this._apiCallbacks) {
       this._apiCallbacks[url].push(callback);
       return this._ajaxObjects[url];
@@ -2038,7 +2118,16 @@ Sefaria = extend(Sefaria, {
       }.bind(this));
       this._ajaxObjects[url] = ajaxobj;
       return ajaxobj;
+    } */
+  },
+  _promiseAPI: function(url) {
+    // Uses same _ajaxObjects as _api
+    // Use built in Promise logic to handle multiple .then()s
+    if (url in this._ajaxObjects) {
+      return this._ajaxObjects[url];
     }
+    this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
+    return this._ajaxObjects[url];
   }
 });
 

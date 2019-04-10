@@ -1656,8 +1656,6 @@ class SheetNode(NumberedTitledTreeNode):
         if not self.sheet_object:
             raise InputError
 
-
-
     def has_numeric_continuation(self):
         return False  # What about section level?
 

@@ -66,6 +66,7 @@ urlpatterns += [
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
     url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
     url(r'^visualize/sefer-hachinukh-mitzvot$', reader_views.sefer_hachinukh_mitzvot),
+    url(r'^visualize/timeline$', reader_views.visualize_timeline),
     url(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
 ]
 
@@ -321,7 +322,9 @@ urlpatterns += [
     url(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
     url(r'^api/text-upload$', sefaria_views.text_upload_api)
 ]
-
+urlpatterns += [
+    url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
+]
 # File Uploads
 urlpatterns += [
     url(r'^api/file/upload$', sefaria_views.file_upload),
