@@ -3272,7 +3272,7 @@ def new_discussion_api(request):
             discussion.save()
             return jsonResponse(discussion.contents())
 
-        return jsonResponse({"error": "An extremely unlikley event has occurred."})
+        return jsonResponse({"error": "An extremely unlikely event has occurred."})
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3898,6 +3898,10 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         request.contentLang = "hebrew"
 
     return render(request,'explore.html', template_vars)
+
+@staff_member_required
+def visualize_timeline(request):
+    return render(request, 'timeline.html', {})
 
 
 def person_page(request, name):

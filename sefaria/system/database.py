@@ -91,5 +91,5 @@ def ensure_indices():
     db.lexicon_entry.ensure_index([("headword", pymongo.ASCENDING), ("parent_lexicon", pymongo.ASCENDING)])
     db.user_story.ensure_index([("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)])
     db.user_story.ensure_index([("timestamp", pymongo.DESCENDING)])
-
+    db.passage.ensure_index("ref_list")
 
