@@ -4736,6 +4736,11 @@ h2.splitHeader .he {
 .groupPage .groupDescription .en .dedication {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-style: italic;
+  font-size: 18px;
+}
+.groupPage .groupDescription .he .dedication {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
 }
 .groupPage .tabs {
   text-align: center;
