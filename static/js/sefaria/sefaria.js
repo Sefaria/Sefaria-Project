@@ -1,6 +1,5 @@
 var extend     = require('extend'),
     param      = require('querystring').stringify,
-    striptags  = require('striptags'),
     Search     = require('./search'),
     palette    = require('./palette'),
     Track      = require('./track'),
@@ -10,7 +9,7 @@ var extend     = require('extend'),
                  require('babel-polyfill');
 
 
-var Sefaria = Sefaria || {
+let Sefaria = Sefaria || {
   _dataLoaded: false,
   _inBrowser: (typeof document !== "undefined"),
   toc: [],
@@ -37,7 +36,7 @@ Sefaria = extend(Sefaria, {
       q = q.trim().toFirstCapital();
       if (q in Sefaria._parseRef) { return Sefaria._parseRef[q]; }
 
-      var response = {book: false,
+      const response = {book: false,
                       index: false,
                       sections: [],
                       toSections: [],
@@ -47,15 +46,15 @@ Sefaria = extend(Sefaria, {
           return response;
       }
 
-      var toSplit = q.split("-");
-      var first   = toSplit[0];
+      const toSplit = q.split("-");
+      const first   = toSplit[0];
 
-      var book, index, nums, i;
-      for (i = first.length; i >= 0; i--) {
+      let book, index, nums;
+      for (let i = first.length; i >= 0; i--) {
           book   = first.slice(0, i);
           if (book in Sefaria.virtualBooksDict) {
               // todo: This assumes that this is a depth one integer indexed node
-              var numberMatch = first.match(/([\d ]+)$/);
+              const numberMatch = first.match(/([\d ]+)$/);
               if (numberMatch) {
                   nums = String(+numberMatch[0]);
                   book = first.slice(0, numberMatch.index)
@@ -64,13 +63,13 @@ Sefaria = extend(Sefaria, {
               }
               break;
           }
-          if (book in Sefaria.booksDict || book == "Sheet") {
+          if (book in Sefaria.booksDict || book === "Sheet") {
               nums = first.slice(i+1);
               break;
           }
       }
       // Get the root index name. (For complex works, this may be different than `book`)
-      for (i = book.length; i >= 0; i--) {
+      for (let i = book.length; i >= 0; i--) {
           index = book.slice(0,i);
           if (this.index(index)) { break; }
       }
@@ -81,7 +80,7 @@ Sefaria = extend(Sefaria, {
 
       if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
-          console.log(Sefaria._parseRef[q])
+          console.log(Sefaria._parseRef[q]);
           return Sefaria._parseRef[q];
       }
 
@@ -92,12 +91,10 @@ Sefaria = extend(Sefaria, {
       response.ref        = q;
 
       // Parse range end (if any)
-      if (toSplit.length == 2) {
-          var toSections = toSplit[1].replace(/[.:]/g, " ").split(" ");
-
-          var diff = response.sections.length - toSections.length;
-
-          for (var i = diff; i < toSections.length + diff; i++) {
+      if (toSplit.length === 2) {
+          const toSections = toSplit[1].replace(/[.:]/g, " ").split(" ");
+          const diff = response.sections.length - toSections.length;
+          for (let i = diff; i < toSections.length + diff; i++) {
               response.toSections[i] = toSections[i-diff];
           }
       }
@@ -110,15 +107,16 @@ Sefaria = extend(Sefaria, {
       if (!(q.book && q.sections && q.toSections)) {
           return {"error": "Bad input."};
       }
-      var ref = q.book.replace(/ /g, "_");
+      let ref = q.book.replace(/ /g, "_");
       ref = encodeURIComponent(ref);
 
       if (q.sections.length)
           ref += "." + q.sections.join(".");
 
       if (!q.sections.compare(q.toSections)) {
-          for (var i = 0; i < q.toSections.length; i ++)
-              if (q.sections[i] != q.toSections[i]) break;
+          let i;
+          for (i = 0; i < q.toSections.length; i++)
+              if (q.sections[i] !== q.toSections[i]) break;
           ref += "-" + q.toSections.slice(i).join(".");
       }
 
@@ -130,8 +128,8 @@ Sefaria = extend(Sefaria, {
       if (ref instanceof Array) {
         return Sefaria.normRefList(ref);
       }
-      var norm = Sefaria.makeRef(Sefaria.parseRef(ref));
-      if (typeof norm == "object" && "error" in norm) {
+      const norm = Sefaria.makeRef(Sefaria.parseRef(ref));
+      if (typeof norm === "object" && "error" in norm) {
           // If the ref doesn't parse, just replace spaces with undescores.
           return typeof ref === "string" ? ref.replace(/ /g, "_") : ref;
       }
@@ -141,39 +139,38 @@ Sefaria = extend(Sefaria, {
       // Returns a string of the normalized form of `ref`.
       // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
       ref = Sefaria.normRef(ref);
-      var pRef = Sefaria.parseRef(ref);
-      if (pRef.sections.length == 0) { return pRef.book; }
-      var book = pRef.book + " ";
-      var hRef = pRef.ref.replace(/ /g, ":");
+      const pRef = Sefaria.parseRef(ref);
+      if (pRef.sections.length === 0) { return pRef.book; }
+      const book = pRef.book + " ";
+      const hRef = pRef.ref.replace(/ /g, ":");
       return book + hRef.slice(book.length);
   },
   isRef: function(ref) {
     // Returns true if `ref` appears to be a ref relative to known books in Sefaria.books
-    var q = Sefaria.parseRef(ref);
+    const q = Sefaria.parseRef(ref);
     return ("book" in q && q.book);
   },
   normRefList: function(refs) {
     // Returns a single string ref corresponding the range expressed in the list of `refs`
     // e.g. ["Genesis 1:4", "Genesis 1:5", "Genesis 1:6"] -> "Genesis 1:4-6"
-    if (refs.length == 1) {
+    if (refs.length === 1) {
       return refs[0];
     }
-    var pRef = Sefaria.parseRef(refs[0]);
-    var pRefEnd = Sefaria.parseRef(refs[refs.length-1]);
+    const pRef = Sefaria.parseRef(refs[0]);
+    const pRefEnd = Sefaria.parseRef(refs[refs.length-1]);
     if (pRef.book !== pRefEnd.book) {
       return refs[0]; // We don't handle ranges over multiple nodes of complex texts
     }
-    var nRef = Sefaria.util.clone(pRef);
+    const nRef = Sefaria.util.clone(pRef);
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
-    var oRef1 = Sefaria.parseRef(ref1);
-    var oRef2 = Sefaria.parseRef(ref2);
+    const oRef1 = Sefaria.parseRef(ref1);
+    const oRef2 = Sefaria.parseRef(ref2);
 
-    for (var i = 0; i < oRef1.sections.length; i++) {
-
+    for (let i = 0; i < oRef1.sections.length; i++) {
       if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
         return true;
       } else if (oRef1.sections[i] > oRef2.sections[i] || oRef1.toSections[i] < oRef2.toSections[i]) {
@@ -184,34 +181,33 @@ Sefaria = extend(Sefaria, {
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
-    var oref = this.ref(ref);
+    const oref = this.ref(ref);
     return oref ? oref.sectionRef : null;
   },
   splitRangingRef: function(ref) {
     // Returns an array of segment level refs which correspond to the ranging `ref`
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
-    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
+    if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }
 
-    var oRef     = Sefaria.parseRef(ref);
-    var isDepth1 = oRef.sections.length == 1;
-    var textData = Sefaria.text(ref);
+    const oRef     = Sefaria.parseRef(ref);
+    const isDepth1 = oRef.sections.length === 1;
+    const textData = Sefaria.text(ref);
     if (textData) {
-        var refs = Sefaria.makeSegments(textData).map(segment => segment.ref);
-        return refs;
+        return Sefaria.makeSegments(textData).map(segment => segment.ref);
     } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
       // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
       // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
       // For now, just return the split of the first non-spanning ref.
-      var newRef = Sefaria.util.clone(oRef);
+      const newRef = Sefaria.util.clone(oRef);
       newRef.toSections = newRef.sections;
       return Sefaria.splitRangingRef(this.humanRef(this.makeRef(newRef)));
 
     } else {
-      var refs  = [];
-      var start = oRef.sections[oRef.sections.length-1];
-      var end   = oRef.toSections[oRef.sections.length-1];
-      for (var i = parseInt(start); i <= parseInt(end); i++) {
-        newRef = Sefaria.util.clone(oRef);
+      const refs  = [];
+      const start = oRef.sections[oRef.sections.length-1];
+      const end   = oRef.toSections[oRef.sections.length-1];
+      for (let i = parseInt(start); i <= parseInt(end); i++) {
+        const newRef = Sefaria.util.clone(oRef);
         newRef.sections[oRef.sections.length-1] = i;
         newRef.toSections[oRef.sections.length-1] = i;
         refs.push(this.humanRef(this.makeRef(newRef)));
@@ -229,8 +225,8 @@ Sefaria = extend(Sefaria, {
     // Construct and store a Regular Expression for matching citations
     // based on known books, or a list of titles explicitly passed
     titles = titles || Sefaria.books;
-    var books = "(" + titles.map(RegExp.escape).join("|")+ ")";
-    var refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
+    const books = "(" + titles.map(RegExp.escape).join("|")+ ")";
+    const refReStr = books + " (\\d+[ab]?)(?:[:., ]+)?(\\d+)?(?:(?:[\\-–])?(\\d+[ab]?)?(?:[:., ]+)?(\\d+)?)?";
     return new RegExp(refReStr, "gi");
   },
   wrapRefLinks: function(text) {
@@ -238,20 +234,19 @@ Sefaria = extend(Sefaria, {
           text.indexOf("data-ref") !== -1) {
           return text;
       }
-      var titles = Sefaria.titlesInText(text);
-      if (titles.length == 0) {
+      const titles = Sefaria.titlesInText(text);
+      if (titles.length === 0) {
           return text;
       }
-      var refRe    = Sefaria.makeRefRe(titles);
-      var replacer = function(match, p1, p2, p3, p4, p5, offset, string) {
+      const refRe    = Sefaria.makeRefRe(titles);
+      const replacer = function(match, p1, p2, p3, p4, p5, offset, string) {
           // p1: Book
           // p2: From section
           // p3: From segment
           // p4: To section
           // p5: To segment
-          var uref;
-          var nref;
-          var r;
+          let uref, nref, r;
+
           uref = p1 + "." + p2;
           nref = p1 + " " + p2;
           if (p3) {
@@ -2101,24 +2096,6 @@ Sefaria = extend(Sefaria, {
       return this._ajaxObjects[url].then(callback);
     }
     return this._promiseAPI(url).then(callback);
-
-    /*
-    if (url in this._apiCallbacks) {
-      this._apiCallbacks[url].push(callback);
-      return this._ajaxObjects[url];
-    } else {
-      this._apiCallbacks[url] = [callback];
-      var ajaxobj = $.getJSON(url, function(data) {
-        var callbacks = this._apiCallbacks[url];
-        for (var i = 0; i < callbacks.length; i++) {
-          callbacks[i](data);
-        }
-        delete this._apiCallbacks[url];
-        delete this._ajaxObjects[url];
-      }.bind(this));
-      this._ajaxObjects[url] = ajaxobj;
-      return ajaxobj;
-    } */
   },
   _promiseAPI: function(url) {
     // Uses same _ajaxObjects as _api
@@ -2197,7 +2174,6 @@ Sefaria.util    = Util;
 Sefaria.hebrew  = Hebrew;
 Sefaria.palette = palette;
 Sefaria.track   = Track;
-
 
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
