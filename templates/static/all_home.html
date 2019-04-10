@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "TBD" %}{% endblock %}
+
+{% block description %}{% trans "TBD" %}{% endblock %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+{% endblock %}
+
+{% block content %}
+<div id="aboutPage" class="biReady container static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">Project Mudhut</span>
+        </h1>
+        <div class="section">
+
+            <p class="first">
+                <span class="int-en">Blah blah, <a href="/texts">everything</a>.
+                </span>
+            </p>
+            <p>
+                <span class="int-en">Blah blah, <a href="/texts/Drama">Shakespeare</a>.
+                </span>
+            </p>
+            <p>
+                <span class="int-en">Blah blah, <a href="/texts/Philosophy">Plato</a>.
+                </span>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

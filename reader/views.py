@@ -2,6 +2,8 @@
 
 # noinspection PyUnresolvedReferences
 from datetime import datetime, timedelta, date
+from elasticsearch_dsl import Search
+from elasticsearch import Elasticsearch
 from sets import Set
 from random import choice
 from pprint import pprint
@@ -45,7 +47,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
-from sefaria.system.decorators import catch_error_as_json
+from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
@@ -55,9 +57,11 @@ from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
-from sefaria.system.cache import django_cache_decorator
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED
+from sefaria.system.cache import django_cache
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.helper.search import get_query_obj
 from django.utils.html import strip_tags
 
 if USE_VARNISH:
@@ -127,7 +131,7 @@ def render_react_component(component, props):
     Returns HTML.
     """
     if not USE_NODE:
-        return render_to_string("elements/loading.html")
+        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
     from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
 
@@ -155,11 +159,11 @@ def render_react_component(component, props):
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
                 ))
-            return render_to_string("elements/loading.html")
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
             logger.exception("Node error: Fell back to client-side rendering.")
-            return render_to_string("elements/loading.html")
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
 
 def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
@@ -254,6 +258,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 
     return panel
 
+
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
@@ -341,6 +346,7 @@ def base_props(request):
     }
 
 
+@sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
     Handles views of ReaderApp that involve texts, connections, and text table of contents in panels.
@@ -514,6 +520,8 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
         text_list = text_list[0]
     return text_list
 
+
+@sanitize_get_params
 def texts_category_list(request, cats):
     """
     List of texts in a category.
@@ -579,7 +587,9 @@ def get_search_params(get_dict, i=None):
         "sheetFilterAggTypes": sheet_agg_types,
     }
 
+
 @ensure_csrf_cookie
+@sanitize_get_params
 def search(request):
     """
     Search or Search Results page.
@@ -609,6 +619,7 @@ def search(request):
     })
 
 
+@sanitize_get_params
 def sheets(request):
     """
     Source Sheets Home Page.
@@ -633,12 +644,14 @@ def sheets(request):
     })
 
 
+@sanitize_get_params
 def get_group_page(request, group, authenticated):
     props = base_props(request)
     props.update({
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
         "initialGroup":     group,
+        "initialGroupTag":  request.GET.get("tag", None)
     })
     group = GroupSet({"name": group})
     if not len(group):
@@ -675,6 +688,7 @@ def my_notes(request):
     return menu_page(request, props, "myNotes", title)
 
 
+@sanitize_get_params
 def sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
@@ -761,7 +775,8 @@ def group_page(request, group):
     else:
         return get_group_page(request, group.name, False)
 
-@login_required()
+
+@login_required
 def edit_group_page(request, group=None):
     if group:
         group = group.replace("-", " ").replace("_", " ")
@@ -784,7 +799,7 @@ def groups_admin_page(request):
     return render(request, "groups.html", {"groups": groups})
 
 
-
+@sanitize_get_params
 def topics_page(request):
     """
     Page of sheets by tag.
@@ -809,6 +824,7 @@ def topics_page(request):
     })
 
 
+@sanitize_get_params
 def topic_page(request, topic):
     """
     Page of sheets by tag.
@@ -838,6 +854,7 @@ def topic_page(request, topic):
     })
 
 
+@sanitize_get_params
 def menu_page(request, props, page, title="", desc=""):
     """
     View for any App page that can described with the `menuOpen` param in React
@@ -862,7 +879,7 @@ def mobile_home(request):
 
 def texts_list(request):
     props = base_props(request)
-    title = _("The Sefaria Library")
+    title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, props, "navigation", title, desc)
 
@@ -1011,7 +1028,9 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
     })
 
 
+
 @ensure_csrf_cookie
+@sanitize_get_params
 def edit_text(request, ref=None, lang=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
@@ -1051,6 +1070,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                              })
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def edit_text_info(request, title=None, new_title=None):
     """
     Opens the Edit Text Info page.
@@ -1460,28 +1480,32 @@ def index_api(request, title, v2=False, raw=False):
 
 
 @catch_error_as_json
+@json_response_decorator
+@django_cache(default_on_miss = True)
 def bare_link_api(request, book, cat):
-
     if request.method == "GET":
-        resp = jsonResponse(get_book_link_collection(book, cat), callback=request.GET.get("callback", None))
-        resp['Content-Type'] = "application/json; charset=utf-8"
+        resp = get_book_link_collection(book, cat)
         return resp
 
     elif request.method == "POST":
-        return jsonResponse({"error": "Not implemented."})
+        return {"error": "Not implemented."}
 
 
 @catch_error_as_json
+@json_response_decorator
+@django_cache(default_on_miss = True)
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
     """
     if request.method == "GET":
-        resp = jsonResponse(get_link_counts(cat1, cat2))
+        resp = get_link_counts(cat1, cat2)
         return resp
 
     elif request.method == "POST":
-        return jsonResponse({"error": "Not implemented."})
+        return {"error": "Not implemented."}
+
+
 
 
 @catch_error_as_json
@@ -1545,7 +1569,6 @@ def shape_api(request, title):
     The "depth" parameter in the query string indicates how many levels in the category tree to descend.  Default is 2.
     If depth == 0, descends to end of tree
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
-
     """
 
     def _simple_shape(snode):
@@ -1554,12 +1577,46 @@ def shape_api(request, title):
 
         return {
             "section": snode.index.categories[-1],
-            "heTitle": snode.primary_title("he"),
-            "title": snode.primary_title("en"),
+            "heTitle": snode.full_title("he"),
+            "title": snode.full_title("en"),
             "length": len(shape) if isinstance(shape, list) else 1,  # hmmmm
             "chapters": shape,
             "book": snode.index.title,
+            "heBook": snode.index.get_title(lang="he"),
         }
+
+    def _collapse_book_leaf_shapes(leaf_shapes):
+        """Groups leaf node shapes for a single book into one object so that resulting list corresponds 1:1 to books"""
+        if type(leaf_shapes) != list:
+            return leaf_shapes
+
+        results = []
+        prev_shape = None
+        complex_book_in_progress = None
+
+        for shape in leaf_shapes:
+            if prev_shape and prev_shape["book"] != shape["book"]:
+                if complex_book_in_progress:
+                    results.append(complex_book_in_progress)
+                    complex_book_in_progress = None
+                else:
+                    results.append(prev_shape)
+            elif prev_shape:
+                complex_book_in_progress = complex_book_in_progress or {
+                    "isComplex": True,
+                    "section": prev_shape["section"],
+                    "length": prev_shape["length"],
+                    "chapters": [prev_shape],
+                    "book": prev_shape["book"],
+                    "heBook": prev_shape["heBook"],
+                }
+                complex_book_in_progress["chapters"].append(shape)
+                complex_book_in_progress["length"] += shape["length"]
+            prev_shape = shape
+
+        results.append(complex_book_in_progress or prev_shape)
+
+        return results
 
     title = title.replace("_", " ")
 
@@ -1568,7 +1625,7 @@ def shape_api(request, title):
 
         # Leaf Node
         if sn and not sn.children:
-            res = _simple_shape(sn)
+            res = [_simple_shape(sn)]
 
         # Branch Node
         elif sn and sn.children:
@@ -1590,6 +1647,7 @@ def shape_api(request, title):
 
                 res = [_simple_shape(jan) for toc_index in leaves for jan in toc_index.get_index_object().nodes.get_leaf_nodes()]
 
+        res = _collapse_book_leaf_shapes(res)
         return jsonResponse(res, callback=request.GET.get("callback", None))
 
 
@@ -1644,7 +1702,8 @@ def links_api(request, link_id_or_ref=None):
         #TODO is there are better way to validate the ref from GET params?
         model.Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
-        return jsonResponse(get_links(link_id_or_ref, with_text), callback)
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if request.method == "POST":
         def _internal_do_post(request, link, uid, **kwargs):
@@ -1832,7 +1891,7 @@ def related_api(request, tref):
         response = {"error": "You must be logged in to access private content."}
     else:
         response = {
-            "links": get_links(tref, with_text=False),
+            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
         }
@@ -1869,47 +1928,14 @@ def version_status_api(request):
 
 
 
-simplified_toc = {}
 
+@json_response_decorator
+@django_cache(default_on_miss = True)
 def version_status_tree_api(request, lang=None):
-    global simplified_toc
-    key = lang or "none"
-    if not simplified_toc.get(key):
-        def simplify_toc(toc_node, path):
-            simple_nodes = []
-            for x in toc_node:
-                node_name = x.get("category", None) or x.get("title", None)
-                node_path = path + [node_name]
-                simple_node = {
-                    "name": node_name,
-                    "path": node_path
-                }
-                if "category" in x:
-                    if "contents" not in x:
-                        continue
-                    simple_node["type"] = "category"
-                    simple_node["children"] = simplify_toc(x["contents"], node_path)
-                elif "title" in x:
-                    query = {"title": x["title"]}
-                    if lang:
-                        query["language"] = lang
-                    simple_node["type"] = "index"
-                    simple_node["children"] = [{
-                           "name": u"{} ({})".format(v.versionTitle, v.language),
-                           "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
-                           "size": v.word_count(),
-                           "type": "version"
-                       } for v in VersionSet(query)]
-                simple_nodes.append(simple_node)
-            return simple_nodes
-        simplified_toc[key] = simplify_toc(library.get_toc(), [])
-    return jsonResponse({
-        "name": "Whole Library" + " ({})".format(lang) if lang else "",
-        "path": [],
-        "children": simplified_toc[key]
-    }, callback=request.GET.get("callback", None))
+    return library.simplify_toc(lang=lang)
 
 
+@sanitize_get_params
 def visualize_library(request, lang=None, cats=None):
 
     template_vars = {"lang": lang or "",
@@ -1938,6 +1964,10 @@ def talmudic_relationships(request):
 def sefer_hachinukh_mitzvot(request):
     csv_file = "../static/files/mitzvot.csv"
     return render(request,'sefer_hachinukh_mitzvot.html', {"csv": csv_file})
+
+def unique_words_viz(request):
+    csv_file = "../static/files/commentators_torah_unique_words.csv"
+    return render(request,'unique_words_viz.html', {"csv": csv_file})
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -2307,7 +2337,12 @@ def dictionary_completion_api(request, word, lexicon=None):
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
 
-    result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
+    if lexicon is None:
+        ac = library.cross_lexicon_auto_completer()
+        rs = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+    else:
+        result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
 
 
@@ -2662,6 +2697,7 @@ def recommend_topics_api(request, ref_list=None):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def global_activity(request, page=1):
     """
     Recent Activity page listing all recent actions and contributor leaderboards.
@@ -2696,6 +2732,7 @@ def global_activity(request, page=1):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def user_activity(request, slug, page=1):
     """
     Recent Activity page for a single user.
@@ -2734,6 +2771,7 @@ def user_activity(request, slug, page=1):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def segment_history(request, tref, lang, version, page=1):
     """
     View revision history for the text segment named by ref / lang / version.
@@ -2804,6 +2842,7 @@ def leaderboard(request):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def user_profile(request, username, page=1):
     """
     User's profile page.
@@ -2935,30 +2974,44 @@ def profile_sync_api(request):
                     ret["settings"] = profile.settings
             elif field == "user_history":
                 for hist in field_data:
-                    hist["uid"] = request.user.id
-                    if "he_ref" not in hist or "book" not in hist:
-                        oref = Ref(hist["ref"])
-                        hist["he_ref"] = oref.he_normal()
-                        hist["book"] = oref.index.title
-                    hist["server_time_stamp"] = now if "server_time_stamp" not in hist else hist[
-                        "server_time_stamp"]  # DEBUG: helpful to include this field for debugging
-
-                    action = hist.pop("action", None)
-                    saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
-                    uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
-                        "saved": saved,
-                        "server_time_stamp": hist["server_time_stamp"]
-                    })
-                    uh.save()
+                    uh = UserHistory.save_history_item(request.user.id, hist, now)
                     ret["created"] = uh.contents(for_api=True)
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+def get_url_params_user_history(request):
+    saved = request.GET.get("saved", None)
+    if saved is not None:
+        saved = bool(int(saved))
+    secondary = request.GET.get("secondary", None)
+    if secondary is not None:
+        secondary = bool(int(secondary))
+    last_place = request.GET.get("last_place", None)
+    if last_place is not None:
+        last_place = bool(int(last_place))
+    tref = request.GET.get("tref", None)
+    oref = Ref(tref) if tref else None
+    return saved, secondary, last_place, oref
+
+
+def saved_history_for_ref(request):
+    """
+    GET API for saved history of a ref
+    :tref: Ref associated with history item
+    """
+    if request.method == "GET":
+        _, _, _, oref = get_url_params_user_history(request)
+        if oref is None:
+            return jsonResponse({"error": "Must specify 'tref' param"})
+        return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 def profile_get_user_history(request):
     """
-    GET API for user history. optional URL params are
+    GET API for user history for a particular user. optional URL params are
     :saved: bool. True if you only want saved items. None if you dont care
     :secondary: bool. True if you only want secondary items. None if you dont care
     :tref: Ref associated with history item
@@ -2970,17 +3023,7 @@ def profile_get_user_history(request):
         history = json.loads(urlparse.unquote(request.COOKIES.get("user_history", '[]')))
         return jsonResponse(history + recents)
     if request.method == "GET":
-        saved = request.GET.get("saved", None)
-        if saved is not None:
-            saved = bool(int(saved))
-        secondary = request.GET.get("secondary", None)
-        if secondary is not None:
-            secondary = bool(int(secondary))
-        last_place = request.GET.get("last_place", None)
-        if last_place is not None:
-            last_place = bool(int(last_place))
-        tref = request.GET.get("tref", None)
-        oref = Ref(tref) if tref else None
+        saved, secondary, last_place, oref = get_url_params_user_history(request)
         user = UserProfile(id=request.user.id)
         return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -3045,6 +3088,9 @@ def home(request):
     """
     Homepage
     """
+    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+        return redirect("/texts")
+        
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
     if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
@@ -3132,6 +3178,7 @@ def dashboard(request):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def translation_requests(request, completed_only=False, featured_only=False):
     """
     Page listing all outstnading translation requests.
@@ -3230,6 +3277,7 @@ def translation_request_api(request, tref):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def translation_flow(request, tref):
     """
     Assign a user a paritcular bit of text to translate within 'ref',
@@ -3383,6 +3431,7 @@ def translation_flow(request, tref):
 
 
 @ensure_csrf_cookie
+@sanitize_get_params
 def contest_splash(request, slug):
     """
     Splash page for contest.
@@ -3597,37 +3646,23 @@ def dummy_search_api(request):
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
-# def search_api(request):
-#     # dict to define request parameters and their default values. None means parameter is required
-#     params = {
-#         "query": None,
-#         "size": 10,
-#         "from": 0,
-#         "type": None,  #
-#         "get_filters": False,
-#         "applied_filters": [],
-#         "field": None,
-#         "sort_type": None,
-#         "exact": False
-#     }
-#     param_vals = {}
-#     for p in params:
-#         param_vals[p] = request.GET.get(p, )
-#     query = request.GET.get("q")
-#     """
-#              query: query string
-#              size: size of result set
-#              from: from what result to start
-#              type: "sheet" or "text"
-#              get_filters: if to fetch initial filters
-#              applied_filters: filter query by these filters
-#              field: field to query in elastic_search
-#              sort_type: chonological or relevance
-#              exact: if query is exact
-#              success: callback on success
-#              error: callback on error
-#     """
-#     size = request.GET.get("size")
+
+@csrf_exempt
+def search_wrapper_api(request):
+    if request.method == "POST":
+        if "json" in request.POST:
+            j = request.POST.get("json")  # using form-urlencoded
+        else:
+            j = request.body  # using content-type: application/json
+        j = json.loads(j)
+        es_client = Elasticsearch(SEARCH_ADMIN)
+        search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
+        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in j.items()})
+        response = search_obj.execute()
+        if response.success():
+            return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
+        return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @ensure_csrf_cookie
@@ -3639,7 +3674,7 @@ def serve_static(request, page):
 
 
 @ensure_csrf_cookie
-def explore(request, book1, book2, lang=None):
+def explore(request, topCat, bottomCat, book1, book2, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """
@@ -3648,15 +3683,100 @@ def explore(request, book1, book2, lang=None):
         if book:
             books.append(book)
 
-    template_vars =  {"books": json.dumps(books)}
+    if not topCat and not bottomCat:
+        topCat, bottomCat = "Tanakh", "Bavli"
+        urlRoot = "/explore"
+    else:
+        urlRoot = "/explore-" + topCat + "-and-" + bottomCat
+
+    (topCat, bottomCat) = [x.replace("-","") for x in (topCat, bottomCat)]
+
+    categories = {
+        "Tanakh": {
+            "title": "Tanakh",
+            "heTitle": 'התנ"ך',
+            "shapeParam": "Tanakh",
+            "linkCountParam": "Tanakh",
+        },
+        "Torah": {
+            "title": "Torah",
+            "heTitle": 'תורה',
+            "shapeParam": "Tanakh/Torah",
+            "linkCountParam": "Torah",
+        },
+        "Bavli": {
+            "title": "Talmud",
+            "heTitle": "התלמוד",
+            "shapeParam": "Talmud/Bavli",
+            "linkCountParam": "Bavli",
+            "talmudAddressed": True,
+        },
+        "Yerushalmi": {
+            "title": "Jerusalem Talmud",
+            "heTitle": "התלמוד ירושלמי",
+            "shapeParam": "Talmud/Yerushalmi",
+            "linkCountParam": "Yerushalmi",
+            "talmudAddressed": True,
+        },
+        "Mishnah": {
+            "title": "Mishnah",
+            "heTitle": "המשנה",
+            "shapeParam": "Mishnah",
+            "linkCountParam": "Mishnah",
+        },
+        "Tosefta": {
+            "title": "Tosefta",
+            "heTitle": "התוספתא",
+            "shapeParam": "Tanaitic/Tosefta",
+            "linkCountParam": "Tosefta",
+        },
+        "MidrashRabbah": {
+            "title": "Midrash Rabbah",
+            "heTitle": "מדרש רבה",
+            "shapeParam": "Midrash/Aggadic Midrash/Midrash Rabbah",
+            "linkCountParam": "Midrash Rabbah",
+            "colorByBook": True,
+        },
+        "MishnehTorah": {
+            "title": "Mishneh Torah",
+            "heTitle": "משנה תורה",
+            "shapeParam": "Halakhah/Mishneh Torah",
+            "linkCountParam": "Mishneh Torah",
+            "labelBySection": True,
+        },
+        "ShulchanArukh": {
+            "title": "Shulchan Arukh",
+            "heTitle": "השולחן ערוך",
+            "shapeParam": "Halakhah/Shulchan Arukh",
+            "linkCountParam": "Shulchan Arukh",
+            "colorByBook": True,
+        },
+        "Zohar": {
+            "title": "Zohar",
+            "heTitle": "הזוהר",
+            "shapeParam": "Zohar",
+            "linkCountParam": "Zohar",
+            "talmudAddressed": True,
+        },
+    }
+
+    template_vars =  {
+        "books": json.dumps(books),
+        "categories": json.dumps(categories),
+        "topCat": topCat,
+        "bottomCat": bottomCat,
+        "topCatTitle": categories[topCat]["heTitle"] if request.interfaceLang == "hebrew" else categories[topCat]["title"],
+        "bottomCatTitle": categories[bottomCat]["heTitle"] if request.interfaceLang == "hebrew" else categories[bottomCat]["title"],
+        "urlRoot": urlRoot,
+    }
     if lang == "he": # Override language settings if 'he' is in URL
         request.contentLang = "hebrew"
 
     return render(request,'explore.html', template_vars)
 
-
+@staff_member_required
 def visualize_timeline(request):
-    return render(request,'timeline.html', {})
+    return render(request, 'timeline.html', {})
 
 
 def person_page(request, name):

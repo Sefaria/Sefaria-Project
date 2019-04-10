@@ -4,6 +4,7 @@ import re
 import bleach
 import sys
 import json
+import csv
 from datetime import datetime
 from random import randint
 
@@ -19,9 +20,9 @@ from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
-from sefaria.utils.util import epoch_time, concise_natural_time
+from sefaria.utils.util import epoch_time
 from django.utils import translation
-from django.contrib.humanize.templatetags.humanize import naturaltime
+from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -94,9 +95,50 @@ class UserHistory(abst.AbstractMongoRecord):
                 del d["server_time_stamp"]
             except KeyError:
                 pass
-        if kwargs.get("natural_time", False):
-            d["natural_time"] = concise_natural_time(datetime.utcfromtimestamp(d["time_stamp"]))
         return d
+
+    def _sanitize(self):
+        # UserHistory API is only open to post for your uid
+        pass
+
+    @classmethod
+    def save_history_item(cls, uid, hist, time_stamp=None):
+        if time_stamp is None:
+            time_stamp = epoch_time()
+        hist["uid"] = uid
+        if "he_ref" not in hist or "book" not in hist:
+            oref = Ref(hist["ref"])
+            hist["he_ref"] = oref.he_normal()
+            hist["book"] = oref.index.title
+        hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
+
+        action = hist.pop("action", None)
+        saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
+        uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
+            "saved": saved,
+            "server_time_stamp": hist["server_time_stamp"]
+        })
+        uh.save()
+        return uh
+
+    @staticmethod
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, serialized=False):
+        query = {}
+        if uid is not None:
+            query["uid"] = uid
+        if oref is not None:
+            regex_list = oref.context_ref().regex(as_list=True)
+            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
+            query["$or"] = ref_clauses
+        if saved is not None:
+            query["saved"] = saved
+        if secondary is not None:
+            query["secondary"] = secondary
+        if last_place is not None:
+            query["last_place"] = last_place
+        if serialized:
+            return [uh.contents() for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
+        return UserHistorySet(query, sort=[("time_stamp", -1)])
 
 
 class UserHistorySet(abst.AbstractMongoSet):
@@ -346,6 +388,19 @@ class UserProfile(object):
 
         return self
 
+    def add_partner_group_by_email(self):
+        """
+        Sets the partner group if email pattern matches known school
+        """
+        email_pattern = self.email.split("@")[1]
+        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rb"), delimiter="\t")
+        for row in tsv_file:
+            # if current rows 2nd value is equal to input, print that row
+            if email_pattern == row[1]:
+                self.partner_group = row[0]
+                return self
+        return self
+
     def join_invited_groups(self):
         """
         Add this user as a member of any group for which there is an outstanding invitation.
@@ -388,7 +443,7 @@ class UserProfile(object):
 
     def get_user_history(self, oref=None, saved=None, secondary=None, last_place=None, serialized=False):
         """
-
+        personal user history
         :param oref:
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
@@ -396,20 +451,8 @@ class UserProfile(object):
         :param serialized: for return from API call
         :return:
         """
-        query = {"uid": self.id}
-        if oref is not None:
-            regex_list = oref.context_ref().regex(as_list=True)
-            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
-            query["$or"] = ref_clauses
-        if saved is not None:
-            query["saved"] = saved
-        if secondary is not None:
-            query["secondary"] = secondary
-        if last_place is not None:
-            query["last_place"] = last_place
-        if serialized:
-            return [uh.contents(natural_time=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
-        return UserHistorySet(query, sort=[("time_stamp", -1)])
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, last_place=last_place, serialized=serialized)
+
 
     def to_DICT(self):
         """Return a json serializble dictionary this profile"""

@@ -201,12 +201,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "pubPlace",
         "errorMargin",
         "era",
-        "dependence", # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
-        "base_text_titles", # (list) the base book(s) this one is dependant on
-        "base_text_mapping", # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
-        "collective_title", # (str) string value for a group of index records - the former commentator name. Requires a matching term.
-        "is_cited",  # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
-        "lexiconName"  # For dictionaries - the name used in the Lexicon collection
+        "dependence",           # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
+        "base_text_titles",     # (list) the base book(s) this one is dependant on
+        "base_text_mapping",    # (str) string that matches a key in sefaria.helper.link.AutoLinkerFactory._class_map
+        "collective_title",     # (str) string value for a group of index records - the former commentator name. Requires a matching term.
+        "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
+        "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
+        "dedication"            # (dict) Dedication texts, keyed by language
     ]
 
     def __unicode__(self):
@@ -953,10 +954,10 @@ class AbstractTextRecord(object):
         )
 
 
-class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaContent):
+class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
-
+    NOTE: AbstractTextRecord is inherited before AbastractMongoRecord in order to overwrite ALLOWED_TAGS
     Relates to a complete single record from the texts collection.
     """
     history_noun = 'text'
@@ -1017,6 +1018,10 @@ class Version(abst.AbstractMongoRecord, AbstractTextRecord, AbstractSchemaConten
                 self.priority = float(self.priority)
             except ValueError as e:
                 self.priority = None
+
+    def _sanitize(self):
+        # sanitization happens on TextChunk saving
+        pass
 
     def get_index(self):
         return library.get_index(self.title)
@@ -3469,7 +3474,7 @@ class Ref(object):
             if as_list:
                 return [u"{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "u%s(%s)" % (escaped_book, u"|".join(patterns))
+                return u"%s(%s)" % (escaped_book, u"|".join(patterns))
 
     def ref_regex_query(self):
         """
@@ -3645,7 +3650,7 @@ class Ref(object):
         key = "/".join(cats + [self.index.title])
         try:
             base = library.category_id_dict()[key]
-            if self.index.is_complex():
+            if self.index.is_complex() and self.index_node.parent:
                 child_order = self.index.nodes.get_child_order(self.index_node)
                 base += unicode(format(child_order, '03')) if isinstance(child_order, int) else child_order
 
@@ -4054,6 +4059,7 @@ class Library(object):
         self._full_auto_completer = {}
         self._ref_auto_completer = {}
         self._lexicon_auto_completer = {}
+        self._cross_lexicon_auto_completer = None
 
         # Term Mapping
         self._simple_term_mapping = {}
@@ -4150,6 +4156,9 @@ class Library(object):
             self._toc_tree = TocTree(self)
         return self._toc_tree
 
+    def get_groups_in_library(self):
+        return self._toc_tree.get_groups_in_library()
+
     def get_search_filter_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
@@ -4182,11 +4191,17 @@ class Library(object):
             lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True) for lang in self.langs
         }
 
+        for lang in self.langs:
+            self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
+
     def build_ref_auto_completer(self):
         from autospell import AutoCompleter
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
+
+        for lang in self.langs:
+            self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
 
     def build_lexicon_auto_completers(self):
         from autospell import LexiconTrie
@@ -4194,12 +4209,24 @@ class Library(object):
             lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
         }
 
+    def build_cross_lexicon_auto_completer(self):
+        from autospell import AutoCompleter
+        self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
+
+    def cross_lexicon_auto_completer(self):
+        if self._cross_lexicon_auto_completer is None:
+            logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
+            self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built cross lexicon auto completer.")
+        return self._cross_lexicon_auto_completer
+
     def lexicon_auto_completer(self, lexicon):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
             logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
+            logger.warning("Built {} auto completer.".format(lexicon))
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
@@ -4208,6 +4235,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
     def ref_auto_completer(self, lang):
@@ -4216,6 +4244,7 @@ class Library(object):
         except KeyError:
             logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
+            logger.warning("Built {} ref auto completer.".format(lang))
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
@@ -4504,7 +4533,9 @@ class Library(object):
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
-    #todo: onlyused in  bio scripts
+
+
+    #todo: only used in bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -4876,6 +4907,47 @@ class Library(object):
                 d.update(self.category_id_dict(c["contents"], key, val))
 
         return d
+
+    def simplify_toc(self, lang=None, toc_node=None, path=None):
+        is_root = toc_node is None and path is None
+        toc_node = toc_node if toc_node else self.get_toc()
+        path = path if path else []
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": node_path
+            }
+            if "category" in x:
+                if "contents" not in x:
+                    continue
+                simple_node["type"] = "category"
+                simple_node["children"] = self.simplify_toc(lang, x["contents"], node_path)
+            elif "title" in x:
+                query = {"title": x["title"]}
+                if lang:
+                    query["language"] = lang
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                    "name": u"{} ({})".format(v.versionTitle, v.language),
+                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                    "size": v.word_count(),
+                    "type": "version"
+                } for v in VersionSet(query)]
+            simple_nodes.append(simple_node)
+
+        if is_root:
+            return {
+                "name": "Whole Library" + " ({})".format(lang if lang else ""),
+                "path": [],
+                "children": simple_nodes
+            }
+        else:
+            return simple_nodes
+
+
 
 library = Library()
 

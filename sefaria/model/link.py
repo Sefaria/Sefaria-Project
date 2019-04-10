@@ -6,7 +6,7 @@ Writes to MongoDB Collection: links
 import regex as re
 from bson.objectid import ObjectId
 
-from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
 from sefaria.system.database import db
 from . import abstract as abst
 from . import text
@@ -269,18 +269,20 @@ def process_index_delete_in_links(indx, **kwargs):
 
 #get_link_counts() and get_book_link_collection() are used in Link Explorer.
 #They have some client formatting code in them; it may make sense to move them up to sefaria.client or sefaria.helper
-link_counts = {}
 def get_link_counts(cat1, cat2):
-    global link_counts
-    key = cat1 + "-" + cat2
-    if link_counts.get(key):
-        return link_counts[key]
-
+    """
+    Returns a list of book to book link counts for books within `cat1` and `cat2`
+    Parameters may name either a category or a individual book
+    """
     titles = []
     for c in [cat1, cat2]:
         ts = text.library.get_indexes_in_category(c)
         if len(ts) == 0:
-            return {"error": "No results for {}".format(c)}
+            try:
+                text.library.get_index(c)
+                ts.append(c)
+            except BookNameError:
+                return {"error": "No results for {}".format(c)}
         titles.append(ts)
 
     result = []
@@ -288,11 +290,10 @@ def get_link_counts(cat1, cat2):
         for title2 in titles[1]:
             re1 = r"^{} \d".format(title1)
             re2 = r"^{} \d".format(title2)
-            links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})  # db.links.find({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
+            links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
             if links.count():
-                result.append({"book1": title1.replace(" ","-"), "book2": title2.replace(" ", "-"), "count": links.count()})
+                result.append({"book1": title1, "book2": title2, "count": links.count()})
 
-    link_counts[key] = result
     return result
 
 
@@ -341,17 +342,23 @@ def get_category_category_linkset(cat1, cat2):
 
 def get_book_category_linkset(book, cat):
     """
-    Return LinkSet of links between the given book and category.
+    Return LinkSet of links between the given book and category, or between two books.
     :param book: String
     :param cat: String
     :return:
     """
     titles = text.library.get_indexes_in_category(cat)
     if len(titles) == 0:
-        return {"error": "No results for {}".format(query)}
+        try:
+            text.library.get_index(cat)
+            titles = [cat]
+        except BookNameError:
+            return {"error": "No results for {}".format(cat)}
 
     book_re = text.Ref(book).regex()
     cat_re = r'^({}) \d'.format('|'.join(titles)) #todo: generalize this regex
+
+    cat_re = r'^({})'.format('|'.join([text.Ref(title).regex() for title in titles]))
 
     return LinkSet({"$and": [{"refs": {"$regex": book_re}}, {"refs": {"$regex": cat_re}}]})
 
@@ -371,8 +378,10 @@ def get_book_link_collection(book, cat):
     for link in links:
         l1 = re.match(link_re, link.refs[0])
         l2 = re.match(link_re, link.refs[1])
+        if not l1 or not l2:
+            continue
         ret.append({
-            "r1": {"title": l1.group("title").replace(" ", "-"), "loc": l1.group("loc")},
-            "r2": {"title": l2.group("title").replace(" ", "-"), "loc": l2.group("loc")}
+            "r1": {"title": l1.group("title"), "loc": l1.group("loc")},
+            "r2": {"title": l2.group("title"), "loc": l2.group("loc")}
         })
     return ret

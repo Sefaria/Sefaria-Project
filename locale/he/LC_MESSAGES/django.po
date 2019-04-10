@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-28 06:54-0700\n"
+"POT-Creation-Date: 2019-01-10 11:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,47 +29,47 @@ msgstr "עברית"
 msgid "Bilingual"
 msgstr "דו לשוני"
 
-#: reader/views.py:457
+#: reader/views.py:467
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr "%(book)s מקוון בליווי מפרשים וקשרים לטקסטים אחרים"
 
-#: reader/views.py:476
+#: reader/views.py:486
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr "צאו למסע בעקבות 3000 שנה של טקסטים יהודיים, בעברית ובתרגום לאנגלית"
 
-#: reader/views.py:523 reader/views.py:669
+#: reader/views.py:533 reader/views.py:708
 msgid " | Sefaria"
 msgstr " | ספריא"
 
-#: reader/views.py:524
+#: reader/views.py:534
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr "ספרי %(categories)s מקוונים"
 
-#: reader/views.py:527
+#: reader/views.py:537
 msgid "Recently Viewed"
 msgstr "נצפו לאחרונה"
 
-#: reader/views.py:528
+#: reader/views.py:538
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr "ספרים שנצפו לאחרונה בספריא"
 
-#: reader/views.py:568
+#: reader/views.py:607
 msgid "Sefaria Search"
 msgstr "חיפוש בספריא"
 
-#: reader/views.py:569
+#: reader/views.py:608
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 "חפשו בין אוצר המקורות הכולל 3000 שנה של כתבים יהודיים. בעברית ובתרגום "
 "לאנגלית."
 
-#: reader/views.py:585
+#: reader/views.py:624
 msgid "Sefaria Source Sheets"
 msgstr "דפי המקורות בספריא"
 
-#: reader/views.py:586
+#: reader/views.py:625
 msgid ""
 "Explore thousands of public Source Sheets and use our Source Sheet Builder "
 "to create your own online."
@@ -77,34 +77,34 @@ msgstr ""
 "סיירו בין אלפי דפי מקורות פומביים והשתמשו בבונה דפי המקורות בכדי ליצור דף "
 "מקורות משלכם."
 
-#: reader/views.py:614 reader/views.py:621 reader/views.py:628
+#: reader/views.py:653 reader/views.py:660 reader/views.py:667
 #: templates/groups.html:8
 msgid "Sefaria Groups"
 msgstr "קבוצות בספריא"
 
-#: reader/views.py:634
+#: reader/views.py:673
 msgid "My Notes on Sefaria"
 msgstr "הרשומות שלי בספריא"
 
-#: reader/views.py:655
+#: reader/views.py:694
 msgid "My Source Sheets | Sefaria Source Sheets"
 msgstr "דפי המקורות שלי | דפי מקורות בספריא"
 
-#: reader/views.py:656
+#: reader/views.py:695
 msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr "דפי המקורות שלי בספריא. פרטיים ופומביים"
 
-#: reader/views.py:663
+#: reader/views.py:702
 msgid "Public Source Sheets | Sefaria Source Sheets"
 msgstr "דפי המקורות פומביים | דפי מקורות בספריא"
 
-#: reader/views.py:664
+#: reader/views.py:703
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr "סיירו בין אלפי דפי מקורות פומביים השאובים מאוצר הספרות של ספריא"
 
-#: reader/views.py:670
+#: reader/views.py:709
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
@@ -113,11 +113,11 @@ msgstr ""
 "דפי מקורות פומביים המתוייגים ב\"%(tag)s\" השאובים מהמקורות שבאוצר הספרות "
 "בספריא."
 
-#: reader/views.py:767
+#: reader/views.py:806
 msgid "Topics"
 msgstr "נושאים"
 
-#: reader/views.py:767 templates/person.html:6 templates/person.html:8
+#: reader/views.py:806 templates/person.html:6 templates/person.html:8
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
@@ -130,61 +130,78 @@ msgstr "נושאים"
 msgid "Sefaria"
 msgstr "ספריא"
 
-#: reader/views.py:768
+#: reader/views.py:807
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "מקורות לפי נושא בספריא"
 
-#: reader/views.py:826
+#: reader/views.py:865
 msgid "The Sefaria Library"
 msgstr "תוכן העניינים של ספריא"
 
-#: reader/views.py:827
+#: reader/views.py:866
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 "גלשו בתוככי אלפי ספרי אוצר הספרות היהודית לדורותיה. מצאו ספרים לפי שם או "
 "סוגה."
 
-#: reader/views.py:832
+#: reader/views.py:872
+msgid "My Saved Content"
+msgstr "התוכן השמור שלי"
+
+#: reader/views.py:873
+msgid "See your saved content on Sefaria"
+msgstr "צפייה במקורות ודפים שמורים בספריא"
+
+#: reader/views.py:879
+msgid "My User History"
+msgstr "היסטורית קריאה שלי"
+
+#: reader/views.py:880
+#| msgid "Watch a video about the story of Sefaria."
+msgid "See your user history on Sefaria"
+msgstr "צפייה בהיסטורית הגלישה בספריא"
+
+#: reader/views.py:886
 msgid "New Additions to the Sefaria Library"
 msgstr "חידושים בארון הספרים של ספריא"
 
-#: reader/views.py:833
+#: reader/views.py:887
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr "הודעות לגבי טקסטים, תרגומים וקישורים חדשים שנוספו לאחרונה לספריא"
 
-#: reader/views.py:839
+#: reader/views.py:893
 msgid "Sefaria Account"
 msgstr "חשבון בספריא"
 
-#: reader/views.py:847
+#: reader/views.py:901
 msgid "Sefaria Notifications"
 msgstr "הודעות בספריא"
 
-#: reader/views.py:854
+#: reader/views.py:908
 msgid "Moderator Tools"
 msgstr "כלי מנהלים"
 
-#: reader/views.py:871
+#: reader/views.py:925
 msgid "Extended Notes"
-msgstr ""
+msgstr "מידע מורחב"
 
-#: reader/views.py:921
+#: reader/views.py:975
 msgid "Texts"
 msgstr "טקסטים"
 
-#: reader/views.py:2688
+#: reader/views.py:2869 reader/views.py:2903
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
-#: reader/views.py:3274 reader/views.py:3277
+#: reader/views.py:3668 reader/views.py:3671
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאריכים ועוד"
 
-#: sefaria/forms.py:26 sefaria/forms.py:31 sefaria/forms.py:103
+#: sefaria/forms.py:26 sefaria/forms.py:31 sefaria/forms.py:106
 #: templates/static/aramaic-translation-contest.html:140
 #: templates/static/educators.html:359 templates/static/home.html:362
 #: templates/static/newsletter.html:24
@@ -219,13 +236,67 @@ msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
 msgid ""
 "Public Groups are required to include a group image (a square image will "
 "work best)."
-msgstr ""
+msgstr "קבוצות פומביות חייבות לכלול תמונת קבוצה"
 
 #: sefaria/model/group.py:59
 msgid "Public Groups are required to have at least 3 public sheets."
-msgstr ""
+msgstr "קבוצות פומביות חייבות לכלול לפחות 3 דפי מקורות פומביים"
 
-#: sefaria/views.py:121 templates/static/aramaic-translation-contest.html:189
+#: sefaria/utils/util.py:15
+#, python-format
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] "%d שנה"
+msgstr[1] "%d שנים"
+
+#: sefaria/utils/util.py:16
+#, python-format
+msgid "%d month"
+msgid_plural "%d months"
+msgstr[0] "%d חודש"
+msgstr[1] "%d חודשים"
+
+#: sefaria/utils/util.py:17
+#, python-format
+msgid "%d week"
+msgid_plural "%d weeks"
+msgstr[0] "%d שבוע"
+msgstr[1] "%d שבועות"
+
+#: sefaria/utils/util.py:18
+#, python-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] "%d יום"
+msgstr[1] "%d ימים"
+
+#: sefaria/utils/util.py:19
+#, python-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] "%d שעה"
+msgstr[1] "%d שעות"
+
+#: sefaria/utils/util.py:20
+#, python-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d דקה"
+msgstr[1] "%d דקות"
+
+#: sefaria/utils/util.py:21
+#, python-format
+msgid "%d second"
+msgid_plural "%d seconds"
+msgstr[0] "%d שנייה"
+msgstr[1] "%d שניות"
+
+#: sefaria/utils/util.py:52
+msgid "now"
+msgstr "כעת"
+
+#: sefaria/views.py:125 sefaria/views.py:157
+#: templates/static/aramaic-translation-contest.html:189
 #: templates/static/educators.html:389 templates/static/educators.html:411
 #: templates/static/home.html:392 templates/static/newsletter.html:56
 msgid "Sorry, there was an error."
@@ -532,6 +603,15 @@ msgid ""
 "Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
 msgstr "סייר חיבורים - מיצג גרפי של הקשרים בין המקרא לתלמוד | ספריא"
 
+#: templates/explore.html:4
+#, python-format
+msgid ""
+"Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
+"%(topCatTitle)s | Sefaria"
+msgstr ""
+"סייר חיבורים - מיצג גרפי של הקשרים בין %(bottomCatTitle)s ו%(topCatTitle)s | "
+"ספריא"
+
 #: templates/explore.html:6
 msgid ""
 "Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
@@ -539,6 +619,16 @@ msgid ""
 msgstr ""
 "צפו בלמעלה מ30 אלף דוגמאות בהן התלמוד מצטט פסוקים מן המקרא. ניתן גם להתקרב "
 "ולצפות בקשרים המתייחסים לספר אחד או מסכת מסויימת."
+
+#: templates/explore.html:6
+#, python-format
+msgid ""
+"Visually explore quotations and connections between %(bottomCatTitle)s and "
+"%(topCatTitle)s. Zoom in to particular books either above or below to "
+"explore deeper."
+msgstr ""
+"סיירו חזותית וגלו ציטוטים וקישורים בין %(bottomCatTitle)s ו%(topCatTitle)s. "
+"ניתן גם להתקרב ולצפות בקשרים המתייחסים לספר אחד או מסכת מסויימת."
 
 #: templates/leaderboard.html:4
 msgid "Top Contributors | Sefaria"
@@ -563,7 +653,7 @@ msgstr ""
 "צפו במספר גרפים המתעדים את מהלך ההתקדמות של ספריא מאז 2013 על פני שלל מדדים "
 "כגון מספר מילים, מספר קישורים ומספר דפי מקורות"
 
-#: templates/metrics.html:18 templates/sheets.html:615
+#: templates/metrics.html:18 templates/sheets.html:626
 msgid "Loading..."
 msgstr "טוען..."
 
@@ -663,10 +753,9 @@ msgid "Cancel"
 msgstr "ביטול"
 
 #: templates/registration/logged_out.html:4
-#, fuzzy
 #| msgid "Log in to Sefaria"
 msgid "Logged Out | Sefaria"
-msgstr "כניסה לחשבון בספריא"
+msgstr "מנותק | ספריא"
 
 #: templates/registration/login.html:4
 msgid "Log in to Sefaria"
@@ -693,6 +782,7 @@ msgid "Password Reset Link Sent"
 msgstr "קישור לאיפוס סיסמא נשלח"
 
 #: templates/registration/password_reset_email.html:4
+#: templates/registration/password_reset_email.txt:3
 msgid ""
 "A request has been made to reset the password for this email address on "
 "Sefaria.org."
@@ -700,11 +790,13 @@ msgstr ""
 "בקשה התקבלה במערכת לאיפוס ססמת משתמש בעל כתובת מייל זו באתר sefaria.org.il"
 
 #: templates/registration/password_reset_email.html:6
+#: templates/registration/password_reset_email.txt:5
 msgid "Click this link, or copy it to your browser, to choose a new password:"
 msgstr ""
 "לחצו כאן, או העתיקו והדביקו את הכתובת לדפדפך שלכם בכדי לבחור ססמה חדשה:"
 
 #: templates/registration/password_reset_email.html:12
+#: templates/registration/password_reset_email.txt:9
 msgid "If you did not request this reset, you can safely ignore this email."
 msgstr "אם לא שלחתם בקשה לאיפוס סיסמא, הנכם מוזמנים להתעלם מהמייל הזה"
 
@@ -733,15 +825,15 @@ msgstr ""
 "וכדי להיות בקשר עם משתמשים אחרים"
 
 #: templates/sefer_hachinukh_mitzvot.html:7
-#, fuzzy
 #| msgid "Visualizations"
 msgid "Sefer HaChinukh Visualization"
-msgstr "תרשימים גרפיים"
+msgstr "תרשימים גרפיים מספר החינוך"
 
 #: templates/sefer_hachinukh_mitzvot.html:9
-#: templates/talmudic_relationships.html:26
-msgid "Description goes here."
-msgstr ""
+msgid ""
+"Explore how different categories of Mitzvot connect to one another through "
+"this parallel sets chart."
+msgstr "גרף המדגים כיצד קבוצות שונות של מצוות קשורות אחת לשניה"
 
 #: templates/sheets.html:6 templates/sheets_visual.html:4
 msgid "Sefaria Source Sheet Builder"
@@ -751,19 +843,17 @@ msgstr "בונה דפי המקורות בספריא"
 msgid "Start a New Sheet - Sefaria Source Sheet Builder"
 msgstr "יצירת דף מקורות חדש - בונה דפי המקורות של ספריא"
 
-#: templates/sheets.html:8
-#, python-format
-msgid ""
-"A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
-"Sheet Builder."
-msgstr ""
-"דף מקורות מאת %(sheet.owner|user_name)s. נוצר בעזרת בונה דפי המקורות של ספריא"
+#: templates/sheets.html:8 templates/sheets.html:9
+#| msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
+msgid "A source sheet created with Sefaria's Source Sheet Builder."
+msgstr "דף מקורות בנוי בעזרת מחולל דפי המקורות של ספריא"
 
-#: templates/sheets.html:8 templates/sheets_visual.html:6
+#: templates/sheets.html:8 templates/sheets.html:9
+#: templates/sheets_visual.html:6
 msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
 msgstr "צרו דף מקורות משלכם בעזרת בונה דפי המקורות של ספריא"
 
-#: templates/sheets.html:629 templates/sheets.html:637
+#: templates/sheets.html:640 templates/sheets.html:648
 #, python-format
 msgid ""
 "\n"
@@ -774,7 +864,7 @@ msgstr ""
 "                מטלה בוצעה על ידי %(owner)s\n"
 "            "
 
-#: templates/sheets.html:644
+#: templates/sheets.html:655
 #, python-format
 msgid ""
 "\n"
@@ -785,39 +875,43 @@ msgstr ""
 "            דף מקורות מאת %(owner)s\n"
 "        "
 
-#: templates/sheets.html:744
+#: templates/sheets.html:755
 msgid "Search for a Text or Commentator"
 msgstr "הקלידו לחיפוש שם של טקסט או פרשן"
 
-#: templates/sheets.html:909
+#: templates/sheets.html:819
+msgid "Paste URL"
+msgstr "הדבק קישור"
+
+#: templates/sheets.html:915
 msgid "Made with the Sefaria Source Sheet Builder"
 msgstr "נבנה באמצעות בונה דפי המקורות בספריא"
 
-#: templates/sheets.html:932
+#: templates/sheets.html:938
 msgid "Create New"
 msgstr "יצירת חדש"
 
-#: templates/sheets.html:1006
+#: templates/sheets.html:1012
 msgid "Write a summary to help others understand your sheet..."
 msgstr "כתבו תקציר המסביר אודות דף המקורות שיצרתם..."
 
-#: templates/sheets.html:1042
+#: templates/sheets.html:1048
 msgid "None"
 msgstr "ללא"
 
-#: templates/sheets.html:1076
+#: templates/sheets.html:1082
 msgid "View"
 msgstr "לצפות"
 
-#: templates/sheets.html:1079
+#: templates/sheets.html:1085
 msgid "Add"
 msgstr "להוסיף"
 
-#: templates/sheets.html:1082
+#: templates/sheets.html:1088
 msgid "Edit"
 msgstr "לערוך"
 
-#: templates/sheets.html:1095
+#: templates/sheets.html:1101
 msgid ""
 "\n"
 "            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
@@ -907,6 +1001,7 @@ msgid ""
 "directly to Sefaria and have not yet been published elsewhere in print or on "
 "the web."
 msgstr ""
+"טקסטים המציינים עמוד זה כמקור הטקסט נתרמו ישירות לספריא ולא פורסמו לפני כן במקומות אחרים בדפוס או בצורה מקוונת"
 
 #: templates/static/digitized-by-sefaria.html:4
 msgid "Texts Digitized by Sefaria"
@@ -980,14 +1075,9 @@ msgid "Downland the free Sefaria Apps for iOS and Android."
 msgstr "הורידו את האפליקציות החינמיות של ספריא לאייפון ולאנדרואיד"
 
 #: templates/static/newsletter.html:4
-#, fuzzy
-#| msgid "Listed for Sefaria Users"
 msgid "Sign up for Sefaria's Newsletter"
-msgstr "מופיע למשתמשים רשומים"
+msgstr "הרשמה לרשימת התפוצה של ספריא"
 
-#: templates/static/newsletter.html:6
-msgid "Sign up for Sefaria's Newsletter."
-msgstr ""
 
 #: templates/static/privacy-policy.html:4
 msgid "Privacy Policy"
@@ -1049,14 +1139,12 @@ msgid "Terms of Use"
 msgstr "תנאי שימוש"
 
 #: templates/static/testimonials.html:4
-#, fuzzy
-#| msgid "Sefaria Metrics"
 msgid "Sefaria Testimonials"
-msgstr "סטטיסטיקות בספריא"
+msgstr "המלצות על ספריא"
 
 #: templates/static/testimonials.html:6
 msgid "Sefaria’s Impact – Reflections and Insights from Users"
-msgstr ""
+msgstr "ההשפעה של ספריא- הרהורים ותובנות משתמשים"
 
 #: templates/static/the-sefaria-story.html:4
 msgid "The Sefaria Story"
@@ -1065,6 +1153,14 @@ msgstr "תולדות ספריא"
 #: templates/static/the-sefaria-story.html:6
 msgid "Watch a video about the story of Sefaria."
 msgstr "צפו בסרטון המתאר את קורות ספריא"
+
+#: templates/static/torah-tab.html:5
+msgid "Sefaria Torah Tab"
+msgstr "לשונית לימוד בספריא"
+
+#: templates/static/torah-tab.html:7
+msgid "Install the free Sefaria Torah Tab for your web browser."
+msgstr "התקינו את תוסף ספריא ללשונית לימוד"
 
 #: templates/static/visualizations.html:4
 msgid "Visualizations"
@@ -1104,6 +1200,11 @@ msgstr ""
 
 #: templates/talmudic_relationships.html:24
 msgid "Student-Teacher Relationships in the Talmud"
+msgstr "קשרי מורה-תלמיד בתלמוד"
+
+
+#: templates/talmudic_relationships.html:26
+msgid "Description goes here."
 msgstr ""
 
 #: templates/visual_library.html:4
@@ -1134,6 +1235,13 @@ msgid ""
 msgstr ""
 "צפו כיצד רשי יוצר חיבורים בין מקומות שונים בתורה כשהוא מפרש פסוק אחד ומצטט "
 "שם פסוק אחר"
+
+#~ msgid ""
+#~ "A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "
+#~ "Sheet Builder."
+#~ msgstr ""
+#~ "דף מקורות מאת %(sheet.owner|user_name)s. נוצר בעזרת בונה דפי המקורות של "
+#~ "ספריא"
 
 #~ msgid "Logged out"
 #~ msgstr "מנותק מהחשבון"

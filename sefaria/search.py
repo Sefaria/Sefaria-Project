@@ -33,6 +33,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
@@ -52,8 +53,6 @@ def init_pagesheetrank_dicts():
         sheetrank_dict = {}
 
 init_pagesheetrank_dicts()
-all_gemara_indexes = library.get_indexes_in_category("Bavli")
-davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
 
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
@@ -84,8 +83,12 @@ def delete_version(index, version, lang):
 
     refs = []
 
-    if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
-        refs += index.all_section_refs()
+    if SITE_SETTINGS["TORAH_SPECIFIC"]:
+        all_gemara_indexes = library.get_indexes_in_category("Bavli")
+        davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
+        if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
+            refs += index.all_section_refs()
+
     refs += index.all_segment_refs()
 
     for ref in refs:
@@ -430,7 +433,7 @@ class TextIndexer(object):
             elif "contents" in mini_toc:
                 for t in mini_toc["contents"]:
                     traverse(t)
-            elif "title" in mini_toc:
+            elif "title" in mini_toc and not mini_toc.get("isGroup", False):
                 title = mini_toc["title"]
                 try:
                     r = Ref(title)
@@ -508,7 +511,10 @@ class TextIndexer(object):
             cls.trefs_seen = set()
             cls._bulk_actions = []
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
-            cls.best_time_period = cls.curr_index.best_time_period()
+            try:
+                cls.best_time_period = cls.curr_index.best_time_period()
+            except ValueError:
+                cls.best_time_period = None
             for v in vlist:
                 if v.versionTitle == u"Yehoyesh's Yiddish Tanakh Translation [yi]":
                     print "skipping yiddish. we don't like yiddish"
@@ -540,20 +546,21 @@ class TextIndexer(object):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
         cls.merged = merged
         cls.index_name = index_name
-        cls.best_time_period = cls.curr_index.best_time_period()
         cls.curr_index = oref.index
+        try:
+            cls.best_time_period = cls.curr_index.best_time_period()
+        except ValueError:
+            cls.best_time_period = None
         cls.trefs_seen = set()
         version_priority = 0
-        version = None
         if not merged:
             for priority, v in enumerate(cls.get_ref_version_list(oref)):
                 if v['versionTitle'] == version_title:
                     version_priority = priority
-                    version = v
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
-        doc = cls.make_text_index_document(tref, oref.he_normal(), version, lang, version_priority, content, categories)
+        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories)
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index_name, "text", doc, id)
 
@@ -619,9 +626,9 @@ class TextIndexer(object):
         else:
             comp_start_date = 3000  # far in the future
 
-        section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
+        # section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
 
-        pagerank = math.log(pagerank_dict[section_ref]) + 20 if section_ref in pagerank_dict else 1.0
+        pagerank = math.log(pagerank_dict[tref]) + 20 if tref in pagerank_dict else 1.0
         sheetrank = (1.0 + sheetrank_dict[tref]["count"] / 5)**2 if tref in sheetrank_dict else (1.0 / 5) ** 2
         return {
             "ref": tref,

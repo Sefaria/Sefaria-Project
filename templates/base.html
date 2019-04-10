@@ -54,15 +54,15 @@
 
     {% block head %}{% endblock %}
 
-    <link rel="stylesheet" href="{% static "css/common.css" %}">
-    <link rel="stylesheet" href="{%  static "font-awesome/css/font-awesome.css" %}">
-    <link rel="stylesheet" type="text/css" href="{% static "css/keyboard.css" %}">
-    <link rel="stylesheet" href="{%  static "css/s2.css" %}">
-    <link rel="stylesheet" href="{%  static "css/s2-print.css" %}" media="print" />
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
 
     {% block static_css %}
     {% if not html %}
-    <link rel="stylesheet" href="{%  static "css/static.css" %}">
+    <link rel="stylesheet" href="{%  static 'css/static.css' %}">
     {% endif %}
     {% endblock %}
 
@@ -70,25 +70,16 @@
         {% block css %}{% endblock %}
     </style>
 
-    <script>
-        {% if GOOGLE_ANALYTICS_CODE %}
-            // GOOGLE ANALYTICS
-            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
-
-            window.onerror = function(msg, url, lineNumber) {
-                ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
-            };
-        {% else  %}
-            var ga = function(){};
-            ga._mock = true;
-        {% endif %}
-        window.ga = ga;
-    </script>
+    {% if GOOGLE_TAG_MANAGER_CODE %}
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer',"{{ GOOGLE_TAG_MANAGER_CODE }}");</script>
+    <!-- End Google Tag Manager -->
+    {% endif %}
 
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
@@ -109,6 +100,12 @@
 </head>
 
 <body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
+    {% if GOOGLE_TAG_MANAGER_CODE %}
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) --> 
+    {% endif %}
 
     {% autoescape off %}
     {% if html %}
@@ -127,7 +124,9 @@
     </div>
 
     {% block footer %} <!-- todo: sheets is overwriting this, why? -->
-        {% include "elements/footer.html" with class=contentLang %}
+        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+            <div id="footerContainer">{% include "elements/footer.html" %}</div>
+        {% endif %}
     {% endblock %}
     {% endif %}
 
@@ -138,7 +137,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
-    <script src="{% static "js/lib/keyboard.js" %}"></script>
+    <script src="{% static 'js/lib/keyboard.js' %}"></script>
     <script src="/data.js"></script>
 
     <script>
@@ -156,18 +155,12 @@
         contentLang: "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp: {% if html %}true{% else %}false{% endif %},
-        ga: ga,
         static_url: {{ STATIC_PREFIX }}
       };
       {% endautoescape %}
     </script>
 
     {% render_bundle 'main' %}
-
-    <!-- Don't think these are needed....
-    {% include "js/jquery.html" %}
-    <script>{% include "js/django-csrf.js" %}</script>
-    -->
 
     {% block js %}{% endblock %}
 </body>

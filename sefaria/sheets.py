@@ -6,6 +6,7 @@ Writes to MongoDB Collection: sheets
 """
 import regex
 import dateutil.parser
+import bleach
 from datetime import datetime, timedelta
 from bson.son import SON
 from collections import defaultdict
@@ -19,7 +20,7 @@ from sefaria.model.user_profile import UserProfile, annotate_user_list, public_u
 from sefaria.model.group import Group, GroupSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
-from sefaria.system.cache import django_cache_decorator
+from sefaria.system.cache import django_cache
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
 import search
@@ -125,7 +126,7 @@ def group_sheets(group, authenticated):
 		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
 
 	response = {
-		"sheets": sheet_list(query=query, sort=[["title", 1]]),
+		"sheets": sheet_list(query=query),
 	}
 	return response
 
@@ -350,6 +351,37 @@ def is_valid_source(source):
 	return True
 
 
+def bleach_text(text):
+	ok_sheet_tags = ['blockquote', 'p', 'a', 'ul', 'ol', 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike',
+			'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup']
+
+	ok_sheet_attrs = {'a': [ 'href', 'name', 'target', 'data-ref' ],'img': [ 'src' ], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'],"*": ["class"]}
+
+	ok_sheet_styles = ['color', 'background-color', 'text-align']
+
+	return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, styles=ok_sheet_styles, strip=True)
+
+
+
+def clean_source(source):
+	if "ref" in source:
+		source["text"]["he"] = bleach_text(source["text"]["he"])
+		source["text"]["en"] = bleach_text(source["text"]["en"])
+
+	elif "outsideText" in source:
+		source["outsideText"] = bleach_text(source["outsideText"])
+
+	elif "comment" in source:
+		source["comment"] = bleach_text(source["comment"])
+
+	elif "outsideBiText" in source:
+		source["outsideBiText"]["he"] = bleach_text(source["outsideBiText"]["he"])
+		source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
+
+	return source
+
+
+
 def add_source_to_sheet(id, source, note=None):
 	"""
 	Add source to sheet 'id'.
@@ -472,11 +504,12 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, uid=None):
+def get_sheets_for_ref(tref, uid=None, in_group=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
+	If `in_group` (list) is present, only return sheets in one of the listed groups. 
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -487,6 +520,8 @@ def get_sheets_for_ref(tref, uid=None):
 		query["owner"] = uid
 	else:
 		query["status"] = "public"
+	if in_group:
+		query["group"] = {"$in": in_group}
 	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
@@ -526,11 +561,8 @@ def get_sheets_for_ref(tref, uid=None):
 
 			if "group" in sheet:
 				group = Group().load({"name": sheet["group"]})
-
-				try:
-					sheet["groupLogo"] = group.imageUrl
-				except:
-					sheet["groupLogo"] = None
+				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
+				sheet["groupTOC"]        = getattr(group, "toc", None)
 
 
 			sheet_data = {
@@ -544,7 +576,9 @@ def get_sheets_for_ref(tref, uid=None):
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
 				"options": 		   sheet["options"],
 				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
+				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
+				"groupTOC":        sheet.get("groupTOC", None),
 			    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
@@ -601,7 +635,7 @@ def get_last_updated_time(sheet_id):
 	return sheet["dateModified"]
 
 
-@django_cache_decorator(time=(60 * 60))
+@django_cache(timeout=(60 * 60))
 def public_tag_list(sort_by="alpha"):
 	"""
 	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")

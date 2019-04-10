@@ -100,7 +100,7 @@ class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, naturalTime } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -122,11 +122,12 @@ class TextBlockLink extends Component {
     position = position || 0;
     const isSheet = book === 'Sheet';
     const classes  = classNames({refLink: !isSheet, sheetLink: isSheet, blockLink: 1, recentItem, calendarLink: (subtitle != null), saved });
+    url_string = url_string ? url_string : sref;
     let url;
     if (isSheet) {
-      url = `/sheets/${Sefaria.normRef(sref).replace('Sheet.','')}`
+      url = `/sheets/${Sefaria.normRef(url_string).replace('Sheet.','')}`
     } else {
-      url = "/" + Sefaria.normRef(sref) + Object.keys(currVersions)
+      url = "/" + Sefaria.normRef(url_string) + Object.keys(currVersions)
         .filter(vlang=>!!currVersions[vlang])
         .map(vlang=>`&v${vlang}=${currVersions[vlang]}`)
         .join("")
@@ -145,7 +146,12 @@ class TextBlockLink extends Component {
           </div>
           <div className="sideColorRight">
             { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
-            { !saved ? <span>{ naturalTime }</span>: null }
+            { !saved && timeStamp ?
+              <span>
+                <span className="int-en">{ Sefaria.util.naturalTime(timeStamp) }</span>
+                <span className="int-he">&rlm;{ Sefaria.util.naturalTime(timeStamp) }</span>
+              </span>: null
+            }
           </div>
         </a>
       );
@@ -167,6 +173,7 @@ TextBlockLink.propTypes = {
   heTitle:         PropTypes.string,
   displayValue:    PropTypes.string,
   heDisplayValue:  PropTypes.string,
+  url_string:      PropTypes.string,
   showSections:    PropTypes.bool,
   recentItem:      PropTypes.bool,
   position:        PropTypes.number,
@@ -174,7 +181,7 @@ TextBlockLink.propTypes = {
   saved:           PropTypes.bool,
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
-  naturalTime:     PropTypes.string,
+  timeStamp:       PropTypes.number,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
@@ -364,7 +371,7 @@ ReaderNavigationMenuMenuButton.propTypes = {
   onClick: PropTypes.func,
   compare: PropTypes.bool,
   interfaceLang: PropTypes.string
-}
+};
 
 
 class ReaderNavigationMenuCloseButton extends Component {
@@ -390,22 +397,26 @@ class ReaderNavigationMenuCloseButton extends Component {
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    return (<div
+    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ? 
+      <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
+      <span className="textIcon">Aa</span>;
+    return (<a
               className="readerOptions"
               tabIndex="0"
               role="button"
               aria-haspopup="true"
+              aria-label="Toggle Reader Menu Display Settings"
               style={style}
               onClick={this.props.onClick}
-              onKeyPress={e => {e.charCode == 13 ? this.props.onClick(e):null}}>
-                <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} />
-            </div>);
+              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
+              {icon}
+            </a>);
   }
 }
 ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
-}
+};
 
 
 class ReaderNavigationMenuSavedButton extends Component {
@@ -452,7 +463,9 @@ class ReaderNavigationMenuSavedButton extends Component {
   render() {
     const { placeholder, historyObject, tooltip } = this.props;
     const style = placeholder ? {visibility: 'hidden'} : {};
-    const altText = placeholder ? '' : `${Sefaria._(this.state.selected ? "Remove" : "Save")} '${historyObject.sheet_title ? historyObject.sheet_title.stripHtml() : historyObject.ref}'`;
+    const altText = placeholder ? '' :
+      `${Sefaria._(this.state.selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
+          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}'`;
 
     const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
     return (
@@ -489,12 +502,104 @@ ReaderNavigationMenuSavedButton.propTypes = {
 };
 
 
+class SinglePanelNavHeader extends Component {
+  render() {
+    var enTitle = this.props.enTitle;
+    var heTitle = this.props.heTitle || Sefaria.hebrewTerm(enTitle);
+    var colorCat = this.props.colorLineCategory || "Other";
+    return (
+      <div className="readerNavTop searchOnly">
+          <CategoryColorLine category={colorCat} />
+          <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
+          <h2>
+            <span className="int-en">{enTitle}</span>
+            <span className="int-he">{heTitle}</span>
+          </h2>
+          {this.props.showDisplaySettings ?
+            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+            : <div className="readerOptions"></div> }
+      </div>);
+  }
+}
+SinglePanelNavHeader.propTypes = {
+  navHome:             PropTypes.func.isRequired,
+  enTitle:             PropTypes.string,
+  heTitle:             PropTypes.string, 
+  showDisplaySettings: PropTypes.bool,
+  openDisplaySettings: PropTypes.func,
+  colorLineCategory:   PropTypes.string,
+};
+
+
 class CategoryColorLine extends Component {
   render() {
     var style = {backgroundColor: Sefaria.palette.categoryColor(this.props.category)};
     return (<div className="categoryColorLine" style={style}></div>);
   }
 }
+
+
+class SheetListing extends Component {
+  // A source sheet listed in the Sidebar
+  handleSheetClick(e, sheet) {
+      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
+      //console.log("Sheet Click Handled");
+    if (Sefaria._uid == this.props.sheet.owner) {
+      Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
+    } else {
+      Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
+    }
+    this.props.handleSheetClick(e,sheet);
+  }
+  handleSheetOwnerClick() {
+    Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
+  }
+  handleSheetTagClick(tag) {
+    Sefaria.track.event("Tools", "Sheet Tag Click", tag);
+  }
+  render() {
+    var sheet = this.props.sheet;
+    var viewsIcon = sheet.public ?
+      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
+      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+
+    var sheetInfo = this.props.hideAuthor ? null :
+        <div className="sheetInfo">
+          <div className="sheetUser">
+            <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
+              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+            </a>
+            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
+          </div>
+          {viewsIcon}
+        </div>
+
+    return (
+      <div className="sheet" key={sheet.sheetUrl}>
+        {sheetInfo}
+        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
+          <img src="/static/img/sheet.svg" className="sheetIcon"/>
+          <span className="sheetTitleText">{sheet.title}</span>
+        </a>
+        <div className="sheetTags">
+          {sheet.tags.map(function(tag, i) {
+            var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
+            return (<a href={"/sheets/tags/" + tag}
+                        target="_blank"
+                        className="sheetTag"
+                        key={tag}
+                        onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
+          }.bind(this))}
+        </div>
+      </div>);
+  }
+}
+SheetListing.propTypes = {
+  sheet:            PropTypes.object.isRequired,
+  connectedRefs:    PropTypes.array.isRequired,
+  handleSheetClick: PropTypes.func.isRequired,
+  hideAuthor:       PropTypes.bool,
+};
 
 
 class Note extends Component {
@@ -525,6 +630,7 @@ class Note extends Component {
               </div>);
   }
 }
+
 Note.propTypes = {
   text:            PropTypes.string.isRequired,
   ownerName:       PropTypes.string,
@@ -581,7 +687,7 @@ class SignUpModal extends Component {
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
-            <h2>{Sefaria._("Join Sefaria.")}</h2>
+            <h2>{Sefaria._("Join " + Sefaria._siteSettings.SITE_NAME.en + ".")}</h2>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
@@ -851,7 +957,7 @@ class CategoryAttribution extends Component {
     var unlinkedContent = <span>
                             <span className="en">{attribution.english}</span>
                             <span className="he">{attribution.hebrew}</span>
-                          </span>
+                          </span>;
     return <div className="categoryAttribution">
             {this.props.linked ? linkedContent : unlinkedContent}
            </div>;
@@ -863,7 +969,7 @@ CategoryAttribution.propTypes = {
 };
 CategoryAttribution.defaultProps = {
   linked:     true,
-}
+};
 
 
 class SheetTagLink extends Component {
@@ -1093,7 +1199,9 @@ module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuM
 module.exports.ReaderNavigationMenuSavedButton           = ReaderNavigationMenuSavedButton;
 module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
 module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
+module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
 module.exports.SignUpModal                               = SignUpModal;
+module.exports.SheetListing                              = SheetListing;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;
 module.exports.SheetTagLink                              = SheetTagLink;
 module.exports.TextBlockLink                             = TextBlockLink;

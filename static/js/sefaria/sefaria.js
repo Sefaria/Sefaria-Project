@@ -705,14 +705,14 @@ Sefaria = extend(Sefaria, {
   _lexiconCompletions: {},
   lexiconCompletion: function(word, lexicon, callback) {
       word = word.trim();
-      var key = word + "/" + lexicon;
+      var key = lexicon ? word + "/" + lexicon : word;
       if (key in this._lexiconCompletions) {
           callback(this._lexiconCompletions[key]);
           return null;
       }
       return $.ajax({
           dataType: "json",
-          url: Sefaria.apiHost + "/api/words/completion/" + word + "/" + lexicon,
+          url: Sefaria.apiHost + "/api/words/completion/" + word + (lexicon ? "/" + lexicon : ""),
           success: function(data) {
               this._lexiconCompletions[key] = data;
               callback(data);
@@ -788,7 +788,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
+       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -894,13 +894,25 @@ Sefaria = extend(Sefaria, {
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
     });
   },
+  _filterSheetFromLinks: function(links, sheetID) {
+    links = links.filter(link => !link.isSheet || link.id !== sheetID );
+    return links;
+  },
+  _dedupeLinks: function(links) {
+    const key = (link) => [link.anchorRef, link.sourceRef, link.type].join("|");
+    let dedupedLinks = {};
+    links.map((link) => {dedupedLinks[key(link)] = link});
+    return Object.values(dedupedLinks);
+  },
   _linkSummaries: {},
-  linkSummary: function(ref) {
+  linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
+    // If `excludedSheet` is present, exclude links to that sheet ID. 
 
     var normRef = Sefaria.humanRef(ref);
-    if (normRef in this._linkSummaries) { return this._linkSummaries[normRef]; }
+    var cacheKey = normRef + excludedSheet;
+    if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
       var links = this.links(ref);
     } else {
@@ -909,7 +921,10 @@ Sefaria = extend(Sefaria, {
         var newlinks = Sefaria.links(r);
         links = links.concat(newlinks);
       });
+      links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     }
+
+    links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
 
     var summary = {};
     for (var i = 0; i < links.length; i++) {
@@ -975,7 +990,7 @@ Sefaria = extend(Sefaria, {
       orderB = orderB == -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
-    Sefaria._linkSummaries[Sefaria.humanRef(ref)] = summaryList;
+    Sefaria._linkSummaries[cacheKey] = summaryList;
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
@@ -1175,7 +1190,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   relatedApi: function(ref, callback) {
-    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
       if ("error" in data) {
         return;
@@ -1494,6 +1509,13 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
+  getRefSavedHistory: (tref) => {
+    return new Promise((resolve, reject) => {
+      Sefaria._api(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`, data => {
+        resolve(data);
+      });
+    })
+  },
   userHistoryAPI: () => {
     return new Promise((resolve, reject) => {
       Sefaria._api(Sefaria.apiHost + "/api/profile/user_history?secondary=0", data => {
@@ -1509,7 +1531,6 @@ Sefaria = extend(Sefaria, {
       h.time_stamp = Sefaria.util.epoch_time();
     }
     if (Sefaria._uid) {
-        console.log("sync", history_item_array);
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
               data => { /*console.log("sync resp", data)*/ } );
@@ -1731,6 +1752,14 @@ Sefaria = extend(Sefaria, {
             sheets = sheets.concat(newSheets);
           }
         });
+        // sheets anchored to spanning refs may cause duplicates
+        var seen = {};
+        var deduped = [];
+        sheets.map(sheet => { 
+          if (!seen[sheet.id]) { deduped.push(sheet); }
+          seen[sheet.id] = true; 
+        });
+        sheets = deduped;
       }
       if (sheets) {
         if (cb) { cb(sheets); }
@@ -1783,6 +1812,9 @@ Sefaria = extend(Sefaria, {
         sheets = sheets.filter(function(sheet) { return sheet.owner !== Sefaria._uid }).concat(mySheets);
       }
       return sheets.length;
+    },
+    extractIdFromSheetRef: function (ref) {
+        return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1])
     }
   },
   _groups: {},
@@ -1857,17 +1889,19 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
+      "Public Groups": "קבוצות",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
       "CC-BY": "רשיון CC-BY",
       "CC-BY-NC": "רשיון CC-BY-NC",
       "CC-BY-SA": "רשיון CC-BY-SA",
-      "CC-BY-NC-SA": "רשיון CC-BY-NC-Sa",
+      "CC-BY-NC-SA": "רשיון CC-BY-NC-SA",
       "CC0": "רשיון CC0",
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
+      "Source Sheets": "דפי מקורות", 
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",
@@ -1883,7 +1917,6 @@ Sefaria = extend(Sefaria, {
       "Aa": "א",
       "Decrease font size": "הקטן גופן",
       "Increase font size": "הגדל גופן",
-      "Search for Texts or Keywords Here": "חפשו ספרים או מלות מפתח כאן",
       "this comment":"הערה זו",
       "this source":"מקור זה",
       "was added to": "נוסף ל-",
@@ -1939,7 +1972,7 @@ Sefaria = extend(Sefaria, {
 
       //reader panel
       "Search" : "חיפוש",
-      //"Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
+      "Search Dictionary": "חפש במילון",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Versions": "גרסאות",
@@ -2011,20 +2044,9 @@ Sefaria = extend(Sefaria, {
 	}
   },
   _r: function (inputRef) {
-    var oref = Sefaria.ref(inputRef);
-    if(Sefaria.interfaceLang != "english"){
-        if(oref){
-            return oref.heRef;
-        }
-    }else{
-        if(oref){
-            return oref.ref;
-        }
-        else{
-          return inputRef;
-
-        }
-	}
+    const oref = Sefaria.ref(inputRef);
+    if (!oref) { return inputRef; }
+    return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
   _va: function(inputVarArr){
     if(Sefaria.interfaceLang != "english"){
@@ -2053,6 +2075,13 @@ Sefaria = extend(Sefaria, {
     }else{
         return inputStr;
 	  }
+  },
+  _cacheSiteInterfaceStrings: function() {
+    // Ensure that names set in Site Settings are available for translation in JS. 
+    if (!Sefaria._siteSettings) { return; }
+    ["SITE_NAME", "LIBRARY_NAME"].map(key => {
+      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];
+    });
   },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
@@ -2203,8 +2232,9 @@ Sefaria.setup = function(data) {
         Sefaria.last_place = [];
     }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
+    Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
-    Sefaria.search = new Search(Sefaria.searchBaseUrl, Sefaria.searchIndexText, Sefaria.searchIndexSheet)
+    Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
 

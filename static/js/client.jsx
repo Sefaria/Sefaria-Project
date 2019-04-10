@@ -8,7 +8,7 @@ const $            = require('./sefaria/sefariaJquery'),
 $(function() {
   var container = document.getElementById('s2');
   var loadingPlaceholder = document.getElementById('appLoading');
-  var footerContainer = document.getElementById('footer');
+  var footerContainer = document.getElementById('footerContainer');
   var component;
   DjangoCSRF.init();
   var renderFunc = ReactDOM.hydrate;

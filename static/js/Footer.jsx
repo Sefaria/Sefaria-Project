@@ -38,11 +38,15 @@ class Footer extends Component {
     }
   }
   render() {
-    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
-    var currentPath = Sefaria.util.currentPath();
-    var currentPathEncoded = encodeURIComponent(currentPath);
-    var next = currentPathEncoded ? currentPathEncoded : '?home';
+    if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
+
+    const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
+    const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
+    let currentPath = Sefaria.util.currentPath();
+    let currentPathEncoded = encodeURIComponent(currentPath);
+    let next = currentPathEncoded ? currentPathEncoded : '?home';
     return (
+      <footer id="footer" className="static sans">
         <div id="footerInner">
           <div className="section">
 
@@ -105,13 +109,17 @@ class Footer extends Component {
                   <span className="int-en">Mobile Apps</span>
                   <span className="int-he">ספריא בנייד</span>
               </a>
+              <a href="/torah-tab" className="outOfAppLink">
+                  <span className="int-en">Torah Tab</span>
+                  <span className="int-he">תורה טאב</span>
+              </a>
               <a href="/people" className="outOfAppLink">
                   <span className="int-en">Authors</span>
                   <span className="int-he">מחברים</span>
               </a>
               <a href="/groups" className="outOfAppLink">
                   <span className="int-en">Groups</span>
-                  <span className="int-he">הקבוצות</span>
+                  <span className="int-he">קבוצות</span>
               </a>
               <a href="/updates" className="outOfAppLink">
                   <span className="int-en">New Additions</span>
@@ -199,7 +207,7 @@ class Footer extends Component {
                   <span className="int-he">יוטיוב</span>
               </a>
               &bull;
-              <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
+              <a href={blgURL} target="_blank" className="outOfAppLink">
                   <span className="int-en">Blog</span>
                   <span className="int-he">בלוג</span>
               </a>
@@ -229,6 +237,7 @@ class Footer extends Component {
               </div>
           </div>
         </div>
+      </footer>
     );
   }
 }

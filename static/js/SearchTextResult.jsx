@@ -18,12 +18,31 @@ class SearchTextResult extends Component {
             duplicatesShown: !this.state.duplicatesShown
         });
     }
+    getHighlights() {
+      const highlights = [];
+      const highlightReg = /<b>([^<]+)<\/b>/g;
+      if (this.props.data.highlight) {
+        const vals = Object.values(this.props.data.highlight);
+        if (vals.length > 0) {
+          // vals should have only one entry. either 'naive_lemmatizer' or 'exact'
+          for (let h of vals[0]) {
+            let matches = null;
+            while ((matches = highlightReg.exec(h)) !== null) {
+                highlights.push(matches[1]);
+            }
+          }
+        }
+      }
+      return highlights;
+    }
     handleResultClick(event) {
         if(this.props.onResultClick) {
             event.preventDefault();
-            var s = this.props.data._source;
+            const s = this.props.data._source;
+            const textHighlights = this.getHighlights();
+            console.log(textHighlights);
             Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${s.ref}/${s.version}/${s.lang}`);
-            this.props.onResultClick(s.ref, {[s.lang]: s.version}, {"highlight": this.props.query}); //highlight not yet handled, above in ReaderApp.handleNavigationClick()
+            this.props.onResultClick(s.ref, {[s.lang]: s.version}, { textHighlights });
         }
     }
     get_snippet_markup(data) {

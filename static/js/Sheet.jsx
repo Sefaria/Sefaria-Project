@@ -177,15 +177,12 @@ class SheetContent extends Component {
               'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
               'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup' ],
             allowedAttributes: {
-              a: [ 'href', 'name', 'target' ],
+              a: [ 'href', 'name', 'target', 'class', 'data-ref' ],
               img: [ 'src' ],
               p: ['style'],
               span: ['style'],
               div: ['style'],
               td: ['colspan'],
-            },
-            allowedClasses: {
-             'sup': ['nechama'],
             },
             allowedStyles: {
               '*': {
@@ -234,6 +231,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -248,6 +246,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -262,6 +261,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -275,6 +275,7 @@ class SheetContent extends Component {
           <SheetMedia
             key={i}
             sourceNum={i + 1}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             source={source}
             onSegmentClick={this.props.onSegmentClick}
@@ -326,11 +327,19 @@ class SheetContent extends Component {
 
 class SheetSource extends Component {
   sheetSourceClick(event) {
-    if(event.target.tagName.toLowerCase() === 'a') {
+      if(event.target.tagName.toLowerCase() === 'a') {
       if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
         window.open(event.target.href, "_blank");
         event.preventDefault();
       }
+    }
+
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -348,12 +357,11 @@ class SheetSource extends Component {
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>);
-
       var containerClasses = classNames("sheetItem",
           "segment",
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.text && this.props.source.text.en && this.props.source.text.en == "..." ? "heOnly" : null,
-          this.props.source.text && this.props.source.text.he && this.props.source.text.he == "..." ? "enOnly" : null,
+          (this.props.source.text && this.props.source.text.en && this.props.source.text.en == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
+          (this.props.source.text && this.props.source.text.he && this.props.source.text.he == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,
           this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
@@ -375,8 +383,8 @@ class SheetSource extends Component {
           {linkCountElement}
 
         {this.props.source.text && this.props.source.text.he && this.props.source.text.he != "" ?
-          <div className="he">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+            <div className="he">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
@@ -384,8 +392,8 @@ class SheetSource extends Component {
 
 
         {this.props.source.text && this.props.source.text.en && this.props.source.text.en != "" ?
-          <div className="en">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+          <div className="en">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
@@ -410,6 +418,14 @@ class SheetComment extends Component {
         window.open(event.target.href, "_blank");
         event.preventDefault();
       }
+    }
+
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -455,6 +471,14 @@ class SheetOutsideText extends Component {
       }
     }
 
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
+
     else {
         this.props.onSegmentClick(this.props.source);
     }
@@ -477,7 +501,7 @@ class SheetOutsideText extends Component {
               <span className="he"> <span
                 className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
             </div>
-        <div className={lang}>
+        <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></div>
         </div>
         <div className="clearFix"></div>
@@ -500,6 +524,14 @@ class SheetOutsideBiText extends Component {
       }
     }
 
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
+
     else {
         this.props.onSegmentClick(this.props.source);
     }
@@ -508,18 +540,29 @@ class SheetOutsideBiText extends Component {
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",
+          this.props.source.outsideBiText.en == "..." || !this.props.source.outsideBiText.en ? "heOnly" : null,
+          this.props.source.outsideBiText.he == "..." || !this.props.source.outsideBiText.he ? "enOnly" : null,
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
           this.props.source.options ? this.props.source.options.indented : null
       )
     return (
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
-              <span className="he"> <span
-                className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+              <span className="en">
+                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+              </span>
+              <span className="he">
+                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+              </span>
             </div>
-        <div className="he sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
-        <div className="en sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
+          <div className="he">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
+          </div>
+          <div className="en">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
+          </div>
         <div className="clearFix"></div>
         {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
@@ -540,6 +583,15 @@ class SheetMedia extends Component {
         event.preventDefault();
       }
     }
+
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
+
 
     else {
         this.props.onSegmentClick(this.props.source);
