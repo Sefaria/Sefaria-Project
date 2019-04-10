@@ -1382,8 +1382,11 @@ class TextChunk(AbstractTextRecord):
         self._pad(content)
         self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
 
+        self._check_available_text()
+
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
+        self._update_link_language_availability()
 
         return self
 
@@ -1418,6 +1421,35 @@ class TextChunk(AbstractTextRecord):
         :return:
         """
         self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
+
+    def _check_available_text(self):
+        """
+        Stores the availability of this text in this language before a save is made,
+        so that link langauges availability can be updated in case of change. 
+        """
+        self._available_text_pre_save = self._oref.text(lang=self.lang).text
+
+    def _update_link_language_availability(self):
+        """
+        Check if current save has changed the overall availabilty of text for refs
+        in this language, pass refs to update revelant links if so. 
+        """
+        def text_to_ref_available(text):
+            flat = JaggedArray(text).flatten_to_array_with_indices()
+            refs_available = []
+            for item in flat:
+                ref = Ref(self._oref.normal())
+                ref.sections += item[0]
+                available = bool(item[1])
+                refs_available += [[ref, available]]
+            return refs_available
+
+        print "OLD"
+        old_text = text_to_ref_available(self._available_text_pre_save)
+        print old_text 
+        print "NEW"
+        new_text = text_to_ref_available(self.text)
+        print new_text
 
     def _validate(self):
         """
