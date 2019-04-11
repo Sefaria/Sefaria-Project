@@ -404,21 +404,20 @@ Sefaria = extend(Sefaria, {
   _getOrBuildTextData: function(key, settings) {
     let cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
-    if (cached.buildable === "Add Context") {
-      const settings0 =  this._complete_text_settings(extend(settings, {context: 0}));
-      const settings1 =  this._complete_text_settings(extend(settings, {context: 1}));
-      const segmentData  = Sefaria.util.clone(
-                            this._getOrBuildTextData(this._textKey(cached.ref, settings0), settings0)
-      );
-      const contextData  =  this._getOrBuildTextData(this._textKey(cached.sectionRef, settings0), settings0)
-                         || this._getOrBuildTextData(this._textKey(cached.sectionRef, settings1), settings1);
 
-      //const contextData  = this.text(cached.sectionRef, settings0) || this.text(cached.sectionRef, settings1);
-      segmentData.text = contextData.text;
-      segmentData.he   = contextData.he;
-      return segmentData;
-      // Should we be saving the built data?
-    }
+    // This is a superfluous check - we know it's populated.  It only takes one value.
+    // if (cached.buildable === "Add Context") {
+
+    // clone the segment, add text data from the sectiion ref
+    const segmentData  = Sefaria.util.clone(this._texts[this._textKey(cached.ref, extend(settings, {context: 0}))]);
+    const contextData  =  this._texts[this._textKey(cached.sectionRef, extend(settings, {context: 0}))]
+                       || this._texts[this._textKey(cached.sectionRef, extend(settings, {context: 1}))];
+
+    segmentData.text = contextData.text;
+    segmentData.he   = contextData.he;
+    return segmentData;
+  // Should we be saving the built data?
+
   },
   _saveText: function(data, settings) {
     if (!data || "error" in data) {
