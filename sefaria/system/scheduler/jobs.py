@@ -15,7 +15,7 @@ def add_jobs(scheduler):
     scheduler.add_job(AuthorStoryFactory.create_random_shared_story, "cron", id="RandAuthor", replace_existing=True,
                       day_of_week="tue,thu", hour="2", minute="6")
 
-    scheduler.add_job(SheetListFactory.create_shared_featured_story, "cron", id="FeaturedSheets", replace_existing=True,
+    scheduler.add_job(SheetListFactory.create_featured_story, "cron", id="FeaturedSheets", replace_existing=True,
                       day_of_week="wed", hour="2", minute="8")
 
 
