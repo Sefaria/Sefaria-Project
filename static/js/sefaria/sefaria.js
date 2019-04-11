@@ -291,7 +291,7 @@ Sefaria = extend(Sefaria, {
 
     return new Promise((resolve, reject) => {
         if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
-            const data = this._getOrBuildTextData(key, ref, settings);
+            const data = this._getOrBuildTextData(key, settings);
             resolve(data);
         }
         const saveData = data => {
@@ -310,14 +310,14 @@ Sefaria = extend(Sefaria, {
   },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
-    if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
+    if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }
     settings = this._complete_text_settings(settings);
-    var key = this._textKey(ref, settings);
+    const key = this._textKey(ref, settings);
     if (!cb) {
-      return this._getOrBuildTextData(key, ref, settings);
+      return this._getOrBuildTextData(key, settings);
     }
     if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
-      var data = this._getOrBuildTextData(key, ref, settings);
+      const data = this._getOrBuildTextData(key, settings);
       cb(data);
       return data;
     }
@@ -326,7 +326,7 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   textApi: function(ref, settings, cb) {
-    // Used only by `text` method, above.
+    // Used only by `text` method, above, and ReaderControls
     // To be deprecated in favor of `getText`
     settings = this._complete_text_settings(settings);
     return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
@@ -368,14 +368,14 @@ Sefaria = extend(Sefaria, {
   },
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
-    var params = param({
+    const params = param({
       commentary: settings.commentary,
       context:    settings.context,
       pad:        settings.pad,
       wrapLinks:  settings.wrapLinks,
       multiple:   settings.multiple
     });
-    var url = "/api/texts/" + Sefaria.normRef(ref);
+    let url = "/api/texts/" + Sefaria.normRef(ref);
     if (settings.enVersion) { url += "&ven=" + settings.enVersion.replace(/ /g,"_"); }
     if (settings.heVersion) { url += "&vhe=" + settings.heVersion.replace(/ /g,"_"); }
     url += "&" + params;
@@ -401,12 +401,19 @@ Sefaria = extend(Sefaria, {
     }
     return key;
   },
-  _getOrBuildTextData: function(key, ref, settings) {
+  _getOrBuildTextData: function(key, settings) {
     let cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
     if (cached.buildable === "Add Context") {
-      let segmentData  = Sefaria.util.clone(this.text(cached.ref, extend(settings, {context: 0})));
-      let contextData  = this.text(cached.sectionRef, extend(settings, {context: 0})) || this.text(cached.sectionRef, extend(settings, {context: 1}));
+      const settings0 =  this._complete_text_settings(extend(settings, {context: 0}));
+      const settings1 =  this._complete_text_settings(extend(settings, {context: 1}));
+      const segmentData  = Sefaria.util.clone(
+                            this._getOrBuildTextData(this._textKey(cached.ref, settings0), settings0)
+      );
+      const contextData  =  this._getOrBuildTextData(this._textKey(cached.sectionRef, settings0), settings0)
+                         || this._getOrBuildTextData(this._textKey(cached.sectionRef, settings1), settings1);
+
+      //const contextData  = this.text(cached.sectionRef, settings0) || this.text(cached.sectionRef, settings1);
       segmentData.text = contextData.text;
       segmentData.he   = contextData.he;
       return segmentData;
@@ -2105,6 +2112,23 @@ Sefaria = extend(Sefaria, {
     }
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
+  },
+  makeCancelable: (promise) => {
+      let hasCanceled_ = false;
+
+      const wrappedPromise = new Promise((resolve, reject) => {
+        promise.then(
+          val => hasCanceled_ ? reject({isCanceled: true}) : resolve(val),
+          error => hasCanceled_ ? reject({isCanceled: true}) : reject(error)
+        );
+      });
+
+      return {
+        promise: wrappedPromise,
+        cancel() {
+          hasCanceled_ = true;
+        },
+      };
   }
 });
 
