@@ -321,24 +321,17 @@ Sefaria = extend(Sefaria, {
       cb(data);
       return data;
     }
-    //console.log("API Call for " + key);
-    this.textApi(ref, settings, cb);
-    return null;
-  },
-  textApi: function(ref, settings, cb) {
-    // Used only by `text` method, above, and ReaderControls
-    // To be deprecated in favor of `getText`
-    settings = this._complete_text_settings(settings);
-    return this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
+    this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
       if (Array.isArray(data)) {
           data.map(d => this._saveText(d, settings))
       } else {
           this._saveText(data, settings);
       }
       cb(data);
-      //console.log("API return for " + data.ref)
     }.bind(this));
+    return null;
   },
+
   _versions: {},
   _translateVersions: {},
   versions: function(ref, cb) {
@@ -2112,6 +2105,7 @@ Sefaria = extend(Sefaria, {
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
   },
+  //  https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
   makeCancelable: (promise) => {
       let hasCanceled_ = false;
 
@@ -2124,9 +2118,7 @@ Sefaria = extend(Sefaria, {
 
       return {
         promise: wrappedPromise,
-        cancel() {
-          hasCanceled_ = true;
-        },
+        cancel() { hasCanceled_ = true; },
       };
   }
 });
