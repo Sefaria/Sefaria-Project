@@ -405,10 +405,10 @@ Sefaria = extend(Sefaria, {
     let cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
 
-    // This is a superfluous check - we know it's populated.  It only takes one value.
+    // This is a superfluous check - we know it's populated.  It can only take one value.
     // if (cached.buildable === "Add Context") {
 
-    // clone the segment, add text data from the sectiion ref
+    // clone the segment, add text from the section ref
     const segmentData  = Sefaria.util.clone(this._texts[this._textKey(cached.ref, extend(settings, {context: 0}))]);
     const contextData  =  this._texts[this._textKey(cached.sectionRef, extend(settings, {context: 0}))]
                        || this._texts[this._textKey(cached.sectionRef, extend(settings, {context: 1}))];
@@ -454,10 +454,10 @@ Sefaria = extend(Sefaria, {
       const spanningContextSettings = Sefaria.util.clone(settings);
       spanningContextSettings.context = 1;
 
-      for (var i = 0; i < data.spanningRefs.length; i++) {
+      for (let i = 0; i < data.spanningRefs.length; i++) {
         // For spanning refs, request each section ref to prime cache.
         // console.log("calling spanning prefetch " + data.spanningRefs[i])
-        Sefaria.text(data.spanningRefs[i], spanningContextSettings, function(data) {})
+        Sefaria.getText(data.spanningRefs[i], spanningContextSettings)
       }
     }
   },
@@ -489,8 +489,8 @@ Sefaria = extend(Sefaria, {
         sections: data.sections.concat(i+1),
         toSections: data.sections.concat(i+1),
         sectionRef: sectionRef,
-        nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
-        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1)
+        nextSegment: i+start === length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
+        prevSegment: i+start === 1      ? null : data.ref + delim + (i+start-1)
       });
       const context_settings = {};
       if (settings.enVersion) { context_settings.enVersion = settings.enVersion; }
