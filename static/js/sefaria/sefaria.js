@@ -294,14 +294,7 @@ Sefaria = extend(Sefaria, {
             const data = this._getOrBuildTextData(key, settings);
             resolve(data);
         }
-        const saveData = data => {
-            if (Array.isArray(data)) {
-                data.map(d => this._saveText(d, settings))
-            } else {
-                this._saveText(data, settings);
-            }
-            return data;
-        };
+        const saveData = data => { this._saveText(data, settings); return data; };
         resolve(
             this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
                 .then(saveData)
@@ -322,11 +315,7 @@ Sefaria = extend(Sefaria, {
       return data;
     }
     this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
-      if (Array.isArray(data)) {
-          data.map(d => this._saveText(d, settings))
-      } else {
-          this._saveText(data, settings);
-      }
+      this._saveText(data, settings);
       cb(data);
     }.bind(this));
     return null;
@@ -413,6 +402,10 @@ Sefaria = extend(Sefaria, {
 
   },
   _saveText: function(data, settings) {
+    if (Array.isArray(data)) {
+      data.map(d => this._saveText(d, settings));
+      return;
+    }
     if (!data || "error" in data) {
       return;
     }
