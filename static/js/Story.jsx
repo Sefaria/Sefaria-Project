@@ -377,8 +377,8 @@ class TopicTextsStory extends Component {
         return (
             <StoryFrame cls="topicTextsStory">
                 <StoryTypeBlock en="Topic" he="" />
-                <SeeAllLink url="/topics/"/>
-                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={"/topics/" + this.props.data.title.en}/>
+                <SeeAllLink url="/topics"/>
+                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={"/topics" + this.props.data.title.en}/>
                 <StoryTextList texts={this.props.data.texts} />
             </StoryFrame>
         );
@@ -403,10 +403,10 @@ class TopicListStory extends Component {
         return (
             <StoryFrame cls="topicListStory">
                 <StoryTypeBlock en="Topics" he="נושאים"/>
-                <SeeAllLink url="/topics/"/>
+                <SeeAllLink url="/topics"/>
                 <StoryTitleBlock en="Trending Recently" he="פופולרי"/>
                 <TwoBox content={this.props.data.topics.map(topic =>
-                    <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + topic.en} interfaceLink={true}/>
+                    <BlockLink title={topic.en} heTitle={topic.he} target={"/topics" + topic.en} interfaceLink={true}/>
                 )}/>
             </StoryFrame>
         )
