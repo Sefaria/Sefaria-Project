@@ -3090,7 +3090,7 @@ def home(request):
     """
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
-        
+
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
     if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
@@ -3934,3 +3934,18 @@ def custom_server_error(request, template_name='500.html'):
     """
     t = get_template(template_name) # You need to create a 500.html template.
     return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
+
+def apple_app_site_association(request):
+    teamID = "2626EW4BML"
+    bundleID = "org.sefaria.sefariaApp"
+    return jsonResponse({
+        "applinks": {
+            "apps": [],
+            "details": [
+                {
+                    "appID": "{}.{}".format(teamID, bundleID),
+                    "paths": ["*"]
+                }
+            ]
+        }
+    })
