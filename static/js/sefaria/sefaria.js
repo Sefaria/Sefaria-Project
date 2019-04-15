@@ -711,7 +711,7 @@ Sefaria = extend(Sefaria, {
     // Returns a list of lexicon entries for the given words
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
-    var cache_key = ref ? words + "|" + ref : words;
+    const cache_key = ref ? words + "|" + ref : words;
     /*if (typeof ref != 'undefined'){
       cache_key += "|" + ref
     }*/
@@ -732,10 +732,9 @@ Sefaria = extend(Sefaria, {
         //console.log("state changed from ajax: ", data);
         cb(this._lexiconLookups[cache_key]);
       }.bind(this));
-    }else{
+    } else {
         return cb([]);
     }
-
   },
   _links: {},
   /*
@@ -775,7 +774,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
+       const url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -787,18 +786,18 @@ Sefaria = extend(Sefaria, {
   },
   _saveLinkData: function(ref, data) {
     ref = Sefaria.humanRef(ref);
-    var l = this._saveLinksByRef(data);
+    const l = this._saveLinksByRef(data);
     this._links[ref] = data;
     this._cacheIndexFromLinks(data);
     return l;
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
-    for (var i=0; i < links.length; i++) {
+    for (let i=0; i < links.length; i++) {
       if (("collectiveTitle" in links[i]) && this.index(links[i].collectiveTitle["en"])) {
           continue;
       }
-      var index = {
+      const index = {
         title:      links[i].collectiveTitle["en"],
         heTitle:    links[i].collectiveTitle["he"],
         categories: [links[i].category],
@@ -897,15 +896,16 @@ Sefaria = extend(Sefaria, {
     // Takes either a single string `ref` or an array of refs strings.
     // If `excludedSheet` is present, exclude links to that sheet ID. 
 
-    var normRef = Sefaria.humanRef(ref);
-    var cacheKey = normRef + excludedSheet;
+    let links;
+    const normRef = Sefaria.humanRef(ref);
+    const cacheKey = normRef + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
-      var links = this.links(ref);
+      links = this.links(ref);
     } else {
-      var links = [];
+      links = [];
       ref.map(function(r) {
-        var newlinks = Sefaria.links(r);
+        const newlinks = Sefaria.links(r);
         links = links.concat(newlinks);
       });
       links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
@@ -913,16 +913,16 @@ Sefaria = extend(Sefaria, {
 
     links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
 
-    var summary = {};
-    for (var i = 0; i < links.length; i++) {
-      var link = links[i];
+    const summary = {};
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
       // Count Category
       if (link.category in summary) {
         summary[link.category].count += 1
       } else {
         summary[link.category] = {count: 1, books: {}};
       }
-      var category = summary[link.category];
+      const category = summary[link.category];
       // Count Book
       if (link["collectiveTitle"]["en"] in category.books) {
         category.books[link["collectiveTitle"]["en"]].count += 1;
@@ -931,13 +931,13 @@ Sefaria = extend(Sefaria, {
       }
     }
     // Add Zero counts for every commentator in this section not already in list
-    var baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
-    var oRef       = Sefaria.ref(baseRef);
-    var sectionRef = oRef ? oRef.sectionRef : baseRef;
+    const baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
+    const oRef       = Sefaria.ref(baseRef);
+    const sectionRef = oRef ? oRef.sectionRef : baseRef;
     if (ref !== sectionRef) {
-      var sectionLinks = Sefaria.links(sectionRef);
-      for (var i = 0; i < sectionLinks.length; i++) {
-        var l = sectionLinks[i];
+      const sectionLinks = Sefaria.links(sectionRef);
+      for (let i = 0; i < sectionLinks.length; i++) {
+        const l = sectionLinks[i];
         if (l.category === "Commentary") {
           if (!("Commentary" in summary)) {
             summary["Commentary"] = {count: 0, books: {}};
@@ -949,32 +949,32 @@ Sefaria = extend(Sefaria, {
       }
     }
     // Convert object into ordered list
-    var summaryList = Object.keys(summary).map(function(category) {
-      var categoryData = summary[category];
+    const summaryList = Object.keys(summary).map(function(category) {
+      const categoryData = summary[category];
       categoryData.category = category;
       categoryData.books = Object.keys(categoryData.books).map(function(book) {
-        var bookData = categoryData.books[book];
-        var index      = Sefaria.index(book);
+        const bookData = categoryData.books[book];
+        const index      = Sefaria.index(book);
         bookData.book     = index.title;
         bookData.heBook   = index.heTitle;
         bookData.category = category;
         return bookData;
       });
       // Sort the books in the category
-      var cat = oRef ? oRef["categories"][0] : null;
+      const cat = oRef ? oRef["categories"][0] : null;
       categoryData.books.sort(Sefaria.linkSummaryBookSort.bind(null, cat));
 
       return categoryData;
     });
     // Sort the categories
-    var categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
+    const categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
     categoryOrder.splice(0, 0, "Commentary"); // Always show Commentary First
     categoryOrder.splice(2, 0, "Targum");     // Show Targum after Tanakh
     summaryList.sort(function(a, b) {
-      var orderA = categoryOrder.indexOf(a.category);
-      var orderB = categoryOrder.indexOf(b.category);
-      orderA = orderA == -1 ? categoryOrder.length : orderA;
-      orderB = orderB == -1 ? categoryOrder.length : orderB;
+      let orderA = categoryOrder.indexOf(a.category);
+      let orderB = categoryOrder.indexOf(b.category);
+      orderA = orderA === -1 ? categoryOrder.length : orderA;
+      orderB = orderB === -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
     Sefaria._linkSummaries[cacheKey] = summaryList;
@@ -982,15 +982,14 @@ Sefaria = extend(Sefaria, {
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
     // Sorter for links in a link summary, included a hard coded list of top spots by category
-    var byHebrew = byHebrew || false;
     // First sort by predefined "top"
-    var topByCategory = {
+    const topByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
       "Talmud": ["Rashi", "Tosafot"]
     };
-    var top = topByCategory[category] || [];
-    var aTop = top.indexOf(a.book);
-    var bTop = top.indexOf(b.book);
+    const top = topByCategory[category] || [];
+    let aTop = top.indexOf(a.book);
+    let bTop = top.indexOf(b.book);
     if (aTop !== -1 || bTop !== -1) {
       aTop = aTop === -1 ? 999 : aTop;
       bTop = bTop === -1 ? 999 : bTop;
