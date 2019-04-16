@@ -1425,7 +1425,7 @@ class TextChunk(AbstractTextRecord):
     def _check_available_text(self):
         """
         Stores the availability of this text in this language before a save is made,
-        so that link langauges availability can be updated in case of change. 
+        so that link langauges availability can be updated after save if changed. 
         """
         self._available_text_pre_save = self._oref.text(lang=self.lang).text
 
@@ -1438,18 +1438,38 @@ class TextChunk(AbstractTextRecord):
             flat = JaggedArray(text).flatten_to_array_with_indices()
             refs_available = []
             for item in flat:
-                ref = Ref(self._oref.normal())
-                ref.sections += item[0]
+                d = self._oref._core_dict()
+                d["sections"] = d["sections"] + item[0]
+                d["toSections"] = d["sections"]
+                ref = Ref(_obj=d)
                 available = bool(item[1])
                 refs_available += [[ref, available]]
             return refs_available
 
-        print "OLD"
-        old_text = text_to_ref_available(self._available_text_pre_save)
-        print old_text 
-        print "NEW"
-        new_text = text_to_ref_available(self.text)
-        print new_text
+        old_refs_available = text_to_ref_available(self._available_text_pre_save)
+        new_refs_available = text_to_ref_available(self.text)
+
+        changed = []
+        zipped = list(itertools.izip_longest(old_refs_available, new_refs_available))
+        for item in zipped:
+            old_text, new_text = item[0], item[1]
+            had_previously = old_text and old_text[1]
+            have_now = new_text and new_text[1]
+
+            if not had_previously and have_now:
+                changed.append(new_text)
+            elif had_previously and not have_now:
+                # Current save is deleting a line of text, but it could still be available in a different
+                # version for this language. Check again.
+                current_text = old_text[0].text(lang=self.lang).text
+                if not bool(current_text):
+                    changed.append(old_text)
+
+        if len(changed):
+            from . import update_link_language_availabiliy
+            for change in changed:
+                update_link_language_availabiliy(change[0], self.lang, change[1])
+
 
     def _validate(self):
         """

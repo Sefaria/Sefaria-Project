@@ -93,7 +93,8 @@ class Link(abst.AbstractMongoRecord):
                     raise DuplicateRecordError(u"A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
 
-        self._set_available_langs()
+        if not getattr(self, "_skip_lang_check", False):
+            self._set_available_langs()
 
     def _set_available_langs(self):
         LANGS_CHECKED = ["he", "en"]
@@ -276,6 +277,20 @@ def process_index_delete_in_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     LinkSet({"refs": {"$regex": pattern}}).delete()
+
+
+def update_link_language_availabiliy(oref, lang, available):
+    links = oref.linkset()
+    for link in links:
+        pos = 0 if oref.overlaps(Ref(link.refs[0])) else 1
+
+        if available:
+            link.availableLangs[pos].append(lang)
+            link.availableLangs[pos] = list(set(link.availableLangs[pos]))
+        else:
+            link.availableLangs[pos] = [alang for alang in link.availableLangs[pos] if alang != lang]
+        link._skip_lang_check = True
+        link.save()
 
 
 #get_link_counts() and get_book_link_collection() are used in Link Explorer.
