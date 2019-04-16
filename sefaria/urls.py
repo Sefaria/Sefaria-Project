@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
@@ -40,6 +42,7 @@ urlpatterns = [
     url(r'^groups/new$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)/settings$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)$', reader_views.group_page),
+    url(r'^[nN]echama/?', lambda x: HttpResponseRedirect(u"/groups/גיליונות-נחמה")),
     url(r'^my/groups$', reader_views.my_groups),
     url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
     url(r'^account/?$', reader_views.account),
