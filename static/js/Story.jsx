@@ -428,20 +428,10 @@ TopicListStory.propTypes = {
 *                             *
  *****************************/
 
-class StoryFrame extends Component {
-
-    render() {
-      const classes = {story: 1};
-      classes[this.props.cls] = 1;
-      const cnames = classNames(classes);
-
-      const cardStyle = {"borderColor": this.props.cardColor || "#18345D"};
-
-      return <div className={cnames} style={cardStyle}>
-            {this.props.children}
-        </div>;
-    }
-}
+const StoryFrame = ({cls, cardColor, children}) =>
+     <div className={'story ' + cls} style={{"borderColor": cardColor || "#18345D"}}>
+        {children}
+     </div>;
 StoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
     cardColor:  PropTypes.string
@@ -457,21 +447,14 @@ const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText
 
 const StoryTypeBlock = ({en, he}) => <SimpleBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
 
-class StoryTitleBlock extends Component {
-    render() {
-        if (this.props.url) {
-            return <div className="storyTitleBlock">
-                <SimpleLinkedBlock classes="storyTitle pageTitle" url={this.props.url} he={this.props.he} en={this.props.en}/>
-                {this.props.children}
-            </div>;
-        } else {
-            return <div className="storyTitleBlock">
-                <SimpleBlock en={this.props.en} he={this.props.he} classes="storyTitle pageTitle"/>
-            </div>;
-        }
-    };
-}
+const StoryTitleBlock = ({url, he, en, url, children}) => {
+        const SBlock = (this.props.url) ? SimpleLinkedBlock : SimpleBlock;
 
+        return <div className="storyTitleBlock">
+            <SBlock classes="storyTitle pageTitle" url={url} he={he} en={en}/>
+            {children}
+        </div>;
+};
 
 const StoryBodyBlock = ({en, he, dangerously}) => {
       if (dangerously) {
