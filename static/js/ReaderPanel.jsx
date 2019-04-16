@@ -1118,23 +1118,19 @@ class ReaderControls extends Component {
     this.props.openMenu("sheet meta");
   }
   componentDidMount() {
-    var title = this.props.currentRef;
+    const title = this.props.currentRef;
     if (title) {
-      var oref = Sefaria.ref(title);
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
-        if ("error" in data) {
-          this.props.onError(data.error);
-          return;
-        }
-        this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
-      }.bind(this));
-      this.setState({runningQuery: ajaxObj});
+      const getTextPromise = Sefaria.getText(title, {context: 1}).then(data => {
+        if ("error" in data) { this.props.onError(data.error); }
+        this.setState({runningQuery: null});   // Causes re-render
+      });
+      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
     }
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
-      this.state.runningQuery.abort();  //todo: make work with promises
+      this.state.runningQuery.cancel();
     }
   }
   render() {

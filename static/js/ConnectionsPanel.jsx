@@ -581,7 +581,7 @@ SheetNodeConnectionTools.propTypes = {
   multiPanel:         PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   openComparePanel:   PropTypes.func.isRequired,
-}
+};
 
 
 class ConnectionsSummary extends Component {
