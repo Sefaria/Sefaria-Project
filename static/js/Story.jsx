@@ -447,9 +447,8 @@ const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText
 
 const StoryTypeBlock = ({en, he}) => <SimpleBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
 
-const StoryTitleBlock = ({url, he, en, url, children}) => {
-        const SBlock = (this.props.url) ? SimpleLinkedBlock : SimpleBlock;
-
+const StoryTitleBlock = ({url, he, en, children}) => {
+        const SBlock = url ? SimpleLinkedBlock : SimpleBlock;
         return <div className="storyTitleBlock">
             <SBlock classes="storyTitle pageTitle" url={url} he={he} en={en}/>
             {children}
