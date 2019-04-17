@@ -44,7 +44,12 @@ class CategoryFilter extends Component {
     var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
     var innerFilter = (
       <div className={innerClasses} data-name={this.props.category}>
-        <span className="en">{this.props.category}{count}{this.props.hasEnglish ? <EnglishAvailableTag /> : null}</span>
+        <span className="en">
+          <span className="filterInner">
+            <span className="filterText">{this.props.category}{count}</span>
+            {this.props.hasEnglish ? <EnglishAvailableTag /> : null}
+          </span>
+        </span>
         <span className="he">{this.props.heCategory}{count}</span>
       </div>);
     var wrappedFilter = <a href={url} onClick={handleClick}>{innerFilter}</a>;
@@ -99,7 +104,12 @@ class TextFilter extends Component {
       <a href={url} onClick={this.handleClick}>
         <div data-name={name} className={classes} style={style} >
             <div className={upperClass}>
-              <span className="en">{this.props.book}{count}{this.props.hasEnglish ? <EnglishAvailableTag /> : null}</span>
+              <span className="en">
+                <span className="filterInner">
+                  <span className="filterText">{name}{count}</span>
+                  {this.props.hasEnglish ? <EnglishAvailableTag /> : null}
+                </span>
+              </span>
               <span className="he">{this.props.heBook}{count}</span>
             </div>
         </div>
@@ -121,7 +131,7 @@ TextFilter.propTypes = {
 
 class EnglishAvailableTag extends Component {
   render() {
-    return <div className="englishAvailableTag">EN</div>
+    return <span className="englishAvailableTag">EN</span>
   }
 }
 

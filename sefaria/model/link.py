@@ -279,18 +279,27 @@ def process_index_delete_in_links(indx, **kwargs):
     LinkSet({"refs": {"$regex": pattern}}).delete()
 
 
-def update_link_language_availabiliy(oref, lang, available):
+def update_link_language_availabiliy(oref, lang=None, available=None):
+    """
+    Updates langauge availibility tags in links connected to `oref`.
+    If `lang` and `available` a present set the values provided.
+    If not, re-save the links, triggering a lookup of content availability. 
+    """
     links = oref.linkset()
-    for link in links:
-        pos = 0 if oref.overlaps(Ref(link.refs[0])) else 1
+    
+    if lang and available is not None:
+        for link in links:
+            pos = 0 if oref.overlaps(text.Ref(link.refs[0])) else 1
 
-        if available:
-            link.availableLangs[pos].append(lang)
-            link.availableLangs[pos] = list(set(link.availableLangs[pos]))
-        else:
-            link.availableLangs[pos] = [alang for alang in link.availableLangs[pos] if alang != lang]
-        link._skip_lang_check = True
-        link.save()
+            if available:
+                link.availableLangs[pos].append(lang)
+                link.availableLangs[pos] = list(set(link.availableLangs[pos]))
+            else:
+                link.availableLangs[pos] = [alang for alang in link.availableLangs[pos] if alang != lang]
+            link._skip_lang_check = True
+            link.save()
+    else:
+        links.save()
 
 
 #get_link_counts() and get_book_link_collection() are used in Link Explorer.

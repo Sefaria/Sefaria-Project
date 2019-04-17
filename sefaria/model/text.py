@@ -1463,12 +1463,12 @@ class TextChunk(AbstractTextRecord):
                 # version for this language. Check again.
                 current_text = old_text[0].text(lang=self.lang).text
                 if not bool(current_text):
-                    changed.append(old_text)
+                    changed.append([old_text[0], False])
 
         if len(changed):
-            from . import update_link_language_availabiliy
+            from . import link
             for change in changed:
-                update_link_language_availabiliy(change[0], self.lang, change[1])
+                link.update_link_language_availabiliy(change[0], self.lang, change[1])
 
 
     def _validate(self):

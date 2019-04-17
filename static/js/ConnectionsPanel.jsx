@@ -637,8 +637,6 @@ class ConnectionsSummary extends Component {
       summary = topSummary;
     }
 
-    console.log(summary)
-
     var connectionsSummary = summary.map(function(cat, i) {
 
       var books = this.props.contentLang == "hebrew"
