@@ -91,6 +91,7 @@ class PagesLoad(AtomicTest):
         self.load_private_sheets()
         self.load_private_groups()
 
+
 class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
@@ -104,9 +105,10 @@ class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
         section = self.get_section_txt('1')
         assert section.startswith(u'(דף מא) רבי זירא הוה משתמיט')
 
+
 class SectionContentAsExpectedChapter(AtomicTest):
     suite_class = PageloadSuite
-    every_build = True
+    every_build = False
 
     def body(self):
         self.load_toc()
@@ -115,6 +117,7 @@ class SectionContentAsExpectedChapter(AtomicTest):
         self.click_chapter('4')
         section = self.get_section_txt('1')
         assert u'פרק ד ' == section
+
 
 class GoThroughHomeLinksAndButtons(AtomicTest):
     #Makes sure links are there and not broken. Will fall on a line of a broken or unexisting link/button.
@@ -177,9 +180,9 @@ class GoThroughHomeLinksAndButtons(AtomicTest):
         # assert str == 'Subscribed! Welcome to our list.'
 
 
-class GoThroughFooterObjectss(AtomicTest):
+class GoThroughFooterObjects(AtomicTest):
     suite_class = PageloadSuite
-    every_build = True
+    every_build = False
 
     def body(self):
         self.load_home()
@@ -253,6 +256,7 @@ class GoThroughFooterObjectss(AtomicTest):
         self.click_ivrit_link()
         self.click_english_link()
 
+
 class ChangeLanguage(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
@@ -291,6 +295,7 @@ class ChangeLanguage(AtomicTest):
         assert sgmnt_heb.is_displayed() == True
         assert sgmnt_eng.is_displayed() == True
         self.get_content_language()
+
 
 class TextSettings(AtomicTest):
     suite_class = PageloadSuite
@@ -369,9 +374,10 @@ class TextSettings(AtomicTest):
         self.toggle_vowels_none()
         assert self.get_nth_section_hebrew(1).text == just_text
 
+
 class TanakhCantillationAndVowels(AtomicTest):
     suite_class = ReaderSuite
-    every_build = True
+    every_build = False
 
     def body(self):
         self.load_home()
@@ -396,9 +402,10 @@ class TanakhCantillationAndVowels(AtomicTest):
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
 
+
 class TalmudHasNoCantillation(AtomicTest):
     suite_class = ReaderSuite
-    every_build = True
+    every_build = False
 
     def body(self):
         self.load_ref("Shabbat 2")
@@ -418,6 +425,7 @@ class TalmudHasNoCantillation(AtomicTest):
         assert self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
         self.toggle_bilingual_layout_stacked()
+
 
 class SideBarEntries(AtomicTest):
     suite_class = ReaderSuite
@@ -508,10 +516,11 @@ class SideBarEntries(AtomicTest):
         self.back()
         self.click_sefaria()
 
+
 # Switch between Hebrew and English and sample a few of the objects to make sure the language has actually changed.
 class ChangeSiteLanguage(AtomicTest):
     suite_class = ReaderSuite
-    every_build = True
+    every_build = False
 
     def body(self):
         self.nav_to_toc()
@@ -548,9 +557,10 @@ class ChangeSiteLanguage(AtomicTest):
             assert self.get_donate_link_text() == u'Donate'
             assert self.get_facebook_link_text() == u'Facebook'
 
+
 class CheckGraphs(AtomicTest):
     suite_class = ReaderSuite
-    every_build = True
+    every_build = False
 
     # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     def body(self):
@@ -643,6 +653,7 @@ class CheckGraphs(AtomicTest):
         assert self.get_object_by_id('Tamid').is_displayed()
         assert float(self.get_object_by_id('Tamid').get_attribute('cx')) < float(self.get_object_by_id('Niddah').get_attribute('cx'))
         assert self.get_object_by_id('Niddah').is_displayed()
+
 
 class RecentInToc(AtomicTest):
     suite_class = ReaderSuite
