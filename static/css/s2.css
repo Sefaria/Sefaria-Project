@@ -1187,6 +1187,10 @@ a.readerNavCategory {
   box-sizing: border-box;
   padding: 14px 8px;
 }
+.resourcesLink.centeredLink {
+  width: 50%;
+  margin: 0 25%;
+}
 .blockLink:hover {
   color: #333;
 }

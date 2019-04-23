@@ -809,7 +809,7 @@ class ThreeBox extends Component {
 
 
 class TwoBox extends Component {
-  // Wrap a list of elements into a three column table
+  // Wrap a list of elements into a two column table
   render() {
       var content = this.props.content;
       var length = content.length;
