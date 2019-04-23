@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin

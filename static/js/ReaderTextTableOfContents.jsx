@@ -391,8 +391,8 @@ class ReaderTextTableOfContents extends Component {
                     {this.state.indexDetails && this.state.indexDetails.dedication ?
                         <div className="dedication">
                           <span>
-                            <span className="en">{this.state.indexDetails.dedication.en}</span>
-                            <span className="he">{this.state.indexDetails.dedication.he}</span>
+                            <span className="en" dangerouslySetInnerHTML={ {__html: this.state.indexDetails.dedication.en} } />
+                            <span className="he" dangerouslySetInnerHTML={ {__html: this.state.indexDetails.dedication.he} } />
                           </span>
                         </div> : ""}
                     {detailsSection}
