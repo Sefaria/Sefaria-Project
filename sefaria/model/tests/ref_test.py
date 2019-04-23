@@ -896,12 +896,12 @@ class Test_Order_Id(object):
 
     def test_ordering_of_dictionary(self):
         i = library.get_index("Klein Dictionary")
-        children = i.nodes.all_children()
-        first = children[0].ref().order_id()
-        second = children[1].ref().order_id()
-        third = children[2].ref().order_id()
-        assert first < second
-        assert second < third
+        first = i.nodes.get_default_child().first_child()
+        second = first.next_sibling()
+        third = second.next_sibling()
+
+        assert first.ref().order_id() < second.ref().order_id()
+        assert second.ref().order_id() < third.ref().order_id()
 
 '''
 class Test_ref_manipulations():
