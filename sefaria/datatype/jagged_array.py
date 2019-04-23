@@ -531,6 +531,24 @@ class JaggedArray(object):
                 flat += [el]
         return flat
 
+    def flatten_to_array_with_indices(self, _cur=None):
+        if _cur is None:
+            if not isinstance(self._store, list):
+                return [[[], self._store]]
+            return self.flatten_to_array_with_indices(_cur=self._store)
+
+        flat = []
+        for i, el in enumerate(_cur):
+            if isinstance(el, list):
+                sub_flat = self.flatten_to_array_with_indices(_cur=el)
+                for item in sub_flat:
+                    item[0] = [i+1] + item[0]
+                    flat += [item]
+            else:
+                flat += [[[i+1], el]]
+        return flat
+
+
     def last_index(self, depth):
         if depth > self.get_depth():
             depth = self.get_depth()

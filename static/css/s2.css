@@ -3655,6 +3655,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.englishAvailableTag {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  align-self: flex-start;
+  color: #999;
+  border: 1px solid #CCC;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0px 3px;
+  margin-left: 4px;
+}
+.filterInner {
+  display: flex;
+}
+.filterInner .filterText {
+  flex: 1;
+}
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
 }

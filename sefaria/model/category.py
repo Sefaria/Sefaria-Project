@@ -199,7 +199,7 @@ class TocTree(object):
             self._path_hash[tuple(i.categories + [i.title])] = node
 
         # Include Groups in TOC that has a `toc` field set
-        group_set = group.GroupSet({"toc": {"$exists": True}})
+        group_set = group.GroupSet({"toc": {"$exists": True}, "listed": True})
         for g in group_set:
             self._groups_in_library.append(g.name)
             node = TocGroupNode(g)
