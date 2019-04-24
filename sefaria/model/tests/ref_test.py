@@ -155,7 +155,7 @@ class Test_Ref(object):
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, The Four Sons 1').next_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, The Four Sons 2'
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5').next_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Karpas 1"
-        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2"
+        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, We Were Slaves in Egypt 2"
         assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is Ref('Kos Eliyahu on Pesach Haggadah, Barech, Pour Out Thy Wrath 2')
 
@@ -176,7 +176,7 @@ class Test_Ref(object):
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, The Four Sons 2').prev_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, The Four Sons 1'
         assert Ref('Ephod Bad on Pesach Haggadah, Magid, First Fruits Declaration 2').prev_section_ref().normal() == 'Ephod Bad on Pesach Haggadah, Magid, In the Beginning Our Fathers Were Idol Worshipers 5'
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Karpas 1").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2"
-        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Four Questions 2").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 1"
+        assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, We Were Slaves in Egypt 2").prev_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 2"
         assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Ha Lachma Anya 3").prev_section_ref() is None
 
@@ -373,8 +373,7 @@ class Test_Ref(object):
         assert Ref('Tosafot on Bava Metzia.3a').as_ranged_segment_ref() == Ref('Tosafot on Bava Metzia.3a.1.1-3a.18.1')
         assert Ref('Genesis.1-14').as_ranged_segment_ref() == Ref('Genesis.1.1-14.24')
         #assert Ref('Pesach Haggadah, Karpas').as_ranged_segment_ref() == Ref('Pesach Haggadah, Karpas.1-4')
-        assert Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_'
-                   'Karpas').as_ranged_segment_ref() == Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_Karpas.1.1-1.2')
+        assert Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_Kadesh').as_ranged_segment_ref() == Ref('Marbeh_Lisaper_on_Pesach_Haggadah,_Kadesh.2.1-12.1')
 
     def test_subref(self):
         assert Ref("Exodus").subref(5) == Ref("Exodus 5")
