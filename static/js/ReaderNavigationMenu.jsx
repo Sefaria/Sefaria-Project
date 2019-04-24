@@ -233,7 +233,7 @@ class ReaderNavigationMenu extends Component {
       ];
       topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);
 
-      const donation  = <a className="resourcesLink outOfAppLink centeredLink" href="https://sefaria.nationbuilder.com/">
+      const donation  = <a className="resourcesLink outOfAppLink donationLink" href="https://sefaria.nationbuilder.com/">
                             <img src="/static/img/heart.png" alt="donation icon" />
                             <span className="int-en">Make a Donation</span>
                             <span className="int-he">בצעו תרומה</span>
