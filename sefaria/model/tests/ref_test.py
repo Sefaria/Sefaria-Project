@@ -115,7 +115,6 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 3:1:1-3:1:3").starting_ref() == Ref("Rashi on Exodus 3:1:1")
         assert Ref("Rashi on Exodus 3:1:1-3:1:3").ending_ref() == Ref("Rashi on Exodus 3:1:3")
 
-
     def test_is_talmud(self):
         assert not Ref("Exodus").is_talmud()
         assert not Ref("Exodus 1:3").is_talmud()
@@ -123,7 +122,6 @@ class Test_Ref(object):
         assert Ref("Shabbat").is_talmud()
         assert Ref("Shabbat 7b").is_talmud()
         assert Ref("Rashi on Shabbat 2a:1:1").is_talmud()
-
 
     def test_all_context_refs(self):
         assert Ref('Rashi on Genesis 2:3:4').all_context_refs() == [Ref('Rashi on Genesis 2:3:4'), Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2')]
