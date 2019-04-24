@@ -727,7 +727,8 @@ input.noselect {
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
-.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
+.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox,
+.readerPanel.hebrew .readerNavMenu .donationLink {
   direction: ltr;
 }
 .interface-english .readerPanel .readerNavMenu,
@@ -1186,7 +1187,7 @@ a.readerNavCategory {
   box-sizing: border-box;
   padding: 14px 8px;
 }
-.resourcesLink.centeredLink {
+.resourcesLink.donationLink {
   width: 50%;
   margin: 0 25%;
 }
