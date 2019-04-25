@@ -56,7 +56,6 @@ class ReaderApp extends Component {
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
           mode: mode,
-          menuOpen: props.initialMenu,
           filter: props.initialFilter,
           versionFilter: props.initialVersionFilter,
           menuOpen: props.initialMenu,
@@ -97,7 +96,6 @@ class ReaderApp extends Component {
         panels[0] = {
           refs: props.initialRefs,
           mode: mode,
-          menuOpen: props.initialMenu,
           filter: props.initialFilter,
           versionFilter: props.initialVersionFilter,
           menuOpen: props.initialMenu,
@@ -298,10 +296,6 @@ class ReaderApp extends Component {
       }
       this.setContainerMode();
     }
-  }
-  _canTrackPageview() {
-      if (!Sefaria.track) { return false; }
-      return true;
   }
   trackPageview() {
       var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
@@ -1600,11 +1594,6 @@ class ReaderApp extends Component {
     this.forceUpdate();
   }
   render() {
-     // Only look at the last N panels if we're above panelCap
-    //var panelStates = this.state.panels.slice(-this.state.panelCap);
-    //if (panelStates.length && panelStates[0].mode === "Connections") {
-    //  panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
-    //}
     var panelStates = this.state.panels;
 
     var evenWidth;

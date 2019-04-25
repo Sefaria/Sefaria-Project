@@ -96,7 +96,7 @@ class PageLoader extends Component {
 
   componentWillMount() {
     if (Sefaria.isRef(this.props.secRef)) {
-      Sefaria.ref(this.props.secRef, data=>{this.setState({nextChapter: data.next})});
+      Sefaria.getRef(this.props.secRef).then(data=>{this.setState({nextChapter: data.next})});
     }
   }
 

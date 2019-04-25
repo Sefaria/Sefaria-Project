@@ -181,7 +181,7 @@ Sefaria = extend(Sefaria, {
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
-    const oref = this.ref(ref);
+    const oref = this.getRefFromCache(ref);
     return oref ? oref.sectionRef : null;
   },
   splitRangingRef: function(ref) {
@@ -191,7 +191,7 @@ Sefaria = extend(Sefaria, {
 
     const oRef     = Sefaria.parseRef(ref);
     const isDepth1 = oRef.sections.length === 1;
-    const textData = Sefaria.text(ref);
+    const textData = Sefaria.getTextFromCache(ref);
     if (textData) {
         return Sefaria.makeSegments(textData).map(segment => segment.ref);
     } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
@@ -239,7 +239,7 @@ Sefaria = extend(Sefaria, {
           return text;
       }
       const refRe    = Sefaria.makeRefRe(titles);
-      const replacer = function(match, p1, p2, p3, p4, p5, offset, string) {
+      const replacer = function(match, p1, p2, p3, p4, p5) {
           // p1: Book
           // p2: From section
           // p3: From segment
@@ -284,22 +284,24 @@ Sefaria = extend(Sefaria, {
     };
     return settings;
   },
-  getText: function(ref, settings) {
-    // returns a promise
+  getTextFromCache: function(ref, settings) {
     settings = this._complete_text_settings(settings);
     const key = this._textKey(ref, settings);
 
-    return new Promise((resolve, reject) => {
-        if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
-            const data = this._getOrBuildTextData(key, settings);
-            resolve(data);
-        }
-        const saveData = data => { this._saveText(data, settings); return data; };
-        resolve(
-            this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
-                .then(saveData)
-        );
-    });
+    if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
+        return this._getOrBuildTextData(key, settings);
+    }
+    return null;
+  },
+  getText: function(ref, settings) {
+    // returns a promise
+    settings = this._complete_text_settings(settings);
+
+    const data = this.getTextFromCache(ref, settings);
+    if (data) {return Promise.resolve(data);}
+
+    return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
+        .then(d => { this._saveText(d, settings); return d; });
   },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
@@ -386,9 +388,6 @@ Sefaria = extend(Sefaria, {
   _getOrBuildTextData: function(key, settings) {
     let cached = this._texts[key];
     if (!cached || !cached.buildable) { return cached; }
-
-    // This is a superfluous check - we know it's populated.  It can only take one value.
-    // if (cached.buildable === "Add Context") {
 
     // clone the segment, add text from the section ref
     const segmentData  = Sefaria.util.clone(this._texts[this._textKey(cached.ref, extend(settings, {context: 0}))]);
@@ -634,34 +633,37 @@ Sefaria = extend(Sefaria, {
         }, error);
     }.bind(this));
   },
-  ref: function(ref, callback) {
-    // Returns parsed ref info for string `ref` from cache, or async from API if `callback` is present
-    // Uses this._refmap to find the refkey that has information for this ref.
-    // Used in cases when the textual information is not important, so it can
-    // be called without worrying about the `settings` parameter for what is available in cache.
-    var result = null;
-    if (ref) {
-      var versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
-      if (versionedKey) { result = this._getOrBuildTextData(versionedKey);  }
-    }
-    if (callback && result) {
-      callback(result);
-    } else if (callback) {
-      // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
-      // todo: Ugly.  Breaks abstraction.
-      var openApiCalls = Object.keys(Sefaria._ajaxObjects);
-      var urlPattern = "/api/texts/" + Sefaria.normRef(ref);
-      for (var i = 0; i < openApiCalls.length; i++) {
-        if (openApiCalls[i].startsWith(urlPattern)) {
-          Sefaria._ajaxObjects[openApiCalls[i]].then(callback);
-        }
+  getRefFromCache: function(ref) {
+    const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
+    if (versionedKey) { return this._getOrBuildTextData(versionedKey); }
+    return null;
+  },
+  getRef: function(ref) {
+    // Returns Promise for parsed ref info
+    if (!ref) { return Promise.reject(new Error("No Ref!")); }
+
+    const r = this.getRefFromCache(ref);
+    if (r) return Promise.resolve(r);
+
+    // To avoid an extra API call, first look for any open API calls to this ref (regardless of params)
+    // todo: Ugly.  Breaks abstraction.
+    const urlPattern = "/api/texts/" + this.normRef(ref);
+    const openApiCalls = Object.keys(this._ajaxObjects);
+    for (let i = 0; i < openApiCalls.length; i++) {
+      if (openApiCalls[i].startsWith(urlPattern)) {
+        return this._ajaxObjects[openApiCalls[i]];
       }
-      // If no open calls found, call the texts API.
-      // Called with context:1 because this is our most common mode, maximize change of saving an API Call
-      Sefaria.text(ref, {context: 1}, callback);
-    } else {
-      return result;
     }
+
+    // If no open calls found, call the texts API.
+    // Called with context:1 because this is our most common mode, maximize change of saving an API Call
+    return Sefaria.getText(ref, {context: 1});
+  },
+  ref: function(ref, callback) {
+      if (callback) {
+          throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
+      }
+      return this.getRefFromCache(ref);
   },
   _lookups: {},
   _ref_lookups: {},
@@ -940,7 +942,7 @@ Sefaria = extend(Sefaria, {
     }
     // Add Zero counts for every commentator in this section not already in list
     const baseRef    = typeof ref == "string" ? ref : ref[0]; // TODO handle refs spanning sections
-    const oRef       = Sefaria.ref(baseRef);
+    const oRef       = Sefaria.getRefFromCache(baseRef);
     const sectionRef = oRef ? oRef.sectionRef : baseRef;
     if (ref !== sectionRef) {
       const sectionLinks = Sefaria.links(sectionRef);
@@ -1354,7 +1356,7 @@ Sefaria = extend(Sefaria, {
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
-    var data = this.ref(ref);
+    var data = this.getRefFromCache(ref);
     var result = {
           en: {named: "", numbered: ""},
           he: {named: "", numbered: ""}
@@ -1531,7 +1533,7 @@ Sefaria = extend(Sefaria, {
     } else {
       // we need to get the heRef for each history item
       Promise.all(history_item_array.filter(x=>!x.secondary).map(h => new Promise((resolve, reject) => {
-        Sefaria.ref(h.ref, oref => {
+        Sefaria.getRef(h.ref).then(oref => {
           h.he_ref = oref.heRef;
           resolve(h);
         });
@@ -2038,7 +2040,7 @@ Sefaria = extend(Sefaria, {
 	}
   },
   _r: function (inputRef) {
-    const oref = Sefaria.ref(inputRef);
+    const oref = Sefaria.getRefFromCache(inputRef);
     if (!oref) { return inputRef; }
     return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
