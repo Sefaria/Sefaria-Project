@@ -667,6 +667,7 @@ Sefaria = extend(Sefaria, {
   },
   _lookups: {},
   _ref_lookups: {},
+  get
   // lookupRef should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
   lookup: function(name, callback, onError, refOnly) {
