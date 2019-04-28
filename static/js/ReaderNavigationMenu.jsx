@@ -98,25 +98,25 @@ class ReaderNavigationMenu extends Component {
               </div>);
     } else {
       // Root Library Menu
-      var categories = Sefaria.toc.map(function(cat) {
-        var style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
-        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat.category])}.bind(this);
+      let categories = Sefaria.toc.map(cat => {
+        const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
+        const openCat = e => {e.preventDefault(); this.props.setCategories([cat.category])};
         return (<a href={`/texts/${cat.category}`} className="readerNavCategory" data-cat={cat.category} style={style} onClick={openCat}>
                     <span className="en">{cat.category}</span>
                     <span className="he">{cat.heCategory}</span>
                   </a>
                 );
-      }.bind(this));
-      var more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
+      });
+      const more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
                       <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
                   </a>);
-      var nCats  = this.width < 500 ? 9 : 8;
+      const nCats  = this.width < 500 ? 9 : 8;
       categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
       categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
 
 
-      var siteLinks = Sefaria._uid ?
+      let siteLinks = Sefaria._uid ?
                     [(<a className="siteLink outOfAppLink" key='profile' href="/my/profile">
                         <i className="fa fa-user"></i>
                         <span className="en">Your Profile</span>
@@ -147,7 +147,7 @@ class ReaderNavigationMenu extends Component {
                   </div>);
 
 
-      var calendar = Sefaria.calendars.map(function(item) {
+      let calendar = Sefaria.calendars.map(function(item) {
           return (<TextBlockLink
                     sref={item.ref}
                     url_string={item.url}
@@ -162,7 +162,7 @@ class ReaderNavigationMenu extends Component {
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
-      var resources = [(<a className="resourcesLink" href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
+      let resources = [(<a className="resourcesLink" href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
                         <img src="/static/img/sheet-icon.png" alt="source sheets icon" />
                         <span className="int-en">Source Sheets</span>
                         <span className="int-he">דפי מקורות</span>
@@ -196,7 +196,7 @@ class ReaderNavigationMenu extends Component {
       resources = (<div className="readerTocResources"><TwoBox content={resources} width={this.width} /></div>);
 
 
-      var topContent = this.props.home ?
+      let topContent = this.props.home ?
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
@@ -233,17 +233,22 @@ class ReaderNavigationMenu extends Component {
       ];
       topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);
 
+      const donation  = <a className="resourcesLink outOfAppLink donationLink" href="https://sefaria.nationbuilder.com/">
+                            <img src="/static/img/heart.png" alt="donation icon" />
+                            <span className="int-en">Make a Donation</span>
+                            <span className="int-he">בצעו תרומה</span>
+                        </a>;
 
-      var title = (<h1>
+      const title = (<h1>
                     { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                      <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                     <span className="int-en">{Sefaria._siteSettings.LIBRARY_NAME.en}</span>
                     <span className="int-he">{Sefaria._siteSettings.LIBRARY_NAME.he}</span>
                   </h1>);
 
-      var footer = this.props.compare ? null : <Footer />;
-      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
-      var contentClasses = classNames({content: 1, hasFooter: footer != null});
+      const footer = this.props.compare ? null : <Footer />;
+      const classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
+      const contentClasses = classNames({content: 1, hasFooter: footer != null});
       return(<div className={classes} onClick={this.props.handleClick} key="0">
               {topContent}
               <div className={contentClasses}>
@@ -253,6 +258,7 @@ class ReaderNavigationMenu extends Component {
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
+                    <ReaderNavigationMenuSection title="Support Sefaria" heTitle="תמכו בספריא" content={donation} />
                   { this.props.multiPanel ? null : siteLinks }
                 </div>
                 {footer}

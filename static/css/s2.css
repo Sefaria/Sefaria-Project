@@ -727,7 +727,8 @@ input.noselect {
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
-.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
+.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox,
+.readerPanel.hebrew .readerNavMenu .donationLink {
   direction: ltr;
 }
 .interface-english .readerPanel .readerNavMenu,
@@ -996,10 +997,16 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.readerPanel.hebrew .navToggles {
+    direction: rtl;
+}
 .readerNavMenu .navToggles {
-  text-align: center;
-  margin-bottom: 40px;
-  margin-top: -10px;
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: -10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 .readerNavMenu .navToggles .navTogglesDivider {
   color: #ccc;
@@ -1180,6 +1187,10 @@ a.readerNavCategory {
   margin: 0;
   box-sizing: border-box;
   padding: 14px 8px;
+}
+.resourcesLink.donationLink {
+  width: 50%;
+  margin: 0 25%;
 }
 .blockLink:hover {
   color: #333;
@@ -3651,6 +3662,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.englishAvailableTag {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  align-self: flex-start;
+  color: #999;
+  border: 1px solid #CCC;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0px 3px;
+  margin-left: 4px;
+}
+.filterInner {
+  display: flex;
+}
+.filterInner .filterText {
+  flex: 1;
+}
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
 }
@@ -4688,6 +4717,11 @@ h2.splitHeader .he {
 .groupPage .groupDescription .en .dedication {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-style: italic;
+  font-size: 18px;
+}
+.groupPage .groupDescription .he .dedication {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
 }
 .groupPage .tabs {
   text-align: center;

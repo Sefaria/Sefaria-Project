@@ -394,8 +394,8 @@ class ReaderTextTableOfContents extends Component {
                     {details && details.dedication ?
                         <div className="dedication">
                           <span>
-                            <span className="en">{details.dedication.en}</span>
-                            <span className="he">{details.dedication.he}</span>
+                            <span className="en" dangerouslySetInnerHTML={ {__html: details.dedication.en} } />
+                            <span className="he" dangerouslySetInnerHTML={ {__html: details.dedication.he} } />
                           </span>
                         </div> : ""}
                     {detailsSection}

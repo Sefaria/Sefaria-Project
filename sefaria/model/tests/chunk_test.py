@@ -432,7 +432,7 @@ def test_complex_with_depth_1():
 
     r = Ref('Pesach Haggadah, Kadesh 2')
     c = TextChunk(r, "he")
-    assert c.text == u"קַדֵּשׁ"
+    assert u"קַדֵּשׁ" in c.text
 
     r = Ref('Pesach Haggadah, Kadesh 2-4')
     c = TextChunk(r, "he")

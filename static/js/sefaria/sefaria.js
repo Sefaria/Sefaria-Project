@@ -406,7 +406,7 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    var isSectionLevel = data.ref === data.sectionRef;
+    var isSectionLevel = (data.ref === data.sectionRef && data.sections.length === data.sectionNames.length - 1);
     if (isSectionLevel && !data.isSpanning) {
       // Save dat
       this._splitTextSection(data, settings);
@@ -441,22 +441,26 @@ Sefaria = extend(Sefaria, {
     // Takes data for a section level text and populates cache with segment levels.
     // Don't do this for Refs above section level, like "Rashi on Genesis 1",
     // since it's impossible to correctly derive next & prev.
+
+    // Cowardly refuse to work with super sections or segments.  Thanks for playing!
+    if (data.textDepth !== data.sections.length + 1) {
+        return;
+    }
+
+
     settings = settings || {};
-    var en = typeof data.text == "string" ? [data.text] : data.text;
-    var he = typeof data.he == "string" ? [data.he] : data.he;
+    let en = typeof data.text === "string" ? [data.text] : data.text;
+    let he = typeof data.he === "string" ? [data.he] : data.he;
     // Pad the shorter array to make stepping through them easier.
-    var length = Math.max(en.length, he.length);
-    var superSectionLevel = data.textDepth == data.sections.length + 1;
-    var padContent = superSectionLevel ? [] : "";
+    const length = Math.max(en.length, he.length);
     en = en.pad(length, "");
     he = he.pad(length, "");
 
-    var delim = data.ref === data.book ? " " : ":";
-    var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
-    for (var i = 0; i < length; i++) {
-      var ref          = data.ref + delim + (i+start);
-      var sectionRef   = superSectionLevel ? data.sectionRef : ref;
-      var segment_data = Sefaria.util.clone(data);
+    const delim = data.ref === data.book ? " " : ":";
+    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1;
+    for (let i = 0; i < length; i++) {
+      const ref          = data.ref + delim + (i+start);
+      const segment_data = Sefaria.util.clone(data);
       extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
@@ -464,9 +468,9 @@ Sefaria = extend(Sefaria, {
         he: he[i],
         sections: data.sections.concat(i+1),
         toSections: data.sections.concat(i+1),
-        sectionRef: sectionRef,
-        nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
-        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1)
+        sectionRef: data.sectionRef,
+        nextSegment: i+start === length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
+        prevSegment: i+start === 1      ? null : data.ref + delim + (i+start-1)
       });
       const context_settings = {};
       if (settings.enVersion) { context_settings.enVersion = settings.enVersion; }
@@ -475,10 +479,10 @@ Sefaria = extend(Sefaria, {
       this._saveText(segment_data, context_settings);
 
       context_settings.context = 1;
-      var contextKey = this._textKey(ref, context_settings);
-      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef, updateFromAPI:data.updateFromAPI};
+      const contextKey = this._textKey(ref, context_settings);
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: data.sectionRef, updateFromAPI:data.updateFromAPI};
 
-      var refkey           = this._refKey(ref, context_settings);
+      const refkey           = this._refKey(ref, context_settings);
       this._refmap[refkey] = contextKey;
 
     }
@@ -867,16 +871,20 @@ Sefaria = extend(Sefaria, {
       var link = links[i];
       // Count Category
       if (link.category in summary) {
-        summary[link.category].count += 1
+        summary[link.category].count += 1;
+        summary[link.category].hasEnglish = summary[link.category].hasEnglish || link.sourceHasEn;
+
       } else {
-        summary[link.category] = {count: 1, books: {}};
+        summary[link.category] = {count: 1, books: {}, hasEnglish: link.sourceHasEn};
       }
       var category = summary[link.category];
       // Count Book
       if (link["collectiveTitle"]["en"] in category.books) {
         category.books[link["collectiveTitle"]["en"]].count += 1;
+        category.books[link["collectiveTitle"]["en"]].hasEnglish = category.books[link["collectiveTitle"]["en"]].hasEnglish || link.sourceHasEn;
+
       } else {
-        category.books[link["collectiveTitle"]["en"]] = {count: 1};
+        category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
       }
     }
     // Add Zero counts for every commentator in this section not already in list
