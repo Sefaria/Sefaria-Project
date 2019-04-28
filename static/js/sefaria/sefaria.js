@@ -611,27 +611,28 @@ Sefaria = extend(Sefaria, {
   },
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
-    this.lookupRef(ref, function(data) {
-        if (!data.is_segment) { return; }
-        var d = {json: JSON.stringify({
-            versionTitle: versionTitle,
-            language: language,
-            text: text
-          })};
-        $.ajax({
-          dataType: "json",
-          url: Sefaria.apiHost + "/api/texts/" + data.url,
-          data: d,
-          type: "POST",
-          // Clear cache with a sledgehammer.  May need more subtlety down the road.
-          success: function(d) {
-              this._texts = {};
-              this._refmap = {};
-              success(d);
-            }.bind(this),
-          error: error
-        }, error);
-    }.bind(this));
+    this.getName(ref, true)
+        .then(data => {
+            if (!data.is_segment) { return; }
+            var d = {json: JSON.stringify({
+                versionTitle: versionTitle,
+                language: language,
+                text: text
+              })};
+            $.ajax({
+              dataType: "json",
+              url: Sefaria.apiHost + "/api/texts/" + data.url,
+              data: d,
+              type: "POST",
+              // Clear cache with a sledgehammer.  May need more subtlety down the road.
+              success: function(d) {
+                  this._texts = {};
+                  this._refmap = {};
+                  success(d);
+                }.bind(this),
+              error: error
+            }, error);
+    });
   },
   getRefFromCache: function(ref) {
     const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
@@ -667,10 +668,21 @@ Sefaria = extend(Sefaria, {
   },
   _lookups: {},
   _ref_lookups: {},
-  get
-  // lookupRef should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
+
+  // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
+  getName: function(name, refOnly) {
+    const trimmed_name = name.trim();
+    const cache = refOnly? this._ref_lookups: this._lookups;
+    if (trimmed_name in cache) {
+        return Promise.resolve(cache[trimmed_name]);
+    }
+    return this._promiseAPI(Sefaria.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""))
+        .then(data => {cache[trimmed_name] = data;})
+  },
+  // lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
   lookup: function(name, callback, onError, refOnly) {
+    /* Deprecated in favor of getName */
+      
     /*
       * name - string to lookup
       * callback - callback function, takes one argument, a data object

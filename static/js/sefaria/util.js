@@ -607,10 +607,9 @@ class Util {
                 }.bind(this))
             .autocomplete({
                 source: function(request, response) {
-                  Sefaria.lookupRef(
-                      request.term,
-                      function (d) { response(d["completions"]); }
-                  );
+                  Sefaria.getName(request.term, true)
+                         .then(d => d.completions)
+                         .then(response);
                 },
                 select: function(event, ui) {
                   this._lookupAndRoute(ui.item.value);
@@ -701,9 +700,8 @@ Util.RefValidator.prototype = {
   },
   _lookupAndRoute: function(inString) {
       if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
-      this.current_lookup_ajax = Sefaria.lookupRef(
-        inString,
-        function(data) {
+      this.current_lookup_ajax = Sefaria.getName(inString, true)
+          .then(function(data) {
           // If this query has been outpaced by typing, just return.
           if (this.$input.val() != inString) { return; }
 
