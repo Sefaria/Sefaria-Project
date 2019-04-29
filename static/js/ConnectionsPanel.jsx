@@ -235,7 +235,6 @@ class ConnectionsPanel extends Component {
           });
       });
   }
-
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
     if (typeof(srefs) == "object" && srefs.length == 1) {

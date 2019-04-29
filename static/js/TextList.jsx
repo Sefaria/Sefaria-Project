@@ -176,7 +176,7 @@ class TextList extends Component {
     }.bind(this);
 
     let sectionLinks = Sefaria.links(sectionRef);
-    let overlaps = link => (!(Sefaria.splitRangingRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)));
+    let overlaps = link => (!(link.anchorRefExpanded.every(aref => Sefaria.util.inArray(aref, refs) === -1)));
     let links = Sefaria._filterLinks(sectionLinks, filter)
       .filter(overlaps)
       .sort(sortConnections);

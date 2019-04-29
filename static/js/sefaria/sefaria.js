@@ -277,6 +277,7 @@ Sefaria = extend(Sefaria, {
   _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts.
   text: function(ref, settings = null, cb = null) {
+    if (!ref.match("\\d")) {debugger;}
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     settings = settings || {};
     settings = {
@@ -773,7 +774,7 @@ Sefaria = extend(Sefaria, {
         console.log(data[i]);
         continue;
       }
-      var refs = Sefaria.splitRangingRef(ref);
+      var refs = "anchorRefExpanded" in data[i] ? data[i].anchorRefExpanded : Sefaria.splitRangingRef(ref);
       for (var j = 0; j < refs.length; j++) {
         ref = refs[j];
         if (ref in splitItems) {

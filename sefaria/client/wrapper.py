@@ -25,6 +25,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     # The text we're asked to get links to
     anchorTref = link.refs[pos]
     anchorRef  = Ref(anchorTref)
+    anchorTrefExpanded = getattr(link, "expandedRefs{}".format(pos))
 
     # The link we found to anchorRef
     linkPos   = (pos + 1) % 2
@@ -33,18 +34,19 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     langs     = getattr(link, "availableLangs", [[],[]])
     linkLangs = langs[linkPos]
 
-    com["_id"]              = str(link._id)
-    com['index_title']      = linkRef.index.title
-    com["category"]         = linkRef.primary_category #usually the index's categories[0] or "Commentary".
-    com["type"]             = link.type
-    com["ref"]              = linkTref
-    com["anchorRef"]        = anchorTref
-    com["sourceRef"]        = linkTref
-    com["sourceHeRef"]      = linkRef.he_normal()
-    com["anchorVerse"]      = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["sourceHasEn"]      = "en" in linkLangs
-    com["anchorText"]       = getattr(link, "anchorText", "")
-    com["inline_reference"] = getattr(link, "inline_reference", None)
+    com["_id"]               = str(link._id)
+    com['index_title']       = linkRef.index.title
+    com["category"]          = linkRef.primary_category #usually the index's categories[0] or "Commentary".
+    com["type"]              = link.type
+    com["ref"]               = linkTref
+    com["anchorRef"]         = anchorTref
+    com["anchorRefExpanded"] = anchorTrefExpanded
+    com["sourceRef"]         = linkTref
+    com["sourceHeRef"]       = linkRef.he_normal()
+    com["anchorVerse"]       = anchorRef.sections[-1] if len(anchorRef.sections) else 0
+    com["sourceHasEn"]       = "en" in linkLangs
+    com["anchorText"]        = getattr(link, "anchorText", "")
+    com["inline_reference"]  = getattr(link, "inline_reference", None)
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
     lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
@@ -174,13 +176,13 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         # find the position (0 or 1) of "anchor", the one we're getting links for
         # If both sides of the ref are in the same section of a text, only one direction will be used.  bug? maybe not.
         if reRef:
-            pos = 0 if re.match(reRef, link.refs[0]) else 1
+            pos = 0 if any(re.match(reRef, tref) for tref in link.expandedRefs0) else 1
         else:
-            pos = 0 if nRef == link.refs[0][:lenRef] else 1
+            pos = 0 if any(nRef == tref[:lenRef] for tref in link.expandedRefs0) else 1
         try:
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
-            # logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
             continue
         except AttributeError as e:
             logger.error(u"AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
@@ -281,7 +283,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             base_links = filter(lambda x: ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"]), base_links)
             links += base_links
 
-    links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
+    #links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
 
 
     groups = library.get_groups_in_library()

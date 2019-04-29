@@ -156,8 +156,8 @@ class LinkSet(abst.AbstractMongoSet):
         '''
         try:
             regex_list = query_or_ref.regex(as_list=True)
-            ref_clauses = [{"refs": {"$regex": r}} for r in regex_list]
-            super(LinkSet, self).__init__({"$or": ref_clauses}, page, limit, hint=[("refs", 1)])
+            ref_clauses = [{"expandedRefs": {"$regex": r}} for r in regex_list]
+            super(LinkSet, self).__init__({"$or": ref_clauses}, page, limit, hint=[("expandedRefs", 1)])
         except AttributeError:
             super(LinkSet, self).__init__(query_or_ref, page, limit)
 
