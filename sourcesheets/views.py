@@ -427,11 +427,11 @@ def groups_get_api(request, group=None):
 			"public": [g.listing_contents() for g in
 					   GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
 		})
-	group = Group().load({"name": group})
-	if not group:
+	group_obj = Group().load({"name": group})
+	if not group_obj:
 		return jsonResponse({"error": "No group named '%s'" % group})
-	is_member = request.user.is_authenticated and group.is_member(request.user.id)
-	group_content = group.contents(with_content=True, authenticated=is_member)
+	is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
+	group_content = group_obj.contents(with_content=True, authenticated=is_member)
 	return jsonResponse(group_content)
 
 
