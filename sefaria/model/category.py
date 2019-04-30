@@ -460,8 +460,8 @@ class TocGroupNode(TocNode):
         serial = {
             "categories": group_contents["toc"]["categories"],
             "name": group_contents["name"],
-            "title": group_contents["toc"]["title"],
-            "heTitle": group_contents["toc"]["heTitle"], 
+            "title": group_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in group_contents["toc"] else group_contents["toc"]["title"],
+            "heTitle": group_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in group_contents["toc"] else group_contents["toc"]["heTitle"], 
             "isGroup": True,
             "enComplete": True,
             "heComplete": True,

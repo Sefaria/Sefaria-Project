@@ -324,6 +324,9 @@ def save_sheet(sheet, user_id, search_override=False):
 								"content.sheet_id": sheet["id"]
 							}).delete()
 
+
+	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
+
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
 	if "tags" in sheet:
@@ -422,15 +425,17 @@ def add_ref_to_sheet(id, ref):
 	return {"status": "ok", "id": id, "ref": ref}
 
 
-def refs_in_sources(sources):
+def refs_in_sources(sources, refine_refs=False):
 	"""
-	Recurisve function that returns a list of refs found anywhere in sources.
+	Returns a list of refs found in sources.
 	"""
 	refs = []
 	for source in sources:
 		if "ref" in source:
-			text = source.get("text", {}).get("he", None)
-			ref  = refine_ref_by_text(source["ref"], text) if text else source["ref"]
+			ref = source["ref"]
+			if refine_refs:
+				text = source.get("text", {}).get("he", None)
+				ref  = refine_ref_by_text(ref, text) if text else source["ref"]
 			refs.append(ref)
 	return refs
 
@@ -474,25 +479,25 @@ def refine_ref_by_text(ref, text):
 	return ref
 
 
-def update_included_refs(hours=1):
+def update_included_refs(query=None, hours=None, refine_refs=False):
 	"""
-	Rebuild included_refs index on all sheets that have been modified
-	in the last 'hours' or all sheets if hours is 0.
+	Rebuild included_refs index on sheets matching `query` or sheets 
+	that have been modified in the last `hours`.
 	"""
-	if hours == 0:
-		query = {}
-	else:
+	if hours:
 		cutoff = datetime.now() - timedelta(hours=hours)
 		query = { "dateModified": { "$gt": cutoff.isoformat() } }
 
-	db.sheets.ensure_index("included_refs")
+	if query is None:
+		print "Specify either a query or number of recent hours to update."
+		return
 
 	sheets = db.sheets.find(query)
 
 	for sheet in sheets:
 		sources = sheet.get("sources", [])
-		refs = refs_in_sources(sources)
-		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"included_refs": refs}})
+		refs = refs_in_sources(sources, refine_refs=refine_refs)
+		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs}})
 
 
 def get_top_sheets(limit=3):
@@ -766,7 +771,6 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 
 # This is here as an alternative interface - it's not yet used, generally.
-# TODO fix me to reflect new structure where subsources and included_refs no longer exist.
 
 class Sheet(abstract.AbstractMongoRecord):
 	collection = 'sheets'
@@ -783,7 +787,7 @@ class Sheet(abstract.AbstractMongoRecord):
 	]
 	optional_attrs = [
 		"generatedBy",  # this had been required, but it's not always there.
-		"included_refs",
+		"includedRefs",
 		"views",
 		"nextNode",
 		"tags",
@@ -800,13 +804,6 @@ class Sheet(abstract.AbstractMongoRecord):
 		"generatedBy",
 		"summary" # double check this one
 	]
-
-	def regenerate_contained_refs(self):
-		self.included_refs = refs_in_sources(self.sources)
-		self.save()
-
-	def get_contained_refs(self):
-		return [model.Ref(r) for r in self.included_refs]
 
 	def is_hebrew(self):
 		"""Returns True if this sheet appears to be in Hebrew according to its title"""
