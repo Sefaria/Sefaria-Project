@@ -1570,6 +1570,7 @@ def shape_api(request, title):
     If depth == 0, descends to end of tree
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
     """
+    from sefaria.model.category import TocGroupNode
 
     def _simple_shape(snode):
         sn = StateNode(snode=snode)
@@ -1642,6 +1643,7 @@ def shape_api(request, title):
                 include_dependents = request.GET.get("dependents", False)
 
                 leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
+                leaves = [n for n in leaves if not isinstance(n, TocGroupNode)]
                 if not include_dependents:
                     leaves = [n for n in leaves if not n.dependence]
 

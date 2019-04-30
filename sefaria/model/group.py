@@ -42,6 +42,7 @@ class Group(abst.AbstractMongoRecord):
                                 # `catogories` - list
                                 # `title` - string
                                 # `heTitle` - string
+                                # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
                                 # These fields will override `name` and `description for display
