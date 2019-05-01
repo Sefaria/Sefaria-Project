@@ -7,7 +7,9 @@ logger = logging.getLogger(__name__)
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
+from sefaria.model.text import library
 from sefaria.model.user_profile import user_link, public_user_data
+from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.hebrew import hebrew_term
 
 
@@ -22,22 +24,26 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     # The text we're asked to get links to
     anchorTref = link.refs[pos]
-    anchorRef = Ref(anchorTref)
+    anchorRef  = Ref(anchorTref)
 
     # The link we found to anchorRef
-    linkTref = link.refs[(pos + 1) % 2]
-    linkRef = Ref(linkTref)
+    linkPos   = (pos + 1) % 2
+    linkTref  = link.refs[linkPos]
+    linkRef   = Ref(linkTref)
+    langs     = getattr(link, "availableLangs", [[],[]])
+    linkLangs = langs[linkPos]
 
-    com["_id"]           = str(link._id)
-    com['index_title']   = linkRef.index.title
-    com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
-    com["type"]          = link.type
-    com["ref"]           = linkTref
-    com["anchorRef"]     = anchorTref
-    com["sourceRef"]     = linkTref
-    com["sourceHeRef"]   = linkRef.he_normal()
-    com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["anchorText"]    = getattr(link, "anchorText", "")
+    com["_id"]              = str(link._id)
+    com['index_title']      = linkRef.index.title
+    com["category"]         = linkRef.primary_category #usually the index's categories[0] or "Commentary".
+    com["type"]             = link.type
+    com["ref"]              = linkTref
+    com["anchorRef"]        = anchorTref
+    com["sourceRef"]        = linkTref
+    com["sourceHeRef"]      = linkRef.he_normal()
+    com["anchorVerse"]      = anchorRef.sections[-1] if len(anchorRef.sections) else 0
+    com["sourceHasEn"]      = "en" in linkLangs
+    com["anchorText"]       = getattr(link, "anchorText", "")
     com["inline_reference"] = getattr(link, "inline_reference", None)
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
@@ -124,6 +130,16 @@ def format_note_object_for_client(note):
     return com
 
 
+def format_sheet_as_link(sheet):
+    sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
+    sheet["collectiveTitle"] = sheet["groupTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["groupTOC"] else {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["index_title"]     = sheet["collectiveTitle"]["en"]
+    sheet["sourceRef"]       = sheet["title"]
+    sheet["sourceHeRef"]     = sheet["title"]
+    sheet["isSheet"]         = True
+    return sheet
+
+
 def get_notes(oref, public=True, uid=None, context=1):
     """
     Returns a list of notes related to ref.
@@ -136,10 +152,11 @@ def get_notes(oref, public=True, uid=None, context=1):
     return notes
 
 
-def get_links(tref, with_text=True):
+def get_links(tref, with_text=True, with_sheet_links=False):
     """
     Return a list of links tied to 'ref' in client format.
-    If with_text, retrieve texts for each link.
+    If `with_text`, retrieve texts for each link.
+    If `with_sheet_links` include sheet results for sheets in groups which are listed in the TOC.
     """
     links = []
     oref = Ref(tref)
@@ -250,7 +267,7 @@ def get_links(tref, with_text=True):
             continue
 
     # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
-    # E.g., when requesting "Steinsaltz on X" also include links "X" as though they were connected directly to Steinsaltz.
+    # E.g., when requesting "Steinsaltz on X" also include links to "X" as though they were connected directly to Steinsaltz.
     bound_texts = ("Steinsaltz on ",)
     for prefix in bound_texts:
         if nRef.startswith(prefix):
@@ -265,4 +282,12 @@ def get_links(tref, with_text=True):
             links += base_links
 
     links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
+
+
+    groups = library.get_groups_in_library()
+    if with_sheet_links and len(groups):
+        sheet_links = get_sheets_for_ref(tref, in_group=groups)
+        formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
+        links += formatted_sheet_links
+
     return links

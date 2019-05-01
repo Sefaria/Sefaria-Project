@@ -37,7 +37,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import NewUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -74,6 +74,8 @@ def process_register_form(request, auth_method='session'):
                 p = UserProfile(id=user.id)
                 p.assign_slug()
                 p.join_invited_groups()
+                if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
+                    p.add_partner_group_by_email()
                 if hasattr(request, "interfaceLang"):
                     p.settings["interface_language"] = request.interfaceLang
 
@@ -379,7 +381,7 @@ def reset_cached_api(request, apiurl):
     :return:
     """
     from undecorated import undecorated
-    from importlib import import_module
+    # from importlib import import_module
     try:
         match = resolve("/api/{}".format(apiurl))
         #mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself

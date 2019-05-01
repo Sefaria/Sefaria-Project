@@ -37,6 +37,7 @@ from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
 from reader.views import catchall
+from sefaria.sheets import clean_source, bleach_text
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
@@ -351,7 +352,7 @@ def assigned_sheet(request, assignment_id):
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
 											})
-
+@csrf_exempt
 def delete_sheet_api(request, sheet_id):
 	"""
 	Deletes sheet with id, only if the requester is the sheet owner.
@@ -362,7 +363,22 @@ def delete_sheet_api(request, sheet_id):
 	if not sheet:
 		return jsonResponse({"error": "Sheet %d not found." % id})
 
-	if request.user.id != sheet["owner"]:
+	if not request.user.is_authenticated:
+		key = request.POST.get("apikey")
+		if not key:
+			return jsonResponse({"error": "You must be logged in or use an API key to delete a sheet."})
+		apikey = db.apikeys.find_one({"key": key})
+		if not apikey:
+			return jsonResponse({"error": "Unrecognized API key."})
+	else:
+		apikey = None
+
+	if apikey:
+		user = User.objects.get(id=apikey["uid"])
+	else:
+		user = request.user
+
+	if user.id != sheet["owner"]:
 		return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
 	db.sheets.remove({"id": id})
@@ -411,8 +427,6 @@ def groups_post_api(request, group_name=None):
 			if request.user.id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
 
-			from pprint import pprint
-			pprint(group)
 			existing.load_from_dict(group)
 			existing.save()
 		else:
@@ -573,6 +587,16 @@ def save_sheet_api(request):
 				return jsonResponse({"error": "You don't have permission to edit this sheet."})
 		else:
 			existing = None
+
+		cleaned_sources = []
+		for source in sheet["sources"]:
+			cleaned_sources.append(clean_source(source))
+		sheet["sources"] = cleaned_sources
+
+		sheet["title"] = bleach_text(sheet["title"])
+
+		if "summary" in sheet:
+			sheet["summary"] = bleach_text(sheet["summary"])
 
 		if sheet.get("group", None):
 			# Quietly enforce group permissions
@@ -981,7 +1005,7 @@ def export_to_drive(request, credential, sheet_id):
 	"""
 
 	http = credential.authorize(httplib2.Http())
-	service = build('drive', 'v3', http=http)
+	service = build('drive', 'v3', http=http, cache_discovery=False)
 
 	sheet = get_sheet(sheet_id)
 	if 'error' in sheet:

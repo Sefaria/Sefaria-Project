@@ -5,6 +5,9 @@ const Sefaria    = require('./sefaria/sefaria');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Footer     = require('./Footer');
+const {
+  SinglePanelNavHeader,
+}                = require('./Misc');
 import Component from 'react-class';
 
 
@@ -87,12 +90,20 @@ class UpdatesPanel extends Component {
 
     return (
       <div className={classStr}>
+        {this.props.multiPanel ? null :
+          <SinglePanelNavHeader
+            enTitle="Updates"
+            heTitle="עדכונים"
+            navHome={this.props.navHome}
+            showDisplaySettings={false} />
+        }
         <div className="content hasFooter">
           <div className="contentInner">
+            {this.props.multiPanel ? 
             <h1>
               <span className="int-en">Updates</span>
               <span className="int-he">עדכונים</span>
-            </h1>
+            </h1> : null }
 
             {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
 
@@ -110,9 +121,7 @@ class UpdatesPanel extends Component {
             )}
             </div>
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }

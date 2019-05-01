@@ -28,7 +28,7 @@ google-api-python-client
 boto3
 pillow
 datrie
-deepdiff
+deepdiff==3.3.0
 Appium-Python-Client
 django-webpack-loader
 django-anymail

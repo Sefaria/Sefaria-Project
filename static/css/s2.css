@@ -201,9 +201,11 @@ input.noselect {
 }
 #panelWrapBox {
   position: absolute;
-  top: 60px;
   height: calc(100% - 60px);
   box-sizing: border-box;
+}
+.multiPanel #panelWrapBox {
+  top: 60px;
 }
 #panelWrapBox.wrapBoxScroll {
   overflow-x: scroll;
@@ -725,7 +727,8 @@ input.noselect {
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
-.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
+.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox,
+.readerPanel.hebrew .readerNavMenu .donationLink {
   direction: ltr;
 }
 .interface-english .readerPanel .readerNavMenu,
@@ -994,10 +997,16 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.readerPanel.hebrew .navToggles {
+    direction: rtl;
+}
 .readerNavMenu .navToggles {
-  text-align: center;
-  margin-bottom: 40px;
-  margin-top: -10px;
+    text-align: center;
+    margin-bottom: 40px;
+    margin-top: -10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 .readerNavMenu .navToggles .navTogglesDivider {
   color: #ccc;
@@ -1179,6 +1188,10 @@ a.readerNavCategory {
   box-sizing: border-box;
   padding: 14px 8px;
 }
+.resourcesLink.donationLink {
+  width: 50%;
+  margin: 0 25%;
+}
 .blockLink:hover {
   color: #333;
 }
@@ -1276,7 +1289,7 @@ a.readerNavCategory {
 .readerNavCategoryMenu {
   height: 100%;
 }
-.readerNavCategoryMenu .content {
+..multiPanel .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
 }
 .readerNavCategoryMenu .content .category,
@@ -1315,8 +1328,8 @@ a.readerNavCategory {
   text-align: center;
   unicode-bidi: plaintext;
 }
-.readerNavCategoryMenu .catLink,
-.readerNavCategoryMenu .refLink {
+.readerNavCategoryMenu .blockLink,
+.gridBox .navButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1331,13 +1344,10 @@ a.readerNavCategory {
   padding: 13px 8px 19px;
   border-radius: 7px;
 }
-.catLink:active,
 .blockLink:active,
-.catLink:active,
 .navButton:active,
 .readerNavCategory:active,
-.refLink:active,
-.resourceseLink {  /* likely a typo in this word but not sure if this this still applies */
+.resourcesLink:active { 
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {
@@ -1351,14 +1361,13 @@ a.readerNavCategory {
 .readerSheetsNav .navButton:hover {
   text-decoration: none;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink,
-.readerNavMenu .readerNavCategoryMenu .catLink {
+.readerNavMenu .readerNavCategoryMenu .blockLink,
+.gridBox .navButton {
   width: 100%;
   height: 100%;
   padding: 13px 8px 19px;
 }
-.readerNavMenu .readerNavCategoryMenu .refLink.incomplete,
-.readerNavMenu .catLink.incomplete {
+.readerNavMenu .readerNavCategoryMenu .blockLink.incomplete {
   opacity: 0.65;
 }
 .categoryColorLine {
@@ -2458,18 +2467,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .similar-trigger-box i {
   padding: 0 5px;
 }
-
 .searchContent .sheet_result .owner_image {
   height: 30px;
   width: 30px;
   align-self: flex-start;
 }
-
 .searchContent .sheet_result {
   height: auto;
   margin: 15px 0;
 }
-
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -2557,6 +2563,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerSheetsNav .tagsList .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.interface-english .readerPanel .readerNavMenu .tagsList .gridBox {
+  direction: ltr;
+}
+.interface-hebrew .readerPanel .readerNavMenu .tagsList .gridBox {
+  direction: rtl;
 }
 .readerControls {
   position: relative;
@@ -2701,6 +2713,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   cursor: pointer;
 }
+.rightButtons .readerOptions {
+  vertical-align: middle;
+}
+.rightButtons .readerOptions:hover {
+  text-decoration: none;
+}
 .leftButtons .readerNavMenuMenuButton {
   font-size: 22px;
   margin-top: 6px;
@@ -2760,12 +2778,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .readerTextVersion .en{
   unicode-bidi: bidi-override;
 }
-.readerControls .readerTextToc .fa-caret-down {
+.readerControls .readerTextToc .fa {
   color: #999;
+  font-weight: bold;
   margin: 0 7px;
   vertical-align: 0px;
 }
-.readerControls .readerTextToc .fa-caret-down.invisible {
+.readerControls .readerTextToc .fa.invisible {
   visibility: hidden;
 }
 .bilingual .readerTextToc .he {
@@ -2773,6 +2792,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerOptions img {
   height: 16px;
+}
+.readerOptions .textIcon {
+  font-size: 22px;
+  line-height: 60px;
 }
 .dark .readerOptions img {
 
@@ -2938,6 +2961,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0;
 }
 .narrowColumn .textRange.basetext {
+}
+.narrowColumn .content .contentInner {
+  padding: 0 15px;
 }
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
@@ -3642,6 +3668,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.englishAvailableTag {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  text-transform: uppercase;
+  align-self: flex-start;
+  color: #999;
+  border: 1px solid #CCC;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0px 3px;
+  margin-left: 4px;
+}
+.filterInner {
+  display: flex;
+}
+.filterInner .filterText {
+  flex: 1;
+}
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
 }
@@ -3864,6 +3908,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .note .noteTitle,
 .textList .note .noteText {
   font-size: 16px;
+}
+.textList .textListTextRangeBox + .sheet {
+  margin-top: 24px;
 }
 .textRange .numberLabel {
   position: absolute;
@@ -4648,6 +4695,12 @@ h2.splitHeader .he {
 .groupInfo {
   margin-bottom: 50px;
 }
+.interface-hebrew .groupInfo .he {
+  display: inline;
+}
+.interface-hebrew .groupInfo .en {
+  display: none;
+}
 .groupPage h1 {
   margin-top: 20px;
   height: auto;
@@ -4668,6 +4721,19 @@ h2.splitHeader .he {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #000;
   text-align: center;
+}
+.groupPage .groupDescription .he {
+  font-family: "Heebo", sans-serif;
+  font-size: 16px;
+}
+.groupPage .groupDescription .en .dedication {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-style: italic;
+  font-size: 18px;
+}
+.groupPage .groupDescription .he .dedication {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 20px;
 }
 .groupPage .tabs {
   text-align: center;
@@ -5199,27 +5265,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: block;
   color: #999;
 }
-#footer.interface-hebrew, .interface-hebrew #footer{
+.interface-hebrew #footer{
   direction: rtl;
   text-align: right;
 }
-#footer.interface-english .int-he, .interface-english #footer .int-he {
+.interface-english #footer .int-he {
   display: none;
 }
-/*
-#footer.interface-english .int-en, .interface-english #footer .int-en {
-  display: inline;
-}
-*/
-#footer.interface-hebrew .int-he, .interface-hebrew #footer .int-he {
+.interface-hebrew #footer .int-he {
   display: inline;
   text-align: right;
 }
-/*
-#footer.interface-hebrew .int-en, .interface-hebrew #footer .int-en {
-  display: none;
-}
-*/
 #footerInner {
   max-width: 1000px;
   margin: 0 auto;
@@ -5230,10 +5286,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   width: 200px;
   margin: 20px 0;
 }
-#footer.interface-english .section, .interface-english #footer .section {
+.interface-english #footer .section {
   text-align: left;
 }
-#footer.interface-hebrew .section, .interface-hebrew #footer .section {
+.interface-hebrew #footer .section {
   text-align: right;
 }
 #footer .section .header {
@@ -5246,7 +5302,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   float: right;
   text-align: right;
 }
-#footer.interface-hebrew .section.last, .interface-hebrew #footer .section.last {
+.interface-hebrew #footer .section.last {
   float: left;
   text-align: left;
 }
@@ -5286,10 +5342,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   top: 10px;
   right: 12px;
 }
-#footer.interface-hebrew #newsletterInput {
+.interface-hebrew #footer #newsletterInput {
   padding: 8px 16px 11px 32px;
 }
-#footer.interface-hebrew #newsletterFooterBox img {
+.interface-hebrew #footer #newsletterFooterBox img {
   right: auto;
   left: 12px;
   transform: scale(-1, 1);
@@ -5317,7 +5373,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-left: 4px;
   margin-top: 4px;
 }
-#footer.interface-hebrew #twitterButton {
+.interface-hebrew #footer #twitterButton {
   margin-left: 0;
   margin-right: 4px;
 }
@@ -5769,14 +5825,28 @@ span.purim-emoji img{
   max-width: 100%;
 }
 
-sup.nechama {
+.he sup.sourcePrefix {
     margin-right: -35px;
     position: absolute;
     text-decoration: none;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #000;
 }
-.heLeft.bilingual .sheetContent .text sup.nechama,
-.heRight.bilingual .sheetContent .text sup.nechama {
+.en sup.sourcePrefix {
+    margin-left: -35px;
+    position: absolute;
+    text-decoration: none;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    color: #000;
+}
+.heLeft.bilingual .sheetContent .text sup.sourcePrefix,
+.heRight.bilingual .sheetContent .text sup.sourcePrefix {
     margin-right: -28px;
+}
+
+.heLeft.bilingual .sheetContent .text .en sup.sourcePrefix,
+.heRight.bilingual .sheetContent .text .en sup.sourcePrefix {
+  display: none
 }
 .sheetItem.ref-display-none .ref {
   display: none;
@@ -5861,4 +5931,9 @@ sup.nechama {
 .tooltip-toggle:hover::before, .tooltip-toggle:hover::after {
   opacity: 1;
   transition: all 0.75s ease;
+}
+.segment .queryTextHighlight {
+  background-color: #D2DCFF;
+  padding-left: 2px;
+  padding-right: 2px;
 }

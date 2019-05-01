@@ -406,7 +406,7 @@ Sefaria = extend(Sefaria, {
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    var isSectionLevel = data.ref === data.sectionRef;
+    var isSectionLevel = (data.ref === data.sectionRef && data.sections.length === data.sectionNames.length - 1);
     if (isSectionLevel && !data.isSpanning) {
       // Save dat
       this._splitTextSection(data, settings);
@@ -441,22 +441,26 @@ Sefaria = extend(Sefaria, {
     // Takes data for a section level text and populates cache with segment levels.
     // Don't do this for Refs above section level, like "Rashi on Genesis 1",
     // since it's impossible to correctly derive next & prev.
+
+    // Cowardly refuse to work with super sections or segments.  Thanks for playing!
+    if (data.textDepth !== data.sections.length + 1) {
+        return;
+    }
+
+
     settings = settings || {};
-    var en = typeof data.text == "string" ? [data.text] : data.text;
-    var he = typeof data.he == "string" ? [data.he] : data.he;
+    let en = typeof data.text === "string" ? [data.text] : data.text;
+    let he = typeof data.he === "string" ? [data.he] : data.he;
     // Pad the shorter array to make stepping through them easier.
-    var length = Math.max(en.length, he.length);
-    var superSectionLevel = data.textDepth == data.sections.length + 1;
-    var padContent = superSectionLevel ? [] : "";
+    const length = Math.max(en.length, he.length);
     en = en.pad(length, "");
     he = he.pad(length, "");
 
-    var delim = data.ref === data.book ? " " : ":";
-    var start = data.textDepth == data.sections.length ? data.sections[data.textDepth-1] : 1;
-    for (var i = 0; i < length; i++) {
-      var ref          = data.ref + delim + (i+start);
-      var sectionRef   = superSectionLevel ? data.sectionRef : ref;
-      var segment_data = Sefaria.util.clone(data);
+    const delim = data.ref === data.book ? " " : ":";
+    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1;
+    for (let i = 0; i < length; i++) {
+      const ref          = data.ref + delim + (i+start);
+      const segment_data = Sefaria.util.clone(data);
       extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
@@ -464,9 +468,9 @@ Sefaria = extend(Sefaria, {
         he: he[i],
         sections: data.sections.concat(i+1),
         toSections: data.sections.concat(i+1),
-        sectionRef: sectionRef,
-        nextSegment: i+start == length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
-        prevSegment: i+start == 1      ? null : data.ref + delim + (i+start-1)
+        sectionRef: data.sectionRef,
+        nextSegment: i+start === length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
+        prevSegment: i+start === 1      ? null : data.ref + delim + (i+start-1)
       });
       const context_settings = {};
       if (settings.enVersion) { context_settings.enVersion = settings.enVersion; }
@@ -475,10 +479,10 @@ Sefaria = extend(Sefaria, {
       this._saveText(segment_data, context_settings);
 
       context_settings.context = 1;
-      var contextKey = this._textKey(ref, context_settings);
-      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef, updateFromAPI:data.updateFromAPI};
+      const contextKey = this._textKey(ref, context_settings);
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: data.sectionRef, updateFromAPI:data.updateFromAPI};
 
-      var refkey           = this._refKey(ref, context_settings);
+      const refkey           = this._refKey(ref, context_settings);
       this._refmap[refkey] = contextKey;
 
     }
@@ -724,7 +728,7 @@ Sefaria = extend(Sefaria, {
     if (ref in this._links) {
       cb(this._links[ref]);
     } else {
-       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
+       var url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
        this._api(url, function(data) {
           if ("error" in data) {
             return;
@@ -830,13 +834,25 @@ Sefaria = extend(Sefaria, {
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
     });
   },
+  _filterSheetFromLinks: function(links, sheetID) {
+    links = links.filter(link => !link.isSheet || link.id !== sheetID );
+    return links;
+  },
+  _dedupeLinks: function(links) {
+    const key = (link) => [link.anchorRef, link.sourceRef, link.type].join("|");
+    let dedupedLinks = {};
+    links.map((link) => {dedupedLinks[key(link)] = link});
+    return Object.values(dedupedLinks);
+  },
   _linkSummaries: {},
-  linkSummary: function(ref) {
+  linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
+    // If `excludedSheet` is present, exclude links to that sheet ID. 
 
     var normRef = Sefaria.humanRef(ref);
-    if (normRef in this._linkSummaries) { return this._linkSummaries[normRef]; }
+    var cacheKey = normRef + excludedSheet;
+    if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
       var links = this.links(ref);
     } else {
@@ -845,23 +861,30 @@ Sefaria = extend(Sefaria, {
         var newlinks = Sefaria.links(r);
         links = links.concat(newlinks);
       });
+      links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
     }
+
+    links = excludedSheet ? this._filterSheetFromLinks(links, excludedSheet) : links;
 
     var summary = {};
     for (var i = 0; i < links.length; i++) {
       var link = links[i];
       // Count Category
       if (link.category in summary) {
-        summary[link.category].count += 1
+        summary[link.category].count += 1;
+        summary[link.category].hasEnglish = summary[link.category].hasEnglish || link.sourceHasEn;
+
       } else {
-        summary[link.category] = {count: 1, books: {}};
+        summary[link.category] = {count: 1, books: {}, hasEnglish: link.sourceHasEn};
       }
       var category = summary[link.category];
       // Count Book
       if (link["collectiveTitle"]["en"] in category.books) {
         category.books[link["collectiveTitle"]["en"]].count += 1;
+        category.books[link["collectiveTitle"]["en"]].hasEnglish = category.books[link["collectiveTitle"]["en"]].hasEnglish || link.sourceHasEn;
+
       } else {
-        category.books[link["collectiveTitle"]["en"]] = {count: 1};
+        category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
       }
     }
     // Add Zero counts for every commentator in this section not already in list
@@ -911,7 +934,7 @@ Sefaria = extend(Sefaria, {
       orderB = orderB == -1 ? categoryOrder.length : orderB;
       return orderA - orderB;
     });
-    Sefaria._linkSummaries[Sefaria.humanRef(ref)] = summaryList;
+    Sefaria._linkSummaries[cacheKey] = summaryList;
     return summaryList;
   },
   linkSummaryBookSort: function(category, a, b, byHebrew) {
@@ -1111,7 +1134,7 @@ Sefaria = extend(Sefaria, {
     }
   },
   relatedApi: function(ref, callback) {
-    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref);
+    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
       if ("error" in data) {
         return;
@@ -1421,6 +1444,13 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
+  getRefSavedHistory: (tref) => {
+    return new Promise((resolve, reject) => {
+      Sefaria._api(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`, data => {
+        resolve(data);
+      });
+    })
+  },
   userHistoryAPI: () => {
     return new Promise((resolve, reject) => {
       Sefaria._api(Sefaria.apiHost + "/api/profile/user_history?secondary=0", data => {
@@ -1657,6 +1687,14 @@ Sefaria = extend(Sefaria, {
             sheets = sheets.concat(newSheets);
           }
         });
+        // sheets anchored to spanning refs may cause duplicates
+        var seen = {};
+        var deduped = [];
+        sheets.map(sheet => { 
+          if (!seen[sheet.id]) { deduped.push(sheet); }
+          seen[sheet.id] = true; 
+        });
+        sheets = deduped;
       }
       if (sheets) {
         if (cb) { cb(sheets); }
@@ -1786,17 +1824,19 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
+      "Public Groups": "קבוצות",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
       "CC-BY": "רשיון CC-BY",
       "CC-BY-NC": "רשיון CC-BY-NC",
       "CC-BY-SA": "רשיון CC-BY-SA",
-      "CC-BY-NC-SA": "רשיון CC-BY-NC-Sa",
+      "CC-BY-NC-SA": "רשיון CC-BY-NC-SA",
       "CC0": "רשיון CC0",
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
+      "Source Sheets": "דפי מקורות", 
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",
@@ -1971,6 +2011,13 @@ Sefaria = extend(Sefaria, {
         return inputStr;
 	  }
   },
+  _cacheSiteInterfaceStrings: function() {
+    // Ensure that names set in Site Settings are available for translation in JS. 
+    if (!Sefaria._siteSettings) { return; }
+    ["SITE_NAME", "LIBRARY_NAME"].map(key => {
+      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];
+    });
+  },
   _makeBooksDict: function() {
     // Transform books array into a dictionary for quick lookup
     // Which is worse: the cycles wasted in computing this on the client
@@ -2104,6 +2151,7 @@ Sefaria.setup = function(data) {
         Sefaria.last_place = [];
     }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
+    Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };

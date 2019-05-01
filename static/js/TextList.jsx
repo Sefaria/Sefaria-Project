@@ -1,10 +1,12 @@
 const {
+  SheetListing,
   LoadingMessage,
 }                = require('./Misc');
 const {
   RecentFilterSet,
 }                = require('./ConnectionFilters');
 const React      = require('react');
+const ReactDOM   = require('react-dom');
 const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
 const TextRange  = require('./TextRange');
@@ -35,6 +37,12 @@ class TextList extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (!prevProps.srefs.compare(this.props.srefs)) {
       this.loadConnections();
+    }
+    const didRender = prevState.linksLoaded && (!prevState.waitForText || prevState.textLoaded);
+    const willRender = this.state.linksLoaded && (!this.state.waitForText || this.state.textLoaded);
+    if (!didRender && willRender) {
+      // links text just loaded 
+      this.props.checkVisibleSegments();
     }
   }
   getSectionRef() {
@@ -144,21 +152,25 @@ class TextList extends Component {
   getLinks() {
     var refs               = this.props.srefs;
     var filter             = this.props.filter;
+    var excludedSheet      = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
     var sectionRef         = this.getSectionRef();
 
     var sortConnections = function(a, b) {
+      // Sort according this which verse the link connects to
       if (a.anchorVerse !== b.anchorVerse) {
         return a.anchorVerse - b.anchorVerse;
       }
       if (a.index_title == b.index_title) {
+        // For Sheet links of the same group sort by title
+        if (a.isSheet && b.isSheet) {
+          return a.title > b.title ? 1 : -1;
+        }
+        // For text links of same text/commentary use content order, set by server
         return a.commentaryNum - b.commentaryNum;
       }
       if (this.props.contentLang == "hebrew") {
-        var indexA = Sefaria.index(a.index_title);
-        var indexB = Sefaria.index(b.index_title);
-        return indexA.heTitle > indexB.heTitle ? 1 : -1;
-      }
-      else {
+        return a.sourceHeRef > b.sourceHeRef ? 1 : -1;
+      } else {
         return a.sourceRef > b.sourceRef ? 1 : -1;
       }
     }.bind(this);
@@ -169,33 +181,11 @@ class TextList extends Component {
       .filter(overlaps)
       .sort(sortConnections);
 
-    this.checkLinkScrollIntent(links);
+    if (excludedSheet) {
+      links = Sefaria._filterSheetFromLinks(links, excludedSheet);
+    }
+
     return links;
-  }
-  checkLinkScrollIntent(links) {
-    // make sure there is a filter and it corresponds to a single book
-    if (!this.props.filter || !this.props.filter.length || !Sefaria.index(this.props.filter[0])) { return; }
-    const initialFilter = this.props.filter;
-    const initialRefs = this.props.srefs;
-    this.scrollIntentTimer = this.props.checkIntentTimer(this.scrollIntentTimer, () => {
-      if (!this.didFilterChange(initialFilter, initialRefs, this.props.filter, this.props.srefs)) {
-        // TODO: add version info once we support that in links
-        Sefaria.saveUserHistory(links.map(l => ({
-            ref: l.sourceRef,
-            he_ref: l.sourceHeRef,
-            versions: {en: null, he: null},
-            book: l.index_title,
-            secondary: true,
-            language: this.props.contentLang,
-        })));
-      }
-    });
-  }
-  didFilterChange(prevFilter, prevRefs, nextFilter, nextRefs) {
-    if (!prevFilter || !nextFilter ||
-        !prevFilter.length || !nextFilter.length ||
-        (Sefaria.index(prevFilter[0]) !== Sefaria.index(nextFilter[0]))) { return true; }
-    return !prevRefs.compare(nextRefs);
   }
   render() {
     var refs               = this.props.srefs;
@@ -212,27 +202,37 @@ class TextList extends Component {
                   this.state.waitForText && !this.state.textLoaded ?
                     (<LoadingMessage />) :
                     links.map(function(link, i) {
-                        var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
-                        Sefaria.util.inArray(link.anchorRef, refs) === -1;
-                        return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
-                                  <TextRange
-                                    panelPosition ={this.props.panelPosition}
-                                    sref={link.sourceRef}
-                                    hideTitle={hideTitle}
-                                    numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
-                                    basetext={false}
-                                    onRangeClick={this.props.onTextClick}
-                                    onCitationClick={this.props.onCitationClick}
-                                    onNavigationClick={this.props.onNavigationClick}
-                                    onCompareClick={this.props.onCompareClick}
-                                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-                                    inlineReference={link.inline_reference}/>
-                                    {Sefaria.is_moderator || Sefaria.is_editor ?
-                                    <EditorLinkOptions
-                                      _id={link._id}
-                                      onDataChange={ this.onDataChange } />
-                                    : null}
-                                </div>);
+                        if (link.isSheet) {
+                          var hideAuthor = link.index_title == this.props.filter[0];
+                          return (<SheetListing 
+                                    sheet={link} 
+                                    handleSheetClick={this.props.handleSheetClick}
+                                    connectedRefs={this.props.srefs}
+                                    hideAuthor={hideAuthor}
+                                    key={i + link.anchorRef} />);
+                        } else {
+                          var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";
+                          return (<div className="textListTextRangeBox" key={i + link.sourceRef}>
+                                    <TextRange
+                                      panelPosition ={this.props.panelPosition}
+                                      sref={link.sourceRef}
+                                      hideTitle={hideTitle}
+                                      numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
+                                      basetext={false}
+                                      onRangeClick={this.props.onTextClick}
+                                      onCitationClick={this.props.onCitationClick}
+                                      onNavigationClick={this.props.onNavigationClick}
+                                      onCompareClick={this.props.onCompareClick}
+                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                                      inlineReference={link.inline_reference}/>
+                                      {Sefaria.is_moderator || Sefaria.is_editor ?
+                                      <EditorLinkOptions
+                                        _id={link._id}
+                                        onDataChange={ this.onDataChange } />
+                                      : null}
+                                  </div>);
+
+                        }
                       }, this);
     return (
         <div>
@@ -265,11 +265,12 @@ TextList.propTypes = {
   onCompareClick:          PropTypes.func,
   onOpenConnectionsClick:  PropTypes.func,
   onDataChange:            PropTypes.func,
+  handleSheetClick:        PropTypes.func,
   openNav:                 PropTypes.func,
   openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
   selectedWords:           PropTypes.string,
-  checkIntentTimer:        PropTypes.func.isRequired,
+  checkVisibleSegments:    PropTypes.func.isRequired,
 };
 
 

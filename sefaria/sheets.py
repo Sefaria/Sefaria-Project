@@ -6,6 +6,7 @@ Writes to MongoDB Collection: sheets
 """
 import regex
 import dateutil.parser
+import bleach
 from datetime import datetime, timedelta
 from bson.son import SON
 from collections import defaultdict
@@ -125,7 +126,7 @@ def group_sheets(group, authenticated):
 		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
 
 	response = {
-		"sheets": sheet_list(query=query, sort=[["title", 1]]),
+		"sheets": sheet_list(query=query),
 	}
 	return response
 
@@ -323,6 +324,9 @@ def save_sheet(sheet, user_id, search_override=False):
 								"content.sheet_id": sheet["id"]
 							}).delete()
 
+
+	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
+
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
 	if "tags" in sheet:
@@ -348,6 +352,37 @@ def is_valid_source(source):
 	if not ("ref" in source or "outsideText" in source or "outsideBiText" in source or "comment" in source or "media" in source):
 		return False
 	return True
+
+
+def bleach_text(text):
+	ok_sheet_tags = ['blockquote', 'p', 'a', 'ul', 'ol', 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike',
+			'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup']
+
+	ok_sheet_attrs = {'a': [ 'href', 'name', 'target', 'data-ref' ],'img': [ 'src' ], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'],"*": ["class"]}
+
+	ok_sheet_styles = ['color', 'background-color', 'text-align']
+
+	return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, styles=ok_sheet_styles, strip=True)
+
+
+
+def clean_source(source):
+	if "ref" in source:
+		source["text"]["he"] = bleach_text(source["text"]["he"])
+		source["text"]["en"] = bleach_text(source["text"]["en"])
+
+	elif "outsideText" in source:
+		source["outsideText"] = bleach_text(source["outsideText"])
+
+	elif "comment" in source:
+		source["comment"] = bleach_text(source["comment"])
+
+	elif "outsideBiText" in source:
+		source["outsideBiText"]["he"] = bleach_text(source["outsideBiText"]["he"])
+		source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
+
+	return source
+
 
 
 def add_source_to_sheet(id, source, note=None):
@@ -390,15 +425,17 @@ def add_ref_to_sheet(id, ref):
 	return {"status": "ok", "id": id, "ref": ref}
 
 
-def refs_in_sources(sources):
+def refs_in_sources(sources, refine_refs=False):
 	"""
-	Recurisve function that returns a list of refs found anywhere in sources.
+	Returns a list of refs found in sources.
 	"""
 	refs = []
 	for source in sources:
 		if "ref" in source:
-			text = source.get("text", {}).get("he", None)
-			ref  = refine_ref_by_text(source["ref"], text) if text else source["ref"]
+			ref = source["ref"]
+			if refine_refs:
+				text = source.get("text", {}).get("he", None)
+				ref  = refine_ref_by_text(ref, text) if text else source["ref"]
 			refs.append(ref)
 	return refs
 
@@ -442,25 +479,25 @@ def refine_ref_by_text(ref, text):
 	return ref
 
 
-def update_included_refs(hours=1):
+def update_included_refs(query=None, hours=None, refine_refs=False):
 	"""
-	Rebuild included_refs index on all sheets that have been modified
-	in the last 'hours' or all sheets if hours is 0.
+	Rebuild included_refs index on sheets matching `query` or sheets 
+	that have been modified in the last `hours`.
 	"""
-	if hours == 0:
-		query = {}
-	else:
+	if hours:
 		cutoff = datetime.now() - timedelta(hours=hours)
 		query = { "dateModified": { "$gt": cutoff.isoformat() } }
 
-	db.sheets.ensure_index("included_refs")
+	if query is None:
+		print "Specify either a query or number of recent hours to update."
+		return
 
 	sheets = db.sheets.find(query)
 
 	for sheet in sheets:
 		sources = sheet.get("sources", [])
-		refs = refs_in_sources(sources)
-		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"included_refs": refs}})
+		refs = refs_in_sources(sources, refine_refs=refine_refs)
+		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs}})
 
 
 def get_top_sheets(limit=3):
@@ -472,11 +509,12 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, uid=None):
+def get_sheets_for_ref(tref, uid=None, in_group=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
+	If `in_group` (list) is present, only return sheets in one of the listed groups. 
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -487,6 +525,8 @@ def get_sheets_for_ref(tref, uid=None):
 		query["owner"] = uid
 	else:
 		query["status"] = "public"
+	if in_group:
+		query["group"] = {"$in": in_group}
 	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
@@ -526,11 +566,8 @@ def get_sheets_for_ref(tref, uid=None):
 
 			if "group" in sheet:
 				group = Group().load({"name": sheet["group"]})
-
-				try:
-					sheet["groupLogo"] = group.imageUrl
-				except:
-					sheet["groupLogo"] = None
+				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
+				sheet["groupTOC"]        = getattr(group, "toc", None)
 
 
 			sheet_data = {
@@ -544,7 +581,9 @@ def get_sheets_for_ref(tref, uid=None):
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
 				"options": 		   sheet["options"],
 				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
+				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
+				"groupTOC":        sheet.get("groupTOC", None),
 			    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
@@ -732,7 +771,6 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 
 # This is here as an alternative interface - it's not yet used, generally.
-# TODO fix me to reflect new structure where subsources and included_refs no longer exist.
 
 class Sheet(abstract.AbstractMongoRecord):
 	collection = 'sheets'
@@ -749,7 +787,7 @@ class Sheet(abstract.AbstractMongoRecord):
 	]
 	optional_attrs = [
 		"generatedBy",  # this had been required, but it's not always there.
-		"included_refs",
+		"includedRefs",
 		"views",
 		"nextNode",
 		"tags",
@@ -766,13 +804,6 @@ class Sheet(abstract.AbstractMongoRecord):
 		"generatedBy",
 		"summary" # double check this one
 	]
-
-	def regenerate_contained_refs(self):
-		self.included_refs = refs_in_sources(self.sources)
-		self.save()
-
-	def get_contained_refs(self):
-		return [model.Ref(r) for r in self.included_refs]
 
 	def is_hebrew(self):
 		"""Returns True if this sheet appears to be in Hebrew according to its title"""
