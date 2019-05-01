@@ -91,6 +91,7 @@ class Sheet extends Component {
             onRefClick={this.props.onRefClick}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            highlightedRefsInSheet={this.props.highlightedRefsInSheet}
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
             authorUrl = {sheet.ownerProfileUrl}
@@ -208,8 +209,13 @@ class SheetContent extends Component {
 
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
-
+      const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
       if ("ref" in source) {
+        const highlighted = this.props.highlightedNodes ?
+            this.props.highlightedNodes == source.node :
+              highlightedRef ? 
+              Sefaria.refContains(source.ref, highlightedRef) :
+                false;
         return (
           <SheetSource
             key={i}
@@ -219,7 +225,7 @@ class SheetContent extends Component {
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
-            highlightedNodes={this.props.highlightedNodes}
+            highlighted={highlighted}
             sheetNumbered={this.props.sheetNumbered}
           />
         )
@@ -359,7 +365,7 @@ class SheetSource extends Component {
                                                   </div>);
       var containerClasses = classNames("sheetItem",
           "segment",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.highlighted ? "highlight" : null,
           (this.props.source.text && this.props.source.text.en && this.props.source.text.en == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
           (this.props.source.text && this.props.source.text.he && this.props.source.text.he == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,

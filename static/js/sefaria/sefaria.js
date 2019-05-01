@@ -172,6 +172,8 @@ Sefaria = extend(Sefaria, {
     var oRef1 = Sefaria.parseRef(ref1);
     var oRef2 = Sefaria.parseRef(ref2);
 
+    if ("error" in oRef1 || "error" in oRef2) { return null; }
+
     for (var i = 0; i < oRef1.sections.length; i++) {
 
       if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
