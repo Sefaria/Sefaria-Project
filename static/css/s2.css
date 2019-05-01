@@ -2563,6 +2563,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerSheetsNav .tagsList .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
+.interface-english .readerPanel .readerNavMenu .tagsList .gridBox {
+  direction: ltr;
+}
+.interface-hebrew .readerPanel .readerNavMenu .tagsList .gridBox {
+  direction: rtl;
+}
 .readerControls {
   position: relative;
   top: 0;
@@ -4731,6 +4737,12 @@ h2.splitHeader .he {
 .groupInfo {
   margin-bottom: 50px;
 }
+.interface-hebrew .groupInfo .he {
+  display: inline;
+}
+.interface-hebrew .groupInfo .en {
+  display: none;
+}
 .groupPage h1 {
   margin-top: 20px;
   height: auto;
@@ -4763,7 +4775,7 @@ h2.splitHeader .he {
 }
 .groupPage .groupDescription .he .dedication {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
-  font-size: 22px;
+  font-size: 20px;
 }
 .groupPage .tabs {
   text-align: center;
