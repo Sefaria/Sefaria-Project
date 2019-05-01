@@ -569,7 +569,6 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
 				sheet["groupTOC"]        = getattr(group, "toc", None)
 
-
 			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
@@ -603,7 +602,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			}
 
 			results.append(sheet_data)
-
+			break
 
 	return results
 
