@@ -174,6 +174,8 @@ Sefaria = extend(Sefaria, {
 
     if ("error" in oRef1 || "error" in oRef2) { return null; }
 
+    if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
+
     for (var i = 0; i < oRef1.sections.length; i++) {
 
       if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
