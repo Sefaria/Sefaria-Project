@@ -916,8 +916,7 @@ Sefaria = extend(Sefaria, {
     // If `excludedSheet` is present, exclude links to that sheet ID. 
 
     let links;
-    const normRef = Sefaria.humanRef(ref);
-    const cacheKey = normRef + excludedSheet;
+    var cacheKey = normRef + "/" + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
       links = this.links(ref);
@@ -1027,6 +1026,7 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
+  /*
   flatLinkSummary: function(ref) {
     // Returns an array containing texts and categories with counts for ref
     var summary = Sefaria.linkSummary(ref);
@@ -1039,6 +1039,7 @@ Sefaria = extend(Sefaria, {
     books = books.concat.apply(books, booksByCat);
     return books;
   },
+  */
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"

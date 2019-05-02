@@ -109,7 +109,6 @@ class TextList extends Component {
     if (summary.length && summary[0].category == "Commentary") {
       this.setState({textLoaded: false, waitForText: true});
       // Get a list of commentators on this section that we need don't have in the cache
-      var links = Sefaria.links(basetext);
       var commentators = summary[0].books.map(function(item) {
         return item.book;
       });
