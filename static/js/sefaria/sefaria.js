@@ -916,8 +916,8 @@ Sefaria = extend(Sefaria, {
     // If `excludedSheet` is present, exclude links to that sheet ID. 
 
     let links;
-    var normRef = Sefaria.humanRef(ref);
-    var cacheKey = normRef + "/" + excludedSheet;
+    const normRef = Sefaria.humanRef(ref);
+    const cacheKey = normRef + "/" + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
       links = this.links(ref);
