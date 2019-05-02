@@ -1427,7 +1427,10 @@ class TextChunk(AbstractTextRecord):
         Stores the availability of this text in this language before a save is made,
         so that link langauges availability can be updated after save if changed. 
         """
-        self._available_text_pre_save = self._oref.text(lang=self.lang).text
+        try:
+            self._available_text_pre_save = self._oref.text(lang=self.lang).text
+        except NoVersionFoundError:
+            self._available_text_pre_save = []
 
     def _update_link_language_availability(self):
         """
