@@ -39,5 +39,5 @@ django-user-agents
 psycopg2
 django-easy-timezones
 djangorestframework
-djangorestframework_simplejwt
+djangorestframework_simplejwt==3.3.0
 undecorated
