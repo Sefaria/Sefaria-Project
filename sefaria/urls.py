@@ -291,8 +291,8 @@ urlpatterns += [
     url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     url(r'^api/register/$', sefaria_views.register_api),
-    url(r'^api/token/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    url(r'^api/token/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
+    url(r'^api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    url(r'^api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 # Compare Page
