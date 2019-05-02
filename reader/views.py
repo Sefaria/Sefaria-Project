@@ -41,7 +41,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
-from sefaria.model.schema import DictionaryEntryNotFound
+from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -2233,6 +2233,9 @@ def get_name_completions(name, limit, ref_only):
     try:
         ref = Ref(name)
         inode = ref.index_node
+        if isinstance(inode, SheetLibraryNode):
+            ref = None
+            raise InputError
 
         # Find possible dictionary entries.  This feels like a messy way to do this.  Needs a refactor.
         if inode.is_virtual and inode.parent and getattr(inode.parent, "lexiconName", None) in library._lexicon_auto_completer:
