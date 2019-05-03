@@ -539,7 +539,7 @@ def email_unread_notifications(timeframe):
         if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
             continue
         notifications = NotificationSet().unread_personal_for_user(uid)
-        if notifications.count() == 0:
+        if len(notifications) == 0:
             continue
         try:
             user = User.objects.get(id=uid)
@@ -650,10 +650,9 @@ def user_started_text(uid, title):
     lock name changes after an admin has stepped in.
     """
     log = db.history.find({"title": title}).sort([["date", -1]]).limit(1)
-    if log.count():
+    if len(log):
         return log[0]["user"] == uid
     return False
-
 
 
 def annotate_user_list(uids):

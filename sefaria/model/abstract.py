@@ -158,7 +158,7 @@ class AbstractMongoRecord(object):
             raise InputError(u"Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         notify(self, "delete")
-        getattr(db, self.collection).remove({"_id": self._id})
+        getattr(db, self.collection).delete_one({"_id": self._id})
 
     def delete_by_query(self, query, force=False):
         r = self.load(query)
@@ -303,11 +303,9 @@ class AbstractMongoSet(collections.Iterable):
             self.max = len(self.records)
 
     def __len__(self):
-        if self.max:
-            return self.max
-        else:
-            kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
-            return getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs)
+        if not self.max:
+            self._read_records()
+        return self.max
 
     def array(self):
         self._read_records()
@@ -317,7 +315,11 @@ class AbstractMongoSet(collections.Iterable):
         return self.raw_records.distinct(field)
 
     def count(self):
-        return len(self)
+        if self.max:
+            return self.max
+        else:
+            kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
+            return getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs)
 
     def update(self, attrs):
         for rec in self:

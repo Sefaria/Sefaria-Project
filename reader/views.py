@@ -1097,7 +1097,6 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
-            i = library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
         except:
             pass
@@ -2438,7 +2437,7 @@ def addDynamicStories(stories, user, page):
     if page == 1:
         # Show an old saved story
         saved = user.get_user_history(saved=True, secondary=False, sheets=False)
-        if saved.count() > 2:
+        if len(saved) > 2:
             saved_item = choice(saved)
             stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
                     lead={"en": "Take Another Look", "he": u"קרא עוד"})
@@ -2557,7 +2556,7 @@ def notifications_api(request):
                             "html": notifications.to_HTML(),
                             "page": page,
                             "page_size": page_size,
-                            "count": notifications.count()
+                            "count": len(notifications)
                         })
 
 
@@ -2661,7 +2660,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     history = db.history.find(query)
 
     summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
-    updated = history[0]["date"].isoformat() if history.count() else "Unknown"
+    updated = history[0]["date"].isoformat() if len(history) else "Unknown"
 
     for act in history:
         if act["rev_type"].startswith("edit"):
@@ -3322,7 +3321,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
     request_count     = TranslationRequestSet({"completed": False, "section_level": False}).count()
     complete_count    = TranslationRequestSet({"completed": True}).count()
     featured_complete = TranslationRequestSet({"completed": True, "featured": True}).count()
-    next_page         = page + 2 if True or requests.count() == page_size else 0
+    next_page         = page + 2 if True or len(requests) == page_size else 0
     featured_query    = {"featured": True, "featured_until": { "$gt": datetime.now() } }
     featured          = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
     today             = datetime.today()
@@ -3330,7 +3329,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
     featured_end      = featured_end.replace(hour=0, minute=0)  # At midnight
     current           = [d.featured_until <= featured_end for d in featured]
     featured_current  = sum(current)
-    show_featured     = not completed_only and not page and ((request.user.is_staff and featured.count()) or (featured_current))
+    show_featured     = not completed_only and not page and ((request.user.is_staff and len(featured)) or (featured_current))
 
     return render(request,'translation_requests.html',
                                 {

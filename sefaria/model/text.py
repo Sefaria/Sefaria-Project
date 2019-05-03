@@ -1330,11 +1330,11 @@ class TextChunk(AbstractTextRecord):
         elif lang:
             vset = VersionSet(self._oref.condition_query(lang), proj=self._oref.part_projection())
 
-            if vset.count() == 0:
+            if len(vset) == 0:
                 if VersionSet({"title": self._oref.index.title}).count() == 0:
                     raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
                 return
-            if vset.count() == 1:
+            if len(vset) == 1:
                 v = vset[0]
                 if exclude_copyrighted and v.is_copyrighted():
                     raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
@@ -3172,7 +3172,10 @@ class Ref(object):
 
         # The commented code is easier to understand, but the code we're using puts a lot less on the wire.
         # return not len(self.versionset())
-        return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
+        # depricated
+        # return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
+
+        return db.texts.count_documents(self.condition_query()) == 0
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """

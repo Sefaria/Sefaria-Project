@@ -39,7 +39,7 @@ def rename_category(old, new):
     """
     indices = IndexSet({"categories": old})
 
-    assert indices.count(), "No categories named {}".format(old)
+    assert len(indices), "No categories named {}".format(old)
 
     for i in indices:
         i.categories = [new if cat == old else cat for cat in i.categories]

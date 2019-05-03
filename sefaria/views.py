@@ -771,7 +771,7 @@ def bulk_download_versions_api(request):
 
     vs = VersionSet(query)
 
-    if vs.count() == 0:
+    if len(vs) == 0:
         return jsonResponse({"error": "No versions found to match query"})
 
     file_like_object = io.BytesIO()
