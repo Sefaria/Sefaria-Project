@@ -40,15 +40,15 @@ class UserHistory(abst.AbstractMongoRecord):
         "last_place",         # bool: True if this is the last ref read for this user in this book
         "book",               # str: index title
         "saved",              # bool: True if saved
-        "secondary",          # bool: True when view is from sidebar
-        "context_refs",       # list of ref strings: derived from ref
-        "categories",         # list of str: derived from ref
-        "authors",            # list of str: derived from ref
-        "is_sheet"            # bool: is this a sheet ref?
+        "secondary"          # bool: True when view is from sidebar
     ]
 
     optional_attrs = [
         "datetime",  # datetime: converted from time_stamp.  Can move to required once legacy records are converted.
+        "context_refs",  # list of ref strings: derived from ref.  Can move to required once legacy records are converted.
+        "categories",  # list of str: derived from ref.  Can move to required once legacy records are converted.
+        "authors",  # list of str: derived from ref.  Can move to required once legacy records are converted.
+        "is_sheet",  # bool: is this a sheet ref?  Can move to required once legacy records are converted.
         "language",           # oneOf(english, hebrew, bilingual) didn't exist in legacy model
         "num_times_read",     # int: legacy for migrating old recent views
         "sheet_title",        # str: for sheet history
