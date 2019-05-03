@@ -119,10 +119,13 @@ class AbstractMongoRecord(object):
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
                 raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
-        _id = getattr(db, self.collection).save(props, w=1)
-
         if is_new_obj:
-            self._id = _id
+            result = getattr(db, self.collection).insert_one(props)
+            self._id = result.inserted_id
+        else:
+            result = getattr(db, self.collection).replace_one({"_id":self._id}, props, upsert=True)
+            if not result.matched_count and result.upserted_id:
+                raise Exception("{} inserted when expecting an update.".format(type(self).__name__))
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in self.pkeys_orig_values.items():

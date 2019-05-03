@@ -807,6 +807,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"likes",
 		"group",
 		"generatedBy",
+		"highlighterTags",
 		"summary" # double check this one
 	]
 

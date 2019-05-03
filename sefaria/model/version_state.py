@@ -492,5 +492,6 @@ def process_index_title_change_in_version_state(indx, **kwargs):
 
 
 def create_version_state_on_index_creation(indx, **kwargs):
-    # If it's already there, this should be harmless
-    VersionState(indx.title).save()
+    vs = VersionState(indx.title)
+    if vs.is_new_state:
+        vs.save()

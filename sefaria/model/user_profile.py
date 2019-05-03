@@ -37,7 +37,6 @@ class UserHistory(abst.AbstractMongoRecord):
         "versions",           # dict: {en: str, he: str}
         "time_stamp",         # int: time this ref was read in epoch time
         "server_time_stamp",  # int: time this was saved on the server in epoch time
-        "datetime",           # datetime: converted from time_stamp
         "last_place",         # bool: True if this is the last ref read for this user in this book
         "book",               # str: index title
         "saved",              # bool: True if saved
@@ -49,6 +48,7 @@ class UserHistory(abst.AbstractMongoRecord):
     ]
 
     optional_attrs = [
+        "datetime",  # datetime: converted from time_stamp.  Can move to required once legacy records are converted.
         "language",           # oneOf(english, hebrew, bilingual) didn't exist in legacy model
         "num_times_read",     # int: legacy for migrating old recent views
         "sheet_title",        # str: for sheet history
