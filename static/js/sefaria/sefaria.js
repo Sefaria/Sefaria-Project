@@ -170,6 +170,10 @@ Sefaria = extend(Sefaria, {
     const oRef1 = Sefaria.parseRef(ref1);
     const oRef2 = Sefaria.parseRef(ref2);
 
+    if ("error" in oRef1 || "error" in oRef2) { return null; }
+
+    if (oRef2.index !== oRef2.index || oRef1.book !== oRef2.book) { return false; }
+
     for (let i = 0; i < oRef1.sections.length; i++) {
       if (oRef1.sections[i] <= oRef2.sections[i] && oRef1.toSections[i] >= oRef2.toSections[i]) {
         return true;
@@ -1044,13 +1048,14 @@ Sefaria = extend(Sefaria, {
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
+    // Even though most commentaries have a 1:1 structural match to basetexts, this is not alway so. 
     // Works by examining links available on baseRef, returns null if no links are in cache.
     if (commentator == "Abarbanel") {
       return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
     }
     var links = Sefaria.links(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
-    if (!links || !links.length) { return null; }
+    if (!links || !links.length || links[0].isSheet) { return null; }
     var commentaryLink = Sefaria.util.clone(Sefaria.parseRef(links[0].sourceRef));
     for (var i = 1; i < links.length; i++) {
       var plink = Sefaria.parseRef(links[i].sourceRef);

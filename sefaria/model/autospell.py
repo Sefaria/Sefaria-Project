@@ -10,6 +10,7 @@ from collections import defaultdict
 import datrie
 
 from sefaria.model import *
+from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
 
 import logging
@@ -62,7 +63,7 @@ class AutoCompleter(object):
         # Titles in library
         if include_titles:
             title_node_dict = self.library.get_title_node_dict(lang)
-            tnd_items = title_node_dict.items()
+            tnd_items = [(t, d) for t, d in title_node_dict.items() if not isinstance(d, SheetLibraryNode)]
             titles = [t for t, d in tnd_items]
             normal_titles = [self.normalizer(t) for t, d in tnd_items]
             self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)

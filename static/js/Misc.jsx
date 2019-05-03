@@ -637,7 +637,7 @@ class SheetListing extends Component {
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
-    this.props.handleSheetClick(e,sheet);
+    this.props.handleSheetClick(e, sheet, null, this.props.connectedRefs);
   }
   handleSheetOwnerClick() {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
