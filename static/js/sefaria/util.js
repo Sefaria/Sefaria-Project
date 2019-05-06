@@ -699,7 +699,7 @@ Util.RefValidator.prototype = {
       return return_message;
   },
   _lookupAndRoute: function(inString) {
-      if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
+      if (this.current_lookup_ajax) {this.current_lookup_ajax.cancel();}
       this.current_lookup_ajax = Sefaria.getName(inString, true)
           .then(function(data) {
           // If this query has been outpaced by typing, just return.
