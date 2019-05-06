@@ -37,9 +37,8 @@ from place import Place, PlaceSet
 from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 from category import Category, CategorySet
+from ref_data import RefData, RefDataSet
 
 import dependencies
 
 library._build_index_maps()
-
-
