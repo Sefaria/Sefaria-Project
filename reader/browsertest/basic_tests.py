@@ -118,7 +118,8 @@ class SectionContentAsExpectedChapter(AtomicTest):
         section = self.get_section_txt('1')
         assert u'פרק ד ' == section
 
-
+'''
+That'd be the old home
 class GoThroughHomeLinksAndButtons(AtomicTest):
     #Makes sure links are there and not broken. Will fall on a line of a broken or unexisting link/button.
     #When openning new tabs, checks URLs
@@ -178,14 +179,14 @@ class GoThroughHomeLinksAndButtons(AtomicTest):
         str = self.get_subscribe_msg()
         # Requires NationBuilder to be set up
         # assert str == 'Subscribed! Welcome to our list.'
-
+'''
 
 class GoThroughFooterObjects(AtomicTest):
     suite_class = PageloadSuite
     every_build = False
 
     def body(self):
-        self.load_home()
+        self.load_toc()
         time.sleep(1)
         self.click_what_in_sefaria_link()
         self.click_sefaria()
@@ -262,8 +263,7 @@ class ChangeLanguage(AtomicTest):
     every_build = True
 
     def body(self):
-        self.load_home()
-        self.click_get_started()
+        self.load_ref("Genesis 1")
         expected_heb = u'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
         expected_eng = u'When God began to create heaven and earth—'
         sgmnt_eng = self.get_nth_section_english(1)
@@ -308,8 +308,7 @@ class TextSettings(AtomicTest):
         just_text = u'בראשית ברא אלהים את השמים ואת הארץ'
         text_with_vowels = u'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
         text_with_cantillation = u'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
-        self.load_home()
-        self.click_get_started()
+        self.load_ref("Genesis 1")
         # 1] Language: heb/eng/bilingual
         self.toggle_on_text_settings()
         self.toggle_language_english()
@@ -374,7 +373,7 @@ class TextSettings(AtomicTest):
         self.toggle_vowels_none()
         assert self.get_nth_section_hebrew(1).text == just_text
 
-
+'''
 class TanakhCantillationAndVowels(AtomicTest):
     suite_class = ReaderSuite
     every_build = False
@@ -401,7 +400,7 @@ class TanakhCantillationAndVowels(AtomicTest):
         # self.load_ref("Joshua 1")
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
-
+'''
 
 class TalmudHasNoCantillation(AtomicTest):
     suite_class = ReaderSuite
@@ -559,13 +558,14 @@ class ChangeSiteLanguage(AtomicTest):
 
 
 class CheckGraphs(AtomicTest):
-    suite_class = ReaderSuite
+    suite_class = PageloadSuite
     every_build = False
 
     # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     def body(self):
-        self.load_home()
-        self.click_explore_connections()
+        self.driver.get(self.base_url + "/explore")
+        #todo ^ add a wait there that is connected to content
+
         if 'safari' in self.driver.name:
             time.sleep(1)  # Might fail on Safari without this sleep
         assert self.get_object_by_id('Genesis').is_displayed()
@@ -977,7 +977,6 @@ class SaveNewSourceSheet(AtomicTest):
             WebDriverWait(self.driver, TEMPER).until(title_contains(u"דף מקורות חדש | בונה דפי המקורות בספריא"))
 
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.headerNavSection .library')))
-        self.load_home()
 
 
 '''

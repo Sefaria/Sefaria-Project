@@ -323,8 +323,6 @@ class AbstractTest(object):
     def click_start_a_sheet(self):
         self.click_object_by_css_selector('#homeSheets > div > div.textBox > a:nth-child(3) > div > span.int-en')
 
-
-
     def click_commentary_on_sidebar(self):
         self.click_sidebar_entry('Commentary')
 
@@ -576,59 +574,57 @@ class AbstractTest(object):
     def click_english_link(self):
         self.click_object_by_link_text('English')
 
-
     def toggle_on_text_settings(self):
-        self.click_object_by_css_selector('#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.rightButtons > div:nth-child(2) > img')
+        self.click_object_by_css_selector('#panel-0 .readerControls .readerOptions')
 
     def toggle_off_text_settings(self):
-        self.click_object_by_css_selector("#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.leftButtons > a")
+        self.click_object_by_css_selector("#panel-0 .leftButtons > a")
 
     def toggle_language_english(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.language > div > div.toggleOption.english')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.english')
 
     def toggle_language_bilingual(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.language > div > div.toggleOption.bilingual')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.bilingual')
 
     def toggle_language_hebrew(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.language > div > div.toggleOption.hebrew')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.language div.toggleOption.hebrew')
 
     def toggle_bilingual_layout_stacked(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.biLayout > div > div.toggleOption.stacked')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.stacked')
 
     def toggle_bilingual_layout_heLeft(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.biLayout > div > div.toggleOption.heLeft')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heLeft')
 
     def toggle_bilingual_layout_heRight(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.biLayout > div > div.toggleOption.heRight')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.biLayout div.toggleOption.heRight')
 
     def toggle_fontSize_smaller(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.fontSize > div > div.toggleOption.smaller')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.smaller')
 
     def toggle_fontSize_larger(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.fontSize > div > div.toggleOption.larger')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.fontSize div.toggleOption.larger')
 
     def toggle_aliyotTorah_aliyotOn(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.aliyotTorah > div > div.toggleOption.aliyotOn')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOn')
 
     def toggle_aliyotTorah_aliyotOff(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.aliyotTorah > div > div.toggleOption.aliyotOff')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.aliyotTorah div.toggleOption.aliyotOff')
 
     def toggle_vowels_none(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.vowels > div > div.toggleOption.none')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.none')
 
     def toggle_vowels_partial(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.vowels > div > div.toggleOption.partial')
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.partial')
 
     def toggle_vowels_all(self):
-        self.click_object_by_css_selector('#panel-0 > div.readerOptionsPanel > div > div.toggleSet.vowels > div > div.toggleOption.all')
-
+        self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.all')
 
     def get_nth_section_english(self, n):
-        selector = '#panel-0 > div.readerContent > div > div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.en'
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.en'
         return self.get_nth_section(selector)
 
     def get_nth_section_hebrew(self, n):
-        selector = '#panel-0 > div.readerContent > div > div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.he'
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.he'
         return self.get_nth_section(selector)
 
     def get_content_layout_direction(self):
@@ -652,11 +648,11 @@ class AbstractTest(object):
             return 'english'
 
     def get_login_link_text(self):
-        ret = self.get_object_by_css_selector('#s2 > div > div > div.headerInner > div.headerLinksSection > div > a.login.loginLink').text
+        ret = self.get_object_by_css_selector('#s2 div.headerInner div.headerLinksSection a.login.loginLink').text
         return ret
 
     def get_signup_link_text(self):
-        ret = self.get_object_by_css_selector('#s2 > div > div > div.headerInner > div.headerLinksSection > div > a.login.signupLink').text
+        ret = self.get_object_by_css_selector('#s2 div.headerInner div.headerLinksSection a.login.signupLink').text
         return ret
 
     def get_what_is_sefaria_link_text(self):
@@ -674,6 +670,7 @@ class AbstractTest(object):
     def get_donate_link_text(self):
         ret = self.get_object_by_css_selector('#footerInner > div:nth-child(4) > a:nth-child(2)').text
         return ret
+
     def get_facebook_link_text(self):
         ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect > a:nth-child(4)').text
         return ret
@@ -689,7 +686,7 @@ class AbstractTest(object):
         return self.driver.current_url
 
     def get_current_content_title(self):
-        return self.get_object_by_css_selector('#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.readerTextToc > div > a').text
+        return self.get_object_by_css_selector('#panel-0 div.readerControls.fullPanel div.readerTextToc > div > a').text
 
     def is_aliyot_displayed(self):
         time.sleep(.5)
@@ -713,8 +710,6 @@ class AbstractTest(object):
             return True # would through an exception otherwise, handled below
         except NoSuchElementException:
             return False
-
-
 
     def get_content_panel(self):
         selector = '#panel-0'
@@ -795,7 +790,7 @@ class AbstractTest(object):
         return new_url
 
     def get_section_txt(self, vrs):
-        verse_selector = '#panel-0 > div.readerContent > div > div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div > p.he'
+        verse_selector = '#panel-0 div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div > p.he'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, verse_selector))
         )
