@@ -41,7 +41,7 @@ class Test_Link_Save(object):
                      "refs": ["Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10"]})
         with pytest.raises(DuplicateRecordError) as e_info:
             link._pre_save()
-        assert str(e_info) == u"A more precise link already exists: {} - {}".format("Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16")
+        assert u"A more precise link already exists: {} - {}".format("Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16") in str(e_info)
 
     def test_more_precise_links_reversed_order(self):
         link = Link({"auto": True,
@@ -50,4 +50,4 @@ class Test_Link_Save(object):
                      "refs": ["Deuteronomy 10", "Avi Ezer, Deuteronomy 10:16:1"]})
         with pytest.raises(DuplicateRecordError) as e_info:
             link._pre_save()
-            assert str(e_info) == u"A more precise link already exists: {} - {}".format("Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16")
+            assert u"A more precise link already exists: {} - {}".format("Avi Ezer, Deuteronomy 10:16:1", "Deuteronomy 10:16") in str(e_info)
