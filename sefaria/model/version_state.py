@@ -485,7 +485,7 @@ def refresh_all_states():
 
 def process_index_delete_in_version_state(indx, **kwargs):
     from sefaria.system.database import db
-    db.vstate.remove({"title": indx.title})
+    db.vstate.delete_one({"title": indx.title})
 
 def process_index_title_change_in_version_state(indx, **kwargs):
     VersionStateSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})

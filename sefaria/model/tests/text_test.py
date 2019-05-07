@@ -113,7 +113,7 @@ def test_invalid_index_save_no_existing_base_text():
     idx = model.Index(d)
     with pytest.raises(InputError) as e_info:
         idx.save()
-    assert e_info.value.message == "Base Text Titles must point to existing texts in the system."
+    assert str(e_info) == "Base Text Titles must point to existing texts in the system."
     assert model.IndexSet({"title": title}).count() == 0
 
 
@@ -157,7 +157,7 @@ def test_invalid_index_save_no_category():
     idx = model.Index(d)
     with pytest.raises(InputError) as e_info:
         idx.save()
-    assert e_info.value.message == "You must create category Mishnah/Commentary/Bartenura/Gargamel before adding texts to it."
+    assert str(e_info) == "You must create category Mishnah/Commentary/Bartenura/Gargamel before adding texts to it."
     assert model.IndexSet({"title": title}).count() == 0
 
 
@@ -201,7 +201,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
     idx = model.Index(d)
     with pytest.raises(InputError) as e_info:
         idx.save()
-    assert e_info.value.message == "You must add a hebrew translation Term for any new Collective Title: Gargamel."
+    assert str(e_info) == "You must add a hebrew translation Term for any new Collective Title: Gargamel."
     assert model.IndexSet({"title": title}).count() == 0
 
 
