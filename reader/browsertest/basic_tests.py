@@ -407,19 +407,19 @@ class TalmudHasNoCantillation(AtomicTest):
     every_build = False
 
     def body(self):
-        self.load_ref("Shabbat 2")
+        self.browse_to_ref("Shabbat 2b")
         assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert not self.is_vocalization_toggleSet_displayed()
         self.toggle_bilingual_layout_stacked()
-        self.load_ref("Joshua 2")
+        self.browse_to_ref("Joshua 2")
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
         self.toggle_bilingual_layout_stacked()
-        self.load_ref("Genesis 1")
+        self.browse_to_ref("Genesis 1")
         self.toggle_on_text_settings()
         assert self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
@@ -431,7 +431,8 @@ class SideBarEntries(AtomicTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Genesis 1").click_segment("Genesis 1:1")
+        self.browse_to_ref("Genesis 1")
+        self.click_segment("Genesis 1:1")
         self.click_commentary_on_sidebar()
         self.click_resources_on_sidebar()
         self.click_tanakh_on_sidebar()

@@ -254,7 +254,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     def click_source_title(self):
-        title_selector = '#panel-0 > div:nth-child(1) > div.readerControls.fullPanel > div > div.readerTextToc > div > a'
+        title_selector = '#panel-0 div.readerControls.fullPanel div.readerTextToc > div > a'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, title_selector))
         )
@@ -262,7 +262,7 @@ class AbstractTest(object):
         ttl.click()
 
     def click_chapter(self, cptr):
-        chapter_selector = 'div.content div div:nth-child(3) div div.tocLevel div div div a:nth-child('+ cptr + ')'
+        chapter_selector = 'div.content div.tocLevel div div div a:nth-child('+ cptr + ')'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
         )
