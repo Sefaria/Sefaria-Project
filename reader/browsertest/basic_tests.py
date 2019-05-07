@@ -324,18 +324,20 @@ class TextSettings(AtomicTest):
         self.toggle_language_bilingual()
         assert self.get_nth_section_hebrew(1).is_displayed()
         assert self.get_nth_section_english(1).is_displayed()
+
         # 2] Layout: left/right/stacked
-        self.toggle_on_text_settings()
-        self.toggle_bilingual_layout_heLeft()
-        assert self.get_content_layout_direction() == 'left'
+        if not self.single_panel:
+            self.toggle_on_text_settings()
+            self.toggle_bilingual_layout_heLeft()
+            assert self.get_content_layout_direction() == 'left'
 
-        self.toggle_on_text_settings()
-        self.toggle_bilingual_layout_heRight()
-        assert self.get_content_layout_direction() == 'right'
+            self.toggle_on_text_settings()
+            self.toggle_bilingual_layout_heRight()
+            assert self.get_content_layout_direction() == 'right'
 
-        self.toggle_on_text_settings()
-        self.toggle_bilingual_layout_stacked()
-        assert self.get_content_layout_direction() == 'stacked'
+            self.toggle_on_text_settings()
+            self.toggle_bilingual_layout_stacked()
+            assert self.get_content_layout_direction() == 'stacked'
 
         # 3] Font size: small/large
         self.toggle_on_text_settings()
@@ -413,17 +415,15 @@ class TalmudHasNoCantillation(AtomicTest):
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert not self.is_vocalization_toggleSet_displayed()
-        self.toggle_bilingual_layout_stacked()
+        self.toggle_language_bilingual()
         self.browse_to_ref("Joshua 2")
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
-        self.toggle_bilingual_layout_stacked()
         self.browse_to_ref("Genesis 1")
         self.toggle_on_text_settings()
         assert self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
-        self.toggle_bilingual_layout_stacked()
 
 
 class SideBarEntries(AtomicTest):
@@ -462,15 +462,13 @@ class SideBarEntries(AtomicTest):
         self.click_other_text_on_sidebar()
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
-        self.back()
+        self.click_resources_on_sidebar()
         # self.click_sheets_on_sidebar()    #commented out as sheets is being worked on
-        # self.back()
         self.click_notes_on_sidebar()
         self.click_about_on_sidebar()
         msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').text
         assert msg == u'About This Text'
         self.click_resources_on_sidebar()
-        # self.back()
         self.click_versions_on_sidebar()
         url1 = self.get_current_url()
         title1 = self.get_current_content_title()
@@ -513,10 +511,6 @@ class SideBarEntries(AtomicTest):
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
 
-        self.back()
-        self.click_sefaria()
-
-
 # Switch between Hebrew and English and sample a few of the objects to make sure the language has actually changed.
 class ChangeSiteLanguage(AtomicTest):
     suite_class = ReaderSuite
@@ -524,9 +518,7 @@ class ChangeSiteLanguage(AtomicTest):
 
     def body(self):
         self.nav_to_toc()
-        url1 = self.get_current_url()
         self.click_ivrit_link()
-        url2 = self.get_current_url()
         ivrit_title = self.get_sefaria_lib_title()
         if 'safari' in self.driver.name:
             time.sleep(1)
