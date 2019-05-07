@@ -990,22 +990,28 @@ Sefaria = extend(Sefaria, {
     var links = Sefaria.links(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
     if (!links || !links.length || links[0].isSheet) { return null; }
-    var commentaryLink = Sefaria.util.clone(Sefaria.parseRef(links[0].sourceRef));
-    for (var i = 1; i < links.length; i++) {
-      var plink = Sefaria.parseRef(links[i].sourceRef);
-      if (commentaryLink.book !== plink.book) { return null;} // Can't handle multiple index titles or schemaNodes
-      if (plink.sections.length > commentaryLink.sections.length) {
-        commentaryLink.sections = commentaryLink.sections.slice(0, plink.sections.length);
-      }
-      for (var k=0; k < commentaryLink.sections.length; k++) {
-        if (commentaryLink.sections[k] !== plink.sections[k]) {
-          commentaryLink.sections = commentaryLink.sections.slice(0, k);
-          break;
-        }
-      }
-    }
-    commentaryLink.toSections = commentaryLink.sections;
-    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
+
+    var pRefs = links.map(link => Sefaria.parseRef(link.sourceRef));
+    if (pRefs.some(pRef => "error" in pRef)) { return null; } // Give up on bad refs
+
+    var books = pRefs.map(pRef => pRef.book).unique();
+    if (books.length > 1) { return null; } // Can't handle multiple index titles or schemaNodes
+
+    try:
+      var startSections = pRefs.map(pRef => pRef.sections[0]);
+      var endSections   = pRefs.map(pRef => pRef.toSections[0]);
+    except:
+      return null;
+
+    var commentaryRef = {
+      book: books[0],
+      sections: [Math.min(...startSections)],
+      toSections: [Math.max(...endSections)]
+    };
+
+    console.log(commentaryRef);
+
+    var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryRef));
     return ref;
   },
   _notes: {},
