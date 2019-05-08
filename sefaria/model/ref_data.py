@@ -5,7 +5,8 @@ class RefData(abst.AbstractMongoRecord):
     A segment ref with stats
     """
     collection = 'ref_data'
-
+    DEFAULT_PAGERANK = 1.0
+    DEFAULT_SHEETRANK = (1.0 / 5) ** 2
     required_attrs = [
         "ref",           # segment ref
         "pagesheetrank", # pagesheetrank value for segment ref

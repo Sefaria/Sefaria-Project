@@ -38,22 +38,6 @@ from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
-def init_pagesheetrank_dicts():
-    global pagerank_dict, sheetrank_dict
-    try:
-        with open(STATICFILES_DIRS[0] + "pagerank.json","rb") as fin:
-            jin = json.load(fin)
-            pagerank_dict = {r: v for r, v in jin}
-    except IOError:
-        pagerank_dict = {}
-    try:
-        with open(STATICFILES_DIRS[0] + "sheetrank.json", "rb") as fin:
-            sheetrank_dict = json.load(fin)
-    except IOError:
-        sheetrank_dict = {}
-
-init_pagesheetrank_dicts()
-
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
 
@@ -628,8 +612,9 @@ class TextIndexer(object):
 
         # section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
 
-        pagerank = math.log(pagerank_dict[tref]) + 20 if tref in pagerank_dict else 1.0
-        sheetrank = (1.0 + sheetrank_dict[tref]["count"] / 5)**2 if tref in sheetrank_dict else (1.0 / 5) ** 2
+        ref_data = RefData().load({"ref": tref})
+        pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGERANK * RefData.DEFAULT_SHEETRANK
+
         return {
             "ref": tref,
             "heRef": heTref,
@@ -640,7 +625,7 @@ class TextIndexer(object):
             "categories": temp_categories,
             "order": oref.order_id(),
             "path": "/".join(temp_categories + [cls.curr_index.title]),
-            "pagesheetrank": pagerank * sheetrank,
+            "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
             #"hebmorph_semi_exact": content_wo_cant,
             "content": content_wo_cant if cls.merged else u"",  # backwards compat for android
