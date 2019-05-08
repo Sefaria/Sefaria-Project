@@ -1097,12 +1097,17 @@ Sefaria = extend(Sefaria, {
       return null;
     }
 
-    var commentaryRef = {
-      book: books[0],
-      sections: [Math.min(...startSections)],
-      toSections: [Math.max(...endSections)]
+    const sorter = (a, b) => {
+      return a.match(/\d+[ab]/) ?
+        Sefaria.hebrew.dafToInt(a) - Sefaria.hebrew.dafToInt(b)
+        : parseInt(a) - parseInt(b);
     };
 
+    var commentaryRef = {
+      book: books[0],
+      sections: startSections.sort(sorter).slice(0,1),
+      toSections: endSections.sort(sorter).reverse().slice(0,1)
+    };
     var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryRef));
 
     return ref;
