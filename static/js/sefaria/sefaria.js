@@ -805,6 +805,10 @@ Sefaria = extend(Sefaria, {
         }
     });
   },
+  getLinksFromCache: function(ref) {
+    ref = Sefaria.humanRef(ref);
+    return ref in this._links ? this._links[ref] : [];
+  },
   links: function(ref, cb) {
     // Returns a list of links known for `ref`.
     // WARNING: calling this function with spanning refs can cause bad state in cache.
@@ -950,7 +954,7 @@ Sefaria = extend(Sefaria, {
     } else {
       links = [];
       ref.map(function(r) {
-        const newlinks = Sefaria.links(r);
+        const newlinks = Sefaria.getLinksFromCache(r);
         links = links.concat(newlinks);
       });
       links = this._dedupeLinks(links); // by aggregating links to each ref above, we can get duplicates of links to spanning refs
@@ -984,7 +988,7 @@ Sefaria = extend(Sefaria, {
     const oRef       = Sefaria.getRefFromCache(baseRef);
     const sectionRef = oRef ? oRef.sectionRef : baseRef;
     if (ref !== sectionRef) {
-      const sectionLinks = Sefaria.links(sectionRef);
+      const sectionLinks = Sefaria.getLinksFromCache(sectionRef);
       for (let i = 0; i < sectionLinks.length; i++) {
         const l = sectionLinks[i];
         if (l.category === "Commentary") {
@@ -1075,7 +1079,7 @@ Sefaria = extend(Sefaria, {
     if (commentator == "Abarbanel") {
       return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
     }
-    var links = Sefaria.links(baseRef);
+    var links = Sefaria.getLinksFromCache(baseRef);
     links = Sefaria._filterLinks(links, [commentator]);
     if (!links || !links.length || links[0].isSheet) { return null; }
 

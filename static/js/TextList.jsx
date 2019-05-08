@@ -173,7 +173,7 @@ class TextList extends Component {
       }
     }.bind(this);
 
-    let sectionLinks = Sefaria.links(sectionRef);
+    let sectionLinks = Sefaria.getLinksFromCache(sectionRef);
     sectionLinks.map(link => {
       if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
     });
