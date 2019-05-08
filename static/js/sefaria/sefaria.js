@@ -668,7 +668,7 @@ Sefaria = extend(Sefaria, {
       if (callback) {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
-      return this.getRefFromCache(ref);
+      return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
   _ref_lookups: {},
