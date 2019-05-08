@@ -169,7 +169,7 @@ def init_pagerank_graph():
     while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
             if current_link % 1000 == 0:
-                print "{}/{}".format(current_link,len_all_links)
+                print "{}/{}".format(current_link, len_all_links)
 
             try:
                 #TODO pagerank segments except Talmud. Talmud is pageranked by section

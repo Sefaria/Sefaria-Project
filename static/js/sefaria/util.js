@@ -607,10 +607,9 @@ class Util {
                 }.bind(this))
             .autocomplete({
                 source: function(request, response) {
-                  Sefaria.lookupRef(
-                      request.term,
-                      function (d) { response(d["completions"]); }
-                  );
+                  Sefaria.getName(request.term, true)
+                         .then(d => d.completions)
+                         .then(response);
                 },
                 select: function(event, ui) {
                   this._lookupAndRoute(ui.item.value);
@@ -700,32 +699,35 @@ Util.RefValidator.prototype = {
       return return_message;
   },
   _lookupAndRoute: function(inString) {
-      if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
-      this.current_lookup_ajax = Sefaria.lookupRef(
-        inString,
-        function(data) {
-          // If this query has been outpaced by typing, just return.
-          if (this.$input.val() != inString) { return; }
+      if (this.current_lookup_ajax) {this.current_lookup_ajax.cancel();}
+      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, true))
+          .promise
+          .then(data => {
+              // If this query has been outpaced by typing, just return.
+              if (this.$input.val() != inString) { this.current_lookup_ajax = null; return; }
 
-          // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-          if (Sefaria.isACaseVariant(inString, data)) {
-            this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
-            return;
-          }
+              // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+              if (Sefaria.isACaseVariant(inString, data)) {
+                this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
+                this.current_lookup_ajax = null;
+                return;
+              }
 
-          this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
-              .html(this._getMessage(inString, data));
-          if (!data.is_ref && this.options.allow_new_titles) {
-              this._allow(inString);
-              return;
-          }
-          if (data.is_ref && (data.is_section || (data.is_segment && !this.options.disallow_segments))) {
-            this._allow(inString, data["ref"]);  //pass normalized ref
-            return;
-          }
-          this._disallow();
-        }.bind(this)
-      );
+              this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
+                  .html(this._getMessage(inString, data));
+              if (!data.is_ref && this.options.allow_new_titles) {
+                  this._allow(inString);
+                  this.current_lookup_ajax = null;
+                  return;
+              }
+              if (data.is_ref && (data.is_section || (data.is_segment && !this.options.disallow_segments))) {
+                this._allow(inString, data["ref"]);  //pass normalized ref
+                this.current_lookup_ajax = null;
+                return;
+              }
+              this._disallow();
+              this.current_lookup_ajax = null;
+          });
   },
   _allow: function(inString, ref) {
     if (inString != this.$input.val()) {

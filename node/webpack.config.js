@@ -176,5 +176,17 @@ var jsonEditorConfig = config({
     ]
 });
 
+var timelineConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './timeline',
+    externals: {
+        d3: 'd3',
+        sefaria: 'Sefaria',
+    },
+    output: {
+        path: path.resolve(buildDir + 'timeline'),
+        filename: 'timeline.js'
+    }
+});
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig];
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig];

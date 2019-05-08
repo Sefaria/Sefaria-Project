@@ -81,6 +81,7 @@ def ensure_indices():
     db.sheets.ensure_index("tags")
     db.sheets.ensure_index("owner")
     db.sheets.ensure_index("assignment_id")
+    db.sheets.ensure_index("is_featured")
     db.texts.ensure_index("title")
     db.texts.ensure_index([("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)])
     db.texts.ensure_index([("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)])
@@ -88,3 +89,7 @@ def ensure_indices():
     db.word_form.ensure_index("c_form")
     db.term.ensure_index("titles.text", unique=True)
     db.lexicon_entry.ensure_index([("headword", pymongo.ASCENDING), ("parent_lexicon", pymongo.ASCENDING)])
+    db.user_story.ensure_index([("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)])
+    db.user_story.ensure_index([("timestamp", pymongo.DESCENDING)])
+    db.passage.ensure_index("ref_list")
+

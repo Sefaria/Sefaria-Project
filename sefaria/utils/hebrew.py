@@ -480,7 +480,7 @@ def hebrew_plural(s):
 
 
 def hebrew_term(s):
-	from sefaria.model import library, IndexSet, Term
+	from sefaria.model import library
 	from sefaria.system.exceptions import BookNameError
 
 	if is_hebrew(s):

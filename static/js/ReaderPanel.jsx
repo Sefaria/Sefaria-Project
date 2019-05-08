@@ -22,7 +22,8 @@ const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
-const UpdatesPanel              = require('./UpdatesPanel');
+const HomeFeed                  = require('./HomeFeed');
+const StoryEditor               = require('./StoryEditor');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
   MyGroupsPanel,
@@ -31,8 +32,8 @@ const {
 const {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuSavedButton,
   ReaderNavigationMenuDisplaySettingsButton,
+  SaveButton,
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet,
@@ -75,7 +76,7 @@ class ReaderPanel extends Component {
         color:         "light",
         fontSize:      62.5
       },
-      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare"
+      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
       navigationCategories: props.initialNavigationCategories || [],
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
@@ -921,11 +922,28 @@ class ReaderPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
-    } else if (this.state.menuOpen === "updates") {
-      var menu = (<UpdatesPanel
+    } else if (this.state.menuOpen === "homefeed") {
+      var menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+      />);
+
+    } else if (this.state.menuOpen === "updates") {
+      var menu = (<HomeFeed
+                    interfaceLang={this.props.interfaceLang}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                    onlyGlobalStories={true}
+      />);
+
+    } else if (this.state.menuOpen === "story_editor") {
+      var menu = (<StoryEditor
+                    interfaceLang={this.props.interfaceLang}
+      />);
+
+    /* todo: do we need this here?
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")} />);
+                    */
 
     } else if (this.state.menuOpen === "modtools") {
       var menu = (<ModeratorToolsPanel
@@ -1102,23 +1120,19 @@ class ReaderControls extends Component {
     this.props.openMenu("sheet meta");
   }
   componentDidMount() {
-    var title = this.props.currentRef;
+    const title = this.props.currentRef;
     if (title) {
-      var oref = Sefaria.ref(title);
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      var ajaxObj = Sefaria.textApi(title, {context: 1}, function(data) {
-        if ("error" in data) {
-          this.props.onError(data.error);
-          return;
-        }
-        this.setState({runningQuery: null});   // This should have the effect of forcing a re-render
-      }.bind(this));
-      this.setState({runningQuery: ajaxObj});
+      const getTextPromise = Sefaria.getText(title, {context: 1}).then(data => {
+        if ("error" in data) { this.props.onError(data.error); }
+        this.setState({runningQuery: null});   // Causes re-render
+      });
+      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
     }
   }
   componentWillUnmount() {
     if (this.state.runningQuery) {
-      this.state.runningQuery.abort();  //todo: make work with promises
+      this.state.runningQuery.cancel();
     }
   }
   render() {
@@ -1180,11 +1194,11 @@ class ReaderControls extends Component {
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
-          <ReaderNavigationMenuSavedButton placeholder={true}/>
+          <SaveButton placeholder={true}/>
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          <ReaderNavigationMenuSavedButton
+          <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}

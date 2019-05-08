@@ -580,7 +580,7 @@ SheetNodeConnectionTools.propTypes = {
   multiPanel:         PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   openComparePanel:   PropTypes.func.isRequired,
-}
+};
 
 
 class ConnectionsSummary extends Component {
@@ -1060,7 +1060,7 @@ class AddConnectionBox extends Component {
       var oRef = Sefaria.ref(ref);
       if (!oRef) {
         // If a range was selected, the ref cache may not have a Hebrew ref for us, so ask the API
-        Sefaria.ref(ref, this.setHeRefs);
+        Sefaria.getRef(ref).then(this.setHeRefs);
         return "...";
       }
       return oRef.heRef;

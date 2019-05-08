@@ -231,11 +231,11 @@ class Test_AutoLinker(object):
         link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
         self.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
         self.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
-        print 'End of test setup'
+        #print 'End of test setup'
 
     @classmethod
     def teardown_class(self):
-        print 'Cleaning Up'
+        #print 'Cleaning Up'
         ls = LinkSet(Ref("Many to One on Genesis"))
         ls.delete()
         ls = LinkSet(Ref("One to One on Genesis"))
@@ -282,7 +282,6 @@ class Test_AutoLinker(object):
         found = linker.rebuild_links()
         assert len(found) == desired_link_count
 
-
     def test_rebuild_same_link_content_for_many_to_one_default_only(self):
         title_ref = 'Many to One on Genesis 3:1:3'
         base_ref = "Genesis 3:1"
@@ -301,7 +300,6 @@ class Test_AutoLinker(object):
         found = linker.rebuild_links()
         new_link = Link().load(query)
         assert new_link
-
 
     def test_rebuild_same_link_content_for_one_to_one_default_only(self):
         title_ref = "One to One on Genesis 3:3"
@@ -322,8 +320,6 @@ class Test_AutoLinker(object):
         new_link = Link().load(query)
         assert new_link
 
-
-
     def test_refresh_commentary_links(self):
         #test that there are the same number of links before and after
         title = 'Rashi on Genesis'
@@ -335,7 +331,6 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert desired_link_count == link_count
 
-
     def test_refresh_commentary_links_complex(self):
         #test that there are the same number of links before and after
         title = 'Kos Shel Eliyahu on Pesach Haggadah'
@@ -346,7 +341,6 @@ class Test_AutoLinker(object):
         linker.refresh_links()
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert desired_link_count == link_count
-
 
     def test_refresh_commentary_links_one_to_one_default_node(self):
         title = "One to One on Genesis"
@@ -367,7 +361,6 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"generated_by": linker._generated_by_string, "refs": {"$regex": regex}}).count()
         assert desired_link_count == link_count
 
-
     def test_refresh_commentary_links_many_to_one_default_node(self):
         title = "Many to One on Genesis"
         base = "Genesis"
@@ -386,10 +379,6 @@ class Test_AutoLinker(object):
         linker.refresh_links()
         link_count = LinkSet({"generated_by": linker._generated_by_string, "refs": {"$regex": regex}}).count()
         assert desired_link_count == link_count
-
-
-
-
 
     def test_refresh_links_with_text_save(self):
         title = 'Rashi on Genesis'
@@ -445,7 +434,6 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
 
-
     def test_refresh_links_with_text_save_one_to_one_default_node(self):
         title_ref = "One to One on Genesis 1"
         title = Ref(title_ref).index.title
@@ -479,8 +467,6 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
 
-
-
     def test_refresh_links_with_text_save_complex(self):
         title = 'Kos Shel Eliyahu on Pesach Haggadah'
         section_tref = 'Kos Shel Eliyahu on Pesach Haggadah, Kadesh 1'
@@ -502,6 +488,4 @@ class Test_AutoLinker(object):
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
-
-
 

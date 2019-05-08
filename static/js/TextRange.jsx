@@ -192,7 +192,7 @@ class TextRange extends Component {
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
-        Sefaria.indexDetails(data.indexTitle, function() {});
+        Sefaria.getIndexDetails(data.indexTitle);
      }
     }
     this.dataPrefetched = true;

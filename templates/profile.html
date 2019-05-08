@@ -167,7 +167,11 @@ $(function(){
 				$(this).removeClass('follow').addClass("following");
 			}
 			$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-				Sefaria.track.event("Following", "New Follow", "");
+                if (action === "follow") {
+                    Sefaria.track.event("Following", "New Follow", "");
+                } else {
+                    Sefaria.track.event("Following", "Unfollow", "");
+                }
 			});
 		{% else %}
 			window.location = "/register?next=" + window.location.pathname;

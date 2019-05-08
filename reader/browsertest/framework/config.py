@@ -80,9 +80,6 @@ SAUCE_EXTENDED_CAPS = [  # Needs Review!
     {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Plus Simulator",
     'appiumVersion': "1.9.1", 'platformVersion': "12.0", 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh8p'},
-
-
-
 ]
 
 SAUCE_CAPS = SAUCE_CORE_CAPS + SAUCE_EXTENDED_CAPS

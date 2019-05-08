@@ -267,6 +267,8 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
 
     db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(int(sheet_id))
+    if "error" in sheet:
+        raise Http404
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 
     if "assigner_id" in sheet:
@@ -904,6 +906,12 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
+@login_required
+def story_editor(request):
+    props = base_props(request)
+    title = _("Story Editor")
+    return menu_page(request, props, "story_editor", title)
+
 
 @login_required
 def account(request):
@@ -926,6 +934,8 @@ def modtools(request):
     props = base_props(request)
     return menu_page(request, props, "modtools", title)
 
+
+""" Is this used? 
 
 def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
@@ -952,7 +962,7 @@ def s2_extended_notes(request, tref, lang, version_title):
     }
     props['panels'] = [panel]
     return s2_page(request, props, "extended notes", title)
-
+"""
 
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
@@ -1089,7 +1099,6 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
-            i = library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
         except:
             pass
@@ -2380,23 +2389,113 @@ def dictionary_api(request, word):
 
 
 @catch_error_as_json
+def stories_api(request):
+    """
+    API for retrieving stories.
+    """
+
+    # if not request.user.is_authenticated:
+    #     return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+    page      = int(request.GET.get("page", 0))
+    page_size = int(request.GET.get("page_size", 10))
+    only_global = bool(request.GET.get("only_global", False))
+
+    if not request.user.is_authenticated:
+        only_global = True
+        user = None
+    else:
+        user = UserProfile(id=request.user.id)
+
+    if only_global or not user:
+        stories = SharedStorySet(limit=page_size, page=page).contents()
+        count = len(stories)
+    else:
+        stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+        count = len(stories)
+        stories = addDynamicStories(stories, user, page)
+
+    return jsonResponse({
+                            "stories": stories,
+                            "page": page,
+                            "page_size": page_size,
+                            "count": count
+                        })
+
+
+def addDynamicStories(stories, user, page):
+    """
+
+    :param stories: Array of Story.contents() dicts
+    :param user: UserProfile object
+    :param page: Which page of stories are we rendering - 0 based
+    :return: Array of Story.contents() dicts.
+    """
+    if page == 0:
+        # Keep Reading Most recent
+        most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
+        if most_recent:
+            stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
+                    lead={"en": "Keep Reading", "he": u"המשך לקרוא"})
+            stories = [stry.contents()] + stories
+
+    if page == 1:
+        # Show an old saved story
+        saved = user.get_user_history(saved=True, secondary=False, sheets=False)
+        if len(saved) > 2:
+            saved_item = choice(saved)
+            stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
+                    lead={"en": "Take Another Look", "he": u"קרא עוד"})
+            stories = [stry.contents()] + stories
+
+    return stories
+
+
+@staff_member_required
+def story_reflector(request):
+    """
+    Show what a story will look like.
+    :param request:
+    :return:
+    """
+    assert request.user.is_authenticated and request.user.is_staff and request.method == "POST"
+
+    @csrf_protect
+    def protected_post(request):
+        payload = json.loads(request.POST.get("json"))
+
+        factory_name = payload.get("factory")
+        method_name = payload.get("method")
+        if factory_name and method_name:
+            try:
+                del payload["factory"]
+                del payload["method"]
+                import sefaria.model.story as s
+                factory = getattr(s, factory_name)
+                method = getattr(factory, method_name)
+                s = method(**payload)
+                return jsonResponse(s.contents())
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+        else:
+            #Treat payload as attrs to story object
+            try:
+                s = SharedStory(payload)
+                return jsonResponse(s.contents())
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+
+    return protected_post(request)
+
+
+@catch_error_as_json
 def updates_api(request, gid=None):
     """
-    API for retrieving general notifications.
+    API for posting global stories.
     """
 
     if request.method == "GET":
-        page      = int(request.GET.get("page", 0))
-        page_size = int(request.GET.get("page_size", 10))
-
-        notifications = GlobalNotificationSet({},limit=page_size, page=page)
-
-        return jsonResponse({
-                                "updates": notifications.contents(),
-                                "page": page,
-                                "page_size": page_size,
-                                "count": notifications.count()
-                            })
+        return {"error": "Not implemented."}
 
     elif request.method == "POST":
         if not request.user.is_authenticated:
@@ -2408,11 +2507,11 @@ def updates_api(request, gid=None):
                 return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add announcements."})
+                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
 
             payload = json.loads(request.POST.get("json"))
             try:
-                GlobalNotification(payload).save()
+                SharedStory(payload).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
@@ -2422,7 +2521,7 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    GlobalNotification(payload).save()
+                    SharedStory(payload).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
@@ -2437,7 +2536,7 @@ def updates_api(request, gid=None):
         if request.user.is_staff:
             @csrf_protect
             def protected_post(request):
-                GlobalNotification().load_by_id(gid).delete()
+                SharedStory().load_by_id(gid).delete()
                 return jsonResponse({"status": "ok"})
 
             return protected_post(request)
@@ -2462,7 +2561,7 @@ def notifications_api(request):
                             "html": notifications.to_HTML(),
                             "page": page,
                             "page_size": page_size,
-                            "count": notifications.count()
+                            "count": len(notifications)
                         })
 
 
@@ -2566,7 +2665,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     history = db.history.find(query)
 
     summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
-    updated = history[0]["date"].isoformat() if history.count() else "Unknown"
+    updated = history[0]["date"].isoformat() if len(history) else "Unknown"
 
     for act in history:
         if act["rev_type"].startswith("edit"):
@@ -3088,11 +3187,41 @@ def account_settings(request):
                               })
 
 
+def enable_home_feed(request):
+    resp = home(request, True)
+    resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
+    return resp
+
+
+def disable_home_feed(request):
+    resp = home(request, False)
+    resp.delete_cookie("home_feed")
+    return resp
+
+
 @ensure_csrf_cookie
-def home(request):
+def home(request, show_feed=None):
     """
     Homepage
     """
+    if show_feed is None:
+        show_feed = request.COOKIES.get("home_feed", None)
+
+    if show_feed:
+        props = base_props(request)
+
+        props.update({
+            "initialMenu": "homefeed"
+        })
+        propsJSON = json.dumps(props)
+        html = render_react_component("ReaderApp", propsJSON)
+        return render(request, 'base.html', {
+            "propsJSON": propsJSON,
+            "html": html,
+            "title": "Sefaria Stories",
+            "desc": "",
+        })
+
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
 
@@ -3115,6 +3244,7 @@ def home(request):
                               "daf_today": daf_today,
                               "parasha": parasha,
                               })
+
 
 @ensure_csrf_cookie
 def discussions(request):
@@ -3152,7 +3282,7 @@ def new_discussion_api(request):
             discussion.save()
             return jsonResponse(discussion.contents())
 
-        return jsonResponse({"error": "An extremely unlikley event has occurred."})
+        return jsonResponse({"error": "An extremely unlikely event has occurred."})
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3196,7 +3326,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
     request_count     = TranslationRequestSet({"completed": False, "section_level": False}).count()
     complete_count    = TranslationRequestSet({"completed": True}).count()
     featured_complete = TranslationRequestSet({"completed": True, "featured": True}).count()
-    next_page         = page + 2 if True or requests.count() == page_size else 0
+    next_page         = page + 2 if True or len(requests) == page_size else 0
     featured_query    = {"featured": True, "featured_until": { "$gt": datetime.now() } }
     featured          = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
     today             = datetime.today()
@@ -3204,7 +3334,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
     featured_end      = featured_end.replace(hour=0, minute=0)  # At midnight
     current           = [d.featured_until <= featured_end for d in featured]
     featured_current  = sum(current)
-    show_featured     = not completed_only and not page and ((request.user.is_staff and featured.count()) or (featured_current))
+    show_featured     = not completed_only and not page and ((request.user.is_staff and len(featured)) or (featured_current))
 
     return render(request,'translation_requests.html',
                                 {
@@ -3514,7 +3644,7 @@ def digitized_by_sefaria(request):
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
     diaspora = request.GET.get("diaspora", "1")
-    calendars = get_keyed_calendar_items() # TODO Support israel / customs
+    calendars = get_keyed_calendar_items()  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
 
@@ -3779,6 +3909,10 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
 
     return render(request,'explore.html', template_vars)
 
+@staff_member_required
+def visualize_timeline(request):
+    return render(request, 'timeline.html', {})
+
 
 def person_page(request, name):
     person = Person().load({"key": name})
@@ -3928,6 +4062,7 @@ def visual_garden_page(request, g):
     }
 
     return render(request,'visual_garden.html', template_vars)
+
 
 
 @requires_csrf_token
