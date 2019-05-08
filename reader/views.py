@@ -267,6 +267,8 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
 
     db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(int(sheet_id))
+    if "error" in sheet:
+        raise Http404
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 
     if "assigner_id" in sheet:

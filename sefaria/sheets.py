@@ -85,6 +85,8 @@ def get_sheet_node(sheet_id=None, node_id=None):
 
 def get_sheet_for_panel(id=None):
 	sheet = get_sheet(id)
+	if "error" in sheet:
+		return sheet
 	if "assigner_id" in sheet:
 		asignerData = public_user_data(sheet["assigner_id"])
 		sheet["assignerName"]  = asignerData["name"]

@@ -1621,6 +1621,9 @@ Sefaria = extend(Sefaria, {
       } else {
         var url = "/api/sheets/" + id +"?more_data=1";
          $.getJSON(url, data => {
+            if ("error" in data) {
+                console.log(data["error"])
+            }
             this._loadSheetByID[id] = data;
             if (callback) { callback(data); }
           });
