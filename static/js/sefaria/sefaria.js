@@ -1268,6 +1268,17 @@ Sefaria = extend(Sefaria, {
               sheets: this.sheets._saveUserSheetsByRefData(ref, data.sheets)
           };
 
+          // If ref is a range or section, mark the cache as empty for any subref we didn't encouter.
+          let potentialEmptyRefs = Sefaria.splitRangingRef(ref);
+          potentialEmptyRefs.forEach(eref => {
+            split_data["notes"][eref] = eref in split_data["notes"] ? split_data["notes"][eref] : [];
+            this._privateNotes[eref] = eref in this._privateNotes ? this._privateNotes[eref] : [];
+          });
+          potentialEmptyRefs.forEach(eref => {
+            split_data["sheets"][eref] = eref in split_data["sheets"] ? split_data["sheets"][eref] : [];
+            this.sheets._userSheetsByRef[eref] = eref in this.sheets._userSheetsByRef ? this.sheets._userSheetsByRef[eref] : [];
+          });
+
            // Build split related data from individual split data arrays
           ["notes", "sheets"].forEach(function(obj_type) {
             for (var ref in split_data[obj_type]) {
