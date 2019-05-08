@@ -596,7 +596,7 @@ class ConnectionsSummary extends Component {
     var isTopLevel    = !this.props.category;
     var baseCat       = oref ? oref["categories"][0] : null;
 
-    if (!summary) { return (<LoadingMessage />); }
+    if (!summary) { return (<div className="connectionsSummaryLoading"><LoadingMessage /></div>); }
 
     if (this.props.category == "Commentary" ) {
       // Show Quoting Commentary & Modern Commentary together with Commentary
