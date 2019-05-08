@@ -179,7 +179,7 @@ class TextColumn extends Component {
           earlierData = Sefaria.ref(prevData.prev);
         }
 
-        while(earlierData) {
+        while(earlierData && this.numSectionsLoadedAtTop < 10) {
           refs.splice(refs, 0, earlierData.ref);
           this.numSectionsLoadedAtTop += 1;
           earlierData = Sefaria.ref(earlierData.prev);
@@ -201,7 +201,7 @@ class TextColumn extends Component {
       var data       = Sefaria.ref(currentRef);
       if (data && data.next) {
         refs.push(data.next); // Append at least the next one
-
+        let numSectionsAddToBottom = 1;
         var nextData, laterData;
 
         // Now, only add sources if we have data for them
@@ -209,9 +209,10 @@ class TextColumn extends Component {
           laterData = Sefaria.ref(nextData.next);
         }
 
-        while(laterData) {
+        while(laterData && numSectionsAddToBottom < 10) {
           refs.push(laterData.ref);
           laterData = Sefaria.ref(laterData.next);
+          numSectionsAddToBottom += 1;
         }
 
         this.props.updateTextColumn(refs);

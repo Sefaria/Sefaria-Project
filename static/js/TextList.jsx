@@ -95,7 +95,6 @@ class TextList extends Component {
       this.setState({waitForText: false});
       return;
     }
-
     this.setState({waitForText: true});
     Sefaria.text(commentarySection, {}, function() {
       if (this._isMounted) {

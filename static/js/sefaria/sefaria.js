@@ -281,7 +281,6 @@ Sefaria = extend(Sefaria, {
   _texts: {},  // cache for data from /api/texts/
   _refmap: {}, // Mapping of simple ref/context keys to the (potentially) versioned key for that ref in _texts.
   text: function(ref, settings = null, cb = null) {
-    if (!ref.match("\\d")) {debugger;}
     if (!ref || typeof ref == "object" || typeof ref == "undefined") { debugger; }
     settings = settings || {};
     settings = {
@@ -294,6 +293,7 @@ Sefaria = extend(Sefaria, {
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
     var key = this._textKey(ref, settings);
+    //console.log(key)
     if (!cb) {
       return this._getOrBuildTextData(key, ref, settings);
     }
@@ -407,13 +407,13 @@ Sefaria = extend(Sefaria, {
     settings         = settings || {};
     var key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
-
+    //console.log("Saving", key);
     var refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    var isSectionLevel = (data.ref === data.sectionRef && data.sections.length === data.sectionNames.length - 1);
+    var isSectionLevel = (data.sections.length !== data.sectionNames.length);
     if (isSectionLevel && !data.isSpanning) {
-      // Save dat
+      // Save data in buckets for each segment
       this._splitTextSection(data, settings);
     }
 
@@ -447,11 +447,11 @@ Sefaria = extend(Sefaria, {
     // Don't do this for Refs above section level, like "Rashi on Genesis 1",
     // since it's impossible to correctly derive next & prev.
 
-    // Cowardly refuse to work with super sections or segments.  Thanks for playing!
-    if (data.textDepth !== data.sections.length + 1) {
+    // No splits needed for segments
+    if (data.textDepth === data.sections.length) {
         return;
     }
-
+    const isSuperSection = data.textDepth == data.sections.length + 2;
 
     settings = settings || {};
     let en = typeof data.text === "string" ? [data.text] : data.text;
@@ -463,9 +463,28 @@ Sefaria = extend(Sefaria, {
 
     const delim = data.ref === data.book ? " " : ":";
     const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1;
+
+    let prev = Array(length);
+    let next = Array(length);
+    if (isSuperSection) {
+      // For supersections, correctly set next and prev on each section to skip empty content    
+      let hasContent = Array(length);
+      for (let i = 0; i < length; i++) {
+        hasContent[i] = (!!en[i].length || !!he[i].length);
+      }
+      prev[0]  = data.prev;
+      for (let i = 1; i < length; i++) {
+        prev[i] = hasContent[i-1] ? data.ref + delim + (i-1+start) : prev[i-1];
+      }
+      next[length-1]  = data.next;
+      for (let i = length-2; i >= 0; i--) {
+        next[i] = hasContent[i+1] ? data.ref + delim + (i+1+start) : next[i+1];
+      }
+    }
     for (let i = 0; i < length; i++) {
       const ref          = data.ref + delim + (i+start);
       const segment_data = Sefaria.util.clone(data);
+      const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef 
       extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
@@ -473,7 +492,9 @@ Sefaria = extend(Sefaria, {
         he: he[i],
         sections: data.sections.concat(i+1),
         toSections: data.sections.concat(i+1),
-        sectionRef: data.sectionRef,
+        sectionRef: sectionRef,
+        next: isSuperSection ? next[i] : data.next,
+        prev: isSuperSection ? prev[i] : data.prev,
         nextSegment: i+start === length ? data.next + delim + 1 : data.ref + delim + (i+start+1),
         prevSegment: i+start === 1      ? null : data.ref + delim + (i+start-1)
       });
@@ -485,11 +506,10 @@ Sefaria = extend(Sefaria, {
 
       context_settings.context = 1;
       const contextKey = this._textKey(ref, context_settings);
-      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: data.sectionRef, updateFromAPI:data.updateFromAPI};
+      this._texts[contextKey] = {buildable: "Add Context", ref: ref, sectionRef: sectionRef, updateFromAPI:data.updateFromAPI};
 
       const refkey           = this._refKey(ref, context_settings);
       this._refmap[refkey] = contextKey;
-
     }
   },
   _splitSpanningText: function(data) {
@@ -997,11 +1017,12 @@ Sefaria = extend(Sefaria, {
     var books = pRefs.map(pRef => pRef.book).unique();
     if (books.length > 1) { return null; } // Can't handle multiple index titles or schemaNodes
 
-    try:
+    try {
       var startSections = pRefs.map(pRef => pRef.sections[0]);
       var endSections   = pRefs.map(pRef => pRef.toSections[0]);
-    except:
+    } catch(e) {
       return null;
+    }
 
     var commentaryRef = {
       book: books[0],
@@ -1009,9 +1030,8 @@ Sefaria = extend(Sefaria, {
       toSections: [Math.max(...endSections)]
     };
 
-    console.log(commentaryRef);
-
     var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryRef));
+
     return ref;
   },
   _notes: {},
