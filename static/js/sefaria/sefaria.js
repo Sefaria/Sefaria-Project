@@ -689,7 +689,7 @@ Sefaria = extend(Sefaria, {
       if (callback) {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
-      return this.getRefFromCache(ref);
+      return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
   _ref_lookups: {},
@@ -946,6 +946,7 @@ Sefaria = extend(Sefaria, {
     // If `excludedSheet` is present, exclude links to that sheet ID. 
 
     let links;
+    if (!this.linksLoaded(ref)) { return null; }
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }

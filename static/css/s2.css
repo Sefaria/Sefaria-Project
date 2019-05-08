@@ -3938,6 +3938,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerPanel.bilingual .connectionsPanel .he {
   display: none;
 }
+.connectionsSummaryLoading {
+  padding: 20px 34px;
+  color: #999;
+}
+.connectionsPanel .connectionsSummaryLoading .loadingMessage {
+  margin-top: 0;
+}
 .textListTextRangeBox {
   position: relative;
 }
