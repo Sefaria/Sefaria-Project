@@ -292,7 +292,7 @@ Sefaria = extend(Sefaria, {
     settings = this._complete_text_settings(settings);
     const key = this._textKey(ref, settings);
 
-    if (key in this._texts && !("updateFromAPI" in this._texts[key])) {
+    if (key in this._texts) {
         return this._getOrBuildTextData(key, settings);
     }
     return null;
@@ -302,7 +302,7 @@ Sefaria = extend(Sefaria, {
     settings = this._complete_text_settings(settings);
 
     const data = this.getTextFromCache(ref, settings);
-    if (data) {return Promise.resolve(data);}
+    if (data && !("updateFromAPI" in data)) {return Promise.resolve(data);}
 
     return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
