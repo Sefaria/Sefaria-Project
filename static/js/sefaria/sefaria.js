@@ -892,10 +892,10 @@ Sefaria = extend(Sefaria, {
   },
   linksLoaded: function(ref) {
     // Returns true if link data has been loaded for `ref`.
-    if (typeof ref == "string") {
+    if (typeof ref === "string") {
       return ref in this._links;
     } else {
-      for (var i = 0; i < ref.length; i++) {
+      for (let i = 0; i < ref.length; i++) {
         if (!this.linksLoaded(ref[i])) { return false; }
       }
       return true;
@@ -904,7 +904,7 @@ Sefaria = extend(Sefaria, {
   linkCount: function(ref, filter) {
     // Returns the number links available for `ref` filtered by `filter`, an array of strings.
     if (!(ref in this._links)) { return 0; }
-    var links = this._links[ref];
+    let links = this._links[ref];
     links = filter ? this._filterLinks(links, filter) : links;
     return links.length;
   },

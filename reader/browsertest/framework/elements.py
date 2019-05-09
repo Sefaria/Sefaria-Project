@@ -2,7 +2,8 @@
 
 from config import *
 from sefaria.model import *
-from multiprocessing import Pool
+#from multiprocessing import Pool
+from pathos.multiprocessing import ProcessingPool as Pool
 import random
 import os
 import inspect
@@ -160,6 +161,14 @@ class AbstractTest(object):
     def nav_to_toc(self):
         if self.driver.current_url == self.base_url + "/texts" or self.driver.current_url.startswith(self.base_url + "/texts?"):
             return self
+
+        # If text options are open, close them
+        try:
+            mask = self.driver.find_element_by_css_selector('.mask')
+            self.driver.execute_script("arguments[0].click();", mask)
+        except NoSuchElementException:
+            pass
+
         try:
             self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
         except NoSuchElementException:
