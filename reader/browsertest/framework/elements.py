@@ -161,9 +161,13 @@ class AbstractTest(object):
     def nav_to_toc(self):
         if self.driver.current_url == self.base_url + "/texts" or self.driver.current_url.startswith(self.base_url + "/texts?"):
             return self
-        mask = self.driver.find_element_by_css_selector('.mask')
-        if mask:
-            mask.click()
+
+        # If text options are open, close them
+        try:
+            self.driver.find_element_by_css_selector('.mask').click()
+        except NoSuchElementException:
+            pass
+
         try:
             self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
         except NoSuchElementException:
