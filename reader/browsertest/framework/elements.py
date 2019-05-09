@@ -2,7 +2,8 @@
 
 from config import *
 from sefaria.model import *
-from multiprocessing import Pool
+#from multiprocessing import Pool
+from pathos.multiprocessing import ProcessingPool as Pool
 import random
 import os
 import inspect
