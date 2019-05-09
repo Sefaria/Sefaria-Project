@@ -12,6 +12,7 @@ import re
 import regex
 import math
 
+from sefaria.system.decorators import memoized
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ KEYBOARD_SWAP_MAP = {u"/": u"q", u"׳": u"w", u"ק": u"e", u"ר": u"r", u"א": u
 					u"'": u',', u',': u'\u05ea', u'.': u'\u05e5', u'/': u'.', u';': u'\u05e3', u'A': u'\u05e9', u'B': u'\u05e0', u'C': u'\u05d1', u'D': u'\u05d2', u'E': u'\u05e7', u'F': u'\u05db', u'G': u'\u05e2', u'H': u'\u05d9', u'I': u'\u05df', u'J': u'\u05d7', u'K': u'\u05dc', u'L': u'\u05da', u'M': u'\u05e6', u'N': u'\u05de', u'O': u'\u05dd', u'P': u'\u05e4', u'Q': u'/', u'R': u'\u05e8', u'S': u'\u05d3', u'T': u'\u05d0', u'U': u'\u05d5', u'V': u'\u05d4', u'W': u'\u05f3', u'X': u'\u05e1', u'Y': u'\u05d8', u'Z': u'\u05d6', u'a': u'\u05e9', u'b': u'\u05e0', u'c': u'\u05d1', u'd': u'\u05d2', u'e': u'\u05e7', u'f': u'\u05db', u'g': u'\u05e2', u'h': u'\u05d9', u'i': u'\u05df', u'j': u'\u05d7', u'k': u'\u05dc', u'l': u'\u05da', u'm': u'\u05e6', u'n': u'\u05de', u'o': u'\u05dd', u'p': u'\u05e4', u'q': u'/', u'r': u'\u05e8', u's': u'\u05d3', u't': u'\u05d0', u'u': u'\u05d5', u'v': u'\u05d4', u'w': u'\u05f3', u'x': u'\u05e1', u'y': u'\u05d8', u'z': u'\u05d6'}
 
 
-
+@memoized
 def heb_to_int(unicode_char):
 	"""Converts a single Hebrew unicode character into its Hebrew numerical equivalent."""
 
@@ -106,7 +107,7 @@ def heb_string_to_int(n):
 	n = re.sub(u'[\u05F4"]', '', n)  # remove gershayim
 	return sum(map(heb_to_int, n))
 
-
+@memoized
 def decode_hebrew_numeral(n):
 	"""
 	Takes any string representing a Hebrew numeral and returns it integer value.
@@ -129,7 +130,7 @@ def chunks(l, n):
 	for i in xrange(0, len(l), n):
 		yield l[i:i + n]
 
-
+@memoized
 def int_to_heb(integer):
 	"""
 	Converts an integer that can be expressed by a single Hebrew character (1..9, 10..90, 100.400)
@@ -219,7 +220,6 @@ def break_int_magnitudes(n, start=None):
 		return [n]
 	else:
 		return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start / 10)
-
 
 def sanitize(input_string, punctuation=True):
 	"""sanitize(input_string, punctuation=True)
@@ -354,7 +354,7 @@ def swap_keyboards_for_letter(orig_char):
 def swap_keyboards_for_string(orig_str):
 	return re.sub(ur".", lambda match: swap_keyboards_for_letter(match.group()), orig_str)
 
-
+@memoized
 def encode_small_hebrew_numeral(n):
 	"""
 	Takes an integer under 1200 and returns a string encoding it as a Hebrew numeral.
@@ -365,7 +365,7 @@ def encode_small_hebrew_numeral(n):
 	else:
 		return u''.join(map(int_to_heb, break_int_magnitudes(n, 100)))
 
-
+@memoized
 def encode_hebrew_numeral(n, punctuation=True):
 	"""encode_hebrew_numeral(n, punctuation=True)
 
@@ -398,7 +398,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 
 	return ret
 
-
+@memoized
 def encode_hebrew_daf(daf):
 	"""
 	Turns a daf string ("21a") to a hebrew daf string ("כא.")
