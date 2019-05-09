@@ -164,7 +164,8 @@ class AbstractTest(object):
 
         # If text options are open, close them
         try:
-            self.driver.find_element_by_css_selector('.mask').click()
+            mask = self.driver.find_element_by_css_selector('.mask')
+            self.driver.execute_script("arguments[0].click();", mask)
         except NoSuchElementException:
             pass
 
