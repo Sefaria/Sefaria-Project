@@ -372,7 +372,7 @@ class AbstractTest(object):
         self.click_sidebar_entry('Grammar')
 
     def click_resources_on_sidebar(self):
-        self.click_object_by_css_selector('#panel-1 > div:nth-child(1) > div > div > div > div > a > div')
+        self.click_object_by_css_selector('#panel-1 .connectionsHeaderTitle')
 
     def click_other_text_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
