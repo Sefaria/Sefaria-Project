@@ -11,6 +11,7 @@ from selenium.webdriver.support.expected_conditions import title_contains, stale
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_cantillation
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
 
@@ -25,7 +26,10 @@ class ReaderSuite(TestSuite):
     every_build = True
 
     def setup(self):
-        self.driver.set_window_size(900, 1100)
+        try:
+            self.driver.set_window_size(900, 1100)
+        except WebDriverException:
+            pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
@@ -39,7 +43,10 @@ class PageloadSuite(TestSuite):
     every_build = True
 
     def setup(self):
-        self.driver.set_window_size(900, 1100)
+        try:
+            self.driver.set_window_size(900, 1100)
+        except WebDriverException:
+            pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
@@ -346,7 +353,6 @@ class TextSettings(AtomicTest):
         font_size_original = self.get_font_size()
         self.toggle_fontSize_smaller()
         font_size_smaller = self.get_font_size()
-        print font_size_smaller < font_size_original
 
         # self.toggle_text_settings()
         self.toggle_fontSize_larger()
@@ -947,7 +953,6 @@ class SaveNewSourceSheet(AtomicTest):
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
-        print self.driver.name
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "Enter a"))
         else:
