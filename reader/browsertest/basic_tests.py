@@ -25,6 +25,7 @@ class ReaderSuite(TestSuite):
     every_build = True
 
     def setup(self):
+        self.driver.set_window_size(900, 1100)
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
@@ -38,6 +39,7 @@ class PageloadSuite(TestSuite):
     every_build = True
 
     def setup(self):
+        self.driver.set_window_size(900, 1100)
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
@@ -520,7 +522,7 @@ class ChangeSiteLanguage(AtomicTest):
         self.nav_to_toc()
         self.click_ivrit_link()
         ivrit_title = self.get_sefaria_lib_title()
-        if 'safari' in self.driver.name:
+        if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)
             assert self.driver.find_element_by_class_name('interface-hebrew') != None
         else:
@@ -535,7 +537,7 @@ class ChangeSiteLanguage(AtomicTest):
             assert self.get_facebook_link_text() == u'פייסבוק'
         self.click_english_link()
         english_title = self.get_sefaria_lib_title()
-        if 'safari' in self.driver.name:
+        if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)
             assert self.driver.find_element_by_class_name('interface-english') != None
         else:
@@ -559,7 +561,7 @@ class CheckGraphs(AtomicTest):
         self.driver.get(self.base_url + "/explore")
         #todo ^ add a wait there that is connected to content
 
-        if 'safari' in self.driver.name:
+        if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)  # Might fail on Safari without this sleep
         assert self.get_object_by_id('Genesis').is_displayed()
         assert self.get_object_by_id('Exodus').is_displayed()
@@ -945,17 +947,18 @@ class SaveNewSourceSheet(AtomicTest):
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
-        if 'safari' in self.driver.name:
+        print self.driver.name
+        if 'safari' in self.driver.name or "Safari" in self.driver.name:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "Enter a"))
         else:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
         textBox.send_keys(" 1")
-        if 'safari' in self.driver.name:
+        if 'safari' in self.driver.name or "Safari" in self.driver.name:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or"))
         else:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
         textBox.send_keys(":9")
-        if 'safari' in self.driver.name:
+        if 'safari' in self.driver.name or "Safari" in self.driver.name:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or enter a range"))
         else:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR ENTER A RANGE"))

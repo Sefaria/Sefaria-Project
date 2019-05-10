@@ -1286,6 +1286,7 @@ class AtomicTest(AbstractTest):
         :return:
         """
         #self.driver.maximize_window()
+        self.driver.set_window_size(900, 1100)
         self.load_toc()
 
     def teardown(self):
@@ -1553,9 +1554,9 @@ class TestResultSet(AbstractTestResult):
 
 class Trial(object):
 
-    default_local_driver = webdriver.Chrome
+    # default_local_driver = webdriver.Chrome
     # default_local_driver = webdriver.Firefox
-    # default_local_driver = webdriver.Safari
+    default_local_driver = webdriver.Safari
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities

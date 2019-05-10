@@ -35,16 +35,16 @@ BS_CAPS = [
 ]
 
 SAUCE_CORE_CAPS = [
-    {'browserName': "firefox", 'platform': "macOS 10.12", 'version': "latest",
+    {'browserName': "firefox", 'platform': "macOS 10.12", 'version': "latest", "screenResolution": "1920x1080",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x12'},
 
-    {'browserName': "safari", 'platform': "OS X 10.11", 'version': "latest",
+    {'browserName': "safari", 'platform': "OS X 10.11", 'version': "latest", "screenResolution": "1920x1080",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
 
-    {'browserName': "chrome", 'platform': "Windows 10", 'version': "latest",
+    {'browserName': "chrome", 'platform': "Windows 10", 'version': "latest", "screenResolution": "1920x1080",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10'},
 
-    {'browserName': "firefox", 'platform': "Windows 10", 'version': "latest",
+    {'browserName': "firefox", 'platform': "Windows 10", 'version': "latest", "screenResolution": "1920x1080",
         'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/w10'},
 
     #{'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
