@@ -271,7 +271,7 @@ class ChangeLanguage(AtomicTest):
         str_eng = sgmnt_eng.text
         str_heb = sgmnt_heb.text
         # not sure why, but he strings aren't equal unless vowels are stripped
-        assert strip_cantillation(expected_heb,strip_vowels=True) == strip_cantillation(str_heb, strip_vowels=True)
+        assert strip_cantillation(expected_heb, strip_vowels=True) == strip_cantillation(str_heb, strip_vowels=True)
         assert expected_eng == str_eng
         self.toggle_on_text_settings()
         self.toggle_language_hebrew()

@@ -159,6 +159,11 @@ class AbstractTest(object):
 
     # TOC
     def nav_to_toc(self):
+        """
+        This method can be called from many different initial states.
+        It tries a few differnt things to get out of the current state, back to a dependable base toc.
+        :return:
+        """
         if self.driver.current_url == self.base_url + "/texts" or self.driver.current_url.startswith(self.base_url + "/texts?"):
             return self
 
@@ -169,14 +174,24 @@ class AbstractTest(object):
         except NoSuchElementException:
             pass
 
+        # Maybe deep in a commentary list
+        while True:
+            try:
+                self.driver.find_element_by_css_selector('.connectionsHeaderTitle.active').click()
+            except NoSuchElementException:
+                break
+
         try:
             self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
         except NoSuchElementException:
-            # Mobile browsers could be in a state where there's commentary open.
-            # or...
-            # Mobile browsers could be in a state where a window needs to be closed.
-            self.driver.find_element_by_css_selector('.readerNavMenuCloseButton').click()
-            self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
+            try:
+                # Mobile browsers could be in a state where a window needs to be closed.
+                self.driver.find_element_by_css_selector('.readerNavMenuCloseButton').click()
+                self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
+            except NoSuchElementException:
+                # Mobile browsers could be in a state where commentary panel is open
+                self.driver.find_element_by_css_selector('.segment').click()
+                self.driver.find_element_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton').click()
 
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         return self
