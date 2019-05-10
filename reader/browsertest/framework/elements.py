@@ -505,6 +505,9 @@ class AbstractTest(object):
         obj_to_return = self.driver.find_element_by_id(obj_id)
         return obj_to_return
 
+    def click_library(self):
+        self.click_object_by_css_selector('.headerNavSection .library, .readerNavMenuMenuButton')
+
     def click_what_in_sefaria_link(self):
         self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(2) > span:nth-child(1)')
 
@@ -517,7 +520,7 @@ class AbstractTest(object):
     def click_Team_link(self):
         self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(5) > span:nth-child(1)')
 
-    def click_terams_of_use_link(self):
+    def click_terms_of_use_link(self):
         self.click_object_by_css_selector('div.section:nth-child(1) > a:nth-child(6) > span:nth-child(1)')
 
     def click_privacy_policy_link(self):
@@ -570,9 +573,9 @@ class AbstractTest(object):
 
     def click_twitter_link(self):
         self.click_object_by_css_selector('.last > a:nth-child(5) > span:nth-child(1)')
+
     def click_sidebar_twitter_link(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
-
 
     def click_youtube_link(self):
         self.click_object_by_css_selector('.last > a:nth-child(7) > span:nth-child(1)')

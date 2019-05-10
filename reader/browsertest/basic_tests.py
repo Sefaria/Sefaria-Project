@@ -190,6 +190,10 @@ class GoThroughHomeLinksAndButtons(AtomicTest):
         # assert str == 'Subscribed! Welcome to our list.'
 '''
 
+'''
+todo: Test the results of these clicks. 
+As it stands, it's not terribly useful.  It's only testing the existence of the links. 
+
 class GoThroughFooterObjects(AtomicTest):
     suite_class = PageloadSuite
     every_build = False
@@ -207,7 +211,7 @@ class GoThroughFooterObjects(AtomicTest):
         self.click_sefaria()
         self.click_Team_link()
         self.click_sefaria()
-        self.click_terams_of_use_link()
+        self.click_terms_of_use_link()
         self.click_sefaria()
         self.click_privacy_policy_link()
 
@@ -265,7 +269,7 @@ class GoThroughFooterObjects(AtomicTest):
 
         self.click_ivrit_link()
         self.click_english_link()
-
+'''
 
 class ChangeLanguage(AtomicTest):
     suite_class = PageloadSuite
@@ -277,11 +281,13 @@ class ChangeLanguage(AtomicTest):
         expected_eng = u'When God began to create heaven and earth—'
         sgmnt_eng = self.get_nth_section_english(1)
         sgmnt_heb = self.get_nth_section_hebrew(1)
-        str_eng = sgmnt_eng.text
-        str_heb = sgmnt_heb.text
+        str_eng = sgmnt_eng.text.strip()
+        str_heb = sgmnt_heb.text.strip()
         # not sure why, but he strings aren't equal unless vowels are stripped
-        assert strip_cantillation(expected_heb, strip_vowels=True) == strip_cantillation(str_heb, strip_vowels=True)
-        assert expected_eng == str_eng
+        expected_heb_stripped = strip_cantillation(expected_heb, strip_vowels=True)
+        str_heb_stripped = strip_cantillation(str_heb, strip_vowels=True)
+        assert expected_heb_stripped == str_heb_stripped, u"'{}' does not equal '{}'".format(expected_heb_stripped, str_heb_stripped)
+        assert expected_eng == str_eng, u"'{}' does not equal '{}'".format(expected_eng, str_eng)
         self.toggle_on_text_settings()
         self.toggle_language_hebrew()
         assert 'hebrew' in self.get_content_language()
@@ -360,15 +366,15 @@ class TextSettings(AtomicTest):
         assert font_size_larger > font_size_smaller
 
         # 4] Aliyot: on off
-        # self.toggle_text_settings()
-        self.toggle_aliyotTorah_aliyotOn()
-        self.scroll_reader_panel_to_bottom()
-        assert self.is_aliyot_displayed()
+        # todo: Set up scroll_to_segment then enable this
+        # self.toggle_aliyotTorah_aliyotOn()
+        # self.scroll_to_segment(Ref("Genesis 2:4"))
+        # assert self.is_aliyot_displayed()
 
-        self.toggle_on_text_settings()
-        self.toggle_aliyotTorah_aliyotOff()
-        self.scroll_reader_panel_to_bottom()
-        assert not self.is_aliyot_displayed()
+        # self.toggle_on_text_settings()
+        # self.toggle_aliyotTorah_aliyotOff()
+        # self.scroll_reader_panel_to_bottom()
+        # assert not self.is_aliyot_displayed()
 
         # 5] Vocalization: vowels and cantillation
         self.toggle_on_text_settings()
