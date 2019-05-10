@@ -99,7 +99,7 @@ class memoized(object):
     """Decorator. Caches a function's return value each time it is called.
     If called later with the same arguments, the cached value is returned
     (not reevaluated).
-    Handling of kwargs is simplistic.  There are situations where it could break down.  Currently works dependably for one kwarg. 
+    Handling of kwargs is simplistic.  There are situations where it could break down.  Currently works dependably for one kwarg.
     """
 
     def __init__(self, func):
@@ -111,7 +111,7 @@ class memoized(object):
             # uncacheable. a list, for instance.
             # better to not cache than blow up.
             return self.func(*args, **kwargs)
-        key = args + tuple(kwargs.items()) if kwargs else args
+        key = (args + tuple(kwargs.items())) if kwargs else args
         if key in self.cache:
             return self.cache[key]
         else:
