@@ -1270,7 +1270,7 @@ class AtomicTest(AbstractTest):
         Only run when test is root.  Can be overridden at test class level.
         :return:
         """
-        self.driver.maximize_window()
+        #self.driver.maximize_window()
         self.load_toc()
 
     def teardown(self):

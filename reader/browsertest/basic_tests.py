@@ -462,7 +462,7 @@ class SideBarEntries(AtomicTest):
         self.click_other_text_on_sidebar()
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
-        self.click_resources_on_sidebar()
+        self.driver.find_element_by_css_selector('.readerNavMenuMenuButton').click()
         # self.click_sheets_on_sidebar()    #commented out as sheets is being worked on
         self.click_notes_on_sidebar()
         self.click_about_on_sidebar()
@@ -951,7 +951,7 @@ class SaveNewSourceSheet(AtomicTest):
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
         textBox.send_keys(" 1")
         if 'safari' in self.driver.name:
-           WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or"))
+            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or"))
         else:
             WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
         textBox.send_keys(":9")
