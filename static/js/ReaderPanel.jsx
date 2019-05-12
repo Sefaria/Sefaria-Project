@@ -911,12 +911,12 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "publicGroups") {
-      var menu = (<PublicGroupsPanel 
+      var menu = (<PublicGroupsPanel
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "myGroups") {
-      var menu = (<MyGroupsPanel 
+      var menu = (<MyGroupsPanel
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
@@ -942,7 +942,11 @@ class ReaderPanel extends Component {
           hideNavHeader={this.props.hideNavHeader}
           interfaceLang={this.props.interfaceLang}
         />
-      )
+      );
+    } else if (this.state.menuOpen === "profile") {
+      var menu = (
+        <div>{"yoyo"}</div>
+      );
     } else {
       var menu = null;
     }

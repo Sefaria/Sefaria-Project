@@ -2886,22 +2886,39 @@ def user_profile(request, username, page=1):
     next_page      = apage + 1 if apage else None
     next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
 
-    return render(request,"profile.html",
-                             {
-                                'profile': profile,
-                                'following': following,
-                                'activity': activity,
-                                'sheets': sheets,
-                                'notes': notes,
-                                'joined': profile.date_joined,
-                                'contributed': contributed,
-                                'score': score,
-                                'scores': scores,
-                                'user_texts': user_texts,
-                                'filter_type': filter_type,
-                                'next_page': next_page,
-                                "single": False,
-                              })
+
+    props = base_props(request)
+    props.update({
+        "initialMenu":  "profile",
+        "initialProfile": profile.__dict__,
+    })
+    title = u"%(full_name)s on Sefaria" % {"full_name": profile.full_name}
+    desc  = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request,'base.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    })
+    # return render(request,"profile.html",
+    #                          {
+    #                             'profile': profile,
+    #                             'following': following,
+    #                             'activity': activity,
+    #                             'sheets': sheets,
+    #                             'notes': notes,
+    #                             'joined': profile.date_joined,
+    #                             'contributed': contributed,
+    #                             'score': score,
+    #                             'scores': scores,
+    #                             'user_texts': user_texts,
+    #                             'filter_type': filter_type,
+    #                             'next_page': next_page,
+    #                             "single": False,
+    #                           })
 
 
 @catch_error_as_json

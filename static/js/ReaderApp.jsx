@@ -79,6 +79,7 @@ class ReaderApp extends Component {
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
+          profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
@@ -120,6 +121,7 @@ class ReaderApp extends Component {
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
+          props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           navigationGroupTag: props.initialGroupTag,
@@ -155,6 +157,7 @@ class ReaderApp extends Component {
         }),
         navigationCategories: props.initialNavigationCategories,
         navigationTopic: props.initialTopic,
+        props.initialProfile,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
         navigationGroupTag: props.initialGroupTag,
@@ -555,6 +558,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._(siteName + " Account");
             hist.url   = "account";
             hist.mode  = "account";
+            break;
+          case "profile":
+            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`
+            hist.url   = `profile/${state.profile.slug}`;
+            hist.mode = "profile";
             break;
           case "notifications":
             hist.title = Sefaria._(siteName + " Notifcations");
@@ -1798,6 +1806,7 @@ ReaderApp.propTypes = {
   initialSheetSearchSortType:  PropTypes.string,
   initialSheetsTag:            PropTypes.string,
   initialTopic:                PropTypes.string,
+  initialProfile:              PropTypes.object,
   initialNavigationCategories: PropTypes.array,
   initialSettings:             PropTypes.object,
   initialPanels:               PropTypes.array,
@@ -1816,6 +1825,7 @@ ReaderApp.defaultProps = {
   initialQuery:                null,
   initialSheetsTag:            null,
   initialTopic:                null,
+  initialProfile:              null,
   initialNavigationCategories: [],
   initialPanels:               [],
   initialDefaultVersions:      {},
