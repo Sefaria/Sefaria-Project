@@ -51,6 +51,11 @@ node_modules
 #####################
 /.idea
 
+# pystest cache #
+#####################
+/.pytest_cache
+
+
 # Sefaria Local Settings files #
 ################################
 /sefaria/local_settings.py

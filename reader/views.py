@@ -41,7 +41,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
-from sefaria.model.schema import DictionaryEntryNotFound
+from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -2233,6 +2233,9 @@ def get_name_completions(name, limit, ref_only):
     try:
         ref = Ref(name)
         inode = ref.index_node
+        if isinstance(inode, SheetLibraryNode):
+            ref = None
+            raise InputError
 
         # Find possible dictionary entries.  This feels like a messy way to do this.  Needs a refactor.
         if inode.is_virtual and inode.parent and getattr(inode.parent, "lexiconName", None) in library._lexicon_auto_completer:
@@ -3092,7 +3095,7 @@ def home(request):
     """
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
-        
+
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
     if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
@@ -3936,3 +3939,18 @@ def custom_server_error(request, template_name='500.html'):
     """
     t = get_template(template_name) # You need to create a 500.html template.
     return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
+
+def apple_app_site_association(request):
+    teamID = "2626EW4BML"
+    bundleID = "org.sefaria.sefariaApp"
+    return jsonResponse({
+        "applinks": {
+            "apps": [],
+            "details": [
+                {
+                    "appID": "{}.{}".format(teamID, bundleID),
+                    "paths": ["*"]
+                }
+            ]
+        }
+    })

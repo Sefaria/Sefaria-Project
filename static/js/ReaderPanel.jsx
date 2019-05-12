@@ -288,11 +288,11 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedNodes: [], highlightedRefs: [], mode: "Sheet"});
   }
-  handleSheetClick(e, sheet, highlightedNodes) {
+  handleSheetClick(e, sheet, highlightedNodes, highlightedRefsInSheet) {
     e.preventDefault();
     var newSettings = this.state.settings;
     newSettings["language"] = sheet.options.language;
-    this.conditionalSetState({ mode: "Sheet", sheet, highlightedNodes, settings: newSettings});
+    this.conditionalSetState({ mode: "Sheet", sheet, highlightedNodes, highlightedRefsInSheet, settings: newSettings});
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
@@ -613,6 +613,7 @@ class ReaderPanel extends Component {
           id={this.state.sheet.id}
           key={"sheet-"+this.state.sheet.id}
           highlightedNodes={this.state.highlightedNodes}
+          highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           onRefClick={this.handleSheetCitationClick}
           hasSidebar={this.props.hasSidebar}
           contentLang={this.state.settings.language}

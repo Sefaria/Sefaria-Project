@@ -696,9 +696,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
         }
-        ord = self.get_toc_index_order()
-        if ord:
-            toc_contents_dict["order"] = ord
+        order = self.get_toc_index_order()
+        if order:
+            toc_contents_dict["order"] = order
 
         return toc_contents_dict
 
@@ -1427,7 +1427,10 @@ class TextChunk(AbstractTextRecord):
         Stores the availability of this text in this language before a save is made,
         so that link langauges availability can be updated after save if changed. 
         """
-        self._available_text_pre_save = self._oref.text(lang=self.lang).text
+        try:
+            self._available_text_pre_save = self._oref.text(lang=self.lang).text
+        except NoVersionFoundError:
+            self._available_text_pre_save = []
 
     def _update_link_language_availability(self):
         """
@@ -4240,7 +4243,7 @@ class Library(object):
     def build_full_auto_completer(self):
         from autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True, include_groups=True) for lang in self.langs
         }
 
         for lang in self.langs:
