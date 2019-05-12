@@ -2890,7 +2890,7 @@ def user_profile(request, username, page=1):
     props = base_props(request)
     props.update({
         "initialMenu":  "profile",
-        "initialProfile": profile.__dict__,
+        "initialProfile": profile.to_DICT(),
     })
     title = u"%(full_name)s on Sefaria" % {"full_name": profile.full_name}
     desc  = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}

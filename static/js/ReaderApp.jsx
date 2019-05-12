@@ -121,7 +121,7 @@ class ReaderApp extends Component {
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
-          props.initialProfile,
+          profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           navigationGroupTag: props.initialGroupTag,
@@ -157,7 +157,7 @@ class ReaderApp extends Component {
         }),
         navigationCategories: props.initialNavigationCategories,
         navigationTopic: props.initialTopic,
-        props.initialProfile,
+        profile: props.initialProfile,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
         navigationGroupTag: props.initialGroupTag,
@@ -856,6 +856,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
       textHighlights:          state.textHighlights          || null,
+      profile:                 state.profile                 || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
