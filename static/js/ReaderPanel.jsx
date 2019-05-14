@@ -949,6 +949,7 @@ class ReaderPanel extends Component {
       var menu = (
         <UserProfile
           profile={this.state.profile}
+          handleSheetClick={this.handleSheetClick}
         />
       );
     } else {

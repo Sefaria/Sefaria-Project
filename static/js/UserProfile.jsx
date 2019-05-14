@@ -6,6 +6,7 @@ const {
   LoadingMessage,
   TabView,
   FilterableList,
+  SheetListing,
 }               = require('./Misc');
 const React      = require('react');
 const PropTypes = require('prop-types');
@@ -17,17 +18,25 @@ const Footer    = require('./Footer');
 
 class UserProfile extends Component {
   filterSheet(currFilter, sheet) {
-    return sheet.indexOf(currFilter) > -1;
+    const n = text => text.toLowerCase();
+    currFilter = n(currFilter);
+    return n(sheet.title).indexOf(currFilter) > -1 || sheet.tags.reduce((accum, curr) => accum || n(curr).indexOf(currFilter) > -1, false);
   }
   sortSheet(currSortOption, sheetA, sheetB) {
-    if (currSortOption === 'Recent') {
-      return parseInt(sheetA.split(" ")[1]) - parseInt(sheetB.split(" ")[1]);
+    if (currSortOption === "Recent") { return 0; /* already in order */}
+    else {
+      return sheetB.views - sheetA.views;
     }
-    return parseInt(sheetB.split(" ")[1]) - parseInt(sheetA.split(" ")[1]);
   }
   renderSheet(sheet) {
     return (
-      <div key={sheet}>{sheet}</div>
+      <SheetListing
+        key={sheet.id}
+        sheet={sheet}
+        hideAuthor={true}
+        handleSheetClick={this.props.handleSheetClick}
+        connectedRefs={[]}
+      />
     );
   }
   renderTab(tab) {
@@ -45,7 +54,7 @@ class UserProfile extends Component {
       { text: "Groups", icon: "/static/img/group.svg" },
     ];
     return (
-      <div className="profile-page readerNavMenu">
+      <div className="profile-page readerNavMenu noHeader">
         <div className="content hasFooter">
           <div className="contentInner">
             <ProfileSummary
@@ -60,7 +69,7 @@ class UserProfile extends Component {
                 sortFunc={this.sortSheet}
                 renderItem={this.renderSheet}
                 sortOptions={["Recent", "Views"]}
-                data={["Sheet 1", "Sheet 2", "Sheet 3", "Bob 4"]}
+                data={this.props.profile.sheets}
               />
               <NoteList/>
               <div>{"GROUPS"}</div>
@@ -74,6 +83,7 @@ class UserProfile extends Component {
 }
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
+  handleSheetClick: PropTypes.func.isRequired,
 }
 class NoteList extends Component {
   render() {

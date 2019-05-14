@@ -178,6 +178,7 @@ def sheet_to_dict(sheet):
 		"ownerImageUrl": profile["imageUrl"],
 		"views": sheet["views"],
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
+		"published": dateutil.parser.parse(sheet["datePublished"]).strftime("%m/%d/%Y") if "datePublished" in sheet else None,
 		"tags": sheet["tags"] if "tags" in sheet else [],
 		"options": sheet["options"] if "options" in sheet else [],
 	}
@@ -481,7 +482,7 @@ def refine_ref_by_text(ref, text):
 
 def update_included_refs(query=None, hours=None, refine_refs=False):
 	"""
-	Rebuild included_refs index on sheets matching `query` or sheets 
+	Rebuild included_refs index on sheets matching `query` or sheets
 	that have been modified in the last `hours`.
 	"""
 	if hours:
@@ -514,7 +515,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
-	If `in_group` (list) is present, only return sheets in one of the listed groups. 
+	If `in_group` (list) is present, only return sheets in one of the listed groups.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref

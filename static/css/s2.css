@@ -2113,7 +2113,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   padding-top: 5px;
 }
-.searchContent .searchFilterToggle {
+.dropdown-modal {
+  position: relative;
+}
+.dropdown-button {
   color: #666;
   margin-left: 5px;
   margin-right: 5px;
@@ -2129,19 +2132,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
           user-select: none; /* Non-prefixed version, currently
                                 supported by Chrome and Opera */
 }
-.searchContent .searchFilterToggle:hover {
+.dropdown-button:hover {
   text-decoration: underline;
 }
-.searchContent .searchFilterToggle.active {
+.dropdown-button .active {
   color: #000;
 }
-.searchContent .searchFilterToggle .en {
+.dropdown-button .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.searchContent .searchFilterToggle .he {
+.dropdown-button .he {
   font-family: "Heebo", sans-serif;
 }
-.searchContent .searchFilterToggle img {
+.dropdown-button img {
   opacity: 0.43;
   padding: 0 5px;
   height: 10px;
@@ -2253,7 +2256,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchFilterBoxes li input[type="checkbox"]:indeterminate + label span {
     background-image: url(/static/img/checkbox-partially.svg);
 }
-.searchContent .searchFilterBoxes li .filter-title {
+.searchContent .searchFilterBoxes li .filter-title
+.dropdown-option-list li .filter-title {
   color: #333;
 }
 .searchContent .searchFilterBoxes li .filter-count {
@@ -2276,7 +2280,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchFilterExactBox.hidden {
   display:none;
 }
-.searchContent .searchSortBox {
+.dropdown-option-list {
     margin-top: 10px;
     background: white;
     width: auto;
@@ -2287,59 +2291,59 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     border-radius: 7px;
     border: 1px solid #ccc;
 }
-.interface-english .searchSortBox {
+.interface-english .dropdown-option-list {
   right: 0;
 }
-.interface-hebrew .searchSortBox {
+.interface-hebrew .dropdown-option-list {
   left: 0;
 }
-.searchSortBox.hidden{
+.dropdown-option-list.hidden{
     display:none;
 }
-.searchContent .searchSortBox table {
+.dropdown-option-list table {
   border-collapse: collapse;
 }
-.searchContent .searchSortBox tr {
+.dropdown-option-list tr {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   padding: 15px;
   font-size: 16px;
   cursor: pointer;
 }
-.interface-hebrew .searchContent .searchSortBox tr {
+.interface-hebrew .dropdown-option-list tr {
   font-family: "Heebo", sans-serif;
 }
-.searchContent .searchSortBox tr:hover {
+.dropdown-option-list tr:hover {
   background-color: #e0e0e0;
 }
-.searchContent .searchSortBox tr:not(:last-child) {
+.dropdown-option-list tr:not(:last-child) {
   border-bottom: 1px solid #eee;
 }
-.searchContent .searchSortBox td:not(:first-child) {
+.dropdown-option-list td:not(:first-child) {
   padding: 15px 15px 15px 0;
 }
-.searchContent .searchSortBox td:first-child {
+.dropdown-option-list td:first-child {
   padding: 0 0 0 15px;
 }
-.interface-hebrew .searchContent .searchSortBox td:not(:first-child) {
+.interface-hebrew .dropdown-option-list td:not(:first-child) {
   padding: 15px 0 15px 15px;
 }
-.interface-hebrew .searchContent .searchSortBox td:first-child {
+.interface-hebrew .dropdown-option-list td:first-child {
   padding: 0 15px 0 0;
 }
-.searchContent .searchSortBox tr.unselected {
+.dropdown-option-list tr.unselected {
   color: #aaa;
 }
-.searchSortBox tr .searchSortCheck {
+.dropdown-option-list tr .dropdown-option-check {
   width: 10px;
   height: 10px;
   padding-left: 0;
   padding-right: 10px;
 }
-.interface-hebrew .searchSortBox tr .searchSortCheck {
+.interface-hebrew .dropdown-option-list tr .dropdown-option-check {
   padding-left: 10px;
   padding-right: 0;
 }
-.searchSortBox tr.unselected .searchSortCheck {
+.dropdown-option-list tr.unselected .dropdown-option-check {
   display: none;
 }
 .searchContent .searchResultsOverlay {
@@ -5919,9 +5923,6 @@ span.purim-emoji img{
   font-size: 16px;
   padding: 14px 8px;
   background-color: transparent;
-}
-.profile-page .contentInner {
-  padding-top: 50px;
 }
 .profile-page .profile-summary {
   display: flex;

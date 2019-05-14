@@ -27,7 +27,14 @@ class FilterableList extends Component {
     this.state = {
       currFilter: '',
       currSortOption: props.sortOptions[0],
+      displaySort: false,
     };
+  }
+  closeSort() {
+    this.setState({ displaySort: false });
+  }
+  toggleSort() {
+    this.setState({ displaySort: !this.state.displaySort });
   }
   filterFunc(item) {
     if (!this.state.currFilter) { return true; }
@@ -39,8 +46,12 @@ class FilterableList extends Component {
   onFilterChange(e) {
     this.setState({currFilter: e.target.value});
   }
-  onSortChange(e) {
-    this.setState({currSortOption: e.target.value});
+  onSortChange(sortOption) {
+    if (sortOption === this.props.currSortOption) {
+      return;
+    }
+    this.setState({currSortOption: sortOption});
+    this.closeSort();
   }
   render() {
     const { data, sortOptions, renderItem  } = this.props;
@@ -58,12 +69,20 @@ class FilterableList extends Component {
             />
           </div>
           <div>
-            {"Sort By:"}
-            <select value={this.state.currSortOption} onChange={this.onSortChange}>
-              {
-                sortOptions.map(option => (<option key={option} value={option}>{option}</option>))
-              }
-            </select>
+            <DropdownModal close={this.closeSort} isOpen={this.state.displaySort}>
+              <DropdownButton
+                isOpen={this.state.displaySort}
+                toggle={this.toggleSort}
+                enText={"Sort"}
+                heText={"מיון"}
+              />
+              <DropdownOptionList
+                isOpen={this.state.displaySort}
+                options={sortOptions.map(option => ({type: option, name: option, heName: option}))}
+                currOptionSelected={this.state.currSortOption}
+                handleClick={this.onSortChange}
+              />
+            </DropdownModal>
           </div>
         </div>
         {
@@ -117,6 +136,60 @@ TabView.propTypes = {
   renderTab: PropTypes.func.isRequired,
 };
 
+class DropdownOptionList extends Component {
+  render() {
+    return (
+      <div className={(this.props.isOpen) ? "dropdown-option-list" :"dropdown-option-list hidden"}>
+        <table>
+          <tbody>
+            {
+              this.props.options.map( (option, iSortTypeObj) => {
+                const tempClasses = classNames({'filter-title': 1, unselected: this.props.currOptionSelected !== option.type});
+                return (
+                  <tr key={option.type} className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
+                    <td>
+                      <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
+                    </td>
+                    <td>
+                      <span className="int-en">{option.name}</span>
+                      <span className="int-he" dir="rtl">{option.heName}</span>
+                    </td>
+                  </tr>
+                );
+              })
+            }
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+}
+DropdownOptionList.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  options: PropTypes.array.isRequired,
+  currOptionSelected: PropTypes.string.isRequired,
+  handleClick: PropTypes.func.isRequired,
+};
+class DropdownButton extends Component {
+  render() {
+    const { isOpen, toggle, enText, heText } = this.props;
+    const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen });
+    return (
+      <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
+        <span className="int-en">{enText}</span>
+        <span className="int-he">{heText}</span>
+        {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+      </div>
+    )
+  }
+}
+DropdownButton.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  toggle: PropTypes.func.isRequired,
+  enText: PropTypes.string.isRequired,
+  heText: PropTypes.string.isRequired,
+}
+
 class DropdownModal extends Component {
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
@@ -132,7 +205,7 @@ class DropdownModal extends Component {
   }
   render() {
     return (
-      <div>
+      <div className="dropdown-modal">
         { this.props.children }
       </div>
     );
@@ -648,7 +721,6 @@ class CategoryColorLine extends Component {
   }
 }
 
-
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e, sheet) {
@@ -692,14 +764,14 @@ class SheetListing extends Component {
           <span className="sheetTitleText">{sheet.title}</span>
         </a>
         <div className="sheetTags">
-          {sheet.tags.map(function(tag, i) {
-            var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
+          {sheet.tags.map((tag, i) => {
+            const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
             return (<a href={"/sheets/tags/" + tag}
                         target="_blank"
                         className="sheetTag"
                         key={tag}
                         onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
-          }.bind(this))}
+          })}
         </div>
       </div>);
   }
@@ -1293,7 +1365,9 @@ module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
 module.exports.CookiesNotification                       = CookiesNotification;
 module.exports.Dropdown                                  = Dropdown;
+module.exports.DropdownButton                            = DropdownButton;
 module.exports.DropdownModal                             = DropdownModal;
+module.exports.DropdownOptionList                        = DropdownOptionList;
 module.exports.FeedbackBox                               = FeedbackBox;
 module.exports.FilterableList                            = FilterableList;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
