@@ -212,24 +212,6 @@ class AbstractTest(object):
         return self
 
     def click_toc_category(self, category_name):
-        class _one_of_any_text_present_in_element(object):
-            """ An expectation for checking if the given text is present in the
-            specified element.
-            locator, text
-            """
-
-            def __init__(self, locator, text_):
-                assert isinstance(text_, list)
-                self.locator = locator
-                self.text = text_
-
-            def __call__(self, driver):
-                try:
-                    element_text = _find_element(driver, self.locator).text
-                    return any([t in element_text for t in self.text])
-                except StaleElementReferenceException:
-                    return False
-
         # Assume that category link is already present on screen (or soon will be)
 
         # These CSS selectors could fail if the category is a substring of another possible category
@@ -248,7 +230,7 @@ class AbstractTest(object):
                 continue
 
         WebDriverWait(self.driver, TEMPER).until(
-            _one_of_any_text_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
+            one_of_these_texts_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
         )
         return self
 
@@ -1842,3 +1824,22 @@ def highlight(element):
     apply_style("background: yellow; border: 2px solid red;")
     time.sleep(.3)
     apply_style(original_style)
+
+
+class one_of_these_texts_present_in_element(object):
+    """ An expectation for checking if the given text is present in the
+    specified element.
+    locator, text
+    """
+
+    def __init__(self, locator, text_):
+        assert isinstance(text_, list)
+        self.locator = locator
+        self.text = text_
+
+    def __call__(self, driver):
+        try:
+            element_text = _find_element(driver, self.locator).text
+            return any([t in element_text for t in self.text])
+        except StaleElementReferenceException:
+            return False

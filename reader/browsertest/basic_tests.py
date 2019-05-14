@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #from __future__ import absolute_import
 
-from framework import AtomicTest, TestSuite
+from framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
 from sefaria.utils.hebrew import has_cantillation
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -972,24 +972,23 @@ class SaveNewSourceSheet(AtomicTest):
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
-        if 'safari' in self.driver.name or "Safari" in self.driver.name:
-            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "Enter a"))
-        else:
-            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "ENTER A"))
+        WebDriverWait(self.driver, TEMPER).until(
+            one_of_these_texts_present_in_element((By.ID, "inlineAddDialogTitle"), ["Enter a", "ENTER A"]))
+
         textBox.send_keys(" 1")
-        if 'safari' in self.driver.name or "Safari" in self.driver.name:
-            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or"))
-        else:
-            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR"))
+        WebDriverWait(self.driver, TEMPER).until(
+            one_of_these_texts_present_in_element((By.ID, "inlineAddDialogTitle"), ["to continue or", "TO CONTINUE OR"]))
+
         textBox.send_keys(":9")
-        if 'safari' in self.driver.name or "Safari" in self.driver.name:
-            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "to continue or enter a range"))
-        else:
-            WebDriverWait(self.driver, TEMPER).until(text_to_be_present_in_element((By.ID, "inlineAddDialogTitle"), "TO CONTINUE OR ENTER A RANGE"))
+        WebDriverWait(self.driver, TEMPER).until(
+            one_of_these_texts_present_in_element((By.ID, "inlineAddDialogTitle"), ["to continue or enter a range", "TO CONTINUE OR ENTER A RANGE"]))
+
         self.driver.find_element_by_css_selector("#inlineAddSourceOK").click()
+
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#save")))
         saveButton = self.driver.find_element_by_css_selector('#save')
         saveButton.click()
+
         try:
             # this is site language dependent. try both options
             WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
