@@ -235,8 +235,8 @@ def update_pagesheetrank():
     pagesheetrank = {}
     all_trefs = set(pagerank.keys() + sheetrank.keys())
     for tref in all_trefs:
-        temp_pagerank_scaled = math.log(pagerank[tref]) + 20 if tref in pagerank_dict else RefData.DEFAULT_PAGERANK
-        temp_sheetrank_scaled = (1.0 + sheetrank_dict[tref] / 5)**2 if tref in sheetrank_dict else RefData.DEFAULT_SHEETRANK
+        temp_pagerank_scaled = math.log(pagerank[tref]) + 20 if tref in pagerank else RefData.DEFAULT_PAGERANK
+        temp_sheetrank_scaled = (1.0 + sheetrank[tref] / 5)**2 if tref in sheetrank else RefData.DEFAULT_SHEETRANK
         pagesheetrank[tref] = temp_pagerank_scaled * temp_sheetrank_scaled
     from pymongo import UpdateOne
     result = db.ref_data.bulk_write([
