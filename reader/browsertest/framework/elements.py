@@ -15,12 +15,13 @@ import sys
 
 from selenium import webdriver
 from appium import webdriver as appium_webdriver
+from selenium.webdriver.common.touch_actions import TouchActions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
         element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element, _find_element, StaleElementReferenceException
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
@@ -247,7 +248,7 @@ class AbstractTest(object):
                 continue
 
         WebDriverWait(self.driver, TEMPER).until(
-            _one_of_any_text_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"),[category_name, category_name.upper()])
+            _one_of_any_text_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
         )
         return self
 
@@ -278,7 +279,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     def click_source_title(self):
-        title_selector = '#panel-0 div.readerControls.fullPanel div.readerTextToc > div > a'
+        title_selector = 'div.readerTextToc > div > a'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, title_selector))
         )
@@ -703,7 +704,7 @@ class AbstractTest(object):
         return ret
 
     def get_sefaria_lib_title(self):
-        return self.get_object_by_css_selector('#panel-undefined > div > div > div > h1').text
+        return self.get_object_by_css_selector('#panel-undefined h1, .singlePanel h1').text
 
     def get_font_size(self):
         size = self.get_nth_section_hebrew(1).value_of_css_property("font-size")
@@ -755,21 +756,21 @@ class AbstractTest(object):
 
     def click_object_by_css_selector(self, selector):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, selector))
+            presence_of_element_located((By.CSS_SELECTOR, selector))
         )
         btn = self.driver.find_element_by_css_selector(selector)
         btn.click()
 
     def click_object_by_id(self, id):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, id))
+            presence_of_element_located((By.ID, id))
         )
         obj_to_click = self.driver.find_element_by_id(id)
         obj_to_click.click()
 
     def get_object_txt_by_id(self, id):
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.ID, id))
+            presence_of_element_located((By.ID, id))
         )
         obj = self.driver.find_element_by_id(id)
         return obj.text
@@ -793,7 +794,7 @@ class AbstractTest(object):
     def click_sidebar_entry(self, data_name):
         selector = "div[class='categoryFilter'][data-name='" + data_name + "']"
         WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, selector))
+            presence_of_element_located((By.CSS_SELECTOR, selector))
         )
         sidebar_entry = self.driver.find_element_by_css_selector(selector)
         sidebar_entry.click()
@@ -1289,7 +1290,10 @@ class AtomicTest(AbstractTest):
         :return:
         """
         #self.driver.maximize_window()
-        self.driver.set_window_size(900, 1100)
+        try:
+            self.driver.set_window_size(900, 1100)
+        except WebDriverException:
+            pass
         self.load_toc()
 
     def teardown(self):
@@ -1607,7 +1611,10 @@ class Trial(object):
         """
         if self.platform == "local":
             cap = cap if cap else self.default_local_driver
-            driver = cap()
+            if isinstance(cap, appium_webdriver.Remote):
+                driver = cap
+            else:
+                driver = cap()
         elif self.platform == "sauce":
             assert cap is not None
             if cap.get("appiumVersion") is not None:
@@ -1637,7 +1644,10 @@ class Trial(object):
         """
         driver = None
         if self.is_local:
-            mode = "multi_panel"  # Assuming that local isn't single panel
+            if isinstance(cap, appium_webdriver.Remote):
+                mode = "single_panel"
+            else:
+                mode = "multi_panel"  # Assuming that local isn't single panel
         else:
             mode = cap.get("sefaria_mode")
             cap.update({
@@ -1657,7 +1667,8 @@ class Trial(object):
             if self.platform == "sauce":
                 self.set_sauce_result(driver, result.success)
 
-            driver.quit()
+            if not self.is_local:
+                driver.quit()
             return result
 
         except Exception as e:
@@ -1754,6 +1765,8 @@ class Trial(object):
     def cap_to_string(cap):
         if inspect.isclass(cap):
             return cap.__module__.split(".")[-2]
+        if isinstance(cap, webdriver.Remote):
+            cap = cap.capabilities
         return (cap.get("deviceName") or  # sauce mobile
                 cap.get("device") or  # browserstack mobile
                 ("{} {} on {} {}".format(cap.get("browser"), cap.get("browser_version"), cap.get("os"), cap.get("os_version")) if cap.get("browser") else  # browserstack desktop
@@ -1763,6 +1776,8 @@ class Trial(object):
     def cap_to_short_string(cap):
         if inspect.isclass(cap):
             return cap.__module__.split(".")[-2]
+        if isinstance(cap, webdriver.Remote):
+            cap = cap.capabilities
         return cap.get("sefaria_short_name")
 
 
@@ -1798,9 +1813,11 @@ def get_suites():
 def get_mobile_tests(tests):
     return [t for t in tests if t.mobile]
 
+
 # Not used
 def get_desktop_tests(tests):
     return [t for t in tests if t.desktop]
+
 
 # Not used
 def get_multiplatform_tests(tests):
@@ -1809,6 +1826,7 @@ def get_multiplatform_tests(tests):
 
 def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
+
 
 # The following util method highlights (blinks) a Webdriver on the page, helpful for figuring out what a code line does.
 # A relevant use case would be to recognize an element on browser-1 when it can't be found on browser-2. Just switch locally to

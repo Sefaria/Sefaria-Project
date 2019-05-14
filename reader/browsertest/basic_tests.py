@@ -443,6 +443,10 @@ class TalmudHasNoCantillation(AtomicTest):
 class SideBarEntries(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
+    single_panel = False
+
+    # todo: make this work on mobile.
+    # "sidebar" elements will need to be scrolled into view before clicking
 
     def body(self):
         self.browse_to_ref("Genesis 1")
