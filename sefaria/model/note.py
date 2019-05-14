@@ -8,6 +8,7 @@ import bleach
 
 from . import abstract as abst
 from sefaria.model.text import Ref, IndexSet
+from sefaria.system.exceptions import InputError
 
 
 class Note(abst.AbstractMongoRecord):
@@ -34,6 +35,21 @@ class Note(abst.AbstractMongoRecord):
         "title",
         "anchorText"
     ]
+
+    def contents(self, **kwargs):
+        d = super(Note, self).contents(**kwargs)
+        if kwargs.get("with_ref_text", False):
+            try:
+                oref = Ref(self.ref)
+                en_text = oref.text("en").as_string()
+                he_text = oref.text("he").as_string()
+                d["ref_text"] = {
+                    "en": en_text,
+                    "he": he_text
+                }
+            except InputError:
+                pass
+        return d
 
     def _normalize(self):
         self.ref = Ref(self.ref).normal()
