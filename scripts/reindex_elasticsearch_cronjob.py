@@ -4,7 +4,7 @@ import os
 import django
 django.setup()
 from sefaria.model import *
-from sefaria.search import index_all, init_pagesheetrank_dicts
+from sefaria.search import index_all
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import update_pagesheetrank
 
