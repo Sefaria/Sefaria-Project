@@ -278,7 +278,8 @@ class ChangeLanguage(AtomicTest):
     def body(self):
         self.load_ref("Genesis 1")
         expected_heb = u'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
-        expected_eng = u'When God began to create heaven and earth—'
+        expected_eng_closed = u'When God began to create heaven and earth—'
+        expected_eng_open = u'In the beginning God created the heaven and the earth.'
         sgmnt_eng = self.get_nth_section_english(1)
         sgmnt_heb = self.get_nth_section_hebrew(1)
         str_eng = sgmnt_eng.text.strip()
@@ -287,7 +288,7 @@ class ChangeLanguage(AtomicTest):
         expected_heb_stripped = strip_cantillation(expected_heb, strip_vowels=True)
         str_heb_stripped = strip_cantillation(str_heb, strip_vowels=True)
         assert expected_heb_stripped == str_heb_stripped, u"'{}' does not equal '{}'".format(expected_heb_stripped, str_heb_stripped)
-        assert expected_eng == str_eng, u"'{}' does not equal '{}'".format(expected_eng, str_eng)
+        assert str_eng in [expected_eng_open, expected_eng_closed], u"'{}' does not equal '{}' or '{}'".format(str_eng, expected_eng_closed, expected_eng_open)
         self.toggle_on_text_settings()
         self.toggle_language_hebrew()
         assert 'hebrew' in self.get_content_language()
