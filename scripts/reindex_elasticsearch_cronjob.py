@@ -6,7 +6,7 @@ django.setup()
 from sefaria.model import *
 from sefaria.search import index_all, init_pagesheetrank_dicts
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
-from sefaria.pagesheetrank import calculate_pagerank, calculate_sheetrank
+from sefaria.pagesheetrank import update_pagesheetrank
 
 """
 Source sheets added after last_sheet_timestamp will be missing from the index process. We want to manually index all
@@ -17,10 +17,7 @@ up-to-date mongo dump).
 """
 # last_sheet_timestamp = datetime.fromtimestamp(os.path.getmtime("/var/data/sefaria_public/dump/sefaria")).isoformat()
 last_sheet_timestamp = datetime.now().isoformat()
-calculate_pagerank()
-calculate_sheetrank()
-# reinit pagesheetrank after calculation
-init_pagesheetrank_dicts()
+update_pagesheetrank()
 index_all(merged=False)
 index_all(merged=True)
 r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})

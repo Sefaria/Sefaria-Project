@@ -362,8 +362,8 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 
 .optionsMenu .fa {
 	/*margin-right: 8px;*/
-	-webkit-margin-end: 5px;
-	margin-inline-end: 5px;
+	-webkit-margin-end: 8px;
+	margin-inline-end: 8px;
 	font-size: 13px;
 }
 

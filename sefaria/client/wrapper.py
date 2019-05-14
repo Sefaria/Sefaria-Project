@@ -24,22 +24,26 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     # The text we're asked to get links to
     anchorTref = link.refs[pos]
-    anchorRef = Ref(anchorTref)
+    anchorRef  = Ref(anchorTref)
 
     # The link we found to anchorRef
-    linkTref = link.refs[(pos + 1) % 2]
-    linkRef = Ref(linkTref)
+    linkPos   = (pos + 1) % 2
+    linkTref  = link.refs[linkPos]
+    linkRef   = Ref(linkTref)
+    langs     = getattr(link, "availableLangs", [[],[]])
+    linkLangs = langs[linkPos]
 
-    com["_id"]           = str(link._id)
-    com['index_title']   = linkRef.index.title
-    com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
-    com["type"]          = link.type
-    com["ref"]           = linkTref
-    com["anchorRef"]     = anchorTref
-    com["sourceRef"]     = linkTref
-    com["sourceHeRef"]   = linkRef.he_normal()
-    com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["anchorText"]    = getattr(link, "anchorText", "")
+    com["_id"]              = str(link._id)
+    com['index_title']      = linkRef.index.title
+    com["category"]         = linkRef.primary_category #usually the index's categories[0] or "Commentary".
+    com["type"]             = link.type
+    com["ref"]              = linkTref
+    com["anchorRef"]        = anchorTref
+    com["sourceRef"]        = linkTref
+    com["sourceHeRef"]      = linkRef.he_normal()
+    com["anchorVerse"]      = anchorRef.sections[-1] if len(anchorRef.sections) else 0
+    com["sourceHasEn"]      = "en" in linkLangs
+    com["anchorText"]       = getattr(link, "anchorText", "")
     com["inline_reference"] = getattr(link, "inline_reference", None)
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
@@ -128,8 +132,8 @@ def format_note_object_for_client(note):
 
 def format_sheet_as_link(sheet):
     sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
-    sheet["collectiveTitle"] = {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
-    sheet["index_title"]     = sheet["groupTOC"]["title"]
+    sheet["collectiveTitle"] = sheet["groupTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["groupTOC"] else {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["index_title"]     = sheet["collectiveTitle"]["en"]
     sheet["sourceRef"]       = sheet["title"]
     sheet["sourceHeRef"]     = sheet["title"]
     sheet["isSheet"]         = True
@@ -263,7 +267,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             continue
 
     # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
-    # E.g., when requesting "Steinsaltz on X" also include links "X" as though they were connected directly to Steinsaltz.
+    # E.g., when requesting "Steinsaltz on X" also include links to "X" as though they were connected directly to Steinsaltz.
     bound_texts = ("Steinsaltz on ",)
     for prefix in bound_texts:
         if nRef.startswith(prefix):

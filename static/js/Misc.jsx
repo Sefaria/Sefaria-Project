@@ -549,7 +549,7 @@ class SheetListing extends Component {
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
-    this.props.handleSheetClick(e,sheet);
+    this.props.handleSheetClick(e, sheet, null, this.props.connectedRefs);
   }
   handleSheetOwnerClick() {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
@@ -809,7 +809,7 @@ class ThreeBox extends Component {
 
 
 class TwoBox extends Component {
-  // Wrap a list of elements into a three column table
+  // Wrap a list of elements into a two column table
   render() {
       var content = this.props.content;
       var length = content.length;

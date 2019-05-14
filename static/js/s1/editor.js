@@ -4184,18 +4184,15 @@ function saveText(text) {
 				}
 			} else if("next" in params){
 				window.location = params["next"];
-			}else if($.cookie('s2') == "true") {
+			} else {
 				if (window.location.href.includes("edit/")) {
 					window.location = window.location.href.replace("edit/", "");
+			    } else if (window.location.href.includes("add/")) {
+					window.location = window.location.href.replace("add/", "");
 				} else {
 					window.location = "/" + sjs.editing.indexTitle;
 				}
-			}else {
-				hardRefresh(ref);
-				sjs.editing = {};
-				sjs.alert.message("Text saved.");
 			}
-
 
 		}
 	}).fail( function(xhr, textStatus, errorThrown) {

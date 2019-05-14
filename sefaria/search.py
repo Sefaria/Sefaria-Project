@@ -38,22 +38,6 @@ from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
-def init_pagesheetrank_dicts():
-    global pagerank_dict, sheetrank_dict
-    try:
-        with open(STATICFILES_DIRS[0] + "pagerank.json","rb") as fin:
-            jin = json.load(fin)
-            pagerank_dict = {r: v for r, v in jin}
-    except IOError:
-        pagerank_dict = {}
-    try:
-        with open(STATICFILES_DIRS[0] + "sheetrank.json", "rb") as fin:
-            sheetrank_dict = json.load(fin)
-    except IOError:
-        sheetrank_dict = {}
-
-init_pagesheetrank_dicts()
-
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
 
@@ -88,7 +72,7 @@ def delete_version(index, version, lang):
         davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
         if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
             refs += index.all_section_refs()
-    
+
     refs += index.all_segment_refs()
 
     for ref in refs:
@@ -511,7 +495,10 @@ class TextIndexer(object):
             cls.trefs_seen = set()
             cls._bulk_actions = []
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
-            cls.best_time_period = cls.curr_index.best_time_period()
+            try:
+                cls.best_time_period = cls.curr_index.best_time_period()
+            except ValueError:
+                cls.best_time_period = None
             for v in vlist:
                 if v.versionTitle == u"Yehoyesh's Yiddish Tanakh Translation [yi]":
                     print "skipping yiddish. we don't like yiddish"
@@ -544,7 +531,10 @@ class TextIndexer(object):
         cls.merged = merged
         cls.index_name = index_name
         cls.curr_index = oref.index
-        cls.best_time_period = cls.curr_index.best_time_period()
+        try:
+            cls.best_time_period = cls.curr_index.best_time_period()
+        except ValueError:
+            cls.best_time_period = None
         cls.trefs_seen = set()
         version_priority = 0
         if not merged:
@@ -622,8 +612,9 @@ class TextIndexer(object):
 
         # section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
 
-        pagerank = math.log(pagerank_dict[tref]) + 20 if tref in pagerank_dict else 1.0
-        sheetrank = (1.0 + sheetrank_dict[tref]["count"] / 5)**2 if tref in sheetrank_dict else (1.0 / 5) ** 2
+        ref_data = RefData().load({"ref": tref})
+        pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGERANK * RefData.DEFAULT_SHEETRANK
+
         return {
             "ref": tref,
             "heRef": heTref,
@@ -634,7 +625,7 @@ class TextIndexer(object):
             "categories": temp_categories,
             "order": oref.order_id(),
             "path": "/".join(temp_categories + [cls.curr_index.title]),
-            "pagesheetrank": pagerank * sheetrank,
+            "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
             #"hebmorph_semi_exact": content_wo_cant,
             "content": content_wo_cant if cls.merged else u"",  # backwards compat for android

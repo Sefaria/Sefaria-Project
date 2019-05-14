@@ -221,7 +221,8 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     optional_attrs = [
         "scheme",
         "order",
-        "ref"
+        "ref",
+        "sensitive"
     ]
 
     def load_by_title(self, title):
@@ -302,6 +303,10 @@ def deserialize_tree(serial=None, **kwargs):
     Other keyword arguments are passed through to the node constructors.
     :return: :class:`TreeNode`
     """
+    if kwargs.get("additional_classes"):
+        for klass in kwargs.get("additional_classes"):
+            globals()[klass.__name__] = klass
+
     klass = None
     if serial.get("nodeType"):
         try:

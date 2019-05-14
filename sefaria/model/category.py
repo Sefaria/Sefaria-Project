@@ -144,7 +144,7 @@ def toc_serial_to_objects(toc):
     root = TocCategory()
     root.add_primary_titles("TOC", u"שרש")
     for e in toc:
-        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents"))
+        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents", additional_classes=[TocGroupNode]))
     return root
 
 
@@ -199,10 +199,10 @@ class TocTree(object):
             self._path_hash[tuple(i.categories + [i.title])] = node
 
         # Include Groups in TOC that has a `toc` field set
-        group_set = group.GroupSet({"toc": {"$exists": True}})
+        group_set = group.GroupSet({"toc": {"$exists": True}, "listed": True})
         for g in group_set:
             self._groups_in_library.append(g.name)
-            node = TocGroupNode(g)
+            node = TocGroupNode(group_object=g)
             categories = node.categories
             cat  = self.lookup(node.categories)
             if not cat:
@@ -454,22 +454,31 @@ class TocGroupNode(TocNode):
     enComplete: true
     heComplete: true
     """
-    def __init__(self, group_object):
-        self._group_object = group_object
-        group_contents = group_object.contents()
-        serial = {
-            "categories": group_contents["toc"]["categories"],
-            "name": group_contents["name"],
-            "title": group_contents["toc"]["title"],
-            "heTitle": group_contents["toc"]["heTitle"], 
-            "isGroup": True,
-            "enComplete": True,
-            "heComplete": True,
-        }
+    def __init__(self, serial=None, group_object=None, **kwargs):
+        if group_object:
+            self._group_object = group_object
+            group_contents = group_object.contents()
+            serial = {
+                "categories": group_contents["toc"]["categories"],
+                "name": group_contents["name"],
+                "title": group_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in group_contents["toc"] else group_contents["toc"]["title"],
+                "heTitle": group_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in group_contents["toc"] else group_contents["toc"]["heTitle"], 
+                "isGroup": True,
+                "enComplete": True,
+                "heComplete": True,
+            }
+        elif serial:
+            self._group_object = group.Group().load({"name": serial["name"]})
+
         super(TocGroupNode, self).__init__(serial)
 
     def get_group_object(self):
         return self._group_object
+
+    def serialize(self, **kwargs):
+        d = super(TocGroupNode, self).serialize()
+        d["nodeType"] = "TocGroupNode"
+        return d
 
     required_param_keys = [
         "categories",
