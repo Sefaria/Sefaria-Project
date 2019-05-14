@@ -1347,7 +1347,7 @@ a.readerNavCategory {
 .blockLink:active,
 .navButton:active,
 .readerNavCategory:active,
-.resourcesLink:active { 
+.resourcesLink:active {
   background-color: #EDEDED;
 }
 @media (max-width: 450px) {
@@ -5882,6 +5882,91 @@ span.purim-emoji img{
 
 .img-circle {
   border-radius: 50%;
+}
+.tab-view .tab-list {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+.tab-view .tab-list .tab {
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: black;
+  text-align: center;
+  padding: 14px 8px;
+  cursor: pointer;
+}
+.tab-view .tab-list .tab img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+  margin: 0 5px;
+  top: 2px;
+  position: relative;
+}
+.tab-view .tab-list .active {
+  border-bottom: 4px solid #CCC;
+}
+.filterable-list .filter-bar {
+  border-bottom: 1px solid #E2E2E1;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: space-between;
+}
+.filterable-list input {
+  border: 0;
+  font-size: 16px;
+  padding: 14px 8px;
+  background-color: transparent;
+}
+.profile-page .contentInner {
+  padding-top: 50px;
+}
+.profile-page .profile-summary {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.profile-page .profile-summary .summary-column {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-basis: 0;
+}
+.profile-page .profile-summary .summary-column.start {
+  align-items: flex-start;
+}
+.profile-page .profile-summary .summary-column.end {
+  align-items: flex-end;
+}
+.profile-page .profile-summary .small-margin {
+  margin: 0 4px;
+}
+.profile-page .profile-summary .sub-sub-title > .small-margin:first-child,
+.profile-page .profile-summary .sub-sub-title > span:first-child .small-margin {
+  margin: 0 4px 0 0;
+}
+.profile-page .profile-summary .sub-sub-title > .small-margin:last-child,
+.profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
+  margin: 0 0 0 4px;
+}
+.profile-page .profile-summary .profile-img {
+  width: 175px;
+  height: 175px;
+}
+.profile-page .profile-summary .title {
+  margin-bottom: 10px;
+}
+.profile-page .profile-summary .sub-title {
+  color: #000;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+}
+.profile-page .profile-summary .sub-sub-title {
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
 }
 /* Tooltip - source: https://codepen.io/cristina-silva/pen/XXOpga */
 .tooltip-toggle {

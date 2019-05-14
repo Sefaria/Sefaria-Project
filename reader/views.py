@@ -2863,7 +2863,7 @@ def user_profile(request, username, page=1):
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
 
-
+    is_me = request.user.id == profile.id
     following      = profile.followed_by(request.user.id) if request.user.is_authenticated else False
 
     page_size      = 20
@@ -2881,16 +2881,22 @@ def user_profile(request, username, page=1):
     scores         = db.leaders_alltime.find_one({"_id": profile.id})
     score          = int(scores["count"]) if scores else 0
     user_texts     = scores.get("texts", None) if scores else None
-    sheets         = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
+    sheets_query = {"owner": profile.id, "status": "public"}
+    if is_me:
+        # you can see your own private sheets
+        del sheets_query["status"]
+    sheets         = db.sheets.find(sheets_query).sort([["datePublished", -1]])
 
     next_page      = apage + 1 if apage else None
     next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
 
 
     props = base_props(request)
+    profileJSON = profile.to_DICT()
+    profileJSON["sheets"] = [sheet_to_dict(s) for s in sheets]
     props.update({
         "initialMenu":  "profile",
-        "initialProfile": profile.to_DICT(),
+        "initialProfile": profileJSON,
     })
     title = u"%(full_name)s on Sefaria" % {"full_name": profile.full_name}
     desc  = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}

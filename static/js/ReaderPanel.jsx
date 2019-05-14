@@ -22,6 +22,7 @@ const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
+const UserProfile               = require('./UserProfile');
 const UpdatesPanel              = require('./UpdatesPanel');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
@@ -101,6 +102,7 @@ class ReaderPanel extends Component {
       displaySettingsOpen:  false,
       tagSort: "count",
       mySheetSort: "date",
+      profile: props.initialProfile || null,
       initialAnalyticsTracked: false
     }
   }
@@ -945,7 +947,9 @@ class ReaderPanel extends Component {
       );
     } else if (this.state.menuOpen === "profile") {
       var menu = (
-        <div>{"yoyo"}</div>
+        <UserProfile
+          profile={this.state.profile}
+        />
       );
     } else {
       var menu = null;
@@ -1041,6 +1045,7 @@ ReaderPanel.propTypes = {
   initialSheetSearchField:          PropTypes.string,
   initialSheetSearchSortType:       PropTypes.string,
   initialSheetsTag:            PropTypes.string,
+  initialProfile:              PropTypes.object,
   initialState:                PropTypes.object, // if present, overrides all props above
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,
@@ -1086,6 +1091,7 @@ ReaderPanel.propTypes = {
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
+  profile:                     PropTypes.object,
 };
 
 

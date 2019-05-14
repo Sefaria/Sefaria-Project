@@ -459,6 +459,7 @@ class UserProfile(object):
         dictionary = {
             "id":                    self.id,
             "slug":                  self.slug,
+            "full_name":             self.full_name,
             "position":              self.position,
             "organization":          self.organization,
             "jewish_education":      self.jewish_education,
@@ -478,6 +479,9 @@ class UserProfile(object):
             "partner_group":         self.partner_group,
             "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
+            "followers":             self.followers.uids,
+            "followees":             self.followees.uids,
+            "gravatar_url":          self.gravatar_url
         }
         return dictionary
 

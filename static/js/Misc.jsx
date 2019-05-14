@@ -7,6 +7,116 @@ const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
 
+class SheetRow extends Component {
+  render() {
+    return (
+      <div>
+        { sheet.title }
+      </div>
+    )
+  }
+}
+SheetRow.propTypes = {
+  sheet: PropTypes.object.isRequired,
+  onClick: PropTypes.func,
+};
+
+class FilterableList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      currFilter: '',
+      currSortOption: props.sortOptions[0],
+    };
+  }
+  filterFunc(item) {
+    if (!this.state.currFilter) { return true; }
+    return this.props.filterFunc(this.state.currFilter, item);
+  }
+  sortFunc(itemA, itemB) {
+    return this.props.sortFunc(this.state.currSortOption, itemA, itemB);
+  }
+  onFilterChange(e) {
+    this.setState({currFilter: e.target.value});
+  }
+  onSortChange(e) {
+    this.setState({currSortOption: e.target.value});
+  }
+  render() {
+    const { data, sortOptions, renderItem  } = this.props;
+    const newData = data.filter(this.filterFunc).sort(this.sortFunc);
+    return (
+      <div className="filterable-list">
+        <div className="filter-bar">
+          <div>
+            <input
+              type="text"
+              placeholder="Search"
+              name="filterableListInput"
+              value={this.state.currFilter}
+              onChange={this.onFilterChange}
+            />
+          </div>
+          <div>
+            {"Sort By:"}
+            <select value={this.state.currSortOption} onChange={this.onSortChange}>
+              {
+                sortOptions.map(option => (<option key={option} value={option}>{option}</option>))
+              }
+            </select>
+          </div>
+        </div>
+        {
+          newData.map(renderItem)
+        }
+      </div>
+    )
+  }
+}
+FilterableList.propTypes = {
+  filterFunc:  PropTypes.func.isRequired,
+  sortFunc:    PropTypes.func.isRequired,
+  renderItem:  PropTypes.func.isRequired,
+  sortOptions: PropTypes.array.isRequired,
+  data:        PropTypes.array.isRequired,
+};
+
+class TabView extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      openTabIndex: 0,
+    };
+  }
+  onClickTab(e) {
+    let target = $(event.target);
+    while (!target.attr("data-tab-index")) { target = target.parent(); }
+    const tabIndex = target.attr("data-tab-index");
+    this.setState({openTabIndex: parseInt(tabIndex)});
+  }
+  renderTab(tab, index) {
+    return (
+      <div className={classNames({active: this.state.openTabIndex === index})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+        {this.props.renderTab(tab, index)}
+      </div>
+    );
+  }
+  render() {
+    return (
+      <div className="tab-view">
+        <div className="tab-list">
+          { this.props.tabs.map(this.renderTab)}
+        </div>
+        { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
+      </div>
+    );
+  }
+}
+TabView.propTypes = {
+  tabs: PropTypes.array.isRequired,
+  renderTab: PropTypes.func.isRequired,
+};
+
 class DropdownModal extends Component {
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
@@ -397,7 +507,7 @@ class ReaderNavigationMenuCloseButton extends Component {
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ? 
+    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
       <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
       <span className="textIcon">Aa</span>;
     return (<a
@@ -524,7 +634,7 @@ class SinglePanelNavHeader extends Component {
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
   enTitle:             PropTypes.string,
-  heTitle:             PropTypes.string, 
+  heTitle:             PropTypes.string,
   showDisplaySettings: PropTypes.bool,
   openDisplaySettings: PropTypes.func,
   colorLineCategory:   PropTypes.string,
@@ -1185,6 +1295,7 @@ module.exports.CookiesNotification                       = CookiesNotification;
 module.exports.Dropdown                                  = Dropdown;
 module.exports.DropdownModal                             = DropdownModal;
 module.exports.FeedbackBox                               = FeedbackBox;
+module.exports.FilterableList                            = FilterableList;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
@@ -1204,6 +1315,7 @@ module.exports.SignUpModal                               = SignUpModal;
 module.exports.SheetListing                              = SheetListing;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;
 module.exports.SheetTagLink                              = SheetTagLink;
+module.exports.TabView                                   = TabView;
 module.exports.TextBlockLink                             = TextBlockLink;
 module.exports.TestMessage                               = TestMessage;
 module.exports.ThreeBox                                  = ThreeBox;
