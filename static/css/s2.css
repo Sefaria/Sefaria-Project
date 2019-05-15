@@ -4648,12 +4648,26 @@ h2.splitHeader .he {
 }
 .groupListing {
   padding: 30px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.groupListing .left-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.groupListing .right-content {
+  align-self: center;
+  padding: 0 10px;
+  font-size: 16px;
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .groupListing + .groupListing {
   border-top: 1px solid #ccc;
 }
 .groupListingImageBox {
-  background-color: white;
   width: 60px;
   height: 60px;
   float: left;
@@ -4667,6 +4681,7 @@ h2.splitHeader .he {
   height: 100%;
   width: 100%;
   object-fit: cover;
+  background-color: white;
 }
 .groupListingImage.default {
   width: 80%;
@@ -5923,6 +5938,16 @@ span.purim-emoji img{
   font-size: 16px;
   padding: 14px 8px;
   background-color: transparent;
+}
+.profile-page .groupListingImage {
+  border-radius: 50%;
+}
+.profile-page .groupListingName {
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.profile-page .groupListing + .groupListing {
+  border-top: 0;
 }
 .profile-page .profile-summary {
   display: flex;

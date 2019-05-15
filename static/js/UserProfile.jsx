@@ -12,11 +12,69 @@ const React      = require('react');
 const PropTypes = require('prop-types');
 const classNames = require('classnames');
 const Sefaria   = require('./sefaria/sefaria');
+const TextRange  = require('./TextRange');
+const { GroupListing } = require('./MyGroupsPanel');
 import Component from 'react-class';
 const Footer    = require('./Footer');
 
 
 class UserProfile extends Component {
+  getGroups() {
+    return Sefaria.userGroups(this.props.profile.id);
+  }
+  filterGroup(currFilter, group) {
+    const n = text => text.toLowerCase();
+    currFilter = n(currFilter);
+    return n(group.name).indexOf(currFilter) > -1;
+  }
+  sortGroup(currSortOption, groupA, groupB) {
+    return 0;
+  }
+  renderEmptyGroupList() {
+    return (
+      <div>{"no groups :("}</div>
+    );
+  }
+  renderGroup(group) {
+    return (
+      <GroupListing data={group} />
+    );
+  }
+  getNotes() {
+    return new Promise((resolve, reject) => {
+      Sefaria.allPrivateNotes(notes => {
+        resolve(notes);
+      });
+    });
+  }
+  filterNote(currFilter, note) {
+    const n = text => text.toLowerCase();
+    currFilter = n(currFilter);
+    return n(note.text).indexOf(currFilter) > -1;
+  }
+  sortNote(currSortOption, noteA, noteB) {
+    return 0;
+  }
+  renderEmptyNoteList() {
+    return (
+      <div>{"no notes :("}</div>
+    );
+  }
+  renderNote(note) {
+    return (
+      <div key={`${note.ref}|${note.text}`}>
+        <TextRange sref={note.ref} />
+        {note.text}
+      </div>
+    );
+  }
+  getSheets() {
+    return new Promise((resolve, reject) => {
+      Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
+        resolve(sheets);
+      });
+    });
+  }
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
@@ -27,6 +85,11 @@ class UserProfile extends Component {
     else {
       return sheetB.views - sheetA.views;
     }
+  }
+  renderEmptySheetList() {
+    return (
+      <div>{"no sheets :("}</div>
+    );
   }
   renderSheet(sheet) {
     return (
@@ -50,9 +113,12 @@ class UserProfile extends Component {
   render() {
     const tabs = [
       { text: "Sheets", icon: "/static/img/sheet.svg" },
-      { text: "Notes", icon: "/static/img/note.svg" },
       { text: "Groups", icon: "/static/img/group.svg" },
     ];
+    const showNotes = Sefaria._uid === this.props.profile.id;
+    if (showNotes) {
+      tabs.splice(1, 0, { text: "Notes", icon: "/static/img/note.svg" });
+    }
     return (
       <div className="profile-page readerNavMenu noHeader">
         <div className="content hasFooter">
@@ -68,11 +134,30 @@ class UserProfile extends Component {
                 filterFunc={this.filterSheet}
                 sortFunc={this.sortSheet}
                 renderItem={this.renderSheet}
+                renderEmptyList={this.renderEmptySheetList}
                 sortOptions={["Recent", "Views"]}
-                data={this.props.profile.sheets}
+                getData={this.getSheets}
               />
-              <NoteList/>
-              <div>{"GROUPS"}</div>
+              {
+                showNotes ? (
+                  <FilterableList
+                    filterFunc={this.filterNote}
+                    sortFunc={this.sortNote}
+                    renderItem={this.renderNote}
+                    renderEmptyList={this.renderEmptyNoteList}
+                    sortOptions={["Recent", "Views"]}
+                    getData={this.getNotes}
+                  />
+                ) : null
+              }
+              <FilterableList
+                filterFunc={this.filterGroup}
+                sortFunc={this.sortGroup}
+                renderItem={this.renderGroup}
+                renderEmptyList={this.renderEmptyGroupList}
+                sortOptions={["Recent", "Views"]}
+                getData={this.getGroups}
+              />
             </TabView>
           </div>
           <Footer />
@@ -84,22 +169,6 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
   handleSheetClick: PropTypes.func.isRequired,
-}
-class NoteList extends Component {
-  render() {
-    console.log("NOTES");
-    return (
-      <div>{"NOTES"}</div>
-    );
-  }
-}
-class SheetList extends Component {
-  render() {
-    console.log("SHEETS");
-    return (
-      <div>{"SHEETS"}</div>
-    );
-  }
 }
 
 const ProfileSummary = ({ profile:p }) => {

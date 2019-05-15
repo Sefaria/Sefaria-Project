@@ -28,7 +28,20 @@ class FilterableList extends Component {
       currFilter: '',
       currSortOption: props.sortOptions[0],
       displaySort: false,
+      loading: true,
+      data: [],
     };
+  }
+  componentDidMount() {
+    this._isMounted = true;
+    this.props.getData().then(data => {
+      if (this._isMounted) {
+        this.setState({ loading: false, data });
+      }
+    });
+  }
+  componentWillUnmount() {
+    this._isMounted = false;
   }
   closeSort() {
     this.setState({ displaySort: false });
@@ -54,7 +67,8 @@ class FilterableList extends Component {
     this.closeSort();
   }
   render() {
-    const { data, sortOptions, renderItem  } = this.props;
+    const { sortOptions, renderItem  } = this.props;
+    const { loading, currFilter, displaySort, currSortOption, data } = this.state;
     const newData = data.filter(this.filterFunc).sort(this.sortFunc);
     return (
       <div className="filterable-list">
@@ -64,29 +78,33 @@ class FilterableList extends Component {
               type="text"
               placeholder="Search"
               name="filterableListInput"
-              value={this.state.currFilter}
+              value={currFilter}
               onChange={this.onFilterChange}
             />
           </div>
           <div>
-            <DropdownModal close={this.closeSort} isOpen={this.state.displaySort}>
+            <DropdownModal close={this.closeSort} isOpen={displaySort}>
               <DropdownButton
-                isOpen={this.state.displaySort}
+                isOpen={displaySort}
                 toggle={this.toggleSort}
                 enText={"Sort"}
                 heText={"מיון"}
               />
               <DropdownOptionList
-                isOpen={this.state.displaySort}
+                isOpen={displaySort}
                 options={sortOptions.map(option => ({type: option, name: option, heName: option}))}
-                currOptionSelected={this.state.currSortOption}
+                currOptionSelected={currSortOption}
                 handleClick={this.onSortChange}
               />
             </DropdownModal>
           </div>
         </div>
         {
-          newData.map(renderItem)
+          loading ? <LoadingMessage /> :
+          ( data.length ?
+            data.filter(this.filterFunc).sort(this.sortFunc).map(renderItem) :
+            renderEmptyList()
+          )
         }
       </div>
     )
@@ -97,7 +115,8 @@ FilterableList.propTypes = {
   sortFunc:    PropTypes.func.isRequired,
   renderItem:  PropTypes.func.isRequired,
   sortOptions: PropTypes.array.isRequired,
-  data:        PropTypes.array.isRequired,
+  getData:     PropTypes.func.isRequired,
+  renderEmptyList: PropTypes.func.isRequired,
 };
 
 class TabView extends Component {

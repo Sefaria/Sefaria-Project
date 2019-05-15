@@ -2863,37 +2863,9 @@ def user_profile(request, username, page=1):
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
 
-    is_me = request.user.id == profile.id
     following      = profile.followed_by(request.user.id) if request.user.is_authenticated else False
-
-    page_size      = 20
-    page           = int(page) if page else 1
-    if page > 40:
-        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render(request,'static/generic.html', generic_response)
-
-    query          = {"user": profile.id}
-    filter_type    = request.GET["type"] if "type" in request.GET else None
-    activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
-    notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
-
-    contributed    = activity[0]["date"] if activity else None
-    scores         = db.leaders_alltime.find_one({"_id": profile.id})
-    score          = int(scores["count"]) if scores else 0
-    user_texts     = scores.get("texts", None) if scores else None
-    sheets_query = {"owner": profile.id, "status": "public"}
-    if is_me:
-        # you can see your own private sheets
-        del sheets_query["status"]
-    sheets         = db.sheets.find(sheets_query).sort([["datePublished", -1]])
-
-    next_page      = apage + 1 if apage else None
-    next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
-
-
     props = base_props(request)
     profileJSON = profile.to_DICT()
-    profileJSON["sheets"] = [sheet_to_dict(s) for s in sheets]
     props.update({
         "initialMenu":  "profile",
         "initialProfile": profileJSON,
@@ -2909,22 +2881,6 @@ def user_profile(request, username, page=1):
         "desc":           desc,
         "html":           html,
     })
-    # return render(request,"profile.html",
-    #                          {
-    #                             'profile': profile,
-    #                             'following': following,
-    #                             'activity': activity,
-    #                             'sheets': sheets,
-    #                             'notes': notes,
-    #                             'joined': profile.date_joined,
-    #                             'contributed': contributed,
-    #                             'score': score,
-    #                             'scores': scores,
-    #                             'user_texts': user_texts,
-    #                             'filter_type': filter_type,
-    #                             'next_page': next_page,
-    #                             "single": False,
-    #                           })
 
 
 @catch_error_as_json

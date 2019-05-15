@@ -97,8 +97,10 @@ def get_sheet_for_panel(id=None):
 			sheet["groupLogo"] = None
 	return sheet
 
-def user_sheets(user_id, sort_by="date", limit=0, skip=0):
+def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	query = {"owner": int(user_id)}
+	if not private:
+		query["status"] = "public"
 	if sort_by == "date":
 		sort = [["dateModified", -1]]
 	elif sort_by == "views":
