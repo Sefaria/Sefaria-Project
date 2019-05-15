@@ -1479,7 +1479,8 @@ class TextChunk(AbstractTextRecord):
         so that we can know if segments have been added or deleted overall. 
         """
         self._available_text_pre_save = {}
-        for lang in ["en", "he"]:
+        langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
+        for lang in langs_checked:
             try:
                 self._available_text_pre_save[lang] = self._oref.text(lang=lang).text
             except NoVersionFoundError:
@@ -1494,9 +1495,15 @@ class TextChunk(AbstractTextRecord):
         if lang:
             old_refs_available = self._text_to_ref_available(self._available_text_pre_save[self.lang])
         else:
+            # Looking for availability of in all langauges, merge results of Hebrew and English
             old_en_refs_available = self._text_to_ref_available(self._available_text_pre_save["en"])
-            old_he_refs_available = self._text_to_ref_available(self._available_text_pre_save["en"])
-            old_refs_avaialble = [(r[i][0], r[i][0] or r[i][1]) for i in range(len(old_en_refs_available))]
+            old_he_refs_available = self._text_to_ref_available(self._available_text_pre_save["he"])
+            zipped = list(itertools.izip_longest(old_en_refs_available, old_he_refs_available))
+            old_refs_available = []
+            for item in zipped:
+                en, he = item[0], item[1]
+                ref = en[0] if en else he[0]
+                old_refs_available.append((ref, (en and en[1] or he and he[1])))
 
         new_refs_available = self._text_to_ref_available(self.text)
 
@@ -1539,9 +1546,7 @@ class TextChunk(AbstractTextRecord):
         Check if current save has changed the overall availabilty of text for refs
         in this language, pass refs to update revelant links if so. 
         """
-        print self.lang
         changed = self._check_available_segments_changed_post_save(lang=self.lang)
-        print changed
 
         if len(changed):
             from . import link

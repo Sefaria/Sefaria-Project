@@ -299,6 +299,9 @@ def update_link_language_availabiliy(oref, lang=None, available=None):
     
     if lang and available is not None:
         for link in links:
+            if not getattr(link, "availableLangs", None):
+                link.save()
+                continue
             pos = 0 if oref.overlaps(text.Ref(link.refs[0])) else 1
 
             if available:
