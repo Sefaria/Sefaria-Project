@@ -222,7 +222,8 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "scheme",
         "order",
         "ref",
-        "sensitive"
+        "sensitive",
+        "category"
     ]
 
     def load_by_title(self, title):
