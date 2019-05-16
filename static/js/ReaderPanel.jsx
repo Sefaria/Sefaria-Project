@@ -609,6 +609,8 @@ class ReaderPanel extends Component {
         );
     }
     var items = [];
+    let menu = null;
+
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
       items.push(<Sheet
           panelPosition ={this.props.panelPosition}
@@ -721,7 +723,7 @@ class ReaderPanel extends Component {
       var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
-      var menu = (<ReaderNavigationMenu
+      menu = (<ReaderNavigationMenu
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : "navHome"}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
@@ -746,7 +748,7 @@ class ReaderPanel extends Component {
                   />);
 
     } else if (this.state.menuOpen === "sheet meta") {
-      var menu = (<SheetMetadata
+      menu = (<SheetMetadata
                     mode={this.state.menuOpen}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
@@ -763,7 +765,7 @@ class ReaderPanel extends Component {
 
     }
     else if (this.state.menuOpen === "text toc") {
-      var menu = (<ReaderTextTableOfContents
+      menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
@@ -781,7 +783,7 @@ class ReaderPanel extends Component {
                     getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "book toc") {
-      var menu = (<ReaderTextTableOfContents
+      menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
                     closePanel={this.props.closePanel}
@@ -801,7 +803,7 @@ class ReaderPanel extends Component {
                     viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")}/>);
 
     } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
-      var menu = (<ReaderTextTableOfContents
+      menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
                     closePanel={this.props.closePanel}
@@ -822,7 +824,7 @@ class ReaderPanel extends Component {
                     getLicenseMap={this.props.getLicenseMap}/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
-      var menu = (<SearchPage
+      menu = (<SearchPage
                     key={"searchPage"}
                     query={this.state.searchQuery}
                     tab={this.state.searchTab}
@@ -844,7 +846,7 @@ class ReaderPanel extends Component {
                   />);
 
     } else if (this.state.menuOpen === "sheets") {
-      var menu = (<SheetsNav
+      menu = (<SheetsNav
                     interfaceLang={this.props.interfaceLang}
                     openNav={this.openMenu.bind(null, "navigation")}
                     close={this.closeMenus}
@@ -864,7 +866,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopic) {
-        var menu = (<TopicPage
+        menu = (<TopicPage
                       topic={this.state.navigationTopic}
                       interfaceLang={this.props.interfaceLang}
                       setTopic={this.setTopic}
@@ -879,7 +881,7 @@ class ReaderPanel extends Component {
                       openDisplaySettings={this.openDisplaySettings}
                       key={"TopicPage"} />);
       } else {
-        var menu = (<TopicsPanel
+        menu = (<TopicsPanel
                       interfaceLang={this.props.interfaceLang}
                       width={this.state.width}
                       setTopic={this.setTopic}
@@ -894,17 +896,17 @@ class ReaderPanel extends Component {
       }
 
     } else if (this.state.menuOpen === "account") {
-      var menu = (<AccountPanel
+      menu = (<AccountPanel
                     handleInAppLinkClick={this.props.handleInAppLinkClick}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "notifications") {
-      var menu = (<NotificationsPanel
+      menu = (<NotificationsPanel
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "myNotes") {
-      var menu = (<MyNotesPanel
+      menu = (<MyNotesPanel
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     hideNavHeader={this.props.hideNavHeader}
@@ -913,29 +915,29 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "publicGroups") {
-      var menu = (<PublicGroupsPanel 
+      menu = (<PublicGroupsPanel
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "myGroups") {
-      var menu = (<MyGroupsPanel 
+      menu = (<MyGroupsPanel
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "homefeed") {
-      var menu = (<HomeFeed
+      menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
       />);
 
     } else if (this.state.menuOpen === "updates") {
-      var menu = (<UpdatesPanel
+      menu = (<UpdatesPanel
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")} />);
       /*
     } else if (this.state.menuOpen === "updates") {
-      var menu = (<HomeFeed
+      menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     onlyGlobalStories={true}
@@ -943,7 +945,7 @@ class ReaderPanel extends Component {
       */
 
     } else if (this.state.menuOpen === "story_editor") {
-      var menu = (<StoryEditor
+      menu = (<StoryEditor
                     interfaceLang={this.props.interfaceLang}
       />);
 
@@ -953,10 +955,10 @@ class ReaderPanel extends Component {
                     */
 
     } else if (this.state.menuOpen === "modtools") {
-      var menu = (<ModeratorToolsPanel
+      menu = (<ModeratorToolsPanel
                     interfaceLang={this.props.interfaceLang} />);
     } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
-      var menu = (
+      menu = (
         <UserHistoryPanel
           multiPanel={this.props.multiPanel}
           menuOpen={this.state.menuOpen}
@@ -969,11 +971,9 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang}
         />
       )
-    } else {
-      var menu = null;
     }
 
-    var classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
+    let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
     classes[this.currentLayout()]             = 1;
     classes[this.state.settings.color]        = 1;
     if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
