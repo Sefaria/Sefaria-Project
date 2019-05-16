@@ -22,6 +22,7 @@ const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
+const UpdatesPanel              = require('./UpdatesPanel');
 const HomeFeed                  = require('./HomeFeed');
 const StoryEditor               = require('./StoryEditor');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
@@ -928,11 +929,18 @@ class ReaderPanel extends Component {
       />);
 
     } else if (this.state.menuOpen === "updates") {
+      var menu = (<UpdatesPanel
+                    interfaceLang={this.props.interfaceLang}
+                    multiPanel={this.props.multiPanel}
+                    navHome={this.openMenu.bind(null, "navigation")} />);
+      /*
+    } else if (this.state.menuOpen === "updates") {
       var menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     onlyGlobalStories={true}
       />);
+      */
 
     } else if (this.state.menuOpen === "story_editor") {
       var menu = (<StoryEditor
