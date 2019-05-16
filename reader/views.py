@@ -2536,14 +2536,71 @@ def story_reflector(request):
     return protected_post(request)
 
 
+
 @catch_error_as_json
 def updates_api(request, gid=None):
     """
-    API for posting global stories.
+    API for retrieving general notifications.
     """
 
     if request.method == "GET":
-        return {"error": "Not implemented."}
+        page      = int(request.GET.get("page", 0))
+        page_size = int(request.GET.get("page_size", 10))
+
+        notifications = GlobalNotificationSet({},limit=page_size, page=page)
+
+        return jsonResponse({
+                                "updates": notifications.contents(),
+                                "page": page,
+                                "page_size": page_size,
+                                "count": notifications.count()
+                            })
+
+    elif request.method == "POST":
+        if not request.user.is_authenticated:
+            key = request.POST.get("apikey")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add announcements."})
+
+            payload = json.loads(request.POST.get("json"))
+            try:
+                GlobalNotification(payload).save()
+                return jsonResponse({"status": "ok"})
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+
+        elif request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                payload = json.loads(request.POST.get("json"))
+                try:
+                    GlobalNotification(payload).save()
+                    return jsonResponse({"status": "ok"})
+                except AssertionError as e:
+                    return jsonResponse({"error": e.message})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
+
+    elif request.method == "DELETE":
+        if not gid:
+            return jsonResponse({"error": "No post id given for deletion."})
+        if request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                GlobalNotification().load_by_id(gid).delete()
+                return jsonResponse({"status": "ok"})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
 
 
 @catch_error_as_json
