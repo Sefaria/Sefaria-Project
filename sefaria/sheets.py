@@ -271,7 +271,60 @@ def recent_public_tags(days=14, ntags=14):
 	return results
 
 
-def save_sheet(sheet, user_id, search_override=False):
+def rebuild_sheet_nodes(sheet):
+	def find_next_unused_node(node_number, used_nodes):
+		while True:
+			node_number += 1
+			if node_number not in used_nodes:
+				return node_number
+
+	sheet_id = sheet["id"]
+	next_node, checked_sources, nodes_used = 0, [], set()
+
+	for source in sheet.get("sources", []):
+		if "node" not in source:
+			print "adding nodes to sheet {}".format(sheet_id)
+			next_node = find_next_unused_node(next_node, nodes_used)
+			source["node"] = next_node
+
+		elif source["node"] is None:
+			print "found null node in sheet {}".format(sheet_id)
+			next_node = find_next_unused_node(next_node, nodes_used)
+			source["node"] = next_node
+			nodes_used.add(next_node)
+
+		elif source["node"] in nodes_used:
+			print "found repeating node in sheet " + str(sheet["id"])
+			next_node = find_next_unused_node(next_node, nodes_used)
+			source["node"] = next_node
+
+		nodes_used.add(source["node"])
+
+		if "ref" in source and "text" not in source:
+			print "adding sources to sheet {}".format(sheet_id)
+			source["text"] = {}
+
+			try:
+				oref = model.Ref(source["ref"])
+				tc_eng = model.TextChunk(oref, "en")
+				tc_heb = model.TextChunk(oref, "he")
+				if tc_eng:
+					source["text"]["en"] = tc_eng.ja().flatten_to_string()
+				if tc_heb:
+					source["text"]["he"] = tc_heb.ja().flatten_to_string()
+
+			except:
+				print "error on {} on sheet {}".format(source["ref"], sheet_id)
+				continue
+
+		checked_sources.append(source)
+
+	sheet["sources"] = checked_sources
+	sheet["nextNode"] = find_next_unused_node(next_node, nodes_used)
+	return sheet
+
+
+def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
@@ -337,6 +390,8 @@ def save_sheet(sheet, user_id, search_override=False):
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
 
+	if rebuild_nodes:
+		sheet = rebuild_sheet_nodes(sheet)
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
 	if "tags" in sheet:
