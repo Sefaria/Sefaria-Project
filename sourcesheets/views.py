@@ -640,7 +640,8 @@ def save_sheet_api(request):
 						# Don't allow non Group publishers from changing status of an existing sheet
 						sheet["status"] = existing["status"]
 
-		responseSheet = save_sheet(sheet, user.id)
+		rebuild_nodes = request.POST.get('rebuildNodes', False)
+		responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
 			# Don't bother adding user links if this data won't be used to rebuild the sheet
 			responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
