@@ -4662,6 +4662,7 @@ h2.splitHeader .he {
   padding: 0 10px;
   font-size: 16px;
   color: #666;
+  text-transform: capitalize;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .groupListing + .groupListing {
@@ -5916,27 +5917,68 @@ span.purim-emoji img{
   cursor: pointer;
 }
 .tab-view .tab-list .tab img {
-  width: 16px;
-  height: 16px;
+  width: 19px;
+  height: 19px;
   opacity: 0.4;
-  margin: 0 5px;
+  margin: 0 10px 0 6px;
   top: 2px;
   position: relative;
 }
+.interface-hebrew .tab-view .tab-list .tab img {
+  margin: 0 6px 0 10px;
+}
 .tab-view .tab-list .active {
   border-bottom: 4px solid #CCC;
+}
+.tab-list :not(.active) .tab {
+    color: #666;
+}
+.profile-page .textRange {
+  font-size: 18px;
+  color: #666;
+}
+.profile-page .note-text {
+  font-size: 18px;
+}
+.profile-page .note {
+  padding: 40px 14px;
+}
+.profile-page .note + .note {
+  border-top: 1px solid #CCC;
+}
+.profile-page .social-icon img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+}
+.profile-page .social-icon + .social-icon {
+  padding: 0 5px;
+}
+.profile-page .social-icon:hover img {
+  opacity: 0.6;
+}
+.profile-page .filterable-list:before {
+  /* to distinguish top half of probile from bottom half*/
+    content: "";
+    background-color: white;
+    position: absolute;
+    height: 100%;
+    width: 4000px;
+    left: 0;
+    z-index: -1;
+    margin-top: -4px;
 }
 .filterable-list .filter-bar {
   border-bottom: 1px solid #E2E2E1;
   display: flex;
   flex-direction: row;
-  align-content: center;
+  align-items: center;
+  padding: 16px 8px;
   justify-content: space-between;
 }
 .filterable-list input {
   border: 0;
   font-size: 16px;
-  padding: 14px 8px;
   background-color: transparent;
 }
 .profile-page .groupListingImage {
@@ -5949,10 +5991,14 @@ span.purim-emoji img{
 .profile-page .groupListing + .groupListing {
   border-top: 0;
 }
+.profile-page .profile-summary a {
+  color: inherit;
+}
 .profile-page .profile-summary {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  margin-bottom: 40px;
 }
 .profile-page .profile-summary .summary-column {
   display: flex;
@@ -5980,6 +6026,30 @@ span.purim-emoji img{
 .profile-page .profile-summary .profile-img {
   width: 175px;
   height: 175px;
+}
+.profile-page .profile-summary .follow {
+  color: #999;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.profile-page .profile-summary .follow .follow-bull {
+  padding: 0 5px;
+}
+.profile-page .profile-summary .profile-actions {
+  display: flex;
+  flex-direction: row;
+  margin: 10px 0;
+}
+.profile-page .profile-summary .resourcesLink {
+  overflow: visible;
+  padding: 0px 16px;
+  border-top: 0;
+  display: flex;
+  align-items: center;
+}
+.profile-page .profile-summary .resourcesLink + .resourcesLink {
+  margin: 0 10px;
 }
 .profile-page .profile-summary .title {
   margin-bottom: 10px;

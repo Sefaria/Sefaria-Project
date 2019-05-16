@@ -133,7 +133,7 @@ class Group(abst.AbstractMongoRecord):
         if uid in self.publishers:
             return "publisher"
         if uid in self.admins:
-            return "admins"
+            return "admin"
         return None
 
     def add_member(self, uid, role="member"):

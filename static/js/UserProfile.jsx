@@ -28,7 +28,10 @@ class UserProfile extends Component {
     return n(group.name).indexOf(currFilter) > -1;
   }
   sortGroup(currSortOption, groupA, groupB) {
-    return 0;
+    if (currSortOption == "Members") {
+      return groupB.memberCount - groupA.memberCount;
+    }
+    return groupB.sheetCount - groupA.sheetCount;
   }
   renderEmptyGroupList() {
     return (
@@ -37,7 +40,7 @@ class UserProfile extends Component {
   }
   renderGroup(group) {
     return (
-      <GroupListing data={group} />
+      <GroupListing data={group} showMembership={true} />
     );
   }
   getNotes() {
@@ -62,9 +65,11 @@ class UserProfile extends Component {
   }
   renderNote(note) {
     return (
-      <div key={`${note.ref}|${note.text}`}>
+      <div className="note" key={`${note.ref}|${note.text}`}>
         <TextRange sref={note.ref} />
-        {note.text}
+        <div className="note-text">
+          {note.text}
+        </div>
       </div>
     );
   }
@@ -155,7 +160,7 @@ class UserProfile extends Component {
                 sortFunc={this.sortGroup}
                 renderItem={this.renderGroup}
                 renderEmptyList={this.renderEmptyGroupList}
-                sortOptions={["Recent", "Views"]}
+                sortOptions={["Members", "Sheets"]}
                 getData={this.getGroups}
               />
             </TabView>
@@ -172,15 +177,22 @@ UserProfile.propTypes = {
 }
 
 const ProfileSummary = ({ profile:p }) => {
-  const social = [
-    {icon: "fa-facebook-f", field: 'facebook'},
-    {icon: "fa-twitter", field: 'twitter'},
-    {icon: "fa-youtube", field: 'youtube'},
-    {icon: "fa-linkedin", field: 'linkedin'},
-    {icon: "fa-home", field: 'website'}
-  ];
-  const hasAnySocialLife = social.reduce((accum, curr) => accum || !!p[curr.field], false);
-  const hasAnyEducationSocialOrLocation = hasAnySocialLife || p.jewish_education.length || p.location;
+  // collect info about this profile in `infoList`
+  const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
+  let infoList = [];
+  if (p.location) { infoList.push(p.location); }
+  infoList = infoList.concat(p.jewish_education);
+  if (p.website) {
+    infoList.push(<span><a href={p.website}>{"website"}</a></span>);
+  }
+  infoList = infoList.concat(
+    <span>
+      { social
+        .filter(s => !!p[s])
+        .map(s => (<a className="social-icon" href={p[s]}><img key={s} src={`/static/img/${s}.svg`} /></a>))
+      }
+    </span>
+  );
   return (
     <div className="profile-summary">
       <div className="summary-column start">
@@ -195,39 +207,32 @@ const ProfileSummary = ({ profile:p }) => {
             <span>{p.organization}</span>
           </div> : null
         }
-        { hasAnyEducationSocialOrLocation ?
+        { infoList.length ?
           <div className="title sub-sub-title">
-            { p.location ? <span className="small-margin">{p.location}</span> : null }
-            { (hasAnySocialLife || p.jewish_education.length) ? '\u2022' : null }
-            { p.jewish_education.map((j, i) =>
-                (
-                  <span key={j}>
-                    { i !== 0 ? '\u2022' : null }
-                    <span className="small-margin">
-                      {j}
-                    </span>
-                  </span>
-                )
-              )
-            }
-            { hasAnySocialLife ? '\u2022' : null }
-            { social.map((s, i) =>
-                (
-                  !!p[s.field] || true ?
-                    <span key={s.field} className="small-margin">
-                      <i className={`fa ${s.icon}`}></i>
-                    </span> : null
-                )
-              )
+            {
+              infoList.map((i, ii) => (
+                <span key={ii}>
+                  { ii !== 0 ? '\u2022' : null }
+                  <span className="small-margin">{i}</span>
+                </span>
+              ))
             }
           </div> : null
         }
-        <div>
-
+        <div className="profile-actions">
+          <a href="/texts/history" className="resourcesLink">
+            <span className="en">Edit Profile</span>
+            <span className="he">היסטוריה</span>
+          </a>
+          <a href="/texts/history" className="resourcesLink">
+            <img src="/static/img/settings.svg" alt="Profile Settings" />
+            <span className="en">Settings</span>
+            <span className="he">הגדרות</span>
+          </a>
         </div>
-        <div>
+        <div className="follow">
           <span>{ `${p.followers.length} followers`}</span>
-          &bull;
+          <span className="follow-bull">&bull;</span>
           <span>{ `${p.followees.length} following`}</span>
         </div>
       </div>

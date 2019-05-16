@@ -74,6 +74,7 @@ class FilterableList extends Component {
       <div className="filterable-list">
         <div className="filter-bar">
           <div>
+            <ReaderNavigationMenuSearchButton />
             <input
               type="text"
               placeholder="Search"

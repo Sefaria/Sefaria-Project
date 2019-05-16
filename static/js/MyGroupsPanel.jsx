@@ -147,7 +147,7 @@ class GroupListing extends Component {
                 </div>
               </div>
               <div className="right-content">
-                {"Member"}
+                { this.props.showMembership ? this.props.data.membership : null }
               </div>
             </div>);
   }
