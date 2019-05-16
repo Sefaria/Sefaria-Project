@@ -2389,7 +2389,7 @@ def dictionary_api(request, word):
 
 
 @catch_error_as_json
-def stories_api(request):
+def stories_api(request, gid=None):
     """
     API for retrieving stories.
     """
@@ -2397,30 +2397,78 @@ def stories_api(request):
     # if not request.user.is_authenticated:
     #     return jsonResponse({"error": "You must be logged in to access your notifications."})
 
-    page      = int(request.GET.get("page", 0))
-    page_size = int(request.GET.get("page_size", 10))
-    only_global = bool(request.GET.get("only_global", False))
+    if request.method == "GET":
 
-    if not request.user.is_authenticated:
-        only_global = True
-        user = None
-    else:
-        user = UserProfile(id=request.user.id)
+        page      = int(request.GET.get("page", 0))
+        page_size = int(request.GET.get("page_size", 10))
+        only_global = bool(request.GET.get("only_global", False))
 
-    if only_global or not user:
-        stories = SharedStorySet(limit=page_size, page=page).contents()
-        count = len(stories)
-    else:
-        stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
-        count = len(stories)
-        stories = addDynamicStories(stories, user, page)
+        if not request.user.is_authenticated:
+            only_global = True
+            user = None
+        else:
+            user = UserProfile(id=request.user.id)
 
-    return jsonResponse({
-                            "stories": stories,
-                            "page": page,
-                            "page_size": page_size,
-                            "count": count
-                        })
+        if only_global or not user:
+            stories = SharedStorySet(limit=page_size, page=page).contents()
+            count = len(stories)
+        else:
+            stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+            count = len(stories)
+            stories = addDynamicStories(stories, user, page)
+
+        return jsonResponse({
+                                "stories": stories,
+                                "page": page,
+                                "page_size": page_size,
+                                "count": count
+                            })
+
+    elif request.method == "POST":
+        if not request.user.is_authenticated:
+            key = request.POST.get("apikey")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
+
+            payload = json.loads(request.POST.get("json"))
+            try:
+                SharedStory(payload).save()
+                return jsonResponse({"status": "ok"})
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+
+        elif request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                payload = json.loads(request.POST.get("json"))
+                try:
+                    SharedStory(payload).save()
+                    return jsonResponse({"status": "ok"})
+                except AssertionError as e:
+                    return jsonResponse({"error": e.message})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
+
+    elif request.method == "DELETE":
+        if not gid:
+            return jsonResponse({"error": "No post id given for deletion."})
+        if request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                SharedStory().load_by_id(gid).delete()
+                return jsonResponse({"status": "ok"})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
 
 
 def addDynamicStories(stories, user, page):
@@ -2496,52 +2544,6 @@ def updates_api(request, gid=None):
 
     if request.method == "GET":
         return {"error": "Not implemented."}
-
-    elif request.method == "POST":
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user = User.objects.get(id=apikey["uid"])
-            if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
-
-            payload = json.loads(request.POST.get("json"))
-            try:
-                SharedStory(payload).save()
-                return jsonResponse({"status": "ok"})
-            except AssertionError as e:
-                return jsonResponse({"error": e.message})
-
-        elif request.user.is_staff:
-            @csrf_protect
-            def protected_post(request):
-                payload = json.loads(request.POST.get("json"))
-                try:
-                    SharedStory(payload).save()
-                    return jsonResponse({"status": "ok"})
-                except AssertionError as e:
-                    return jsonResponse({"error": e.message})
-
-            return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
-
-    elif request.method == "DELETE":
-        if not gid:
-            return jsonResponse({"error": "No post id given for deletion."})
-        if request.user.is_staff:
-            @csrf_protect
-            def protected_post(request):
-                SharedStory().load_by_id(gid).delete()
-                return jsonResponse({"status": "ok"})
-
-            return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
 
 
 @catch_error_as_json
