@@ -3245,13 +3245,13 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
-
+@login_required
 def enable_home_feed(request):
     resp = home(request, True)
     resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
     return resp
 
-
+@login_required
 def disable_home_feed(request):
     resp = home(request, False)
     resp.delete_cookie("home_feed")
@@ -3286,7 +3286,7 @@ def home(request, show_feed=None):
 
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
-    if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
+    if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
     if request.user_agent.is_mobile:

@@ -386,7 +386,10 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 								"data.publisher": user_id,
 								"data.sheet_id": sheet["id"]
 							}).delete()
-
+			NotificationSet({"type": "sheet publish",
+								"content.publisher_id": user_id,
+								"content.sheet_id": sheet["id"]
+							}).delete()
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
 
@@ -793,6 +796,9 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 	#todo: work on batch creation / save pattern
 	followers = FollowersSet(publisher_id)
 	for follower in followers.uids:
+		n = Notification({"uid": follower})
+		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
+		n.save()
 		UserStory.from_sheet_publish(follower, publisher_id, sheet_id).save()
 
 

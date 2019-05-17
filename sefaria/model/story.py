@@ -254,6 +254,20 @@ class SharedStory(Story):
             return None
         return n["_id"]
 
+    @classmethod
+    def from_global_notification(cls, gn):
+        mapping = {
+            "general": "freeText",
+            "index": "newIndex",
+            "version": "newVersion"
+        }
+
+        return cls({
+            "storyForm": mapping[gn.type],
+            "data": gn.content,
+            "timestamp": int((gn.date - datetime(1970, 1, 1)).total_seconds())
+        })
+
 
 class SharedStorySet(abst.AbstractMongoSet):
     recordClass = SharedStory
@@ -295,8 +309,17 @@ class UserStory(Story):
         })
 
     @classmethod
-    def from_sheet_publish(cls, user_id, publisher_id, sheet_id):
-        return cls({
+    def from_sheet_publish_notification(cls, pn):
+        return cls.from_sheet_publish(
+            pn.uid,
+            pn.data["publisher"],
+            pn.data["sheet_id"],
+            timestamp=int((pn.date - datetime(1970, 1, 1)).total_seconds())
+        )
+
+    @classmethod
+    def from_sheet_publish(cls, user_id, publisher_id, sheet_id, timestamp = None):
+        c = cls({
             "storyForm": "publishSheet",
             "uid": user_id,
             "data": {
@@ -304,6 +327,10 @@ class UserStory(Story):
                 "sheet_id": sheet_id
             }
         })
+        if timestamp is not None:
+            c.timestamp = timestamp
+        return c
+
 
     def _init_defaults(self):
         self.timestamp = int(time.time())
