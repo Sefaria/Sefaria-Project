@@ -896,3 +896,24 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_random_shared_story(cls, **kwargs):
         cls.generate_random_shared_story(**kwargs).save()
+
+
+'''
+Turns out, not needed.
+Leaving here for the moment, in case it proves useful.
+
+def migrate_users_notifications_to_stories(uid):
+    from . import notification as n
+    #if the user has already been migrated
+    #return
+
+    for pn in n.NotificationSet({"type": "sheet publish", "uid": uid}, sort=[("_id", -1)]):
+        UserStory.from_sheet_publish_notification(pn).save()
+
+    for gn in n.GlobalNotificationSet(sort=[("_id", -1)]):
+        gs = SharedStory.from_global_notification(gn).save()
+
+        # get user notifications that refer to this global
+        for un in n.NotificationSet({"is_global": True, "global_id": gn._id}):
+            UserStory.from_shared_story(un.uid, gs).save()
+'''

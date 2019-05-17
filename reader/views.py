@@ -2570,7 +2570,8 @@ def updates_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                GlobalNotification(payload).save()
+                gn = GlobalNotification(payload).save()
+                SharedStory.from_global_notification(gn).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
@@ -2580,7 +2581,8 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    GlobalNotification(payload).save()
+                    gn = GlobalNotification(payload).save()
+                    SharedStory.from_global_notification(gn).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})

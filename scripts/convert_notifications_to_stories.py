@@ -33,8 +33,7 @@ for count, gn in enumerate(gns):
 
     # write to shared story
     assert isinstance(gn, GlobalNotification)
-    gs = SharedStory.from_global_notification(gn)
-    gs.save()
+    gs = SharedStory.from_global_notification(gn).save()
 
     # get user notifications that refer to this global
     uns = NotificationSet({"is_global": True, "global_id": gn._id})
