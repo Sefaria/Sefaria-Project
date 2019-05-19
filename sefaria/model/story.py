@@ -312,8 +312,8 @@ class UserStory(Story):
     def from_sheet_publish_notification(cls, pn):
         return cls.from_sheet_publish(
             pn.uid,
-            pn.data["publisher"],
-            pn.data["sheet_id"],
+            pn.content["publisher"],
+            pn.content["sheet_id"],
             timestamp=int((pn.date - datetime(1970, 1, 1)).total_seconds())
         )
 

@@ -12,7 +12,7 @@ db.drop_collection("user_story")
 
 
 pns = NotificationSet({"type": "sheet publish"}, sort=[("_id", -1)])
-total = pns.count()
+total = len(pns)
 print "Converting {} sheet publish notifications.".format(total)
 
 for count, pn in enumerate(pns):
@@ -25,7 +25,7 @@ for count, pn in enumerate(pns):
 
 
 gns = GlobalNotificationSet(sort=[("_id", -1)])
-total = gns.count()
+total = len(gns)
 print "Converting {} global notifications.".format(total)
 for count, gn in enumerate(gns):
     if count % 10 == 0:

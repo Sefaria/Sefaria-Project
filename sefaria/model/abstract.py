@@ -276,9 +276,9 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
-        self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
-        self.query = query
+    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
+        self.query = query or {}
+        self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj).sort(sort).skip(page * limit).limit(limit)
         self.hint = hint
         self.limit = limit
         self.skip = page * limit
