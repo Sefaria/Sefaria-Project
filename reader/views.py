@@ -1352,7 +1352,11 @@ def old_recent_redirect(request):
 @csrf_exempt
 def text_recommendations_api(request, tref):
     if request.method == "GET":
-        recs = recommend_simple_clusters(tref, top=10, threshold=5)
+        try:
+            n = int(request.GET.get("n", "10"))
+        except ValueError:
+            n = 10
+        recs = recommend_simple_clusters(tref, top=n, threshold=5)
         resp = [
             {
                 "ref": temp_tref.normal(),
