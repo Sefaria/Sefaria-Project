@@ -219,17 +219,20 @@ const ProfileSummary = ({ profile:p }) => {
             }
           </div> : null
         }
-        <div className="profile-actions">
-          <a href="/texts/history" className="resourcesLink">
-            <span className="en">Edit Profile</span>
-            <span className="he">היסטוריה</span>
-          </a>
-          <a href="/texts/history" className="resourcesLink">
-            <img src="/static/img/settings.svg" alt="Profile Settings" />
-            <span className="en">Settings</span>
-            <span className="he">הגדרות</span>
-          </a>
-        </div>
+        {
+          Sefaria._uid === p.id ? (
+          <div className="profile-actions">
+            <a href="/settings/profile" className="resourcesLink">
+              <span className="en">Edit Profile</span>
+              <span className="he">עריכת פרופיל</span>
+            </a>
+            <a href="/settings/account" className="resourcesLink">
+              <img src="/static/img/settings.svg" alt="Profile Settings" />
+              <span className="en">Settings</span>
+              <span className="he">הגדרות</span>
+            </a>
+          </div>) : null
+        }
         <div className="follow">
           <span>{ `${p.followers.length} followers`}</span>
           <span className="follow-bull">&bull;</span>
