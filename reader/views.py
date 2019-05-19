@@ -38,6 +38,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.recommendation_engine import recommend_simple_clusters
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
@@ -1345,6 +1346,22 @@ def old_text_versions_api_redirect(request, tref, lang, version):
 
 def old_recent_redirect(request):
     return redirect("/texts/history", permanent=True)
+
+
+@catch_error_as_json
+@csrf_exempt
+def text_recommendations_api(request, tref):
+    if request.method == "GET":
+        recs = recommend_simple_clusters(tref, top=10, threshold=5)
+        resp = [
+            {
+                "ref": temp_tref.normal(),
+                "score": temp_score,
+                "sources": temp_sources
+            } for temp_tref, temp_score, temp_sources in recs
+        ]
+        return jsonResponse(resp, callback=request.GET.get("callback", None))
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json

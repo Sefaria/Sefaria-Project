@@ -427,7 +427,10 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")}
                     onDelete={() => this.props.setConnectionsMode("Notes")} />);
-
+    } else if (this.props.mode === "See Also") {
+      content = (
+        null
+      );
     } else if (this.props.mode === "Add Connection") {
       content = <AddConnectionBox
                     srefs={this.props.allOpenRefs}
@@ -551,6 +554,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
+              <ToolsButton en="See also" he="ראה גם" icon="comment" onClick={() => this.props.setConnectionsMode("See Also")} />
             </div>);
   }
 }
@@ -616,7 +620,7 @@ class ConnectionsSummary extends Component {
       }
 
     } else if (isTopLevel) {
-      
+
       // Hide Quoting or Modern Commentary from the top level view
       var topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
       // But include Quoting and Modern Commentary counts and english mark in top level Commentary section
@@ -681,7 +685,7 @@ class MySheetsList extends Component {
   // List of my sheets for a ref in the Sidebar
   render() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.filter(sheet => { 
+    var content = sheets.length ? sheets.filter(sheet => {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
     }).map(sheet => {

@@ -143,11 +143,12 @@ def recommend_simple(tref, n):
     This function doesn't need to learn. Just calculates Relevance * Novelty
     Returns top N recommendations
     """
+    tref = Ref(tref).normal()  # normalize tref
     r_list = R(tref)
     score_list = []
     for other_tref, value in r_list:
         ref_data = RefData().load({"ref": other_tref})
-        novelty = ref_data.pagesheetrank if ref_data is not None else 1.0
+        novelty = ref_data.inverse_pagesheetrank() if ref_data is not None else 1.0
         score_list += [(other_tref, value["score"]*novelty, value["sources"])]
     sorted_scores = filter(lambda x: x[1] > 0, sorted(score_list, key=lambda x: x[1], reverse=True))
     return sorted_scores[:n]
