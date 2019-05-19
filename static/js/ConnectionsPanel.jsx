@@ -560,7 +560,10 @@ class ResourcesList extends Component {
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
-              <ToolsButton en="See also" he="ראה גם" icon="comment" onClick={() => this.props.setConnectionsMode("See Also")} />
+              { Sefaria.is_moderator || Sefaria.is_editor ?
+                <ToolsButton en="See also" he="ראה גם" icon="random" onClick={() => this.props.setConnectionsMode("See Also")} /> :
+                null
+              }
             </div>);
   }
 }
