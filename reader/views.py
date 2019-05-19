@@ -1707,35 +1707,40 @@ def links_api(request, link_id_or_ref=None):
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
+    def _internal_do_post(request, link, uid, **kwargs):
+        func = tracker.update if "_id" in link else tracker.add
+        # use the correct function if params indicate this is a note save
+        # func = save_note if "type" in j and j["type"] == "note" else save_link
+        #obj = func(apikey["uid"], model.Link, link, **kwargs)
+        obj = func(uid, model.Link, link, **kwargs)
+        try:
+            if USE_VARNISH:
+                revarnish_link(obj)
+        except Exception as e:
+            logger.error(e)
+        return format_object_for_client(obj)
+
+    def _internal_do_delete(request, link_id_or_ref, uid):
+        obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
+        return obj
+
+    # delegate according to single/multiple objects posted
+    if not request.user.is_authenticated:
+        key = request.POST.get("apikey")
+        if not key:
+            return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return jsonResponse({"error": "Unrecognized API key."})
+        uid = apikey["uid"]
+        kwargs = {"method": "API"}
+    else:
+        uid = request.user.id
+        kwargs = {}
+        _internal_do_post = csrf_protect(_internal_do_post)
+        _internal_do_delete = csrf_protect(_internal_do_delete)
+
     if request.method == "POST":
-        def _internal_do_post(request, link, uid, **kwargs):
-            func = tracker.update if "_id" in link else tracker.add
-            # use the correct function if params indicate this is a note save
-            # func = save_note if "type" in j and j["type"] == "note" else save_link
-            #obj = func(apikey["uid"], model.Link, link, **kwargs)
-            obj = func(uid, model.Link, link, **kwargs)
-            try:
-                if USE_VARNISH:
-                    revarnish_link(obj)
-            except Exception as e:
-                logger.error(e)
-            return format_object_for_client(obj)
-
-        # delegate according to single/multiple objects posted
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            uid = apikey["uid"]
-            kwargs = {"method": "API"}
-        else:
-            uid = request.user.id
-            kwargs = {}
-            _internal_do_post = csrf_protect(_internal_do_post)
-
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -1763,10 +1768,9 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        retval = _internal_do_delete(request, link_id_or_ref, uid)
 
-        return jsonResponse(
-            tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
-        )
+        return jsonResponse(retval)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
