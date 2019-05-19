@@ -6,7 +6,7 @@ django.setup()
 from sefaria.model import *
 
 
-PassageSet({}).delete()
+PassageSet().delete()
 
 for f in os.listdir("../data/sugyot"):
     if f.endswith(".csv"):
@@ -16,5 +16,5 @@ for f in os.listdir("../data/sugyot"):
             sugyot = csv.reader(sfile)
             sugyot.next()
             for row in sugyot:
-                (ref,type) = row
-                Passage({"full_ref":ref, "type":type}).save()
+                (ref, type) = row
+                Passage({"full_ref": ref, "type": type}).save()
