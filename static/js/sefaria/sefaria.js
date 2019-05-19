@@ -852,7 +852,7 @@ Sefaria = extend(Sefaria, {
   linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
-    // If `excludedSheet` is present, exclude links to that sheet ID. 
+    // If `excludedSheet` is present, exclude links to that sheet ID.
 
     var normRef = Sefaria.humanRef(ref);
     var cacheKey = normRef + excludedSheet;
@@ -981,7 +981,7 @@ Sefaria = extend(Sefaria, {
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
-    // Even though most commentaries have a 1:1 structural match to basetexts, this is not alway so. 
+    // Even though most commentaries have a 1:1 structural match to basetexts, this is not alway so.
     // Works by examining links available on baseRef, returns null if no links are in cache.
     if (commentator == "Abarbanel") {
       return null; // This text is too giant, optimizing up to section level is too slow. TODO: generalize.
@@ -1006,6 +1006,26 @@ Sefaria = extend(Sefaria, {
     commentaryLink.toSections = commentaryLink.sections;
     var ref = Sefaria.humanRef(Sefaria.makeRef(commentaryLink));
     return ref;
+  },
+  _recommendations: {},
+  recommendations: function(ref) {
+    return new Promise((resolve, reject) => {
+      ref = Sefaria.humanRef(ref);
+      if (ref in this._recommendations) {
+        resolve(this._recommendations[ref]);
+      } else {
+         var url = Sefaria.apiHost + "/api/texts/recommendations/" + ref;
+         this._api(url, data => {
+            if ("error" in data) {
+              reject(data);
+              return;
+            }
+            this._recommendations[ref] = data;
+            resolve(data);
+          }
+        );
+      }
+    });
   },
   _notes: {},
   notes: function(ref, callback) {
@@ -1695,9 +1715,9 @@ Sefaria = extend(Sefaria, {
         // sheets anchored to spanning refs may cause duplicates
         var seen = {};
         var deduped = [];
-        sheets.map(sheet => { 
+        sheets.map(sheet => {
           if (!seen[sheet.id]) { deduped.push(sheet); }
-          seen[sheet.id] = true; 
+          seen[sheet.id] = true;
         });
         sheets = deduped;
       }
@@ -1841,7 +1861,7 @@ Sefaria = extend(Sefaria, {
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
-      "Source Sheets": "דפי מקורות", 
+      "Source Sheets": "דפי מקורות",
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",
@@ -2017,7 +2037,7 @@ Sefaria = extend(Sefaria, {
 	  }
   },
   _cacheSiteInterfaceStrings: function() {
-    // Ensure that names set in Site Settings are available for translation in JS. 
+    // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
       Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];

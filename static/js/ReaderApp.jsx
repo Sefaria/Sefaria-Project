@@ -622,7 +622,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1, "extended notes" : 1,} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1, "extended notes" : 1, "See Also": 1} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -635,7 +635,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1, "extended notes": 1,} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1, "extended notes": 1, "See Also": 1} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -662,7 +662,7 @@ class ReaderApp extends Component {
         hist.mode     = "Sheet"
       } else if (state.mode === "SheetAndConnections") {
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1} ? [state.connectionsMode] : ["all"]);
+                          (state.connectionsMode in {"Sheets": 1, "Notes": 1, "Versions": 1, "Version Open": 1, "About": 1, "See Also": 1} ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];

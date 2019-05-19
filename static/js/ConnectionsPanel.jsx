@@ -20,6 +20,7 @@ const TextRange              = require('./TextRange');
 const TextList               = require('./TextList');
 const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
 const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
+const TextRecommendationBox  = require('./TextRecommendationBox');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
 const VersionsBox            = require('./VersionsBox');
@@ -429,7 +430,12 @@ class ConnectionsPanel extends Component {
                     onDelete={() => this.props.setConnectionsMode("Notes")} />);
     } else if (this.props.mode === "See Also") {
       content = (
-        null
+        <TextRecommendationBox
+          srefs={this.props.srefs}
+          panelPosition={this.props.panelPosition}
+          onRangeClick={this.props.onTextClick}
+          onCitationClick={this.props.onCitationClick}
+        />
       );
     } else if (this.props.mode === "Add Connection") {
       content = <AddConnectionBox
