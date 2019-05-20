@@ -4,7 +4,7 @@ django.setup()
 
 from sefaria.model import *
 from datetime import datetime
-from sefaria.system.database import db
+from sefaria.system.database import db, ensure_indices
 
 
 db.drop_collection("shared_story")
@@ -43,3 +43,4 @@ for count, gn in enumerate(gns):
     # uns.delete()
 #gns.delete()
 
+ensure_indices()
