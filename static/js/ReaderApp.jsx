@@ -56,7 +56,6 @@ class ReaderApp extends Component {
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
           mode: mode,
-          menuOpen: props.initialMenu,
           filter: props.initialFilter,
           versionFilter: props.initialVersionFilter,
           menuOpen: props.initialMenu,
@@ -97,7 +96,6 @@ class ReaderApp extends Component {
         panels[0] = {
           refs: props.initialRefs,
           mode: mode,
-          menuOpen: props.initialMenu,
           filter: props.initialFilter,
           versionFilter: props.initialVersionFilter,
           menuOpen: props.initialMenu,
@@ -299,10 +297,6 @@ class ReaderApp extends Component {
       this.setContainerMode();
     }
   }
-  _canTrackPageview() {
-      if (!Sefaria.track) { return false; }
-      return true;
-  }
   trackPageview() {
       var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
       var panels = headerPanel ? [this.state.header] : this.state.panels;
@@ -466,7 +460,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "home":
             hist.title = Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
-            hist.url   = "";
+            hist.url   = "oldhome";
             hist.mode  = "home";
             break;
           case "navigation":
@@ -566,11 +560,6 @@ class ReaderApp extends Component {
             hist.url = "groups";
             hist.mode = "publicGroups";
             break;
-          case "publicGroups":
-            hist.title = Sefaria._(siteName + " Groups");
-            hist.url = "groups";
-            hist.mode = "publicGroups";
-            break;
           case "myGroups":
             hist.title = Sefaria._(siteName + " Groups");
             hist.url = "my/groups";
@@ -591,6 +580,11 @@ class ReaderApp extends Component {
             hist.url = "modtools";
             hist.mode = "modtools";
             break;
+          case "story_editor":
+            hist.title = Sefaria._("Story Editor");
+            hist.url = "story_editor";
+            hist.mode = "story_editor";
+            break;
           case "saved":
             hist.title = Sefaria._("My Saved Content");
             hist.url = "texts/saved";
@@ -600,6 +594,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("My User History");
             hist.url = "texts/history";
             hist.mode = "history";
+            break;
+          case "homefeed":
+            hist.title = Sefaria._("Sefaria Stories");
+            hist.url = "";
+            hist.mode = "homefeed";
             break;
         }
       } else if (state.mode === "Text") {
@@ -1597,11 +1596,6 @@ class ReaderApp extends Component {
     this.setContainerMode();
   }
   render() {
-     // Only look at the last N panels if we're above panelCap
-    //var panelStates = this.state.panels.slice(-this.state.panelCap);
-    //if (panelStates.length && panelStates[0].mode === "Connections") {
-    //  panelStates = panelStates.slice(1); // Don't leave an orphaned connections panel at the beginning
-    //}
     var panelStates = this.state.panels;
 
     var evenWidth;

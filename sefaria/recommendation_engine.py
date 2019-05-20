@@ -1,6 +1,3 @@
-import re
-import bleach
-import math
 import django
 django.setup()
 from collections import defaultdict
@@ -102,7 +99,6 @@ def normalize_related_refs(related_refs, focus_ref, base_score, check_has_ref=Fa
         return final_refs, focus_range_factor, final_other_data
     return [], focus_range_factor, final_other_data
 
-SENSITIVE = reduce(lambda a, b: a | set(b.get_titles()), TermSet({"sensitive": True}), set())
 
 def get_sheets_for_ref(tref):
     oref = Ref(tref)
@@ -113,11 +109,6 @@ def get_sheets_for_ref(tref):
     sheets_cursor = db.sheets.find(query, {"includedRefs": 1, "owner": 1, "id": 1, "tags": 1, "title": 1})
     included_ref_dict = {}
     for sheet in sheets_cursor:
-        tags_offensive = len({t.lower() for t in sheet.get("tags", [])} & SENSITIVE) > 0
-        title = re.sub(r"[!?.,:;()\[\]\-_'\"]", "", bleach.clean(sheet.get("title", ""), tags=[], strip=True).lower())
-        title_offensive = len(set(title.split()) & SENSITIVE) > 0
-        if title_offensive or tags_offensive:
-            continue
         temp_included, focus_range_factor, _ = normalize_related_refs(sheet.get("includedRefs", []), tref, SHEET_REF_SCORE, check_has_ref=True, count_steinsaltz=True)
         ref_owner_keys = [(r, sheet["owner"]) for r in temp_included]
         for k in ref_owner_keys:
@@ -188,8 +179,6 @@ def recommend_simple_clusters(tref, top=10, threshold=5):
             if elem[0]["ref"].primary_category in ("Tanakh", "Talmud"):
                 # only combine clusters for Tanakh and Talmud
                 liste_final.append(((elem[0]["ref"].to(elem[-1]["ref"])), max(scores), sources))
-            elif elem[0]["ref"].primary_category in ("Modern Works",):
-                continue
             else:
                 argmax = max(range(len(scores)), key=lambda i: scores[i])  # see here for this semi-readable hack for argmax() https://towardsdatascience.com/there-is-no-argmax-function-for-python-list-cd0659b05e49
                 liste_final.append((elem[argmax]["ref"], elem[argmax]["data"]["score"], elem[argmax]["data"]["sources"]))

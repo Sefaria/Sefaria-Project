@@ -162,32 +162,18 @@ class ReaderNavigationMenu extends Component {
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
 
-      let resources = [(<a className="resourcesLink" href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <img src="/static/img/sheet-icon.png" alt="source sheets icon" />
-                        <span className="int-en">Source Sheets</span>
-                        <span className="int-he">דפי מקורות</span>
-                      </a>),
-                     (<a className="resourcesLink outOfAppLink" href="/visualizations">
-                        <img src="/static/img/visualizations-icon.png" alt="visualization icon" />
-                        <span className="int-en">Visualizations</span>
-                        <span className="int-he">תרשימים גרפיים</span>
-                      </a>),
-                    (<a className="resourcesLink outOfAppLink" href="/people">
-                        <img src="/static/img/authors-icon.png" alt="author icon" />
-                        <span className="int-en">Authors</span>
-                        <span className="int-he">רשימת מחברים</span>
-                      </a>),
-                    (<a className="resourcesLink" href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
-                        <img src="/static/img/hashtag-icon.svg" alt="resources icon" />
-                        <span className="int-en">Topics</span>
-                        <span className="int-he">נושאים</span>
-                      </a>),
-                    (<a className="resourcesLink outOfAppLink" href="/groups">
-                        <img src="/static/img/group.svg" alt="Groups icon" />
-                        <span className="int-en">Groups</span>
-                        <span className="int-he">קבוצות</span>
-                      </a>)
-                      ];
+      let resources = [
+          <TocLink en="Source Sheets" he="דפי מקורות" href="/sheets" resourcesLink={true} onClick={this.props.openMenu.bind(null, "sheets")}
+                img="/static/img/sheet-icon.png"  alt="source sheets icon"/>,
+          <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true} outOfAppLink={true}
+                img="/static/img/visualizations-icon.png" alt="visualization icon" />,
+          <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true} outOfAppLink={true}
+                img="/static/img/authors-icon.png" alt="author icon"/>,
+          <TocLink en="Topics" he="נושאים" href="/topics" resourcesLink={true} onClick={this.props.openMenu.bind(null, "topics")}
+                img="/static/img/hashtag-icon.svg" alt="resources icon" />,
+          <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true} outOfAppLink={true}
+                img="/static/img/group.svg" alt="Groups icon"/>
+      ];
 
       const torahSpecificResources = ["/visualizations", "/people"];
       if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
@@ -220,24 +206,13 @@ class ReaderNavigationMenu extends Component {
       topContent = this.props.hideNavHeader ? null : topContent;
 
       let topUserData = [
-        <a href="/texts/saved" className="resourcesLink" onClick={this.openSaved}>
-          <img src="/static/img/star.png" alt="saved text icon" />
-          <span className="en">Saved</span>
-          <span className="he">שמורים</span>
-        </a>,
-        <a href="/texts/history" className="resourcesLink" onClick={this.props.openMenu.bind(null, "history")}>
-          <img src="/static/img/clock.png" alt="" />
-          <span className="en">History</span>
-          <span className="he">היסטוריה</span>
-        </a>
+          <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} onClick={this.openSaved} img="/static/img/star.png" alt="saved text icon"/>,
+          <TocLink en="History" he="היסטוריה" href="/texts/history" resourcesLink={true} onClick={this.props.openMenu.bind(null, "history")} img="/static/img/clock.png" alt="history icon"/>
       ];
       topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);
 
-      const donation  = <a className="resourcesLink outOfAppLink donationLink" href="https://sefaria.nationbuilder.com/">
-                            <img src="/static/img/heart.png" alt="donation icon" />
-                            <span className="int-en">Make a Donation</span>
-                            <span className="int-he">בצעו תרומה</span>
-                        </a>;
+      const donation  = <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink"
+                           img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/"/>;
 
       const title = (<h1>
                     { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -287,5 +262,12 @@ ReaderNavigationMenu.propTypes = {
   compare:       PropTypes.bool,
   interfaceLang: PropTypes.string,
 };
+
+const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, onClick}) =>
+    <a className={(resourcesLink?"resourcesLink ":"") + (outOfAppLink?"outOfAppLink ":"") + classes} href={href} onClick={onClick}>
+        <img src={img} alt={alt} />
+        <span className="int-en">{en}</span>
+        <span className="int-he">{he}</span>
+    </a>;
 
 module.exports = ReaderNavigationMenu;

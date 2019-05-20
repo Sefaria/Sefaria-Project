@@ -123,7 +123,6 @@ class Test_Ref(object):
         assert Ref("Shabbat 7b").is_talmud()
         assert Ref("Rashi on Shabbat 2a:1:1").is_talmud()
 
-    '''  Uncomment when all_context_refs is merged in 
     def test_all_context_refs(self):
         assert Ref('Rashi on Genesis 2:3:4').all_context_refs() == [Ref('Rashi on Genesis 2:3:4'), Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2')]
         assert Ref('Rashi on Genesis 2:3:4').all_context_refs(include_self = False, include_book = True) == [Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2'), Ref('Rashi on Genesis')]
@@ -145,7 +144,6 @@ class Test_Ref(object):
     @pytest.mark.deep
     def test_sheet_refs(self):
         assert Ref("Sheet 4:3").all_context_refs() == [Ref('Sheet 4:3'), Ref('Sheet 4')]
-    '''
 
     def test_context_ref(self):
         assert Ref("Genesis 2:3").context_ref().normal() == "Genesis 2"
