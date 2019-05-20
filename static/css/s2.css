@@ -5957,13 +5957,43 @@ span.purim-emoji img{
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+.profile-page .sheet {
+  display: flex;
+  flex-direction: column;
+}
+.profile-page .sheet .sheetTags {
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.profile-page .sheet .sheetTags .bullet {
+  margin: 0 5px;
+}
+.profile-page .sheet a {
+  color: inherit;
+  cursor: pointer;
+}
+.profile-page .sheet a.sheetTitle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+.profile-page .sheet a img {
+  opacity: 0.4;
+  margin: 0 10px 0 0;
+}
+.interface-hebrew .profile-page .sheet a img {
+  margin: 0 0 0 10px;
+}
+
 .profile-page .filterable-list:before {
   /* to distinguish top half of probile from bottom half*/
     content: "";
     background-color: white;
     position: absolute;
     height: 100%;
-    width: 4000px;
+    width: 100%;
     left: 0;
     z-index: -1;
     margin-top: -4px;

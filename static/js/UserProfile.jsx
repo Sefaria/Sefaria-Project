@@ -104,6 +104,7 @@ class UserProfile extends Component {
         hideAuthor={true}
         handleSheetClick={this.props.handleSheetClick}
         connectedRefs={[]}
+        infoUnderneath={true}
       />
     );
   }

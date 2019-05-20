@@ -776,6 +776,26 @@ class SheetListing extends Component {
           {viewsIcon}
         </div>
 
+    const sheetTags = sheet.tags.map((tag, i) => {
+      const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
+      return (<a href={"/sheets/tags/" + tag}
+                  target="_blank"
+                  className="sheetTag"
+                  key={tag}
+                  onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
+    });
+    const created = (new Date(sheet.created)).toDateString().substring(4);  // cutoff day of the week
+    let underInfo = [sheetTags];
+    if (this.props.infoUnderneath) {
+      underInfo = [
+        sheet.status !== 'public' ? 'Unlisted' : undefined,
+        `${sheet.views} Views`,
+        created,
+        sheet.tags.length ? sheetTags : undefined,
+        sheet.group || undefined,
+      ].filter(x => x !== undefined);
+    }
+
     return (
       <div className="sheet" key={sheet.sheetUrl}>
         {sheetInfo}
@@ -784,14 +804,14 @@ class SheetListing extends Component {
           <span className="sheetTitleText">{sheet.title}</span>
         </a>
         <div className="sheetTags">
-          {sheet.tags.map((tag, i) => {
-            const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-            return (<a href={"/sheets/tags/" + tag}
-                        target="_blank"
-                        className="sheetTag"
-                        key={tag}
-                        onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
-          })}
+          {
+            underInfo.map((i, ii) => (
+              <span key={ii}>
+                { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+                <span>{i}</span>
+              </span>
+            ))
+          }
         </div>
       </div>);
   }
@@ -801,6 +821,7 @@ SheetListing.propTypes = {
   connectedRefs:    PropTypes.array.isRequired,
   handleSheetClick: PropTypes.func.isRequired,
   hideAuthor:       PropTypes.bool,
+  infoUnderneath:   PropTypes.bool,
 };
 
 

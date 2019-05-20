@@ -144,6 +144,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		"owner": 1,
 		"views": 1,
 		"dateModified": 1,
+		"dateCreated": 1,
 		"tags": 1,
 		"group": 1,
 	}
@@ -179,8 +180,9 @@ def sheet_to_dict(sheet):
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
 		"views": sheet["views"],
+		"group": sheet.get("group", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
-		"published": dateutil.parser.parse(sheet["datePublished"]).strftime("%m/%d/%Y") if "datePublished" in sheet else None,
+		"created": sheet.get("dateCreated", None),
 		"tags": sheet["tags"] if "tags" in sheet else [],
 		"options": sheet["options"] if "options" in sheet else [],
 	}
