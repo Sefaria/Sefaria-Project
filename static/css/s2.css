@@ -167,11 +167,64 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   z-index: 1000;
   height: 60px;
 }
-.readerApp {
-  position: absolute;
+#readerAppWrap {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  top: 0;
+}
+#bannerMessage {
+  color: white;
+  background-color: #4871bf;
+  height: 120px;
+  box-sizing: border-box;
+  padding: 0 36px;
+  display: flex;
+  transition: .5s;
+}
+#bannerMessage.hidden {
+  height: 0;
+}
+body.hasBannerMessage {
+  transition: padding-top .3s;
+  padding-top: 120px;
+}
+body.hasBannerMessage #s2.headerOnly {
+  height: 180px;
+}
+.interface-hebrew #bannerMessage {
+  direction: rtl;
+}
+#bannerMessageClose {
+  position: absolute;
+  top: -3px;
+  right: 7px;
+  color: white;
+  opacity: 0.5;
+  font-size: 26px;
+  cursor: pointer;
+}
+.interface-hebrew #bannerMessageClose {
+  right: auto;
+  left: 7px;
+}
+#bannerMessageContent {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+}
+#bannerTextBox {
+  flex: 1;
+  max-width: 770px;
+}
+#bannerButtonBox {
+}
+.readerApp {
+  display: flex;
+  flex: 1;
+  position: relative;
 }
 .readerApp.interface-hebrew{
   direction: rtl;
@@ -217,7 +270,7 @@ input.noselect {
   top: 0;
 }
 .headerInner {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -570,7 +623,6 @@ input.noselect {
   margin: 0 8px 0 6px;
   font-size: 17px;
 }
-
 .readerNavMenuSearchButton {
   position: relative;
   margin: 0 10px 0 6px;
@@ -588,7 +640,7 @@ input.noselect {
   vertical-align: middle;
 }
 .header .headerNavContent {
-  position: fixed;
+  position: absolute;
   height: 100%;
   width: 100%;
   box-sizing: border-box;
@@ -1980,11 +2032,9 @@ a.readerNavCategory {
   font-size: 17px;
   height: 22px;
 }
-
 .dictionarySearchBox .dictionarySearchButton {
 
 }
-
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
   border: none;
 }
@@ -1997,13 +2047,10 @@ a.readerNavCategory {
   height: 18px;
   margin-bottom: 10px;
 }
-
-
 body .ui-autocomplete.dictionary-toc-autocomplete {
   margin: 0px 0;
   padding: 6px 0 0;
 }
-
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   padding: 4px 25px;
   border-bottom: solid #ccc 1px;
@@ -2012,11 +2059,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   cursor: pointer;
   display: block;
 }
-
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   background-color: #E9E9E7;
 }
-
 .searchContentFrame h1 {
   direction: ltr;
   height: 40px;
@@ -3315,9 +3360,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: -46px;
   right: auto;
 }
-
-
-
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
   left: 50%;
@@ -4393,17 +4435,13 @@ a .button:hover {
   padding: 6px 12px;
   margin: 6px 12px;
 }
-#backToS1 {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  top: 20px;
-  left: 40px;
-  cursor: pointer;
-  display: block;
-  text-align: center;
-  margin: -30px 0 50px;
-}
-#backToS1:hover {
-  text-decoration: underline;
+.button img.buttonIcon {
+    width: 16px;
+    height: 16px;
+    opacity: .4;
+    margin: 0 5px;
+    position: relative;
+    top: 2px;
 }
 ::-webkit-input-placeholder {
    font-style: italic;
@@ -5565,7 +5603,6 @@ span.purim-emoji img{
   position: relative;
   padding: 0 30px;
 }
-
 .sheetContent .ref {
   cursor: pointer;
   color: #999;
@@ -5574,11 +5611,9 @@ span.purim-emoji img{
 .sheetContent .ref a {
   color: #999;
 }
-
 .sheetContent img {
   max-width: 100%;
 }
-
 .sheetContent table {
   margin: auto;
   max-width: 100%;
@@ -5774,7 +5809,6 @@ span.purim-emoji img{
   width: 100%;
   height: 100%;
 }
-
 .oldSheetNotice,
 .oldSheetNotice a,
 .editSheetNotice,
@@ -5783,7 +5817,6 @@ span.purim-emoji img{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
 }
-
 .cookiesNotification {
   position: fixed;
   z-index: 9999;

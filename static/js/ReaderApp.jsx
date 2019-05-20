@@ -884,7 +884,8 @@ class ReaderApp extends Component {
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
-        $("body").css({overflow: "hidden"});
+        $("body").css({overflow: "hidden"})
+                  .removeClass("hasBannerMessage");
       } else {
         $("#s2").addClass("headerOnly");
         $("body").css({overflow: "auto"});
@@ -1593,6 +1594,7 @@ class ReaderApp extends Component {
   }
   rerender() {
     this.forceUpdate();
+    this.setContainerMode();
   }
   render() {
      // Only look at the last N panels if we're above panelCap
@@ -1761,6 +1763,7 @@ class ReaderApp extends Component {
       (<InterruptingMessage
           messageName={Sefaria.interruptingMessage.name}
           messageHTML={Sefaria.interruptingMessage.html}
+          style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : null;
     const sefariaModal = (
@@ -1771,12 +1774,14 @@ class ReaderApp extends Component {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-    return (<div className={classes}>
-              {header}
-              {panels}
+    return (<div id="readerAppWrap">
               {interruptingMessage}
-              {sefariaModal}
-              <CookiesNotification />
+              <div className={classes}>
+                {header}
+                {panels}
+                {sefariaModal}
+                <CookiesNotification />
+              </div>
             </div>);
   }
 }
