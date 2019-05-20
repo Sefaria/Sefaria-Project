@@ -11,7 +11,6 @@ from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
 from sefaria.utils import hebrew
 
-
 class Group(abst.AbstractMongoRecord):
     """
     A group of users
@@ -225,8 +224,8 @@ class Group(abst.AbstractMongoRecord):
 
     def sheet_count(self):
         """Returns the number of sheets in this group"""
-        from sefaria.system.database import db
-        return db.sheets.find({"group": self.name}).count()
+        from sefaria.sheets import SheetSet
+        SheetSet({"group": self.name}).count()
 
     @property
     def url(self):

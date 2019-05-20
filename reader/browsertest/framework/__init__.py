@@ -1,1 +1,1 @@
-from elements import AtomicTest, SingleTestResult, Trial, TestSuite
+from elements import AtomicTest, SingleTestResult, Trial, TestSuite, one_of_these_texts_present_in_element
