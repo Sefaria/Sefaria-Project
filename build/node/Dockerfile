@@ -10,5 +10,5 @@ RUN npm install forever -g \
 
 EXPOSE 3000
 
-CMD forever start -a -p ./ -l log/forever/forever.log -o /dev/stdout -e /dev/stderr static/bundles/server/server-bundle.js && (while true; do sleep 360;forever restartall;done) && tail -f log/forever/forever.log
+CMD forever start -a -p ./ -l log/forever/forever.log -o log/forever/out.log -e log/forever/err.log static/bundles/server/server-bundle.js && tail -f log/forever/forever.log
 
