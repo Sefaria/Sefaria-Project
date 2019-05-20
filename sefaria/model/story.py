@@ -323,7 +323,7 @@ class UserStory(Story):
             "storyForm": "publishSheet",
             "uid": user_id,
             "data": {
-                "publisher": publisher_id,
+                "publisher_id": publisher_id,
                 "sheet_id": sheet_id
             }
         })
