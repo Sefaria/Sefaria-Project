@@ -687,7 +687,7 @@ Sefaria = extend(Sefaria, {
   // lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
   lookup: function(name, callback, onError, refOnly) {
     /* Deprecated in favor of getName */
-      
+
     /*
       * name - string to lookup
       * callback - callback function, takes one argument, a data object
@@ -1884,12 +1884,8 @@ Sefaria = extend(Sefaria, {
     return this._groupsList;
   },
   userGroups: function(uid) {
-    return new Promise((resolve, reject) => {
-      const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
-      Sefaria._api(url, data => {
-        resolve(data);
-      });
-    });
+    const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
+    return Sefaria._promiseAPI(url);
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.

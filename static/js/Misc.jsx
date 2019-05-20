@@ -866,23 +866,20 @@ class SheetListing extends Component {
 
     const sheetTags = sheet.tags.map((tag, i) => {
       const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-      return (<a href={"/sheets/tags/" + tag}
+      return (<a href={`/sheets/tags/${tag}`}
                   target="_blank"
                   className="sheetTag"
                   key={tag}
                   onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
     });
     const created = (new Date(sheet.created)).toDateString().substring(4);  // cutoff day of the week
-    let underInfo = [sheetTags];
-    if (this.props.infoUnderneath) {
-      underInfo = [
-        sheet.status !== 'public' ? 'Unlisted' : undefined,
+    const underInfo = this.props.infoUnderneath ? [
+        sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{"Unlisted"}</span></span>) : undefined,
         `${sheet.views} Views`,
         created,
         sheet.tags.length ? sheetTags : undefined,
-        sheet.group || undefined,
-      ].filter(x => x !== undefined);
-    }
+        !!sheet.group ? (<a href={`/groups/${sheet.group}`} target="_blank">{sheet.group}</a>) : undefined,
+      ].filter(x => x !== undefined) : [sheetTags];
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
@@ -896,7 +893,7 @@ class SheetListing extends Component {
             underInfo.map((i, ii) => (
               <span key={ii}>
                 { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
-                <span>{i}</span>
+                {i}
               </span>
             ))
           }

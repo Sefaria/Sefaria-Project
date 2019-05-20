@@ -232,7 +232,18 @@ const ProfileSummary = ({ profile:p }) => {
               <span className="en">Settings</span>
               <span className="he">הגדרות</span>
             </a>
-          </div>) : null
+          </div>) : (
+          <div className="profile-actions">
+            <a href="/settings/profile" className="resourcesLink blue">
+              <span className="en">Follow</span>
+              <span className="he">עריכת פרופיל</span>
+            </a>
+            <a href="/settings/account" className="resourcesLink">
+              <img src="/static/img/settings.svg" alt="Profile Settings" />
+              <span className="en">Message</span>
+              <span className="he">הגדרות</span>
+            </a>
+          </div>)
         }
         <div className="follow">
           <span>{ `${p.followers.length} followers`}</span>
