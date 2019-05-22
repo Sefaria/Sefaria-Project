@@ -19,6 +19,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def get_user_traits(request, uid):
+    traits = {}
+    traits["diaspora"] = bool(request.diaspora)
+    traits["israel"] = not request.diaspora
+    return [k for k, v in traits.items() if v]
+
 class Trend(abst.AbstractMongoRecord):
     '''
     Value

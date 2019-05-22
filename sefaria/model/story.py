@@ -242,7 +242,17 @@ class SharedStory(Story):
     ]
 
     optional_attrs = [
+        "mustHave",      # traits a user must have to get this story
+        "cantHave"       # traits that a user can't have and see this story
     ]
+
+    def must_have(self, trait):
+        self.mustHave = getattr(self, "mustHave", []) + [trait]
+        return self
+
+    def cant_have(self, trait):
+        self.cantHave = getattr(self, "cantHave", []) + [trait]
+        return self
 
     def _init_defaults(self):
         self.timestamp = int(time.time())
@@ -381,19 +391,29 @@ class UserStorySet(abst.AbstractMongoSet):
         super(UserStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
     @staticmethod
-    def _add_shared_stories(uid):
+    def _add_shared_stories(uid, traits):
         """
         Add user story records for any new shared stories
+        :param uid: integer
+        :param traits: list of strings
         :return:
         """
         #todo: is there a quicker way to short circuit this, and avoid these queries, when it has recently been updated?
+        # This current check will fail if the latest shared story excludes this user
         latest_id_for_user = UserStory.latest_shared_for_user(uid)
         latest_shared_id = SharedStory.latest_id()
         if latest_shared_id and (latest_shared_id != latest_id_for_user):
             if latest_id_for_user is None:
-                SharedStorySet({}, limit=10).register_for_user(uid)
+                SharedStorySet({
+                    "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
+                    "cantHave": {"$nin": traits}
+                }, limit=10).register_for_user(uid)
             else:
-                SharedStorySet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
+                SharedStorySet({
+                    "_id": {"$gt": latest_id_for_user},
+                    "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
+                    "cantHave": {"$nin": traits}
+                }, limit=10).register_for_user(uid)
 
     def contents(self, **kwargs):
         if self.uid:
@@ -403,11 +423,11 @@ class UserStorySet(abst.AbstractMongoSet):
             return super(UserStorySet, self).contents(**kwargs)
 
     @classmethod
-    def recent_for_user(cls, uid, page=0, limit=10):
+    def recent_for_user(cls, uid, traits, page=0, limit=10):
         """
         Loads recent stories for uid.
         """
-        cls._add_shared_stories(uid)
+        cls._add_shared_stories(uid, traits)
         return cls(uid=uid, page=page, limit=limit)
 
 

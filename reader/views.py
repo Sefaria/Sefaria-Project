@@ -2417,7 +2417,8 @@ def stories_api(request, gid=None):
             stories = SharedStorySet(limit=page_size, page=page).contents()
             count = len(stories)
         else:
-            stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+            user_traits = get_user_traits(request, request.user.id)
+            stories = UserStorySet.recent_for_user(request.user.id, user_traits, limit=page_size, page=page).contents()
             count = len(stories)
             stories = addDynamicStories(stories, user, page)
 
