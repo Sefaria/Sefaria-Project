@@ -254,6 +254,20 @@ class SharedStory(Story):
             return None
         return n["_id"]
 
+    @classmethod
+    def from_global_notification(cls, gn):
+        mapping = {
+            "general": "freeText",
+            "index": "newIndex",
+            "version": "newVersion"
+        }
+
+        return cls({
+            "storyForm": mapping[gn.type],
+            "data": gn.content,
+            "timestamp": int((gn.date - datetime(1970, 1, 1)).total_seconds())
+        })
+
 
 class SharedStorySet(abst.AbstractMongoSet):
     recordClass = SharedStory
@@ -295,15 +309,28 @@ class UserStory(Story):
         })
 
     @classmethod
-    def from_sheet_publish(cls, user_id, publisher_id, sheet_id):
-        return cls({
+    def from_sheet_publish_notification(cls, pn):
+        return cls.from_sheet_publish(
+            pn.uid,
+            pn.content["publisher"],
+            pn.content["sheet_id"],
+            timestamp=int((pn.date - datetime(1970, 1, 1)).total_seconds())
+        )
+
+    @classmethod
+    def from_sheet_publish(cls, user_id, publisher_id, sheet_id, timestamp = None):
+        c = cls({
             "storyForm": "publishSheet",
             "uid": user_id,
             "data": {
-                "publisher": publisher_id,
+                "publisher_id": publisher_id,
                 "sheet_id": sheet_id
             }
         })
+        if timestamp is not None:
+            c.timestamp = timestamp
+        return c
+
 
     def _init_defaults(self):
         self.timestamp = int(time.time())
@@ -869,3 +896,24 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_random_shared_story(cls, **kwargs):
         cls.generate_random_shared_story(**kwargs).save()
+
+
+'''
+Turns out, not needed.
+Leaving here for the moment, in case it proves useful.
+
+def migrate_users_notifications_to_stories(uid):
+    from . import notification as n
+    #if the user has already been migrated
+    #return
+
+    for pn in n.NotificationSet({"type": "sheet publish", "uid": uid}, sort=[("_id", -1)]):
+        UserStory.from_sheet_publish_notification(pn).save()
+
+    for gn in n.GlobalNotificationSet(sort=[("_id", -1)]):
+        gs = SharedStory.from_global_notification(gn).save()
+
+        # get user notifications that refer to this global
+        for un in n.NotificationSet({"is_global": True, "global_id": gn._id}):
+            UserStory.from_shared_story(un.uid, gs).save()
+'''

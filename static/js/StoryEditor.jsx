@@ -46,7 +46,7 @@ class StoryEditor extends Component {
   }
   onDelete(id) {
     $.ajax({
-        url: '/api/updates/' + id,
+        url: '/api/stories/' + id,
         type: 'DELETE',
         success: function(result) {
           if (result.status == "ok") {
@@ -69,7 +69,7 @@ class StoryEditor extends Component {
       data: content
     };
     $.ajax({
-      url: "/api/updates",
+      url: "/api/stories",
       dataType: 'json',
       type: 'POST',
       data: {json: JSON.stringify(payload)},

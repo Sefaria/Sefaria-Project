@@ -16,7 +16,7 @@ from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.system.exceptions import InputError, IndexSchemaError
-from sefaria.utils.hebrew import decode_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term
+from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 
 """
                 -----------------------------------------
@@ -221,7 +221,8 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     optional_attrs = [
         "scheme",
         "order",
-        "ref"
+        "ref",
+        "sensitive"
     ]
 
     def load_by_title(self, title):
@@ -1882,7 +1883,7 @@ class AddressType(object):
             return str(i)
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
-            return encode_hebrew_numeral(i, punctuation=punctuation)
+            return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
 
     @staticmethod
     def toStrByAddressType(atype, lang, i):
@@ -2004,9 +2005,9 @@ class AddressTalmud(AddressType):
             else:
                 punctuation = kwargs.get("punctuation", True)
                 if i > daf_num * 2:
-                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d1"
+                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d1"
                 else:
-                    daf = ("%s " % encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d0"
+                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + u"\u05d0"
 
         return daf
 
@@ -2064,7 +2065,7 @@ class AddressYear(AddressInteger):
             return str(i + 1240)
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
-            return encode_hebrew_numeral(i, punctuation=punctuation)
+            return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
 
 
 class AddressAliyah(AddressInteger):

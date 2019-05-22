@@ -1716,35 +1716,40 @@ def links_api(request, link_id_or_ref=None):
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
+    def _internal_do_post(request, link, uid, **kwargs):
+        func = tracker.update if "_id" in link else tracker.add
+        # use the correct function if params indicate this is a note save
+        # func = save_note if "type" in j and j["type"] == "note" else save_link
+        #obj = func(apikey["uid"], model.Link, link, **kwargs)
+        obj = func(uid, model.Link, link, **kwargs)
+        try:
+            if USE_VARNISH:
+                revarnish_link(obj)
+        except Exception as e:
+            logger.error(e)
+        return format_object_for_client(obj)
+
+    def _internal_do_delete(request, link_id_or_ref, uid):
+        obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
+        return obj
+
+    # delegate according to single/multiple objects posted
+    if not request.user.is_authenticated:
+        key = request.POST.get("apikey")
+        if not key:
+            return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return jsonResponse({"error": "Unrecognized API key."})
+        uid = apikey["uid"]
+        kwargs = {"method": "API"}
+    else:
+        uid = request.user.id
+        kwargs = {}
+        _internal_do_post = csrf_protect(_internal_do_post)
+        _internal_do_delete = csrf_protect(_internal_do_delete)
+
     if request.method == "POST":
-        def _internal_do_post(request, link, uid, **kwargs):
-            func = tracker.update if "_id" in link else tracker.add
-            # use the correct function if params indicate this is a note save
-            # func = save_note if "type" in j and j["type"] == "note" else save_link
-            #obj = func(apikey["uid"], model.Link, link, **kwargs)
-            obj = func(uid, model.Link, link, **kwargs)
-            try:
-                if USE_VARNISH:
-                    revarnish_link(obj)
-            except Exception as e:
-                logger.error(e)
-            return format_object_for_client(obj)
-
-        # delegate according to single/multiple objects posted
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            uid = apikey["uid"]
-            kwargs = {"method": "API"}
-        else:
-            uid = request.user.id
-            kwargs = {}
-            _internal_do_post = csrf_protect(_internal_do_post)
-
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -1772,10 +1777,9 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        retval = _internal_do_delete(request, link_id_or_ref, uid)
 
-        return jsonResponse(
-            tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
-        )
+        return jsonResponse(retval)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -2389,7 +2393,7 @@ def dictionary_api(request, word):
 
 
 @catch_error_as_json
-def stories_api(request):
+def stories_api(request, gid=None):
     """
     API for retrieving stories.
     """
@@ -2397,30 +2401,78 @@ def stories_api(request):
     # if not request.user.is_authenticated:
     #     return jsonResponse({"error": "You must be logged in to access your notifications."})
 
-    page      = int(request.GET.get("page", 0))
-    page_size = int(request.GET.get("page_size", 10))
-    only_global = bool(request.GET.get("only_global", False))
+    if request.method == "GET":
 
-    if not request.user.is_authenticated:
-        only_global = True
-        user = None
-    else:
-        user = UserProfile(id=request.user.id)
+        page      = int(request.GET.get("page", 0))
+        page_size = int(request.GET.get("page_size", 10))
+        only_global = bool(request.GET.get("only_global", False))
 
-    if only_global or not user:
-        stories = SharedStorySet(limit=page_size, page=page).contents()
-        count = len(stories)
-    else:
-        stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
-        count = len(stories)
-        stories = addDynamicStories(stories, user, page)
+        if not request.user.is_authenticated:
+            only_global = True
+            user = None
+        else:
+            user = UserProfile(id=request.user.id)
 
-    return jsonResponse({
-                            "stories": stories,
-                            "page": page,
-                            "page_size": page_size,
-                            "count": count
-                        })
+        if only_global or not user:
+            stories = SharedStorySet(limit=page_size, page=page).contents()
+            count = len(stories)
+        else:
+            stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+            count = len(stories)
+            stories = addDynamicStories(stories, user, page)
+
+        return jsonResponse({
+                                "stories": stories,
+                                "page": page,
+                                "page_size": page_size,
+                                "count": count
+                            })
+
+    elif request.method == "POST":
+        if not request.user.is_authenticated:
+            key = request.POST.get("apikey")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
+
+            payload = json.loads(request.POST.get("json"))
+            try:
+                SharedStory(payload).save()
+                return jsonResponse({"status": "ok"})
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+
+        elif request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                payload = json.loads(request.POST.get("json"))
+                try:
+                    SharedStory(payload).save()
+                    return jsonResponse({"status": "ok"})
+                except AssertionError as e:
+                    return jsonResponse({"error": e.message})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
+
+    elif request.method == "DELETE":
+        if not gid:
+            return jsonResponse({"error": "No post id given for deletion."})
+        if request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                SharedStory().load_by_id(gid).delete()
+                return jsonResponse({"status": "ok"})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
 
 
 def addDynamicStories(stories, user, page):
@@ -2488,14 +2540,25 @@ def story_reflector(request):
     return protected_post(request)
 
 
+
 @catch_error_as_json
 def updates_api(request, gid=None):
     """
-    API for posting global stories.
+    API for retrieving general notifications.
     """
 
     if request.method == "GET":
-        return {"error": "Not implemented."}
+        page      = int(request.GET.get("page", 0))
+        page_size = int(request.GET.get("page_size", 10))
+
+        notifications = GlobalNotificationSet({},limit=page_size, page=page)
+
+        return jsonResponse({
+                                "updates": notifications.contents(),
+                                "page": page,
+                                "page_size": page_size,
+                                "count": notifications.count()
+                            })
 
     elif request.method == "POST":
         if not request.user.is_authenticated:
@@ -2507,11 +2570,12 @@ def updates_api(request, gid=None):
                 return jsonResponse({"error": "Unrecognized API key."})
             user = User.objects.get(id=apikey["uid"])
             if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
+                return jsonResponse({"error": "Only Sefaria Moderators can add announcements."})
 
             payload = json.loads(request.POST.get("json"))
             try:
-                SharedStory(payload).save()
+                gn = GlobalNotification(payload).save()
+                SharedStory.from_global_notification(gn).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
@@ -2521,7 +2585,8 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    SharedStory(payload).save()
+                    gn = GlobalNotification(payload).save()
+                    SharedStory.from_global_notification(gn).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
@@ -2536,7 +2601,7 @@ def updates_api(request, gid=None):
         if request.user.is_staff:
             @csrf_protect
             def protected_post(request):
-                SharedStory().load_by_id(gid).delete()
+                GlobalNotification().load_by_id(gid).delete()
                 return jsonResponse({"status": "ok"})
 
             return protected_post(request)
@@ -3186,13 +3251,13 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
-
+@login_required
 def enable_home_feed(request):
     resp = home(request, True)
     resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
     return resp
 
-
+@login_required
 def disable_home_feed(request):
     resp = home(request, False)
     resp.delete_cookie("home_feed")
@@ -3227,7 +3292,7 @@ def home(request, show_feed=None):
 
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
-    if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
+    if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
     if request.user_agent.is_mobile:
@@ -3708,6 +3773,11 @@ def random_by_topic_api(request):
         resp['Content-Type'] = "application/json; charset=utf-8"
         return resp
     random_topic = choice(topics_filtered)['tag']
+    term = Term().load_by_title(random_topic)
+    if term is not None and getattr(term, "sensitive", False):
+        # term is sensitive, try again
+        return random_by_topic_api(request)
+        
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)

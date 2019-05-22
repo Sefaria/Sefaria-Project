@@ -40,9 +40,8 @@ from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet,
 from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 from category import Category, CategorySet
 from passage import Passage, PassageSet
+from ref_data import RefData, RefDataSet
 
 import dependencies
 
 library._build_index_maps()
-
-
