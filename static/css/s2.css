@@ -214,12 +214,39 @@ body.hasBannerMessage #s2.headerOnly {
   align-items: center;
   justify-content: space-between;
   color: white;
+  max-width: 880px;
+  margin: 0 auto;
 }
 #bannerTextBox {
   flex: 1;
-  max-width: 770px;
+}
+#bannerTextBox a {
+  color: white;
 }
 #bannerButtonBox {
+  margin-left: 50px;
+}
+.interface-hebrew #bannerButtonBox {
+  margin: 0 50px 0 0;
+}
+#bannerMessage .mobileOnly {
+  display: none;
+}
+@media (max-width: 540px) {
+  #bannerButtonBox {
+    display: none;
+  }
+  #bannerMessage .mobileOnly {
+    display: block;
+  }
+  #bannerMessage {
+    padding: 0 10px;
+  }
+}
+@media (max-width: 375px) {
+  #bannerMessage {
+    font-size: 13px;
+  }
 }
 .readerApp {
   display: flex;
