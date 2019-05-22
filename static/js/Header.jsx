@@ -164,6 +164,10 @@ class Header extends Component {
         Sefaria.track.event("Search", "Search Box Navigation - Person", query);
         this.closeSearchAutocomplete();
         this.showPerson(d["key"]);
+      } else if (d["type"] == "Group") {
+        Sefaria.track.event("Search", "Search Box Navigation - Group", query);
+        this.closeSearchAutocomplete();
+        this.showGroup(d["key"]);
       } else if (d["type"] == "TocCategory") {
         Sefaria.track.event("Search", "Search Box Navigation - Category", query);
         this.closeSearchAutocomplete();
@@ -184,6 +188,11 @@ class Header extends Component {
   showPerson(key) {
     //todo: move people into React
     window.location = "/person/" + key;
+  }
+  showGroup(key) {
+    //todo: move people into React
+    key = key.replace(" ","-");
+    window.location = "/groups/" + key;
   }
   handleLibraryClick(e) {
     e.preventDefault();

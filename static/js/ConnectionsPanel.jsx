@@ -187,7 +187,7 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}, cb);
+    return Sefaria.getText(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -581,7 +581,7 @@ SheetNodeConnectionTools.propTypes = {
   multiPanel:         PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   openComparePanel:   PropTypes.func.isRequired,
-}
+};
 
 
 class ConnectionsSummary extends Component {
@@ -596,7 +596,7 @@ class ConnectionsSummary extends Component {
     var isTopLevel    = !this.props.category;
     var baseCat       = oref ? oref["categories"][0] : null;
 
-    if (!summary) { return (<LoadingMessage />); }
+    if (!summary) { return (<div className="connectionsSummaryLoading"><LoadingMessage /></div>); }
 
     if (this.props.category == "Commentary" ) {
       // Show Quoting Commentary & Modern Commentary together with Commentary
@@ -1061,7 +1061,7 @@ class AddConnectionBox extends Component {
       var oRef = Sefaria.ref(ref);
       if (!oRef) {
         // If a range was selected, the ref cache may not have a Hebrew ref for us, so ask the API
-        Sefaria.ref(ref, this.setHeRefs);
+        Sefaria.getRef(ref).then(this.setHeRefs);
         return "...";
       }
       return oRef.heRef;

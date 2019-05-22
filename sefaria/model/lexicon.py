@@ -306,11 +306,10 @@ class LexiconLookupAggregator(object):
             nref = Ref(lookup_ref).normal()
             query_obj["refs"] = {'$regex': '^{}'.format(nref)}
         forms = WordFormSet(query_obj)
-        if lookup_ref and forms.count() == 0:
+        if lookup_ref and len(forms) == 0:
             del query_obj["refs"]
             forms = WordFormSet(query_obj)
-        if forms.count() > 0:
-            result = []
+        if len(forms) > 0:
             headword_query = []
             for form in forms:
                 for lookup in form.lookups:

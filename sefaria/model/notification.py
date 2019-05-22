@@ -1,19 +1,14 @@
+# -*- coding: utf-8 -*-
+
 """
 notifications.py - handle user event notifications
 
 Writes to MongoDB Collection: notifications
 """
-import copy
-import os
-import sys
+
 import re
 from datetime import datetime
-
-import logging
-logger = logging.getLogger(__name__)
-
 import json
-from bson.objectid import ObjectId
 
 from django.template.loader import render_to_string
 
@@ -22,6 +17,8 @@ from . import user_profile
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
+import logging
+logger = logging.getLogger(__name__)
 
 class GlobalNotification(abst.AbstractMongoRecord):
     """
@@ -206,7 +203,7 @@ class Notification(abst.AbstractMongoRecord):
         self.type                 = "sheet publish"
         self.content["publisher"] = publisher_id
         self.content["sheet_id"]  = sheet_id
-        return self        
+        return self
 
     def make_message(self, sender_id=None, message=None):
         """Make this Notification for a user message event"""

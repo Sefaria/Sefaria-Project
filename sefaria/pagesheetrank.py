@@ -169,7 +169,7 @@ def init_pagerank_graph():
     while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
             if current_link % 1000 == 0:
-                print "{}/{}".format(current_link,len_all_links)
+                print "{}/{}".format(current_link, len_all_links)
 
             try:
                 #TODO pagerank segments except Talmud. Talmud is pageranked by section
@@ -226,8 +226,22 @@ def calculate_pagerank():
     sorted_ranking = sorted_ranking[count:]
     print "Removing {} low pageranks".format(count)
 
-    with open(STATICFILES_DIRS[0] + "pagerank.json","wb") as fout:
-        json.dump(sorted_ranking,fout,indent=4)
+    pagerank_dict = {tref: pr for tref, pr in sorted_ranking}
+    return pagerank_dict
+
+def update_pagesheetrank():
+    pagerank = calculate_pagerank()
+    sheetrank = calculate_sheetrank()
+    pagesheetrank = {}
+    all_trefs = set(pagerank.keys() + sheetrank.keys())
+    for tref in all_trefs:
+        temp_pagerank_scaled = math.log(pagerank[tref]) + 20 if tref in pagerank else RefData.DEFAULT_PAGERANK
+        temp_sheetrank_scaled = (1.0 + sheetrank[tref] / 5)**2 if tref in sheetrank else RefData.DEFAULT_SHEETRANK
+        pagesheetrank[tref] = temp_pagerank_scaled * temp_sheetrank_scaled
+    from pymongo import UpdateOne
+    result = db.ref_data.bulk_write([
+        UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True) for tref, psr in pagesheetrank.items()
+    ])
 
 def cat_bonus(num_cats):
     return 1.0 + (0.04*num_cats)
@@ -298,7 +312,7 @@ def calculate_sheetrank():
                         pass
 
                     for r in ref_list:
-                        graph[r.normal()] += 1
+                        sheetrank_dict[r.normal()] += 1
                 except InputError:
                     continue
                 except TypeError:
@@ -315,7 +329,7 @@ def calculate_sheetrank():
                 temp_sources_count += count_sources(s["subsources"])
         return temp_sources_count
 
-    graph = defaultdict(int)
+    sheetrank_dict = defaultdict(int)
     len_sheets = db.sheets.find().count()
     sheets = get_all_sheets()
     sources_count = 0
@@ -326,7 +340,4 @@ def calculate_sheetrank():
             continue
         sources_count += count_sources(sheet["sources"])
 
-    f = open(STATICFILES_DIRS[0] + "sheetrank.json", "wb")
-    obj = {r:{"count": v, "prob": 1.0*v/sources_count} for r, v in graph.items()}
-    json.dump(obj, f, indent=4)
-    f.close()
+    return sheetrank_dict

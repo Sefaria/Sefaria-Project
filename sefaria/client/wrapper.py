@@ -46,6 +46,14 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     com["anchorText"]       = getattr(link, "anchorText", "")
     com["inline_reference"] = getattr(link, "inline_reference", None)
 
+    compDate = getattr(linkRef.index, "compDate", None)
+    if compDate:
+        com["compDate"] = int(compDate)
+        try:
+            com["errorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
+        except ValueError:
+            com["errorMargin"] = 0
+
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
     lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
     # Build a decimal comment number based on the last two digits of the section array
@@ -132,8 +140,8 @@ def format_note_object_for_client(note):
 
 def format_sheet_as_link(sheet):
     sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
-    sheet["collectiveTitle"] = {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
-    sheet["index_title"]     = sheet["groupTOC"]["title"]
+    sheet["collectiveTitle"] = sheet["groupTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["groupTOC"] else {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["index_title"]     = sheet["collectiveTitle"]["en"]
     sheet["sourceRef"]       = sheet["title"]
     sheet["sourceHeRef"]     = sheet["title"]
     sheet["isSheet"]         = True

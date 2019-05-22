@@ -17,7 +17,8 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.group import Group, GroupSet
+from sefaria.model.group import Group
+from sefaria.model.story import UserStory, UserStorySet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import django_cache
@@ -54,6 +55,13 @@ def get_sheet(id=None):
 	s["_id"] = str(s["_id"])
 	return s
 
+
+def get_sheet_metadata(id = None):
+	assert id
+	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
+	return s
+
+
 def get_sheet_node(sheet_id=None, node_id=None):
 	"""
 	Returns the source sheet with id.
@@ -77,6 +85,8 @@ def get_sheet_node(sheet_id=None, node_id=None):
 
 def get_sheet_for_panel(id=None):
 	sheet = get_sheet(id)
+	if "error" in sheet:
+		return sheet
 	if "assigner_id" in sheet:
 		asignerData = public_user_data(sheet["assigner_id"])
 		sheet["assignerName"]  = asignerData["name"]
@@ -261,7 +271,60 @@ def recent_public_tags(days=14, ntags=14):
 	return results
 
 
-def save_sheet(sheet, user_id, search_override=False):
+def rebuild_sheet_nodes(sheet):
+	def find_next_unused_node(node_number, used_nodes):
+		while True:
+			node_number += 1
+			if node_number not in used_nodes:
+				return node_number
+
+	sheet_id = sheet["id"]
+	next_node, checked_sources, nodes_used = 0, [], set()
+
+	for source in sheet.get("sources", []):
+		if "node" not in source:
+			print "adding nodes to sheet {}".format(sheet_id)
+			next_node = find_next_unused_node(next_node, nodes_used)
+			source["node"] = next_node
+
+		elif source["node"] is None:
+			print "found null node in sheet {}".format(sheet_id)
+			next_node = find_next_unused_node(next_node, nodes_used)
+			source["node"] = next_node
+			nodes_used.add(next_node)
+
+		elif source["node"] in nodes_used:
+			print "found repeating node in sheet " + str(sheet["id"])
+			next_node = find_next_unused_node(next_node, nodes_used)
+			source["node"] = next_node
+
+		nodes_used.add(source["node"])
+
+		if "ref" in source and "text" not in source:
+			print "adding sources to sheet {}".format(sheet_id)
+			source["text"] = {}
+
+			try:
+				oref = model.Ref(source["ref"])
+				tc_eng = model.TextChunk(oref, "en")
+				tc_heb = model.TextChunk(oref, "he")
+				if tc_eng:
+					source["text"]["en"] = tc_eng.ja().flatten_to_string()
+				if tc_heb:
+					source["text"]["he"] = tc_heb.ja().flatten_to_string()
+
+			except:
+				print "error on {} on sheet {}".format(source["ref"], sheet_id)
+				continue
+
+		checked_sources.append(source)
+
+	sheet["sources"] = checked_sources
+	sheet["nextNode"] = find_next_unused_node(next_node, nodes_used)
+	return sheet
+
+
+def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
@@ -314,21 +377,28 @@ def save_sheet(sheet, user_id, search_override=False):
 		if sheet["status"] == "public" and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
-			record_sheet_publication(sheet["id"], user_id)
+			record_sheet_publication(sheet["id"], user_id)  # record history
 			broadcast_sheet_publication(user_id, sheet["id"])
 		if sheet["status"] != "public":
 			# UNPUBLISH
-			delete_sheet_publication(sheet["id"], user_id)
+			delete_sheet_publication(sheet["id"], user_id)  # remove history
+			UserStorySet({"storyForm": "publishSheet",
+								"data.publisher": user_id,
+								"data.sheet_id": sheet["id"]
+							}).delete()
 			NotificationSet({"type": "sheet publish",
 								"content.publisher_id": user_id,
 								"content.sheet_id": sheet["id"]
 							}).delete()
 
+	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
+
+	if rebuild_nodes:
+		sheet = rebuild_sheet_nodes(sheet)
 	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
 
 	if "tags" in sheet:
 		update_sheet_tags(sheet["id"], sheet["tags"])
-
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		try:
@@ -381,7 +451,6 @@ def clean_source(source):
 	return source
 
 
-
 def add_source_to_sheet(id, source, note=None):
 	"""
 	Add source to sheet 'id'.
@@ -422,15 +491,17 @@ def add_ref_to_sheet(id, ref):
 	return {"status": "ok", "id": id, "ref": ref}
 
 
-def refs_in_sources(sources):
+def refs_in_sources(sources, refine_refs=False):
 	"""
-	Recurisve function that returns a list of refs found anywhere in sources.
+	Returns a list of refs found in sources.
 	"""
 	refs = []
 	for source in sources:
 		if "ref" in source:
-			text = source.get("text", {}).get("he", None)
-			ref  = refine_ref_by_text(source["ref"], text) if text else source["ref"]
+			ref = source["ref"]
+			if refine_refs:
+				text = source.get("text", {}).get("he", None)
+				ref  = refine_ref_by_text(ref, text) if text else source["ref"]
 			refs.append(ref)
 	return refs
 
@@ -474,25 +545,25 @@ def refine_ref_by_text(ref, text):
 	return ref
 
 
-def update_included_refs(hours=1):
+def update_included_refs(query=None, hours=None, refine_refs=False):
 	"""
-	Rebuild included_refs index on all sheets that have been modified
-	in the last 'hours' or all sheets if hours is 0.
+	Rebuild included_refs index on sheets matching `query` or sheets 
+	that have been modified in the last `hours`.
 	"""
-	if hours == 0:
-		query = {}
-	else:
+	if hours:
 		cutoff = datetime.now() - timedelta(hours=hours)
 		query = { "dateModified": { "$gt": cutoff.isoformat() } }
 
-	db.sheets.ensure_index("included_refs")
+	if query is None:
+		print "Specify either a query or number of recent hours to update."
+		return
 
 	sheets = db.sheets.find(query)
 
 	for sheet in sheets:
 		sources = sheet.get("sources", [])
-		refs = refs_in_sources(sources)
-		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"included_refs": refs}})
+		refs = refs_in_sources(sources, refine_refs=refine_refs)
+		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs}})
 
 
 def get_top_sheets(limit=3):
@@ -564,7 +635,6 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
 				sheet["groupTOC"]        = getattr(group, "toc", None)
 
-
 			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
@@ -593,12 +663,14 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),
+				"is_featured":     sheet.get("is_featured", False),
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
 			}
 
 			results.append(sheet_data)
 
+			break
 
 	return results
 
@@ -689,7 +761,6 @@ def add_visual_data(sheet_id, visualNodes, zoom):
 	db.sheets.update({"id": sheet_id},{"$push": {"visualNodes": {"$each": visualNodes},"zoom" : zoom}})
 
 
-
 def add_like_to_sheet(sheet_id, uid):
 	"""
 	Add uid as a liker of sheet_id.
@@ -722,11 +793,13 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 	"""
 	Notify everyone who follows publisher_id about sheet_id's publication
 	"""
+	#todo: work on batch creation / save pattern
 	followers = FollowersSet(publisher_id)
 	for follower in followers.uids:
 		n = Notification({"uid": follower})
 		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
 		n.save()
+		UserStory.from_sheet_publish(follower, publisher_id, sheet_id).save()
 
 
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):
@@ -766,7 +839,6 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 
 
 # This is here as an alternative interface - it's not yet used, generally.
-# TODO fix me to reflect new structure where subsources and included_refs no longer exist.
 
 class Sheet(abstract.AbstractMongoRecord):
 	collection = 'sheets'
@@ -783,7 +855,8 @@ class Sheet(abstract.AbstractMongoRecord):
 	]
 	optional_attrs = [
 		"generatedBy",  # this had been required, but it's not always there.
-		"included_refs",
+		"is_featured",  # boolean - show this sheet, unsolicited.
+		"includedRefs",
 		"views",
 		"nextNode",
 		"tags",
@@ -798,15 +871,9 @@ class Sheet(abstract.AbstractMongoRecord):
 		"likes",
 		"group",
 		"generatedBy",
+		"highlighterTags",
 		"summary" # double check this one
 	]
-
-	def regenerate_contained_refs(self):
-		self.included_refs = refs_in_sources(self.sources)
-		self.save()
-
-	def get_contained_refs(self):
-		return [model.Ref(r) for r in self.included_refs]
 
 	def is_hebrew(self):
 		"""Returns True if this sheet appears to be in Hebrew according to its title"""

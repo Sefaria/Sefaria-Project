@@ -23,6 +23,8 @@ from link import Link, LinkSet, get_link_counts, get_book_link_collection, get_b
 from note import Note, NoteSet
 from layer import Layer, LayerSet
 from notification import Notification, NotificationSet, GlobalNotification, GlobalNotificationSet
+from story import SharedStory, UserStory, SharedStorySet, UserStorySet, TextPassageStoryFactory, AuthorStoryFactory, \
+    TopicTextsStoryFactory, UserSheetsFactory, SheetListFactory, GroupSheetListFactory, TopicListStoryFactory
 from interrupting_message import InterruptingMessage
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
@@ -37,9 +39,9 @@ from place import Place, PlaceSet
 from person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 from category import Category, CategorySet
+from passage import Passage, PassageSet
+from ref_data import RefData, RefDataSet
 
 import dependencies
 
 library._build_index_maps()
-
-

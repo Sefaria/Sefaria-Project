@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from . import abstract as abst
 from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
-
+from sefaria.utils import hebrew
 
 class Group(abst.AbstractMongoRecord):
     """
@@ -42,6 +42,7 @@ class Group(abst.AbstractMongoRecord):
                                 # `catogories` - list
                                 # `title` - string
                                 # `heTitle` - string
+                                # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
                                 # These fields will override `name` and `description for display
@@ -82,6 +83,18 @@ class Group(abst.AbstractMongoRecord):
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
             if old != new:
                 self._handle_image_change(old, new)
+
+    def all_names(self, lang):
+        names = self.primary_name(lang)
+
+        if hasattr(self, "toc"):
+            names += [self.toc["title"]] if lang == "en" else [self.toc["heTitle"]]
+            names += [self.toc["collectiveTitle"][lang]] if "collectiveTitle" in self.toc else []
+
+        return list(set(names))
+
+    def primary_name(self, lang):
+        return [self.name] if (hebrew.is_hebrew(self.name) == (lang == "he")) else []
 
     def contents(self, with_content=False, authenticated=False):
         from sefaria.sheets import group_sheets, sheet_tag_counts
@@ -194,8 +207,8 @@ class Group(abst.AbstractMongoRecord):
 
     def sheet_count(self):
         """Returns the number of sheets in this group"""
-        from sefaria.system.database import db
-        return db.sheets.find({"group": self.name}).count()
+        from sefaria.sheets import SheetSet
+        SheetSet({"group": self.name}).count()
 
     @property
     def url(self):
