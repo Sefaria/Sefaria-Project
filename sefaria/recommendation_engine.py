@@ -155,7 +155,7 @@ def recommend_simple(tref, n):
 
 
 def recommend_simple_clusters(tref, top=10, threshold=5):
-    liste = recommend_simple(tref, top*50)
+    liste = recommend_simple(tref, top*5)
     ref_list, other_item_list = [], []
     oref = Ref(tref)
     for temp_tref, score, sources in liste:
