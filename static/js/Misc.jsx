@@ -1132,7 +1132,7 @@ class FeedbackBox extends Component {
         if (data.error) {
             alert(data.error);
         } else {
-            console.log(data)
+            console.log(data);
             Sefaria.track.event("Tools", "Send Feedback", this.props.url);
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
@@ -1176,6 +1176,7 @@ class FeedbackBox extends Component {
             <Dropdown
               options={[
                         {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
+                        {value: "translation_request",   label: Sefaria._("Request translation")},
                         {value: "bug_report",      label: Sefaria._("Report a bug")},
                         {value: "help_request",    label: Sefaria._("Get help")},
                         {value: "feature_request", label: Sefaria._("Request a feature")},
