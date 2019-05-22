@@ -270,6 +270,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)
 
+
 def get_keyed_calendar_items(diaspora=True, custom=None):
     cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)
     cal_dict = {}
