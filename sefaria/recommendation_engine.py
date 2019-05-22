@@ -6,12 +6,16 @@ from sefaria.client.wrapper import get_links
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-# TODO filter out big sheets (more than 50 refs). not totally clear, but these seem to be usually a hodgepodge of refs
+# TODO throw out refs in long sections
+# TODO do better job of double author
+# TODO nexus of sheet and commentator bonus? b/c it must be good if they both thought of it
 # TODO maybe distance penalty also??
 
 DIRECT_LINK_SCORE = 2.0
 COMMENTARY_LINK_SCORE = 0.7
 SHEET_REF_SCORE = 1.0
+INCLUDED_REF_MAX = 50
+REF_RANGE_MAX = 30
 
 def R(tref):
     sheet_refs = get_sheets_for_ref(tref)
@@ -19,14 +23,18 @@ def R(tref):
 
     all_related = sheet_refs + link_refs
     d = defaultdict(lambda: {"score": 0.0, "sources": []})
-    counter = defaultdict(int)
     for tref, score, source in all_related:
         d[tref]["score"] += score
         d[tref]["sources"] += [source]
-        counter[tref] += 1
     # filter items with fewer than 2 votes
-    ditems = filter(lambda x: counter[x[0]] > 1 and x[0] not in commentary_ref_set, d.items())
+    ditems = filter(lambda x: x[0] not in commentary_ref_set and sources_interesting(x[1]["sources"]), d.items())
     return ditems
+
+
+def sources_interesting(sources):
+    # make sure either source has more than 3 voices, or there's at least one sheet or direct link
+    filt = filter(lambda x: (x.startswith("Sheet ") or x == "direct"), sources)
+    return len(sources) >= 3 or (len(sources) >= 2 and len(filt) > 0)
 
 
 def get_items_linked_to_ref(tref):
@@ -73,7 +81,7 @@ def normalize_related_refs(related_refs, focus_ref, base_score, check_has_ref=Fa
         if temp_oref.is_range():
             temp_range_list = [subref.normal() for subref in temp_oref.range_list()]
             if focus_ref in temp_range_list:
-                temp_focus_range_factor = base_score/len(temp_range_list)
+                temp_focus_range_factor = base_score/len(temp_range_list) if len(temp_range_list) < REF_RANGE_MAX else 0.0
                 if temp_focus_range_factor > focus_range_factor:
                     focus_range_factor = temp_focus_range_factor
                 has_tref = True
@@ -100,6 +108,16 @@ def normalize_related_refs(related_refs, focus_ref, base_score, check_has_ref=Fa
     return [], focus_range_factor, final_other_data
 
 
+def is_interesting_sheet(sheet):
+    included_refs = sheet.get("includedRefs", [])
+    if len(included_refs) > INCLUDED_REF_MAX:
+        # this guy has waaaay too much to talk about. probably not interesting
+        return False
+    if sheet.get("title", "") == "New Source Sheet":
+        # didn't care enough to change default title. wow
+        return False
+    return True
+
 def get_sheets_for_ref(tref):
     oref = Ref(tref)
     section_ref = oref.section_ref()
@@ -109,7 +127,11 @@ def get_sheets_for_ref(tref):
     sheets_cursor = db.sheets.find(query, {"includedRefs": 1, "owner": 1, "id": 1, "tags": 1, "title": 1})
     included_ref_dict = {}
     for sheet in sheets_cursor:
+        if not is_interesting_sheet(sheet):
+            continue
         temp_included, focus_range_factor, _ = normalize_related_refs(sheet.get("includedRefs", []), tref, SHEET_REF_SCORE, check_has_ref=True, count_steinsaltz=True)
+        if focus_range_factor == 0:
+            continue
         ref_owner_keys = [(r, sheet["owner"]) for r in temp_included]
         for k in ref_owner_keys:
             if (k in included_ref_dict and included_ref_dict[k]["score"] < focus_range_factor) or k not in included_ref_dict:
