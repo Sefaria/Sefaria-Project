@@ -20,11 +20,11 @@ def add_jobs(scheduler):
 
 
 def _add_calendar_jobs(scheduler):
-    scheduler.add_job(TextPassageStoryFactory.create_parasha, "cron", id="Parasha", replace_existing=True,
-                      day_of_week="fri, sun", hour="0", minute="5")
+    scheduler.add_job(TextPassageStoryFactory.create_aliyah, "cron", id="Parasha", replace_existing=True,
+                      day_of_week="sun, mon, tue, wed, thu, fri", hour="0", minute="5")
 
     scheduler.add_job(TextPassageStoryFactory.create_haftarah, "cron", id="Haftarah", replace_existing=True,
-                      day_of_week="fri", hour="0", minute="3")
+                      day_of_week="fri, sun", hour="0", minute="3")
 
     scheduler.add_job(TextPassageStoryFactory.create_daf_yomi, "cron", id="DafYomi", replace_existing=True,
                       hour="0", minute="10")
