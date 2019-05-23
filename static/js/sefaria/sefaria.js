@@ -2062,6 +2062,7 @@ Sefaria = extend(Sefaria, {
       "Email Address" : "כתובת אימייל",
       "Describe the issue..." : "טקסט המשוב",
       "Report an issue with the text" : "דיווח על בעיה בטקסט",
+      "Request translation" : "בקשה לתרגום",
       "Report a bug" : "דיווח על תקלה באתר",
       "Get help" : "עזרה",
       "Request a feature": "בקשה להוספת אפשרות באתר",
