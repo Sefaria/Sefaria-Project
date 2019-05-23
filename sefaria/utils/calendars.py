@@ -232,6 +232,10 @@ def make_parashah_response_from_calendar_entry(db_parasha):
     return [parasha]
 
 
+def aliyah_ref(parasha_db, aliyah):
+    assert 1 <= aliyah <= 7
+    return model.Ref(parasha_db["aliyot"][aliyah - 1])
+
 def this_weeks_parasha(datetime_obj, diaspora=True):
     """
     Returns the upcoming Parasha for datetime.

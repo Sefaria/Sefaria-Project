@@ -252,6 +252,10 @@ class SheetListStory extends Component {
             "he"
             "en"
         }
+        "lead_title" {  (optional)
+            "he"
+            "en"
+        }
         "sheet_ids"
         "sheets" (derived)
             [{"sheet_id"
@@ -267,9 +271,11 @@ class SheetListStory extends Component {
             {...}]
  */
     render() {
+      const lead = this.props.data.lead_title || {en: "Sheets", he: "דפים"};
+
       return (
         <StoryFrame cls="sheetListStory">
-            <StoryTypeBlock en="Sheets" he="דפים" />
+            <StoryTypeBlock en={lead.en} he={lead.he}/>
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
             <StorySheetList sheets={this.props.data.sheets} toggleSignupModal={this.props.toggleSignupModal}/>
         </StoryFrame>

@@ -608,73 +608,48 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     def _story_form(cls, **kwargs):
         return "textPassage"
 
-    ###
-    @classmethod
-    def _create_parasha_dependent_story(self, create_story_fn, **kwargs):
-        """
-        Calls create_story_fn once if Parshiot are the same, or twice if Israel and Diaspora differ.
-        create_story_fn has two args & **kwargs:
-            parsha_obj
-            mustHave: array of tags to be passed to created story
-            **kwargs
-        :param create_story_fn:
-        :param kwargs:
-        :return:
-        """
-        from django.utils import timezone
-        from sefaria.utils.calendars import this_weeks_parasha
-        now = timezone.localtime(timezone.now())
-        il = this_weeks_parasha(now, diaspora=False)
-        da = this_weeks_parasha(now, diaspora=True)
-
-        if il == da:
-            create_story_fn(il, **kwargs)
-        else:
-            create_story_fn(il, ["israel"], **kwargs)
-            create_story_fn(da, ["diaspora"], **kwargs)
-
     @classmethod
     def create_parasha(cls, **kwargs):
-        def _create_story(parasha_obj, mustHave=None, **kwargs):
+        def _create_parasha_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
             cls._generate_shared_story(ref=cal["ref"], lead=cal["title"], title=cal["displayValue"],
                                        mustHave=mustHave or [], **kwargs).save()
-        cls._create_parasha_dependent_story(_create_story, **kwargs)
+        create_israel_and_diaspora_stories(_create_parasha_story, **kwargs)
 
     @classmethod
     def create_haftarah(cls, **kwargs):
-        def _create_story(parasha_obj, mustHave=None, **kwargs):
+        def _create_haftarah_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_haftarah_response_from_calendar_entry
             cal = make_haftarah_response_from_calendar_entry(parasha_obj)[0]
             cls._generate_shared_story(ref=cal["ref"], lead=cal["title"], title=cal["displayValue"],
                                        mustHave=mustHave or [], **kwargs).save()
-        cls._create_parasha_dependent_story(_create_story, **kwargs)
+        create_israel_and_diaspora_stories(_create_haftarah_story, **kwargs)
 
     @classmethod
     def create_aliyah(cls, **kwargs):
-        def _create_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+        def _create_aliyah_story(parasha_obj, mustHave=None, **kwargs):
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry, aliyah_ref
             from django.utils import timezone
             from . import schema
 
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
             isoweekday = timezone.now().isoweekday()
-            aliyah_index = 0 if isoweekday == 7 else isoweekday
+            aliyah = 1 if isoweekday == 7 else isoweekday + 1
             lead = {"en": "Weekly Torah Portion", "he": cal["title"]["he"]}
 
-            if aliyah_index >= 5:  # Friday
-                ref = text.Ref(parasha_obj["aliyot"][5]).to(parasha_obj["aliyot"][6]).normal()
+            if aliyah >= 6:  # Friday
+                ref = aliyah_ref(parasha_obj, 6).to(aliyah_ref(parasha_obj, 7)).normal()
                 title = {"en": cal["displayValue"]["en"] + ", Sixth and Seventh Aliyah",
-                         "he": cal["displayValue"]["he"] + u", " + u"עליות שישי ושביעי"}
+                         "he": cal["displayValue"]["he"] + u" - " + u"שישי ושביעי"}
             else:
-                ref = text.Ref(parasha_obj["aliyot"][aliyah_index]).normal()
-                title = {"en": cal["displayValue"]["en"] + ", " + schema.AddressAliyah.en_map[aliyah_index] + " Aliyah",
-                         "he": cal["displayValue"]["he"] + u", " + u"עליית" + u" " + schema.AddressAliyah.he_map[aliyah_index]}
+                ref = aliyah_ref(parasha_obj, aliyah).normal()
+                title = {"en": cal["displayValue"]["en"] + ", " + schema.AddressAliyah.en_map[aliyah - 1] + " Aliyah",
+                         "he": cal["displayValue"]["he"] + u" - " + schema.AddressAliyah.he_map[aliyah - 1]}
             cls._generate_shared_story(ref=ref, lead=lead, title=title, mustHave=mustHave or [], **kwargs).save()
 
-        cls._create_parasha_dependent_story(_create_story, **kwargs)
+        create_israel_and_diaspora_stories(_create_aliyah_story, **kwargs)
 
     @classmethod
     def create_daf_yomi(cls, **kwargs):
@@ -840,6 +815,10 @@ class SheetListFactory(AbstractStoryFactory):
             "he"
             "en"
         }
+        lead_title: {
+            "he"
+            "en"
+        }
         "sheet_ids"
         "sheets" (derived)
             [{"sheet_id"
@@ -859,10 +838,15 @@ class SheetListFactory(AbstractStoryFactory):
     def _data_object(cls, **kwargs):
         title = kwargs.get("title", {"en": "Recommended for You", "he": u"מומלץ"})
 
-        return {
+        d = {
             "sheet_ids": kwargs.get("sheet_ids"),
             "title": title,
         }
+
+        if kwargs.get("lead"):
+            d["lead_title"] = kwargs.get("lead")
+
+        return d
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -876,9 +860,27 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def _get_topic_sheet_ids(cls, topic, k=3):
-        from sefaria.sheets import SheetSet
-        sheets = SheetSet({"tags": topic, "status": "public"}, proj={"id": 1}, sort=[("views", -1)], limit=k)
-        return [s.id for s in sheets]
+        from sefaria.sheets import get_sheets_by_tag
+        sheets = get_sheets_by_tag(topic, limit=k, proj={"id": 1})
+        return [s["id"] for s in sheets]
+        # sheets = SheetSet({"tags": topic, "status": "public"}, proj={"id": 1}, sort=[("views", -1)], limit=k)
+        # return [s.id for s in sheets]
+
+    @classmethod
+    def create_parasha_sheets_stories(cls):
+        def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+
+            return cls._generate_story(
+                sheet_ids=cls._get_topic_sheet_ids(parasha_obj["parasha"]),
+                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": cal["title"]["he"]},
+                mustHave=mustHave or [],
+                **kwargs
+            ).save()
+
+        create_israel_and_diaspora_stories(_create_parasha_sheet_story)
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
@@ -980,6 +982,29 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     def create_random_shared_story(cls, **kwargs):
         cls.generate_random_shared_story(**kwargs).save()
 
+
+def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
+    """
+    Calls create_story_fn once if Parshiot are the same, or twice if Israel and Diaspora differ.
+    create_story_fn has two args & **kwargs:
+        parsha_obj
+        mustHave: array of tags to be passed to created story
+        **kwargs
+    :param create_story_fn:
+    :param kwargs:
+    :return:
+    """
+    from django.utils import timezone
+    from sefaria.utils.calendars import this_weeks_parasha
+    now = timezone.localtime(timezone.now())
+    il = this_weeks_parasha(now, diaspora=False)
+    da = this_weeks_parasha(now, diaspora=True)
+
+    if il == da:
+        create_story_fn(il, **kwargs)
+    else:
+        create_story_fn(il, ["israel"], **kwargs)
+        create_story_fn(da, ["diaspora"], **kwargs)
 
 '''
 Turns out, not needed.
