@@ -7,9 +7,12 @@ if (typeof document !== 'undefined' ) {
       window.$ = $;
       window.jquery = $;
 } else {
+	  const emptyPromise = () => {
+      	return {"always": ()=>new Promise(()=>{},()=>{})};
+      };
       $         = require("cheerio");
-      $.ajax    = function() {}; // fail silently if server-side code every hits one of these functions
-      $.getJSON = function() {}; // ditto
+      $.ajax    = emptyPromise; // fail silently if server-side code every hits one of these functions
+      $.getJSON = emptyPromise; // ditto
 }
 
 module.exports = $;

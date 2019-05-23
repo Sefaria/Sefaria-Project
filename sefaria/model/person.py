@@ -96,6 +96,7 @@ class Person(abst.AbstractMongoRecord):
     def get_grouped_relationships(self):
         return PersonRelationshipSet.load_by_key(self.key).grouped(self.key)
 
+    # todo: store results of this IndexSet on the object, so that the query isn't repeated between has_indexes and get_indexes
     def has_indexes(self):
         from . import text
         return text.IndexSet({"authors": self.key}).count() > 0

@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
+    url(r'^story_editor/?$', reader_views.story_editor),
 ]
 
 # People Pages
@@ -68,6 +69,7 @@ urlpatterns += [
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
     url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
     url(r'^visualize/sefer-hachinukh-mitzvot$', reader_views.sefer_hachinukh_mitzvot),
+    url(r'^visualize/timeline$', reader_views.visualize_timeline),
     url(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
 ]
 
@@ -157,6 +159,8 @@ urlpatterns += [
     url(r'^api/notifications/?$', reader_views.notifications_api),
     url(r'^api/notifications/read', reader_views.notifications_read_api),
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
+    url(r'^api/stories/?$', reader_views.stories_api),
+    url(r'^api/story_reflector/?$', reader_views.story_reflector),
     url(r'^api/messages/?$', reader_views.messages_api),
 ]
 
@@ -307,7 +311,6 @@ urlpatterns += [
     url(r'^vgarden/custom/(?P<key>.*)$', reader_views.custom_visual_garden_page),  # legacy.  Used for "maggid" and "ecology"
 ]
 
-
 # Sefaria.js -- Packaged JavaScript
 urlpatterns += [
     url(r'^data\.js$', sefaria_views.data_js),
@@ -324,7 +327,9 @@ urlpatterns += [
     url(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
     url(r'^api/text-upload$', sefaria_views.text_upload_api)
 ]
-
+urlpatterns += [
+    url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
+]
 # File Uploads
 urlpatterns += [
     url(r'^api/file/upload$', sefaria_views.file_upload),

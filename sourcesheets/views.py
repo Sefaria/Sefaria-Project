@@ -77,8 +77,7 @@ def new_sheet(request):
 
 	owner_groups  = get_user_groups(request.user.id)
 	query         = {"owner": request.user.id or -1 }
-	hide_video    = db.sheets.find(query).count() > 2
-
+	hide_video    = db.sheets.count_documents(query) > 2
 
 	return render(request,'sheets.html', {"can_edit": True,
 												"new_sheet": True,

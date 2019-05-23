@@ -31,11 +31,11 @@ def handle_dependant_indices(title):
     """
     dependant_indices = library.get_dependant_indices(title, dependence_type='commentary', structure_match=True,
                                                       full_records=True)
-    if dependant_indices.count() == 0:
+    if len(dependant_indices) == 0:
         return
 
     print "{}Warning! Commentary linking will be removed for {} texts{}".\
-        format('\033[93m', dependant_indices.count(), '\033[0m')  # The text prints in yellow
+        format('\033[93m', len(dependant_indices), '\033[0m')  # The text prints in yellow
 
     for record in dependant_indices:
         record.base_text_mapping = None

@@ -17,7 +17,8 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.group import Group, GroupSet
+from sefaria.model.group import Group
+from sefaria.model.story import UserStory, UserStorySet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import django_cache
@@ -54,6 +55,13 @@ def get_sheet(id=None):
 	s["_id"] = str(s["_id"])
 	return s
 
+
+def get_sheet_metadata(id = None):
+	assert id
+	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
+	return s
+
+
 def get_sheet_node(sheet_id=None, node_id=None):
 	"""
 	Returns the source sheet with id.
@@ -77,6 +85,8 @@ def get_sheet_node(sheet_id=None, node_id=None):
 
 def get_sheet_for_panel(id=None):
 	sheet = get_sheet(id)
+	if "error" in sheet:
+		return sheet
 	if "assigner_id" in sheet:
 		asignerData = public_user_data(sheet["assigner_id"])
 		sheet["assignerName"]  = asignerData["name"]
@@ -367,16 +377,19 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		if sheet["status"] == "public" and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
-			record_sheet_publication(sheet["id"], user_id)
+			record_sheet_publication(sheet["id"], user_id)  # record history
 			broadcast_sheet_publication(user_id, sheet["id"])
 		if sheet["status"] != "public":
 			# UNPUBLISH
-			delete_sheet_publication(sheet["id"], user_id)
+			delete_sheet_publication(sheet["id"], user_id)  # remove history
+			UserStorySet({"storyForm": "publishSheet",
+								"data.publisher": user_id,
+								"data.sheet_id": sheet["id"]
+							}).delete()
 			NotificationSet({"type": "sheet publish",
 								"content.publisher_id": user_id,
 								"content.sheet_id": sheet["id"]
 							}).delete()
-
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
 
@@ -386,7 +399,6 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 
 	if "tags" in sheet:
 		update_sheet_tags(sheet["id"], sheet["tags"])
-
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		try:
@@ -437,7 +449,6 @@ def clean_source(source):
 		source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
 
 	return source
-
 
 
 def add_source_to_sheet(id, source, note=None):
@@ -652,11 +663,13 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),
+				"is_featured":     sheet.get("is_featured", False),
 				"category":        "Sheets", # ditto
 				"type":            "sheet", # ditto
 			}
 
 			results.append(sheet_data)
+
 			break
 
 	return results
@@ -748,7 +761,6 @@ def add_visual_data(sheet_id, visualNodes, zoom):
 	db.sheets.update({"id": sheet_id},{"$push": {"visualNodes": {"$each": visualNodes},"zoom" : zoom}})
 
 
-
 def add_like_to_sheet(sheet_id, uid):
 	"""
 	Add uid as a liker of sheet_id.
@@ -781,11 +793,13 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 	"""
 	Notify everyone who follows publisher_id about sheet_id's publication
 	"""
+	#todo: work on batch creation / save pattern
 	followers = FollowersSet(publisher_id)
 	for follower in followers.uids:
 		n = Notification({"uid": follower})
 		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
 		n.save()
+		UserStory.from_sheet_publish(follower, publisher_id, sheet_id).save()
 
 
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):
@@ -841,6 +855,7 @@ class Sheet(abstract.AbstractMongoRecord):
 	]
 	optional_attrs = [
 		"generatedBy",  # this had been required, but it's not always there.
+		"is_featured",  # boolean - show this sheet, unsolicited.
 		"includedRefs",
 		"views",
 		"nextNode",
@@ -856,6 +871,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"likes",
 		"group",
 		"generatedBy",
+		"highlighterTags",
 		"summary" # double check this one
 	]
 

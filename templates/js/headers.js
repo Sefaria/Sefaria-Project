@@ -656,10 +656,10 @@
 	    sjs.notificationsPage = 1;
 	    $('#notifications').bind('scroll', function() {
         	if($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) {
-         	   sjs.loadMoreNotifications();
+         	   sjs.loadMoreStories();
         	}
     	});
-    	sjs.loadMoreNotifications = function() {
+    	sjs.loadMoreStories = function() {
     		$.getJSON("/api/notifications?page=" + sjs.notificationsPage, function(data) {
     			if (data.count < data.page_size) {
     				$("#notifications").unbind("scroll");

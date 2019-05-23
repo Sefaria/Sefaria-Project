@@ -7,7 +7,6 @@ python:
 cache: pip
 
 services:
-  - mongodb
   - redis-server
 
 addons:
@@ -16,6 +15,8 @@ env:
   PYTHONPATH=$TRAVIS_BUILD_DIR
   DJANGO_SETTINGS_MODULE=sefaria.settings
   TRAVIS_NODE_VERSION="7.9.0"
+  MONGODB=3.6.12
+
 
 before_install:
   - sudo apt-get -qq update
@@ -23,6 +24,13 @@ before_install:
 
 # command to install dependencies
 install:
+  # mongo
+  - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz
+  - tar xzf mongodb-linux-x86_64-${MONGODB}.tgz
+  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --version
+  - pip install Pillow
+  # - python setup.py install
+  # And everything else
   - "pip install -r requirements.txt"
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
   - npm install
@@ -30,6 +38,10 @@ install:
   - npm run build-prod
 
 before_script:
+  # mongo
+  - mkdir ${PWD}/mongodb-linux-x86_64-${MONGODB}/data
+  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath ${PWD}/mongodb-linux-x86_64-${MONGODB}/data --logpath ${PWD}/mongodb-linux-x86_64-${MONGODB}/mongodb.log --fork
+
   # Create a writable log dir
   - mkdir log
   - chmod 777 log
@@ -81,6 +93,9 @@ before_script:
 script:
  - 'py.test -m "not deep and not failing"'
  - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}" 2> selenium.error.log; else true; fi;'
+
+after_script:
+  - pkill mongod
 
 after_failure:
 - cat $TRAVIS_BUILD_DIR/reader/browsertest/selenium.error.log
