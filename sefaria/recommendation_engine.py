@@ -6,9 +6,8 @@ from sefaria.client.wrapper import get_links
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-# TODO throw out refs in long sections
+# TODO dont double count source and its commentary (might be costly)
 # TODO do better job of double author
-# TODO nexus of sheet and commentator bonus? b/c it must be good if they both thought of it
 # TODO maybe distance penalty also??
 
 DIRECT_LINK_SCORE = 2.0
@@ -35,15 +34,14 @@ def R(tref):
     for tref, score, source in all_related:
         d[tref]["score"] += score
         d[tref]["sources"] += [source]
-    # filter items with fewer than 2 votes
     ditems = filter(lambda x: x[0] not in commentary_ref_set and sources_interesting(x[1]["sources"]), d.items())
     return ditems
 
 
 def sources_interesting(sources):
-    # make sure either source has more than 3 voices, or there's at least one sheet or direct link
+    # make sure either source has more than 2 sheets or direct linkss
     filt = filter(lambda x: (x.startswith("Sheet ") or x == "direct"), sources)
-    return len(sources) >= 3 or (len(sources) >= 2 and len(filt) > 0)
+    return len(filt) >= 2
 
 
 def get_items_linked_to_ref(tref):
