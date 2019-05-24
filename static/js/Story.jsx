@@ -404,15 +404,18 @@ class TopicListStory extends Component {
 /*
     "topicList"
         topics: [{en, he}, ...]
+        title: {en, he}
+        lead_title: {en, he}
  */
+
     render() {
         return (
             <StoryFrame cls="topicListStory">
-                <StoryTypeBlock en="Topics" he="נושאים"/>
+                <StoryTypeBlock en={this.props.data.lead_title.en} he={this.props.data.lead_title.he}/>
                 <SeeAllLink url="/topics"/>
-                <StoryTitleBlock en="Trending Recently" he="פופולרי"/>
+                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
                 <TwoBox content={this.props.data.topics.map(topic =>
-                    <BlockLink title={topic.en} heTitle={topic.he} target={"/topics" + topic.en} interfaceLink={true}/>
+                    <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + topic.en} interfaceLink={true}/>
                 )}/>
             </StoryFrame>
         )

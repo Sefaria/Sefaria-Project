@@ -867,14 +867,13 @@ class SheetListFactory(AbstractStoryFactory):
         # return [s.id for s in sheets]
 
     @classmethod
-    def create_parasha_sheets_stories(cls, page=0, **kwargs):
+    def create_parasha_sheets_stories(cls, page=0, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
-            num = 3
-            sheet_ids = cls._get_topic_sheet_ids(parasha_obj["parasha"], k=num, page=kwargs.get("page"))
-            if len(sheet_ids) < num:
+            sheet_ids = cls._get_topic_sheet_ids(parasha_obj["parasha"], k=k, page=page)
+            if len(sheet_ids) < k:
                 return
 
             cls._generate_story(
@@ -885,7 +884,7 @@ class SheetListFactory(AbstractStoryFactory):
                 **kwargs
             ).save()
 
-        create_israel_and_diaspora_stories(_create_parasha_sheet_story, page=page, **kwargs)
+        create_israel_and_diaspora_stories(_create_parasha_sheet_story, **kwargs)
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
@@ -909,20 +908,55 @@ class TopicListStoryFactory(AbstractStoryFactory):
     """
     "topicList"
         topics: [{en, he}, ...]
-
+        title: {en, he}
+        lead_title: {en, he}
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        days = kwargs.get("days", 14)
-        from sefaria import sheets
-        tags = sheets.recent_public_tags(days=days, ntags=6)
-        normal_tags = [text.Term.normalize(tag["tag"]) for tag in tags]
+        normal_topics = [text.Term.normalize(topics) for topics in kwargs.get("topics")]
         # todo: handle possibility of Hebrew terms trending.
-        return {"topics": [{"en": tag, "he": hebrew_term(tag)} for tag in normal_tags]}
+        return {
+            "topics": [{"en": topic, "he": hebrew_term(topic)} for topic in normal_topics],
+            "title": kwargs.get("title", {"en": "Trending Recently", "he": u"פופולרי"}),
+            "lead_title": kwargs.get("lead", {"en": "Topics", "he": u"נושאים"})
+        }
 
     @classmethod
     def _story_form(cls, **kwargs):
         return "topicList"
+
+    @classmethod
+    def create_trending_story(cls, **kwargs):
+        days = kwargs.get("days", 14)
+        from sefaria import sheets
+        topics = [t["tags"] for t in sheets.recent_public_tags(days=days, ntags=6)]
+        cls.create_shared_story(topics=topics)
+
+    @classmethod
+    def create_parasha_topics_stories(cls, page=0, k=6, **kwargs):
+        def _create_parasha_topic_story(parasha_obj, mustHave=None, **kwargs):
+            from sefaria.model.topic import get_topics
+            from sefaria.utils.util import titlecase
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+
+            topics = get_topics()
+            parasha = text.Term.normalize(titlecase(parasha_obj["parasha"]))
+            topic = topics.get(parasha)
+            related_topics = [t for t,x in topic.related_topics[page*k:page*k+k] if x > 1]
+            if len(related_topics) < k:
+                return
+
+            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+
+            cls._generate_story(
+                topics=related_topics,
+                title={"en": "Topics in " + cal["displayValue"]["en"], "he": u"נושאים ב" + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": cal["title"]["he"]},
+                mustHave=mustHave or [],
+                **kwargs
+            ).save()
+
+        create_israel_and_diaspora_stories(_create_parasha_topic_story, **kwargs)
 
     @classmethod
     def create_shared_story(cls, **kwargs):
