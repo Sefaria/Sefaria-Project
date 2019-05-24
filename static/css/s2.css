@@ -2569,6 +2569,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .readerPanel .readerNavMenu .tagsList .gridBox {
   direction: rtl;
 }
+.tagsList .heOnly {
+  direction: rtl;
+}
+.tagsList .enOnly {
+  direction: ltr;
+}
 .readerControls {
   position: relative;
   top: 0;
