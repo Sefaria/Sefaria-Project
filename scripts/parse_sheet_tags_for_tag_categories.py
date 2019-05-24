@@ -7,7 +7,7 @@ django.setup()
 from sefaria import model
 from sefaria.system.database import db
 
-cfile = "./data/private/sheet_tags_over_10.csv"
+cfile = "./data/tmp/sheet_tags_over_10.csv"
 
 
 missing_terms = []
