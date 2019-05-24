@@ -18,6 +18,10 @@ from sefaria.system.exceptions import InputError
 import logging
 logger = logging.getLogger(__name__)
 
+periods = {
+    "alltime": {"query": {}}
+}
+
 
 def get_user_traits(request, uid):
     traits = {
@@ -25,6 +29,8 @@ def get_user_traits(request, uid):
         "inIsrael": not request.diaspora,
         "readsHebrew": True, # needs to be wired up
         "readsEnglish": True, # needs to be wired up
+        "prefersBilingual": False, # needs to be wired up
+        "isSephardi": False  # needs to be wired up
     }
 
     return [k for k, v in traits.items() if v]
@@ -99,6 +105,7 @@ class TrendFactory(object):
         pass
 
 
+
 class HebrewAbilityFactory(TrendFactory):
     name = "HebrewAbility"
     desc = "Value between 0 and 1 - 1 Being clear Hebrew ability, 0 being clear inability"
@@ -107,18 +114,81 @@ class HebrewAbilityFactory(TrendFactory):
     for_group = False
 
     def process_user(self, uid, period):
-        # If user has Hebrew interface (and usage?) conclude w/ (start w/?)  1
+        profile = user_profile.UserProfile(id=uid)
         user_histories = user_profile.UserHistorySet({"uid": uid}, sort=[("time_stamp", 1)])
+
+        # If user has Hebrew interface conclude Hebrew ability
+        if profile.settings.get("interface_language") == "hebrew":
+            value = 1.0
 
         Trend({
             "name":         self.name,
-            "value":        "",
+            "value":        value,
             "datatype":     self.datatype,
-            "timestamp":    "",
-            "period":       "",
-            "scope":        ""
+            "timestamp":    datetime.utcnow(),
+            "period":       period,
+            "scope":        "user"
         }).save()
 
+# https://stackoverflow.com/questions/25843255/mongodb-aggregate-count-on-multiple-fields-simultaneously
+"""
+// Requires official MongoShell 3.6+
+use sefaria;
+db.getCollection("user_history").aggregate(
+    [
+        { 
+            "$match" : {
+                "secondary" : false, 
+                "language" : {
+                    "$in" : [
+                        "hebrew", 
+                        "english", 
+                        "bilingual"
+                    ]
+                }
+            }
+        }, 
+        { 
+            "$group" : {
+                "_id" : {
+                    "language" : "$language", 
+                    "uid" : "$uid"
+                }, 
+                "cnt" : {
+                    "$sum" : 1.0
+                }
+            }
+        }, 
+        { 
+            "$group" : {
+                "_id" : "$_id.uid", 
+                "languages" : {
+                    "$push" : {
+                        "k" : "$_id.language", 
+                        "v" : "$cnt"
+                    }
+                }, 
+                "total" : {
+                    "$sum" : "$cnt"
+                }
+            }
+        }, 
+        { 
+            "$project" : {
+                "languages" : {
+                    "$arrayToObject" : "$languages"
+                }, 
+                "total" : "$total"
+            }
+        }
+    ], 
+    { 
+        "allowDiskUse" : false
+    }
+);
+
+
+"""
 
 class EnglishToleranceFactory(TrendFactory):
     name = "EnglishTolerance"
@@ -128,15 +198,23 @@ class EnglishToleranceFactory(TrendFactory):
     for_group = False
 
     def process_user(self, uid, period):
-        # If user has English interface (and usage?) conclude w/ (start w/?)  1
 
-        user_histories = user_profile.UserHistorySet({"uid": uid}, sort=[("time_stamp", 1)])
+        # If user has English interface conclude English tolerance
+        profile = user_profile.UserProfile(id=uid)
+        if profile.settings.get("interface_language") == "english":
+            value = 1.0
+        else:
+            # this could be done in one aggregation for the whole db. ^^
+            bi = user_profile.UserHistorySet({"uid": uid, "language": "bilingual"}).count()
+            he = user_profile.UserHistorySet({"uid": uid, "language": "hebrew"}).count()
+            en = user_profile.UserHistorySet({"uid": uid, "language": "english"}).count()
+
 
         Trend({
             "name":         self.name,
-            "value":        "",
+            "value":        value,
             "datatype":     self.datatype,
-            "timestamp":    "",
-            "period":       "",
-            "scope":        ""
+            "timestamp":    datetime.utcnow(),
+            "period":       period,
+            "scope":        "user"
         }).save()
