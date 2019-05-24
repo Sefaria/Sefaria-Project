@@ -713,7 +713,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
     # todo: the below two methods share a lot of code...
     @classmethod
-    def create_parasha_verse_connection_stories(cls, **kwargs):
+    def create_parasha_verse_connection_stories(cls, iteration=1, **kwargs):
         def _create_parasha_verse_connection_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             from . import ref_data
@@ -723,7 +723,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
             parasha_ref = text.Ref(parasha_obj["ref"])
 
-            top_ref = ref_data.RefDataSet.from_ref(parasha_ref).top_ref()
+            top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
 
             connection_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type != "commentary", top_ref.linkset())]
 
@@ -749,7 +749,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
         create_israel_and_diaspora_stories(_create_parasha_verse_connection_story, **kwargs)
 
     @classmethod
-    def create_parasha_verse_commentator_stories(cls, **kwargs):
+    def create_parasha_verse_commentator_stories(cls, iteration=1, **kwargs):
         def _create_parasha_verse_commentator_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             from . import ref_data
@@ -759,7 +759,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
             parasha_ref = text.Ref(parasha_obj["ref"])
 
-            top_ref = ref_data.RefDataSet.from_ref(parasha_ref).top_ref()
+            top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
             commentary_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type == "commentary", top_ref.linkset())]
             commentary_ref = random.choice(commentary_refs)
             if not commentary_ref.is_text_translated():
@@ -961,12 +961,12 @@ class SheetListFactory(AbstractStoryFactory):
         # return [s.id for s in sheets]
 
     @classmethod
-    def create_parasha_sheets_stories(cls, page=0, k=3, **kwargs):
+    def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
-            sheet_ids = cls._get_topic_sheet_ids(parasha_obj["parasha"], k=k, page=page)
+            sheet_ids = cls._get_topic_sheet_ids(parasha_obj["parasha"], k=k, page=iteration-1)
             if len(sheet_ids) < k:
                 return
 
@@ -1027,12 +1027,13 @@ class TopicListStoryFactory(AbstractStoryFactory):
         cls.create_shared_story(topics=topics)
 
     @classmethod
-    def create_parasha_topics_stories(cls, page=0, k=6, **kwargs):
+    def create_parasha_topics_stories(cls, iteration=1, k=6, **kwargs):
         def _create_parasha_topic_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.model.topic import get_topics
             from sefaria.utils.util import titlecase
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
 
+            page = iteration-1
             topics = get_topics()
             parasha = text.Term.normalize(titlecase(parasha_obj["parasha"]))
             topic = topics.get(parasha)

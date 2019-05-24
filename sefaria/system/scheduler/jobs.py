@@ -1,6 +1,6 @@
 
 from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, TopicListStoryFactory, \
-    TopicTextsStoryFactory, UserSheetsFactory, GroupSheetListFactory, SheetListFactory
+    TopicTextsStoryFactory, UserSheetsFactory, GroupSheetListFactory, SheetListFactory, MultiTextStoryFactory
 
 
 def add_jobs(scheduler):
@@ -31,17 +31,28 @@ def _add_parasha_jobs(scheduler):
                       day_of_week="mon", hour="3", minute="5")
 
     scheduler.add_job(SheetListFactory.create_parasha_sheets_stories, "cron", id="Parasha_Sheets2", replace_existing=True,
-                      kwargs={"page": 1}, day_of_week="wed", hour="3", minute="5")
+                      kwargs={"iteration": 2}, day_of_week="wed", hour="3", minute="5")
 
     scheduler.add_job(SheetListFactory.create_parasha_sheets_stories, "cron", id="Parasha_Sheets3", replace_existing=True,
-                      kwargs={"page": 2}, day_of_week="fri", hour="3", minute="5")
+                      kwargs={"iteration": 3}, day_of_week="fri", hour="3", minute="5")
 
     scheduler.add_job(TopicListStoryFactory.create_parasha_topics_stories, "cron", id="Parasha_Topics1", replace_existing=True,
                       day_of_week="sun", hour="3", minute="5")
 
     scheduler.add_job(TopicListStoryFactory.create_parasha_topics_stories, "cron", id="Parasha_Topics2", replace_existing=True,
-                      kwargs={"page": 1}, day_of_week="tue", hour="3", minute="5")
+                      kwargs={"iteration": 2}, day_of_week="tue", hour="3", minute="5")
 
+    scheduler.add_job(MultiTextStoryFactory.create_parasha_verse_commentator_stories, "cron", id="Parasha_Commentator1", replace_existing=True,
+                      day_of_week="mon", hour="3", minute="5")
+
+    scheduler.add_job(MultiTextStoryFactory.create_parasha_verse_connection_stories, "cron", id="Parasha_Connection1", replace_existing=True,
+                      day_of_week="tue", hour="3", minute="5")
+
+    scheduler.add_job(MultiTextStoryFactory.create_parasha_verse_commentator_stories, "cron", id="Parasha_Commentator2", replace_existing=True,
+                      kwargs={"iteration": 2}, day_of_week="thu", hour="3", minute="5")
+
+    scheduler.add_job(MultiTextStoryFactory.create_parasha_verse_connection_stories, "cron", id="Parasha_Connection2", replace_existing=True,
+                      kwargs={"iteration": 2}, day_of_week="fri", hour="3", minute="5")
 
 def _add_calendar_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_daf_yomi, "cron", id="DafYomi", replace_existing=True,
