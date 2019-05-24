@@ -32,3 +32,9 @@ class RefDataSet(abst.AbstractMongoSet):
 
     def top(self, n):
         return sorted(self, key=lambda rd: rd.pagesheetrank, reverse=True)[0:n]
+
+    def nth_ref(self, n):
+        return text.Ref(self.top(n)[-1].ref)
+
+    def top_ref(self):
+        return self.nth_ref(1)

@@ -20,10 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 def get_user_traits(request, uid):
-    traits = {}
-    traits["diaspora"] = bool(request.diaspora)
-    traits["israel"] = not request.diaspora
+    traits = {
+        "inDiaspora": bool(request.diaspora),
+        "inIsrael": not request.diaspora,
+        "readsHebrew": True, # needs to be wired up
+        "readsEnglish": True, # needs to be wired up
+    }
+
     return [k for k, v in traits.items() if v]
+
 
 class Trend(abst.AbstractMongoRecord):
     '''

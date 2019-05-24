@@ -23,6 +23,7 @@ function Story(story_props, indx, ...props) {
         publishSheet:   PublishSheetStory,
         author:         AuthorStory,
         textPassage:    TextPassageStory,
+        multiText:      MultiTextStory,
         topicTexts:     TopicTextsStory,
         topicList:      TopicListStory,
         sheetList:      SheetListStory,
@@ -384,7 +385,7 @@ class TopicTextsStory extends Component {
             <StoryFrame cls="topicTextsStory">
                 <StoryTypeBlock en="Topic" he="" />
                 <SeeAllLink url="/topics"/>
-                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={"/topics" + this.props.data.title.en}/>
+                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={"/topics/" + this.props.data.title.en}/>
                 <StoryTextList texts={this.props.data.texts} />
             </StoryFrame>
         );
@@ -399,6 +400,33 @@ TopicTextsStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
+class MultiTextStory extends Component {
+/*
+    "multiText"
+        title: {en, he}
+        lead_title: {en, he}
+        "refs"
+        "texts":  [{"ref", "heRef", "en","he"}, ...]
+ */
+    render() {
+        return (
+            <StoryFrame cls="multiTextStory">
+                <StoryTypeBlock en={this.props.data.lead_title.en} he={this.props.data.lead_title.he}/>
+                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
+                <StoryTextList texts={this.props.data.texts} />
+            </StoryFrame>
+        )
+    }
+
+}
+MultiTextStory.propTypes = {
+  storyForm:    PropTypes.string,
+  timestamp:    PropTypes.number,
+  is_shared:    PropTypes.bool,
+  data:         PropTypes.object,
+  interfaceLang:      PropTypes.string,
+  toggleSignupModal:  PropTypes.func
+};
 
 class TopicListStory extends Component {
 /*

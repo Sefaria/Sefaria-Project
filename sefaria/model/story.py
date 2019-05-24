@@ -682,6 +682,100 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
 
 
+class MultiTextStoryFactory(AbstractStoryFactory):
+    """
+    "multiText"
+        "title"
+            "en"
+            "he"
+        "lead_title"
+            "en"
+            "he"
+        "refs"
+        "texts" (derived)
+            [{"ref", "heRef", "en","he"}, ...]
+    """
+
+    @classmethod
+    def _data_object(cls, **kwargs):
+        trefs = kwargs.get("refs")
+        normal_refs = [text.Ref(ref).normal() for ref in trefs]
+
+        return {
+            "title": kwargs.get("title"),
+            "lead_title": kwargs.get("lead"),
+            "refs": normal_refs
+        }
+
+    @classmethod
+    def _story_form(cls, **kwargs):
+        return "multiText"
+
+    # todo: the below two methods share a lot of code...
+    @classmethod
+    def create_parasha_verse_connection_stories(cls, **kwargs):
+        def _create_parasha_verse_connection_story(parasha_obj, mustHave=None, **kwargs):
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            from . import ref_data
+
+            mustHave = mustHave or []
+
+            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+            parasha_ref = text.Ref(parasha_obj["ref"])
+
+            top_ref = ref_data.RefDataSet.from_ref(parasha_ref).top_ref()
+
+            connection_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type != "commentary", top_ref.linkset())]
+
+            connection_ref = None
+            while connection_ref is None:
+                connection_ref = random.choice(connection_refs)
+                category = connection_ref.index.categories[0]
+                if category == "Tanakh":  # Quoting commentary isn't best for this
+                    connection_ref = None
+                    continue
+                if not connection_ref.is_text_translated():
+                    mustHave += ["readsHebrew"]
+
+
+            cls._generate_story(
+                refs = [top_ref.normal(), connection_ref.normal()],
+                title={"en": category + " on " + cal["displayValue"]["en"], "he": hebrew_term(category) + u" על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                mustHave=mustHave,
+                **kwargs
+            ).save()
+
+        create_israel_and_diaspora_stories(_create_parasha_verse_connection_story, **kwargs)
+
+    @classmethod
+    def create_parasha_verse_commentator_stories(cls, **kwargs):
+        def _create_parasha_verse_commentator_story(parasha_obj, mustHave=None, **kwargs):
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            from . import ref_data
+
+            mustHave = mustHave or []
+
+            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+            parasha_ref = text.Ref(parasha_obj["ref"])
+
+            top_ref = ref_data.RefDataSet.from_ref(parasha_ref).top_ref()
+            commentary_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type == "commentary", top_ref.linkset())]
+            commentary_ref = random.choice(commentary_refs)
+            if not commentary_ref.is_text_translated():
+                mustHave += ["readsHebrew"]
+            commentator = commentary_ref.index.collective_title
+
+            cls._generate_story(
+                refs = [top_ref.normal(), commentary_ref.normal()],
+                title={"en": commentator + " on " + cal["displayValue"]["en"], "he": hebrew_term(commentator) + u" על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                mustHave=mustHave,
+                **kwargs
+            ).save()
+
+        create_israel_and_diaspora_stories(_create_parasha_verse_commentator_story, **kwargs)
+
 class AuthorStoryFactory(AbstractStoryFactory):
     @classmethod
     def _data_object(cls, **kwargs):
@@ -879,7 +973,7 @@ class SheetListFactory(AbstractStoryFactory):
             cls._generate_story(
                 sheet_ids=sheet_ids,
                 title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": cal["title"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
                 mustHave=mustHave or [],
                 **kwargs
             ).save()
@@ -951,7 +1045,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
             cls._generate_story(
                 topics=related_topics,
                 title={"en": "Topics in " + cal["displayValue"]["en"], "he": u"נושאים ב" + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": cal["title"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
                 mustHave=mustHave or [],
                 **kwargs
             ).save()
@@ -1042,8 +1136,8 @@ def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
     if il == da:
         create_story_fn(il, **kwargs)
     else:
-        create_story_fn(il, ["israel"], **kwargs)
-        create_story_fn(da, ["diaspora"], **kwargs)
+        create_story_fn(il, ["inIsrael"], **kwargs)
+        create_story_fn(da, ["inDiaspora"], **kwargs)
 
 '''
 Turns out, not needed.
