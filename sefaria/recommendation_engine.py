@@ -1,6 +1,3 @@
-import re
-import bleach
-import math
 import django
 django.setup()
 from collections import defaultdict
@@ -16,7 +13,16 @@ DIRECT_LINK_SCORE = 2.0
 COMMENTARY_LINK_SCORE = 0.7
 SHEET_REF_SCORE = 1.0
 
+
 def R(tref):
+    '''
+    Relevance sources connected to central ref
+    :param tref: Central ref
+    :return: All of the related refs, scored (0...inf), and what it connects through.
+        list of tuples:
+            [(tref, {score: float,
+                    sources: [str, ...]})]
+    '''
     sheet_refs = get_sheets_for_ref(tref)
     link_refs, commentary_ref_set = get_items_linked_to_ref(tref)
 
@@ -33,6 +39,14 @@ def R(tref):
 
 
 def get_items_linked_to_ref(tref):
+    '''
+    Given a ref, returns items connected to central ref through links - direct links and links through commentaries.
+    :param tref:
+    :return: Twos things:
+                list of tuples, each one with (tref, score, way of connection[str])
+                [tref, tref] - all of the refs in the above set that are direct commentaries of original tref
+    '''
+
     oref = Ref(tref)
     section_ref = oref.section_ref()
     commentary_links = []
@@ -60,6 +74,16 @@ def get_items_linked_to_ref(tref):
 
 
 def normalize_related_refs(related_refs, focus_ref, base_score, check_has_ref=False, other_data=None, count_steinsaltz=False):
+    '''
+
+    :param related_refs:
+    :param focus_ref:
+    :param base_score:
+    :param check_has_ref:
+    :param other_data:
+    :param count_steinsaltz:
+    :return:
+    '''
     # make sure oref is in includedRefs but don't actually add those to the final includedRefs
     has_tref = not check_has_ref
     focus_range_factor = 0.0  # multiplicative factor based on how big a range the focus_ref is in
@@ -102,9 +126,13 @@ def normalize_related_refs(related_refs, focus_ref, base_score, check_has_ref=Fa
         return final_refs, focus_range_factor, final_other_data
     return [], focus_range_factor, final_other_data
 
-SENSITIVE = reduce(lambda a, b: a | set(b.get_titles()), TermSet({"sensitive": True}), set())
 
 def get_sheets_for_ref(tref):
+    '''
+    
+    :param tref:
+    :return: list of tuples, each one with (tref, score, way of connection[str])
+    '''
     oref = Ref(tref)
     section_ref = oref.section_ref()
     regex_list = section_ref.regex(as_list=True)
@@ -113,11 +141,6 @@ def get_sheets_for_ref(tref):
     sheets_cursor = db.sheets.find(query, {"includedRefs": 1, "owner": 1, "id": 1, "tags": 1, "title": 1})
     included_ref_dict = {}
     for sheet in sheets_cursor:
-        tags_offensive = len({t.lower() for t in sheet.get("tags", [])} & SENSITIVE) > 0
-        title = re.sub(r"[!?.,:;()\[\]\-_'\"]", "", bleach.clean(sheet.get("title", ""), tags=[], strip=True).lower())
-        title_offensive = len(set(title.split()) & SENSITIVE) > 0
-        if title_offensive or tags_offensive:
-            continue
         temp_included, focus_range_factor, _ = normalize_related_refs(sheet.get("includedRefs", []), tref, SHEET_REF_SCORE, check_has_ref=True, count_steinsaltz=True)
         ref_owner_keys = [(r, sheet["owner"]) for r in temp_included]
         for k in ref_owner_keys:
@@ -129,6 +152,14 @@ def get_sheets_for_ref(tref):
 
 
 def cluster_close_refs(ref_list, data_list, dist_threshold):
+    '''
+
+    :param ref_list: list of orefs
+    :param data_list: list of data to associate w/ refs (same length as ref_list)
+    :param dist_threshold: max distance where you want two refs clustered
+    :return: List of lists where each internal list is a cluster
+    '''
+
     clusters = []
     item_list = sorted(zip(ref_list, data_list), key=lambda x: x[0].order_id())
     for temp_oref, temp_data in item_list:
@@ -149,8 +180,15 @@ def cluster_close_refs(ref_list, data_list, dist_threshold):
 
 def recommend_simple(tref, n):
     """
+    Wraps R, ranks results
     This function doesn't need to learn. Just calculates Relevance * Novelty
     Returns top N recommendations
+    :param tref:
+    :param n: Number of recommendations desired
+    :return: Sorted list - All of the related refs, scored (0...inf), and what it connects through.
+        list of tuples:
+            [(tref, {score: float,
+                    sources: [str, ...]})]
     """
     r_list = R(tref)
     score_list = []
@@ -163,6 +201,16 @@ def recommend_simple(tref, n):
 
 
 def recommend_simple_clusters(tref, top=10, threshold=5):
+    '''
+
+    :param tref:
+    :param top: Number of recommendations desired
+    :param threshold: Max cluster distance
+    :return: Sorted list - All of the related refs, scored (0...inf), and what it connects through.
+        list of tuples:
+            [(tref, {score: float,
+                    sources: [str, ...]})]
+    '''
     liste = recommend_simple(tref, top*50)
     ref_list, other_item_list = [], []
     oref = Ref(tref)
@@ -188,8 +236,6 @@ def recommend_simple_clusters(tref, top=10, threshold=5):
             if elem[0]["ref"].primary_category in ("Tanakh", "Talmud"):
                 # only combine clusters for Tanakh and Talmud
                 liste_final.append(((elem[0]["ref"].to(elem[-1]["ref"])), max(scores), sources))
-            elif elem[0]["ref"].primary_category in ("Modern Works",):
-                continue
             else:
                 argmax = max(range(len(scores)), key=lambda i: scores[i])  # see here for this semi-readable hack for argmax() https://towardsdatascience.com/there-is-no-argmax-function-for-python-list-cd0659b05e49
                 liste_final.append((elem[argmax]["ref"], elem[argmax]["data"]["score"], elem[argmax]["data"]["sources"]))

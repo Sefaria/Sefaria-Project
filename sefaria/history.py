@@ -169,15 +169,14 @@ def text_at_revision(tref, version, lang, revision):
     current = TextChunk(Ref(tref), lang, version)
     text = unicode(current.text)  # needed?
 
-    for i in range(changes.count()):
-        r = changes[i]
+    for r in changes:
         if r["revision"] == revision: break
         patch = dmp.patch_fromText(r["revert_patch"])
         text = dmp.patch_apply(patch, text)[0]
 
     return text
 
-
+'''
 def next_revision_num():
     """
     Deprecated in favor of sefaria.model.history.next_revision_num()
@@ -185,7 +184,7 @@ def next_revision_num():
     last_rev = db.history.find().sort([['revision', -1]]).limit(1)
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
-
+'''
 
 def record_index_deletion(title, uid):
     """

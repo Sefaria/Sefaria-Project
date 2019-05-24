@@ -326,8 +326,9 @@ def get_link_counts(cat1, cat2):
             re1 = r"^{} \d".format(title1)
             re2 = r"^{} \d".format(title2)
             links = LinkSet({"$and": [{"refs": {"$regex": re1}}, {"refs": {"$regex": re2}}]})
-            if links.count():
-                result.append({"book1": title1, "book2": title2, "count": links.count()})
+            count = links.count()
+            if count:
+                result.append({"book1": title1, "book2": title2, "count": count})
 
     return result
 
