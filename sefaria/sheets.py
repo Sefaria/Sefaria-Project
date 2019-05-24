@@ -734,7 +734,7 @@ def public_tag_list(sort_by="alpha"):
 	return results
 
 
-def get_sheets_by_tag(tag, public=True, uid=None, group=None, proj=None, limit=0):
+def get_sheets_by_tag(tag, public=True, uid=None, group=None, proj=None, limit=0, page=0):
 	"""
 	Returns all sheets tagged with 'tag'
 	"""
@@ -749,7 +749,7 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None, proj=None, limit=0
 	elif public:
 		query["status"] = "public"
 
-	sheets = db.sheets.find(query, proj).sort([["views", -1]]).limit(limit)
+	sheets = db.sheets.find(query, proj).sort([["views", -1]]).limit(limit).skip(page * limit)
 	return sheets
 
 

@@ -1,15 +1,15 @@
 const React      = require('react');
 const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const {
-  SaveButton,
-  FollowButton,
     TwoBox,
     BlockLink,
+    SaveButton,
+    SimpleBlock,
+    FollowButton,
     SimpleLinkedBlock,
-    SimpleBlock
-}                                = require('./Misc');
+}                = require('./Misc');
+
 import Component from 'react-class';
 
 

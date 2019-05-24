@@ -859,28 +859,33 @@ class SheetListFactory(AbstractStoryFactory):
         return random.sample(ids, k)
 
     @classmethod
-    def _get_topic_sheet_ids(cls, topic, k=3):
+    def _get_topic_sheet_ids(cls, topic, k=3, page=0):
         from sefaria.sheets import get_sheets_by_tag
-        sheets = get_sheets_by_tag(topic, limit=k, proj={"id": 1})
+        sheets = get_sheets_by_tag(topic, limit=k, proj={"id": 1}, page=page)
         return [s["id"] for s in sheets]
         # sheets = SheetSet({"tags": topic, "status": "public"}, proj={"id": 1}, sort=[("views", -1)], limit=k)
         # return [s.id for s in sheets]
 
     @classmethod
-    def create_parasha_sheets_stories(cls):
+    def create_parasha_sheets_stories(cls, page=0, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
-            return cls._generate_story(
-                sheet_ids=cls._get_topic_sheet_ids(parasha_obj["parasha"]),
+            num = 3
+            sheet_ids = cls._get_topic_sheet_ids(parasha_obj["parasha"], k=num, page=kwargs.get("page"))
+            if len(sheet_ids) < num:
+                return
+
+            cls._generate_story(
+                sheet_ids=sheet_ids,
                 title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": cal["title"]["he"]},
                 mustHave=mustHave or [],
                 **kwargs
             ).save()
 
-        create_israel_and_diaspora_stories(_create_parasha_sheet_story)
+        create_israel_and_diaspora_stories(_create_parasha_sheet_story, page=page, **kwargs)
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
