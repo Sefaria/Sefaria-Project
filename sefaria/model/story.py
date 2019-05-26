@@ -65,6 +65,7 @@ class Story(abst.AbstractMongoRecord):
             # NewVersion records have just one version.
             d["versions"] = {d["language"]: d["version"]}
 
+        #todo: if this is a sheet Ref, thing go sideways.
         if "ref" in d:
             oref = text.Ref(d["ref"])
             if "index" not in d:
@@ -454,7 +455,7 @@ class AbstractStoryFactory(object):
         pass
 
     @classmethod
-    def _generate_story(cls, **kwargs):
+    def generate_story(cls, **kwargs):
         if kwargs.get("uid"):
             return cls._generate_user_story(**kwargs)
         else:
@@ -675,11 +676,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     @classmethod
     def generate_from_user_history(cls, hist, **kwargs):
         assert isinstance(hist, user_profile.UserHistory)
-        if getattr(hist, "is_sheet", None):
-            stripped_title = strip_tags(hist.sheet_title)
-            return cls._generate_user_story(uid=hist.uid, title={"en": stripped_title, "he": stripped_title}, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
-        else:
-            return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
+        return cls._generate_user_story(uid=hist.uid, ref=hist.ref, versions=hist.versions, timestamp=hist.time_stamp, **kwargs)
 
 
 class MultiTextStoryFactory(AbstractStoryFactory):
@@ -738,7 +735,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
                     mustHave += ["readsHebrew"]
 
 
-            cls._generate_story(
+            cls.generate_story(
                 refs = [top_ref.normal(), connection_ref.normal()],
                 title={"en": category + " on " + cal["displayValue"]["en"], "he": hebrew_term(category) + u" על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
@@ -766,7 +763,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
                 mustHave += ["readsHebrew"]
             commentator = commentary_ref.index.collective_title
 
-            cls._generate_story(
+            cls.generate_story(
                 refs = [top_ref.normal(), commentary_ref.normal()],
                 title={"en": commentator + " on " + cal["displayValue"]["en"], "he": hebrew_term(commentator) + u" על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
@@ -970,7 +967,7 @@ class SheetListFactory(AbstractStoryFactory):
             if len(sheet_ids) < k:
                 return
 
-            cls._generate_story(
+            cls.generate_story(
                 sheet_ids=sheet_ids,
                 title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
@@ -983,7 +980,7 @@ class SheetListFactory(AbstractStoryFactory):
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
         t = text.Term.normalize(topic)
-        return cls._generate_story(sheet_ids=cls._get_topic_sheet_ids(topic), title={"en": t, "he": hebrew_term(t)}, **kwargs)
+        return cls.generate_story(sheet_ids=cls._get_topic_sheet_ids(topic), title={"en": t, "he": hebrew_term(t)}, **kwargs)
 
     @classmethod
     def create_topic_story(cls, topic, **kwargs):
@@ -991,7 +988,7 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def generate_featured_story(cls, **kwargs):
-        return cls._generate_story(sheet_ids=cls._get_featured_ids(3), title={"en": "Popular", "he": u"מומלץ"}, **kwargs)
+        return cls.generate_story(sheet_ids=cls._get_featured_ids(3), title={"en": "Popular", "he": u"מומלץ"}, **kwargs)
 
     @classmethod
     def create_featured_story(cls, **kwargs):
@@ -1043,7 +1040,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
 
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
-            cls._generate_story(
+            cls.generate_story(
                 topics=related_topics,
                 title={"en": "Topics in " + cal["displayValue"]["en"], "he": u"נושאים ב" + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
