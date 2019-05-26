@@ -753,6 +753,8 @@ class LoginPrompt extends Component {
 LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
+
+
 class SignUpModal extends Component {
   render() {
     const innerContent = [
@@ -797,6 +799,7 @@ SignUpModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
+
 class InterruptingMessage extends Component {
   constructor(props) {
     super(props);
@@ -805,6 +808,16 @@ class InterruptingMessage extends Component {
       timesUp: false,
       animationStarted: false
     };
+    this.settings = {
+      "modal": {
+        "trackingName": "Interrupting Message",
+        "showDelay": 1000,
+      },
+      "banner": {
+        "trackingName": "Banner Message",
+        "showDelay": 1,
+      }
+    }[this.props.style];
   }
   componentDidMount() {
     this.delayedShow();
@@ -814,11 +827,12 @@ class InterruptingMessage extends Component {
       this.setState({timesUp: true});
       $("#interruptingMessage .button").click(this.close);
       $("#interruptingMessage .trackedAction").click(this.trackAction);
-      this.delayedFadeIn();
-    }.bind(this), 1000);
+      this.animateOpen();
+    }.bind(this), this.settings.showDelay);
   }
-  delayedFadeIn() {
+  animateOpen() {
     setTimeout(function() {
+      if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
       this.setState({animationStarted: true});
       this.trackOpen();
     }.bind(this), 50);
@@ -826,37 +840,47 @@ class InterruptingMessage extends Component {
   close() {
     this.markAsRead();
     this.props.onClose();
+    if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
   }
   trackOpen() {
-    Sefaria.track.event("Interrupting Message", "open", this.props.messageName, { nonInteraction: true });
+    Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
   }
   trackAction() {
-    Sefaria.track.event("Interrupting Message", "action", this.props.messageName, { nonInteraction: true });
+    Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
   }
   markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
     var cookieName = this.props.messageName + "_" + this.props.repetition;
     $.cookie(cookieName, true, { path: "/", expires: 14 });
-    Sefaria.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
+    Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return this.state.timesUp ?
-      <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
-        <div id="interruptingMessageOverlay" onClick={this.close}></div>
-        <div id="interruptingMessage">
-          <div id="interruptingMessageContentBox">
-            <div id="interruptingMessageClose" onClick={this.close}>×</div>
-            <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+    if (!this.state.timesUp) { return null; }
+
+    if (this.props.style === "banner") {
+      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>        
+                <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+                <div id="bannerMessageClose" onClick={this.close}>×</div>
+              </div>;
+
+    } else if (this.props.style === "modal") {
+        <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+          <div id="interruptingMessageOverlay" onClick={this.close}></div>
+          <div id="interruptingMessage">
+            <div id="interruptingMessageContentBox">
+              <div id="interruptingMessageClose" onClick={this.close}>×</div>
+              <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+            </div>
           </div>
-        </div>
-      </div>
-      : null;
+        </div>;
+    }
   }
 }
 InterruptingMessage.propTypes = {
   messageName: PropTypes.string.isRequired,
   messageHTML: PropTypes.string.isRequired,
+  style:       PropTypes.string.isRequired,
   repetition:  PropTypes.number.isRequired,
   onClose:     PropTypes.func.isRequired
 };
