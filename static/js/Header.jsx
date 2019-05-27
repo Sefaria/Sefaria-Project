@@ -229,6 +229,8 @@ class Header extends Component {
     var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
+    } else {
+      $(ReactDOM.findDOMNode(this)).find(".search").focus();
     }
   }
   handleFirstTab(e) {
