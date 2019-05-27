@@ -13,6 +13,30 @@ const {
 import Component from 'react-class';
 
 
+const sheetPropType = PropTypes.shape({
+            publisher_id: PropTypes.number,
+            publisher_name: PropTypes.string,
+            publisher_url:  PropTypes.string,
+            publisher_image:PropTypes.string,
+            publisher_position: PropTypes.string,
+            publisher_followed: PropTypes.bool,
+            sheet_id: PropTypes.number,
+            sheet_title: PropTypes.string,
+            sheet_summary: PropTypes.string,
+      });
+
+const textPropType = PropTypes.shape({
+          "ref": PropTypes.string.isRequired,
+          "heRef": PropTypes.string.isRequired,
+          "en": PropTypes.string.isRequired,
+          "he": PropTypes.string.isRequired,
+      });
+
+const bilingualPropType = PropTypes.shape({
+          en: PropTypes.string.isRequired,
+          he: PropTypes.string.isRequired,
+      });
+
 // This is a pseudo Component.  It uses `storyForms` to determine the component to render.
 // It's important that it's capitalized, so that React treats it as a component.
 function Story(story_props, indx, ...props) {
@@ -51,10 +75,10 @@ class FreeTextStory extends Component {
     }
 }
 FreeTextStory.propTypes = {
-  storyForm:    PropTypes.string,
-  timestamp:    PropTypes.number,
+  storyForm:    PropTypes.string.isRequired,
+  timestamp:    PropTypes.number.isRequired,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         bilingualPropType.isRequired,
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
@@ -77,10 +101,16 @@ class NewIndexStory extends Component {
     }
 }
 NewIndexStory.propTypes = {
-  storyForm:    PropTypes.string,
-  timestamp:    PropTypes.number,
+  storyForm:    PropTypes.string.isRequired,
+  timestamp:    PropTypes.number.isRequired,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      en: PropTypes.string,
+      he: PropTypes.string,
+      index: PropTypes.string.isRequired,
+      ref: PropTypes.string,
+      text: bilingualPropType,
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
@@ -107,27 +137,18 @@ NewVersionStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      en: PropTypes.string,
+      he: PropTypes.string,
+      index: PropTypes.string.isRequired,
+      ref: PropTypes.string,
+      text: bilingualPropType,
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
 class AuthorStory extends Component {
-    /*
-       props.data: {
-         "author_key"
-         "example_work"
-         "author_names": {
-             "en"
-             "he"
-         }
-         "author_bios": {
-             "en"
-             "he"
-         }
-       }
-    */
-
     render() {
       const url = "/person/" + this.props.data.author_key;
 
@@ -145,26 +166,17 @@ AuthorStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      author_key: PropTypes.string.isRequired,
+      example_work: PropTypes.string.isRequired,
+      author_names: bilingualPropType.isRequired,
+      author_bios: bilingualPropType.isRequired,
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
 class UserSheetsStory extends Component {
-    /* props.data: {
-        "publisher_id"
-        "publisher_name" (derived)
-        "publisher_url" (derived)
-        "publisher_image" (derived)
-        "publisher_position" (derived)
-        "publisher_followed" (derived)
-        "sheet_ids"
-        "sheets" (derived)
-            [{"sheet_id"
-              "sheet_title"
-              "sheet_summary"}, {...}]
-      }
-    */
   render() {
       const positionBlock = (this.props.data.publisher_position) ?
             <SimpleBlock classes="systemText storySubTitle"
@@ -198,34 +210,25 @@ UserSheetsStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+    publisher_id: PropTypes.number,
+    publisher_name: PropTypes.string,
+    publisher_url:  PropTypes.string,
+    publisher_image:PropTypes.string,
+    publisher_position: PropTypes.string,
+    publisher_followed: PropTypes.bool,
+    sheets: PropTypes.arrayOf(PropTypes.shape({
+        sheet_id: PropTypes.number,
+        sheet_title: PropTypes.string,
+        sheet_summary: PropTypes.string,
+    })).isRequired
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
 class GroupSheetListStory extends Component {
-/*
-        "title" : {
-            "he"
-            "en"
-        }
-        "group_image"
-        "group_url"
-        "group_name"
-        "sheet_ids"
-        "sheets" (derived)
-            [{"sheet_id"
-              "sheet_title"
-              "sheet_summary"},
-              "publisher_id"
-              "publisher_name" (derived)
-              "publisher_url" (derived)
-              "publisher_image" (derived)
-              "publisher_position" (derived)
-              "publisher_followed" (derived)
-            },
-            {...}]
- */
+
     render() {
       return (
         <StoryFrame cls="groupSheetListStory">
@@ -241,36 +244,18 @@ GroupSheetListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+    title: bilingualPropType.isRequired,
+    group_image: PropTypes.string,
+    group_url:  PropTypes.string,
+    group_name: PropTypes.string,
+    sheets: PropTypes.arrayOf(sheetPropType).isRequired
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
 class SheetListStory extends Component {
-/*
-
-        "title" : {
-            "he"
-            "en"
-        }
-        "lead" {  (optional)
-            "he"
-            "en"
-        }
-        "sheet_ids"
-        "sheets" (derived)
-            [{"sheet_id"
-              "sheet_title"
-              "sheet_summary"},
-              "publisher_id"
-              "publisher_name" (derived)
-              "publisher_url" (derived)
-              "publisher_image" (derived)
-              "publisher_position" (derived)
-              "publisher_followed" (derived)
-            },
-            {...}]
- */
     render() {
       const lead = this.props.data.lead || {en: "Sheets", he: "דפים"};
 
@@ -287,25 +272,17 @@ SheetListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      title: bilingualPropType.isRequired,
+      lead: bilingualPropType.isRequired,
+      sheets: PropTypes.arrayOf(sheetPropType).isRequired
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
-class PublishSheetStory extends Component {
-  /* props.data: {
-      publisher_id
-      publisher_name
-      publisher_url
-      publisher_image
-      publisher_position
-      publisher_followed (derived)
-      sheet_id
-      sheet_title
-      sheet_summary
-    }
-   */
 
+class PublishSheetStory extends Component {
   render() {
       return (
         <StoryFrame cls="publishSheetStory">
@@ -320,7 +297,7 @@ PublishSheetStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         sheetPropType.isRequired,
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
@@ -365,21 +342,19 @@ TextPassageStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      title: bilingualPropType.isRequired,
+      lead: bilingualPropType.isRequired,
+      text: bilingualPropType.isRequired,
+      ref: PropTypes.string,
+      index: PropTypes.string,
+      language: PropTypes.string
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
 class TopicTextsStory extends Component {
-/*
-    "topicTexts"
-        "title"
-            "en"
-            "he"
-        "refs"
-        "texts" (derived)
-            [{"ref", "heRef", "en","he"}, ...]
- */
     render() {
         return (
             <StoryFrame cls="topicTextsStory">
@@ -395,19 +370,15 @@ TopicTextsStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      title: bilingualPropType.isRequired,
+      texts: PropTypes.arrayOf(textPropType)
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
 class MultiTextStory extends Component {
-/*
-    "multiText"
-        title: {en, he}
-        lead: {en, he}
-        "refs"
-        "texts":  [{"ref", "heRef", "en","he"}, ...]
- */
     render() {
         return (
             <StoryFrame cls="multiTextStory">
@@ -423,19 +394,16 @@ MultiTextStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      title: bilingualPropType.isRequired,
+      lead: bilingualPropType.isRequired,
+      texts: PropTypes.arrayOf(textPropType)
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
 
 class TopicListStory extends Component {
-/*
-    "topicList"
-        topics: [{en, he}, ...]
-        title: {en, he}
-        lead: {en, he}
- */
-
     render() {
         return (
             <StoryFrame cls="topicListStory">
@@ -453,7 +421,11 @@ TopicListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
-  data:         PropTypes.object,
+  data:         PropTypes.shape({
+      title: bilingualPropType.isRequired,
+      lead: bilingualPropType.isRequired,
+      topics: PropTypes.arrayOf(bilingualPropType)
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignupModal:  PropTypes.func
 };
@@ -516,6 +488,7 @@ const StoryTextListItem = ({text, toggleSignupModal}) => (
         </SaveLine>
     </div>
 );
+StoryTextListItem.propTypes = {text: textPropType.isRequired};
 
 const StorySheetList = ({sheets, toggleSignUpModal}) => (
     <div className="storySheetList">
@@ -557,9 +530,7 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
         </div>
       </div>);
 };
-SheetBlock.propTypes = {
-    sheet: PropTypes.object
-};
+SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
 
 
 class SaveLine extends Component {
