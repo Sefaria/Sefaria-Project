@@ -38,7 +38,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.recommendation_engine import recommend_simple_clusters
+from sefaria.recommendation_engine import RecommendationEngine
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
@@ -936,7 +936,7 @@ def modtools(request):
     return menu_page(request, props, "modtools", title)
 
 
-""" Is this used? 
+""" Is this used?
 
 def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
@@ -1365,14 +1365,8 @@ def text_recommendations_api(request, tref):
             n = int(request.GET.get("n", "10"))
         except ValueError:
             n = 10
-        recs = recommend_simple_clusters(tref, top=n, threshold=5)
-        resp = [
-            {
-                "ref": temp_tref.normal(),
-                "score": temp_score,
-                "sources": temp_sources
-            } for temp_tref, temp_score, temp_sources in recs
-        ]
+        recEng = RecommendationEngine(tref, top=n, exclude_direct_commentary=True)
+        resp = [rec.to_dict() for rec in recEng.recommendations]
         return jsonResponse(resp, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
@@ -3798,7 +3792,7 @@ def random_by_topic_api(request):
     if term is not None and getattr(term, "sensitive", False):
         # term is sensitive, try again
         return random_by_topic_api(request)
-        
+
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
