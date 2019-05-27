@@ -103,131 +103,13 @@ class Story(abst.AbstractMongoRecord):
 
 
 """
-Global Notification "type" attrs that got converted: 
-    "index", "version", "general"
-
-    value of "content" attribute for type "general":
-        "he"    : hebrew long description (optional)
-        "en"    : english long description (optional)
-    for type "index":
-        "index" : title of index
-        "he"    : hebrew long description (optional)
-        "en"    : english long description (optional)
-    for type "version":
-        "index"     : title of index
-        "version"   : version title
-        "language"  : "en" or "he"
-        "he"        : hebrew long description (optional)
-        "en"        : english long description (optional)
-
-Mapping of "type" to "storyForm":
+Mapping of Global Notification "type" to "storyForm":
     "general": "freeText"
-    "index": "newIndex"
+    "index"  : "newIndex"
     "version": "newVersion"
 
 storyForms relate to React components.  There is an explicit mapping in HomeFeed.jsx 
 
-Other story forms:
-    "publishSheet"
-        "publisher_id"
-        "publisher_name" (derived)
-        "publisher_url" (derived)
-        "publisher_image" (derived)
-        "publisher_position" (derived)
-        "publisher_followed" (derived)
-        "sheet_id"
-        "sheet_title" (derived) 
-        "sheet_summary" (derived)
-    "author"
-        "author_key"
-        "example_work"
-        "author_names" (derived)
-            "en"
-            "he"
-        "author_bios" (derived)
-            "en"
-            "he"
-    "userSheets"
-        "publisher_id"
-        "publisher_name" (derived)
-        "publisher_url" (derived)
-        "publisher_image" (derived)
-        "publisher_position" (derived)
-        "publisher_followed" (derived)
-        "sheet_ids"
-        "sheets" (derived)
-            [{"sheet_id"
-              "sheet_title" 
-              "sheet_summary"}, {...}]  
-
-    "sheetList"
-        "lead" : {
-            "he"
-            "en"
-        }
-        "title" : {
-            "he"
-            "en"
-        }
-        "group_image" (optional)
-        "sheet_ids"
-        "sheets" (derived)
-            [{"sheet_id"
-              "sheet_title"
-              "sheet_summary"},
-              "publisher_id"
-              "publisher_name" (derived)
-              "publisher_url" (derived)
-              "publisher_image" (derived)
-              "publisher_position" (derived)
-              "publisher_followed" (derived)
-            },
-            {...}]
-    "groupSheetList"
-        "title" : {
-            "he"
-            "en"
-        }
-        "group_image"
-        "group_url"
-        "sheet_ids"
-        "sheets" (derived)
-            [{"sheet_id"
-              "sheet_title"
-              "sheet_summary"},
-              "publisher_id"
-              "publisher_name" (derived)
-              "publisher_url" (derived)
-              "publisher_image" (derived)
-              "publisher_position" (derived)
-              "publisher_followed" (derived)
-            },
-            {...}]
-
-    "textPassage"            
-         "ref"  
-         "index"  (derived)
-         "lead"
-            "he"
-            "en"
-         "title" - optional - derived from ref, if not present
-            "he"
-            "en"
-         "text"   (derived)
-            "he"
-            "en"       
-         "versions",     # dict: {en: str, he: str} - optional
-         "language"      # oneOf(english, hebrew, bilingual) - optional - forces display language
-    "topicTexts"
-        "title"
-            "en"
-            "he"
-        "refs"
-        "texts" (derived)
-            [{"en","he"}, ...]
-    "topicList"
-        "topics" 
-        
 """
 
 
