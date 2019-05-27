@@ -161,7 +161,7 @@ Other story forms:
               "sheet_summary"}, {...}]  
 
     "sheetList"
-        "lead_title" : {
+        "lead" : {
             "he"
             "en"
         }
@@ -207,7 +207,7 @@ Other story forms:
     "textPassage"            
          "ref"  
          "index"  (derived)
-         "lead_title"
+         "lead"
             "he"
             "en"
          "title" - optional - derived from ref, if not present
@@ -598,7 +598,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()})
         }
         if kwargs.get("lead"):
-            d["lead_title"] = kwargs.get("lead")
+            d["lead"] = kwargs.get("lead")
 
         if kwargs.get("versions"):
             d["versions"] = kwargs.get("versions")
@@ -685,7 +685,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
         "title"
             "en"
             "he"
-        "lead_title"
+        "lead"
             "en"
             "he"
         "refs"
@@ -700,7 +700,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
         return {
             "title": kwargs.get("title"),
-            "lead_title": kwargs.get("lead"),
+            "lead": kwargs.get("lead"),
             "refs": normal_refs
         }
 
@@ -772,6 +772,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             ).save()
 
         create_israel_and_diaspora_stories(_create_parasha_verse_commentator_story, **kwargs)
+
 
 class AuthorStoryFactory(AbstractStoryFactory):
     @classmethod
@@ -906,7 +907,7 @@ class SheetListFactory(AbstractStoryFactory):
             "he"
             "en"
         }
-        lead_title: {
+        lead: {
             "he"
             "en"
         }
@@ -935,7 +936,7 @@ class SheetListFactory(AbstractStoryFactory):
         }
 
         if kwargs.get("lead"):
-            d["lead_title"] = kwargs.get("lead")
+            d["lead"] = kwargs.get("lead")
 
         return d
 
@@ -1000,7 +1001,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
     "topicList"
         topics: [{en, he}, ...]
         title: {en, he}
-        lead_title: {en, he}
+        lead: {en, he}
     """
     @classmethod
     def _data_object(cls, **kwargs):
@@ -1009,7 +1010,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
         return {
             "topics": [{"en": topic, "he": hebrew_term(topic)} for topic in normal_topics],
             "title": kwargs.get("title", {"en": "Trending Recently", "he": u"פופולרי"}),
-            "lead_title": kwargs.get("lead", {"en": "Topics", "he": u"נושאים"})
+            "lead": kwargs.get("lead", {"en": "Topics", "he": u"נושאים"})
         }
 
     @classmethod

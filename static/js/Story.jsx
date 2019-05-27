@@ -253,7 +253,7 @@ class SheetListStory extends Component {
             "he"
             "en"
         }
-        "lead_title" {  (optional)
+        "lead" {  (optional)
             "he"
             "en"
         }
@@ -272,7 +272,7 @@ class SheetListStory extends Component {
             {...}]
  */
     render() {
-      const lead = this.props.data.lead_title || {en: "Sheets", he: "דפים"};
+      const lead = this.props.data.lead || {en: "Sheets", he: "דפים"};
 
       return (
         <StoryFrame cls="sheetListStory">
@@ -332,7 +332,7 @@ class TextPassageStory extends Component {
          "ref"
          "index"
          "language"   # oneOf(english, hebrew, bilingual) - optional - forces display language
-         "lead_title" : {
+         "lead" : {
             "he"
             "en"
          }
@@ -349,7 +349,7 @@ class TextPassageStory extends Component {
 
     render() {
       const url = "/" + Sefaria.normRef(this.props.data.ref);
-      const lead = this.props.data.lead_title || {en: "Read More", he: "קרא עוד"};
+      const lead = this.props.data.lead || {en: "Read More", he: "קרא עוד"};
       return (
         <StoryFrame cls="textPassageStory" cardColor={Sefaria.palette.indexColor(this.props.data.index)}>
             <StoryTypeBlock en={lead.en} he={lead.he} />
@@ -404,14 +404,14 @@ class MultiTextStory extends Component {
 /*
     "multiText"
         title: {en, he}
-        lead_title: {en, he}
+        lead: {en, he}
         "refs"
         "texts":  [{"ref", "heRef", "en","he"}, ...]
  */
     render() {
         return (
             <StoryFrame cls="multiTextStory">
-                <StoryTypeBlock en={this.props.data.lead_title.en} he={this.props.data.lead_title.he}/>
+                <StoryTypeBlock en={this.props.data.lead.en} he={this.props.data.lead.he}/>
                 <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
                 <StoryTextList texts={this.props.data.texts} />
             </StoryFrame>
@@ -433,13 +433,13 @@ class TopicListStory extends Component {
     "topicList"
         topics: [{en, he}, ...]
         title: {en, he}
-        lead_title: {en, he}
+        lead: {en, he}
  */
 
     render() {
         return (
             <StoryFrame cls="topicListStory">
-                <StoryTypeBlock en={this.props.data.lead_title.en} he={this.props.data.lead_title.he}/>
+                <StoryTypeBlock en={this.props.data.lead.en} he={this.props.data.lead.he}/>
                 <SeeAllLink url="/topics"/>
                 <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
                 <TwoBox content={this.props.data.topics.map(topic =>
