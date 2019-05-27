@@ -19,6 +19,9 @@ const Footer    = require('./Footer');
 
 
 class UserProfile extends Component {
+  _getSheetListRef(ref) { this._sheetListRef = ref; }
+  _getNoteListRef(ref) { this._noteListRef = ref; }
+  _getGroupListRef(ref) { this._groupListRef = ref; }
   getGroups() {
     return Sefaria.userGroups(this.props.profile.id);
   }
@@ -73,11 +76,16 @@ class UserProfile extends Component {
       </div>
     );
   }
-  getSheets() {
+  getSheets(ignoreCache) {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
+        // add urls to sheets for rendering with SheetListing
+        sheets.forEach(s => {
+          s.options.language = "en";
+          s.sheetUrl = `/Sheet.${s.id}`; 
+        });
         resolve(sheets);
-      });
+      }, undefined, 0, 0, ignoreCache);
     });
   }
   filterSheet(currFilter, sheet) {
@@ -96,13 +104,18 @@ class UserProfile extends Component {
       <div>{"no sheets :("}</div>
     );
   }
+  handleSheetDelete() {
+    if (this._sheetListRef) { this._sheetListRef.reload(); }
+  }
   renderSheet(sheet) {
     return (
       <SheetListing
         key={sheet.id}
         sheet={sheet}
         hideAuthor={true}
-        handleSheetClick={this.props.handleSheetClick}
+        handleSheetClick={this.props.handleInAppLinkClick}
+        handleSheetDelete={this.handleSheetDelete}
+        deletable={true}
         connectedRefs={[]}
         infoUnderneath={true}
       />
@@ -137,6 +150,7 @@ class UserProfile extends Component {
               renderTab={this.renderTab}
             >
               <FilterableList
+                ref={this._getSheetListRef}
                 filterFunc={this.filterSheet}
                 sortFunc={this.sortSheet}
                 renderItem={this.renderSheet}
@@ -147,6 +161,7 @@ class UserProfile extends Component {
               {
                 showNotes ? (
                   <FilterableList
+                    ref={this._getNoteListRef}
                     filterFunc={this.filterNote}
                     sortFunc={this.sortNote}
                     renderItem={this.renderNote}
@@ -157,6 +172,7 @@ class UserProfile extends Component {
                 ) : null
               }
               <FilterableList
+                ref={this._getGroupListRef}
                 filterFunc={this.filterGroup}
                 sortFunc={this.sortGroup}
                 renderItem={this.renderGroup}
@@ -174,7 +190,6 @@ class UserProfile extends Component {
 }
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
-  handleSheetClick: PropTypes.func.isRequired,
 }
 
 const ProfileSummary = ({ profile:p }) => {
@@ -190,7 +205,7 @@ const ProfileSummary = ({ profile:p }) => {
     <span>
       { social
         .filter(s => !!p[s])
-        .map(s => (<a className="social-icon" href={p[s]}><img key={s} src={`/static/img/${s}.svg`} /></a>))
+        .map(s => (<a className="social-icon" target="_blank" href={p[s]}><img key={s} src={`/static/img/${s}.svg`} /></a>))
       }
     </span>
   );

@@ -977,7 +977,7 @@ class ReaderPanel extends Component {
       menu = (
         <UserProfile
           profile={this.state.profile}
-          handleSheetClick={this.handleSheetClick}
+          handleInAppLinkClick={this.props.handleInAppLinkClick}
         />
       );
     }

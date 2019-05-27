@@ -3879,6 +3879,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   white-space: nowrap;
 }
+.sheet .sheetRight {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.sheet .sheetRight img {
+  display: none;
+}
+.sheet:hover .sheetRight img {
+  opacity: 0.4;
+  width 17px;
+  height: 17px;
+  vertical-align: middle;
+  display: inline-block;
+}
+.sheet:hover .sheetRight img:hover {
+  opacity: 0.6;
+  cursor: pointer;
+}
 .sheet .sheetTag .separator {
   display: inline-block;
   margin-right: 8px;
@@ -6015,6 +6034,10 @@ span.purim-emoji img{
   opacity: 0.6;
 }
 .profile-page .sheet {
+  display: flex;
+  flex-direction: row;
+}
+.profile-page .sheet .sheetLeft {
   display: flex;
   flex-direction: column;
 }

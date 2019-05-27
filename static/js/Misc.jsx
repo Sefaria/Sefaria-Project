@@ -34,14 +34,20 @@ class FilterableList extends Component {
   }
   componentDidMount() {
     this._isMounted = true;
-    this.props.getData().then(data => {
+    this.load();
+  }
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+  load(ignoreCache) {
+    this.props.getData(ignoreCache).then(data => {
       if (this._isMounted) {
         this.setState({ loading: false, data });
       }
     });
   }
-  componentWillUnmount() {
-    this._isMounted = false;
+  reload() {
+    this.setState({ loading: true, data: [] }, () => this.load(true));
   }
   closeSort() {
     this.setState({ displaySort: false });
@@ -831,7 +837,7 @@ class CategoryColorLine extends Component {
 
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
-  handleSheetClick(e, sheet) {
+  handleSheetClick(e) {
       Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
       //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
@@ -839,13 +845,18 @@ class SheetListing extends Component {
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
-    this.props.handleSheetClick(e, sheet, null, this.props.connectedRefs);
+    this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
   }
   handleSheetOwnerClick() {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
   }
   handleSheetTagClick(tag) {
     Sefaria.track.event("Tools", "Sheet Tag Click", tag);
+  }
+  handleSheetDelete() {
+    if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+      Sefaria.sheets.deleteSheetById(this.props.sheet.id).then(this.props.handleSheetDelete);
+    }
   }
   render() {
     var sheet = this.props.sheet;
@@ -883,21 +894,30 @@ class SheetListing extends Component {
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
-        {sheetInfo}
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
-          <span className="sheetTitleText">{sheet.title}</span>
-        </a>
-        <div className="sheetTags">
-          {
-            underInfo.map((i, ii) => (
-              <span key={ii}>
-                { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
-                {i}
-              </span>
-            ))
-          }
+        <div className="sheetLeft">
+          {sheetInfo}
+          <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={this.handleSheetClick}>
+            <img src="/static/img/sheet.svg" className="sheetIcon"/>
+            <span className="sheetTitleText">{sheet.title}</span>
+          </a>
+          <div className="sheetTags">
+            {
+              underInfo.map((i, ii) => (
+                <span key={ii}>
+                  { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+                  {i}
+                </span>
+              ))
+            }
+          </div>
         </div>
+        {
+         this.props.deletable ? (
+          <div className="sheetRight">
+            <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
+          </div>
+         ) : null
+        }
       </div>);
   }
 }
@@ -905,6 +925,8 @@ SheetListing.propTypes = {
   sheet:            PropTypes.object.isRequired,
   connectedRefs:    PropTypes.array.isRequired,
   handleSheetClick: PropTypes.func.isRequired,
+  handleSheetDelete:PropTypes.func,
+  deletable:        PropTypes.bool,
   hideAuthor:       PropTypes.bool,
   infoUnderneath:   PropTypes.bool,
 };

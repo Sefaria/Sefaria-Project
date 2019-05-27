@@ -1646,8 +1646,10 @@ Sefaria = extend(Sefaria, {
         }
       return sheet;
     },
-
-
+    deleteSheetById: function(id) {
+      const url = `/api/sheets/${id}/delete`;
+      return Sefaria._promiseAPI(url);
+    },
     _trendingTags: null,
     trendingTags: function(callback) {
       // Returns a list of trending tags -- source sheet tags which have been used often recently.
@@ -1717,23 +1719,23 @@ Sefaria = extend(Sefaria, {
       return sheets;
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy, offset, numberToRetrieve) {
+    userSheets: function(uid, callback, sortBy, offset, numberToRetrieve, ignoreCache) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
       if (!offset) offset = 0;
       if (!numberToRetrieve) numberToRetrieve = 0;
       sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
-      var sheets = this._userSheets[uid+sortBy+offset+numberToRetrieve];
+      const sheets = ignoreCache ? null : this._userSheets[uid+sortBy+offset+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
-        var url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
-         Sefaria._api(url, function(data) {
-            this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
-            if (callback) { callback(data.sheets); }
-          }.bind(this));
-        }
+        const url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
+        Sefaria._promiseAPI(url).then(data => {
+          this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
+          if (callback) { callback(data.sheets); }
+        });
+      }
       return sheets;
     },
     _publicSheets: {},
