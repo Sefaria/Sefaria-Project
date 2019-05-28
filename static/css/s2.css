@@ -6185,7 +6185,7 @@ span.purim-emoji img{
 }
 .storyFeed .story .storyBody {
   clear: both;
-  padding: 10px 0;
+  margin: 10px 0;
   text-align: justify;
 }
 .storyFeed .story .storySheetList {

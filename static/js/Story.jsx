@@ -286,6 +286,7 @@ SheetListStory.propTypes = {
 
 class PublishSheetStory extends Component {
   render() {
+
       return (
         <StoryFrame cls="publishSheetStory">
             <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
@@ -469,7 +470,7 @@ const StoryTitleBlock = ({url, he, en, children}) => {
         </div>;
 };
 
-const ColorBarBox = ({tref, children}) =>  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>
+const ColorBarBox = ({tref, children}) =>  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>;
 const StoryBodyBlock = ({en, he}) => <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>;
 
 const StoryTextList = ({texts, toggleSignupModal}) => (
