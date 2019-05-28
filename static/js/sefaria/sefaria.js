@@ -1556,6 +1556,14 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
+  followAPI: (uid, isUnfollow) => {
+    return new Promise((resolve, reject) => {
+      $.post({
+        url: `/api/${isUnfollow ? 'un' : ''}follow/${uid}`
+      }) 
+    });
+    return Sefaria._promiseAPI(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
+  },
   getRefSavedHistory: (tref) => {
     return new Promise((resolve, reject) => {
       Sefaria._api(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`, data => {

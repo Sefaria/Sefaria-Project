@@ -165,6 +165,12 @@ class UserProfile extends Component {
       </div>
     );
   }
+  message() {
+  
+  }
+  follow() {
+    Sefaria.followAPI(this.props.profile.id);
+  }
   render() {
     const tabs = [
       { text: "Sheets", icon: "/static/img/sheet.svg" },
@@ -180,6 +186,8 @@ class UserProfile extends Component {
           <div className="contentInner">
             <ProfileSummary
               profile={this.props.profile}
+              message={this.message}
+              follow={this.follow}
             />
             <TabView
               tabs={tabs}
@@ -230,7 +238,7 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 }
 
-const ProfileSummary = ({ profile:p }) => {
+const ProfileSummary = ({ profile:p, message, follow }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
@@ -287,14 +295,14 @@ const ProfileSummary = ({ profile:p }) => {
             </a>
           </div>) : (
           <div className="profile-actions">
-            <a href="/settings/profile" className="resourcesLink blue">
+            <a href="#" className="resourcesLink blue" onClick={follow}>
               <span className="en">Follow</span>
-              <span className="he">עריכת פרופיל</span>
+              <span className="he">עקוב</span>
             </a>
-            <a href="/settings/account" className="resourcesLink">
+            <a href="#" className="resourcesLink" onClick={message}>
               <img src="/static/img/settings.svg" alt="Profile Settings" />
               <span className="en">Message</span>
-              <span className="he">הגדרות</span>
+              <span className="he">שלח הודעה</span>
             </a>
           </div>)
         }
@@ -312,6 +320,8 @@ const ProfileSummary = ({ profile:p }) => {
 }
 ProfileSummary.propTypes = {
   profile: PropTypes.object.isRequired,
+  message: PropTypes.func.isRequired,
+  follow:  PropTypes.func.isRequired,
 }
 
 module.exports = UserProfile;
