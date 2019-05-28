@@ -1176,14 +1176,14 @@ Sefaria = extend(Sefaria, {
     if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
 
     var url = Sefaria.apiHost + "/api/notes/all?private=1";
-    this._api(url, function(data) {
+    this._api(url, (data) => {
       if ("error" in data) {
         return;
       }
       this._savePrivateNoteData(null, data);
       this._allPrivateNotes = data;
       callback(data);
-    }.bind(this));
+    });
   },
   _savePrivateNoteData: function(ref, data) {
     return this._saveItemsByRef(data, this._privateNotes);
@@ -1196,6 +1196,20 @@ Sefaria = extend(Sefaria, {
       notes = notes.filter(function(note) { return note.owner !== Sefaria._uid }).concat(myNotes);
     }
     return notes.length;
+  },
+  deleteNote: function(noteId) {
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        type: "delete",
+        url: `/api/notes/${noteId}`,
+        success: () => {
+          Sefaria.clearPrivateNotes();
+          Sefaria.track.event("Tools", "Delete Note", noteId);
+          resolve();
+        },
+        error: reject
+      });
+    });
   },
   _related: {},
   related: function(ref, callback) {

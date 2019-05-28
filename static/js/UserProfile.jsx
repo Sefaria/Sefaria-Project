@@ -14,6 +14,7 @@ const classNames = require('classnames');
 const Sefaria   = require('./sefaria/sefaria');
 const TextRange  = require('./TextRange');
 const { GroupListing } = require('./MyGroupsPanel');
+const NoteListing = require('./NoteListing');
 import Component from 'react-class';
 const Footer    = require('./Footer');
 
@@ -46,12 +47,26 @@ class UserProfile extends Component {
       <GroupListing data={group} showMembership={true} />
     );
   }
+  renderGroupHeader() {
+    return (
+      <div className="sheet-header">
+        <a href="/groups/new" className="resourcesLink faded">
+          <img src="/static/img/group.svg" alt="Group icon" />
+          <span className="en">Create a New Group</span>
+          <span className="he">צור קבוצה חדשה</span>
+        </a>
+      </div>
+    );
+  }
   getNotes() {
     return new Promise((resolve, reject) => {
       Sefaria.allPrivateNotes(notes => {
         resolve(notes);
       });
     });
+  }
+  onDeleteNote() {
+    if (this._noteListRef) { this._noteListRef.reload(); }
   }
   filterNote(currFilter, note) {
     const n = text => text.toLowerCase();
@@ -68,12 +83,10 @@ class UserProfile extends Component {
   }
   renderNote(note) {
     return (
-      <div className="note" key={`${note.ref}|${note.text}`}>
-        <TextRange sref={note.ref} />
-        <div className="note-text">
-          {note.text}
-        </div>
-      </div>
+      <NoteListing
+        data={note}
+        onDeleteNote={this.onDeleteNote}
+      />
     );
   }
   getSheets(ignoreCache) {
@@ -101,7 +114,18 @@ class UserProfile extends Component {
   }
   renderEmptySheetList() {
     return (
-      <div>{"no sheets :("}</div>
+      <div className="emptySheetList">
+        <div className="emptySheetListText">
+          You can use sheets to save and organize sources, write new texts, create
+            lessons, lectures, articles, and more.
+        </div>
+        <a href="/sheets/new" className="resourcesLink faded">
+          <img src="/static/img/sheet.svg" alt="Source sheet icon" />
+          <span className="en">Create a New Sheet</span>
+          <span className="he">צור דף חדש</span>
+        </a>
+
+      </div>
     );
   }
   handleSheetDelete() {
@@ -119,6 +143,17 @@ class UserProfile extends Component {
         connectedRefs={[]}
         infoUnderneath={true}
       />
+    );
+  }
+  renderSheetHeader() {
+    return (
+      <div className="sheet-header">
+        <a href="/sheets/new" className="resourcesLink faded">
+          <img src="/static/img/sheet.svg" alt="Source sheet icon" />
+          <span className="en">Create a New Sheet</span>
+          <span className="he">צור דף חדש</span>
+        </a>
+      </div>
     );
   }
   renderTab(tab) {
@@ -155,6 +190,7 @@ class UserProfile extends Component {
                 sortFunc={this.sortSheet}
                 renderItem={this.renderSheet}
                 renderEmptyList={this.renderEmptySheetList}
+                renderHeader={this.renderSheetHeader}
                 sortOptions={["Recent", "Views"]}
                 getData={this.getSheets}
               />
@@ -177,6 +213,7 @@ class UserProfile extends Component {
                 sortFunc={this.sortGroup}
                 renderItem={this.renderGroup}
                 renderEmptyList={this.renderEmptyGroupList}
+                renderHeader={this.renderGroupHeader}
                 sortOptions={["Members", "Sheets"]}
                 getData={this.getGroups}
               />

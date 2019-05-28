@@ -19,7 +19,7 @@ const $                      = require('./sefaria/sefariaJquery');
 const TextRange              = require('./TextRange');
 const TextList               = require('./TextList');
 const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
-const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
+const { AddToSourceSheetBox }= require('./AddToSourceSheet');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
 const VersionsBox            = require('./VersionsBox');
@@ -902,20 +902,9 @@ class AddNoteBox extends Component {
     this.setState({isPrivate: false});
   }
   deleteNote() {
+          alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
-    var url = "/api/notes/" + this.props.noteId;
-    $.ajax({
-      type: "delete",
-      url: url,
-      success: function() {
-        Sefaria.clearPrivateNotes();
-        Sefaria.track.event("Tools", "Delete Note", this.props.noteId);
-        this.props.onDelete();
-      }.bind(this),
-      error: function() {
-        alert(Sefaria._("Something went wrong (that's all I know)."));
-      }
-    });
+    Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
   render() {
     if (!Sefaria._uid) {

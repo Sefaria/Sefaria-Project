@@ -1207,6 +1207,9 @@ a.readerNavCategory {
 .resourcesLink {
   border-radius: 7px;
 }
+.resourcesLink.faded {
+  color: #999;
+}
 .readerNavMenu .blockLink.calendarLink .blockLinkSubtitle{
   display: block;
   font-size: 13px;
@@ -5109,27 +5112,40 @@ h2.splitHeader .he {
   color: #999;
   margin-bottom: 18px;
 }
+.noteListing .textRange .text .he {
+  font-style: normal;
+}
 .noteListing .segment {
   display: block;
 }
 .noteListing .note {
   font-size: 18px;
 }
-.noteListing .addToSheetButton {
+.noteListing .actionButtons {
   visibility: hidden;
   float: right;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 3px;
   display: inline-block;
-  padding: 3px 8px;
   cursor: pointer;
 }
-.noteListing .addToSheetButton.he {
+.interface-hebrew .noteListing .actionButtons {
   float: left;
 }
-.noteListing:hover .addToSheetButton {
+.noteListing:hover .actionButtons {
   visibility: visible;
+}
+.noteListing .actionButtons img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+}
+.noteListing .actionButtons img + img {
+  margin: 0 0 0 10px;
+}
+.interface-hebrew .noteListing .actionButtons img + img {
+  margin: 0 10px 0 0;
+}
+.noteListing:hover .actionButtons img:hover {
+  opacity: 0.6;
 }
 .noteListing .mask {
   background-color: white;
@@ -6017,10 +6033,40 @@ span.purim-emoji img{
   font-size: 18px;
 }
 .profile-page .note {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   padding: 40px 14px;
 }
 .profile-page .note + .note {
   border-top: 1px solid #CCC;
+}
+.profile-page .noteLeft {
+  flex-grow: 1;
+}
+.profile-page .noteRight {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+.profile-page .note .noteRight img {
+  display: none;
+}
+.profile-page .note .noteRight img + img {
+  margin: 0 0 0 10px;
+}
+.interface-hebrew .profile-page .note .noteRight img + img {
+  margin: 0 10px 0 0;
+}
+.profile-page .note:hover .noteRight img {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+}
+.profile-page .note:hover .noteRight img:hover {
+  opacity: 0.6;
+  cursor:pointer;
 }
 .profile-page .social-icon img {
   width: 16px;
@@ -6091,6 +6137,14 @@ span.purim-emoji img{
   font-size: 16px;
   background-color: transparent;
 }
+.profile-page .filterable-list .filter-content {
+  padding-top: 25px;
+}
+.profile-page .sheet-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 .profile-page .groupListingImage {
   border-radius: 50%;
 }
@@ -6155,13 +6209,25 @@ span.purim-emoji img{
   color: white;
   background-color: #212e50;
 }
-.profile-page .profile-summary .resourcesLink {
+.profile-page .resourcesLink {
   overflow: visible;
   padding: 0px 16px;
   border-top: 0;
   display: flex;
   letter-spacing: 1px;
   align-items: center;
+  width: unset;
+}
+.profile-page .emptySheetList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.profile-page .emptySheetList .emptySheetListText {
+  font-size: 16px;
+  margin: 30px 0;
+  color: #999;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink {
   margin: 0 10px;

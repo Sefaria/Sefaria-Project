@@ -73,7 +73,7 @@ class FilterableList extends Component {
     this.closeSort();
   }
   render() {
-    const { sortOptions, renderItem  } = this.props;
+    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter } = this.props;
     const { loading, currFilter, displaySort, currSortOption, data } = this.state;
     const newData = data.filter(this.filterFunc).sort(this.sortFunc);
     return (
@@ -109,8 +109,13 @@ class FilterableList extends Component {
         {
           loading ? <LoadingMessage /> :
           ( data.length ?
-            data.filter(this.filterFunc).sort(this.sortFunc).map(renderItem) :
-            renderEmptyList()
+            (
+              <div className="filter-content">
+                { !!renderHeader ? renderHeader() : null }
+                { data.filter(this.filterFunc).sort(this.sortFunc).map(renderItem) }
+                { !!renderFooter ? renderFooter() : null }
+              </div>
+            ) : ( !!renderEmptyList ? renderEmptyList() : null )
           )
         }
       </div>
@@ -123,7 +128,9 @@ FilterableList.propTypes = {
   renderItem:  PropTypes.func.isRequired,
   sortOptions: PropTypes.array.isRequired,
   getData:     PropTypes.func.isRequired,
-  renderEmptyList: PropTypes.func.isRequired,
+  renderEmptyList: PropTypes.func,
+  renderHeader: PropTypes.func,
+  renderFooter: PropTypes.func,
 };
 
 class TabView extends Component {
