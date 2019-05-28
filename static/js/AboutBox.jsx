@@ -15,12 +15,10 @@ class AboutBox extends Component {
 
   setTextMetaData() {
     if (this.props.title == "Sheet") {
-      var sheetID = (Sefaria.sheets.extractIdFromSheetRef(this.props.srefs))
+      const sheetID = (Sefaria.sheets.extractIdFromSheetRef(this.props.srefs));
         if (!Sefaria.sheets.loadSheetByID(sheetID)) {
           Sefaria.sheets.loadSheetByID(sheetID, function (data) {
-              this.setState({
-                details: data,
-              });
+              this.setState({ details: data });
           }.bind(this));
       }
       else {
@@ -31,19 +29,19 @@ class AboutBox extends Component {
 
     }
     else {
-      Sefaria.indexDetails(this.props.title, (data) => {
+      Sefaria.getIndexDetails(this.props.title).then(data => {
         this.setState({details: data});
       });
     }
   }
 
   componentDidMount() {
-      this.setTextMetaData()
+      this.setTextMetaData();
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title) {
       this.setState({details: null});
-      this.setTextMetaData()
+      this.setTextMetaData();
     }
   }
 

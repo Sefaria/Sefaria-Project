@@ -1,11 +1,12 @@
 html5lib==0.9999999
 selenium
 django==1.11.*
-pymongo
+pymongo>=3.7
 py2-py3-django-email-as-username
 diff_match_patch
 dateutils
 BeautifulSoup
+bs4
 bleach==1.4.2
 rauth
 elasticsearch
@@ -22,7 +23,7 @@ python-varnish
 geojson
 django-recaptcha
 unicodecsv
-multiprocessing
+pathos
 oauth2client
 google-api-python-client
 boto3
@@ -39,3 +40,5 @@ django-user-agents
 psycopg2
 django-easy-timezones
 undecorated
+apscheduler
+pytz

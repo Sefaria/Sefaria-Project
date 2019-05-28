@@ -160,7 +160,7 @@ $(function() {
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
-		Sefaria.lookupRef(ref, function(q) {
+		Sefaria.getName(ref, true).then(function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
@@ -2437,11 +2437,6 @@ function readSheet() {
 	sheet.nextNode = sjs.current.nextNode;
 	sheet.tags     = sjs.sheetTagger.tags();
 	sheet.summary  = $("#sheetSummaryInput").val();
-
-	sheet.includedRefs = [];
-	$('.sheetItem.source').map(function(){
-	  sheet.includedRefs.push($(this).attr('data-ref'));
-	});
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();

@@ -93,7 +93,7 @@ TEMPLATES = [
                     "sefaria.system.context_processors.titles_json",
                     "sefaria.system.context_processors.toc",
                     "sefaria.system.context_processors.terms",
-                    "sefaria.system.context_processors.embed_page",
+                    "sefaria.system.context_processors.body_flags",
                     "sefaria.system.context_processors.user_and_notifications",
                     "sefaria.system.context_processors.calendar_links",
                     "sefaria.system.context_processors.header_html",

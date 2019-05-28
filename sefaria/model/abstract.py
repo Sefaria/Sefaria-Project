@@ -119,10 +119,13 @@ class AbstractMongoRecord(object):
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
                 raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
 
-        _id = getattr(db, self.collection).save(props, w=1)
-
         if is_new_obj:
-            self._id = _id
+            result = getattr(db, self.collection).insert_one(props)
+            self._id = result.inserted_id
+        else:
+            result = getattr(db, self.collection).replace_one({"_id":self._id}, props, upsert=True)
+            if not result.matched_count and result.upserted_id:
+                raise Exception("{} inserted when expecting an update.".format(type(self).__name__))
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in self.pkeys_orig_values.items():
@@ -158,7 +161,7 @@ class AbstractMongoRecord(object):
             raise InputError(u"Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         notify(self, "delete")
-        getattr(db, self.collection).remove({"_id": self._id})
+        getattr(db, self.collection).delete_one({"_id": self._id})
 
     def delete_by_query(self, query, force=False):
         r = self.load(query)
@@ -184,7 +187,7 @@ class AbstractMongoRecord(object):
             del d[self.id_field]
         except KeyError:
             pass
-        if kwargs.get("with_string_id", False):
+        if kwargs.get("with_string_id", False) and hasattr(self, "_id"):
             d["_id"] = str(self._id)
         return d
 
@@ -273,11 +276,15 @@ class AbstractMongoSet(collections.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query={}, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
-        self.raw_records = getattr(db, self.recordClass.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
+        self.query = query or {}
+        self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj).sort(sort).skip(page * limit).limit(limit)
+        self.hint = hint
+        self.limit = limit
+        self.skip = page * limit
         if hint:
             self.raw_records.hint(hint)
-        self.has_more = limit != 0 and self.raw_records.count() == limit
+        #self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0
         self.max = None
@@ -299,10 +306,9 @@ class AbstractMongoSet(collections.Iterable):
             self.max = len(self.records)
 
     def __len__(self):
-        if self.max:
-            return self.max
-        else:
-            return self.raw_records.count()
+        if not self.max:
+            self._read_records()
+        return self.max
 
     def array(self):
         self._read_records()
@@ -312,7 +318,11 @@ class AbstractMongoSet(collections.Iterable):
         return self.raw_records.distinct(field)
 
     def count(self):
-        return len(self)
+        if self.max:
+            return self.max
+        else:
+            kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
+            return getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs)
 
     def update(self, attrs):
         for rec in self:
@@ -331,6 +341,9 @@ class AbstractMongoSet(collections.Iterable):
         self.records = [r for r in self.records if not condition_callback(r)]
         self.max = len(self.records)
         return self
+
+    def contents(self, **kwargs):
+        return [r.contents(**kwargs) for r in self]
 
 
 def get_subclasses(c):
@@ -501,6 +514,7 @@ def cascade_to_list(set_class, attr):
             rec.save()
 
     return foo
+
 
 def cascade_delete(set_class, fk_attr, pk_attr):
     """

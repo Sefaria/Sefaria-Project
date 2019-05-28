@@ -635,28 +635,29 @@ $(function() {
 
 	$("#newTextOK").click(function(){
         var ref = $("#newTextName").val();
-		Sefaria.lookupRef(ref, function(q) {
-            if(!q.is_ref) {
-    			// This is an unknown text
-	    		var title = $("#newTextName").val().replace(/ /g, "_");
-		    	var after = "?after=/add/" + title;
-			    window.location = "/add/textinfo/" + title + after;
-            } else {
-                $.extend(sjs.editing, {
-                    index: Sefaria.index(q.index),
-                    indexTitle: q.index,
-                    sectionNames: q.sectionNames,
-                    textDepth: q.sectionNames.length,
-                    text: [""],
-                    book: q.book,
-                    sections: q.sections,
-                    toSections: q.toSections,
-                    ref: q.ref
-                });
-                sjs.current.sectionRef = sjs.editing.ref;
-                sjs.showNewText();
-            }
-    		$("#newTextCancel").trigger("click");
+		Sefaria.getName(ref, true)
+			   .then(function(q) {
+					if(!q.is_ref) {
+						// This is an unknown text
+						var title = $("#newTextName").val().replace(/ /g, "_");
+						var after = "?after=/add/" + title;
+						window.location = "/add/textinfo/" + title + after;
+					} else {
+						$.extend(sjs.editing, {
+							index: Sefaria.index(q.index),
+							indexTitle: q.index,
+							sectionNames: q.sectionNames,
+							textDepth: q.sectionNames.length,
+							text: [""],
+							book: q.book,
+							sections: q.sections,
+							toSections: q.toSections,
+							ref: q.ref
+						});
+						sjs.current.sectionRef = sjs.editing.ref;
+						sjs.showNewText();
+					}
+					$("#newTextCancel").trigger("click");
         });
 
 	});
@@ -4184,18 +4185,15 @@ function saveText(text) {
 				}
 			} else if("next" in params){
 				window.location = params["next"];
-			}else if($.cookie('s2') == "true") {
+			} else {
 				if (window.location.href.includes("edit/")) {
 					window.location = window.location.href.replace("edit/", "");
+			    } else if (window.location.href.includes("add/")) {
+					window.location = window.location.href.replace("add/", "");
 				} else {
 					window.location = "/" + sjs.editing.indexTitle;
 				}
-			}else {
-				hardRefresh(ref);
-				sjs.editing = {};
-				sjs.alert.message("Text saved.");
 			}
-
 
 		}
 	}).fail( function(xhr, textStatus, errorThrown) {

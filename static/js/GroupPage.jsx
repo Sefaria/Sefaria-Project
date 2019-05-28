@@ -152,16 +152,21 @@ class GroupPage extends Component {
     groupTagList = groupTagList ? groupTagList.map(function (tag) {
         var filterThisTag = this.handleTagButtonClick.bind(this, tag.tag);
         var classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTag == tag.tag});
+        var [enTag, heTag] = [tag.tag, Sefaria.hebrewTerm(tag.tag)];
+        var heTagOnly = Sefaria.hebrew.isHebrew(enTag);
+        var enTagOnly = !(Sefaria.hebrew.isHebrew(heTag));
         /* TODO this has a very similar structure to SheetTag, maybe merge */
         return (<div className={classes} onClick={filterThisTag} key={tag.tag}>
-            <span className="int-en">{tag.tag} ({tag.count})</span>
-            <span className="int-he">{Sefaria.hebrewTerm(tag.tag)} (<span className="enInHe">{tag.count}</span>)</span>
+            <span className={"int-en" + (heTagOnly ? " heOnly" : '')}>{enTag} ({tag.count})</span>
+            <span className={"int-he" + (enTagOnly ? " enOnly" : '')}>{heTag} (<span className="enInHe">{tag.count}</span>)</span>
         </div>);
       }.bind(this)) : null;
 
     if (this.props.group == "גיליונות נחמה"){
       var parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
-
+      if (this.props.interfaceLang == "english") {
+        parshaOrder = ["English"] + parshaOrder;
+      }
       groupTagList.sort( function (a, b) {
         var A = a["key"], B = b["key"];
         var orderA = parshaOrder.indexOf(A), orderB = parshaOrder.indexOf(B);

@@ -41,7 +41,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
-from sefaria.model.schema import DictionaryEntryNotFound
+from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -267,6 +267,8 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
 
     db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
     sheet = get_sheet_for_panel(int(sheet_id))
+    if "error" in sheet:
+        raise Http404
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 
     if "assigner_id" in sheet:
@@ -904,6 +906,12 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
+@login_required
+def story_editor(request):
+    props = base_props(request)
+    title = _("Story Editor")
+    return menu_page(request, props, "story_editor", title)
+
 
 @login_required
 def account(request):
@@ -926,6 +934,8 @@ def modtools(request):
     props = base_props(request)
     return menu_page(request, props, "modtools", title)
 
+
+""" Is this used? 
 
 def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
@@ -952,7 +962,7 @@ def s2_extended_notes(request, tref, lang, version_title):
     }
     props['panels'] = [panel]
     return s2_page(request, props, "extended notes", title)
-
+"""
 
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
@@ -1089,7 +1099,6 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
-            i = library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
         except:
             pass
@@ -1570,6 +1579,7 @@ def shape_api(request, title):
     If depth == 0, descends to end of tree
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
     """
+    from sefaria.model.category import TocGroupNode
 
     def _simple_shape(snode):
         sn = StateNode(snode=snode)
@@ -1642,6 +1652,7 @@ def shape_api(request, title):
                 include_dependents = request.GET.get("dependents", False)
 
                 leaves = cat.get_leaf_nodes() if depth == 0 else [n for n in cat.get_leaf_nodes_to_depth(depth)]
+                leaves = [n for n in leaves if not isinstance(n, TocGroupNode)]
                 if not include_dependents:
                     leaves = [n for n in leaves if not n.dependence]
 
@@ -1705,35 +1716,40 @@ def links_api(request, link_id_or_ref=None):
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
+    def _internal_do_post(request, link, uid, **kwargs):
+        func = tracker.update if "_id" in link else tracker.add
+        # use the correct function if params indicate this is a note save
+        # func = save_note if "type" in j and j["type"] == "note" else save_link
+        #obj = func(apikey["uid"], model.Link, link, **kwargs)
+        obj = func(uid, model.Link, link, **kwargs)
+        try:
+            if USE_VARNISH:
+                revarnish_link(obj)
+        except Exception as e:
+            logger.error(e)
+        return format_object_for_client(obj)
+
+    def _internal_do_delete(request, link_id_or_ref, uid):
+        obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
+        return obj
+
+    # delegate according to single/multiple objects posted
+    if not request.user.is_authenticated:
+        key = request.POST.get("apikey")
+        if not key:
+            return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return jsonResponse({"error": "Unrecognized API key."})
+        uid = apikey["uid"]
+        kwargs = {"method": "API"}
+    else:
+        uid = request.user.id
+        kwargs = {}
+        _internal_do_post = csrf_protect(_internal_do_post)
+        _internal_do_delete = csrf_protect(_internal_do_delete)
+
     if request.method == "POST":
-        def _internal_do_post(request, link, uid, **kwargs):
-            func = tracker.update if "_id" in link else tracker.add
-            # use the correct function if params indicate this is a note save
-            # func = save_note if "type" in j and j["type"] == "note" else save_link
-            #obj = func(apikey["uid"], model.Link, link, **kwargs)
-            obj = func(uid, model.Link, link, **kwargs)
-            try:
-                if USE_VARNISH:
-                    revarnish_link(obj)
-            except Exception as e:
-                logger.error(e)
-            return format_object_for_client(obj)
-
-        # delegate according to single/multiple objects posted
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            uid = apikey["uid"]
-            kwargs = {"method": "API"}
-        else:
-            uid = request.user.id
-            kwargs = {}
-            _internal_do_post = csrf_protect(_internal_do_post)
-
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -1761,10 +1777,9 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        retval = _internal_do_delete(request, link_id_or_ref, uid)
 
-        return jsonResponse(
-            tracker.delete(request.user.id, model.Link, link_id_or_ref, callback=revarnish_link)
-        )
+        return jsonResponse(retval)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -2231,6 +2246,9 @@ def get_name_completions(name, limit, ref_only):
     try:
         ref = Ref(name)
         inode = ref.index_node
+        if isinstance(inode, SheetLibraryNode):
+            ref = None
+            raise InputError
 
         # Find possible dictionary entries.  This feels like a messy way to do this.  Needs a refactor.
         if inode.is_virtual and inode.parent and getattr(inode.parent, "lexiconName", None) in library._lexicon_auto_completer:
@@ -2375,6 +2393,155 @@ def dictionary_api(request, word):
 
 
 @catch_error_as_json
+def stories_api(request, gid=None):
+    """
+    API for retrieving stories.
+    """
+
+    # if not request.user.is_authenticated:
+    #     return jsonResponse({"error": "You must be logged in to access your notifications."})
+
+    if request.method == "GET":
+
+        page      = int(request.GET.get("page", 0))
+        page_size = int(request.GET.get("page_size", 10))
+        only_global = bool(request.GET.get("only_global", False))
+
+        if not request.user.is_authenticated:
+            only_global = True
+            user = None
+        else:
+            user = UserProfile(id=request.user.id)
+
+        if only_global or not user:
+            stories = SharedStorySet(limit=page_size, page=page).contents()
+            count = len(stories)
+        else:
+            stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+            count = len(stories)
+            stories = addDynamicStories(stories, user, page)
+
+        return jsonResponse({
+                                "stories": stories,
+                                "page": page,
+                                "page_size": page_size,
+                                "count": count
+                            })
+
+    elif request.method == "POST":
+        if not request.user.is_authenticated:
+            key = request.POST.get("apikey")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            user = User.objects.get(id=apikey["uid"])
+            if not user.is_staff:
+                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
+
+            payload = json.loads(request.POST.get("json"))
+            try:
+                SharedStory(payload).save()
+                return jsonResponse({"status": "ok"})
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+
+        elif request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                payload = json.loads(request.POST.get("json"))
+                try:
+                    SharedStory(payload).save()
+                    return jsonResponse({"status": "ok"})
+                except AssertionError as e:
+                    return jsonResponse({"error": e.message})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
+
+    elif request.method == "DELETE":
+        if not gid:
+            return jsonResponse({"error": "No post id given for deletion."})
+        if request.user.is_staff:
+            @csrf_protect
+            def protected_post(request):
+                SharedStory().load_by_id(gid).delete()
+                return jsonResponse({"status": "ok"})
+
+            return protected_post(request)
+        else:
+            return jsonResponse({"error": "Unauthorized"})
+
+
+def addDynamicStories(stories, user, page):
+    """
+
+    :param stories: Array of Story.contents() dicts
+    :param user: UserProfile object
+    :param page: Which page of stories are we rendering - 0 based
+    :return: Array of Story.contents() dicts.
+    """
+    if page == 0:
+        # Keep Reading Most recent
+        most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
+        if most_recent:
+            stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
+                    lead={"en": "Keep Reading", "he": u"המשך לקרוא"})
+            stories = [stry.contents()] + stories
+
+    if page == 1:
+        # Show an old saved story
+        saved = user.get_user_history(saved=True, secondary=False, sheets=False)
+        if len(saved) > 2:
+            saved_item = choice(saved)
+            stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
+                    lead={"en": "Take Another Look", "he": u"קרא עוד"})
+            stories = [stry.contents()] + stories
+
+    return stories
+
+
+@staff_member_required
+def story_reflector(request):
+    """
+    Show what a story will look like.
+    :param request:
+    :return:
+    """
+    assert request.user.is_authenticated and request.user.is_staff and request.method == "POST"
+
+    @csrf_protect
+    def protected_post(request):
+        payload = json.loads(request.POST.get("json"))
+
+        factory_name = payload.get("factory")
+        method_name = payload.get("method")
+        if factory_name and method_name:
+            try:
+                del payload["factory"]
+                del payload["method"]
+                import sefaria.model.story as s
+                factory = getattr(s, factory_name)
+                method = getattr(factory, method_name)
+                s = method(**payload)
+                return jsonResponse(s.contents())
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+        else:
+            #Treat payload as attrs to story object
+            try:
+                s = SharedStory(payload)
+                return jsonResponse(s.contents())
+            except AssertionError as e:
+                return jsonResponse({"error": e.message})
+
+    return protected_post(request)
+
+
+
+@catch_error_as_json
 def updates_api(request, gid=None):
     """
     API for retrieving general notifications.
@@ -2407,7 +2574,8 @@ def updates_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                GlobalNotification(payload).save()
+                gn = GlobalNotification(payload).save()
+                SharedStory.from_global_notification(gn).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
@@ -2417,7 +2585,8 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    GlobalNotification(payload).save()
+                    gn = GlobalNotification(payload).save()
+                    SharedStory.from_global_notification(gn).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
@@ -2457,7 +2626,7 @@ def notifications_api(request):
                             "html": notifications.to_HTML(),
                             "page": page,
                             "page_size": page_size,
-                            "count": notifications.count()
+                            "count": len(notifications)
                         })
 
 
@@ -2561,7 +2730,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     history = db.history.find(query)
 
     summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
-    updated = history[0]["date"].isoformat() if history.count() else "Unknown"
+    updated = history[0]["date"].isoformat() if len(history) else "Unknown"
 
     for act in history:
         if act["rev_type"].startswith("edit"):
@@ -3082,18 +3251,48 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
+@login_required
+def enable_home_feed(request):
+    resp = home(request, True)
+    resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
+    return resp
+
+@login_required
+def disable_home_feed(request):
+    resp = home(request, False)
+    resp.delete_cookie("home_feed")
+    return resp
+
 
 @ensure_csrf_cookie
-def home(request):
+def home(request, show_feed=None):
     """
     Homepage
     """
+    if show_feed is None:
+        show_feed = request.COOKIES.get("home_feed", None)
+
+    if show_feed:
+        props = base_props(request)
+
+        props.update({
+            "initialMenu": "homefeed"
+        })
+        propsJSON = json.dumps(props)
+        html = render_react_component("ReaderApp", propsJSON)
+        return render(request, 'base.html', {
+            "propsJSON": propsJSON,
+            "html": html,
+            "title": "Sefaria Stories",
+            "desc": "",
+        })
+
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
-        
+
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
-    if (recent or last_place or request.user.is_authenticated) and not "home" in request.GET:
+    if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
     if request.user_agent.is_mobile:
@@ -3110,6 +3309,7 @@ def home(request):
                               "daf_today": daf_today,
                               "parasha": parasha,
                               })
+
 
 @ensure_csrf_cookie
 def discussions(request):
@@ -3147,7 +3347,7 @@ def new_discussion_api(request):
             discussion.save()
             return jsonResponse(discussion.contents())
 
-        return jsonResponse({"error": "An extremely unlikley event has occurred."})
+        return jsonResponse({"error": "An extremely unlikely event has occurred."})
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3191,7 +3391,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
     request_count     = TranslationRequestSet({"completed": False, "section_level": False}).count()
     complete_count    = TranslationRequestSet({"completed": True}).count()
     featured_complete = TranslationRequestSet({"completed": True, "featured": True}).count()
-    next_page         = page + 2 if True or requests.count() == page_size else 0
+    next_page         = page + 2 if True or len(requests) == page_size else 0
     featured_query    = {"featured": True, "featured_until": { "$gt": datetime.now() } }
     featured          = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
     today             = datetime.today()
@@ -3199,7 +3399,7 @@ def translation_requests(request, completed_only=False, featured_only=False):
     featured_end      = featured_end.replace(hour=0, minute=0)  # At midnight
     current           = [d.featured_until <= featured_end for d in featured]
     featured_current  = sum(current)
-    show_featured     = not completed_only and not page and ((request.user.is_staff and featured.count()) or (featured_current))
+    show_featured     = not completed_only and not page and ((request.user.is_staff and len(featured)) or (featured_current))
 
     return render(request,'translation_requests.html',
                                 {
@@ -3509,7 +3709,7 @@ def digitized_by_sefaria(request):
 def parashat_hashavua_redirect(request):
     """ Redirects to this week's Parashah"""
     diaspora = request.GET.get("diaspora", "1")
-    calendars = get_keyed_calendar_items() # TODO Support israel / customs
+    calendars = get_keyed_calendar_items()  # TODO Support israel / customs
     parashah = calendars["Parashat Hashavua"]
     return redirect(iri_to_uri("/" + parashah["url"]), permanent=False)
 
@@ -3573,6 +3773,11 @@ def random_by_topic_api(request):
         resp['Content-Type'] = "application/json; charset=utf-8"
         return resp
     random_topic = choice(topics_filtered)['tag']
+    term = Term().load_by_title(random_topic)
+    if term is not None and getattr(term, "sensitive", False):
+        # term is sensitive, try again
+        return random_by_topic_api(request)
+        
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
@@ -3774,6 +3979,10 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
 
     return render(request,'explore.html', template_vars)
 
+@staff_member_required
+def visualize_timeline(request):
+    return render(request, 'timeline.html', {})
+
 
 def person_page(request, name):
     person = Person().load({"key": name})
@@ -3925,6 +4134,7 @@ def visual_garden_page(request, g):
     return render(request,'visual_garden.html', template_vars)
 
 
+
 @requires_csrf_token
 def custom_server_error(request, template_name='500.html'):
     """
@@ -3934,3 +4144,18 @@ def custom_server_error(request, template_name='500.html'):
     """
     t = get_template(template_name) # You need to create a 500.html template.
     return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
+
+def apple_app_site_association(request):
+    teamID = "2626EW4BML"
+    bundleID = "org.sefaria.sefariaApp"
+    return jsonResponse({
+        "applinks": {
+            "apps": [],
+            "details": [
+                {
+                    "appID": "{}.{}".format(teamID, bundleID),
+                    "paths": ["*"]
+                }
+            ]
+        }
+    })

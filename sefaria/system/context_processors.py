@@ -86,7 +86,7 @@ def terms(request):
 
 
 @user_only
-def embed_page(request):
+def body_flags(request):
     return {"EMBED": "embed" in request.GET}
 
 
@@ -132,6 +132,8 @@ HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
     'logged_out': {'english': None, 'hebrew': None}
 }
+
+
 @user_only
 def header_html(request):
     """

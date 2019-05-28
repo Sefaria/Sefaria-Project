@@ -145,7 +145,7 @@ class TextBlockLink extends Component {
             </div>
           </div>
           <div className="sideColorRight">
-            { saved ? <ReaderNavigationMenuSavedButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
+            { saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
             { !saved && timeStamp ?
               <span>
                 <span className="int-en">{ Sefaria.util.naturalTime(timeStamp) }</span>
@@ -206,6 +206,35 @@ LanguageToggleButton.propTypes = {
   url:            PropTypes.string,
 };
 
+
+const SimpleBlock = ({en, he, classes}) => (
+        <div className={classes}>
+          <span className="int-en">{en}</span>
+          <span className="int-he">{he}</span>
+        </div>
+    );
+SimpleBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    classes: PropTypes.string
+};
+
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children}) => (
+        <div className={classes}>
+            <a href={url} className={aclasses}>
+              <span className="int-en">{en}</span>
+              <span className="int-he">{he}</span>
+            </a>
+            {children}
+        </div>
+    );
+SimpleLinkedBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    url: PropTypes.string,
+    classes: PropTypes.string,
+    aclasses: PropTypes.string
+};
 
 class BlockLink extends Component {
   render() {
@@ -419,7 +448,7 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 };
 
 
-class ReaderNavigationMenuSavedButton extends Component {
+class SaveButton extends Component {
   constructor(props) {
     super(props);
     this._posting = false;
@@ -491,7 +520,7 @@ class ReaderNavigationMenuSavedButton extends Component {
     );
   }
 }
-ReaderNavigationMenuSavedButton.propTypes = {
+SaveButton.propTypes = {
   historyObject: PropTypes.shape({
     ref: PropTypes.string,
     versions: PropTypes.object,
@@ -501,6 +530,65 @@ ReaderNavigationMenuSavedButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+class FollowButton extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      following: props.following, // Deal w/ case where we don't know?
+      hovering: false
+    }
+  }
+  _post_follow() {
+      $.post("/api/follow/" + this.props.uid, {}, function(data) {
+          Sefaria.track.event("Following", "New Follow", this.props.uid);
+      });
+  }
+  _post_unfollow() {
+      $.post("/api/unfollow/" + this.props.uid, {}, function(data) {
+          Sefaria.track.event("Following", "Unfollow", this.props.uid);
+      });
+  }
+
+  onMouseEnter() {
+    this.setState({hovering: true});
+  }
+  onMouseLeave() {
+    this.setState({hovering: false});
+  }
+  onClick() {
+    if (this.state.following) {
+      this._post_unfollow();
+      this.setState({following: false});
+    } else {
+      this._post_follow();
+      this.setState({following: true, hovering: false});  // hovering:false keeps the "unfollow" from flashing.
+    }
+  }
+  render() {
+    const classes = classNames({
+      largeFollowButton: this.props.large,
+      smallFollowButton: !this.props.large,
+      following: this.state.following,
+      hovering: this.state.hovering,
+      smallText: true,
+    });
+    const en_text = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
+    const he_text = this.state.following ? this.state.hovering ? "הפסק לעקוב":"עוקב":"עקוב";
+    return <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+            <span className="int-en">
+                {en_text}
+            </span>
+            <span className="int-he">
+                {he_text}
+            </span>
+          </div>
+  }
+}
+FollowButton.propTypes = {
+  uid: PropTypes.number.isRequired,
+  following: PropTypes.bool,  // is this person followed already?
+  large: PropTypes.bool
+};
 
 class SinglePanelNavHeader extends Component {
   render() {
@@ -549,7 +637,7 @@ class SheetListing extends Component {
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
-    this.props.handleSheetClick(e,sheet);
+    this.props.handleSheetClick(e, sheet, null, this.props.connectedRefs);
   }
   handleSheetOwnerClick() {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
@@ -665,6 +753,8 @@ class LoginPrompt extends Component {
 LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
+
+
 class SignUpModal extends Component {
   render() {
     const innerContent = [
@@ -709,6 +799,7 @@ SignUpModal.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
+
 class InterruptingMessage extends Component {
   constructor(props) {
     super(props);
@@ -717,6 +808,16 @@ class InterruptingMessage extends Component {
       timesUp: false,
       animationStarted: false
     };
+    this.settings = {
+      "modal": {
+        "trackingName": "Interrupting Message",
+        "showDelay": 1000,
+      },
+      "banner": {
+        "trackingName": "Banner Message",
+        "showDelay": 1,
+      }
+    }[this.props.style];
   }
   componentDidMount() {
     this.delayedShow();
@@ -726,11 +827,12 @@ class InterruptingMessage extends Component {
       this.setState({timesUp: true});
       $("#interruptingMessage .button").click(this.close);
       $("#interruptingMessage .trackedAction").click(this.trackAction);
-      this.delayedFadeIn();
-    }.bind(this), 1000);
+      this.animateOpen();
+    }.bind(this), this.settings.showDelay);
   }
-  delayedFadeIn() {
+  animateOpen() {
     setTimeout(function() {
+      if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
       this.setState({animationStarted: true});
       this.trackOpen();
     }.bind(this), 50);
@@ -738,37 +840,47 @@ class InterruptingMessage extends Component {
   close() {
     this.markAsRead();
     this.props.onClose();
+    if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
   }
   trackOpen() {
-    Sefaria.track.event("Interrupting Message", "open", this.props.messageName, { nonInteraction: true });
+    Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
   }
   trackAction() {
-    Sefaria.track.event("Interrupting Message", "action", this.props.messageName, { nonInteraction: true });
+    Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
   }
   markAsRead() {
     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
     var cookieName = this.props.messageName + "_" + this.props.repetition;
     $.cookie(cookieName, true, { path: "/", expires: 14 });
-    Sefaria.track.event("Interrupting Message", "read", this.props.messageName, { nonInteraction: true });
+    Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
     Sefaria.interruptingMessage = null;
   }
   render() {
-    return this.state.timesUp ?
-      <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
-        <div id="interruptingMessageOverlay" onClick={this.close}></div>
-        <div id="interruptingMessage">
-          <div id="interruptingMessageContentBox">
-            <div id="interruptingMessageClose" onClick={this.close}>×</div>
-            <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+    if (!this.state.timesUp) { return null; }
+
+    if (this.props.style === "banner") {
+      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>        
+                <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+                <div id="bannerMessageClose" onClick={this.close}>×</div>
+              </div>;
+
+    } else if (this.props.style === "modal") {
+        <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+          <div id="interruptingMessageOverlay" onClick={this.close}></div>
+          <div id="interruptingMessage">
+            <div id="interruptingMessageContentBox">
+              <div id="interruptingMessageClose" onClick={this.close}>×</div>
+              <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+            </div>
           </div>
-        </div>
-      </div>
-      : null;
+        </div>;
+    }
   }
 }
 InterruptingMessage.propTypes = {
   messageName: PropTypes.string.isRequired,
   messageHTML: PropTypes.string.isRequired,
+  style:       PropTypes.string.isRequired,
   repetition:  PropTypes.number.isRequired,
   onClose:     PropTypes.func.isRequired
 };
@@ -1044,7 +1156,7 @@ class FeedbackBox extends Component {
         if (data.error) {
             alert(data.error);
         } else {
-            console.log(data)
+            console.log(data);
             Sefaria.track.event("Tools", "Send Feedback", this.props.url);
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
@@ -1088,6 +1200,7 @@ class FeedbackBox extends Component {
             <Dropdown
               options={[
                         {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
+                        {value: "translation_request",   label: Sefaria._("Request translation")},
                         {value: "bug_report",      label: Sefaria._("Report a bug")},
                         {value: "help_request",    label: Sefaria._("Get help")},
                         {value: "feature_request", label: Sefaria._("Request a feature")},
@@ -1177,7 +1290,8 @@ class CookiesNotification extends Component {
 }
 
 
-
+module.exports.SimpleBlock                               = SimpleBlock;
+module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
@@ -1196,7 +1310,8 @@ module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
 module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
-module.exports.ReaderNavigationMenuSavedButton           = ReaderNavigationMenuSavedButton;
+module.exports.SaveButton                                = SaveButton;
+module.exports.FollowButton                              = FollowButton;
 module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
 module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
 module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
