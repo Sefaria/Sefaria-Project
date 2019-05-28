@@ -139,7 +139,8 @@ class UserProfile extends Component {
         hideAuthor={true}
         handleSheetClick={this.props.handleInAppLinkClick}
         handleSheetDelete={this.handleSheetDelete}
-        deletable={true}
+        deletable={Sefaria._uid === this.props.profile.id}
+        saveable={Sefaria._uid !== this.props.profile.id}
         connectedRefs={[]}
         infoUnderneath={true}
       />

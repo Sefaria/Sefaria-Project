@@ -918,13 +918,16 @@ class SheetListing extends Component {
             }
           </div>
         </div>
-        {
-         this.props.deletable ? (
-          <div className="sheetRight">
-            <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
-          </div>
-         ) : null
-        }
+        <div className="sheetRight">
+          {
+           this.props.deletable ? (
+              <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
+              ) : (this.props.saveable ?
+              <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} />
+              : null
+              )
+          }
+        </div>
       </div>);
   }
 }
@@ -934,6 +937,7 @@ SheetListing.propTypes = {
   handleSheetClick: PropTypes.func.isRequired,
   handleSheetDelete:PropTypes.func,
   deletable:        PropTypes.bool,
+  saveable:         PropTypes.bool,
   hideAuthor:       PropTypes.bool,
   infoUnderneath:   PropTypes.bool,
 };
