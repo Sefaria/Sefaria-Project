@@ -6116,8 +6116,26 @@ span.purim-emoji img{
   float: right;
 }
 
+.colorBarBox {
+  clear: both;
+}
+.interface-english .colorBarBox  {
+  border-left: 4px solid transparent;
+  padding-left: 20px;
+}
+.interface-hebrew .colorBarBox  {
+  border-right: 4px solid transparent;
+  padding-right: 20px;
+}
+.interface-english .citationLine {
+  padding-left: 24px;
+}
+.interface-hebrew .citationLine {
+  padding-right: 24px;
+}
+
 .storyTextListItem {
-  padding-bottom: 10px;
+  padding-bottom: 18px;
 }
 .storyTextListItem:last-child {
   padding-bottom: 0;

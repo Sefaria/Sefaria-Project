@@ -2231,6 +2231,8 @@ Sefaria.palette.indexColor = function(title) {
       Sefaria.palette.categoryColor("Other");
 };
 
+Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
+
 
 Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var

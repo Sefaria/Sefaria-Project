@@ -13,7 +13,6 @@ const {
 
 import Component from 'react-class';
 
-
 const sheetPropType = PropTypes.shape({
             publisher_id: PropTypes.number,
             publisher_name: PropTypes.string,
@@ -25,14 +24,12 @@ const sheetPropType = PropTypes.shape({
             sheet_title: PropTypes.string,
             sheet_summary: PropTypes.string,
       });
-
 const textPropType = PropTypes.shape({
           "ref": PropTypes.string.isRequired,
           "heRef": PropTypes.string.isRequired,
           "en": PropTypes.string.isRequired,
           "he": PropTypes.string.isRequired,
       });
-
 const bilingualPropType = PropTypes.shape({
           en: PropTypes.string.isRequired,
           he: PropTypes.string.isRequired,
@@ -96,7 +93,9 @@ class NewIndexStory extends Component {
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
-            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>:""}
+            {this.props.data.ref?<ColorBarBox tref={this.props.data.ref}>
+                <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
+            </ColorBarBox>:""}
             {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
         </StoryFrame>);
     }
@@ -129,7 +128,9 @@ class NewVersionStory extends Component {
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
-            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>:""}
+            {this.props.data.ref?<ColorBarBox tref={this.props.data.ref}>
+                <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
+            </ColorBarBox>:""}
             {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
         </StoryFrame>);
     }
@@ -333,7 +334,9 @@ class TextPassageStory extends Component {
             <StoryTypeBlock en={lead.en} he={lead.he} />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
-            <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
+            <ColorBarBox tref={this.props.data.ref}>
+                <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
+            </ColorBarBox>
             <ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>
         </StoryFrame>
       );
@@ -438,8 +441,9 @@ TopicListStory.propTypes = {
 *                             *
  *****************************/
 
+// todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
 const StoryFrame = ({cls, cardColor, children}) =>
-     <div className={'story ' + cls} style={{"borderColor": cardColor || "#18345D"}}>
+     <div className={'story ' + cls}>
         {children}
      </div>;
 StoryFrame.propTypes = {
@@ -465,6 +469,7 @@ const StoryTitleBlock = ({url, he, en, children}) => {
         </div>;
 };
 
+const ColorBarBox = ({tref, children}) =>  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>
 const StoryBodyBlock = ({en, he}) => <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>;
 
 const StoryTextList = ({texts, toggleSignupModal}) => (
@@ -474,7 +479,9 @@ const StoryTextList = ({texts, toggleSignupModal}) => (
 );
 const StoryTextListItem = ({text, toggleSignupModal}) => (
     <div className="storyTextListItem">
-        <StoryBodyBlock en={text.en} he={text.he}/>
+        <ColorBarBox tref={text.ref} >
+            <StoryBodyBlock en={text.en} he={text.he}/>
+        </ColorBarBox>
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignupModal}>
             <SimpleLinkedBlock url={"/" + Sefaria.normRef(text.ref)} en={text.ref} he={text.heRef} classes="contentText citationLine"/>
         </SaveLine>
