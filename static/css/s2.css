@@ -888,7 +888,8 @@ input.noselect {
 .readerPanel.dark {
   background-color: #333331;
 }
-.readerNavMenu {
+.readerNavMenu,
+.homeFeedWrapper {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -900,7 +901,8 @@ input.noselect {
   z-index: 101;
   background-color: #FBFBFA;
 }
-.readerNavMenu .content {
+.readerNavMenu .content,
+.homeFeedWrapper .content {
   position: relative;
   box-sizing: border-box;
   padding: 30px 10px 10px;
@@ -909,22 +911,27 @@ input.noselect {
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-.interface-hebrew.multiPanel .readerNavMenu .content {
+.interface-hebrew.multiPanel .readerNavMenu .content,
+.interface-hebrew.multiPanel .homeFeedWrapper .content {
   padding-right: 40px;
 }
-.multiPanel .readerNavMenu .content {
+.multiPanel .readerNavMenu .content,
+.multiPanel .homeFeedWrapper .content {
   padding: 30px 30px 70px 30px;
 }
-.multiPanel .readerNavMenu .content.hasFooter {
+.multiPanel .readerNavMenu .content.hasFooter,
+.multiPanel .homeFeedWrapper .content.hasFooter {
   padding: 30px 0 0 0;
 }
-.multiPanel .readerNavMenu.noHeader .content {
+.multiPanel .readerNavMenu.noHeader .content,
+.multiPanel .homeFeedWrapper.noHeader .content {
   padding-top: 80px;
 }
 .multiPanel .readerNavMenu.compare .content {
   padding-top: 30px;
 }
-.readerNavMenu .content .contentInner {
+.readerNavMenu .content .contentInner,
+.homeFeedWrapper .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
 }
@@ -6088,6 +6095,7 @@ span.purim-emoji img{
 .authorName:hover .smallFollowButton {
   display: inline-block;
 }
+
 
 .storyFeed .story {
   margin: 20px 0;

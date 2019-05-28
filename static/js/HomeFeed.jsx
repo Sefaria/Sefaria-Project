@@ -25,8 +25,8 @@ class HomeFeed extends Component {
   }
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
-    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 600;
+    const $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    const margin = 600;
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreStories();
     }
@@ -44,11 +44,8 @@ class HomeFeed extends Component {
   }
 
   render() {
-    const classes = {"readerNavMenu": 1};
-    const classStr = classNames(classes);
-
     return (
-      <div className={classStr}>
+      <div className="homeFeedWrapper">
         <div className="content hasFooter">
           <div className="contentInner">
             <div className="storyFeed">
