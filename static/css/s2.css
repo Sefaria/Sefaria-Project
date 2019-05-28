@@ -6097,6 +6097,10 @@ span.purim-emoji img{
 }
 
 
+.bilingual .homeFeedWrapper span.he {
+  display: block;
+  padding-bottom: 10px;
+}
 .storyFeed .story {
   margin: 20px 0;
   padding: 20px 0;
@@ -6111,6 +6115,14 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTitleBlock {
   float: right;
 }
+
+.storyTextListItem {
+  padding-bottom: 10px;
+}
+.storyTextListItem:last-child {
+  padding-bottom: 0;
+}
+
 .publishSheetStory .saveButton  {
   float: right;
   padding-top: 20px;

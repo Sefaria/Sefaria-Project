@@ -5,7 +5,8 @@ const {
     TwoBox,
     BlockLink,
     SaveButton,
-    SimpleBlock,
+    SimpleInterfaceBlock,
+    SimpleContentBlock,
     FollowButton,
     SimpleLinkedBlock,
 }                = require('./Misc');
@@ -70,7 +71,7 @@ class FreeTextStory extends Component {
           <StoryFrame cls="freeTextStory">
             <StoryTypeBlock en="New Content" he="תוכן חדש"/>
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
+            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
           </StoryFrame>);
     }
 }
@@ -94,8 +95,8 @@ class NewIndexStory extends Component {
             <StoryTypeBlock en="New Text" he="טקסט חדש"/>
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
-            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
-            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>:""}
+            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
+            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>:""}
             {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
         </StoryFrame>);
     }
@@ -127,8 +128,8 @@ class NewVersionStory extends Component {
             <StoryTypeBlock en="New Version" he="גרסה חדשה" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
-            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he} dangerously={true}/>
-            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>:""}
+            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
+            {this.props.data.ref?<StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>:""}
             {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
         </StoryFrame>);
     }
@@ -179,7 +180,7 @@ AuthorStory.propTypes = {
 class UserSheetsStory extends Component {
   render() {
       const positionBlock = (this.props.data.publisher_position) ?
-            <SimpleBlock classes="systemText storySubTitle"
+            <SimpleInterfaceBlock classes="systemText storySubTitle"
               en={this.props.data.publisher_position}
               he={this.props.data.publisher_position}/>:"";
 
@@ -332,7 +333,7 @@ class TextPassageStory extends Component {
             <StoryTypeBlock en={lead.en} he={lead.he} />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
             <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
-            <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he} dangerously={true}/>
+            <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
             <ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>
         </StoryFrame>
       );
@@ -446,7 +447,7 @@ StoryFrame.propTypes = {
     cardColor:  PropTypes.string
 };
 
-const NaturalTimeBlock = ({timestamp}) => <SimpleBlock
+const NaturalTimeBlock = ({timestamp}) => <SimpleInterfaceBlock
         classes = "topTailBlock smallText"
         en = {Sefaria.util.naturalTime(timestamp) + " ago"}
         he = {"לפני " + Sefaria.util.naturalTime(timestamp)}
@@ -454,26 +455,17 @@ const NaturalTimeBlock = ({timestamp}) => <SimpleBlock
 
 const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>;
 
-const StoryTypeBlock = ({en, he}) => <SimpleBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
+const StoryTypeBlock = ({en, he}) => <SimpleInterfaceBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
 
 const StoryTitleBlock = ({url, he, en, children}) => {
-        const SBlock = url ? SimpleLinkedBlock : SimpleBlock;
+        const SBlock = url ? SimpleLinkedBlock : SimpleInterfaceBlock;
         return <div className="storyTitleBlock">
             <SBlock classes="storyTitle pageTitle" url={url} he={he} en={en}/>
             {children}
         </div>;
 };
 
-const StoryBodyBlock = ({en, he, dangerously}) => {
-      if (dangerously) {
-        return (<div className="storyBody contentText">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
-            </div>);
-      } else {
-          return <SimpleBlock classes="storyBody contentText" en={en} he={he}/>;
-      }
-};
+const StoryBodyBlock = ({en, he}) => <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>;
 
 const StoryTextList = ({texts, toggleSignupModal}) => (
     <div className="storyTextList">
@@ -482,7 +474,7 @@ const StoryTextList = ({texts, toggleSignupModal}) => (
 );
 const StoryTextListItem = ({text, toggleSignupModal}) => (
     <div className="storyTextListItem">
-        <StoryBodyBlock en={text.en} he={text.he} dangerously={true} />
+        <StoryBodyBlock en={text.en} he={text.he}/>
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignupModal}>
             <SimpleLinkedBlock url={"/" + Sefaria.normRef(text.ref)} en={text.ref} he={text.heRef} classes="contentText citationLine"/>
         </SaveLine>
@@ -502,7 +494,7 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
                   sheet_title: sheet.sheet_title,
                   versions: {}};
       const hasPosition = !!sheet.publisher_position;
-      const positionBlock = hasPosition ? <SimpleBlock
+      const positionBlock = hasPosition ? <SimpleInterfaceBlock
               classes="systemText authorPosition"
               en={sheet.publisher_position}
               he={sheet.publisher_position}/>:"";
