@@ -17,7 +17,7 @@ def add_jobs(scheduler):
                       day_of_week="tue,thu", hour="2", minute="6")
 
     scheduler.add_job(SheetListFactory.create_featured_story, "cron", id="FeaturedSheets", replace_existing=True,
-                      day_of_week="wed", hour="2", minute="8")
+                      day_of_week="wed", hour="14", minute="0")
 
 
 def _add_parasha_jobs(scheduler):
@@ -53,6 +53,7 @@ def _add_parasha_jobs(scheduler):
 
     scheduler.add_job(MultiTextStoryFactory.create_parasha_verse_connection_stories, "cron", id="Parasha_Connection2", replace_existing=True,
                       kwargs={"iteration": 2}, day_of_week="fri", hour="3", minute="5")
+
 
 def _add_calendar_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_daf_yomi, "cron", id="DafYomi", replace_existing=True,
