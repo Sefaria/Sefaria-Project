@@ -1280,9 +1280,9 @@ class ReaderApp extends Component {
     this.state.defaultVersions[indexTitle] = this.state.defaultVersions[indexTitle] || {};
     this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   }
-  setHeaderState(state, replaceHistory) {
+  setHeaderState(state, replaceHistory, cb) {
     this.state.header = extend(this.state.header, state);
-    this.setState({header: this.state.header});
+    this.setState({header: this.state.header}, cb);
   }
   setDefaultOption(option, value) {
     if (value !== this.state.defaultPanelSettings[option]) {
@@ -1549,15 +1549,23 @@ class ReaderApp extends Component {
     var updates = {menuOpen: "myNotes"};
     this.setStateInHeaderOrSinglePanel(updates);
   }
-  setStateInHeaderOrSinglePanel(state) {
+  setStateInHeaderOrSinglePanel(state, cb) {
     // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
     // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
     if (this.props.multiPanel) {
-      this.setHeaderState(state);
+      this.setHeaderState(state, false, cb);
     } else {
       state = this.makePanelState(state);
-      this.setState({panels: [state]});
+      this.setState({panels: [state]}, cb);
     }
+  }
+  openProfile(slug, full_name) {
+    // requires slug and full_name to properly set window title and url in history
+    this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile: { slug, full_name } }, () => {
+      Sefaria.profileAPI(slug).then(profile => {
+        this.setStateInHeaderOrSinglePanel({ profile });
+      });
+    });
   }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
@@ -1663,6 +1671,7 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
                     translateISOLanguageCode={this.translateISOLanguageCode}
+                    openProfile={this.openProfile}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
 
     var panels = [];

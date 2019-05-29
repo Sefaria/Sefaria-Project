@@ -3075,6 +3075,14 @@ def profile_api(request):
 
 
 @catch_error_as_json
+def profile_get_api(request, slug):
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        return jsonResponse(profile.to_DICT())
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
 def profile_sync_api(request):
     """
     API for syncing history and settings with your profile

@@ -1571,6 +1571,9 @@ Sefaria = extend(Sefaria, {
       });
     })
   },
+  profileAPI: slug => {
+    return Sefaria._promiseAPI(`${Sefaria.apiHost}/api/profile/${slug}`);
+  },
   userHistoryAPI: () => {
     return new Promise((resolve, reject) => {
       Sefaria._api(Sefaria.apiHost + "/api/profile/user_history?secondary=0", data => {

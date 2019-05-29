@@ -176,7 +176,7 @@ class UserProfile extends Component {
       { text: "Sheets", icon: "/static/img/sheet.svg" },
       { text: "Groups", icon: "/static/img/group.svg" },
     ];
-    const showNotes = Sefaria._uid === this.props.profile.id;
+    const showNotes = !!this.props.profile.id && Sefaria._uid === this.props.profile.id;
     if (showNotes) {
       tabs.splice(1, 0, { text: "Notes", icon: "/static/img/note.svg" });
     }
@@ -184,49 +184,53 @@ class UserProfile extends Component {
       <div className="profile-page readerNavMenu noHeader">
         <div className="content hasFooter">
           <div className="contentInner">
-            <ProfileSummary
-              profile={this.props.profile}
-              message={this.message}
-              follow={this.follow}
-            />
-            <TabView
-              tabs={tabs}
-              renderTab={this.renderTab}
-            >
-              <FilterableList
-                ref={this._getSheetListRef}
-                filterFunc={this.filterSheet}
-                sortFunc={this.sortSheet}
-                renderItem={this.renderSheet}
-                renderEmptyList={this.renderEmptySheetList}
-                renderHeader={this.renderSheetHeader}
-                sortOptions={["Recent", "Views"]}
-                getData={this.getSheets}
-              />
-              {
-                showNotes ? (
+            { !this.props.profile.id ? <LoadingMessage /> :
+              <div>
+                <ProfileSummary
+                  profile={this.props.profile}
+                  message={this.message}
+                  follow={this.follow}
+                />
+                <TabView
+                  tabs={tabs}
+                  renderTab={this.renderTab}
+                >
                   <FilterableList
-                    ref={this._getNoteListRef}
-                    filterFunc={this.filterNote}
-                    sortFunc={this.sortNote}
-                    renderItem={this.renderNote}
-                    renderEmptyList={this.renderEmptyNoteList}
+                    ref={this._getSheetListRef}
+                    filterFunc={this.filterSheet}
+                    sortFunc={this.sortSheet}
+                    renderItem={this.renderSheet}
+                    renderEmptyList={this.renderEmptySheetList}
+                    renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
-                    getData={this.getNotes}
+                    getData={this.getSheets}
                   />
-                ) : null
-              }
-              <FilterableList
-                ref={this._getGroupListRef}
-                filterFunc={this.filterGroup}
-                sortFunc={this.sortGroup}
-                renderItem={this.renderGroup}
-                renderEmptyList={this.renderEmptyGroupList}
-                renderHeader={this.renderGroupHeader}
-                sortOptions={["Members", "Sheets"]}
-                getData={this.getGroups}
-              />
-            </TabView>
+                  {
+                    showNotes ? (
+                      <FilterableList
+                        ref={this._getNoteListRef}
+                        filterFunc={this.filterNote}
+                        sortFunc={this.sortNote}
+                        renderItem={this.renderNote}
+                        renderEmptyList={this.renderEmptyNoteList}
+                        sortOptions={["Recent", "Views"]}
+                        getData={this.getNotes}
+                      />
+                    ) : null
+                  }
+                  <FilterableList
+                    ref={this._getGroupListRef}
+                    filterFunc={this.filterGroup}
+                    sortFunc={this.sortGroup}
+                    renderItem={this.renderGroup}
+                    renderEmptyList={this.renderEmptyGroupList}
+                    renderHeader={this.renderGroupHeader}
+                    sortOptions={["Members", "Sheets"]}
+                    getData={this.getGroups}
+                  />
+                </TabView>
+              </div>
+            }
           </div>
           <Footer />
         </div>

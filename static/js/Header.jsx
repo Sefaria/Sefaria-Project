@@ -109,10 +109,12 @@ class Header extends Component {
   showAccount(e) {
     e.preventDefault();
     if (typeof sjs !== "undefined") {
-      window.location = "/account";
+      window.location = "/my/profile";
       return;
     }
-    this.props.setCentralState({menuOpen: "account"});
+    if (!this.state.profile || Sefaria._uid !== this.state.profile.id) {
+      this.props.openProfile(Sefaria.slug, Sefaria.full_name);
+    }
     this.clearSearchBox();
   }
   showNotifications(e) {
@@ -344,6 +346,7 @@ Header.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   toggleSignUpModal:           PropTypes.func.isRequired,
+  openProfile:                 PropTypes.func.isRequired,
 };
 
 
