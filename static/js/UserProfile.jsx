@@ -44,7 +44,7 @@ class UserProfile extends Component {
   }
   renderGroup(group) {
     return (
-      <GroupListing data={group} showMembership={true} />
+      <GroupListing key={group.name} data={group} showMembership={true} />
     );
   }
   renderGroupHeader() {
@@ -84,6 +84,7 @@ class UserProfile extends Component {
   renderNote(note) {
     return (
       <NoteListing
+        key={`${note.text}|${note.ref}`}
         data={note}
         onDeleteNote={this.onDeleteNote}
       />
@@ -255,7 +256,7 @@ const ProfileSummary = ({ profile:p, message, follow }) => {
     <span>
       { social
         .filter(s => !!p[s])
-        .map(s => (<a className="social-icon" target="_blank" href={p[s]}><img key={s} src={`/static/img/${s}.svg`} /></a>))
+        .map(s => (<a key={s} className="social-icon" target="_blank" href={p[s]}><img src={`/static/img/${s}.svg`} /></a>))
       }
     </span>
   );
