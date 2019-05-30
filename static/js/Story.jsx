@@ -91,12 +91,14 @@ class NewIndexStory extends Component {
         <StoryFrame cls="newIndexStory" cardColor={Sefaria.palette.indexColor(title)}>
             <StoryTypeBlock en="New Text" he="טקסט חדש"/>
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <StoryTitleBlock en={title} he={heTitle} url={url} />
+            <SaveLine dref={this.props.data.ref || title} toggleSignUpModal={this.props.toggleSignupModal} classes={"storyTitleWrapper"}>
+                <StoryTitleBlock en={title} he={heTitle} url={url} />
+            </SaveLine>
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
             {this.props.data.ref?<ColorBarBox tref={this.props.data.ref}>
                 <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
             </ColorBarBox>:""}
-            {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
+            {this.props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(this.props.data.ref)}/>:""}
         </StoryFrame>);
     }
 }
@@ -126,12 +128,14 @@ class NewVersionStory extends Component {
         <StoryFrame cls="newVersionStory" cardColor={Sefaria.palette.indexColor(title)}>
             <StoryTypeBlock en="New Version" he="גרסה חדשה" />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <StoryTitleBlock en={title} he={heTitle} url={url} />
+            <SaveLine dref={this.props.data.ref || title} toggleSignUpModal={this.props.toggleSignupModal} classes={"storyTitleWrapper"}>
+                <StoryTitleBlock en={title} he={heTitle} url={url} />
+            </SaveLine>
             <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
             {this.props.data.ref?<ColorBarBox tref={this.props.data.ref}>
                 <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
             </ColorBarBox>:""}
-            {this.props.data.ref?<ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>:""}
+            {this.props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(this.props.data.ref)}/>:""}
         </StoryFrame>);
     }
 }
@@ -307,26 +311,6 @@ PublishSheetStory.propTypes = {
 
 //todo: This might be a sheet!!
 class TextPassageStory extends Component {
-    /*
-       props.data: {
-         "ref"
-         "index"
-         "language"   # oneOf(english, hebrew, bilingual) - optional - forces display language
-         "lead" : {
-            "he"
-            "en"
-         }
-         "title" : {
-            "he"
-            "en"
-         }
-         "text" : {
-            "he"
-            "en"
-         }
-       }
-    */
-
     render() {
       const url = "/" + Sefaria.normRef(this.props.data.ref);
       const lead = this.props.data.lead || {en: "Read More", he: "קרא עוד"};
@@ -334,11 +318,13 @@ class TextPassageStory extends Component {
         <StoryFrame cls="textPassageStory" cardColor={Sefaria.palette.indexColor(this.props.data.index)}>
             <StoryTypeBlock en={lead.en} he={lead.he} />
             <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
+            <SaveLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignupModal} classes={"storyTitleWrapper"}>
+                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
+            </SaveLine>
             <ColorBarBox tref={this.props.data.ref}>
                 <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
             </ColorBarBox>
-            <ReadMoreLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignUpModal}/>
+            <ReadMoreLink url={"/" + Sefaria.normRef(this.props.data.ref)}/>
         </StoryFrame>
       );
     }
@@ -509,7 +495,7 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
 
       return (<div className="storySheetListItem">
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
-            <StoryTitleBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id}/>
+            <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle"}/>
         </SaveLine>
         {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:""}
 
@@ -532,46 +518,24 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
 };
 SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
 
-
-class SaveLine extends Component {
-    render() {
-      const historyObject = this.props.historyObject || {
-          ref: this.props.dref,
-          versions: this.props.versions || {}
-      };
-
-        return (
-            <div className="saveLine">
+const SaveLine = (props) => <div className={"saveLine " + props.classes}>
                 <div className="beforeSave">
-                    {this.props.children}
+                    {props.children}
                 </div>
-                <SaveButton
-                    historyObject={historyObject}
-                    tooltip={true}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
+                <SaveButton tooltip={true}
+                    historyObject={props.historyObject || {ref: props.dref, versions: props.versions || {}}}
+                    toggleSignUpModal={props.toggleSignUpModal}
                 />
-            </div>);
-    }
-}
+            </div>;
+
 SaveLine.propTypes = {
   historyObject:        PropTypes.object,   // One or
   dref:                 PropTypes.string,   // the other
   toggleSignUpModal:    PropTypes.func,
-  versions:             PropTypes.object
-};
-
-const ReadMoreLine = (props) => (
-    <SaveLine {...props}>
-        <ReadMoreLink url={"/" + Sefaria.normRef(props.dref)}/>
-    </SaveLine>
-);
-ReadMoreLine.propTypes = {
-  dref:                  PropTypes.string,
-  toggleSignUpModal:    PropTypes.func,
-  versions:             PropTypes.object
+  versions:             PropTypes.object,
+  classes:              PropTypes.string,
 };
 
 const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
-
 
 module.exports = Story;
