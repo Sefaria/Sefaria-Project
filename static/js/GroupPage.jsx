@@ -115,6 +115,23 @@ class GroupPage extends Component {
   changeSheetSort(event) {
     this.setState({sheetSort: event.target.value})
   }
+  searchGroup(query) {
+    this.props.searchInGroup(query, this.props.group);
+  }
+  handleSearchKeyUp(event) {
+    if (event.keyCode === 13) {
+      var query = $(event.target).val();
+      if (query) {
+        this.searchGroup(query);
+      }
+    }
+  }
+  handleSearchButtonClick(event) {
+    var query = $(ReactDOM.findDOMNode(this)).find(".groupSearchInput").val();
+    if (query) {
+      this.searchGroup(query);
+    }
+  }
   memberList() {
     var group = this.getData();
     if (!group) { return null; }
@@ -262,11 +279,20 @@ class GroupPage extends Component {
                           <span className="int-he actionText">סנן לפי:
                             <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
                              <option value="date">הכי חדש</option>
-                             <option value="alphabetical">Alphabetical</option>
+                             <option value="alphabetical">אלפביתי</option>
                              <option value="views">הכי נצפה</option>
                            </select> <i className="fa fa-angle-down"></i></span>
                     </h2>
                     : null }
+
+                  {group.listed ?
+                    <div className="groupSearchBox">
+                      <i className="groupSearchIcon fa fa-search" onClick={this.handleSearchButtonClick}></i>
+                      <input
+                        className="groupSearchInput"
+                        placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש" : "Search"}
+                        onKeyUp={this.handleSearchKeyUp} />
+                  </div> : null}
 
                   {this.state.showTags ? <div className="tagsList"><TwoOrThreeBox content={groupTagList} width={this.props.width} /></div> : null}
 
@@ -305,8 +331,12 @@ class GroupPage extends Component {
   }
 }
 GroupPage.propTypes = {
-  group: PropTypes.string.isRequired,
-  width: PropTypes.number
+  group:          PropTypes.string.isRequired,
+  width:          PropTypes.number,
+  multiPanel:     PropTypes.bool,
+  tag:            PropTypes.string,
+  interfaceLang:  PropTypes.string,
+  searchInGroup:  PropTypes.func,
 };
 
 
