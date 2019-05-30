@@ -1,5 +1,5 @@
 {% autoescape off %}
-//called as sefaria.tag("#element-id");
+//call with sefaria.link();
 
 (function(ns){
 
@@ -17,8 +17,11 @@
 	var hasOwn = {}.hasOwnProperty; // Used with findAndReplaceDOMText
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
+    /* filter array to distinct values */
+    function distinct(value, index, self) {return self.indexOf(value) === index;}
 
-    var base_url = 'https://www.sefaria.org/';
+    //var base_url = 'https://www.sefaria.org/';
+    var base_url = "http://localhost:8000/"
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -29,7 +32,7 @@
     var enElems;
     var triggerLink;
 
-    var setupPopup = function(styles, mode) {
+    var setupPopup = function(options, mode) {
         category_colors = {
           "Commentary":         "#4871bf",
           "Tanakh":             "#004e5f",
@@ -56,21 +59,23 @@
         }
         popUpElem = document.createElement("div");
         popUpElem.id = "sefaria-popup";
+        popUpElem.classList.add("interface-" + options.interfaceLang);
+        popUpElem.classList.add("content-" + options.contentLang);
 
         var html = "";
         // Set default content for the popup
         html += '<style scoped>' +
-                '@import url("https://fonts.googleapis.com/css?family=Crimson+Text|Frank+Ruhl+Libre");' +
-                '#sefaria-popup {'+
-                    'width: 400px;'+
-                    'max-height: 560px;' +
-                    'font-size: 16px;' +
-                    'border-left: 1px #ddd solid;'+
-                    'border-right: 1px #ddd solid;'+
-                    'border-bottom: 1px #ddd solid;'+
-                    'background-color: #fff;'+
-                    'color: #222222;'+
-                '}'+
+            '@import url("https://fonts.googleapis.com/css?family=Crimson+Text|Frank+Ruhl+Libre|Heebo");' +
+            '#sefaria-popup {'+
+                'width: 400px;'+
+                'max-height: 560px;' +
+                'font-size: 16px;' +
+                'border-left: 1px #ddd solid;'+
+                'border-right: 1px #ddd solid;'+
+                'border-bottom: 1px #ddd solid;'+
+                'background-color: #fff;'+
+                'color: #222222;'+
+            '}'+
             '.sefaria-text .en, .sefaria-text .he {' +
                 'padding: 10px 20px;'+
                 'text-align: justify;'+
@@ -95,45 +100,61 @@
             '.he {' +
                 'font-family: "Frank Ruhl Libre";' +
             '}' +
+            '.content-hebrew .sefaria-text .en {' +
+                'display: none;' +
+            '}' +
+            '.content-english .sefaria-text .he {' +
+                'display: none' +
+            '}' +
+            '.content-hebrew .sefaria-text .en.enOnly {' +
+                'display: block;' +
+            '}' +
+            '.content-english .sefaria-text .he.heOnly {' +
+                'display: block' +
+            '}' +
             '#sefaria-logo {' +
-            'background: url(\'data:image/svg+xml;utf8,<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 337.28 72.42"><title>LOGO2</title><path d="M80.7,52.71L84.85,47a18.38,18.38,0,0,0,13.48,5.88c6.13,0,8.56-3,8.56-5.81,0-3.83-4.54-5-9.71-6.33C90.22,39,82,36.93,82,27.92c0-7,6.2-12.46,15.52-12.46,6.64,0,12,2.11,16,5.94L109.26,27a17.32,17.32,0,0,0-12.33-4.86c-4.41,0-7.22,2.11-7.22,5.3s4.34,4.41,9.39,5.69c7,1.79,15.4,4,15.4,13.22,0,7.09-5,13.16-16.48,13.16C90.16,59.48,84.47,56.74,80.7,52.71Z" fill="rgb(153, 153, 153)"/><path d="M122.68,58.72V16.1h29.2v6.58H130.15V33.74h21.27v6.58H130.15V52.14h21.72v6.58h-29.2Z" fill="rgb(153, 153, 153)"/><path d="M160.82,58.72V16.1H190v6.58H168.29V33.74h21.27v6.58H168.29v18.4h-7.48Z" fill="rgb(153, 153, 153)"/><path d="M225.28,58.72l-3.13-8.18H202.6l-3.13,8.18H191L207.71,16.1H217l16.74,42.61h-8.5ZM212.38,23.64L204.71,44H220Z" fill="rgb(153, 153, 153)"/><path d="M264.07,58.72l-9.46-15.91H247.2V58.72h-7.48V16.1h18.72c8.43,0,13.93,5.49,13.93,13.35,0,7.6-5,11.69-10.09,12.52l10.41,16.74h-8.62Zm0.64-29.26c0-4.09-3.07-6.77-7.28-6.77H247.2V36.23h10.22C261.64,36.23,264.7,33.54,264.7,29.46Z" fill="rgb(153, 153, 153)"/><path d="M281.12,58.72V16.1h7.48V58.72h-7.48Z" fill="rgb(153, 153, 153)"/><path d="M328.79,58.72l-3.13-8.18H306.11L303,58.72h-8.5L311.22,16.1h9.33l16.74,42.61h-8.5ZM315.88,23.64L308.21,44h15.33Z" fill="rgb(153, 153, 153)"/><path d="M27.87,20.68H18.6c-0.63,0-1.26.05-1.89,0.09-0.84.05-1.68,0.15-2.52,0.17a1.76,1.76,0,0,0-1.23.48A30.86,30.86,0,0,0,6.7,29a26.46,26.46,0,0,0-3.17,8.74,29.41,29.41,0,0,0-.4,3.89,22.13,22.13,0,0,0,.5,6,12.29,12.29,0,0,0,5.46,7.78,18.71,18.71,0,0,0,4.62,2.09,34.76,34.76,0,0,0,7.24,1.33q2.52,0.22,5.06.21,2.14,0,4.29,0,2.43,0,4.84-.25a40.7,40.7,0,0,0,4.64-.66,22.4,22.4,0,0,0,4.47-1.39,12.64,12.64,0,0,0,7.09-7.44,21.07,21.07,0,0,0,1.18-6.34,47.77,47.77,0,0,0-.09-5.38,36.19,36.19,0,0,0-.6-4.67,21.13,21.13,0,0,0-1.39-4.5,12.6,12.6,0,0,0-3-4.24,12.22,12.22,0,0,0-4.95-2.67,21.84,21.84,0,0,0-5.84-.79c-2.93,0-5.87,0-8.8,0M5.76,0C5.82,0.2,5.86.33,5.9,0.47A5.8,5.8,0,0,0,7.58,3,9.9,9.9,0,0,0,11.15,5a14.19,14.19,0,0,0,3.69.76c0.83,0.06,1.67.1,2.5,0.1,5.9,0,11.8,0,17.7,0A15.14,15.14,0,0,1,42.74,8a18.77,18.77,0,0,1,6,5.51,27.86,27.86,0,0,1,3.4,6.46,42.49,42.49,0,0,1,1.93,6.89,54.79,54.79,0,0,1,.83,5.77c0.13,1.52.24,3,.29,4.57s0.07,3.27,0,4.9a44,44,0,0,1-.46,5.62,38.93,38.93,0,0,1-2.24,8.75,29.14,29.14,0,0,1-4.7,8.1,22.79,22.79,0,0,1-7.54,6A18.05,18.05,0,0,1,35,72.26a14.45,14.45,0,0,1-2.15.15c-3.27,0-6.54,0-9.81,0a22.87,22.87,0,0,1-10.82-2.7,20.39,20.39,0,0,1-8.11-8A27.73,27.73,0,0,1,1.23,54.6a39.48,39.48,0,0,1-.92-5.13A49.56,49.56,0,0,1,0,43.3,18.74,18.74,0,0,1,.62,39a41.13,41.13,0,0,1,2.72-7.44,74.43,74.43,0,0,1,6-10.47l0.19-.28L9,20.73a11.8,11.8,0,0,1-2.93-.88A8.06,8.06,0,0,1,1.72,15a12.75,12.75,0,0,1-.65-3.23c0-.35,0-0.69-0.06-1a10.51,10.51,0,0,1,.84-4.55A21.06,21.06,0,0,1,4.91,1C5.17,0.7,5.45.38,5.76,0" fill="rgb(153, 153, 153)"/></svg>\') no-repeat;' +
-            'width: 100px;' +
-            'display: inline-block;'+
-            'margin-left: 3px;' +
-            'height: 15px;' +
-            'line-height: 16px;' +
+                'background: url(\'data:image/svg+xml;utf8,<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 337.28 72.42"><title>LOGO2</title><path d="M80.7,52.71L84.85,47a18.38,18.38,0,0,0,13.48,5.88c6.13,0,8.56-3,8.56-5.81,0-3.83-4.54-5-9.71-6.33C90.22,39,82,36.93,82,27.92c0-7,6.2-12.46,15.52-12.46,6.64,0,12,2.11,16,5.94L109.26,27a17.32,17.32,0,0,0-12.33-4.86c-4.41,0-7.22,2.11-7.22,5.3s4.34,4.41,9.39,5.69c7,1.79,15.4,4,15.4,13.22,0,7.09-5,13.16-16.48,13.16C90.16,59.48,84.47,56.74,80.7,52.71Z" fill="rgb(153, 153, 153)"/><path d="M122.68,58.72V16.1h29.2v6.58H130.15V33.74h21.27v6.58H130.15V52.14h21.72v6.58h-29.2Z" fill="rgb(153, 153, 153)"/><path d="M160.82,58.72V16.1H190v6.58H168.29V33.74h21.27v6.58H168.29v18.4h-7.48Z" fill="rgb(153, 153, 153)"/><path d="M225.28,58.72l-3.13-8.18H202.6l-3.13,8.18H191L207.71,16.1H217l16.74,42.61h-8.5ZM212.38,23.64L204.71,44H220Z" fill="rgb(153, 153, 153)"/><path d="M264.07,58.72l-9.46-15.91H247.2V58.72h-7.48V16.1h18.72c8.43,0,13.93,5.49,13.93,13.35,0,7.6-5,11.69-10.09,12.52l10.41,16.74h-8.62Zm0.64-29.26c0-4.09-3.07-6.77-7.28-6.77H247.2V36.23h10.22C261.64,36.23,264.7,33.54,264.7,29.46Z" fill="rgb(153, 153, 153)"/><path d="M281.12,58.72V16.1h7.48V58.72h-7.48Z" fill="rgb(153, 153, 153)"/><path d="M328.79,58.72l-3.13-8.18H306.11L303,58.72h-8.5L311.22,16.1h9.33l16.74,42.61h-8.5ZM315.88,23.64L308.21,44h15.33Z" fill="rgb(153, 153, 153)"/><path d="M27.87,20.68H18.6c-0.63,0-1.26.05-1.89,0.09-0.84.05-1.68,0.15-2.52,0.17a1.76,1.76,0,0,0-1.23.48A30.86,30.86,0,0,0,6.7,29a26.46,26.46,0,0,0-3.17,8.74,29.41,29.41,0,0,0-.4,3.89,22.13,22.13,0,0,0,.5,6,12.29,12.29,0,0,0,5.46,7.78,18.71,18.71,0,0,0,4.62,2.09,34.76,34.76,0,0,0,7.24,1.33q2.52,0.22,5.06.21,2.14,0,4.29,0,2.43,0,4.84-.25a40.7,40.7,0,0,0,4.64-.66,22.4,22.4,0,0,0,4.47-1.39,12.64,12.64,0,0,0,7.09-7.44,21.07,21.07,0,0,0,1.18-6.34,47.77,47.77,0,0,0-.09-5.38,36.19,36.19,0,0,0-.6-4.67,21.13,21.13,0,0,0-1.39-4.5,12.6,12.6,0,0,0-3-4.24,12.22,12.22,0,0,0-4.95-2.67,21.84,21.84,0,0,0-5.84-.79c-2.93,0-5.87,0-8.8,0M5.76,0C5.82,0.2,5.86.33,5.9,0.47A5.8,5.8,0,0,0,7.58,3,9.9,9.9,0,0,0,11.15,5a14.19,14.19,0,0,0,3.69.76c0.83,0.06,1.67.1,2.5,0.1,5.9,0,11.8,0,17.7,0A15.14,15.14,0,0,1,42.74,8a18.77,18.77,0,0,1,6,5.51,27.86,27.86,0,0,1,3.4,6.46,42.49,42.49,0,0,1,1.93,6.89,54.79,54.79,0,0,1,.83,5.77c0.13,1.52.24,3,.29,4.57s0.07,3.27,0,4.9a44,44,0,0,1-.46,5.62,38.93,38.93,0,0,1-2.24,8.75,29.14,29.14,0,0,1-4.7,8.1,22.79,22.79,0,0,1-7.54,6A18.05,18.05,0,0,1,35,72.26a14.45,14.45,0,0,1-2.15.15c-3.27,0-6.54,0-9.81,0a22.87,22.87,0,0,1-10.82-2.7,20.39,20.39,0,0,1-8.11-8A27.73,27.73,0,0,1,1.23,54.6a39.48,39.48,0,0,1-.92-5.13A49.56,49.56,0,0,1,0,43.3,18.74,18.74,0,0,1,.62,39a41.13,41.13,0,0,1,2.72-7.44,74.43,74.43,0,0,1,6-10.47l0.19-.28L9,20.73a11.8,11.8,0,0,1-2.93-.88A8.06,8.06,0,0,1,1.72,15a12.75,12.75,0,0,1-.65-3.23c0-.35,0-0.69-0.06-1a10.51,10.51,0,0,1,.84-4.55A21.06,21.06,0,0,1,4.91,1C5.17,0.7,5.45.38,5.76,0" fill="rgb(153, 153, 153)"/></svg>\') no-repeat;' +
+                'width: 70px;' +
+                'display: inline-block;'+
+                'margin-left: 3px;' +
+                'height: 15px;' +
+                'line-height: 16px;' +
             '}' +
             '.sefaria-footer {' +
-            'color: #999;' +
-            'padding:20px 20px 20px 20px;' +
-            'border-top: 1px solid #ddd;' +
-            'background-color: #FBFBFA;' +
-            'font-size: 12px;' +
-            'display: block;' +
-            'font-family: "Helvetica Neue", "Helvetica", sans-serif;' +
+                'color: #999;' +
+                'padding:20px 20px 20px 20px;' +
+                'border-top: 1px solid #ddd;' +
+                'background-color: #FBFBFA;' +
+                'font-size: 12px;' +
+                'display: flex;' +
+                'justify-content: space-between;' +
+                'align-items: center;' +
+                'font-family: "Helvetica Neue", "Helvetica", sans-serif;' +
             '}'+
             '.sefaria-read-more-button {' +
-            'float: right;' +
-            'background-color: #fff;' +
-            'padding: 5px 10px;'+
-            'margin-top: -3px;' +
-            'border: 1px solid #ddd;' +
-            'border-radius: 5px;' +
+                'background-color: #fff;' +
+                'padding: 5px 10px;'+
+                'margin-top: -3px;' +
+                'border: 1px solid #ddd;' +
+                'border-radius: 5px;' +
             '}' +
-
-            '.sefaria-read-more-button a {' +
-            'text-decoration: none;' +
-            'color: #666;' +
+            '.interface-hebrew .sefaria-powered-by-box {' +
+                'margin-top: -6px' +
             '}'+
-
-
-
+            '.sefaria-read-more-button a {' +
+                'text-decoration: none;' +
+                'color: #666;' +
+            '}'+
             '#sefaria-linker-header {' +
                 'border-top: 4px solid #ddd;' +
                 'border-bottom: 1px solid #ddd;' +
                 'background-color: #FBFBFA;' +
                 'text-align: center;' +
                 'padding-bottom: 3px;' +
+            '}'+
+            '.interface-hebrew .sefaria-footer {' +
+                'direction: rtl;' +
+                'font-family: "Heebo", sans-serif' + 
             '}';
 
         if (mode == "popup-click") {
@@ -155,25 +176,34 @@
         } else {
             html += '</style>'
         }
+        var readMoreText = {
+            "english": "Read More ›",
+            "hebrew": "קרא עוד ›"
+        }[options.interfaceLang];
+        var poweredByText = {
+            "english": "Powered by",
+            "hebrew": '<center>מונע ע"י<br></center>'
+        }[options.interfaceLang];
 
         html += '<div id="sefaria-linker-header">' +
-            '<h1 id="sefaria-title"><span class="he" dir="rtl"></span><span class="en"></span></h1>' +
+                '<h1 id="sefaria-title"><span class="he" dir="rtl"></span><span class="en"></span></h1>' +
             '</div>' +
             '<div class="sefaria-text" id="sefaria-linker-text" tabindex="0"></div>' +
 
-            '<div class="sefaria-footer">Powered by <div id="sefaria-logo">&nbsp;</div> <span class="sefaria-read-more-button">';
-
-             if (mode == "popup-click") {
-             html += '<a class = "sefaria-popup-ref" href = "">Read More ›</a></span></div>'
-             }
+            '<div class="sefaria-footer">' + 
+                '<div class="sefaria-powered-by-box">' + poweredByText + ' <div id="sefaria-logo">&nbsp;</div></div>' +
+                (mode == "popup-click" ? 
+                '<span class="sefaria-read-more-button">' +
+                    '<a class = "sefaria-popup-ref" href = "">' + readMoreText + '</a>' +
+                '</span>' : "") + 
+            '</div>';
 
         popUpElem.innerHTML = html;
+
         // Apply any override styles
-        if (styles) {
-            for (var n in styles) {
-                if (styles.hasOwnProperty(n)) {
-                    popUpElem.style[n] = styles[n];
-                }
+        for (var n in options.popupStyles) {
+            if (styles.hasOwnProperty(n)) {
+                popUpElem.style[n] = styles[n];
             }
         }
 
@@ -232,7 +262,6 @@
             [].forEach.call(enElems, function(e) {e.style.display = "None"});
         }
 
-
         if(typeof(source.en) === "string") {
             source.en = [source.en]
             source.he = [source.he]
@@ -242,22 +271,17 @@
             source.he = [].concat.apply([], source.he);
         }
 
-
         for (i = 0; i < source.en.length; i++) {
             var enBox = document.createElement('div');
             var heBox = document.createElement('div');
-            enBox.className = "en";
-            heBox.className = "he";
-            heBox.setAttribute("dir", "rtl");
             enBox.innerHTML = source.en[i];
             heBox.innerHTML = source.he[i].replace(/[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g, "");
+            enBox.className = "en" + (!heBox.innerHTML ? " enOnly" : "");
+            heBox.className = "he" + (!enBox.innerHTML ? " heOnly" : "");
+            heBox.setAttribute("dir", "rtl");
             textBox.appendChild(heBox);
             textBox.appendChild(enBox);
         }
-
-
-
-
 
         enTitle.textContent = source.ref;
         heTitle.textContent = source.heRef;
@@ -278,12 +302,6 @@
         if (window.innerHeight < popUpRect.bottom) { // popup drops off the screen
             var pos = ((window.innerHeight - popUpRect.height) - 10);
             popUpElem.style.top = (pos > 0)?pos + "px":"10px";
-
-           // if (popUpRect.height > (window.innerHeight - 10)) {
-           //     popUpElem.style.top = "10px";
-           // } else {
-           //     popUpElem.style.top = ((window.innerHeight - popUpRect.height) - 10) + "px";
-           // }
         }
 
         if (mode == "popup-click") {
@@ -306,14 +324,10 @@
             for(var i=0; i<nodes.length; i++) {
                 nodes[i].style.marginRight = -scrollbarOffset+"px";
             }
-
-
-
         }
 
-
-
     };
+
     var hidePopup = function() {
         if (popUpElem.style.display == "block") {
                 triggerLink.focus();
@@ -321,116 +335,158 @@
         popUpElem.style.display = "none";
     };
 
-
-
     // Public API
     ns.matches = [];
     ns.sources = {};
 
     ns.link = function(options) {
         options = options || {};
-        var popupStyles = options.popupStyles || {};
+        options.popupStyles = options.popupStyles || {};
+        options.interfaceLang = options.interfaceLang || "english";
+        options.contentLang = options.contentLang || "bilingual";
+
         var selector = options.selector || "body";
         if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
         else { mode = "popup-click"; }
 
-        setupPopup(popupStyles, mode);
+        setupPopup(options, mode);
 
-        var elems = document.querySelectorAll(selector);
+        ns.elems = document.querySelectorAll(selector);
 
         // Find text titles in the document
         // todo: hold locations of title matches?
-        var full_text = [].reduce.call(elems, function(prev, current) { return prev + current.textContent; }, "");
-        var matchedTitles = bookTitles.filter(function(title) {
-                return (full_text.indexOf(title) > -1);
-            });
+        var full_text = [].reduce.call(ns.elems, function(prev, current) { return prev + current.textContent; }, "");
+        ns.matchedTitles = bookTitles.filter(function(title) {
+            return (full_text.indexOf(title) > -1);
+        });
+        ns.matchedTitles = ns.matchedTitles.filter(distinct);
 
-        if (matchedTitles.length == 0) {
+        if (ns.matchedTitles.length == 0) {
             console.log("No book titles found to link to Sefaria.");
             return;
         }
 
+        ns._getRegexesThenTexts();
+    };
+
+
+    // Private API
+    ns._getRegexesThenTexts = function() {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + matchedTitles.join("|"))
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|"))
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
                     delete data.error;
                 }
-                var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
-                  return b.length - a.length; // ASC -> a - b; DESC -> b - a
-                });
-                for (var k = 0; k < books.length; k++) {
-                    var book = books[k];
-                    // Run each regex over the document, and wrap results
-                    var r = XRegExp(data[book],"xgm");
-                    for (var i = 0; i < elems.length; i++) {
-                        findAndReplaceDOMText(elems[i], {
-                            preset: 'prose',
-                            find: r,
-                            replace: function(portion, match) {
-                                var matched_ref = match[0]
-                                    .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
-                                    .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                                ns.matches.push(matched_ref);
+                ns.regexes = data;
+                ns._wrapMatches();
 
-                                var node = document.createElement("a");
-                                node.target = "_blank";
-                                node.className = "sefaria-ref";
-                                node.href = base_url + matched_ref;
-                                node.setAttribute('data-ref', matched_ref);
-                                node.setAttribute('aria-controls', 'sefaria-popup');
-                                node.textContent = portion.text;
-
-                                return node;
-                            },
-                            filterElements: function(el) {
-                                return !(
-                                    hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
-                                    || (el.tagName == "A")
-                                    // The below test is subsumed in the more simple test above
-                                    //|| (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0)
-                                );
-                            }
-                        });
-                    }
-                }
                 if (ns.matches.length == 0) {
                     console.log("No references found to link to Sefaria.");
                     return;
                 }
-                atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
-                    .success(function (data, xhr) {
-                        //Put text data into sefaria.sources
-                        ns.sources = data;
 
-                        // Bind a click event and a mouseover event to each link
-                        [].forEach.call(document.querySelectorAll('.sefaria-ref'),function(e) {
-                            if ("error" in ns.sources[e.getAttribute('data-ref')]) {
-                                unwrap(e);
-                                return;
-                            }
-                            var source = ns.sources[e.getAttribute('data-ref')];
-                            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he")+"&utm_source=sef_linker");
-                            if (mode == "popup-hover") {
-                                e.addEventListener('mouseover', function(event) {
-                                    showPopup(this, mode);
-                                }, false);
-                                e.addEventListener('mouseout', hidePopup, false);
-                            } else if (mode == "popup-click") {
-                                e.addEventListener('click', function(event) {
-                                    showPopup(this, mode);
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    document.getElementById("sefaria-linker-text").focus();
-                                }, false);
-                            }
-                        });
-                    })
-                    .error(function (data, xhr) { });  // api/bulktext
+                ns._getTexts();
+                ns._trackPage();
             })
-            .error(function (data, xhr) { });  // api/regexs
+            .error(function (data, xhr) { });
     };
+
+    ns._wrapMatches = function() {
+        var books = Object.getOwnPropertyNames(ns.regexes).sort(function(a, b) {
+          return b.length - a.length; // ASC -> a - b; DESC -> b - a
+        });
+        for (var k = 0; k < books.length; k++) {
+            var book = books[k];
+            // Run each regex over the document, and wrap results
+            var r = XRegExp(ns.regexes[book],"xgm");
+            for (var i = 0; i < ns.elems.length; i++) {
+                findAndReplaceDOMText(ns.elems[i], {
+                    preset: 'prose',
+                    find: r,
+                    replace: function(portion, match) {
+                        var matched_ref = match[0]
+                            .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
+                            .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
+                        ns.matches.push(matched_ref);
+
+                        var node = document.createElement("a");
+                        node.target = "_blank";
+                        node.className = "sefaria-ref";
+                        node.href = base_url + matched_ref;
+                        node.setAttribute('data-ref', matched_ref);
+                        node.setAttribute('aria-controls', 'sefaria-popup');
+                        node.textContent = portion.text;
+
+                        return node;
+                    },
+                    filterElements: function(el) {
+                        return !(
+                            hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
+                            || (el.tagName == "A")
+                            // The below test is subsumed in the more simple test above
+                            //|| (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0)
+                        );
+                    }
+                });
+            }
+        }
+        ns.matches = ns.matches.filter(distinct)
+    };
+
+    ns._getTexts = function() {
+        atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
+            .success(function (data, xhr) {
+                //Put text data into sefaria.sources
+                ns.sources = data;
+
+                // Bind a click event and a mouseover event to each link
+                [].forEach.call(document.querySelectorAll('.sefaria-ref'),function(e) {
+                    if ("error" in ns.sources[e.getAttribute('data-ref')]) {
+                        unwrap(e);
+                        return;
+                    }
+                    var source = ns.sources[e.getAttribute('data-ref')];
+                    e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he")+"&utm_source=sef_linker");
+                    if (mode == "popup-hover") {
+                        e.addEventListener('mouseover', function(event) {
+                            showPopup(this, mode);
+                        }, false);
+                        e.addEventListener('mouseout', hidePopup, false);
+                    } else if (mode == "popup-click") {
+                        e.addEventListener('click', function(event) {
+                            showPopup(this, mode);
+                            event.preventDefault();
+                            event.stopPropagation();
+                            document.getElementById("sefaria-linker-text").focus();
+                        }, false);
+                    }
+                });
+            })
+            .error(function (data, xhr) { });
+    }
+
+    ns._trackPage = function() {
+        console.log("TRACK")
+        var meta = document.head.querySelector("meta[name~=description]");
+        var description = meta ? meta.content : "";
+        var data = {
+            "url": document.location.href,
+            "title": document.title,
+            "description": description,
+            "refs": ns.matches,
+        };
+        console.log(data);
+        var json = JSON.stringify(data);
+        var postData = encodeURIComponent("json") + '=' + encodeURIComponent(json);
+        atomic.post(base_url + "api/linker-track", postData)
+            .success(function (data, xhr) {
+                console.log(data);
+            });
+    }
+
+    window.ns = ns;
 
 }(this.sefaria = this.sefaria || {}));
 

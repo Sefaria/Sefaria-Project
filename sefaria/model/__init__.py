@@ -41,6 +41,7 @@ from garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStop
 from category import Category, CategorySet
 from passage import Passage, PassageSet
 from ref_data import RefData, RefDataSet
+from webpage import WebPage, WebPageSet
 
 import dependencies
 
