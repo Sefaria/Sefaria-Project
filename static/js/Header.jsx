@@ -106,7 +106,7 @@ class Header extends Component {
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
-  showAccount(e) {
+  openMyProfile(e) {
     e.preventDefault();
     if (typeof sjs !== "undefined") {
       window.location = "/my/profile";
@@ -271,8 +271,8 @@ class Header extends Component {
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/account" className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></a>
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
+                            <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><img src={Sefaria.gravatar_url} alt="My Profile"/></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login signupLink" href={"/register" + nextParam}>

@@ -20,6 +20,7 @@ var DJANGO_DATA_VARS = {
   saved:                {{ saved|jsonify }},
   slug:                 "{{ slug|default:'' }}",
   full_name:            "{{ full_name|default:'' }}",
+  gravatar_url:         "{{ gravatar_url|default:'' }}",
   last_place:           {{ last_place|jsonify}},
   interfaceLang:        "{{ request.interfaceLang }}",
   globalWarningMessage: {% if GLOBAL_WARNING %}"{{ GLOBAL_WARNING_MESSAGE}}"{% else %}null{% endif %},

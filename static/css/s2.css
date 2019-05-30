@@ -259,10 +259,10 @@ input.noselect {
 .header .header-links{
   margin-top: 1px;
 }
-.header .library, .header .home, .header .account, .header .notifications, .header .readerNavMenuSearchButton {
+.header .library, .header .home, .header .my-profile, .header .notifications, .header .readerNavMenuSearchButton {
   cursor: pointer;
 }
-.header .library, .header .account, .header .readerNavMenuSearchButton {
+.header .library, .header .my-profile, .header .readerNavMenuSearchButton {
   display: inline-block;
   color: #999;
 }
@@ -305,7 +305,7 @@ input.noselect {
 .header .login:first-child{
   margin: auto 30px;
 }
-.header .account:first-child{
+.header .notifications {
   margin: auto 17px;
 }
 @media (max-width: 540px) {
@@ -334,11 +334,11 @@ input.noselect {
   margin-top: 2px;
   color: #666;
 }
-.header .account, .header .notifications {
+.header .my-profile, .header .notifications {
   display: inline-block;
   vertical-align: middle;
 }
-.header .library, .header .account {
+.header .library, .header .my-profile {
   font-size: 24px;
   line-height: 24px;
 }
@@ -560,10 +560,10 @@ input.noselect {
 .testMessage .button {
   margin-top: 20px;
 }
-.header .account img {
+.header .my-profile img {
   height: 24px;
   width: 24px;
-  opacity: 0.4;
+  border-radius: 50%;
   margin-top: 2px
 }
 .header .readerNavMenuMenuButton {
