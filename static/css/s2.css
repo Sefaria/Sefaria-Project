@@ -6277,6 +6277,17 @@ span.purim-emoji img{
 .storyFeed .storyBody a {
   text-decoration: underline;
 }
+.storyEditorTag {
+    display: inline-block;
+    float: right;
+}
+.storyEditorTag.mustHave {
+    color: #66aa66;
+    padding: 0 10px;
+}
+.storyEditorTag.cantHave {
+    color: #aa6666;
+}
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;

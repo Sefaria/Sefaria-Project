@@ -173,6 +173,16 @@ class SharedStorySet(abst.AbstractMongoSet):
         sort = sort or [["timestamp", -1]]
         super(SharedStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
+    @classmethod
+    def for_traits(cls, traits, query=None, page=0, limit=0, sort=None):
+        q = {
+            "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
+            "cantHave": {"$nin": traits}
+        }
+        if query is not None:
+            q.update(query)
+        return cls(q, limit=limit, page=page, sort=sort)
+
     def register_for_user(self, uid):
         for shared_story in self:
             UserStory.from_shared_story(uid, shared_story).save()
@@ -290,17 +300,8 @@ class UserStorySet(abst.AbstractMongoSet):
         latest_id_for_user = UserStory.latest_shared_for_user(uid)
         latest_shared_id = SharedStory.latest_id()
         if latest_shared_id and (latest_shared_id != latest_id_for_user):
-            if latest_id_for_user is None:
-                SharedStorySet({
-                    "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
-                    "cantHave": {"$nin": traits}
-                }, limit=10).register_for_user(uid)
-            else:
-                SharedStorySet({
-                    "_id": {"$gt": latest_id_for_user},
-                    "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
-                    "cantHave": {"$nin": traits}
-                }, limit=10).register_for_user(uid)
+            query = {"_id": {"$gt": latest_id_for_user}} if latest_id_for_user is not None else None
+            SharedStorySet.for_traits(traits, query=query, limit=10).register_for_user(uid)
 
     def contents(self, **kwargs):
         if self.uid:

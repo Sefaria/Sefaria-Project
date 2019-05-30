@@ -26,7 +26,7 @@ from notification import Notification, NotificationSet, GlobalNotification, Glob
 from story import SharedStory, UserStory, SharedStorySet, UserStorySet, TextPassageStoryFactory, AuthorStoryFactory, \
     TopicTextsStoryFactory, UserSheetsFactory, SheetListFactory, GroupSheetListFactory, TopicListStoryFactory, \
     MultiTextStoryFactory
-from trend import get_user_traits
+from trend import get_session_traits
 from interrupting_message import InterruptingMessage
 from queue import IndexQueue, IndexQueueSet
 from lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks

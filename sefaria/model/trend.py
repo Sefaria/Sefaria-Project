@@ -23,15 +23,19 @@ periods = {
 }
 
 
-def get_user_traits(request, uid):
+def get_session_traits(request, uid=None):
+
     traits = {
         "inDiaspora": bool(request.diaspora),
         "inIsrael": not request.diaspora,
-        "readsHebrew": True, # needs to be wired up
-        "readsEnglish": True, # needs to be wired up
-        "prefersBilingual": False, # needs to be wired up
-        "isSephardi": False  # needs to be wired up
     }
+    if uid is not None:
+        traits.update({
+            "readsHebrew": True, # needs to be wired up
+            "readsEnglish": True, # needs to be wired up
+            "prefersBilingual": False, # needs to be wired up
+            "isSephardi": False  # needs to be wired up
+        })
 
     return [k for k, v in traits.items() if v]
 

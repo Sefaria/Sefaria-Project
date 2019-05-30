@@ -940,7 +940,7 @@ class ReaderPanel extends Component {
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
-                    onlyGlobalStories={true}
+                    onlySharedStories={true}
       />);
       */
 

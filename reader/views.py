@@ -2405,20 +2405,27 @@ def stories_api(request, gid=None):
 
         page      = int(request.GET.get("page", 0))
         page_size = int(request.GET.get("page_size", 10))
-        only_global = bool(request.GET.get("only_global", False))
+        shared_only = bool(request.GET.get("shared_only", False))
+        admin_feed = bool(request.GET.get("admin_feed", False))
 
         if not request.user.is_authenticated:
-            only_global = True
+            shared_only = True
             user = None
+            traits = get_session_traits(request)
         else:
             user = UserProfile(id=request.user.id)
+            traits = get_session_traits(request, request.user.id)
 
-        if only_global or not user:
-            stories = SharedStorySet(limit=page_size, page=page).contents()
+        if admin_feed:
+            if not request.user.is_staff:
+                return {"error": "Permission Denied"}
+            stories = SharedStorySet({}, limit=page_size, page=page).contents()
+            count = len(stories)
+        elif shared_only or not user:
+            stories = SharedStorySet.for_traits(traits, limit=page_size, page=page).contents()
             count = len(stories)
         else:
-            user_traits = get_user_traits(request, request.user.id)
-            stories = UserStorySet.recent_for_user(request.user.id, user_traits, limit=page_size, page=page).contents()
+            stories = UserStorySet.recent_for_user(request.user.id, traits, limit=page_size, page=page).contents()
             count = len(stories)
             stories = addDynamicStories(stories, user, page)
 
