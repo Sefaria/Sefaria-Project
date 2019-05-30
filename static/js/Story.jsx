@@ -62,16 +62,14 @@ function Story(story_props, indx, ...props) {
                 {...props} />;
 }
 
-class FreeTextStory extends Component {
-    render() {
-      return (
-          <StoryFrame cls="freeTextStory">
-            <StoryTypeBlock en="New Content" he="תוכן חדש"/>
-            <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
-          </StoryFrame>);
-    }
-}
+const FreeTextStory = (props) => (
+  <StoryFrame cls="freeTextStory">
+    <StoryTypeBlock en="New Content" he="תוכן חדש"/>
+    <NaturalTimeBlock timestamp={props.timestamp}/>
+    <StoryBodyBlock en={props.data.en} he={props.data.he}/>
+  </StoryFrame>
+);
+
 FreeTextStory.propTypes = {
   storyForm:    PropTypes.string.isRequired,
   timestamp:    PropTypes.number.isRequired,
@@ -81,27 +79,27 @@ FreeTextStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class NewIndexStory extends Component {
-    render() {
-      const title = this.props.data.index;
-      const heTitle = Sefaria.hebrewTerm(title);
-      const url = title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
+const NewIndexStory = (props) => {
+  const title = props.data.index;
+  const heTitle = Sefaria.hebrewTerm(title);
+  const url = title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
 
-      return (
-        <StoryFrame cls="newIndexStory" cardColor={Sefaria.palette.indexColor(title)}>
-            <StoryTypeBlock en="New Text" he="טקסט חדש"/>
-            <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <SaveLine dref={this.props.data.ref || title} toggleSignUpModal={this.props.toggleSignupModal} classes={"storyTitleWrapper"}>
-                <StoryTitleBlock en={title} he={heTitle} url={url} />
-            </SaveLine>
-            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
-            {this.props.data.ref?<ColorBarBox tref={this.props.data.ref}>
-                <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
-            </ColorBarBox>:""}
-            {this.props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(this.props.data.ref)}/>:""}
-        </StoryFrame>);
-    }
-}
+  return (
+    <StoryFrame cls="newIndexStory" cardColor={Sefaria.palette.indexColor(title)}>
+        <StoryTypeBlock en="New Text" he="טקסט חדש"/>
+        <NaturalTimeBlock timestamp={props.timestamp}/>
+        <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignupModal} classes={"storyTitleWrapper"}>
+            <StoryTitleBlock en={title} he={heTitle} url={url} />
+        </SaveLine>
+        <StoryBodyBlock en={props.data.en} he={props.data.he}/>
+        {props.data.ref?<ColorBarBox tref={props.data.ref}>
+            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+        </ColorBarBox>:""}
+        {props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(props.data.ref)}/>:""}
+    </StoryFrame>
+  );
+};
+
 NewIndexStory.propTypes = {
   storyForm:    PropTypes.string.isRequired,
   timestamp:    PropTypes.number.isRequired,
@@ -118,27 +116,27 @@ NewIndexStory.propTypes = {
 };
 
 // Todo: merge the class above and below.  They're nearly identical.
-class NewVersionStory extends Component {
-    render() {
-      const title = this.props.data.index;
-      const heTitle = Sefaria.hebrewTerm(title);
-      const url = title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
+const NewVersionStory = (props) => {
+  const title = props.data.index;
+  const heTitle = Sefaria.hebrewTerm(title);
+  const url = title && Sefaria.ref(title)?"/" + Sefaria.normRef(Sefaria.ref(title).book):"/" + Sefaria.normRef(title);
 
-      return (
-        <StoryFrame cls="newVersionStory" cardColor={Sefaria.palette.indexColor(title)}>
-            <StoryTypeBlock en="New Version" he="גרסה חדשה" />
-            <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <SaveLine dref={this.props.data.ref || title} toggleSignUpModal={this.props.toggleSignupModal} classes={"storyTitleWrapper"}>
-                <StoryTitleBlock en={title} he={heTitle} url={url} />
-            </SaveLine>
-            <StoryBodyBlock en={this.props.data.en} he={this.props.data.he}/>
-            {this.props.data.ref?<ColorBarBox tref={this.props.data.ref}>
-                <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
-            </ColorBarBox>:""}
-            {this.props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(this.props.data.ref)}/>:""}
-        </StoryFrame>);
-    }
-}
+  return (
+    <StoryFrame cls="newVersionStory" cardColor={Sefaria.palette.indexColor(title)}>
+        <StoryTypeBlock en="New Version" he="גרסה חדשה" />
+        <NaturalTimeBlock timestamp={props.timestamp}/>
+        <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignupModal} classes={"storyTitleWrapper"}>
+            <StoryTitleBlock en={title} he={heTitle} url={url} />
+        </SaveLine>
+        <StoryBodyBlock en={props.data.en} he={props.data.he}/>
+        {props.data.ref?<ColorBarBox tref={props.data.ref}>
+            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+        </ColorBarBox>:""}
+        {props.data.ref?<ReadMoreLink url={"/" + Sefaria.normRef(props.data.ref)}/>:""}
+    </StoryFrame>
+  );
+};
+
 NewVersionStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -154,20 +152,16 @@ NewVersionStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class AuthorStory extends Component {
-    render() {
-      const url = "/person/" + this.props.data.author_key;
+const AuthorStory = (props) => (
+    <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(props.data.example_work)}>
+        <StoryTypeBlock en="Author" he="מחבר" />
+        <NaturalTimeBlock timestamp={props.timestamp}/>
+        <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/person/" + props.data.author_key} />
+        <StoryBodyBlock en={props.data.author_bios.en} he={props.data.author_bios.he}/>
+        <ReadMoreLink url={"/person/" + props.data.author_key}/>
+    </StoryFrame>
+);
 
-        return (
-        <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(this.props.data.example_work)}>
-            <StoryTypeBlock en="Author" he="מחבר" />
-            <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <StoryTitleBlock en={this.props.data.author_names.en} he={this.props.data.author_names.he} url={url} />
-            <StoryBodyBlock en={this.props.data.author_bios.en} he={this.props.data.author_bios.he}/>
-            <ReadMoreLink url={url}/>
-        </StoryFrame>);
-    }
-}
 AuthorStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -182,26 +176,25 @@ AuthorStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class UserSheetsStory extends Component {
-  render() {
-      const positionBlock = (this.props.data.publisher_position) ?
+const UserSheetsStory = (props) => {
+      const positionBlock = (props.data.publisher_position) ?
             <SimpleInterfaceBlock classes="systemText storySubTitle"
-              en={this.props.data.publisher_position}
-              he={this.props.data.publisher_position}/>:"";
+              en={props.data.publisher_position}
+              he={props.data.publisher_position}/>:"";
 
       return (
         <StoryFrame cls="userSheetsStory">
             <StoryTypeBlock en="People" he="קהילה" />
-            <StoryTitleBlock en={this.props.data.publisher_name} he={this.props.data.publisher_name} url={this.props.data.publisher_url}>
+            <StoryTitleBlock en={props.data.publisher_name} he={props.data.publisher_name} url={props.data.publisher_url}>
                 {positionBlock}
-                <FollowButton large={true} uid={this.props.data.publisher_id} following={this.props.data.publisher_followed}/>
+                <FollowButton large={true} uid={props.data.publisher_id} following={props.data.publisher_followed}/>
             </StoryTitleBlock>
 
-            <img className="mediumProfileImage" src={this.props.data.publisher_image} alt={this.props.data.publisher_name}/>
+            <img className="mediumProfileImage" src={props.data.publisher_image} alt={props.data.publisher_name}/>
             <div className="storySheetList">
-                {this.props.data.sheets.map(sheet =>
+                {props.data.sheets.map(sheet =>
                     <div className="storySheetListItem" key={sheet.sheet_id}>
-                        <SaveLine toggleSignUpModal={this.props.toggleSignupModal} historyObject={{ref: "Sheet " + sheet.sheet_id,
+                        <SaveLine toggleSignUpModal={props.toggleSignupModal} historyObject={{ref: "Sheet " + sheet.sheet_id,
                                 sheet_title: sheet.sheet_title, versions: {} }}>
                             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} aclasses="contentText"/>
                         </SaveLine>
@@ -210,8 +203,8 @@ class UserSheetsStory extends Component {
             </div>
         </StoryFrame>
       );
-  }
-}
+  };
+
 UserSheetsStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -233,19 +226,15 @@ UserSheetsStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class GroupSheetListStory extends Component {
+const GroupSheetListStory = (props) => (
+    <StoryFrame cls="groupSheetListStory">
+        <StoryTypeBlock en="Group" he="קבוצה" />
+        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
+        <img className="mediumProfileImage" src={props.data.group_image} alt={props.data.title.en}/>
+        <StorySheetList sheets={props.data.sheets} toggleSignupModal={props.toggleSignupModal}/>
+    </StoryFrame>
+);
 
-    render() {
-      return (
-        <StoryFrame cls="groupSheetListStory">
-            <StoryTypeBlock en="Group" he="קבוצה" />
-            <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
-            <img className="mediumProfileImage" src={this.props.data.group_image} alt={this.props.data.title.en}/>
-            <StorySheetList sheets={this.props.data.sheets} toggleSignupModal={this.props.toggleSignupModal}/>
-        </StoryFrame>
-      );
-    }
-}
 GroupSheetListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -261,19 +250,18 @@ GroupSheetListStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class SheetListStory extends Component {
-    render() {
-      const lead = this.props.data.lead || {en: "Sheets", he: "דפים"};
+const SheetListStory = (props) => {
+  const lead = props.data.lead || {en: "Sheets", he: "דפים"};
 
-      return (
-        <StoryFrame cls="sheetListStory">
-            <StoryTypeBlock en={lead.en} he={lead.he}/>
-            <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
-            <StorySheetList sheets={this.props.data.sheets} toggleSignupModal={this.props.toggleSignupModal}/>
-        </StoryFrame>
-      );
-    }
-}
+  return (
+    <StoryFrame cls="sheetListStory">
+        <StoryTypeBlock en={lead.en} he={lead.he}/>
+        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
+        <StorySheetList sheets={props.data.sheets} toggleSignupModal={props.toggleSignupModal}/>
+    </StoryFrame>
+  );
+};
+
 SheetListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -288,18 +276,14 @@ SheetListStory.propTypes = {
 };
 
 
-class PublishSheetStory extends Component {
-  render() {
+const PublishSheetStory = (props) => (
+    <StoryFrame cls="publishSheetStory">
+        <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
+        <NaturalTimeBlock timestamp={props.timestamp}/>
+        <SheetBlock sheet={props.data} toggleSignUpModal={props.toggleSignUpModal}/>
+    </StoryFrame>
+);
 
-      return (
-        <StoryFrame cls="publishSheetStory">
-            <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
-            <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <SheetBlock sheet={this.props.data} toggleSignUpModal={this.props.toggleSignUpModal}/>
-        </StoryFrame>
-      );
-  }
-}
 PublishSheetStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -310,25 +294,25 @@ PublishSheetStory.propTypes = {
 };
 
 //todo: This might be a sheet!!
-class TextPassageStory extends Component {
-    render() {
-      const url = "/" + Sefaria.normRef(this.props.data.ref);
-      const lead = this.props.data.lead || {en: "Read More", he: "קרא עוד"};
-      return (
-        <StoryFrame cls="textPassageStory" cardColor={Sefaria.palette.indexColor(this.props.data.index)}>
-            <StoryTypeBlock en={lead.en} he={lead.he} />
-            <NaturalTimeBlock timestamp={this.props.timestamp}/>
-            <SaveLine dref={this.props.data.ref} toggleSignUpModal={this.props.toggleSignupModal} classes={"storyTitleWrapper"}>
-                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={url}/>
-            </SaveLine>
-            <ColorBarBox tref={this.props.data.ref}>
-                <StoryBodyBlock en={this.props.data.text.en} he={this.props.data.text.he}/>
-            </ColorBarBox>
-            <ReadMoreLink url={"/" + Sefaria.normRef(this.props.data.ref)}/>
-        </StoryFrame>
-      );
-    }
-}
+
+const TextPassageStory = (props) => {
+  const url = "/" + Sefaria.normRef(props.data.ref);
+  const lead = props.data.lead || {en: "Read More", he: "קרא עוד"};
+  return (
+    <StoryFrame cls="textPassageStory" cardColor={Sefaria.palette.indexColor(props.data.index)}>
+        <StoryTypeBlock en={lead.en} he={lead.he} />
+        <NaturalTimeBlock timestamp={props.timestamp}/>
+        <SaveLine dref={props.data.ref} toggleSignUpModal={props.toggleSignupModal} classes={"storyTitleWrapper"}>
+            <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={url}/>
+        </SaveLine>
+        <ColorBarBox tref={props.data.ref}>
+            <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
+        </ColorBarBox>
+        <ReadMoreLink url={url}/>
+    </StoryFrame>
+  );
+};
+
 TextPassageStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -345,18 +329,15 @@ TextPassageStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class TopicTextsStory extends Component {
-    render() {
-        return (
-            <StoryFrame cls="topicTextsStory">
-                <StoryTypeBlock en="Topic" he="" />
-                <SeeAllLink url="/topics"/>
-                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he} url={"/topics/" + this.props.data.title.en}/>
-                <StoryTextList texts={this.props.data.texts} />
-            </StoryFrame>
-        );
-    }
-}
+const TopicTextsStory = (props) => (
+    <StoryFrame cls="topicTextsStory">
+        <StoryTypeBlock en="Topic" he="" />
+        <SeeAllLink url="/topics"/>
+        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={"/topics/" + props.data.title.en}/>
+        <StoryTextList texts={props.data.texts} />
+    </StoryFrame>
+);
+
 TopicTextsStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -369,18 +350,14 @@ TopicTextsStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class MultiTextStory extends Component {
-    render() {
-        return (
-            <StoryFrame cls="multiTextStory">
-                <StoryTypeBlock en={this.props.data.lead.en} he={this.props.data.lead.he}/>
-                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
-                <StoryTextList texts={this.props.data.texts} />
-            </StoryFrame>
-        )
-    }
+const MultiTextStory = (props) => (
+    <StoryFrame cls="multiTextStory">
+        <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
+        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
+        <StoryTextList texts={props.data.texts} />
+    </StoryFrame>
+);
 
-}
 MultiTextStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -394,20 +371,17 @@ MultiTextStory.propTypes = {
   toggleSignupModal:  PropTypes.func
 };
 
-class TopicListStory extends Component {
-    render() {
-        return (
-            <StoryFrame cls="topicListStory">
-                <StoryTypeBlock en={this.props.data.lead.en} he={this.props.data.lead.he}/>
-                <SeeAllLink url="/topics"/>
-                <StoryTitleBlock en={this.props.data.title.en} he={this.props.data.title.he}/>
-                <TwoBox content={this.props.data.topics.map(topic =>
-                    <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + topic.en} interfaceLink={true}/>
-                )}/>
-            </StoryFrame>
-        )
-    }
-}
+const TopicListStory = (props) => (
+    <StoryFrame cls="topicListStory">
+        <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
+        <SeeAllLink url="/topics"/>
+        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
+        <TwoBox content={props.data.topics.map(topic =>
+            <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + topic.en} interfaceLink={true}/>
+        )}/>
+    </StoryFrame>
+);
+
 TopicListStory.propTypes = {
   storyForm:    PropTypes.string,
   timestamp:    PropTypes.number,
@@ -429,10 +403,11 @@ TopicListStory.propTypes = {
  *****************************/
 
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
-const StoryFrame = ({cls, cardColor, children}) =>
+const StoryFrame = ({cls, cardColor, children}) => (
      <div className={'story ' + cls}>
         {children}
-     </div>;
+     </div>
+);
 StoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
     cardColor:  PropTypes.string
@@ -518,15 +493,17 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
 };
 SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
 
-const SaveLine = (props) => <div className={"saveLine " + props.classes}>
-                <div className="beforeSave">
-                    {props.children}
-                </div>
-                <SaveButton tooltip={true}
-                    historyObject={props.historyObject || {ref: props.dref, versions: props.versions || {}}}
-                    toggleSignUpModal={props.toggleSignUpModal}
-                />
-            </div>;
+const SaveLine = (props) => (
+    <div className={"saveLine " + props.classes}>
+        <div className="beforeSave">
+            {props.children}
+        </div>
+        <SaveButton tooltip={true}
+            historyObject={props.historyObject || {ref: props.dref, versions: props.versions || {}}}
+            toggleSignUpModal={props.toggleSignUpModal}
+        />
+    </div>
+);
 
 SaveLine.propTypes = {
   historyObject:        PropTypes.object,   // One or
