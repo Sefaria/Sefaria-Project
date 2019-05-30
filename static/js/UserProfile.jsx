@@ -298,6 +298,10 @@ const ProfileSummary = ({ profile:p, message, follow }) => {
               <span className="en">Settings</span>
               <span className="he">הגדרות</span>
             </a>
+            <a href="/logout" className="button transparent logoutLink">
+              <span className="int-en">Log Out</span>
+              <span className="int-he">ניתוק</span>
+            </a>
           </div>) : (
           <div className="profile-actions">
             <a href="#" className="resourcesLink blue" onClick={follow}>

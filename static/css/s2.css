@@ -4274,14 +4274,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0;
   line-height: 26px;
 }
-.accountPanel .logoutLink {
+.profile-page .logoutLink {
   box-shadow: none;
   font-size: 16px;
 }
-.accountPanel.systemPanel h1 .logoutLink .int-en {
+.profile-page .logoutLink .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.accountPanel.systemPanel h1 .logoutLink .int-he {
+.profile-page .logoutLink .int-he {
   font-family: "Heebo", sans-serif;
 }
 .notificationsPanel a {
