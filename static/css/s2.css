@@ -6277,6 +6277,9 @@ span.purim-emoji img{
 .storyFeed .storyBody a {
   text-decoration: underline;
 }
+.storyEditBar {
+    padding-bottom: 30px;
+}
 .storyEditorTag {
     display: inline-block;
     float: right;

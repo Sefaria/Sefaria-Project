@@ -90,11 +90,8 @@ class StoryEditor extends Component {
     });
   }
   render() {
-    var classes = {systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
-
     return (
-      <div className={classStr}>
+      <div className="homeFeedWrapper">
         <div className="content hasFooter">
           <div className="contentInner">
             <h1>
@@ -147,7 +144,7 @@ class StoryEditBar extends Component {
     }
     render() {
         if (!Sefaria.is_moderator) {return}
-        return (<div>
+        return (<div className="storyEditBar">
             {(this.props.isDraft)?<div className="story-action-button" onClick={this.handlePublish}>Publish</div>:""}
             {this.state.deleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
             <div className="story-action-button" onClick={this.onDelete}>Delete</div>
