@@ -252,14 +252,17 @@ const ProfileSummary = ({ profile:p, message, follow }) => {
   if (p.website) {
     infoList.push(<span><a href={p.website}>{"website"}</a></span>);
   }
-  infoList = infoList.concat(
-    <span>
-      { social
-        .filter(s => !!p[s])
-        .map(s => (<a key={s} className="social-icon" target="_blank" href={p[s]}><img src={`/static/img/${s}.svg`} /></a>))
-      }
-    </span>
-  );
+  const socialList = social.filter(s => !!p[s]);
+  if (socialList.length) {
+    infoList = infoList.concat(
+      <span>
+        {
+          socialList.map(s => (<a key={s} className="social-icon" target="_blank" href={p[s]}><img src={`/static/img/${s}.svg`} /></a>))
+        }
+      </span>
+    );
+  }
+console.log('info', infoList);
   return (
     <div className="profile-summary">
       <div className="summary-column start">

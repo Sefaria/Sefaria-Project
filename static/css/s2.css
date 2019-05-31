@@ -4274,6 +4274,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0;
   line-height: 26px;
 }
+.readerNavMenu.profile-page .resourcesLink img {
+  top: 0;
+}
 .profile-page .logoutLink {
   box-shadow: none;
   font-size: 16px;
