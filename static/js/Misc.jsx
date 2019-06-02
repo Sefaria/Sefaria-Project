@@ -671,7 +671,6 @@ ProfileListing.propTypes = {
 };
 
 
->>>>>>> Stashed changes
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e, sheet) {
