@@ -1556,13 +1556,16 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
-  followAPI: (uid, isUnfollow) => {
+  toggleFollowAPI: (uid, isUnfollow) => {
     return new Promise((resolve, reject) => {
       $.post({
         url: `/api/${isUnfollow ? 'un' : ''}follow/${uid}`
-      }) 
+      });
     });
     return Sefaria._promiseAPI(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
+  },
+  followAPI: (slug, ftype) => {
+    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/${slug}/${ftype}`);
   },
   getRefSavedHistory: tref => {
     return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);

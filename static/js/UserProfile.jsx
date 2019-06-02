@@ -173,7 +173,7 @@ class UserProfile extends Component {
     );
   }
   getFollowers() {
-    return Promise.resolve([1,2,3,4]);
+    return Sefaria.followAPI(this.props.profile.slug, "followers");
   }
   renderFollowerHeader() {
     return (
@@ -184,9 +184,14 @@ class UserProfile extends Component {
   }
   renderFollower(item) {
     return (
-      <div>
-        blah
-      </div>
+      <ProfileListing
+        uid={item.id}
+        url={`/profile/${item.slug}`}
+        name={item.full_name}
+        image={item.gravatar_url}
+        is_followed={false}
+        position={item.position}
+      />
     );
   }
   renderEmptyFollowerList() {
