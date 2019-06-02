@@ -470,6 +470,7 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
         </SaveLine>
         {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
         <ProfileListing
+          uid={sheet.publisher_id}
           url={sheet.publisher_url}
           image={sheet.publisher_image}
           name={sheet.publisher_name}
