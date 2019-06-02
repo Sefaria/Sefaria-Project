@@ -921,7 +921,7 @@ class AbstractTextRecord(object):
         accumulator = u''
 
         for segment in as_array:
-            joiner = u" " if previous_state else u""
+            joiner = u" " if previous_state is not None else u""
 
             previous_state = accumulator
             accumulator += joiner + segment

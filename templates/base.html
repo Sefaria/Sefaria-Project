@@ -150,7 +150,7 @@
           console.log('loading react locally');
           document.write('<script src="/static/js/lib/react.js"><\/script><script src="/static/js/lib/react-dom.js"><\/script>');
       }*/
-      const DJANGO_VARS = {
+      var DJANGO_VARS = {
         props: {{ propsJSON|default:"null" }},
         contentLang: "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",

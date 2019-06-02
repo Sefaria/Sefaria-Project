@@ -2417,7 +2417,8 @@ def stories_api(request, gid=None):
             stories = SharedStorySet(limit=page_size, page=page).contents()
             count = len(stories)
         else:
-            stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+            user_traits = get_user_traits(request, request.user.id)
+            stories = UserStorySet.recent_for_user(request.user.id, user_traits, limit=page_size, page=page).contents()
             count = len(stories)
             stories = addDynamicStories(stories, user, page)
 
@@ -2487,7 +2488,14 @@ def addDynamicStories(stories, user, page):
         # Keep Reading Most recent
         most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
         if most_recent:
-            stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
+            if getattr(most_recent, "is_sheet", None):
+                stry = SheetListFactory().generate_story(
+                    sheet_ids=[most_recent.sheet_id],
+                    title={"en": "Keep Reading", "he": u"המשך לקרוא"},
+                    lead={"en": "Sheets", "he": u"דפים"}
+                )
+            else:
+                stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
                     lead={"en": "Keep Reading", "he": u"המשך לקרוא"})
             stories = [stry.contents()] + stories
 

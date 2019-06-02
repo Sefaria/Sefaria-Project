@@ -403,9 +403,12 @@ class SheetTagButton extends Component {
     this.props.setSheetTag(this.props.tag);
   }
   render() {
+    var [enTag, heTag] = [this.props.tag, Sefaria.hebrewTerm(this.props.tag)];
+    var heTagOnly = Sefaria.hebrew.isHebrew(enTag);
+    var enTagOnly = !(Sefaria.hebrew.isHebrew(heTag));
     return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>
-              <span className="int-en">{this.props.tag} ({this.props.count})</span>
-              <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)} (<span className="enInHe">{this.props.count}</span>)</span>
+              <span className={"int-en" + (heTagOnly ? " heOnly" : '')}>{enTag} ({this.props.count})</span>
+              <span className={"int-he" + (enTagOnly ? " enOnly" : '')}>{heTag} (<span className="enInHe">{this.props.count}</span>)</span>
             </a>);
   }
 }
