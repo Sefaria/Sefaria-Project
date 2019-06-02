@@ -50,6 +50,7 @@ site_urlpatterns = [
     url(r'^disable_feed/?$', reader_views.disable_home_feed),
     # url(r'^$', reader_views.home_feed),
     # url(r'^oldhome/?$', reader_views.old_home),
+    url(r'^oldhome/?$', lambda x: HttpResponseRedirect('/')),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),

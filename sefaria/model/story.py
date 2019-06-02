@@ -610,12 +610,11 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             while connection_ref is None:
                 connection_ref = random.choice(connection_refs)
                 category = connection_ref.index.categories[0]
-                if category == "Tanakh":  # Quoting commentary isn't best for this
+                if category == "Tanakh" or category == "Reference":  # Quoting commentary isn't best for this
                     connection_ref = None
                     continue
                 if not connection_ref.is_text_translated():
                     mustHave += ["readsHebrew"]
-
 
             cls.generate_story(
                 refs = [top_ref.normal(), connection_ref.normal()],
