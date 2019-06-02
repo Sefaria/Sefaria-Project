@@ -9,6 +9,7 @@ const {
     SimpleContentBlock,
     FollowButton,
     SimpleLinkedBlock,
+    ProfileListing,
 }                = require('./Misc');
 
 import Component from 'react-class';
@@ -462,33 +463,19 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
       const historyObject = {ref: "Sheet " + sheet.sheet_id,
                   sheet_title: sheet.sheet_title,
                   versions: {}};
-      const hasPosition = !!sheet.publisher_position;
-      const positionBlock = hasPosition ? <SimpleInterfaceBlock
-              classes="systemText authorPosition"
-              en={sheet.publisher_position}
-              he={sheet.publisher_position}/>:"";
 
       return (<div className="storySheetListItem">
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle"}/>
         </SaveLine>
-        {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:""}
-
-        <div className="authorByLine">
-            <div className="authorByLineImage">
-                <a href={sheet.publisher_url}>
-                    <img className="smallProfileImage" src={sheet.publisher_image} alt={sheet.publisher_name}/>
-                </a>
-            </div>
-
-            <div className="authorByLineText">
-                <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={sheet.publisher_url}
-                    en={sheet.publisher_name} he={sheet.publisher_name}>
-                    <FollowButton large={false} uid={sheet.publisher_id} following={sheet.publisher_followed}/>
-                </SimpleLinkedBlock>
-                {positionBlock}
-            </div>
-        </div>
+        {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
+        <ProfileListing
+          url={sheet.publisher_url}
+          image={sheet.publisher_image}
+          name={sheet.publisher_name}
+          is_followed={sheet.publisher_followed}
+          position={sheet.publisher_position}
+        />
       </div>);
 };
 SheetBlock.propTypes = {sheet: sheetPropType.isRequired};

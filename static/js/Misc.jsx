@@ -640,6 +640,38 @@ class CategoryColorLine extends Component {
 }
 
 
+const ProfileListing = ({ uid, url, image, name, is_followed, position }) => (
+  <div className="authorByLine">
+    <div className="authorByLineImage">
+      <a href={url}>
+        <img className="smallProfileImage" src={image} alt={name}/>
+      </a>
+    </div>
+    <div className="authorByLineText">
+      <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={url}
+        en={name} he={name}>
+        <FollowButton large={false} uid={uid} following={is_followed}/>
+      </SimpleLinkedBlock>
+      {
+        !!position ? <SimpleInterfaceBlock
+          classes="systemText authorPosition"
+          en={position}
+          he={position}
+        />:null
+      }
+    </div>
+  </div>
+);
+ProfileListing.propTypes = {
+  uid:         PropTypes.number.isRequired,
+  url:         PropTypes.string.isRequired,
+  image:       PropTypes.string.isRequired,
+  name:        PropTypes.string.isRequired,
+  is_followed: PropTypes.bool.isRequired,
+};
+
+
+>>>>>>> Stashed changes
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e, sheet) {
@@ -1320,6 +1352,7 @@ module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
+module.exports.ProfileListing                            = ProfileListing;
 module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
