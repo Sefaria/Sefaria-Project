@@ -208,7 +208,7 @@ class Group(abst.AbstractMongoRecord):
     def sheet_count(self):
         """Returns the number of sheets in this group"""
         from sefaria.sheets import SheetSet
-        SheetSet({"group": self.name}).count()
+        return SheetSet({"group": self.name}).count()
 
     @property
     def url(self):
