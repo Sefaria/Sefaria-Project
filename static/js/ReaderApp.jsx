@@ -463,7 +463,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "home":
             hist.title = Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
-            hist.url   = "oldhome";
+            hist.url   = "";
             hist.mode  = "home";
             break;
           case "navigation":

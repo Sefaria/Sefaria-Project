@@ -2485,6 +2485,9 @@ def addDynamicStories(stories, user, page):
     :return: Array of Story.contents() dicts.
     """
     if page == 0:
+        # Disable most recent story
+        return stories
+
         # Keep Reading Most recent
         most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
         if most_recent:
