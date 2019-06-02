@@ -77,10 +77,10 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
 
     print "Content from %s moved into %s's account." % (from_user.email, into_user.email)
     if override_profile_data:
-        into_user.update(from_user.to_DICT())
+        into_user.update(from_user.to_mongo_dict())
         into_user.save()
     elif fill_in_profile_data:
-        into_user.update_empty(from_user.to_DICT())
+        into_user.update_empty(from_user.to_mongo_dict())
         into_user.save()
 
     delete_user_account(from_uid, confirm=False)

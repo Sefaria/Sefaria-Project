@@ -110,7 +110,7 @@ def user_and_notifications(request):
         }
 
     notifications = profile.recent_notifications()
-    notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
+    notifications_json = "[" + ",".join([n.to_mongo_json() for n in notifications]) + "]"
 
     interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
     interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)

@@ -347,7 +347,7 @@ class NotificationSet(abst.AbstractMongoSet):
         return len([n for n in self if n.type == "sheet like"])
 
     def to_JSON(self):
-        return "[%s]" % ", ".join([n.to_JSON() for n in self])
+        return "[%s]" % ", ".join([n.to_mongo_json() for n in self])
 
     def to_HTML(self):
         html = [n.to_HTML() for n in self]

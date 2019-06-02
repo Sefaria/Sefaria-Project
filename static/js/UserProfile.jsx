@@ -20,6 +20,20 @@ const Footer    = require('./Footer');
 
 
 class UserProfile extends Component {
+  constructor(props) {
+    super(props);
+    this.tabs = [
+      { text: "Sheets", icon: "/static/img/sheet.svg" },
+      { text: "Groups", icon: "/static/img/group.svg" },
+      { text: "Followers", invisible: true },
+      { text: "Following", invisible: true },
+    ];
+    this.showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
+    if (this.showNotes) {
+      this.tabs.splice(1, 0, { text: "Notes", icon: "/static/img/note.svg" });
+    }
+  }
+  _getTabViewRef(ref) { this._tabViewRef = ref; }
   _getSheetListRef(ref) { this._sheetListRef = ref; }
   _getNoteListRef(ref) { this._noteListRef = ref; }
   _getGroupListRef(ref) { this._groupListRef = ref; }
@@ -158,7 +172,32 @@ class UserProfile extends Component {
       </div>
     );
   }
+  getFollowers() {
+    return Promise.resolve([1,2,3,4]);
+  }
+  renderFollowerHeader() {
+    return (
+      <div>
+        Followers
+      </div>
+    );
+  }
+  renderFollower(item) {
+    return (
+      <div>
+        blah
+      </div>
+    );
+  }
+  renderEmptyFollowerList() {
+    return (
+      <div>
+        No Followers
+      </div>
+    );
+  }
   renderTab(tab) {
+    if (tab.invisible) { return null; }
     return (
       <div className="tab">
         <img src={tab.icon} alt={`${tab.text} icon`} />
@@ -172,15 +211,15 @@ class UserProfile extends Component {
   follow() {
     Sefaria.followAPI(this.props.profile.id);
   }
+  openFollowers(e) {
+    e.preventDefault();
+    this._tabViewRef.openTab(this.tabs.findIndex(t => t.text === 'Followers'));
+  }
+  openFollowing(e) {
+    e.preventDefault();
+    this._tabViewRef.openTab(this.tabs.findIndex(t => t.text === 'Following'));
+  }
   render() {
-    const tabs = [
-      { text: "Sheets", icon: "/static/img/sheet.svg" },
-      { text: "Groups", icon: "/static/img/group.svg" },
-    ];
-    const showNotes = !!this.props.profile.id && Sefaria._uid === this.props.profile.id;
-    if (showNotes) {
-      tabs.splice(1, 0, { text: "Notes", icon: "/static/img/note.svg" });
-    }
     return (
       <div className="profile-page readerNavMenu noHeader">
         <div className="content hasFooter">
@@ -191,9 +230,12 @@ class UserProfile extends Component {
                   profile={this.props.profile}
                   message={this.message}
                   follow={this.follow}
+                  openFollowers={this.openFollowers}
+                  openFollowing={this.openFollowing}
                 />
                 <TabView
-                  tabs={tabs}
+                  ref={this._getTabViewRef}
+                  tabs={this.tabs}
                   renderTab={this.renderTab}
                 >
                   <FilterableList
@@ -207,7 +249,7 @@ class UserProfile extends Component {
                     getData={this.getSheets}
                   />
                   {
-                    showNotes ? (
+                    this.showNotes ? (
                       <FilterableList
                         ref={this._getNoteListRef}
                         filterFunc={this.filterNote}
@@ -229,6 +271,24 @@ class UserProfile extends Component {
                     sortOptions={["Members", "Sheets"]}
                     getData={this.getGroups}
                   />
+                  <FilterableList
+                    filterFunc={() => { return true; }}
+                    sortFunc={() => { return 0; }}
+                    renderItem={this.renderFollower}
+                    renderEmptyList={this.renderEmptyFollowerList}
+                    renderHeader={this.renderFollowerHeader}
+                    sortOptions={[]}
+                    getData={this.getFollowers}
+                  />
+                  <FilterableList
+                    filterFunc={() => { return true; }}
+                    sortFunc={() => { return 0; }}
+                    renderItem={this.renderFollower}
+                    renderEmptyList={this.renderEmptyFollowerList}
+                    renderHeader={this.renderFollowerHeader}
+                    sortOptions={[]}
+                    getData={this.getFollowers}
+                  />
                 </TabView>
               </div>
             }
@@ -243,7 +303,7 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 }
 
-const ProfileSummary = ({ profile:p, message, follow }) => {
+const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
@@ -262,7 +322,6 @@ const ProfileSummary = ({ profile:p, message, follow }) => {
       </span>
     );
   }
-console.log('info', infoList);
   return (
     <div className="profile-summary">
       <div className="summary-column start">
@@ -319,9 +378,9 @@ console.log('info', infoList);
           </div>)
         }
         <div className="follow">
-          <span>{ `${p.followers.length} followers`}</span>
+          <a href="" onClick={openFollowers}>{ `${p.followers.length} followers`}</a>
           <span className="follow-bull">&bull;</span>
-          <span>{ `${p.followees.length} following`}</span>
+          <a href="" onClick={openFollowing}>{ `${p.followees.length} following`}</a>
         </div>
       </div>
       <div className="summary-column end">
@@ -331,9 +390,11 @@ console.log('info', infoList);
   );
 }
 ProfileSummary.propTypes = {
-  profile: PropTypes.object.isRequired,
-  message: PropTypes.func.isRequired,
-  follow:  PropTypes.func.isRequired,
+  profile:       PropTypes.object.isRequired,
+  message:       PropTypes.func.isRequired,
+  follow:        PropTypes.func.isRequired,
+  openFollowers: PropTypes.func.isRequired,
+  openFollowing: PropTypes.func.isRequired,
 }
 
 module.exports = UserProfile;

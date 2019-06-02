@@ -3012,30 +3012,29 @@ def leaderboard(request):
 
 @ensure_csrf_cookie
 @sanitize_get_params
-def user_profile(request, username, page=1):
+def user_profile(request, username):
     """
     User's profile page.
     """
     try:
-        profile    = UserProfile(slug=username)
+        profile = UserProfile(slug=username)
     except Exception, e:
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this
-        user       = get_object_or_404(User, username=username)
-        profile    = UserProfile(id=user.id)
+        user = get_object_or_404(User, username=username)
+        profile = UserProfile(id=user.id)
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
 
-    following      = profile.followed_by(request.user.id) if request.user.is_authenticated else False
     props = base_props(request)
-    profileJSON = profile.to_DICT()
+    profileJSON = profile.to_api_dict()
     props.update({
         "initialMenu":  "profile",
         "initialProfile": profileJSON,
     })
     title = u"%(full_name)s on Sefaria" % {"full_name": profile.full_name}
-    desc  = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
+    desc = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -3070,7 +3069,7 @@ def profile_api(request):
             return jsonResponse({"error": error})
         else:
             profile.save()
-            return jsonResponse(profile.to_DICT())
+            return jsonResponse(profile.to_mongo_dict())
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -3078,7 +3077,17 @@ def profile_api(request):
 def profile_get_api(request, slug):
     if request.method == "GET":
         profile = UserProfile(slug=slug)
-        return jsonResponse(profile.to_DICT())
+        return jsonResponse(profile.to_api_dict())
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def profile_follow_api(request, ftype, slug):
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        follow_set = FollowersSet(profile.id) if ftype == "followers" else FolloweesSet(profile.id)
+        response = [UserProfile(id=uid).to_api_dict(basic=True) for uid in follow_set.uids]
+        return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

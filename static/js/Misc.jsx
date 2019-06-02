@@ -140,11 +140,14 @@ class TabView extends Component {
       openTabIndex: 0,
     };
   }
+  openTab(index) {
+    this.setState({openTabIndex: index});
+  }
   onClickTab(e) {
     let target = $(event.target);
     while (!target.attr("data-tab-index")) { target = target.parent(); }
     const tabIndex = target.attr("data-tab-index");
-    this.setState({openTabIndex: parseInt(tabIndex)});
+    this.openTab(parseInt(tabIndex));
   }
   renderTab(tab, index) {
     return (
