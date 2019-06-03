@@ -1565,7 +1565,7 @@ Sefaria = extend(Sefaria, {
     return Sefaria._promiseAPI(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
   },
   followAPI: (slug, ftype) => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/${slug}/${ftype}`);
+    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
   getRefSavedHistory: tref => {
     return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);

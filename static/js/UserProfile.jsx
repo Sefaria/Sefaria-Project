@@ -7,6 +7,7 @@ const {
   TabView,
   FilterableList,
   SheetListing,
+  ProfileListing,
 }               = require('./Misc');
 const React      = require('react');
 const PropTypes = require('prop-types');

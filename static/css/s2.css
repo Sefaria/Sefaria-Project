@@ -6478,7 +6478,7 @@ span.purim-emoji img{
 .storyFeed .story .storySubTitle .int-he {
   color: #666;
 }
-.storyFeed .story img.smallProfileImage {
+img.smallProfileImage {
     height: 40px;
     width: 40px;
     margin: 0;
@@ -6566,21 +6566,21 @@ span.purim-emoji img{
   letter-spacing: 2px;
 }
 
-.storyFeed .story .authorByLine {
+.authorByLine {
   display: flex;
 }
 
-.storyFeed .story .authorByLine .authorByLineText {
+.authorByLine .authorByLineText {
   letter-spacing: 2px;
   padding: 0 10px;
   line-height: 22px;
 }
 
-.storyFeed .story .authorByLine .authorPosition,
-.storyFeed .story .authorByLine .authorName {
+.authorByLine .authorPosition,
+.authorByLine .authorName {
   display: block;
 }
-.storyFeed .story .saveLine .authorByLine + .saveButton {
+.saveLine .authorByLine + .saveButton {
   position: relative;
   bottom: 12px;
 }

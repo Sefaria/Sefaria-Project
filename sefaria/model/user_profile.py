@@ -524,6 +524,7 @@ class UserProfile(object):
         """
         if basic:
             return {
+                "id": self.id,
                 "slug": self.slug,
                 "gravatar_url": self.gravatar_url,
                 "full_name": self.full_name,
