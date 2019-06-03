@@ -3,6 +3,10 @@ from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, Top
     TopicTextsStoryFactory, UserSheetsFactory, GroupSheetListFactory, SheetListFactory, MultiTextStoryFactory
 
 
+def remove_jobs(scheduler):
+    [j.remove() for j in scheduler.get_jobs()]
+
+
 def add_jobs(scheduler):
     _add_calendar_jobs(scheduler)
     _add_parasha_jobs(scheduler)
@@ -59,8 +63,10 @@ def _add_calendar_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_daf_yomi, "cron", id="DafYomi", replace_existing=True,
                       hour="1", minute="20")
 
+    """
     scheduler.add_job(TextPassageStoryFactory.create_929, "cron", id="929", replace_existing=True,
                       day_of_week="mon, tue, wed, thu, sun", hour="1", minute="12")
 
     scheduler.add_job(TextPassageStoryFactory.create_daily_mishnah, "cron", id="Mishnah", replace_existing=True,
                       hour="1", minute="15")
+    """
