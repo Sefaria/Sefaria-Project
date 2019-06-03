@@ -771,15 +771,15 @@ class FollowButton extends Component {
     }
   }
   _post_follow() {
-      $.post("/api/follow/" + this.props.uid, {}, function(data) {
-          Sefaria.track.event("Following", "New Follow", this.props.uid);
-      });
+    $.post("/api/follow/" + this.props.uid, {}, data => {
+      Sefaria.track.event("Following", "New Follow", this.props.uid);
+    });
   }
   _post_unfollow() {
-      $.post("/api/unfollow/" + this.props.uid, {}, function(data) {
-          Sefaria.track.event("Following", "Unfollow", this.props.uid);
-      });
-  }
+    $.post("/api/unfollow/" + this.props.uid, {}, data => {
+      Sefaria.track.event("Following", "Unfollow", this.props.uid);
+    });
+}
 
   onMouseEnter() {
     this.setState({hovering: true});
