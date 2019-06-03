@@ -190,7 +190,7 @@ class UserProfile extends Component {
         url={`/profile/${item.slug}`}
         name={item.full_name}
         image={item.gravatar_url}
-        is_followed={false}
+        is_followed={Sefaria.following.indexOf(item.id) > -1}
         position={item.position}
       />
     );
