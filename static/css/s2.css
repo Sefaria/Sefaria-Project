@@ -6285,6 +6285,19 @@ span.purim-emoji img{
   color: white;
   background-color: #212e50;
 }
+.profile-page .authorByLine {
+  margin: 20px 0;
+}
+.profile-page .follow-header {
+  font-size: 20px;
+  color: #000;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #E2E2E1;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.profile-page .follow-header .follow-count {
+  color: #999;
+}
 .profile-page .resourcesLink {
   overflow: visible;
   padding: 0px 16px;

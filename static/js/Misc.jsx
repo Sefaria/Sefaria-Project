@@ -90,20 +90,23 @@ class FilterableList extends Component {
             />
           </div>
           <div>
-            <DropdownModal close={this.closeSort} isOpen={displaySort}>
-              <DropdownButton
-                isOpen={displaySort}
-                toggle={this.toggleSort}
-                enText={"Sort"}
-                heText={"מיון"}
-              />
-              <DropdownOptionList
-                isOpen={displaySort}
-                options={sortOptions.map(option => ({type: option, name: option, heName: option}))}
-                currOptionSelected={currSortOption}
-                handleClick={this.onSortChange}
-              />
-            </DropdownModal>
+            { sortOptions.length ?
+              <DropdownModal close={this.closeSort} isOpen={displaySort}>
+                <DropdownButton
+                  isOpen={displaySort}
+                  toggle={this.toggleSort}
+                  enText={"Sort"}
+                  heText={"מיון"}
+                />
+                <DropdownOptionList
+                  isOpen={displaySort}
+                  options={sortOptions.map(option => ({type: option, name: option, heName: option}))}
+                  currOptionSelected={currSortOption}
+                  handleClick={this.onSortChange}
+                />
+              </DropdownModal>
+              : null
+            }
           </div>
         </div>
         {

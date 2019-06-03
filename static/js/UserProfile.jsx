@@ -176,10 +176,25 @@ class UserProfile extends Component {
   getFollowers() {
     return Sefaria.followAPI(this.props.profile.slug, "followers");
   }
+  getFollowing() {
+    return Sefaria.followAPI(this.props.profile.slug, "following");
+  }
+  filterFollower(currFilter, follower) {
+    const n = text => text.toLowerCase();
+    currFilter = n(currFilter);
+    return n(follower.full_name).indexOf(currFilter) > -1 || n(follower.position).indexOf(currFilter) > -1;
+  }
   renderFollowerHeader() {
     return (
-      <div>
-        Followers
+      <div className="follow-header">
+        Followers <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
+      </div>
+    );
+  }
+  renderFollowingHeader() {
+    return (
+      <div className="follow-header">
+        Following <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
       </div>
     );
   }
@@ -245,6 +260,7 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                 >
                   <FilterableList
+                    key="sheet"
                     ref={this._getSheetListRef}
                     filterFunc={this.filterSheet}
                     sortFunc={this.sortSheet}
@@ -257,6 +273,7 @@ class UserProfile extends Component {
                   {
                     this.showNotes ? (
                       <FilterableList
+                        key="note"
                         ref={this._getNoteListRef}
                         filterFunc={this.filterNote}
                         sortFunc={this.sortNote}
@@ -268,6 +285,7 @@ class UserProfile extends Component {
                     ) : null
                   }
                   <FilterableList
+                    key="group"
                     ref={this._getGroupListRef}
                     filterFunc={this.filterGroup}
                     sortFunc={this.sortGroup}
@@ -278,7 +296,8 @@ class UserProfile extends Component {
                     getData={this.getGroups}
                   />
                   <FilterableList
-                    filterFunc={() => { return true; }}
+                    key="follower"
+                    filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
                     renderEmptyList={this.renderEmptyFollowerList}
@@ -287,13 +306,14 @@ class UserProfile extends Component {
                     getData={this.getFollowers}
                   />
                   <FilterableList
-                    filterFunc={() => { return true; }}
+                    key="following"
+                    filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
                     renderEmptyList={this.renderEmptyFollowerList}
-                    renderHeader={this.renderFollowerHeader}
+                    renderHeader={this.renderFollowingHeader}
                     sortOptions={[]}
-                    getData={this.getFollowers}
+                    getData={this.getFollowing}
                   />
                 </TabView>
               </div>
