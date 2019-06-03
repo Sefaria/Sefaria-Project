@@ -23,6 +23,7 @@ var DJANGO_DATA_VARS = {
   following:            {{ following|default:'[]' }},
   gravatar_url:         "{{ gravatar_url|default:'' }}",
   last_place:           {{ last_place|jsonify}},
+  following:            {{ following|default:'[]' }},
   interfaceLang:        "{{ request.interfaceLang }}",
   globalWarningMessage: {% if GLOBAL_WARNING %}"{{ GLOBAL_WARNING_MESSAGE}}"{% else %}null{% endif %},
   interruptingMessage:  {{ interrupting_message_json|default:'null' }},
