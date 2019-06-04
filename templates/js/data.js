@@ -19,6 +19,7 @@ var DJANGO_DATA_VARS = {
   notificationsHtml:    "{{ notifications_html|escape_quotes }}",
   saved:                {{ saved|jsonify }},
   last_place:           {{ last_place|jsonify}},
+  following:            {{ following|default:'[]' }},
   interfaceLang:        "{{ request.interfaceLang }}",
   globalWarningMessage: {% if GLOBAL_WARNING %}"{{ GLOBAL_WARNING_MESSAGE}}"{% else %}null{% endif %},
   interruptingMessage:  {{ interrupting_message_json|default:'null' }},
