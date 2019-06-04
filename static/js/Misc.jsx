@@ -973,12 +973,19 @@ class SheetListing extends Component {
         </div>
         <div className="sheetRight">
           {
-           this.props.deletable ? (
+            this.props.editable ?
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
+              : null
+          }
+          {
+            this.props.deletable ?
               <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
-              ) : (this.props.saveable ?
+              : null
+          }
+          {
+            this.props.saveable ?
               <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} />
               : null
-              )
           }
         </div>
       </div>);
@@ -989,6 +996,7 @@ SheetListing.propTypes = {
   connectedRefs:    PropTypes.array.isRequired,
   handleSheetClick: PropTypes.func.isRequired,
   handleSheetDelete:PropTypes.func,
+  handleSheetEdit:  PropTypes.func,
   deletable:        PropTypes.bool,
   saveable:         PropTypes.bool,
   hideAuthor:       PropTypes.bool,

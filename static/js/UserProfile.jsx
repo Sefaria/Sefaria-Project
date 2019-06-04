@@ -30,8 +30,12 @@ class UserProfile extends Component {
       { text: "Following", invisible: true },
     ];
     this.showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
+    this.showBio = !!props.profile.bio;
     if (this.showNotes) {
       this.tabs.splice(1, 0, { text: "Notes", icon: "/static/img/note.svg" });
+    }
+    if (this.showBio) {
+      this.tabs.push({ text: "About", icon: "/static/img/info.svg" });
     }
   }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
@@ -54,7 +58,19 @@ class UserProfile extends Component {
   }
   renderEmptyGroupList() {
     return (
-      <div>{"no groups :("}</div>
+      <div className="emptyList">
+        <div className="emptyListText">
+          <span className="int-en">0 Groups</span>
+          <span className="int-he">0 קבוצות</span>
+        </div>
+        { Sefaria._uid === this.props.profile.id ?
+          <a href="/groups/new" className="resourcesLink faded">
+            <img src="/static/img/group.svg" alt="Group icon" />
+            <span className="en">Create a New Group</span>
+            <span className="he">צור קבוצה חדשה</span>
+          </a> : null
+         }
+      </div>
     );
   }
   renderGroup(group) {
@@ -63,6 +79,7 @@ class UserProfile extends Component {
     );
   }
   renderGroupHeader() {
+    if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
         <a href="/groups/new" className="resourcesLink faded">
@@ -93,7 +110,12 @@ class UserProfile extends Component {
   }
   renderEmptyNoteList() {
     return (
-      <div>{"no notes :("}</div>
+      <div className="emptyList">
+        <div className="emptyListText">
+          <span className="int-en">0 Notes</span>
+          <span className="int-he">0 הערות</span>
+        </div>
+      </div>
     );
   }
   renderNote(note) {
@@ -129,9 +151,19 @@ class UserProfile extends Component {
     }
   }
   renderEmptySheetList() {
+    if (Sefaria._uid !== this.props.profile.id) {
+      return (
+        <div className="emptyList">
+          <div className="emptyListText">
+            <span className="int-en">0 Sheets</span>
+            <span className="int-he">0 דפי מקורות</span>
+          </div>
+        </div>
+      );
+    }
     return (
-      <div className="emptySheetList">
-        <div className="emptySheetListText">
+      <div className="emptyList">
+        <div className="emptyListText">
           You can use sheets to save and organize sources, write new texts, create
             lessons, lectures, articles, and more.
         </div>
@@ -140,7 +172,6 @@ class UserProfile extends Component {
           <span className="en">Create a New Sheet</span>
           <span className="he">צור דף חדש</span>
         </a>
-
       </div>
     );
   }
@@ -155,6 +186,7 @@ class UserProfile extends Component {
         hideAuthor={true}
         handleSheetClick={this.props.handleInAppLinkClick}
         handleSheetDelete={this.handleSheetDelete}
+        editable={Sefaria._uid === this.props.profile.id}
         deletable={Sefaria._uid === this.props.profile.id}
         saveable={Sefaria._uid !== this.props.profile.id}
         connectedRefs={[]}
@@ -163,6 +195,7 @@ class UserProfile extends Component {
     );
   }
   renderSheetHeader() {
+    if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
         <a href="/sheets/new" className="resourcesLink faded">
@@ -243,7 +276,7 @@ class UserProfile extends Component {
   render() {
     return (
       <div className="profile-page readerNavMenu noHeader">
-        <div className="content hasFooter">
+        <div className="content hasFooter noOverflowX">
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -315,6 +348,11 @@ class UserProfile extends Component {
                     sortOptions={[]}
                     getData={this.getFollowing}
                   />
+                  { this.showBio ?
+                    <div className="systemText">
+                      <div className="int-en" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
+                    </div> : null
+                  }
                 </TabView>
               </div>
             }
@@ -397,7 +435,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               <span className="he">עקוב</span>
             </a>
             <a href="#" className="resourcesLink" onClick={message}>
-              <img src="/static/img/settings.svg" alt="Profile Settings" />
               <span className="en">Message</span>
               <span className="he">שלח הודעה</span>
             </a>

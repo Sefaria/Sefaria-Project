@@ -248,6 +248,9 @@ body.hasBannerMessage #s2.headerOnly {
     font-size: 13px;
   }
 }
+.noOverflowX {
+  overflow-x: hidden;
+}
 .readerApp {
   display: flex;
   flex: 1;
@@ -3967,16 +3970,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheet .sheetRight {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 5px;
 }
 .sheet .sheetRight img {
   display: none;
 }
 .sheet:hover .sheetRight img {
   opacity: 0.4;
-  width 17px;
+  width: 17px;
   height: 17px;
-  vertical-align: middle;
   display: inline-block;
 }
 .sheet:hover .sheetRight img:hover {
@@ -3988,8 +3991,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 8px;
 }
 .sheet .sheetTags .unlisted img {
-  width: 17px;
-  height: 17px;
+  width: 13px;
+  height: 13px;
   vertical-align: middle;
   opacity: 0.4;
   margin: 0 3px 0 0;
@@ -4820,8 +4823,8 @@ h2.splitHeader .he {
   align-items: center;
 }
 .groupListing .right-content {
-  align-self: center;
-  padding: 0 10px;
+  align-self: flex-start;
+  padding: 7px 10px 0 10px;
   font-size: 16px;
   color: #666;
   text-transform: capitalize;
@@ -4862,8 +4865,8 @@ h2.splitHeader .he {
   color: #333;
 }
 .groupListingDetails {
-  color: #666;
-  font-size: 16px;
+  color: #999;
+  font-size: 13px;
 }
 .groupListingDetailSeparator {
   margin: 8px;
@@ -5219,10 +5222,12 @@ h2.splitHeader .he {
   height: 16px;
   opacity: 0.4;
 }
-.noteListing .actionButtons img + img {
+.noteListing .actionButtons img + img,
+.sheet .sheetRight a + img {
   margin: 0 0 0 10px;
 }
-.interface-hebrew .noteListing .actionButtons img + img {
+.interface-hebrew .noteListing .actionButtons img + img,
+.interface-hebrew .sheet .sheetRight a + img {
   margin: 0 10px 0 0;
 }
 .noteListing:hover .actionButtons img:hover {
@@ -6081,22 +6086,26 @@ span.purim-emoji img{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: black;
   text-align: center;
-  padding: 14px 8px;
+  padding: 14px 0;
+  margin: 0 14px 0 0;
   cursor: pointer;
+}
+.tab-view .tab-list .active .tab {
+  border-bottom: 4px solid #CCC;
+}
+.interface-hebrew .tab-view .tab-list .tab {
+  margin: 0 0 0 14px;
 }
 .tab-view .tab-list .tab img {
   width: 19px;
   height: 19px;
   opacity: 0.4;
-  margin: 0 10px 0 6px;
+  margin: 0 10px 0 0;
   top: 2px;
   position: relative;
 }
 .interface-hebrew .tab-view .tab-list .tab img {
-  margin: 0 6px 0 10px;
-}
-.tab-view .tab-list .active {
-  border-bottom: 4px solid #CCC;
+  margin: 0 0 0 10px;
 }
 .tab-list :not(.active) .tab {
     color: #666;
@@ -6112,7 +6121,7 @@ span.purim-emoji img{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 40px 14px;
+  padding: 40px 0;
 }
 .profile-page .note + .note {
   border-top: 1px solid #CCC;
@@ -6145,8 +6154,8 @@ span.purim-emoji img{
   cursor:pointer;
 }
 .profile-page .social-icon img {
-  width: 16px;
-  height: 16px;
+  width: 13px;
+  height: 13px;
   opacity: 0.4;
 }
 .profile-page .social-icon + .social-icon {
@@ -6164,7 +6173,7 @@ span.purim-emoji img{
   flex-direction: column;
 }
 .profile-page .sheet .sheetTags {
-  color: #666;
+  color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .profile-page .sheet .sheetTags .bullet {
@@ -6179,9 +6188,11 @@ span.purim-emoji img{
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
-  font-size: 20px;
+  font-size: 18px;
 }
-.profile-page .sheet a img {
+.profile-page .sheet .sheetLeft a img {
+  width: 18px;
+  height: 18px;
   opacity: 0.4;
   margin: 0 10px 0 0;
 }
@@ -6189,28 +6200,33 @@ span.purim-emoji img{
   margin: 0 0 0 10px;
 }
 
-.profile-page .filterable-list:before {
+.profile-page .filterable-list {
   /* to distinguish top half of probile from bottom half*/
-    content: "";
     background-color: white;
-    position: absolute;
-    height: 100%;
+    border: 400px solid white;
+    border-top: 4px solid white;
+    border-bottom: 120px solid white;
+    margin: -4px 0 -120px -400px;
     width: 100%;
-    left: 0;
-    z-index: -1;
-    margin-top: -4px;
 }
 .filterable-list .filter-bar {
   border-bottom: 1px solid #E2E2E1;
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 16px 8px;
+  padding: 16px 0;
   justify-content: space-between;
+}
+.filterable-list .readerNavMenuSearchButton {
+  margin: 0 10px 0 0;
+}
+.interface-hebrew .filterable-list .readerNavMenuSearchButton {
+  margin: 0 0 0 10px;
 }
 .filterable-list input {
   border: 0;
-  font-size: 16px;
+  font-size: 18px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
   background-color: transparent;
 }
 .profile-page .filterable-list .filter-content {
@@ -6220,8 +6236,11 @@ span.purim-emoji img{
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  margin-bottom: 10px;
 }
 .profile-page .groupListingImage {
+  width: 75%;
+  height: 75%;
   border-radius: 50%;
 }
 .profile-page .groupListingName {
@@ -6243,13 +6262,14 @@ span.purim-emoji img{
 .profile-page .profile-summary .summary-column {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  flex-grow: 3;
   flex-basis: 0;
 }
 .profile-page .profile-summary .summary-column.start {
   align-items: flex-start;
 }
 .profile-page .profile-summary .summary-column.end {
+  flex-grow: 1;
   align-items: flex-end;
 }
 .profile-page .profile-summary .small-margin {
@@ -6281,6 +6301,9 @@ span.purim-emoji img{
   flex-direction: row;
   margin: 10px 0;
 }
+.profile-page .resourcesLink.faded {
+  color: #666;
+}
 .profile-page .profile-summary .resourcesLink.blue {
   color: white;
   background-color: #212e50;
@@ -6299,6 +6322,8 @@ span.purim-emoji img{
   color: #999;
 }
 .profile-page .resourcesLink {
+  min-height: 46px;
+  height: 46px;
   overflow: visible;
   padding: 0px 16px;
   border-top: 0;
@@ -6307,12 +6332,12 @@ span.purim-emoji img{
   align-items: center;
   width: unset;
 }
-.profile-page .emptySheetList {
+.profile-page .emptyList {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-.profile-page .emptySheetList .emptySheetListText {
+.profile-page .emptyList .emptyListText {
   font-size: 16px;
   margin: 30px 0;
   color: #999;
