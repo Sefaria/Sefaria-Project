@@ -232,6 +232,10 @@ def make_parashah_response_from_calendar_entry(db_parasha):
     return [parasha]
 
 
+def aliyah_ref(parasha_db, aliyah):
+    assert 1 <= aliyah <= 7
+    return model.Ref(parasha_db["aliyot"][aliyah - 1])
+
 def this_weeks_parasha(datetime_obj, diaspora=True):
     """
     Returns the upcoming Parasha for datetime.
@@ -269,6 +273,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)
+
 
 def get_keyed_calendar_items(diaspora=True, custom=None):
     cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)

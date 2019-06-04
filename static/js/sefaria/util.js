@@ -611,9 +611,7 @@ class Util {
                          .then(d => d.completions)
                          .then(response);
                 },
-                select: function(event, ui) {
-                  this._lookupAndRoute(ui.item.value);
-                }.bind(this),
+                select: (event, ui) => this._lookupAndRoute(ui.item.value),
                 minLength: 3
             });
     };

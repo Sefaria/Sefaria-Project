@@ -86,7 +86,7 @@ def terms(request):
 
 
 @user_only
-def embed_page(request):
+def body_flags(request):
     return {"EMBED": "embed" in request.GET}
 
 
@@ -125,6 +125,7 @@ def user_and_notifications(request):
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
         "partner_role": profile.partner_role,
+        "following": json.dumps(profile.followees.uids)
     }
 
 
@@ -132,6 +133,8 @@ HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
     'logged_out': {'english': None, 'hebrew': None}
 }
+
+
 @user_only
 def header_html(request):
     """

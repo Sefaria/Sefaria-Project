@@ -1695,6 +1695,11 @@ line-height: normal;
     top: 60px;
 }
 
+body.hasBannerMessage .sheetsEditNavTop {
+  transition: top .3s;
+  top: 180px;	
+}
+
 .sheetsMenuBar, .sheetsEditorControls{
 	padding: 7px 30px 6px 30px;
 }
