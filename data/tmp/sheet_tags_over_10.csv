@@ -322,7 +322,7 @@ Rosh Chodesh,Rosh Hodesh,11,Holidays
 ,Sefirat Haomer,11,Holidays
 ,Shabbat,525,Holidays
 Shabbat,Shabbos,19,Holidays
-High Holidays,Shalosh Regalim,10,Holidays
+,Shalosh Regalim,10,Holidays
 Shavuot,Shavous,16,Holidays
 Shavuot,Shavuos,50,Holidays
 ,Shavuot,528,Holidays
@@ -1020,7 +1020,7 @@ Women,נשים,10,Society
 Zionism,ציונות,10,Israel
 Aggadah,Aggada,11,Texts
 ,Aggadah,28,Texts
-Pirkei Avot,Avot,13,Texts
+,Avot,13,Texts
 Bava Metzia,Baba Metzia,11,Texts
 Parshat Bamidbar,Bamidbar,36,Texts
 ,Bava Kamma,18,Texts
@@ -1048,7 +1048,7 @@ Chassidut,Hasidus,28,Texts
 Sefer Vayikra,Leviticus,45,Texts
 ,Liturgy,142,Texts
 ,Makkot,17,Texts
-Esther,Megilat Esther,25,Texts
+,Megilat Esther,25,Texts
 ,Megillah,38,Texts
 ,Metzora,12,Texts
 ,Midrash,180,Texts
@@ -1081,7 +1081,7 @@ Taanit,Ta'anit,62,Texts
 ,Yerushalmi,21,Texts
 ,Zohar,51,Texts
 Zohar,זוהר,12,Texts
-Esther,מגילת אסתר,23,Texts
+,מגילת אסתר,23,Texts
 Kabbalah,קבלה,11,Texts
 Shulchan Arukh,שולחן ערוך,10,Texts
 Talmud,תלמוד,16,Texts
@@ -1168,7 +1168,7 @@ Parashat Noach,Parshat Noah,10,Torah Portions
 Parashat Pekudei,Pekudei,23,Torah Portions
 Parashat Re'eh,Re'eh,24,Torah Portions
 Parashat Shemini,Shemini,11,Torah Portions
-Parashat Lech Lecha,Shlach Lecha,11,Torah Portions
+Parashat Shlach Lecha,Shlach Lecha,11,Torah Portions
 Parashat Shemini,Shmini,19,Torah Portions
 Parashat Shoftim,Shoftim,27,Torah Portions
 Parashat Tazria,Tazria,10,Torah Portions

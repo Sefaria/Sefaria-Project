@@ -58,7 +58,18 @@ with open(cfile, 'rb') as tfile:
                 parent_tag_term.save()
 
             else:
-                conflicting_terms.append((parent_tag, tag, parent_tag_term.get_primary_title(), tag_term.get_primary_title()))
+
+                if tag == tag_term.get_primary_title() and parent_tag == parent_tag_term.get_primary_title():
+                    titles_to_add = tag_term.get_titles_object()
+                    for t in titles_to_add:
+                        parent_tag_term.add_title(t["text"], t["lang"])  # this step should eliminate duplicates.
+
+                    # print u"Deleting Term {}".format(term.get_primary_title())
+                    tag_term.delete()
+                    parent_tag_term.save()
+
+                else:
+                    conflicting_terms.append((parent_tag, tag, parent_tag_term.get_primary_title(), tag_term.get_primary_title()))
 
 
 
