@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 class Passage(abst.AbstractMongoRecord):
     """
-    Homo Sapiens
+    Sugyot
     """
     collection = 'passage'
 
