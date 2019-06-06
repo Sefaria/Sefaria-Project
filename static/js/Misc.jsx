@@ -7,19 +7,27 @@ const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
 
-class SheetRow extends Component {
-  render() {
-    return (
-      <div>
-        { sheet.title }
-      </div>
-    )
-  }
-}
-SheetRow.propTypes = {
-  sheet: PropTypes.object.isRequired,
-  onClick: PropTypes.func,
+/* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
+const ProfilePic = ({ url, initials, len }) => (
+  <div>
+    <div className="default-profile-img" style={{width: len, height: len, fontSize: len/2}}>
+      { `${initials}` }
+    </div>
+    <img
+      className="img-circle profile-img"
+      style={{width: len, height: len, fontSize: len/2}}
+      src={url.replace(/d=.+$/, 'd=thisimagedoesntexistandshouldfail')}
+      alt="User Profile Picture"
+      onError={e => e.target.style.display = 'none'}
+    />
+  </div>
+);
+ProfilePic.propTypes = {
+  url:     PropTypes.string,
+  initials:PropTypes.string,
+  len:     PropTypes.number,
 };
+
 
 class FilterableList extends Component {
   constructor(props) {
@@ -1625,6 +1633,7 @@ module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
 module.exports.ProfileListing                            = ProfileListing;
+module.exports.ProfilePic                                = ProfilePic;
 module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;

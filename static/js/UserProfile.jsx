@@ -8,6 +8,7 @@ const {
   FilterableList,
   SheetListing,
   ProfileListing,
+  ProfilePic,
 }               = require('./Misc');
 const React      = require('react');
 const PropTypes = require('prop-types');
@@ -369,6 +370,8 @@ UserProfile.propTypes = {
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing }) => {
   // collect info about this profile in `infoList`
+  const nameArray = p.full_name.split(/\s/);
+  const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
   if (p.location) { infoList.push(p.location); }
@@ -447,7 +450,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         </div>
       </div>
       <div className="summary-column end">
-        <img className="img-circle profile-img" src={p.gravatar_url} alt="User Profile Picture"/>
+        <ProfilePic url={p.gravatar_url} initials={initials} len={175} />
       </div>
     </div>
   );

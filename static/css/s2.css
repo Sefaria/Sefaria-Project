@@ -6196,6 +6196,20 @@ span.purim-emoji img{
   opacity: 0.4;
   margin: 0 10px 0 0;
 }
+.default-profile-img {
+  width: 175px;
+  height: 175px;
+  background-color: #999;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  z-index: -1;
+  position: absolute;
+  font-size: 75px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
 .interface-hebrew .profile-page .sheet a img {
   margin: 0 0 0 10px;
 }
@@ -6270,7 +6284,6 @@ span.purim-emoji img{
 }
 .profile-page .profile-summary .summary-column.end {
   flex-grow: 1;
-  align-items: flex-end;
 }
 .profile-page .profile-summary .small-margin {
   margin: 0 4px;
