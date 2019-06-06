@@ -148,7 +148,7 @@
       }
       if (!window.react) {
           console.log('loading react locally');
-          document.write('<script src="/static/js/lib/react.js"><\/script><script src="/static/js/lib/react-dom.js"><\/script>');
+          document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
       }
       var DJANGO_VARS = {
         props: {{ propsJSON|default:"null" }},

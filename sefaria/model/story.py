@@ -10,6 +10,7 @@ import random
 from datetime import datetime
 
 from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.talmud import amud_ref_to_daf_ref
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from . import abstract as abst
@@ -17,7 +18,8 @@ from . import user_profile
 from . import person
 from . import text
 from . import following
-
+from . import ref_data
+from . import passage
 
 import logging
 logger = logging.getLogger(__name__)
@@ -535,9 +537,27 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
         create_israel_and_diaspora_stories(_create_aliyah_story, **kwargs)
 
+    """
     @classmethod
     def create_daf_yomi(cls, **kwargs):
         cls.generate_calendar(key="Daf Yomi", **kwargs).save()
+    """
+
+    @classmethod
+    def create_daf_yomi(cls, **kwargs):
+        from sefaria.utils.calendars import get_keyed_calendar_items
+        cal = get_keyed_calendar_items()["Daf Yomi"]
+        daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
+        top_ref = ref_data.RefDataSet.from_ref(daf_ref).top_ref()
+        sugya = passage.Passage.containing_segment(top_ref)
+
+        return cls._generate_shared_story(
+            ref=sugya.ref().normal(),
+            lead=cal["title"],
+            title=cal["displayValue"],
+            **kwargs
+        ).save()
+
 
     @classmethod
     def create_929(cls, **kwargs):

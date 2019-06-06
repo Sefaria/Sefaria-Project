@@ -20,6 +20,12 @@ class Passage(abst.AbstractMongoRecord):
         "same_as"    # []
     ]
 
+    @classmethod
+    def containing_segment(cls, ref):
+        assert isinstance(ref, text.Ref)
+        assert ref.is_segment_level()
+        return cls().load({"ref_list": ref.starting_ref().normal()})
+
     def _normalize(self):
         super(Passage, self)._normalize()
         self.ref_list = [r.normal() for r in self.ref().range_list()]
