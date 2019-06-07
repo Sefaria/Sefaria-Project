@@ -494,6 +494,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     def _story_form(cls, **kwargs):
         return "textPassage"
 
+    """
     @classmethod
     def create_parasha(cls, **kwargs):
         def _create_parasha_story(parasha_obj, mustHave=None, **kwargs):
@@ -502,6 +503,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             cls._generate_shared_story(ref=cal["ref"], lead=cal["title"], title=cal["displayValue"],
                                        mustHave=mustHave or [], **kwargs).save()
         create_israel_and_diaspora_stories(_create_parasha_story, **kwargs)
+    """
 
     @classmethod
     def create_haftarah(cls, **kwargs):
@@ -652,6 +654,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
 
             commentary_ref = random_commentary_on(top_ref)
+
             if not commentary_ref.is_text_translated():
                 mustHave += ["readsHebrew"]
             commentator = commentary_ref.index.collective_title
@@ -1029,15 +1032,19 @@ def daf_yomi_ref():
     daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
     return daf_ref
 
+
 def random_commentary_on(ref):
     commentary_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type == "commentary", ref.linkset())]
-    return random.choice(commentary_refs)
+    candidates = filter(lambda r: not r.is_empty(), commentary_refs)
+    return random.choice(candidates)
 
 
 def random_connection_to(ref):
     connection_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type != "commentary", ref.linkset())]
 
     def is_useful(r):
+        if r.is_empty():
+            return False
         category = r.index.categories[0]
         if category == "Tanakh" or category == "Reference":
             return False
