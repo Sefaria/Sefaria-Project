@@ -545,9 +545,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def create_daf_yomi(cls, **kwargs):
-        from sefaria.utils.calendars import get_keyed_calendar_items
-        cal = get_keyed_calendar_items()["Daf Yomi"]
-        daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
+        daf_ref = daf_yomi_ref()
         top_ref = ref_data.RefDataSet.from_ref(daf_ref).top_ref()
         sugya = passage.Passage.containing_segment(top_ref)
 
@@ -557,7 +555,6 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             title=cal["displayValue"],
             **kwargs
         ).save()
-
 
     @classmethod
     def create_929(cls, **kwargs):
@@ -625,17 +622,11 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
 
-            connection_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type != "commentary", top_ref.linkset())]
+            connection_ref = random_connection_to(top_ref)
+            category = connection_ref.index.categories[0]
 
-            connection_ref = None
-            while connection_ref is None:
-                connection_ref = random.choice(connection_refs)
-                category = connection_ref.index.categories[0]
-                if category == "Tanakh" or category == "Reference":  # Quoting commentary isn't best for this
-                    connection_ref = None
-                    continue
-                if not connection_ref.is_text_translated():
-                    mustHave += ["readsHebrew"]
+            if not connection_ref.is_text_translated():
+                mustHave += ["readsHebrew"]
 
             cls.generate_story(
                 refs = [top_ref.normal(), connection_ref.normal()],
@@ -659,8 +650,8 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             parasha_ref = text.Ref(parasha_obj["ref"])
 
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
-            commentary_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type == "commentary", top_ref.linkset())]
-            commentary_ref = random.choice(commentary_refs)
+
+            commentary_ref = random_commentary_on(top_ref)
             if not commentary_ref.is_text_translated():
                 mustHave += ["readsHebrew"]
             commentator = commentary_ref.index.collective_title
@@ -861,6 +852,13 @@ class SheetListFactory(AbstractStoryFactory):
         # return [s.id for s in sheets]
 
     @classmethod
+    def _get_daf_sheet_ids(cls):
+        from sefaria.sheets import get_sheets_for_ref
+        sheets = get_sheets_for_ref(daf_yomi_ref())
+        sorted_sheets = sorted(sheets, key=lambda s: s["views"], reverse=True)
+        return [s["id"] for s in sorted_sheets[:3]]
+
+    @classmethod
     def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
@@ -879,6 +877,12 @@ class SheetListFactory(AbstractStoryFactory):
             ).save()
 
         create_israel_and_diaspora_stories(_create_parasha_sheet_story, **kwargs)
+
+    @classmethod
+    def generate_daf_sheet_story(cls, **kwargs):
+        ids = cls._get_daf_sheet_ids()
+        if ids:
+            return cls.generate_story(sheet_ids=cls._get_daf_sheet_ids(), title={"en": "On Today's Daf", "he": u"על דף היומי"}, **kwargs)
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
@@ -1015,6 +1019,32 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_random_shared_story(cls, **kwargs):
         cls.generate_random_shared_story(**kwargs).save()
+
+
+##### Utils #####
+
+def daf_yomi_ref():
+    from sefaria.utils.calendars import get_keyed_calendar_items
+    cal = get_keyed_calendar_items()["Daf Yomi"]
+    daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
+    return daf_ref
+
+def random_commentary_on(ref):
+    commentary_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type == "commentary", ref.linkset())]
+    return random.choice(commentary_refs)
+
+
+def random_connection_to(ref):
+    connection_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type != "commentary", ref.linkset())]
+
+    def is_useful(r):
+        category = r.index.categories[0]
+        if category == "Tanakh" or category == "Reference":
+            return False
+        return True
+
+    candidates = filter(is_useful, connection_refs)
+    return random.choice(candidates)
 
 
 def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
