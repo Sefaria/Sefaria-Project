@@ -370,8 +370,6 @@ UserProfile.propTypes = {
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing }) => {
   // collect info about this profile in `infoList`
-  const nameArray = p.full_name.split(/\s/);
-  const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
   if (p.location) { infoList.push(p.location); }
@@ -450,7 +448,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         </div>
       </div>
       <div className="summary-column end">
-        <ProfilePic url={p.gravatar_url} initials={initials} len={175} />
+        <ProfilePic url={p.gravatar_url} name={p.full_name} len={175} />
       </div>
     </div>
   );

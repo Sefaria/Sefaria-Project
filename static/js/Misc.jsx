@@ -8,20 +8,38 @@ import Component      from 'react-class';
 
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
-const ProfilePic = ({ url, initials, len }) => (
-  <div>
-    <div className="default-profile-img" style={{width: len, height: len, fontSize: len/2}}>
-      { `${initials}` }
-    </div>
-    <img
-      className="img-circle profile-img"
-      style={{width: len, height: len, fontSize: len/2}}
-      src={url.replace(/d=.+$/, 'd=thisimagedoesntexistandshouldfail')}
-      alt="User Profile Picture"
-      onError={e => e.target.style.display = 'none'}
-    />
-  </div>
-);
+class ProfilePic extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showDefault: true,
+    };
+  }
+  showNonDefaultPic() {
+    this.setState({ showDefault: false });
+  }
+  render() {
+    const { url, name, len } = this.props;
+    const nameArray = !!name.trim() ? name.split(/\s/) : [];
+    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
+    const defaultViz = this.state.showDefault ? 'flex' : 'none';
+    const profileViz = this.state.showDefault ? 'none' : 'initial';
+    return (
+      <div>
+        <div className="default-profile-img noselect" style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
+          { `${initials}` }
+        </div>
+        <img
+          className="img-circle profile-img"
+          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          src={url.replace(/d=.+$/, 'd=thisimagedoesntexistandshouldfail')}
+          alt="User Profile Picture"
+          onLoad={this.showNonDefaultPic}
+        />
+      </div>
+    );
+  }
+}
 ProfilePic.propTypes = {
   url:     PropTypes.string,
   initials:PropTypes.string,
@@ -876,7 +894,11 @@ const ProfileListing = ({ uid, url, image, name, is_followed, position }) => (
   <div className="authorByLine">
     <div className="authorByLineImage">
       <a href={url}>
-        <img className="smallProfileImage" src={image} alt={name}/>
+        <ProfilePic
+          len={40}
+          url={image}
+          name={name}
+        />
       </a>
     </div>
     <div className="authorByLineText">

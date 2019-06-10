@@ -6205,8 +6205,6 @@ span.purim-emoji img{
   justify-content: center;
   align-items: center;
   color: white;
-  z-index: -1;
-  position: absolute;
   font-size: 75px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
@@ -6323,6 +6321,9 @@ span.purim-emoji img{
 }
 .profile-page .authorByLine {
   margin: 20px 0;
+}
+.authorByLineImage a {
+  text-decoration: none;
 }
 .profile-page .follow-header {
   font-size: 20px;
