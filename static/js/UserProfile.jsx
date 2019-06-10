@@ -350,7 +350,7 @@ class UserProfile extends Component {
                     getData={this.getFollowing}
                   />
                   { this.showBio ?
-                    <div className="systemText">
+                    <div className="systemText filterable-list">
                       <div className="int-en" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
                     </div> : null
                   }

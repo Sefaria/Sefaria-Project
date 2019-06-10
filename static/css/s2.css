@@ -389,7 +389,7 @@ input.noselect {
   margin: auto 30px;
 }
 .header .notifications {
-  margin: auto 17px;
+  margin: 0 17px;
 }
 @media (max-width: 540px) {
   .header .home {
@@ -412,7 +412,8 @@ input.noselect {
   }
 }
 .header .accountLinks {
-  display: inline-block;
+  display: flex;
+  align-items: center;
   font-size: 16px;
   margin-top: 2px;
   color: #666;
@@ -432,11 +433,10 @@ input.noselect {
   height: 24px;
   width: 24px;
   text-align: center;
-  border-radius: 15px;
+  border-radius: 50%;
   background-color: #aaa;
   color: white;
   font-size: 16px;
-  margin-top: -1px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
@@ -4547,6 +4547,9 @@ a.button.mini {
   background-color: transparent;
   border: 1px solid transparent;
 }
+.profile-page .button.transparent {
+  border: 0;
+}
 .button.transparent.bordered {
   border: 1px solid #CCC;
 }
@@ -4817,6 +4820,13 @@ h2.splitHeader .he {
   flex-direction: row;
   justify-content: space-between;
 }
+.profile-page .groupListing {
+  padding: 15px 0;
+}
+.profile-page .groupListingImageBox {
+  display: flex;
+  align-items: center;
+}
 .groupListing .left-content {
   display: flex;
   flex-direction: row;
@@ -4824,7 +4834,7 @@ h2.splitHeader .he {
 }
 .groupListing .right-content {
   align-self: flex-start;
-  padding: 7px 10px 0 10px;
+  padding: 10px 10px 0 10px;
   font-size: 16px;
   color: #666;
   text-transform: capitalize;
@@ -4854,6 +4864,11 @@ h2.splitHeader .he {
   height: 80%;
   margin: 10%;
   opacity: 0.4;
+}
+.profile-page .groupListingImage.default {
+  background-color: #D2DCFF;
+  object-fit: scale-down;
+  margin: 0;
 }
 .groupListingName {
   display: block;
@@ -5176,7 +5191,6 @@ h2.splitHeader .he {
 }
 .noteListing {
   margin-bottom: 30px;
-  padding-bottom: 30px;
   border-bottom: 1px solid #ccc;
 }
 .noteListing a:hover {
@@ -6087,14 +6101,14 @@ span.purim-emoji img{
   color: black;
   text-align: center;
   padding: 14px 0;
-  margin: 0 14px 0 0;
+  margin: 0 30px 0 0;
   cursor: pointer;
 }
 .tab-view .tab-list .active .tab {
   border-bottom: 4px solid #CCC;
 }
 .interface-hebrew .tab-view .tab-list .tab {
-  margin: 0 0 0 14px;
+  margin: 0 0 0 30px;
 }
 .tab-view .tab-list .tab img {
   width: 19px;
@@ -6121,7 +6135,7 @@ span.purim-emoji img{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 40px 0;
+  padding: 10px 0 20px 0;
 }
 .profile-page .note + .note {
   border-top: 1px solid #CCC;
@@ -6163,6 +6177,9 @@ span.purim-emoji img{
 }
 .profile-page .social-icon:hover img {
   opacity: 0.6;
+}
+.readerNavMenu.profile-page .sheet {
+  border-bottom: none;
 }
 .profile-page .sheet {
   display: flex;
@@ -6265,6 +6282,10 @@ span.purim-emoji img{
 .profile-page .profile-summary a {
   color: inherit;
 }
+.profile-page .profile-summary a.logoutLink {
+  color: #666;
+  padding: 16px 15px;
+}
 .profile-page .profile-summary {
   display: flex;
   flex-direction: row;
@@ -6294,14 +6315,25 @@ span.purim-emoji img{
 .profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 0 0 4px;
 }
-.profile-page .profile-summary .profile-img {
-  width: 175px;
-  height: 175px;
+@media (max-width: 540px) {
+  .profile-page .profile-summary .profile-img {
+    width: 87px !important;
+    height: 87px !important;
+    font-size: 43.5px !important;
+  }
+  .profile-page .profile-summary .default-profile-img {
+    width: 87px !important;
+    height: 87px !important;
+    font-size: 43.5px !important;
+  }
+  .profile-page .profile-summary .profile-actions {
+    flex-wrap: wrap;
+  }
 }
 .profile-page .profile-summary .follow {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 1px;
 }
 .profile-page .profile-summary .follow .follow-bull {
@@ -6358,7 +6390,10 @@ span.purim-emoji img{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink {
-  margin: 0 10px;
+  margin: 0 0 0 10px;
+}
+.interface-hebrew .profile-page .profile-summary .resourcesLink + .resourcesLink {
+  margin: 0 10px 0 0;
 }
 .profile-page .profile-summary .title {
   margin-bottom: 10px;
