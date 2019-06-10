@@ -6367,7 +6367,8 @@ span.purim-emoji img{
 .profile-page .follow-header .follow-count {
   color: #999;
 }
-.profile-page .resourcesLink {
+.profile-page .resourcesLink,
+.profile-page .largeFollowButton {
   min-height: 46px;
   height: 46px;
   overflow: visible;
@@ -6377,6 +6378,15 @@ span.purim-emoji img{
   letter-spacing: 1px;
   align-items: center;
   width: unset;
+}
+.profile-page .largeFollowButton {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border: 0;
+}
+.profile-page .largeFollowButton .int-en,
+.profile-page .largeFollowButton .int-he {
+  color: white;
+  font-size: 16px;
 }
 .profile-page .emptyList {
   display: flex;
@@ -6389,9 +6399,11 @@ span.purim-emoji img{
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.profile-page .profile-summary .resourcesLink + .resourcesLink {
+.profile-page .profile-summary .resourcesLink + .resourcesLink,
+.profile-page .profile-summary .largeFollowButton + .resourcesLink {
   margin: 0 0 0 10px;
 }
+.interface-hebrew .profile-page .profile-summary .largeFollowButton + .resourcesLink,
 .interface-hebrew .profile-page .profile-summary .resourcesLink + .resourcesLink {
   margin: 0 10px 0 0;
 }
@@ -6473,6 +6485,10 @@ span.purim-emoji img{
 }
 .largeFollowButton.following {
   background: #fff;
+}
+.profile-page .largeFollowButton.following .int-en,
+.profile-page .largeFollowButton.following .int-he {
+  color: black;
 }
 .largeFollowButton.following span {
   color: #666;

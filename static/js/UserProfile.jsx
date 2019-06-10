@@ -9,6 +9,7 @@ const {
   SheetListing,
   ProfileListing,
   ProfilePic,
+  FollowButton,
 }               = require('./Misc');
 const React      = require('react');
 const PropTypes = require('prop-types');
@@ -431,10 +432,11 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
             </a>
           </div>) : (
           <div className="profile-actions">
-            <a href="#" className="resourcesLink blue" onClick={follow}>
-              <span className="en">Follow</span>
-              <span className="he">עקוב</span>
-            </a>
+            <FollowButton
+              large={true}
+              uid={p.id}
+              following={Sefaria.following.indexOf(p.id) > -1}
+            />
             <a href="#" className="resourcesLink" onClick={message}>
               <span className="en">Message</span>
               <span className="he">שלח הודעה</span>
