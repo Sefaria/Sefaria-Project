@@ -925,7 +925,6 @@ Sefaria = extend(Sefaria, {
     // If `excludedSheet` is present, exclude links to that sheet ID.
 
     let links;
-    if (!this.linksLoaded(ref)) { return null; }
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
@@ -2230,6 +2229,8 @@ Sefaria.palette.indexColor = function(title) {
       Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
       Sefaria.palette.categoryColor("Other");
 };
+
+Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 
 
 Sefaria.setup = function(data) {

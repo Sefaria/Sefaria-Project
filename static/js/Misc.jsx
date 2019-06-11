@@ -207,17 +207,30 @@ LanguageToggleButton.propTypes = {
 };
 
 
-const SimpleBlock = ({en, he, classes}) => (
+const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
           <span className="int-en">{en}</span>
           <span className="int-he">{he}</span>
         </div>
     );
-SimpleBlock.propTypes = {
+SimpleInterfaceBlock.propTypes = {
     en: PropTypes.string,
     he: PropTypes.string,
     classes: PropTypes.string
 };
+
+const SimpleContentBlock = ({en, he, classes}) => (
+        <div className={classes}>
+          <span className="he" dangerouslySetInnerHTML={ {__html: he } } />
+          <span className="en" dangerouslySetInnerHTML={ {__html: en } } />
+        </div>
+    );
+SimpleContentBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    classes: PropTypes.string
+};
+
 
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children}) => (
         <div className={classes}>
@@ -539,15 +552,17 @@ class FollowButton extends Component {
     }
   }
   _post_follow() {
-      $.post("/api/follow/" + this.props.uid, {}, function(data) {
-          Sefaria.track.event("Following", "New Follow", this.props.uid);
-      });
+    $.post("/api/follow/" + this.props.uid, {}, data => {
+      Sefaria.following.push(this.props.uid);  // keep local following list up-to-date
+      Sefaria.track.event("Following", "New Follow", this.props.uid);
+    });
   }
   _post_unfollow() {
-      $.post("/api/unfollow/" + this.props.uid, {}, function(data) {
-          Sefaria.track.event("Following", "Unfollow", this.props.uid);
-      });
-  }
+    $.post("/api/unfollow/" + this.props.uid, {}, data => {
+      Sefaria.following = Sefaria.following.filter(i => i !== this.props.uid);  // keep local following list up-to-date
+      Sefaria.track.event("Following", "Unfollow", this.props.uid);
+    });
+}
 
   onMouseEnter() {
     this.setState({hovering: true});
@@ -625,6 +640,37 @@ class CategoryColorLine extends Component {
     return (<div className="categoryColorLine" style={style}></div>);
   }
 }
+
+
+const ProfileListing = ({ uid, url, image, name, is_followed, position }) => (
+  <div className="authorByLine">
+    <div className="authorByLineImage">
+      <a href={url}>
+        <img className="smallProfileImage" src={image} alt={name}/>
+      </a>
+    </div>
+    <div className="authorByLineText">
+      <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={url}
+        en={name} he={name}>
+        <FollowButton large={false} uid={uid} following={is_followed}/>
+      </SimpleLinkedBlock>
+      {
+        !!position ? <SimpleInterfaceBlock
+          classes="systemText authorPosition"
+          en={position}
+          he={position}
+        />:null
+      }
+    </div>
+  </div>
+);
+ProfileListing.propTypes = {
+  uid:         PropTypes.number.isRequired,
+  url:         PropTypes.string.isRequired,
+  image:       PropTypes.string.isRequired,
+  name:        PropTypes.string.isRequired,
+  is_followed: PropTypes.bool.isRequired,
+};
 
 
 class SheetListing extends Component {
@@ -1290,7 +1336,8 @@ class CookiesNotification extends Component {
 }
 
 
-module.exports.SimpleBlock                               = SimpleBlock;
+module.exports.SimpleInterfaceBlock                      = SimpleInterfaceBlock;
+module.exports.SimpleContentBlock                        = SimpleContentBlock;
 module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
@@ -1306,6 +1353,7 @@ module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
+module.exports.ProfileListing                            = ProfileListing;
 module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;

@@ -45,8 +45,7 @@ class Sheet extends Component {
       if ("ref" in data.sources[i]) {
         Sefaria.getRef(data.sources[i].ref)
             .then(ref => ref.sectionRef)
-            .then(Sefaria.getLinks)
-            .then(() => this.forceUpdate());
+            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
       }
     }
   }
