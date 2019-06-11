@@ -1567,6 +1567,12 @@ Sefaria = extend(Sefaria, {
   followAPI: (slug, ftype) => {
     return Sefaria._promiseAPI(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
+  messageAPI: (uid, message) => {
+    const data = {json: JSON.stringify({recipient: uid, message: message.escapeHtml()})};
+    return new Promise((resolve, reject) => {
+      $.post(`${Sefaria.apiHost}/api/messages`, data, resolve);
+    });
+  },
   getRefSavedHistory: tref => {
     return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },

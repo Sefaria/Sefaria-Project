@@ -40,6 +40,7 @@ class UserProfile extends Component {
       this.tabs.push({ text: "About", icon: "/static/img/info.svg" });
     }
   }
+  _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
   _getSheetListRef(ref) { this._sheetListRef = ref; }
   _getNoteListRef(ref) { this._noteListRef = ref; }
@@ -261,12 +262,8 @@ class UserProfile extends Component {
       </div>
     );
   }
-  message() {
-  
-  }
-  follow() {
-    Sefaria.followAPI(this.props.profile.id);
-  }
+  message(e) { e.preventDefault(); this._messageModalRef.makeVisible(); }
+  follow() { Sefaria.followAPI(this.props.profile.id); }
   openFollowers(e) {
     e.preventDefault();
     this._tabViewRef.openTab(this.tabs.findIndex(t => t.text === 'Followers'));
@@ -358,6 +355,7 @@ class UserProfile extends Component {
                 </TabView>
               </div>
             }
+            <MessageModal uid={this.props.profile.id} name={this.props.profile.full_name} ref={this._getMessageModalRef} />
           </div>
           <Footer />
         </div>
@@ -463,4 +461,43 @@ ProfileSummary.propTypes = {
   openFollowing: PropTypes.func.isRequired,
 }
 
+
+class MessageModal extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      visible: false,
+      message: '',
+    };
+  }
+  onChange(e) { this.setState({ message: e.target.value }); }
+  onSend(e) {
+    if (!this.state.message) { return; }
+    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
+      this.setState({ visible: false });
+      alert("Message Sent");
+      Sefaria.track.event("Messages", "Message Sent", "");
+    });
+  }
+  makeVisible() { this.setState({ visible: true }); }
+  onCancel(e) { this.setState({ visible: false }); }
+  render() {
+    if (!this.state.visible) { return null; }
+    return (
+      <div id="interruptingMessageBox" className="sefariaModalBox">
+        <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
+        <div className='message-modal' style={{display: 'block', top: 356.5, left: 702.5}}>
+          <div className='messageHeader'>{ `Send a message to ${this.props.name}` }</div>
+          <textarea value={this.state.message} onChange={this.onChange} />
+          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
+          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
+        </div>
+      </div>
+    );
+  }
+}
+MessageModal.propTypes = {
+  name: PropTypes.string.isRequired,
+  uid:  PropTypes.number.isRequired,
+};
 module.exports = UserProfile;
