@@ -625,6 +625,9 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
 
             connection_ref = random_connection_to(top_ref)
+            if not connection_ref:
+                return
+
             category = connection_ref.index.categories[0]
 
             if not connection_ref.is_text_translated():
@@ -654,6 +657,8 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
 
             commentary_ref = random_commentary_on(top_ref)
+            if not commentary_ref:
+                return
 
             if not commentary_ref.is_text_translated():
                 mustHave += ["readsHebrew"]
