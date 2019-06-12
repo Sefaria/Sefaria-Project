@@ -5,6 +5,7 @@ const {
   ReaderNavigationMenuMenuButton,
   LoadingMessage,
   TwoOrThreeBox,
+  ProfilePic,
 }                = require('./Misc');
 const React      = require('react');
 const ReactDOM   = require('react-dom');
@@ -385,7 +386,11 @@ class PublicSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
               <div className="sheetTextInfo">
-                {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+                <ProfilePic
+                  name={sheet.ownerName}
+                  url={sheet.ownerImageUrl}
+                  len={40}
+                />
                 <div className="sheetAuthTitle">
                   <div className="sheetAuthor">{sheet.ownerName}</div>
                   <div className="sheetTitle">{title}</div>

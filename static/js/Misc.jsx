@@ -952,8 +952,12 @@ class SheetListing extends Component {
     }
     this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
   }
-  handleSheetOwnerClick() {
+  handleSheetOwnerClick(e) {
+    e.preventDefault();
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
+    const slugMatch = this.props.sheet.ownerProfileUrl.match(/profile\/(.+)$/);
+    const slug = !!slugMatch ? slugMatch[1] : '';
+    this.props.openProfile(slug, this.props.sheet.ownerName);
   }
   handleSheetTagClick(tag) {
     Sefaria.track.event("Tools", "Sheet Tag Click", tag);
@@ -973,7 +977,12 @@ class SheetListing extends Component {
         <div className="sheetInfo">
           <div className="sheetUser">
             <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
-              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              <ProfilePic
+                outerStyle={{display: "inline-block"}}
+                name={sheet.ownerName}
+                url={sheet.ownerImageUrl}
+                len={26}
+              />
             </a>
             <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
           </div>
@@ -1041,6 +1050,7 @@ SheetListing.propTypes = {
   connectedRefs:    PropTypes.array.isRequired,
   handleSheetClick: PropTypes.func.isRequired,
   handleSheetDelete:PropTypes.func,
+  openProfile:      PropTypes.func,
   handleSheetEdit:  PropTypes.func,
   deletable:        PropTypes.bool,
   saveable:         PropTypes.bool,

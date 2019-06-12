@@ -2050,6 +2050,9 @@ Sefaria = extend(Sefaria, {
       "Current": "נוכחית",
       "Select": "החלפת גרסה",
       "Members": "חברים",
+      "Send": "שלח",
+      "Cancel": "בטל",
+      "Send a message to ": "שלח הודעה ל-",
 
       //languages
       "English": "אנגלית",
