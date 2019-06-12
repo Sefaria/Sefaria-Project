@@ -166,6 +166,13 @@
               for (var i = 0, len = selection.rangeCount; i < len; ++i) {
                   container.appendChild(selection.getRangeAt(i).cloneContents());
               }
+
+            //remove line numbers
+              var lineNumbers = container.getElementsByClassName('segmentNumber');
+              while(lineNumbers.length > 0){
+                  lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
+              }
+
               html = container.innerHTML;
           }
           else {
