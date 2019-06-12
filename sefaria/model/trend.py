@@ -34,7 +34,9 @@ def get_session_traits(request, uid=None):
             "readsHebrew": True, # needs to be wired up
             "readsEnglish": True, # needs to be wired up
             "prefersBilingual": False, # needs to be wired up
-            "isSephardi": False  # needs to be wired up
+            "isSephardi": False,  # needs to be wired up
+            "usesSheets": True,  # needs to be wired up
+            "createsSheets": False,  # needs to be wired up
         })
 
     return [k for k, v in traits.items() if v]
@@ -134,65 +136,41 @@ class HebrewAbilityFactory(TrendFactory):
             "scope":        "user"
         }).save()
 
-# https://stackoverflow.com/questions/25843255/mongodb-aggregate-count-on-multiple-fields-simultaneously
-"""
-// Requires official MongoShell 3.6+
-use sefaria;
-db.getCollection("user_history").aggregate(
-    [
-        { 
-            "$match" : {
-                "secondary" : false, 
-                "language" : {
-                    "$in" : [
-                        "hebrew", 
-                        "english", 
-                        "bilingual"
-                    ]
-                }
-            }
-        }, 
-        { 
-            "$group" : {
-                "_id" : {
-                    "language" : "$language", 
-                    "uid" : "$uid"
-                }, 
-                "cnt" : {
-                    "$sum" : 1.0
-                }
-            }
-        }, 
-        { 
-            "$group" : {
-                "_id" : "$_id.uid", 
-                "languages" : {
-                    "$push" : {
-                        "k" : "$_id.language", 
-                        "v" : "$cnt"
-                    }
-                }, 
-                "total" : {
-                    "$sum" : "$cnt"
-                }
-            }
-        }, 
-        { 
-            "$project" : {
-                "languages" : {
-                    "$arrayToObject" : "$languages"
-                }, 
-                "total" : "$total"
-            }
-        }
-    ], 
-    { 
-        "allowDiskUse" : false
-    }
-);
 
 
-"""
+def getAllUsersLanguageTraits():
+
+    # https://stackoverflow.com/questions/25843255/mongodb-aggregate-count-on-multiple-fields-simultaneously
+    pipeline = [
+        {"$match": {
+            "secondary": False,
+            "language": {"$in": ["hebrew", "english", "bilingual"]}}},
+        {"$group": {
+            "_id": {"language": "$language", "uid": "$uid"},
+            "cnt": {"$sum": 1.0}}},
+        {"$group": {
+            "_id": "$_id.uid",
+            "languages": {"$push": {"k": "$_id.language", "v": "$cnt"}},
+            "total": {"$sum": "$cnt"}}},
+        {"$project": {
+            "languages": {"$arrayToObject": "$languages"},
+            "total": "$total"}}
+    ]
+
+    results = db.user_history.aggregate(pipeline)
+    for rec in results:
+        pass
+
+'''
+Returns results like:
+{u'_id': 62298,
+ u'languages': {u'bilingual': 5.0, u'hebrew': 9.0},
+ u'total': 14.0}
+{u'_id': 59440, u'languages': {u'bilingual': 10.0}, u'total': 10.0}
+{u'_id': 60586, u'languages': {u'hebrew': 27.0}, u'total': 27.0}
+
+'''
+
 
 class EnglishToleranceFactory(TrendFactory):
     name = "EnglishTolerance"
