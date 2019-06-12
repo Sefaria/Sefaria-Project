@@ -1561,6 +1561,7 @@ class ReaderApp extends Component {
     }
   }
   openProfile(slug, full_name) {
+    console.log('open');
     // requires slug and full_name to properly set window title and url in history
     this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile: { slug, full_name } }, () => {
       Sefaria.profileAPI(slug).then(profile => {
@@ -1760,6 +1761,7 @@ class ReaderApp extends Component {
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
+                      openProfile={this.openProfile}
                     />
                   </div>);
     }

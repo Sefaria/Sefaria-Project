@@ -19,13 +19,13 @@ class ProfilePic extends Component {
     this.setState({ showDefault: false });
   }
   render() {
-    const { url, name, len } = this.props;
+    const { url, name, len, outerStyle } = this.props;
     const nameArray = !!name.trim() ? name.split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
     const defaultViz = this.state.showDefault ? 'flex' : 'none';
-    const profileViz = this.state.showDefault ? 'none' : 'initial';
+    const profileViz = this.state.showDefault ? 'none' : 'block';
     return (
-      <div>
+      <div style={outerStyle}>
         <div className="default-profile-img noselect" style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
           { `${initials}` }
         </div>
@@ -480,8 +480,8 @@ SimpleContentBlock.propTypes = {
 };
 
 
-const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children}) => (
-        <div className={classes}>
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
+        <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
               <span className="int-en">{en}</span>
               <span className="int-he">{he}</span>
@@ -890,32 +890,47 @@ class CategoryColorLine extends Component {
 }
 
 
-const ProfileListing = ({ uid, url, image, name, is_followed, position }) => (
-  <div className="authorByLine">
-    <div className="authorByLineImage">
-      <a href={url}>
-        <ProfilePic
-          len={40}
-          url={image}
-          name={name}
-        />
-      </a>
-    </div>
-    <div className="authorByLineText">
-      <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={url}
-        en={name} he={name}>
-        <FollowButton large={false} uid={uid} following={is_followed}/>
-      </SimpleLinkedBlock>
-      {
-        !!position ? <SimpleInterfaceBlock
-          classes="systemText authorPosition"
-          en={position}
-          he={position}
-        />:null
-      }
-    </div>
-  </div>
-);
+class ProfileListing extends Component {
+  openProfile(e) {
+    e.preventDefault();
+    this.props.openProfile(this.props.slug, this.props.name);
+  }
+  render() {
+    const { url, image, name, uid, is_followed, position } = this.props;
+    return (
+      <div className="authorByLine">
+        <div className="authorByLineImage">
+          <a href={url} onClick={this.openProfile}>
+            <ProfilePic
+              len={40}
+              url={image}
+              name={name}
+            />
+          </a>
+        </div>
+        <div className="authorByLineText">
+          <SimpleLinkedBlock
+            classes="authorName"
+            aclasses="systemText"
+            url={url}
+            en={name}
+            he={name}
+            onClick={this.openProfile}
+          >
+            <FollowButton large={false} uid={uid} following={is_followed}/>
+          </SimpleLinkedBlock>
+          {
+            !!position ? <SimpleInterfaceBlock
+              classes="systemText authorPosition"
+              en={position}
+              he={position}
+            />:null
+          }
+        </div>
+      </div>
+    );
+  }
+}
 ProfileListing.propTypes = {
   uid:         PropTypes.number.isRequired,
   url:         PropTypes.string.isRequired,

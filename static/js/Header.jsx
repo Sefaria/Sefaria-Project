@@ -258,7 +258,9 @@ class Header extends Component {
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
-                          toggleSignUpModal={this.props.toggleSignUpModal}/>) : null;
+                          toggleSignUpModal={this.props.toggleSignUpModal}
+                          openProfile={this.props.openProfile}
+                        />) : null;
 
 
     var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});

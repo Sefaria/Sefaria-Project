@@ -237,7 +237,9 @@ class UserProfile extends Component {
   renderFollower(item) {
     return (
       <ProfileListing
+        openProfile={this.props.openProfile}
         uid={item.id}
+        slug={item.slug}
         url={`/profile/${item.slug}`}
         name={item.full_name}
         image={item.gravatar_url}
@@ -274,7 +276,7 @@ class UserProfile extends Component {
   }
   render() {
     return (
-      <div className="profile-page readerNavMenu noHeader">
+      <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
         <div className="content hasFooter noOverflowX">
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
@@ -365,6 +367,8 @@ class UserProfile extends Component {
 }
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
+  openProfile: PropTypes.func.isRequired,
+  handleInAppLinkClick: PropTypes.func.isRequired,
 }
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing }) => {
@@ -485,8 +489,8 @@ class MessageModal extends Component {
     if (!this.state.visible) { return null; }
     return (
       <div id="interruptingMessageBox" className="sefariaModalBox">
-        <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
-        <div className='message-modal' style={{display: 'block', top: 356.5, left: 702.5}}>
+        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
+        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
           <div className='messageHeader'>{ `Send a message to ${this.props.name}` }</div>
           <textarea value={this.state.message} onChange={this.onChange} />
           <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>

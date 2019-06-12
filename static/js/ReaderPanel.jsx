@@ -625,6 +625,7 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
+          openProfile={this.props.openProfile}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
@@ -845,6 +846,7 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
+                    openProfile={this.props.openProfile}
                   />);
 
     } else if (this.state.menuOpen === "sheets") {
@@ -864,7 +866,9 @@ class ReaderPanel extends Component {
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
                     setGroupTag={this.setGroupTag}
-                    key={"SheetsNav"} />);
+                    key={"SheetsNav"}
+                    openProfile={this.props.openProfile}
+                  />);
 
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopic) {
@@ -978,6 +982,7 @@ class ReaderPanel extends Component {
         <UserProfile
           profile={this.state.profile}
           handleInAppLinkClick={this.props.handleInAppLinkClick}
+          openProfile={this.props.openProfile}
         />
       );
     }
@@ -1119,6 +1124,7 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
+  openProfile:                 PropTypes.func,
 };
 
 

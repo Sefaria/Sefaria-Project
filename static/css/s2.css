@@ -503,6 +503,7 @@ input.noselect {
   height: 100%;
   left: 0;
   right: 0;
+  top: 0;
   z-index: 1001;
   opacity: 1;
   transition: opacity .3s ease-in;
@@ -647,7 +648,7 @@ input.noselect {
   height: 24px;
   width: 24px;
   border-radius: 50%;
-  margin-top: 2px
+  display: block;
 }
 .header .readerNavMenuMenuButton {
   margin: 0 8px 0 6px;
@@ -2241,8 +2242,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #eee;
   width: auto;
   height: auto;
-  left: auto;
-  top: auto;
   margin: 0;
   z-index: 100;
   overflow: hidden;
