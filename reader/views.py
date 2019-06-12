@@ -2089,6 +2089,23 @@ def flag_text_api(request, title, lang, version):
 
 @catch_error_as_json
 @csrf_exempt
+def tag_category_api(request, path=None):
+    if request.method == "GET":
+        if not path or path == "index":
+            categories = TermSet({"scheme": "Tag Category"})
+
+        else:
+            categories = TermSet({"category": path})
+
+
+        category_names = [{"tag": category.get_primary_title(), "heTag": category.get_primary_title("he"), } for category in categories]
+        return jsonResponse(category_names)
+
+
+
+
+@catch_error_as_json
+@csrf_exempt
 def category_api(request, path=None):
     """
     API for looking up categories and adding Categories to the Category collection.
