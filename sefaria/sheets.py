@@ -269,7 +269,7 @@ def recent_public_tags(days=14, ntags=14):
 
 	for tag in tags.items():
 		if len(tag[0]):
-			results.append({"tag": tag[0], "count": tag[1]})
+			results.append({"tag": tag[0], "count": tag[1], "he_tag": model.Term.normalize(tag[0], "he")})
 
 	results = sorted(results, key=lambda x: -x["count"])
 
