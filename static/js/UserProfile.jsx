@@ -26,18 +26,18 @@ class UserProfile extends Component {
   constructor(props) {
     super(props);
     this.tabs = [
-      { text: "Sheets", icon: "/static/img/sheet.svg" },
-      { text: "Groups", icon: "/static/img/group.svg" },
-      { text: "Followers", invisible: true },
-      { text: "Following", invisible: true },
+      { text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
+      { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
+      { text: Sefaria._("Followers"), invisible: true },
+      { text: Sefaria._("Following"), invisible: true },
     ];
     this.showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     this.showBio = !!props.profile.bio;
     if (this.showNotes) {
-      this.tabs.splice(1, 0, { text: "Notes", icon: "/static/img/note.svg" });
+      this.tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
     }
     if (this.showBio) {
-      this.tabs.push({ text: "About", icon: "/static/img/info.svg" });
+      this.tabs.push({ text: Sefaria._("About"), icon: "/static/img/info.svg" });
     }
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
@@ -223,14 +223,14 @@ class UserProfile extends Component {
   renderFollowerHeader() {
     return (
       <div className="follow-header">
-        Followers <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
+        {Sefaria._("Followers")} <span className="follow-count">{`(${this.props.profile.followers.length})`}</span>
       </div>
     );
   }
   renderFollowingHeader() {
     return (
       <div className="follow-header">
-        Following <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
+        {Sefaria._("Following")} <span className="follow-count">{`(${this.props.profile.followees.length})`}</span>
       </div>
     );
   }
@@ -268,11 +268,11 @@ class UserProfile extends Component {
   follow() { Sefaria.followAPI(this.props.profile.id); }
   openFollowers(e) {
     e.preventDefault();
-    this._tabViewRef.openTab(this.tabs.findIndex(t => t.text === 'Followers'));
+    this._tabViewRef.openTab(this.tabs.findIndex(t => t.text === Sefaria._('Followers')));
   }
   openFollowing(e) {
     e.preventDefault();
-    this._tabViewRef.openTab(this.tabs.findIndex(t => t.text === 'Following'));
+    this._tabViewRef.openTab(this.tabs.findIndex(t => t.text === Sefaria._('Following')));
   }
   render() {
     return (
@@ -446,9 +446,9 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
           </div>)
         }
         <div className="follow">
-          <a href="" onClick={openFollowers}>{ `${p.followers.length} followers`}</a>
+          <a href="" onClick={openFollowers}>{ `${p.followers.length} ${Sefaria._("followers")}`}</a>
           <span className="follow-bull">&bull;</span>
-          <a href="" onClick={openFollowing}>{ `${p.followees.length} following`}</a>
+          <a href="" onClick={openFollowing}>{ `${p.followees.length} ${Sefaria._("following")}`}</a>
         </div>
       </div>
       <div className="summary-column end">

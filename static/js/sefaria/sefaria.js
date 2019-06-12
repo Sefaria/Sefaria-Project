@@ -2053,6 +2053,12 @@ Sefaria = extend(Sefaria, {
       "Send": "שלח",
       "Cancel": "בטל",
       "Send a message to ": "שלח הודעה ל-",
+      "Groups": "קבוצות",
+      "Following": "נעקבים",
+      "Followers": "עוקבים",
+      "following": "נעקבים",
+      "followers": "עוקבים",
+      "Recent": "תאריך",
 
       //languages
       "English": "אנגלית",
