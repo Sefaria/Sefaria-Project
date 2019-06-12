@@ -2616,7 +2616,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
-  padding: 25px 0;
+  padding: 20px 0;
   border-bottom: 1px solid #eee;
   color: black;
 }
