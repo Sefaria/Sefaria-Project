@@ -313,7 +313,7 @@ class UserProfile extends Component {
                         sortFunc={this.sortNote}
                         renderItem={this.renderNote}
                         renderEmptyList={this.renderEmptyNoteList}
-                        sortOptions={["Recent", "Views"]}
+                        sortOptions={[]}
                         getData={this.getNotes}
                       />
                     ) : null
@@ -351,7 +351,7 @@ class UserProfile extends Component {
                   />
                   { this.showBio ?
                     <div className="systemText filterable-list">
-                      <div className="int-en" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
+                      <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
                     </div> : null
                   }
                 </TabView>

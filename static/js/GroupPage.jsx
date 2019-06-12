@@ -441,18 +441,19 @@ class GroupMemberListing extends Component {
 
     return (
       <div className="groupMemberListing">
-        <a href={this.props.member.profileUrl} onClick={this.openProfile}>
-          <ProfilePic
-            outerStyle={{display: 'inline-block'}}
-            url={this.props.member.imageUrl}
-            name={this.props.member.name}
-            len={50}
-          />
-        </a>
+        <div className="groupLeft">
+          <a href={this.props.member.profileUrl} onClick={this.openProfile}>
+            <ProfilePic
+              url={this.props.member.imageUrl}
+              name={this.props.member.name}
+              len={50}
+            />
+          </a>
 
-        <a href={this.props.member.profileUrl} className="groupMemberListingName" onClick={this.openProfile}>
-          {this.props.member.name}
-        </a>
+          <a href={this.props.member.profileUrl} className="groupMemberListingName" onClick={this.openProfile}>
+            {this.props.member.name}
+          </a>
+        </div>
 
         <div className="groupMemberListingRoleBox">
           <span className="groupMemberListingRole">{this.props.member.role}</span>

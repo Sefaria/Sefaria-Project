@@ -2049,6 +2049,7 @@ Sefaria = extend(Sefaria, {
       "About": "אודות",
       "Current": "נוכחית",
       "Select": "החלפת גרסה",
+      "Members": "חברים",
 
       //languages
       "English": "אנגלית",

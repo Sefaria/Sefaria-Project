@@ -5031,6 +5031,15 @@ h2.splitHeader .he {
   padding: 24px 0;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.groupPage .groupMemberListing .groupLeft,
+.groupPage .groupMemberListing .groupMemberListingRoleBox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 .groupMemberListing + .groupMemberListing {
   border-top: 1px solid #CCC;
@@ -5058,12 +5067,15 @@ h2.splitHeader .he {
 }
 .groupMemberListingActions {
   position: relative;
-  display: inline-block;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-left: 12px;
   line-height: 36px
+}
+.interface-hebrew .groupMemberListingActions {
+  margin-left: 0;
+  margin-right: 12px;
 }
 .groupMemberListingActionsButton {
   cursor: pointer;
@@ -5081,6 +5093,10 @@ h2.splitHeader .he {
   color: #999;
   font-size: 15px;
   z-index: 1;
+}
+.interface-hebrew .groupMemberListingActionsMenu {
+  left: 0;
+  right: unset;
 }
 .groupMemberListingActionsMenu .action {
   padding: 4px 10px;
@@ -6272,11 +6288,14 @@ span.purim-emoji img{
 .profile-page .filterable-list {
   /* to distinguish top half of probile from bottom half*/
     background-color: white;
-    border: 400px solid white;
+    border: 1000px solid white;
     border-top: 4px solid white;
     border-bottom: 120px solid white;
-    margin: -4px 0 -120px -400px;
+    margin: -4px 0 -120px -1000px;
     width: 100%;
+}
+.interface-hebrew .profile-page .filterable-list {
+  margin: -4px -1000px -120px 0;
 }
 .filterable-list .filter-bar {
   border-bottom: 1px solid #E2E2E1;
@@ -6354,6 +6373,13 @@ span.purim-emoji img{
 .profile-page .profile-summary .sub-sub-title > .small-margin:last-child,
 .profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 0 0 4px;
+}
+.interface-hebrew .profile-page .profile-summary .sub-sub-title > .small-margin:last-child,
+.interface-hebrew .profile-page .profile-summary .sub-sub-title > span:last-child .small-margin {
+  margin: 0 4px 0 0;
+}
+.profile-page .aboutText {
+  margin-top: 20px;
 }
 @media (max-width: 540px) {
   .profile-page .profile-summary .profile-img {

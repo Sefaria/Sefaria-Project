@@ -109,7 +109,7 @@ class FilterableList extends Component {
             <ReaderNavigationMenuSearchButton />
             <input
               type="text"
-              placeholder="Search"
+              placeholder={Sefaria._("Search")}
               name="filterableListInput"
               value={currFilter}
               onChange={this.onFilterChange}
@@ -126,7 +126,7 @@ class FilterableList extends Component {
                 />
                 <DropdownOptionList
                   isOpen={displaySort}
-                  options={sortOptions.map(option => ({type: option, name: option, heName: option}))}
+                  options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
                   currOptionSelected={currSortOption}
                   handleClick={this.onSortChange}
                 />
