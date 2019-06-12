@@ -88,11 +88,11 @@ urlpatterns += [
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
+    url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
+    url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
-    url(r'^api/profile/sync$', reader_views.profile_sync_api),
-    url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
