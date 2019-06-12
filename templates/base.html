@@ -158,10 +158,24 @@
         static_url: {{ STATIC_PREFIX }}
       };
       document.addEventListener('copy', function(e) {
-          const text_only = document.getSelection().toString();
+          const selection = document.getSelection()
+          const text_only = selection.toString();
+
+          if (selection.rangeCount) {
+              var container = document.createElement("div");
+              for (var i = 0, len = selection.rangeCount; i < len; ++i) {
+                  container.appendChild(selection.getRangeAt(i).cloneContents());
+              }
+              html = container.innerHTML;
+          }
+          else {
+              html = text_only;
+          }
+
           const clipdata = e.clipboardData || window.clipboardData;
+
           clipdata.setData('text/plain', text_only);
-          clipdata.setData('text/html', text_only);
+          clipdata.setData('text/html', html);
           e.preventDefault();
       });
       {% endautoescape %}
