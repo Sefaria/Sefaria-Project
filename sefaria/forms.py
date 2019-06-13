@@ -33,8 +33,7 @@ class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    subscribe_announce = forms.BooleanField(label=_("Receive important announcements"), help_text=_("Receive important announcements"), initial=True, required=False)
-    subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
+    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False, required=False)
 
     captcha_lang = "iw" if get_language() == 'he' else "en"
     captcha = ReCaptchaField(
@@ -55,7 +54,6 @@ class NewUserForm(EmailUserCreationForm):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
         self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha"]
-        self.fields.keyOrder.append("subscribe_announce")
         self.fields.keyOrder.append("subscribe_educator")
 
     def clean_email(self):
@@ -86,9 +84,8 @@ class NewUserForm(EmailUserCreationForm):
         mailingLists = []
         language = get_language()
 
-        if self.cleaned_data["subscribe_announce"]:
-            list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
-            mailingLists.append(list_name)
+        list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
+        mailingLists.append(list_name)
 
         if self.cleaned_data["subscribe_educator"]:
             list_name = "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"

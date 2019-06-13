@@ -7,9 +7,10 @@ from sefaria.system.database import db
 from sefaria.model.link import LinkSet
 
 
-db.links.create_index("expandedRefs")
+db.links.create_index("expandedRefs0")
+db.links.create_index("expandedRefs1")
 
-links = LinkSet(query_or_ref={"expandedRefs": {"$exists": False}})
+links = LinkSet(query_or_ref={"expandedRefs0": {"$exists": False}})
 print "Saving {} links...".format(links.count())
 
 for i, link in enumerate(links):

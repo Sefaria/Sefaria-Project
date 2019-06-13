@@ -167,11 +167,91 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   z-index: 1000;
   height: 60px;
 }
-.readerApp {
-  position: absolute;
+#readerAppWrap {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  top: 0;
+}
+#bannerMessage {
+  color: white;
+  background-color: #4871bf;
+  height: 120px;
+  box-sizing: border-box;
+  padding: 0 36px;
+  display: flex;
+  transition: .5s;
+}
+#bannerMessage.hidden {
+  height: 0;
+}
+body.hasBannerMessage {
+  transition: padding-top .3s;
+  padding-top: 120px;
+}
+body.hasBannerMessage #s2.headerOnly {
+  height: 180px;
+}
+.interface-hebrew #bannerMessage {
+  direction: rtl;
+}
+#bannerMessageClose {
+  position: absolute;
+  top: -3px;
+  right: 7px;
+  color: white;
+  opacity: 0.5;
+  font-size: 26px;
+  cursor: pointer;
+}
+.interface-hebrew #bannerMessageClose {
+  right: auto;
+  left: 7px;
+}
+#bannerMessageContent {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+  max-width: 880px;
+  margin: 0 auto;
+}
+#bannerTextBox {
+  flex: 1;
+}
+#bannerTextBox a {
+  color: white;
+}
+#bannerButtonBox {
+  margin-left: 50px;
+}
+.interface-hebrew #bannerButtonBox {
+  margin: 0 50px 0 0;
+}
+#bannerMessage .mobileOnly {
+  display: none;
+}
+@media (max-width: 540px) {
+  #bannerButtonBox {
+    display: none;
+  }
+  #bannerMessage .mobileOnly {
+    display: block;
+  }
+  #bannerMessage {
+    padding: 0 10px;
+  }
+}
+@media (max-width: 375px) {
+  #bannerMessage {
+    font-size: 13px;
+  }
+}
+.readerApp {
+  display: flex;
+  flex: 1;
+  position: relative;
 }
 .readerApp.interface-hebrew{
   direction: rtl;
@@ -217,7 +297,7 @@ input.noselect {
   top: 0;
 }
 .headerInner {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -570,7 +650,6 @@ input.noselect {
   margin: 0 8px 0 6px;
   font-size: 17px;
 }
-
 .readerNavMenuSearchButton {
   position: relative;
   margin: 0 10px 0 6px;
@@ -588,7 +667,7 @@ input.noselect {
   vertical-align: middle;
 }
 .header .headerNavContent {
-  position: fixed;
+  position: absolute;
   height: 100%;
   width: 100%;
   box-sizing: border-box;
@@ -809,7 +888,8 @@ input.noselect {
 .readerPanel.dark {
   background-color: #333331;
 }
-.readerNavMenu {
+.readerNavMenu,
+.homeFeedWrapper {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -821,7 +901,8 @@ input.noselect {
   z-index: 101;
   background-color: #FBFBFA;
 }
-.readerNavMenu .content {
+.readerNavMenu .content,
+.homeFeedWrapper .content {
   position: relative;
   box-sizing: border-box;
   padding: 30px 10px 10px;
@@ -830,22 +911,27 @@ input.noselect {
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-.interface-hebrew.multiPanel .readerNavMenu .content {
+.interface-hebrew.multiPanel .readerNavMenu .content,
+.interface-hebrew.multiPanel .homeFeedWrapper .content {
   padding-right: 40px;
 }
-.multiPanel .readerNavMenu .content {
+.multiPanel .readerNavMenu .content,
+.multiPanel .homeFeedWrapper .content {
   padding: 30px 30px 70px 30px;
 }
-.multiPanel .readerNavMenu .content.hasFooter {
+.multiPanel .readerNavMenu .content.hasFooter,
+.multiPanel .homeFeedWrapper .content.hasFooter {
   padding: 30px 0 0 0;
 }
-.multiPanel .readerNavMenu.noHeader .content {
+.multiPanel .readerNavMenu.noHeader .content,
+.multiPanel .homeFeedWrapper.noHeader .content {
   padding-top: 80px;
 }
 .multiPanel .readerNavMenu.compare .content {
   padding-top: 30px;
 }
-.readerNavMenu .content .contentInner {
+.readerNavMenu .content .contentInner,
+.homeFeedWrapper .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
 }
@@ -1979,11 +2065,9 @@ a.readerNavCategory {
   font-size: 17px;
   height: 22px;
 }
-
 .dictionarySearchBox .dictionarySearchButton {
 
 }
-
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
   border: none;
 }
@@ -1996,13 +2080,10 @@ a.readerNavCategory {
   height: 18px;
   margin-bottom: 10px;
 }
-
-
 body .ui-autocomplete.dictionary-toc-autocomplete {
   margin: 0 0;
   padding: 6px 0 0;
 }
-
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   padding: 4px 25px;
   border-bottom: solid #ccc 1px;
@@ -2011,11 +2092,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   cursor: pointer;
   display: block;
 }
-
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
   background-color: #E9E9E7;
 }
-
 .searchContentFrame h1 {
   direction: ltr;
   height: 40px;
@@ -2568,6 +2647,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .interface-hebrew .readerPanel .readerNavMenu .tagsList .gridBox {
   direction: rtl;
+}
+.tagsList .heOnly {
+  direction: rtl;
+}
+.tagsList .enOnly {
+  direction: ltr;
 }
 .readerControls {
   position: relative;
@@ -3313,9 +3398,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: -46px;
   right: auto;
 }
-
-
-
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
   left: 50%;
@@ -4442,17 +4524,13 @@ a .button:hover {
   padding: 6px 12px;
   margin: 6px 12px;
 }
-#backToS1 {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  top: 20px;
-  left: 40px;
-  cursor: pointer;
-  display: block;
-  text-align: center;
-  margin: -30px 0 50px;
-}
-#backToS1:hover {
-  text-decoration: underline;
+.button img.buttonIcon {
+    width: 16px;
+    height: 16px;
+    opacity: .4;
+    margin: 0 5px;
+    position: relative;
+    top: 2px;
 }
 ::-webkit-input-placeholder {
    font-style: italic;
@@ -5613,7 +5691,6 @@ span.purim-emoji img{
   position: relative;
   padding: 0 30px;
 }
-
 .sheetContent .ref {
   cursor: pointer;
   color: #999;
@@ -5622,11 +5699,9 @@ span.purim-emoji img{
 .sheetContent .ref a {
   color: #999;
 }
-
 .sheetContent img {
   max-width: 100%;
 }
-
 .sheetContent table {
   margin: auto;
   max-width: 100%;
@@ -5822,7 +5897,6 @@ span.purim-emoji img{
   width: 100%;
   height: 100%;
 }
-
 .oldSheetNotice,
 .oldSheetNotice a,
 .editSheetNotice,
@@ -5831,7 +5905,6 @@ span.purim-emoji img{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
 }
-
 .cookiesNotification {
   position: fixed;
   z-index: 9999;
@@ -6023,10 +6096,13 @@ span.purim-emoji img{
   display: inline-block;
 }
 
+
+.bilingual .homeFeedWrapper span.he {
+  display: block;
+  padding-bottom: 10px;
+}
 .storyFeed .story {
-  margin: 20px 0;
-  padding: 20px 0;
-  border-top: 4px solid transparent;
+  padding: 30px 0;
 }
 .storyFeed .story .storyTitleBlock {
   clear: both;
@@ -6037,13 +6113,45 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTitleBlock {
   float: right;
 }
+
+.colorBarBox {
+  clear: both;
+}
+.interface-english .colorBarBox  {
+  border-left: 4px solid transparent;
+  padding-left: 30px;
+}
+.interface-hebrew .colorBarBox  {
+  border-right: 4px solid transparent;
+  padding-right: 30px;
+}
+.interface-english .citationLine,
+.interface-english .learnMoreLink {
+  padding-left: 34px;
+}
+.interface-hebrew .citationLine,
+.interface-hebrew .learnMoreLink {
+  padding-right: 34px;
+}
+
+.storyTextListItem {
+  padding-bottom: 18px;
+}
+.storyTextListItem:last-child {
+  padding-bottom: 0;
+}
+
 .publishSheetStory .saveButton  {
   float: right;
   padding-top: 20px;
 }
 
+
 .storyFeed .story .storyTitle {
-  padding: 10px 0;
+  padding: 10px 0 30px;
+}
+.storyTitleWrapper .saveButton {
+    padding-bottom: 20px;
 }
 .storyFeed .story .storySubTitle {
   padding-bottom: 10px;
@@ -6071,28 +6179,45 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTypeBlock {
   float: right;
 }
-.interface-english .storyFeed .story .topTailBlock,
+.interface-english .storyFeed .story .topTailBlock {
+  padding: 10px 0;
+  float: right;
+}
+.interface-hebrew .storyFeed .story .topTailBlock {
+  padding: 10px 0;
+  float: left;
+}
 .interface-english .storyFeed .story .mediumProfileImage {
   float: right;
 }
-.interface-hebrew .storyFeed .story .topTailBlock,
 .interface-hebrew .storyFeed .story .mediumProfileImage {
   float: left;
 }
+
+
+
 .storyFeed .story .storyBody {
   clear: both;
-  padding: 10px 0;
+  margin: 10px 0;
   text-align: justify;
 }
 .storyFeed .story .storySheetList {
   clear: both;
 }
 .storyFeed .story .storySheetListItem {
-  padding-top: 20px;
+  padding-bottom: 20px;
 }
-.storyFeed .story .storySheetList .storyTitle span {
+.storyFeed .story .storySheetListItem:last-child {
+  padding-bottom: 0;
+}
+
+.storyFeed .story .storySheetList .sheetTitle {
+  padding-bottom: 10px;
+}
+.storyFeed .story .storySheetList .pageTitle span {
   font-size: 20px;
 }
+
 
 .storyFeed .story .saveLine {
   display: flex;

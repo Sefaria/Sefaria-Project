@@ -215,7 +215,7 @@ msgid "Receive important announcements"
 msgstr ""
 
 #: sefaria/forms.py:36
-msgid "Receive our educator newsletter"
+msgid "I am an educator"
 msgstr ""
 
 #: sefaria/forms.py:61

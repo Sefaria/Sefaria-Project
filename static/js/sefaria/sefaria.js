@@ -586,7 +586,7 @@ Sefaria = extend(Sefaria, {
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   _indexDetails: {},
-  hasIndexDetails: title => {title in this._indexDetails},
+  /* hasIndexDetails: title => {title in this._indexDetails}, */
   getIndexDetails: function(title) {
     return new Promise((resolve, reject) => {
         var details = title in this._indexDetails ? this._indexDetails[title] : null;
@@ -601,7 +601,7 @@ Sefaria = extend(Sefaria, {
         }
     });
   },
-  indexDetails: function(title, cb) {
+/*  indexDetails: function(title, cb) {
     // Returns detailed index record for `title` which includes info like author and description
     console.log("The indexDetails method is deprecated.  Please use getIndexDetails.");
     var details = title in this._indexDetails ? this._indexDetails[title] : null;
@@ -615,7 +615,7 @@ Sefaria = extend(Sefaria, {
       Sefaria._indexDetails[title] = data;
     });
     return details;
-  },
+  }, */
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
@@ -706,15 +706,14 @@ Sefaria = extend(Sefaria, {
   },
 
   // lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
-  lookup: function(name, callback, onError, refOnly) {
-    /* Deprecated in favor of getName */
+  /* lookup: function(name, callback, onError, refOnly) {
+    // Deprecated in favor of getName
 
-    /*
-      * name - string to lookup
-      * callback - callback function, takes one argument, a data object
-      * onError - callback
-      * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
-     */
+    //  * name - string to lookup
+    //  * callback - callback function, takes one argument, a data object
+    //  * onError - callback
+    //  * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
+
     name = name.trim();
     var cache = refOnly? this._ref_lookups: this._lookups;
     onError = onError || function() {};
@@ -733,7 +732,7 @@ Sefaria = extend(Sefaria, {
           }.bind(this)
         });
     }
-  },
+  }, */
   _lexiconCompletions: {},
   lexiconCompletion: function(word, lexicon, callback) {
       word = word.trim();
@@ -809,6 +808,7 @@ Sefaria = extend(Sefaria, {
     ref = Sefaria.humanRef(ref);
     return ref in this._links ? this._links[ref] : [];
   },
+  /*
   links: function(ref, cb) {
     // Returns a list of links known for `ref`.
     // WARNING: calling this function with spanning refs can cause bad state in cache.
@@ -832,7 +832,7 @@ Sefaria = extend(Sefaria, {
           cb(data);
         }.bind(this));
     }
-  },
+  }, */
   _saveLinkData: function(ref, data) {
     ref = Sefaria.humanRef(ref);
     const l = this._saveLinksByRef(data);
@@ -946,12 +946,11 @@ Sefaria = extend(Sefaria, {
     // If `excludedSheet` is present, exclude links to that sheet ID.
 
     let links;
-    if (!this.linksLoaded(ref)) { return null; }
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
-      links = this.links(ref);
+      links = this.getLinksFromCache(ref);
     } else {
       links = [];
       ref.map(function(r) {
@@ -2262,6 +2261,8 @@ Sefaria.palette.indexColor = function(title) {
       Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
       Sefaria.palette.categoryColor("Other");
 };
+
+Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 
 
 Sefaria.setup = function(data) {

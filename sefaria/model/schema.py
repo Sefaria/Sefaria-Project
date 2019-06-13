@@ -222,7 +222,8 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "scheme",
         "order",
         "ref",
-        "sensitive"
+        "sensitive",
+        "category"
     ]
 
     def load_by_title(self, title):
@@ -2154,6 +2155,7 @@ class AddressSeif(AddressInteger):
             |(?:\u05e1(?:\u05e2\u05d9?|\u05e7)?(?:['\u05f3"\u05f4](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
         )"""
     }
+
 
 class AddressSection(AddressInteger):
     section_patterns = {

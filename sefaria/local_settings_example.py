@@ -86,6 +86,7 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
     "repetition": 1,
+    "style":      "modal" # "modal" or "banner"
     "condition":  {"returning_only": True}
 }
 """
