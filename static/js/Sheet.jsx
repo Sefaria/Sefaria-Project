@@ -45,21 +45,12 @@ class Sheet extends Component {
 
     for (var i = 0; i < data.sources.length; i++) {
       if ("ref" in data.sources[i]) {
-        Sefaria.ref(data.sources[i].ref, function(ref) {
-           {
-               Sefaria.links(ref.sectionRef, function(){
-                    this.forceUpdate();
-               }.bind(this))
-
-               }
-        }.bind(this));
+        Sefaria.getRef(data.sources[i].ref)
+            .then(ref => ref.sectionRef)
+            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
       }
     }
   }
-
-  componentDidUpdate(prevProps, prevState) {
-  }
-
 
   ensureData() {
     if (!this.getSheetFromCache()) {
@@ -102,6 +93,7 @@ class Sheet extends Component {
             onRefClick={this.props.onRefClick}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            highlightedRefsInSheet={this.props.highlightedRefsInSheet}
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
             authorUrl = {sheet.ownerProfileUrl}
@@ -188,7 +180,7 @@ class SheetContent extends Component {
               'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
               'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup' ],
             allowedAttributes: {
-              a: [ 'href', 'name', 'target', 'class' ],
+              a: [ 'href', 'name', 'target', 'class', 'data-ref' ],
               img: [ 'src' ],
               p: ['style'],
               span: ['style'],
@@ -219,8 +211,13 @@ class SheetContent extends Component {
 
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
-
+      const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
       if ("ref" in source) {
+        const highlighted = this.props.highlightedNodes ?
+            this.props.highlightedNodes == source.node :
+              highlightedRef ? 
+              Sefaria.refContains(source.ref, highlightedRef) :
+                false;
         return (
           <SheetSource
             key={i}
@@ -230,7 +227,7 @@ class SheetContent extends Component {
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
-            highlightedNodes={this.props.highlightedNodes}
+            highlighted={highlighted}
             sheetNumbered={this.props.sheetNumbered}
           />
         )
@@ -242,6 +239,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -256,6 +254,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -270,6 +269,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -283,6 +283,7 @@ class SheetContent extends Component {
           <SheetMedia
             key={i}
             sourceNum={i + 1}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             source={source}
             onSegmentClick={this.props.onSegmentClick}
@@ -341,11 +342,12 @@ class SheetSource extends Component {
       }
     }
 
-    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
-        event.preventDefault();
-        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
-        this.props.handleClick(ref,event);
-        event.stopPropagation();
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -365,7 +367,7 @@ class SheetSource extends Component {
                                                   </div>);
       var containerClasses = classNames("sheetItem",
           "segment",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+          this.props.highlighted ? "highlight" : null,
           (this.props.source.text && this.props.source.text.en && this.props.source.text.en == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
           (this.props.source.text && this.props.source.text.he && this.props.source.text.he == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,
@@ -426,11 +428,12 @@ class SheetComment extends Component {
       }
     }
 
-    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
-        event.preventDefault();
-        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
-        this.props.handleClick(ref,event);
-        event.stopPropagation();
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -476,11 +479,12 @@ class SheetOutsideText extends Component {
       }
     }
 
-    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
-        event.preventDefault();
-        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
-        this.props.handleClick(ref,event);
-        event.stopPropagation();
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -528,11 +532,12 @@ class SheetOutsideBiText extends Component {
       }
     }
 
-    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
-        event.preventDefault();
-        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
-        this.props.handleClick(ref,event);
-        event.stopPropagation();
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -587,11 +592,12 @@ class SheetMedia extends Component {
       }
     }
 
-    if ($(event.target).hasClass("refLink")  && event.target.href.includes("sheet")) {
-        event.preventDefault();
-        let ref = Sefaria.humanRef("Sheet."+(event.target).href.substr((event.target).href.lastIndexOf('/') + 1));
-        this.props.handleClick(ref,event);
-        event.stopPropagation();
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
 

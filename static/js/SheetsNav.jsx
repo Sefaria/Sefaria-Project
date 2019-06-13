@@ -36,8 +36,8 @@ class SheetsNav extends Component {
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   }
   render() {
-    var enTitle = this.props.tag || "Source Sheets";
-    var heTitle = this.props.tag || "דפי מקורות";
+    var enTitle = this.props.tag ? (this.props.tag == "sefaria-groups" ? null : this.props.tag) : "Source Sheets";
+    var heTitle = Sefaria.hebrewTerm(enTitle);
 
     if (this.props.tag == "My Sheets") {
       var content = (<MySheetsPage
@@ -60,7 +60,11 @@ class SheetsNav extends Component {
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
                         group={this.props.group}
-                        width={this.state.width} />);
+                        setGroupTag={this.props.setGroupTag}
+                        tag={this.props.groupTag}
+                        width={this.state.width}
+                        toggleLanguage={this.props.toggleLanguage}
+                        interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage
@@ -87,25 +91,27 @@ class SheetsNav extends Component {
                  (<div className="readerNavTop searchOnly" key="navTop">
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-                    <div className="readerOptions"></div>
                     <h2>
                       <span className="int-en">{enTitle}</span>
                       <span className="int-he">{heTitle}</span>
                     </h2>
+                    <div className="readerOptions"></div>
                   </div>)}
               {content}
             </div>);
   }
 }
 SheetsNav.propTypes = {
-  multiPanel:      PropTypes.bool,
   tag:             PropTypes.string,
   tagSort:         PropTypes.string,
   close:           PropTypes.func.isRequired,
   openNav:         PropTypes.func.isRequired,
   setSheetTag:     PropTypes.func.isRequired,
   setSheetTagSort: PropTypes.func.isRequired,
-  hideNavHeader:   PropTypes.bool
+  toggleLanguage:  PropTypes.func.isRequired,
+  hideNavHeader:   PropTypes.bool,
+  multiPanel:      PropTypes.bool,
+  interfaceLang:   PropTypes.string,
 };
 
 
@@ -235,9 +241,7 @@ class SheetsHomePage extends Component {
                   <TwoOrThreeBox content={tagList} width={this.props.width} />
                 </div>
               </div>
-              <footer id="footer" className="static sans">
-                    <Footer />
-              </footer>
+              <Footer />
              </div>);
   }
 }
@@ -278,9 +282,7 @@ class TagSheetsPage extends Component {
                         </h1>) : null}
                         {sheets}
                       </div>
-                      <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
+                      <Footer />
                     </div>);
   }
 }
@@ -364,9 +366,7 @@ class AllSheetsPage extends Component {
                         </h1>) : null}
                         {sheets}
                       </div>
-                      <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
+                      <Footer />
                     </div>);
   }
 }
@@ -403,9 +403,12 @@ class SheetTagButton extends Component {
     this.props.setSheetTag(this.props.tag);
   }
   render() {
+    var [enTag, heTag] = [this.props.tag, Sefaria.hebrewTerm(this.props.tag)];
+    var heTagOnly = Sefaria.hebrew.isHebrew(enTag);
+    var enTagOnly = !(Sefaria.hebrew.isHebrew(heTag));
     return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>
-              <span className="int-en">{this.props.tag} ({this.props.count})</span>
-              <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)} (<span className="enInHe">{this.props.count}</span>)</span>
+              <span className={"int-en" + (heTagOnly ? " heOnly" : '')}>{enTag} ({this.props.count})</span>
+              <span className={"int-he" + (enTagOnly ? " enOnly" : '')}>{heTag} (<span className="enInHe">{this.props.count}</span>)</span>
             </a>);
   }
 }

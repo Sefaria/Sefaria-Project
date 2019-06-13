@@ -2,12 +2,14 @@
 group.py
 Writes to MongoDB Collection: groups
 """
+import bleach
+
 from django.utils.translation import ugettext as _
 
 from . import abstract as abst
 from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
-
+from sefaria.utils import hebrew
 
 class Group(abst.AbstractMongoRecord):
     """
@@ -21,12 +23,12 @@ class Group(abst.AbstractMongoRecord):
 
     required_attrs = [
         "name",          # string name of group
-        "admins",        # array or uids
-        "publishers",    # array of uids
-        "members",       # array of uids
+        "admins",        # list or uids
+        "publishers",    # list of uids
+        "members",       # list of uids
     ]
     optional_attrs = [
-        "invitations",      # array of dictionaries representing outstanding invitations
+        "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url for group website
         "headerUrl",        # url of an image to use in header
@@ -35,7 +37,15 @@ class Group(abst.AbstractMongoRecord):
         "pinned_sheets",    # list of sheet ids, pinned to top
         "listed",           # Bool, whether to list group publicly
         "moderationStatus", # string status code for moderator-set statuses
-        "tag_order",        # list of strings, display order for sheet tags       
+        "tag_order",        # list of strings, display order for sheet tags
+        "toc",              # object signaling inclusion in TOC with fields
+                                # `catogories` - list
+                                # `title` - string
+                                # `heTitle` - string
+                                # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
+                                # `desscription` - string
+                                # `heDescription` - string
+                                # These fields will override `name` and `description for display
     ]
 
     def _normalize(self):
@@ -47,6 +57,13 @@ class Group(abst.AbstractMongoRecord):
             else:
                 # Allows include protocol
                 self.websiteUrl = "https://" + website
+
+        toc = getattr(self, "toc", None)
+        if toc:
+            tags = ["b", "i", "br", "span"]
+            attrs = {"span": ["class"]}
+            toc["description"] = bleach.clean(toc["description"], tags=tags, attributes=attrs)
+            toc["heDescription"] = bleach.clean(toc["heDescription"], tags=tags, attributes=attrs)
 
     def _validate(self):
         assert super(Group, self)._validate()
@@ -66,6 +83,18 @@ class Group(abst.AbstractMongoRecord):
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
             if old != new:
                 self._handle_image_change(old, new)
+
+    def all_names(self, lang):
+        names = self.primary_name(lang)
+
+        if hasattr(self, "toc"):
+            names += [self.toc["title"]] if lang == "en" else [self.toc["heTitle"]]
+            names += [self.toc["collectiveTitle"][lang]] if "collectiveTitle" in self.toc else []
+
+        return list(set(names))
+
+    def primary_name(self, lang):
+        return [self.name] if (hebrew.is_hebrew(self.name) == (lang == "he")) else []
 
     def contents(self, with_content=False, authenticated=False):
         from sefaria.sheets import group_sheets, sheet_tag_counts
@@ -178,8 +207,8 @@ class Group(abst.AbstractMongoRecord):
 
     def sheet_count(self):
         """Returns the number of sheets in this group"""
-        from sefaria.system.database import db
-        return db.sheets.find({"group": self.name}).count()
+        from sefaria.sheets import SheetSet
+        return SheetSet({"group": self.name}).count()
 
     @property
     def url(self):

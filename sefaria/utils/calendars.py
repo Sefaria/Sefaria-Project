@@ -4,14 +4,15 @@ calendar.py - functions for looking up information relating texts to dates.
 
 Uses MongoDB collections: dafyomi, parshiot
 """
-import sefaria.model as model
-from sefaria.system.database import db
-import p929
-from sefaria.utils.util import graceful_exception
-from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 import datetime
+import p929
 from django.utils import timezone
 
+import sefaria.model as model
+from sefaria.system.database import db
+from sefaria.utils.util import graceful_exception
+from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
+from sefaria.site.site_settings import SITE_SETTINGS
 
 import logging
 logger = logging.getLogger(__name__)
@@ -231,6 +232,10 @@ def make_parashah_response_from_calendar_entry(db_parasha):
     return [parasha]
 
 
+def aliyah_ref(parasha_db, aliyah):
+    assert 1 <= aliyah <= 7
+    return model.Ref(parasha_db["aliyot"][aliyah - 1])
+
 def this_weeks_parasha(datetime_obj, diaspora=True):
     """
     Returns the upcoming Parasha for datetime.
@@ -251,6 +256,8 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
 
 
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
+    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+        return []
     cal_items  = []
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora, custom=custom)
     cal_items += daf_yomi(datetime_obj)
@@ -266,6 +273,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)
+
 
 def get_keyed_calendar_items(diaspora=True, custom=None):
     cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)

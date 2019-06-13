@@ -112,13 +112,13 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
 
     return History(log).save()
 
-
+'''
 def next_revision_num():
     #todo: refactor to use HistorySet? May add expense for no gain.
     last_rev = db.history.find().sort([['revision', -1]]).limit(1)
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
-
+'''
 
 class History(abst.AbstractMongoRecord):
     collection = 'history'

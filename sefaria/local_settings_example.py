@@ -64,6 +64,7 @@ CACHES = {
     }
 }"""
 
+SITE_PACKAGE = "sites.sefaria"
 
 
 
@@ -85,6 +86,7 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
     "repetition": 1,
+    "style":      "modal" # "modal" or "banner"
     "condition":  {"returning_only": True}
 }
 """
@@ -142,6 +144,7 @@ DOMAIN_LANGUAGES = {
     "http://english.example.org": "english",
 }
 
+GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'

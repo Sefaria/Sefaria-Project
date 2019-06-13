@@ -13,7 +13,7 @@ import bleach
 import json
 import itertools
 from collections import defaultdict
-
+from bs4 import BeautifulSoup
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
@@ -696,9 +696,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
         }
-        ord = self.get_toc_index_order()
-        if ord:
-            toc_contents_dict["order"] = ord
+        order = self.get_toc_index_order()
+        if order:
+            toc_contents_dict["order"] = order
 
         return toc_contents_dict
 
@@ -901,6 +901,57 @@ class AbstractTextRecord(object):
             return self.ja().flatten_to_string()
         else:
             return ""
+
+    def as_sized_string(self, min_char=240, max_char=360):
+        """
+        Return a starting substring of this text.
+        If the entire text is less than min_char, return the entire text.
+        If a segment boundary occurs between min_char and max_char, split there.
+        Otherwise, attempt to break on a period, semicolon, or comma between min_char and max_char.
+        Otherwise, break on a space between min_char and max_char.
+        :param min_char:
+        :param max_char:
+        :return:
+        """
+        balance = lambda doc: str(BeautifulSoup(doc, "html.parser"))
+
+        as_array = self.ja().flatten_to_array()
+
+        previous_state = None
+        accumulator = u''
+
+        for segment in as_array:
+            joiner = u" " if previous_state is not None else u""
+
+            previous_state = accumulator
+            accumulator += joiner + segment
+
+            cur_len = len(accumulator)
+            prev_len = len(previous_state)
+            # If a segment boundary occurs between min_char and max_char, return.
+            # Get the longest instance where that's true.
+            if cur_len > max_char >= prev_len >= min_char:
+                if previous_state[-1] == u".":
+                    return previous_state[:-1] + u"…"
+                else:
+                    return previous_state + u"…"
+
+            # We're too big, and the previous chunk was too small.  Break on a signal character.
+            if cur_len > max_char and min_char > prev_len:
+
+                # get target lengths
+                at_least = min_char - prev_len
+                at_most = max_char - prev_len
+
+                for bchar in u".;, ":
+                    # enumerate all places where this char is in segment
+                    for candidate in [pos for pos, char in enumerate(segment) if char == bchar][::-1]:
+                        if at_least <= candidate <= at_most:
+                            return balance(previous_state + joiner + segment[:candidate] + u"…")
+
+        # We've reached the end, it's not longer than max_char, and it's what we've got.
+        return accumulator
+
 
     @classmethod
     def sanitize_text(cls, t):
@@ -1279,11 +1330,11 @@ class TextChunk(AbstractTextRecord):
         elif lang:
             vset = VersionSet(self._oref.condition_query(lang), proj=self._oref.part_projection())
 
-            if vset.count() == 0:
+            if len(vset) == 0:
                 if VersionSet({"title": self._oref.index.title}).count() == 0:
                     raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
                 return
-            if vset.count() == 1:
+            if len(vset) == 1:
                 v = vset[0]
                 if exclude_copyrighted and v.is_copyrighted():
                     raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
@@ -1382,8 +1433,11 @@ class TextChunk(AbstractTextRecord):
         self._pad(content)
         self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
 
+        self._check_available_text()
+
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
+        self._update_link_language_availability()
 
         return self
 
@@ -1418,6 +1472,58 @@ class TextChunk(AbstractTextRecord):
         :return:
         """
         self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
+
+    def _check_available_text(self):
+        """
+        Stores the availability of this text in this language before a save is made,
+        so that link langauges availability can be updated after save if changed. 
+        """
+        try:
+            self._available_text_pre_save = self._oref.text(lang=self.lang).text
+        except NoVersionFoundError:
+            self._available_text_pre_save = []
+
+    def _update_link_language_availability(self):
+        """
+        Check if current save has changed the overall availabilty of text for refs
+        in this language, pass refs to update revelant links if so. 
+        """
+        def text_to_ref_available(text):
+            flat = JaggedArray(text).flatten_to_array_with_indices()
+            refs_available = []
+            for item in flat:
+                d = self._oref._core_dict()
+                d["sections"] = d["sections"] + item[0]
+                d["toSections"] = d["sections"]
+                ref = Ref(_obj=d)
+                available = bool(item[1])
+                refs_available += [[ref, available]]
+            return refs_available
+
+        old_refs_available = text_to_ref_available(self._available_text_pre_save)
+        new_refs_available = text_to_ref_available(self.text)
+
+        changed = []
+        zipped = list(itertools.izip_longest(old_refs_available, new_refs_available))
+        for item in zipped:
+            old_text, new_text = item[0], item[1]
+            had_previously = old_text and old_text[1]
+            have_now = new_text and new_text[1]
+
+            if not had_previously and have_now:
+                changed.append(new_text)
+            elif had_previously and not have_now:
+                # Current save is deleting a line of text, but it could still be available in a different
+                # version for this language. Check again.
+                current_text = old_text[0].text(lang=self.lang).text
+                if not bool(current_text):
+                    changed.append([old_text[0], False])
+
+        if len(changed):
+            from . import link
+            for change in changed:
+                link.update_link_language_availabiliy(change[0], self.lang, change[1])
+
 
     def _validate(self):
         """
@@ -1538,7 +1644,6 @@ class TextChunk(AbstractTextRecord):
         else:
             raise Exception("Called TextChunk.version() on merged TextChunk.")
 
-
     def nonempty_segment_refs(self):
         """
 
@@ -1593,7 +1698,6 @@ class TextChunk(AbstractTextRecord):
                 matches += [(r, m, cleaned)]
 
         return matches
-
 
     def text_index_map(self, tokenizer=lambda x: re.split(u'\s+', x), strict=True, ret_ja=False):
         """
@@ -2187,6 +2291,7 @@ class Ref(object):
             pass
 
     def __reinit_tref(self, new_tref):
+        logger.warning(u"__reinit_tref from {} to {}".format(self.tref, new_tref))
         self.tref = new_tref
         self.__clean_tref()
         self._lang = "en"
@@ -3070,7 +3175,10 @@ class Ref(object):
 
         # The commented code is easier to understand, but the code we're using puts a lot less on the wire.
         # return not len(self.versionset())
-        return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
+        # depricated
+        # return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
+
+        return db.texts.count_documents(self.condition_query()) == 0
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
@@ -3205,6 +3313,30 @@ class Ref(object):
             size = 0
         return self.subrefs(size)
 
+    def all_context_refs(self, include_self = True, include_book = False):
+        """
+        :return: a list of more general refs that contain this one - out too, and including, the book level
+        """
+
+        refs = [self] if include_self else []
+        try:
+            current_level = self.index_node.depth - len(self.sections)
+            refs += [self.context_ref(n) for n in  range(current_level + 1, self.index_node.depth + 1)]
+        except AttributeError:  # If self is a Schema Node
+            pass
+
+        n = self.index_node.parent
+
+        while n is not None:
+            try:
+                refs += [n.ref()]
+            except AttributeError:  # Jump over VirtualNodes
+                pass
+            n = n.parent
+        if not include_book:
+            refs = refs[:-1]
+        return refs
+
     def context_ref(self, level=1):
         """
         :return: :class:`Ref` that is more general than this :class:`Ref`.
@@ -3226,7 +3358,6 @@ class Ref(object):
             if self.index_node.has_default_child():
                 return self.default_child_ref()
             return self
-
 
         if self._context is None:
             self._context = {}
@@ -4156,6 +4287,9 @@ class Library(object):
             self._toc_tree = TocTree(self)
         return self._toc_tree
 
+    def get_groups_in_library(self):
+        return self._toc_tree.get_groups_in_library()
+
     def get_search_filter_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
@@ -4185,7 +4319,7 @@ class Library(object):
     def build_full_auto_completer(self):
         from autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True, include_groups=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -4530,7 +4664,9 @@ class Library(object):
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
-    #todo: onlyused in  bio scripts
+
+
+    #todo: only used in bio scripts
     def get_index_forest(self):
         """
         :return: list of root Index nodes.
@@ -4902,6 +5038,47 @@ class Library(object):
                 d.update(self.category_id_dict(c["contents"], key, val))
 
         return d
+
+    def simplify_toc(self, lang=None, toc_node=None, path=None):
+        is_root = toc_node is None and path is None
+        toc_node = toc_node if toc_node else self.get_toc()
+        path = path if path else []
+        simple_nodes = []
+        for x in toc_node:
+            node_name = x.get("category", None) or x.get("title", None)
+            node_path = path + [node_name]
+            simple_node = {
+                "name": node_name,
+                "path": node_path
+            }
+            if "category" in x:
+                if "contents" not in x:
+                    continue
+                simple_node["type"] = "category"
+                simple_node["children"] = self.simplify_toc(lang, x["contents"], node_path)
+            elif "title" in x:
+                query = {"title": x["title"]}
+                if lang:
+                    query["language"] = lang
+                simple_node["type"] = "index"
+                simple_node["children"] = [{
+                    "name": u"{} ({})".format(v.versionTitle, v.language),
+                    "path": node_path + [u"{} ({})".format(v.versionTitle, v.language)],
+                    "size": v.word_count(),
+                    "type": "version"
+                } for v in VersionSet(query)]
+            simple_nodes.append(simple_node)
+
+        if is_root:
+            return {
+                "name": "Whole Library" + " ({})".format(lang if lang else ""),
+                "path": [],
+                "children": simple_nodes
+            }
+        else:
+            return simple_nodes
+
+
 
 library = Library()
 

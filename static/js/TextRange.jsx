@@ -97,11 +97,11 @@ class TextRange extends Component {
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null
     };
-    var data = Sefaria.text(this.props.sref, settings);
+    var data = Sefaria.getTextFromCache(this.props.sref, settings);
 
-    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call again with a callback to trigger API call
+    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
-      Sefaria.text(this.props.sref, settings, this.onTextLoad);
+      Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
     }
     return data;
   }
@@ -113,7 +113,7 @@ class TextRange extends Component {
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
-    } else if (data.spanning) {
+    } else if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       //console.log("Re-rewriting spanning ref")
@@ -171,28 +171,24 @@ class TextRange extends Component {
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
-       Sefaria.text(data.next, {
+       Sefaria.getText(data.next, {
          context: 1,
          multiple: this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null
-       },
-           ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds)
-       );
+       }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
-       Sefaria.text(data.prev, {
+       Sefaria.getText(data.prev, {
          context: 1,
          multiple: -this.props.prefetchMultiple,
          enVersion: this.props.currVersions.en || null,
          heVersion: this.props.currVersions.he || null
-       },
-           ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds)
-       );
+       }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
-        Sefaria.indexDetails(data.indexTitle, function() {});
+        Sefaria.getIndexDetails(data.indexTitle);
      }
     }
     this.dataPrefetched = true;
@@ -296,7 +292,8 @@ class TextRange extends Component {
     var textSegments  = segments.map(function (segment, i) {
       var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
-                            this.props.basetext && segment.highlight;                              // otherwise highlight if this a basetext and the ref is specific
+                            this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
+      const textHighlights = highlight && !!this.props.textHighlights ? this.props.textHighlights : null;
       var parashahHeader = null;
         if (this.props.showParashahHeaders) {
         var parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
@@ -313,16 +310,17 @@ class TextRange extends Component {
         }
       }
       segment.he = strip_text_re ? segment.he.replace(strip_text_re, "") : segment.he;
-      return (<span key={i + segment.ref}>
-                { parashahHeader }
-                <TextSegment
-
+      return (
+        <span key={i + segment.ref}>
+          { parashahHeader }
+          <TextSegment
             sref={segment.ref}
             enLangCode={this.props.currVersions.en && /.+\[([a-z][a-z])\]$/g.test(this.props.currVersions.en) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.en)[1] : 'en'}
             heLangCode={this.props.currVersions.he && /.+\[([a-z][a-z])\]$/g.test(this.props.currVersions.he) ? /.+\[([a-z][a-z])\]$/g.exec(this.props.currVersions.he)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
+            textHighlights={textHighlights}
             segmentNumber={showSegmentNumbers ? segment.number : 0}
             showLinkCount={this.props.basetext}
             linkCount={Sefaria.linkCount(segment.ref, this.props.filter)}
@@ -330,8 +328,10 @@ class TextRange extends Component {
             panelPosition={this.props.panelPosition}
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
-            onFootnoteClick={this.onFootnoteClick}/>
-            </span>
+            onFootnoteClick={this.onFootnoteClick}
+            unsetTextHighlight={this.props.unsetTextHighlight}
+          />
+        </span>
       );
     }.bind(this));
     textSegments = textSegments.length ? textSegments : null;
@@ -443,10 +443,12 @@ TextRange.propTypes = {
   onCompareClick:         PropTypes.func,
   onOpenConnectionsClick: PropTypes.func,
   showBaseText:           PropTypes.func,
+  unsetTextHighlight:     PropTypes.func,
   panelsOpen:             PropTypes.number, // used?
   layoutWidth:            PropTypes.number,
   showActionLinks:        PropTypes.bool,
   inlineReference:        PropTypes.object,
+  textHighlights:         PropTypes.array,
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -455,16 +457,22 @@ TextRange.defaultProps = {
 
 class TextSegment extends Component {
   shouldComponentUpdate(nextProps) {
-    if (this.props.highlight !== nextProps.highlight)         { return true; }
-    if (this.props.showLinkCount !== nextProps.showLinkCount) { return true; }
-    if (this.props.linkCount !== nextProps.linkCount)         { return true; }
-    if (!!this.props.filter !== !!nextProps.filter)           { return true; }
+    if (this.props.highlight !== nextProps.highlight)           { return true; }
+    if (this.props.textHighlights !== nextProps.textHighlights) { return true; }
+    if (this.props.showLinkCount !== nextProps.showLinkCount)   { return true; }
+    if (this.props.linkCount !== nextProps.linkCount)           { return true; }
+    if (!!this.props.filter !== !!nextProps.filter)             { return true; }
     if (this.props.filter && nextProps.filter &&
-        !this.props.filter.compare(nextProps.filter))         { return true; }
+        !this.props.filter.compare(nextProps.filter))           { return true; }
     if (this.props.en !== nextProps.en
-        || this.props.he !== nextProps.he)                    { return true; }
+        || this.props.he !== nextProps.he)                      { return true; }
 
     return false;
+  }
+  componentDidUpdate(prevProps) {
+    if (this.props.highlight !== prevProps.highlight && !!this.props.textHighlights) {
+      this.props.unsetTextHighlight();
+    }
   }
   handleClick(event) {
     if ($(event.target).hasClass("refLink")) {
@@ -510,6 +518,16 @@ class TextSegment extends Component {
     });
     return $newElement.html();
   }
+  addHighlights(text) {
+    // for adding in highlights to query results in Reader
+    if (!!this.props.textHighlights) {
+      const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getNikkudRegex(h) : h);
+      const reg = new RegExp(`(${highList.join("|")})`, 'g');
+      console.log(reg);
+      return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
+    }
+    return text;
+  }
   render() {
     var linkCountElement;
     if (this.props.showLinkCount) {
@@ -533,9 +551,11 @@ class TextSegment extends Component {
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
-      he = this.formatItag("he", he)
-      en = this.formatItag("en", en)
+      he = this.formatItag("he", he);
+      en = this.formatItag("en", en);
     }
+    he = this.addHighlights(he);
+    en = this.addHighlights(en);
 
     var classes=classNames({ segment: 1,
                      highlight: this.props.highlight,
@@ -560,13 +580,15 @@ TextSegment.propTypes = {
   en:              PropTypes.string,
   he:              PropTypes.string,
   highlight:       PropTypes.bool,
+  textHighlights:  PropTypes.array,
   segmentNumber:   PropTypes.number,
   showLinkCount:   PropTypes.bool,
   linkCount:       PropTypes.number,
   filter:          PropTypes.array,
   onCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,
-  onFootnoteClick: PropTypes.func
+  onFootnoteClick: PropTypes.func,
+  unsetTextHighlight: PropTypes.func,
 };
 
 

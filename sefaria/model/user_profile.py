@@ -8,6 +8,8 @@ import csv
 from datetime import datetime
 from random import randint
 
+from sefaria.system.exceptions import InputError
+
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
     from django.core.mail import EmailMultiAlternatives
@@ -38,14 +40,20 @@ class UserHistory(abst.AbstractMongoRecord):
         "last_place",         # bool: True if this is the last ref read for this user in this book
         "book",               # str: index title
         "saved",              # bool: True if saved
-        "secondary",          # bool: True when view is from sidebar
+        "secondary"          # bool: True when view is from sidebar
     ]
 
     optional_attrs = [
+        "datetime",  # datetime: converted from time_stamp.  Can move to required once legacy records are converted.
+        "context_refs",  # list of ref strings: derived from ref.  Can move to required once legacy records are converted.
+        "categories",  # list of str: derived from ref.  Can move to required once legacy records are converted.
+        "authors",  # list of str: derived from ref.  Can move to required once legacy records are converted.
+        "is_sheet",  # bool: is this a sheet ref?  Can move to required once legacy records are converted.
         "language",           # oneOf(english, hebrew, bilingual) didn't exist in legacy model
         "num_times_read",     # int: legacy for migrating old recent views
         "sheet_title",        # str: for sheet history
         "sheet_owner",        # str: ditto
+        "sheet_id"            # int: ditto
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
@@ -84,6 +92,24 @@ class UserHistory(abst.AbstractMongoRecord):
 
         super(UserHistory, self).__init__(attrs=attrs)
 
+    def _normalize(self):
+        # Derived values - used to make downstream queries quicker
+        self.datetime = datetime.utcfromtimestamp(self.time_stamp)
+        try:
+            r = Ref(self.ref)
+            self.context_refs   = [r.normal() for r in r.all_context_refs()]
+            self.categories     = r.index.categories
+            self.authors        = getattr(r.index, "authors", [])
+            self.is_sheet       = r.index.title == "Sheet"
+            if self.is_sheet:
+                self.sheet_id = r.sections[0]
+
+        except InputError:   # Ref failed to resolve
+            self.context_refs   = [self.ref]
+            self.categories     = []
+            self.authors        = []
+            self.is_sheet       = False
+
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
@@ -95,11 +121,56 @@ class UserHistory(abst.AbstractMongoRecord):
                 del d["server_time_stamp"]
             except KeyError:
                 pass
+            try:
+                d["datetime"] = str(d["datetime"])
+            except KeyError:
+                pass
         return d
 
     def _sanitize(self):
         # UserHistory API is only open to post for your uid
         pass
+
+    @classmethod
+    def save_history_item(cls, uid, hist, time_stamp=None):
+        if time_stamp is None:
+            time_stamp = epoch_time()
+        hist["uid"] = uid
+        if "he_ref" not in hist or "book" not in hist:
+            oref = Ref(hist["ref"])
+            hist["he_ref"] = oref.he_normal()
+            hist["book"] = oref.index.title
+        hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
+
+        action = hist.pop("action", None)
+        saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
+        uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
+            "saved": saved,
+            "server_time_stamp": hist["server_time_stamp"]
+        })
+        uh.save()
+        return uh
+
+    @staticmethod
+    def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
+        query = {}
+        if uid is not None:
+            query["uid"] = uid
+        if oref is not None:
+            regex_list = oref.context_ref().regex(as_list=True)
+            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
+            query["$or"] = ref_clauses
+        if saved is not None:
+            query["saved"] = saved
+        if sheets is not None:
+            query["is_sheet"] = sheets
+        if secondary is not None:
+            query["secondary"] = secondary
+        if last_place is not None:
+            query["last_place"] = last_place
+        if serialized:
+            return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
+        return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
 
 
 class UserHistorySet(abst.AbstractMongoSet):
@@ -402,30 +473,21 @@ class UserProfile(object):
             self.interrupting_messages.remove(message)
             self.save()
 
-    def get_user_history(self, oref=None, saved=None, secondary=None, last_place=None, serialized=False):
+    def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
         """
-
+        personal user history
         :param oref:
         :param saved: True if you only want saved. False if not. None if you dont care
         :param secondary: ditto
         :param last_place: ditto
+        :param sheets: ditto
         :param serialized: for return from API call
+        :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-        query = {"uid": self.id}
-        if oref is not None:
-            regex_list = oref.context_ref().regex(as_list=True)
-            ref_clauses = [{"ref": {"$regex": r}} for r in regex_list]
-            query["$or"] = ref_clauses
-        if saved is not None:
-            query["saved"] = saved
-        if secondary is not None:
-            query["secondary"] = secondary
-        if last_place is not None:
-            query["last_place"] = last_place
-        if serialized:
-            return [uh.contents(natural_time=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)])]
-        return UserHistorySet(query, sort=[("time_stamp", -1)])
+
+        return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
+                                            last_place=last_place, serialized=serialized, limit=limit)
 
     def to_DICT(self):
         """Return a json serializble dictionary this profile"""
@@ -477,7 +539,7 @@ def email_unread_notifications(timeframe):
         if profile.settings["email_notifications"] != timeframe and timeframe != 'all':
             continue
         notifications = NotificationSet().unread_personal_for_user(uid)
-        if notifications.count() == 0:
+        if len(notifications) == 0:
             continue
         try:
             user = User.objects.get(id=uid)
@@ -537,6 +599,7 @@ def public_user_data(uid):
         "name": profile.full_name,
         "profileUrl": "/profile/" + profile.slug,
         "imageUrl": profile.gravatar_url_small,
+        "position": profile.position,
         "isStaff": is_staff,
         "uid": uid
     }
@@ -548,6 +611,12 @@ def user_name(uid):
     """Returns a string of a user's full name"""
     data = public_user_data(uid)
     return data["name"]
+
+
+def profile_url(uid):
+    """Returns url to user's profile"""
+    data = public_user_data(uid)
+    return data["profileUrl"]
 
 
 def user_link(uid):
@@ -581,10 +650,9 @@ def user_started_text(uid, title):
     lock name changes after an admin has stepped in.
     """
     log = db.history.find({"title": title}).sort([["date", -1]]).limit(1)
-    if log.count():
+    if len(log):
         return log[0]["user"] == uid
     return False
-
 
 
 def annotate_user_list(uids):

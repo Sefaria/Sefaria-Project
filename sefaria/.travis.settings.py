@@ -1,6 +1,7 @@
 # local settings used by travis CI builds
 import os
 import os.path
+from local_settings_example import *
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
@@ -45,6 +46,8 @@ CACHES = {
     }
 }
 
+SITE_PACKAGE = "sites.sefaria"
+
 SECRET_KEY = 'insert your long random secret key here !'
 
 
@@ -79,6 +82,7 @@ NODE_HOST = "http://localhost:4040"
 SEFARIA_DATA_PATH = '{}/data'.format(HOME_DIR)  # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
 
+GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None
 MIXPANEL_CODE = 'you mixpanel code here'

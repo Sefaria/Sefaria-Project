@@ -15,7 +15,7 @@ from django.http import Http404
 
 # noinspection PyUnresolvedReferences
 from django.http import HttpResponse, HttpResponseRedirect
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -77,8 +77,7 @@ def new_sheet(request):
 
 	owner_groups  = get_user_groups(request.user.id)
 	query         = {"owner": request.user.id or -1 }
-	hide_video    = db.sheets.find(query).count() > 2
-
+	hide_video    = db.sheets.count_documents(query) > 2
 
 	return render(request,'sheets.html', {"can_edit": True,
 												"new_sheet": True,
@@ -392,26 +391,52 @@ def delete_sheet_api(request, sheet_id):
 	return jsonResponse({"status": "ok"})
 
 
+@csrf_exempt
 def groups_api(request, group=None):
 	if request.method == "GET":
-		if not group:
-			return jsonResponse({
-				"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
-				"public": [g.listing_contents() for g in GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
-			})
-		group = Group().load({"name": group})
-		if not group:
-			return jsonResponse({"error": "No group named '%s'" % group})
-		is_member = request.user.is_authenticated and group.is_member(request.user.id)
-		group_content = group.contents(with_content=True, authenticated=is_member)
-		return jsonResponse(group_content)
+		return groups_get_api(request, group)
 	else:
-		return groups_post_api(request, group_name=group)
+		if not request.user.is_authenticated and request.method == "POST":
+			key = request.POST.get("apikey")
+			if not key:
+				return jsonResponse({"error": "You must be logged in or use an API key to add a new group."})
+			apikey = db.apikeys.find_one({"key": key})
+			if not apikey:
+				return jsonResponse({"error": "Unrecognized API key."})
+			else:
+				user_id = apikey["uid"]
+			return groups_post_api(request, user_id, group_name=group)
+
+		else:
+			user_id = request.user.id
+			return protected_groups_post_api(request, user_id, group_name=group)
 
 
+@csrf_protect
 @login_required
+def protected_groups_post_api(request, user_id, group_name=None):
+	return groups_post_api(request, user_id, group_name)
+
+
+@csrf_protect
+def groups_get_api(request, group=None):
+	if not group:
+		return jsonResponse({
+			"private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
+			"public": [g.listing_contents() for g in
+					   GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
+		})
+	group_obj = Group().load({"name": group})
+	if not group_obj:
+		return jsonResponse({"error": "No group named '%s'" % group})
+	is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
+	group_content = group_obj.contents(with_content=True, authenticated=is_member)
+	return jsonResponse(group_content)
+
+
+@csrf_exempt
 @catch_error_as_json
-def groups_post_api(request, group_name=None):
+def groups_post_api(request, user_id, group_name=None):
 	if request.method == "POST":
 		j = request.POST.get("json")
 		if not j:
@@ -423,11 +448,9 @@ def groups_post_api(request, group_name=None):
 			if "new" in group:
 				return jsonResponse({"error": "A group with this name already exists."})
 			# check poster is a group admin
-			if request.user.id not in existing.admins:
+			if user_id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to edit this group."})
 
-			from pprint import pprint
-			pprint(group)
 			existing.load_from_dict(group)
 			existing.save()
 		else:
@@ -435,7 +458,7 @@ def groups_post_api(request, group_name=None):
 			if any([c in group["name"] for c in reservedChars]):
 				return jsonResponse({"error": 'Group names may not contain the following characters: {}'.format(', '.join(reservedChars))})
 			del group["new"]
-			group["admins"] = [request.user.id]
+			group["admins"] = [user_id]
 			group["publishers"] = []
 			group["members"] = []
 			Group(group).save()
@@ -446,7 +469,7 @@ def groups_post_api(request, group_name=None):
 			return jsonResponse({"error": "Please specify a group name in the URL."})
 		existing = Group().load({"name": group_name})
 		if existing:
-			if request.user.id not in existing.admins:
+			if user_id not in existing.admins:
 				return jsonResponse({"error": "You do not have permission to delete this group."})
 			else:
 				GroupSet({"name": group_name}).delete()
@@ -616,7 +639,8 @@ def save_sheet_api(request):
 						# Don't allow non Group publishers from changing status of an existing sheet
 						sheet["status"] = existing["status"]
 
-		responseSheet = save_sheet(sheet, user.id)
+		rebuild_nodes = request.POST.get('rebuildNodes', False)
+		responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)
 		if "rebuild" in responseSheet and responseSheet["rebuild"]:
 			# Don't bother adding user links if this data won't be used to rebuild the sheet
 			responseSheet["sources"] = annotate_user_links(responseSheet["sources"])

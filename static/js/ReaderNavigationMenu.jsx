@@ -28,7 +28,7 @@ class ReaderNavigationMenu extends Component {
 
     this.width = 1000;
     this.state = {
-      showMore: false
+      showMore: Sefaria.toc.length < 9,
     };
   }
   componentDidMount() {
@@ -98,25 +98,25 @@ class ReaderNavigationMenu extends Component {
               </div>);
     } else {
       // Root Library Menu
-      var categories = Sefaria.toc.map(function(cat) {
-        var style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
-        var openCat = function(e) {e.preventDefault(); this.props.setCategories([cat.category])}.bind(this);
+      let categories = Sefaria.toc.map(cat => {
+        const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
+        const openCat = e => {e.preventDefault(); this.props.setCategories([cat.category])};
         return (<a href={`/texts/${cat.category}`} className="readerNavCategory" data-cat={cat.category} style={style} onClick={openCat}>
                     <span className="en">{cat.category}</span>
                     <span className="he">{cat.heCategory}</span>
                   </a>
                 );
-      }.bind(this));
-      var more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
+      });
+      const more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={this.showMore}>
                       <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
                       <span className="he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
                   </a>);
-      var nCats  = this.width < 500 ? 9 : 8;
+      const nCats  = this.width < 500 ? 9 : 8;
       categories = this.state.showMore ? categories : categories.slice(0, nCats).concat(more);
       categories = (<div className="readerNavCategories"><TwoOrThreeBox content={categories} width={this.width} /></div>);
 
 
-      var siteLinks = Sefaria._uid ?
+      let siteLinks = Sefaria._uid ?
                     [(<a className="siteLink outOfAppLink" key='profile' href="/my/profile">
                         <i className="fa fa-user"></i>
                         <span className="en">Your Profile</span>
@@ -145,7 +145,9 @@ class ReaderNavigationMenu extends Component {
       siteLinks = (<div className="siteLinks">
                     {siteLinks}
                   </div>);
-      var calendar = Sefaria.calendars.map(function(item) {
+
+
+      let calendar = Sefaria.calendars.map(function(item) {
           return (<TextBlockLink
                     sref={item.ref}
                     url_string={item.url}
@@ -159,36 +161,28 @@ class ReaderNavigationMenu extends Component {
       });
       calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
 
-      var resources = [(<a className="resourcesLink" href="/sheets" onClick={this.props.openMenu.bind(null, "sheets")}>
-                        <img src="/static/img/sheet-icon.png" alt="source sheets icon" />
-                        <span className="int-en">Source Sheets</span>
-                        <span className="int-he">דפי מקורות</span>
-                      </a>),
-                     (<a className="resourcesLink outOfAppLink" href="/visualizations">
-                        <img src="/static/img/visualizations-icon.png" alt="visualization icon" />
-                        <span className="int-en">Visualizations</span>
-                        <span className="int-he">תרשימים גרפיים</span>
-                      </a>),
-                    (<a className="resourcesLink outOfAppLink" href="/people">
-                        <img src="/static/img/authors-icon.png" alt="author icon" />
-                        <span className="int-en">Authors</span>
-                        <span className="int-he">רשימת מחברים</span>
-                      </a>),
-                    (<a className="resourcesLink" href="/topics" onClick={this.props.openMenu.bind(null, "topics")}>
-                        <img src="/static/img/hashtag-icon.svg" alt="resources icon" />
-                        <span className="int-en">Topics</span>
-                        <span className="int-he">נושאים</span>
-                      </a>),
-                    (<a className="resourcesLink outOfAppLink" href="/groups">
-                        <img src="/static/img/group.svg" alt="Groups icon" />
-                        <span className="int-en">Groups</span>
-                        <span className="int-he">קבוצות</span>
-                      </a>)
-                      ];
+
+      let resources = [
+          <TocLink en="Source Sheets" he="דפי מקורות" href="/sheets" resourcesLink={true} onClick={this.props.openMenu.bind(null, "sheets")}
+                img="/static/img/sheet-icon.png"  alt="source sheets icon"/>,
+          <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true} outOfAppLink={true}
+                img="/static/img/visualizations-icon.png" alt="visualization icon" />,
+          <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true} outOfAppLink={true}
+                img="/static/img/authors-icon.png" alt="author icon"/>,
+          <TocLink en="Topics" he="נושאים" href="/topics" resourcesLink={true} onClick={this.props.openMenu.bind(null, "topics")}
+                img="/static/img/hashtag-icon.svg" alt="resources icon" />,
+          <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true} outOfAppLink={true}
+                img="/static/img/group.svg" alt="Groups icon"/>
+      ];
+
+      const torahSpecificResources = ["/visualizations", "/people"];
+      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+        resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
+      }
       resources = (<div className="readerTocResources"><TwoBox content={resources} width={this.width} /></div>);
 
 
-      var topContent = this.props.home ?
+      let topContent = this.props.home ?
               (<div className="readerNavTop search">
                 <CategoryColorLine category="Other" />
                 <ReaderNavigationMenuSearchButton onClick={this.navHome} />
@@ -212,32 +206,24 @@ class ReaderNavigationMenu extends Component {
       topContent = this.props.hideNavHeader ? null : topContent;
 
       let topUserData = [
-        <a href="/texts/saved" className="resourcesLink" onClick={this.openSaved}>
-          <img src="/static/img/star.png" alt="saved text icon" />
-          <span className="en">Saved</span>
-          <span className="he">שמורים</span>
-        </a>,
-        <a href="/texts/history" className="resourcesLink" onClick={this.props.openMenu.bind(null, "history")}>
-          <img src="/static/img/clock.png" alt="" />
-          <span className="en">History</span>
-          <span className="he">היסטוריה</span>
-        </a>
+          <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} onClick={this.openSaved} img="/static/img/star.png" alt="saved text icon"/>,
+          <TocLink en="History" he="היסטוריה" href="/texts/history" resourcesLink={true} onClick={this.props.openMenu.bind(null, "history")} img="/static/img/clock.png" alt="history icon"/>
       ];
       topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);
 
+      const donation  = <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink"
+                           img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/"/>;
 
-      var title = (<h1>
-                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-                    <span className="int-en">The Sefaria Library</span>
-                    <span className="int-he">האוסף של ספריא</span>
+      const title = (<h1>
+                    { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+                     <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                    <span className="int-en">{Sefaria._siteSettings.LIBRARY_NAME.en}</span>
+                    <span className="int-he">{Sefaria._siteSettings.LIBRARY_NAME.he}</span>
                   </h1>);
 
-      var footer = this.props.compare ? null :
-                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                      <Footer />
-                    </footer> );
-      var classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
-      var contentClasses = classNames({content: 1, hasFooter: footer != null});
+      const footer = this.props.compare ? null : <Footer />;
+      const classes = classNames({readerNavMenu:1, noHeader: !this.props.hideHeader, compare: this.props.compare, home: this.props.home, noLangToggleInHebrew: 1 });
+      const contentClasses = classNames({content: 1, hasFooter: footer != null});
       return(<div className={classes} onClick={this.props.handleClick} key="0">
               {topContent}
               <div className={contentClasses}>
@@ -245,8 +231,9 @@ class ReaderNavigationMenu extends Component {
                   { this.props.compare ? null : title }
                   { topUserData }
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
-                  <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} />
+                  { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
                   { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
+                    <ReaderNavigationMenuSection title="Support Sefaria" heTitle="תמכו בספריא" content={donation} />
                   { this.props.multiPanel ? null : siteLinks }
                 </div>
                 {footer}
@@ -275,5 +262,12 @@ ReaderNavigationMenu.propTypes = {
   compare:       PropTypes.bool,
   interfaceLang: PropTypes.string,
 };
+
+const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, onClick}) =>
+    <a className={(resourcesLink?"resourcesLink ":"") + (outOfAppLink?"outOfAppLink ":"") + classes} href={href} onClick={onClick}>
+        <img src={img} alt={alt} />
+        <span className="int-en">{en}</span>
+        <span className="int-he">{he}</span>
+    </a>;
 
 module.exports = ReaderNavigationMenu;

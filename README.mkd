@@ -1,12 +1,14 @@
 ## New Interfaces for Jewish Texts
 
-Sefaria is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning. Our website is up at www.sefaria.org.
+[Sefaria](https://www.sefaria.org) is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning.
 
 You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
 
 Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
-For general discussion about the project, please post to the [Sefaria Forum](https://groups.google.com/forum/?fromgroups#!forum/sefaria).
+For general discussion questions about the project, please email [hello@sefaria.org](mailto:hello@sefaria.org).
+
+If you find textual problems in our library please email [corrections@sefaria.org](mailto:corrections@sefaria.org).
 
 You can post bugs or request/discuss features on [GitHub Issues](https://github.com/blockspeiser/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
 
@@ -184,7 +186,6 @@ The shell script `cli` will invoke a python interpreter with the core models loa
 
 We're grateful to the following orgazations for providing us with donated services:
 
-- [BrowserStack](https://www.browserstack.com/)
 - [Google Apps for Work](https://apps.google.com/)
 - [PyCharm](https://www.jetbrains.com/pycharm/)
 - [Slack](https://slack.com)

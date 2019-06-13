@@ -101,7 +101,7 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad() {
-    console.log("handle text load");
+    //console.log("handle text load");
     this.setScrollPosition();
     this.adjustInfiniteScroll();
   }
@@ -288,6 +288,7 @@ class TextColumn extends Component {
         sref={ref}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
+        textHighlights={this.props.textHighlights}
         hideTitle={isDictionary}
         basetext={true}
         withContext={true}
@@ -304,6 +305,7 @@ class TextColumn extends Component {
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
         layoutWidth={this.props.layoutWidth}
+        unsetTextHighlight={this.props.unsetTextHighlight}
         key={ref} />);
     }.bind(this));
 
@@ -361,7 +363,9 @@ TextColumn.propTypes = {
   onTextLoad:             PropTypes.func,
   panelsOpen:             PropTypes.number,
   hasSidebar:             PropTypes.bool,
-  layoutWidth:            PropTypes.number
+  layoutWidth:            PropTypes.number,
+  textHighlights:         PropTypes.array,
+  unsetTextHighlight:     PropTypes.func,
 };
 
 

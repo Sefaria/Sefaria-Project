@@ -6,10 +6,12 @@ class InterruptingMessage(object):
     if attrs is None:
       attrs = {}
     self.name        = attrs.get("name", None)
+    self.style       = attrs.get("style", None)
     self.repetition  = attrs.get("repetition", 0)
     self.condition   = attrs.get("condition", {})
     self.request     = request
     self.cookie_name = "%s_%d" % (self.name, self.repetition)
+    self.should_show = self.check_condition()
 
   def check_condition(self):
     """Returns true if this interrupting message should be shown given its conditions"""
@@ -48,9 +50,10 @@ class InterruptingMessage(object):
     Returns JSON for this interrupting message which may be just `null` if the
     message should not be shown.
     """
-    if self.check_condition():
+    if self.should_show:
       return json.dumps({
           "name": self.name,
+          "style": self.style,
           "html": render_to_string("messages/%s.html" % self.name),
           "repetition": self.repetition
         })

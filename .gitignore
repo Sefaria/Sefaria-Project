@@ -51,10 +51,20 @@ node_modules
 #####################
 /.idea
 
+# pystest cache #
+#####################
+/.pytest_cache
+
+
 # Sefaria Local Settings files #
 ################################
 /sefaria/local_settings.py
 /node/local_settings.json
+
+
+# Site specific templates and urls #
+####################################
+# /site
 
 # Symlink needed for Djano admin #
 ##################################

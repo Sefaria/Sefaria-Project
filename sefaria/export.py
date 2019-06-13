@@ -22,7 +22,7 @@ from sefaria.model.text import AbstractIndex
 
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from summaries import ORDER
+from summaries import CATEGORY_ORDER
 from local_settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
@@ -50,7 +50,7 @@ def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
     """
-    if doc["categories"][0] not in ORDER:
+    if doc["categories"][0] not in CATEGORY_ORDER:
         doc["categories"].insert(0, "Other")
     path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_EXPORT_PATH,
                                             format,
