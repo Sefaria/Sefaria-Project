@@ -137,7 +137,7 @@ class FilterableList extends Component {
         </div>
         {
           loading ? <LoadingMessage /> :
-          ( data.length ?
+          ( data.length && false ?
             (
               <div className="filter-content">
                 { !!renderHeader ? renderHeader() : null }

@@ -134,7 +134,10 @@ class AbstractTest(object):
 
     def nav_to_sheets(self):
         self.nav_to_account()
-        el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')
+        try:
+            el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')
+        except NoSuchElementException:
+            el = self.driver.find_element_by_css_selector('.emptyList .resourcesLink')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
         return self
