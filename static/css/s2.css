@@ -5876,3 +5876,10 @@ span.purim-emoji img{
   opacity: 1;
   transition: all 0.75s ease;
 }
+
+.editorToolbar {
+  position:fixed;
+  top: 0;
+  left: 0;
+  z-index: 100000;
+}

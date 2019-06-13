@@ -40,6 +40,7 @@
     "cookie-parser": "^1.4.2",
     "deep-merge": "^1.0.0",
     "diff-match-patch": "^1.0.0",
+    "draft-js": "^0.10.5",
     "express": "4.x",
     "extend": "^3.0.0",
     "humanize-duration": "^3.17.0",

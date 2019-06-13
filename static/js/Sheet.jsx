@@ -7,6 +7,7 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const PropTypes = require('prop-types');
 const classNames = require('classnames');
+const SefariaEditor = require('./Editor');
 const $ = require('./sefaria/sefariaJquery');
 const Sefaria = require('./sefaria/sefaria');
 const sanitizeHtml = require('sanitize-html');
@@ -18,7 +19,8 @@ class Sheet extends Component {
     super(props);
 
     this.state = {
-        scrollDir: "down"
+        scrollDir: "down",
+        editor: true
     }
 
   }
@@ -83,6 +85,15 @@ class Sheet extends Component {
     if (!sheet) {
       content = (<LoadingMessage />);
     }
+    else if (this.state.editor == true) {
+        content = (
+            <div className="sheetContent">
+                <SefariaEditor />
+            </div>
+
+        )
+    }
+
     else {
       content = (
           <SheetContent
