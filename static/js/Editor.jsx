@@ -17,15 +17,23 @@ class SefariaEditor extends React.Component {
 
             var range = sel.getRangeAt(0);
             var boundary = range.getBoundingClientRect();
-
             console.log(boundary)
 
             this.setState(
                 {
                     "showToolbar": true,
-                    "toolbarPosition": {x: boundary.left-50, y: boundary.top-25}
+                    "toolbarPosition": {x: (boundary.width/2)+(boundary.left)-30, y: boundary.top-25}
                 }
             )
+        }
+
+        else {
+            this.setState(
+                {
+                    "showToolbar": false,
+                }
+            )
+
         }
     } );
   }
@@ -65,7 +73,11 @@ class EditorToolbar extends React.Component {
 
   render() {
     return (
-    <div className="editorToolbar" style={{display: this.props.showToolbar ? "block" : "none", left: this.props.toolbarPosition.x, top: this.props.toolbarPosition.y  } }>
+    <div className="editorToolbar" style={{display: this.props.showToolbar ? "block" : "none", left: this.props.toolbarPosition.x, top: this.props.toolbarPosition.y  } }
+        onMouseDown={(event) => {
+        event.preventDefault();
+        }}
+    >
         <button onClick={this.props.onBoldClick}><strong>b</strong></button>
         <button onClick={this.props.onItalicClick}><em>i</em></button>
         <button onClick={this.props.onUnderlineClick}><span style={{textDecoration: 'underline'}}>u</span></button>
