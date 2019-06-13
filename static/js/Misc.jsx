@@ -999,7 +999,7 @@ class SheetListing extends Component {
     });
     const created = (new Date(sheet.created)).toDateString().substring(4);  // cutoff day of the week
     const underInfo = this.props.infoUnderneath ? [
-        sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{"Unlisted"}</span></span>) : undefined,
+        sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
         `${sheet.views} Views`,
         created,
         sheet.tags.length ? sheetTags : undefined,

@@ -3956,6 +3956,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content: space-between;
 }
+.sheet .sheetInfo .sheetUser {
+  display: flex;
+  align-items: center;
+}
 .textList .sheet .sheetAuthorImg,
 .textList .note .noteAuthorImg {
   height: 26px;
@@ -4037,7 +4041,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: 0.4;
   margin: 0 3px 0 0;
 }
-.hebrew-interface .sheet .sheetTags .unlisted img {
+.interface-hebrew .sheet .sheetTags .unlisted img {
   margin: 0 0 0 3px;
 }
 .sheetTag.button,

@@ -2059,6 +2059,7 @@ Sefaria = extend(Sefaria, {
       "following": "נעקבים",
       "followers": "עוקבים",
       "Recent": "תאריך",
+      "Unlisted": "חסוי",
 
       //languages
       "English": "אנגלית",
