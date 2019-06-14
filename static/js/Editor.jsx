@@ -1,41 +1,54 @@
 import React from 'react';
-import {Editor, EditorState, RichUtils} from 'draft-js';
+import {Editor, EditorState, RichUtils, convertFromHTML, ContentState} from 'draft-js';
 
 class SefariaEditor extends React.Component {
+
+
   constructor(props) {
     super(props);
+
+    const html = this.props.data;
+
+      const blocksFromHTML = convertFromHTML(html);
+      const content = ContentState.createFromBlockArray(
+        blocksFromHTML.contentBlocks,
+        blocksFromHTML.entityMap
+      );
+
     this.state = {
-        editorState: EditorState.createEmpty(),
+        editorState: EditorState.createWithContent(content),
         showToolbar: false,
         toolbarPosition: {x:0,y:0},
     };
+
+
     this.onChange = (editorState) => this.setState({editorState},  () => {
-
-        var sel = window.getSelection()
-
-        if (sel.toString().length > 0) {
-
-            var range = sel.getRangeAt(0);
-            var boundary = range.getBoundingClientRect();
-            console.log(boundary)
-
-            this.setState(
-                {
-                    "showToolbar": true,
-                    "toolbarPosition": {x: (boundary.width/2)+(boundary.left)-30, y: boundary.top-25}
-                }
-            )
-        }
-
-        else {
-            this.setState(
-                {
-                    "showToolbar": false,
-                }
-            )
-
-        }
+        this.setToolbarPosition();
     } );
+  }
+
+  setToolbarPosition() {
+    var sel = window.getSelection()
+    if (sel.toString().length > 0) {
+        var range = sel.getRangeAt(0);
+        var boundary = range.getBoundingClientRect();
+        this.setState(
+            {
+                "showToolbar": true,
+                "toolbarPosition": {x: (boundary.width/2)+(boundary.left)-30, y: boundary.top-25}
+            }
+        )
+    }
+    else {
+        this.setState(
+            {
+                "showToolbar": false,
+            }
+        )
+
+    }
+
+
   }
 
 

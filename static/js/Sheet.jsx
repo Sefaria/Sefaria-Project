@@ -11,8 +11,8 @@ const SefariaEditor = require('./Editor');
 const $ = require('./sefaria/sefariaJquery');
 const Sefaria = require('./sefaria/sefaria');
 const sanitizeHtml = require('sanitize-html');
-import Component from 'react-class'
-
+import Component from 'react-class';
+import { renderToString } from 'react-dom/server';
 
 class Sheet extends Component {
   constructor(props) {
@@ -76,15 +76,6 @@ class Sheet extends Component {
     if (!sheet) {
       content = (<LoadingMessage />);
     }
-    else if (this.state.editor == true) {
-        content = (
-            <div className="sheetContent">
-                <SefariaEditor />
-            </div>
-
-        )
-    }
-
     else {
       content = (
           <SheetContent
@@ -116,7 +107,10 @@ class Sheet extends Component {
              this.setState({scrollDir: "down"});
            }
         }}>
-            {content}
+            {this.state.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={renderToString(content)} /></div> : content}
+
+
+
         </div>
     )
   }
