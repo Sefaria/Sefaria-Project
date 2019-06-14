@@ -1,5 +1,38 @@
 import React from 'react';
-import {Editor, EditorState, RichUtils, convertFromHTML, ContentState} from 'draft-js';
+import {Editor, EditorState, RichUtils, convertFromHTML, ContentState, CompositeDecorator} from 'draft-js';
+
+      const SEFREF_REGEX = /(Genesis|Gen) [0-9][0-9]?:?[0-9]?[0-9]?/g;
+
+      function sefrefStrategy(contentBlock, callback, contentState) {
+        findWithRegex(SEFREF_REGEX, contentBlock, callback);
+      }
+      function findWithRegex(regex, contentBlock, callback) {
+        const text = contentBlock.getText();
+        let matchArr, start;
+        while ((matchArr = regex.exec(text)) !== null) {
+          start = matchArr.index;
+          callback(start, start + matchArr[0].length);
+        }
+      }
+      const SefRefSpan = (props) => {
+	console.log(props)
+        return (
+          <span
+            style={styles.sefref}
+            data-offset-key={props.offsetKey}
+          >
+            {props.children}
+          </span>
+        );
+      };
+
+      const styles = {
+        sefref: {
+          color: 'rgba(98, 177, 254, 1.0)',
+        },
+      };
+
+
 
 class SefariaEditor extends React.Component {
 
@@ -7,20 +40,27 @@ class SefariaEditor extends React.Component {
   constructor(props) {
     super(props);
 
-    const html = this.props.data;
+    const compositeDecorator = new CompositeDecorator([
+        {
+            strategy: sefrefStrategy,
+            component: SefRefSpan,
+        },
+    ]);
 
-      const blocksFromHTML = convertFromHTML(html);
-      const content = ContentState.createFromBlockArray(
+
+    //create draft.js content from html data
+    const html = this.props.data;
+    const blocksFromHTML = convertFromHTML(html);
+    const content = ContentState.createFromBlockArray(
         blocksFromHTML.contentBlocks,
         blocksFromHTML.entityMap
       );
 
     this.state = {
-        editorState: EditorState.createWithContent(content),
+        editorState: EditorState.createWithContent(content, compositeDecorator),
         showToolbar: false,
         toolbarPosition: {x:0,y:0},
     };
-
 
     this.onChange = (editorState) => this.setState({editorState},  () => {
         this.setToolbarPosition();
