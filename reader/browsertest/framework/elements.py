@@ -134,7 +134,7 @@ class AbstractTest(object):
 
     def nav_to_sheets(self):
         self.nav_to_account()
-        time.sleep(4)  # unclear which element will appear
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
         try:
             el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')
         except NoSuchElementException:
