@@ -134,6 +134,7 @@ class AbstractTest(object):
 
     def nav_to_sheets(self):
         self.nav_to_account()
+        time.sleep(4)  # unclear which element will appear
         try:
             el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')
         except NoSuchElementException:
@@ -1540,8 +1541,8 @@ class TestResultSet(AbstractTestResult):
 
 class Trial(object):
 
-    default_local_driver = webdriver.Chrome
-    # default_local_driver = webdriver.Firefox
+    # default_local_driver = webdriver.Chrome
+    default_local_driver = webdriver.Firefox
     # default_local_driver = webdriver.Safari
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
         """
