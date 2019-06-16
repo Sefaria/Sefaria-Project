@@ -21,3 +21,5 @@ u.save()
 
 p = UserProfile(id=u.id)
 p.mark_interrupting_message_read('newUserWelcome')
+p.assign_slug()
+p.save()
