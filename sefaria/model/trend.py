@@ -33,11 +33,13 @@ def get_session_traits(request, uid=None):
         traits.update({
             "readsHebrew":                  Trend.get_user_trend_value(uid, "HebrewAbility") >= .5,
             "toleratesEnglish":             Trend.get_user_trend_value(uid, "EnglishTolerance") >= .05,
-            "prefersBilingual": False,      # needs to be wired up
-            "isSephardi": False,            # needs to be wired up
-            "usesSheets": True,             # needs to be wired up
-            "createsSheets": False,         # needs to be wired up
+            "usesSheets":                   Trend.get_user_trend_value(uid, "SheetsRead") >= 2,
         })
+
+        # "createsSheets"
+        # "prefersBilingual"
+        # "isSephardi"
+        # "learnsDafYomi", etc
 
     return [k for k, v in traits.items() if v]
 
@@ -68,7 +70,11 @@ class Trend(abst.AbstractMongoRecord):
 
     @classmethod
     def get_user_trend_value(cls, uid, name, period="alltime"):
-        return cls().load({"uid": uid, "name": name, "period": period}).value
+        trend = cls().load({"uid": uid, "name": name, "period": period})
+        if trend:
+            return trend.value
+        else:
+            return 0  # Assuming a numeric value
 
     def _init_defaults(self):
         self.timestamp = int(time.time())

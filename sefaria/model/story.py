@@ -876,11 +876,14 @@ class SheetListFactory(AbstractStoryFactory):
             if len(sheet_ids) < k:
                 return
 
+            mustHave = mustHave or []
+            mustHave = mustHave + ["usesSheets"]
+
             cls.generate_story(
                 sheet_ids=sheet_ids,
                 title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
-                mustHave=mustHave or [],
+                mustHave=mustHave,
                 **kwargs
             ).save()
 
@@ -890,7 +893,7 @@ class SheetListFactory(AbstractStoryFactory):
     def generate_daf_sheet_story(cls, **kwargs):
         ids = cls._get_daf_sheet_ids()
         if ids:
-            return cls.generate_story(sheet_ids=cls._get_daf_sheet_ids(), title={"en": "On Today's Daf", "he": u"על דף היומי"}, **kwargs)
+            return cls.generate_story(sheet_ids=cls._get_daf_sheet_ids(), title={"en": "On Today's Daf", "he": u"על דף היומי"}, mustHave=["usesSheets"], **kwargs)
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
