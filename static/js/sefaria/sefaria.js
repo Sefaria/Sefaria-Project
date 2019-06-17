@@ -1577,7 +1577,7 @@ Sefaria = extend(Sefaria, {
     return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },
   profileAPI: slug => {
-    return Sefaria._promiseAPI(`${Sefaria.apiHost}/api/profile/${slug}`);
+    return Sefaria._promiseAPI(`${Sefaria.apiHost}/api/profile/${slug}`).then(r => { alert("RESULT", r); return r; });
   },
   userHistoryAPI: () => {
     return Sefaria._promiseAPI(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
