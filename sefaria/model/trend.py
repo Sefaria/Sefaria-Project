@@ -31,8 +31,8 @@ def get_session_traits(request, uid=None):
     }
     if uid is not None:
         traits.update({
-            "readsHebrew":              Trend.get_user_trend_value(uid, "HebrewAbility") >= .5,
-            "readsEnglish": True,           # needs to be wired up
+            "readsHebrew":                  Trend.get_user_trend_value(uid, "HebrewAbility") >= .5,
+            "toleratesEnglish":             Trend.get_user_trend_value(uid, "EnglishTolerance") >= .05,
             "prefersBilingual": False,      # needs to be wired up
             "isSephardi": False,            # needs to be wired up
             "usesSheets": True,             # needs to be wired up
@@ -81,29 +81,65 @@ class TrendSet(abst.AbstractMongoSet):
     recordClass = Trend
 
 
+def setUserSheetTraits():
+    TrendSet({"name": "SheetsRead"}).delete()
+
+    all_users = getAllUsersSheetUsage()
+    for uid, data in all_users.iteritems():
+        Trend({
+            "name":         "SheetsRead",
+            "value":        int(data["cnt"]),
+            "datatype":     "int",
+            "timestamp":    datetime.utcnow(),
+            "period":       "alltime",
+            "scope":        "user",
+            "uid":          uid
+        }).save()
+
+
+def setUserCategoryTraits():
+    from sefaria.model.category import TOP_CATEGORIES
+
+    cat_to_name = lambda c: "Category" + c
+
+    TrendSet({"name": {"$in": map(cat_to_name, TOP_CATEGORIES)}}).delete()
+
+    all_users = getAllUsersCategories()
+    for uid, data in all_users.iteritems():
+        total = float(data["total"])
+        for cat, val in data["categories"].items():
+            Trend({
+                "name":         cat_to_name(cat),
+                "value":        val / total,
+                "datatype":     "float",
+                "timestamp":    datetime.utcnow(),
+                "period":       "alltime",
+                "scope":        "user",
+                "uid":          uid
+            }).save()
+
+
 def setUserLanguageTraits():
     TrendSet({"name": {"$in": ["EnglishTolerance", "HebrewAbility"]}}).delete()
 
     all_users = getAllUsersLanguageUsage()
 
-    for uid, lang_dict in all_users.iteritems():
+    for uid, data in all_users.iteritems():
         profile = user_profile.UserProfile(id=uid)
 
-        he = float(lang_dict["languages"].get("hebrew", 0.0))
-        en = float(lang_dict["languages"].get("english", 0.0))
-        bi = float(lang_dict["languages"].get("bilingual", 0.0))
-        total = float(lang_dict.get("total", 0.0))
+        he = float(data["languages"].get("hebrew", 0.0))
+        en = float(data["languages"].get("english", 0.0))
+        bi = float(data["languages"].get("bilingual", 0.0))
+        total = float(data.get("total", 0.0))
         assert total
 
         # EnglishTolerance
         # If user has English interface conclude English tolerance
         if profile.settings.get("interface_language") == "english" or not he:
             value = 1.0
-        elif not en and not bi:
-            value = 0.0
         else:
             # percentage of visits registered w/ English content
-            value = (en + bi - he) / total
+            value = (en + bi) / total
 
         Trend({
             "name":         "EnglishTolerance",
@@ -119,16 +155,12 @@ def setUserLanguageTraits():
         # If user has Hebrew interface conclude Hebrew ability
         if profile.settings.get("interface_language") == "hebrew":
             value = 1.0
-        # If they read a decent bit of Hebrew stuff
-        # else:
-        #    value = 0.9 if he / total > .05 else 0.5     # baseline
 
         # all bi is .50,  Each he adds a bunch.  Each en takes away a bit.
         else:
             ent = en/total
-            het = he/total * 3
-            het = .5 if het > .5 else het
-            value = .5 + het - ent
+            het = he/total * 5.0
+            value = 0.5 + het - ent
 
         Trend({
             "name":         "HebrewAbility",
@@ -159,7 +191,7 @@ def getAllUsersLanguageUsage():
             "language": {"$in": ["hebrew", "english", "bilingual"]}}},
         {"$group": {
             "_id": {"language": "$language", "uid": "$uid"},
-            "cnt": {"$sum": 1.0}}},
+            "cnt": {"$sum": 1}}},
         {"$group": {
             "_id": "$_id.uid",
             "languages": {"$push": {"k": "$_id.language", "v": "$cnt"}},
@@ -172,10 +204,44 @@ def getAllUsersLanguageUsage():
     return {d["_id"]: d for d in results}
 
 
+def getAllUsersSheetUsage():
+    pipeline = [
+            {"$match": {
+                "secondary": False,
+                "is_sheet": True}},
+            {"$group": {
+                "_id": "$uid",
+                "cnt": {"$sum" : 1}}}
+        ]
+
+    results = db.user_history.aggregate(pipeline)
+    return {d["_id"]: d for d in results}
 
 
-# Needs thought / refactor
+def getAllUsersCategories():
+    pipeline = [
+        {"$match": {
+            "secondary": False,
+            "is_sheet": False,
+            "categories.0": {
+                "$exists": True
+            }}},
+        {"$group": {
+            "_id": {"uid": "$uid", "category": {"$arrayElemAt" : ["$categories", 0]}},
+            "cnt": {"$sum": 1}}},
+        {"$group": {
+            "_id": "$_id.uid",
+            "categories": {"$push": {"k": "$_id.category", "v": "$cnt"}},
+            "total": {"$sum": "$cnt"}}},
+        {"$project": {
+            "categories": {"$arrayToObject": "$categories"},
+            "total": "$total"}}
+    ]
+    results = db.user_history.aggregate(pipeline)
+    return {d["_id"]: d for d in results}
 
+
+# vv Needs thought / refactor vv
 class TrendFactory(object):
     """
     Name
