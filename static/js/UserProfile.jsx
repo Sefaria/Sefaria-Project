@@ -25,6 +25,8 @@ const Footer    = require('./Footer');
 class UserProfile extends Component {
   constructor(props) {
     super(props);
+    console.log("SLUG", Sefaria.slug);
+    console.log("UID", Sefaria._uid);
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
