@@ -588,26 +588,27 @@ class SheetMedia extends Component {
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
-
-
     else {
-        this.props.onSegmentClick(this.props.source);
+      this.props.onSegmentClick(this.props.source);
     }
   }
 
-  makeMediaEmbedLink(mediaURL) {
+  makeMediaEmbedContent() {
     var mediaLink;
+    var mediaCaption;
+    var mediaURL = this.props.source.media;
+    var caption  = this.props.source.caption;
 
     if (mediaURL.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
     }
 
     else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
-      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>'
+      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 
     else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
-      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>'
+      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }
 
     else if (mediaURL.match(/\.(mp3)$/i) != null) {
@@ -618,7 +619,15 @@ class SheetMedia extends Component {
       mediaLink = 'Error loading media...';
     }
 
-    return mediaLink
+    if (caption && (caption.en || caption.he) ) {
+      var cls = caption.en && caption.he ? "" : caption.en ? "enOnly" : "heOnly";
+      var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
+                "<div class='en'>" + (caption.en || "") + "</div>" + 
+                "<div class='he'>" + (caption.he || "") + "</div>" + 
+                 "</div></div>";
+    }
+
+    return "<div class='media'>" + mediaLink + mediaCaption + "</div>";
   }
 
   render() {
@@ -635,7 +644,7 @@ class SheetMedia extends Component {
                 className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
             </div>
 
-        <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
+        <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
         <div className="clearFix"></div>
         {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>

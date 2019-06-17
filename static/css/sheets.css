@@ -1671,9 +1671,36 @@ line-height: normal;
 }
 
 .media {
-	text-align:center;
+	margin: 0 auto;
+	display: table;
+	table-layout: fixed;
 }
-
+.media .mediaCaption {
+	display: table-caption;
+	caption-side: bottom;
+	margin-top: 8px;
+}
+.media .mediaCaptionInner {
+	display: flex;
+	justify-content: space-between;
+}
+.media .mediaCaption .en {
+	font-size: 16px;
+	flex: 1;
+}
+#sheet .media .mediaCaption .he {
+	font-size: 18px;
+	margin-top: -5px;
+	flex: 1;
+}
+#sheet .media .mediaCaption.heOnly .he,
+#sheet .media .mediaCaption.enOnly .en {
+	display: block;
+}
+#sheet .media .mediaCaption.heOnly .en,
+#sheet .media .mediaCaption.enOnly .he {
+	display: none;
+}
 #addMediaInput {
 	margin-top:10px;
 	width: 300px;
