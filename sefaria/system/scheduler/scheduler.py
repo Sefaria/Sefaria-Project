@@ -7,6 +7,7 @@ import jobs
 def _run_scheduler(SchedulerClass):
     jobstores = {'default': MongoDBJobStore(client=client)}
     scheduler = SchedulerClass(jobstores=jobstores, timezone=utc)
+    jobs.remove_jobs(scheduler)
     jobs.add_jobs(scheduler)
     scheduler.start()
     return scheduler

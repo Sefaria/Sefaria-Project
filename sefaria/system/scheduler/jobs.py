@@ -3,8 +3,12 @@ from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, Top
     TopicTextsStoryFactory, UserSheetsFactory, GroupSheetListFactory, SheetListFactory, MultiTextStoryFactory
 
 
+def remove_jobs(scheduler):
+    [j.remove() for j in scheduler.get_jobs()]
+
+
 def add_jobs(scheduler):
-    _add_calendar_jobs(scheduler)
+    _add_daf_jobs(scheduler)
     _add_parasha_jobs(scheduler)
 
     scheduler.add_job(TopicListStoryFactory.create_trending_story,  "cron", id="TopicList", replace_existing=True,
@@ -55,12 +59,19 @@ def _add_parasha_jobs(scheduler):
                       kwargs={"iteration": 2}, day_of_week="fri", hour="11", minute="5")
 
 
-def _add_calendar_jobs(scheduler):
+def _add_daf_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_daf_yomi, "cron", id="DafYomi", replace_existing=True,
                       hour="1", minute="20")
 
-    scheduler.add_job(TextPassageStoryFactory.create_929, "cron", id="929", replace_existing=True,
-                      day_of_week="mon, tue, wed, thu, sun", hour="1", minute="12")
+    scheduler.add_job(SheetListFactory.generate_daf_sheet_story, "cron", id="DafYomiSheets", replace_existing=True,
+                      hour="1", minute="18")
 
-    scheduler.add_job(TextPassageStoryFactory.create_daily_mishnah, "cron", id="Mishnah", replace_existing=True,
-                      hour="1", minute="15")
+
+
+"""
+scheduler.add_job(TextPassageStoryFactory.create_929, "cron", id="929", replace_existing=True,
+                  day_of_week="mon, tue, wed, thu, sun", hour="1", minute="12")
+
+scheduler.add_job(TextPassageStoryFactory.create_daily_mishnah, "cron", id="Mishnah", replace_existing=True,
+                  hour="1", minute="15")
+"""

@@ -19,10 +19,10 @@ REF_RANGE_MAX = 30
 
 class Recommendation:
 
-    def __init__(self, oref=None, relevance=0.0, score=None, sources=None):
+    def __init__(self, oref=None, relevance=0.0, score=None, novelty=None, sources=None):
         self.ref = oref
         self.relevance = relevance
-        self.novelty = None
+        self.novelty = novelty
         self._score = score
         self.sources = sources if sources is not None else []
 

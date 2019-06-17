@@ -35,7 +35,7 @@ class StoryEditor extends Component {
     }
   }
   getMoreStories() {
-    $.getJSON("/api/stories?only_global=1&page=" + this.state.page, this.loadMoreStories);
+    $.getJSON("/api/stories?admin_feed=1&page=" + this.state.page, this.loadMoreStories);
     this.setState({loading: true});
   }
   loadMoreStories(data) {
@@ -90,11 +90,8 @@ class StoryEditor extends Component {
     });
   }
   render() {
-    var classes = {systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
-
     return (
-      <div className={classStr}>
+      <div className="homeFeedWrapper">
         <div className="content hasFooter">
           <div className="contentInner">
             <h1>
@@ -147,11 +144,14 @@ class StoryEditBar extends Component {
     }
     render() {
         if (!Sefaria.is_moderator) {return}
-        return (<div>
+        return (<div className="storyEditBar">
             {(this.props.isDraft)?<div className="story-action-button" onClick={this.handlePublish}>Publish</div>:""}
             {this.state.deleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
             <div className="story-action-button" onClick={this.onDelete}>Delete</div>
             }
+            {this.props.story.mustHave && this.props.story.mustHave.map((trait,i) => <div className="storyEditorTag mustHave" key={i}>{trait}</div>)}
+            {this.props.story.cantHave && this.props.story.cantHave.map((trait,i) => <div className="storyEditorTag cantHave" key={i}>{trait}</div>)}
+
         </div>);
     }
 }
