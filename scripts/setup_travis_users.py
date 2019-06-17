@@ -23,3 +23,7 @@ p = UserProfile(id=u.id)
 p.mark_interrupting_message_read('newUserWelcome')
 p.assign_slug()
 p.save()
+print "Test User's name and slug"
+print p.full_name
+print p.slug
+
