@@ -85,8 +85,8 @@ class UserProfile extends Component {
         { Sefaria._uid === this.props.profile.id ?
           <a href="/groups/new" className="resourcesLink faded">
             <img src="/static/img/group.svg" alt="Group icon" />
-            <span className="en">Create a New Group</span>
-            <span className="he">צור קבוצה חדשה</span>
+            <span className="int-en">Create a New Group</span>
+            <span className="int-he">צור קבוצה חדשה</span>
           </a> : null
          }
       </div>
@@ -103,8 +103,8 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/groups/new" className="resourcesLink faded">
           <img src="/static/img/group.svg" alt="Group icon" />
-          <span className="en">Create a New Group</span>
-          <span className="he">צור קבוצה חדשה</span>
+          <span className="int-en">Create a New Group</span>
+          <span className="int-he">צור קבוצה חדשה</span>
         </a>
       </div>
     );
@@ -183,13 +183,19 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          You can use sheets to save and organize sources, write new texts, create
+          <span className="int-en">
+            You can use sheets to save and organize sources, write new texts, create
             lessons, lectures, articles, and more.
+          </span>
+          <span className="int-he">
+            You can use sheets to save and organize sources, write new texts, create
+            lessons, lectures, articles, and more.
+          </span>
         </div>
         <a href="/sheets/new" className="resourcesLink faded">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="en">Create a New Sheet</span>
-          <span className="he">צור דף חדש</span>
+          <span className="int-en">Create a New Sheet</span>
+          <span className="int-he">צור דף חדש</span>
         </a>
       </div>
     );
@@ -219,8 +225,8 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/sheets/new" className="resourcesLink faded">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
-          <span className="en">Create a New Sheet</span>
-          <span className="he">צור דף חדש</span>
+          <span className="int-en">Create a New Sheet</span>
+          <span className="int-he">צור דף חדש</span>
         </a>
       </div>
     );
@@ -436,13 +442,13 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
           Sefaria._uid === p.id ? (
           <div className="profile-actions">
             <a href="/settings/profile" className="resourcesLink">
-              <span className="en">Edit Profile</span>
-              <span className="he">עריכת פרופיל</span>
+              <span className="int-en">Edit Profile</span>
+              <span className="int-he">עריכת פרופיל</span>
             </a>
             <a href="/settings/account" className="resourcesLink">
               <img src="/static/img/settings.svg" alt="Profile Settings" />
-              <span className="en">Settings</span>
-              <span className="he">הגדרות</span>
+              <span className="int-en">Settings</span>
+              <span className="int-he">הגדרות</span>
             </a>
             <a href="/logout" className="button transparent logoutLink">
               <span className="int-en">Log Out</span>
