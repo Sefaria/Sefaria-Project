@@ -24,6 +24,7 @@ periods = {
 
 
 def get_session_traits(request, uid=None):
+    # keys for these traits are duplicated in story editor.  Could be more graceful.
 
     traits = {
         "inDiaspora": bool(request.diaspora),
@@ -69,12 +70,12 @@ class Trend(abst.AbstractMongoRecord):
     ]
 
     @classmethod
-    def get_user_trend_value(cls, uid, name, period="alltime"):
+    def get_user_trend_value(cls, uid, name, period="alltime", default=0):
         trend = cls().load({"uid": uid, "name": name, "period": period})
         if trend:
             return trend.value
         else:
-            return 0  # Assuming a numeric value
+            return default
 
     def _init_defaults(self):
         self.timestamp = int(time.time())

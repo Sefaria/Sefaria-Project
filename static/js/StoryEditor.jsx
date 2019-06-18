@@ -8,6 +8,12 @@ const Story      = require('./Story');
 
 import Component from 'react-class';
 
+// These are duplicated in trend.py needs to be more graceful
+const traits = ["readsHebrew",
+"toleratesEnglish",
+"usesSheets",
+"inDiaspora",
+"inIsrael"];
 
 class StoryEditor extends Component {
   constructor(props) {
