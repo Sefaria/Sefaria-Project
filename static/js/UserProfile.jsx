@@ -27,6 +27,7 @@ class UserProfile extends Component {
     super(props);
     console.log("SLUG", Sefaria.slug);
     console.log("UID", Sefaria._uid);
+    console.log("NAME", Sefaria.full_name);
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
