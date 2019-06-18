@@ -551,7 +551,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
         top_ref = ref_data.RefDataSet.from_ref(daf_ref).top_ref()
         sugya = passage.Passage.containing_segment(top_ref)
 
-        return cls._generate_shared_story(
+        cls._generate_shared_story(
             ref=sugya.ref().normal(),
             lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
             title=daf_yomi_display_value(),
@@ -888,7 +888,7 @@ class SheetListFactory(AbstractStoryFactory):
     @classmethod
     def _get_daf_sheet_ids(cls):
         from sefaria.sheets import get_sheets_for_ref
-        sheets = get_sheets_for_ref(daf_yomi_ref())
+        sheets = get_sheets_for_ref(daf_yomi_ref().normal())
         sorted_sheets = sorted(sheets, key=lambda s: s["views"], reverse=True)
         return [s["id"] for s in sorted_sheets[:3]]
 
