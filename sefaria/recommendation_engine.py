@@ -140,12 +140,18 @@ class RecommendationEngine:
                     [tref, tref] - all of the refs in the above set that are direct commentaries of original tref
         '''
 
-        section_ref = oref.section_ref()
-        commentary_links = []
-        commentary_author_set = set()
-        # set is used b/c sometimes there are duplicate links
-        direct_links = {(x["ref"], x["category"] in ("Commentary", "Modern Commentary"))
-                        for x in get_links(section_ref.normal(), with_text=False) if oref in Ref(x["anchorRef"]).range_list()}
+        direct_links = set()
+        section_ref_list = [r.section_ref() for r in oref.split_spanning_ref()]
+        range_set = {r.normal() for r in oref.range_list()}
+        for section_ref in section_ref_list:
+            section_ref = oref.section_ref()
+            commentary_links = []
+            commentary_author_set = set()
+            # set is used b/c sometimes there are duplicate links
+            temp_direct_links = set()
+            initial_links = get_links(section_ref.normal(), with_text=False)
+            filtered_links = filter(lambda l: len(range_set & {r.normal() for r in Ref(l['anchorRef']).range_list()}) > 0, initial_links)
+            direct_links |= {(l['ref'], l['category'] in ('Commentary', 'Modern Commentary')) for l in filtered_links}
         for link_tref, is_comment in direct_links:
             # Steinsaltz is hard-coded to have same connections as Talmud which will double count Talmud connections
             if is_comment and not link_tref.startswith("Steinsaltz on "):
@@ -183,16 +189,18 @@ class RecommendationEngine:
         :param oref:
         :return: list of tuples, each one with (tref, score, way of connection[str])
         '''
-        section_ref = oref.section_ref()
-        regex_list = section_ref.regex(as_list=True)
-        ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
-        query = {"status": "public", "$or": ref_clauses, "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
-        sheets_cursor = db.sheets.find(query, {"includedRefs": 1, "owner": 1, "id": 1, "tags": 1, "title": 1})
+        sheets = []
+        section_ref_list = [r.section_ref() for r in oref.split_spanning_ref()]
+        range_set = {r.normal() for r in oref.range_list()}
+        for section_ref in section_ref_list:
+            regex_list = section_ref.regex(as_list=True)
+            ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
+            query = {"status": "public", "$or": ref_clauses, "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
+            sheets_cursor = db.sheets.find(query, {"includedRefs": 1, "owner": 1, "id": 1, "tags": 1, "title": 1})
+            sheets += [s for s in sheets_cursor if RecommendationEngine.is_interesting_sheet(s)]
         included_ref_dict = {}
-        for sheet in sheets_cursor:
-            if not RecommendationEngine.is_interesting_sheet(sheet):
-                continue
-            temp_included, focus_range_factor, _ = RecommendationEngine.normalize_related_refs(sheet.get("includedRefs", []), oref.normal(), SHEET_REF_SCORE, check_has_ref=True, count_steinsaltz=True)
+        for sheet in sheets:
+            temp_included, focus_range_factor, _ = RecommendationEngine.normalize_related_refs(sheet.get("includedRefs", []), range_set, SHEET_REF_SCORE, check_has_ref=True, count_steinsaltz=True)
             if focus_range_factor == 0:
                 continue
             ref_owner_keys = [(r, sheet["owner"]) for r in temp_included]
@@ -230,11 +238,11 @@ class RecommendationEngine:
         return clusters
 
     @staticmethod
-    def normalize_related_refs(related_refs, focus_ref, base_score, check_has_ref=False, other_data=None, count_steinsaltz=False):
+    def normalize_related_refs(related_refs, focus_ref_set, base_score, check_has_ref=False, other_data=None, count_steinsaltz=False):
         '''
 
         :param related_refs:
-        :param focus_ref:
+        :param focus_ref_set:
         :param base_score:
         :param check_has_ref:
         :param other_data:
@@ -255,18 +263,19 @@ class RecommendationEngine:
             if temp_oref.is_section_level():
                 continue
             if temp_oref.is_range():
-                temp_range_list = [subref.normal() for subref in temp_oref.range_list()]
-                if focus_ref in temp_range_list:
-                    temp_focus_range_factor = base_score/len(temp_range_list) if len(temp_range_list) < REF_RANGE_MAX else 0.0
+                temp_range_set = {subref.normal() for subref in temp_oref.range_list()}
+                in_common = len(temp_range_set & focus_ref_set)
+                if in_common > 0:
+                    temp_focus_range_factor = (in_common * base_score)/len(temp_range_set) if len(temp_range_set) < REF_RANGE_MAX else 0.0
                     if temp_focus_range_factor > focus_range_factor:
                         focus_range_factor = temp_focus_range_factor
                     has_tref = True
                     continue
-                final_refs += temp_range_list
-                final_other_data += [other_data_item] * len(temp_range_list)
+                final_refs += list(temp_range_set)
+                final_other_data += [other_data_item] * len(temp_range_set)
 
             else:
-                if focus_ref == temp_oref.normal():
+                if temp_oref.normal() in focus_ref_set:
                     focus_range_factor = base_score
                     has_tref = True
                     continue
