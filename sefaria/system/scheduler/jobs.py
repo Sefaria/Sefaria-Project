@@ -63,10 +63,11 @@ def _add_daf_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_daf_yomi, "cron", id="DafYomi", replace_existing=True,
                       hour="1", minute="20")
 
-    scheduler.add_job(SheetListFactory.generate_daf_sheet_story, "cron", id="DafYomiSheets", replace_existing=True,
+    scheduler.add_job(MultiTextStoryFactory.create_daf_connection_story, "cron", id="DafYomiConnection", replace_existing=True,
                       hour="1", minute="18")
 
-
+    scheduler.add_job(SheetListFactory.create_daf_sheet_story, "cron", id="DafYomiSheets", replace_existing=True,
+                      hour="1", minute="16")
 
 """
 scheduler.add_job(TextPassageStoryFactory.create_929, "cron", id="929", replace_existing=True,
