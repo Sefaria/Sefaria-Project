@@ -103,12 +103,16 @@ class UserHistory(abst.AbstractMongoRecord):
             self.is_sheet       = r.index.title == "Sheet"
             if self.is_sheet:
                 self.sheet_id = r.sections[0]
-
+            if not self.secondary and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
+                # logically, this would be on frontend, but easier here.
+                self.language = "hebrew"
         except InputError:   # Ref failed to resolve
             self.context_refs   = [self.ref]
             self.categories     = []
             self.authors        = []
             self.is_sheet       = False
+        except KeyError:     # is_text_translated() stumbled on a bad version state
+            pass
 
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)

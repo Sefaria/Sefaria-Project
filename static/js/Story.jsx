@@ -468,7 +468,7 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle"}/>
         </SaveLine>
-        {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
+        {sheet.sheet_summary?<SimpleInterfaceBlock classes="storyBody contentText" en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
         <ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}

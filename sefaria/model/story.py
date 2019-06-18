@@ -551,10 +551,10 @@ class TextPassageStoryFactory(AbstractStoryFactory):
         top_ref = ref_data.RefDataSet.from_ref(daf_ref).top_ref()
         sugya = passage.Passage.containing_segment(top_ref)
 
-        return cls._generate_shared_story(
+        cls._generate_shared_story(
             ref=sugya.ref().normal(),
-            lead=cal["title"],
-            title=cal["displayValue"],
+            lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
+            title=daf_yomi_display_value(),
             **kwargs
         ).save()
 
@@ -610,7 +610,33 @@ class MultiTextStoryFactory(AbstractStoryFactory):
     def _story_form(cls, **kwargs):
         return "multiText"
 
-    # todo: the below two methods share a lot of code...
+    @classmethod
+    def create_daf_connection_story(cls, **kwargs):
+        # todo: use reccomendation engine
+        daf_ref = daf_yomi_ref()
+        connection_link, connection_ref = random_connection_to(daf_ref)
+
+        if not connection_ref:
+            return
+
+        category = connection_ref.index.categories[0]
+
+        mustHave = []
+        if not connection_ref.is_text_translated():
+            mustHave += ["readsHebrew"]
+
+        try:
+            cls.generate_story(
+                refs = [connection_link.ref_opposite(connection_ref).normal(), connection_ref.normal()],
+                title={"en": category + " on the Daf", "he": hebrew_term(category) + u"על הדף "},
+                lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
+                mustHave=mustHave,
+                **kwargs
+            ).save()
+        except AttributeError:
+            # connection_link.ref_opposite(connection_ref).normal() err's out ... why?
+            return
+
     @classmethod
     def create_parasha_verse_connection_stories(cls, iteration=1, **kwargs):
         def _create_parasha_verse_connection_story(parasha_obj, mustHave=None, **kwargs):
@@ -624,7 +650,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
 
-            connection_ref = random_connection_to(top_ref)
+            connection_link, connection_ref = random_connection_to(top_ref)
             if not connection_ref:
                 return
 
@@ -862,7 +888,7 @@ class SheetListFactory(AbstractStoryFactory):
     @classmethod
     def _get_daf_sheet_ids(cls):
         from sefaria.sheets import get_sheets_for_ref
-        sheets = get_sheets_for_ref(daf_yomi_ref())
+        sheets = get_sheets_for_ref(daf_yomi_ref().normal())
         sorted_sheets = sorted(sheets, key=lambda s: s["views"], reverse=True)
         return [s["id"] for s in sorted_sheets[:3]]
 
@@ -876,21 +902,28 @@ class SheetListFactory(AbstractStoryFactory):
             if len(sheet_ids) < k:
                 return
 
+            mustHave = mustHave or []
+            mustHave = mustHave + ["usesSheets"]
+
             cls.generate_story(
                 sheet_ids=sheet_ids,
                 title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
-                mustHave=mustHave or [],
+                mustHave=mustHave,
                 **kwargs
             ).save()
 
         create_israel_and_diaspora_stories(_create_parasha_sheet_story, **kwargs)
 
     @classmethod
-    def generate_daf_sheet_story(cls, **kwargs):
+    def create_daf_sheet_story(cls, **kwargs):
         ids = cls._get_daf_sheet_ids()
         if ids:
-            return cls.generate_story(sheet_ids=cls._get_daf_sheet_ids(), title={"en": "On Today's Daf", "he": u"על דף היומי"}, **kwargs)
+            return cls.generate_story(
+                sheet_ids=cls._get_daf_sheet_ids(),
+                title={"en": "On Today's Daf", "he": u"על דף היומי"},
+                mustHave=["usesSheets"], **kwargs
+            ).save()
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
@@ -1037,6 +1070,10 @@ def daf_yomi_ref():
     daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
     return daf_ref
 
+def daf_yomi_display_value():
+    from sefaria.utils.calendars import get_keyed_calendar_items
+    return get_keyed_calendar_items()["Daf Yomi"]["displayValue"]
+
 
 def random_commentary_on(ref):
     commentary_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type == "commentary", ref.linkset())]
@@ -1045,7 +1082,7 @@ def random_commentary_on(ref):
 
 
 def random_connection_to(ref):
-    connection_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type != "commentary", ref.linkset())]
+    connection_refs = [(l, l.ref_opposite(ref)) for l in filter(lambda x: x.type != "commentary", ref.linkset())]
 
     def is_useful(r):
         if r.is_empty():
@@ -1055,7 +1092,7 @@ def random_connection_to(ref):
             return False
         return True
 
-    candidates = filter(is_useful, connection_refs)
+    candidates = filter(lambda (link, ref): is_useful(ref), connection_refs)
     return random.choice(candidates)
 
 
