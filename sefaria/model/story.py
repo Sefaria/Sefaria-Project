@@ -553,8 +553,8 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
         return cls._generate_shared_story(
             ref=sugya.ref().normal(),
-            lead=cal["title"],
-            title=cal["displayValue"],
+            lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
+            title=daf_yomi_display_value(),
             **kwargs
         ).save()
 
@@ -1039,6 +1039,10 @@ def daf_yomi_ref():
     cal = get_keyed_calendar_items()["Daf Yomi"]
     daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
     return daf_ref
+
+def daf_yomi_display_value():
+    from sefaria.utils.calendars import get_keyed_calendar_items
+    return get_keyed_calendar_items()["Daf Yomi"]["displayValue"]
 
 
 def random_commentary_on(ref):
