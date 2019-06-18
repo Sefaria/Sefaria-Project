@@ -142,7 +142,7 @@ class RecommendationEngine:
 
         direct_links = set()
         section_ref_list = [r.section_ref() for r in oref.split_spanning_ref()]
-        range_set = {r.normal() for r in oref.range_list()}
+        range_set = {r.normal() for r in oref.all_segment_refs()}
         for section_ref in section_ref_list:
             section_ref = oref.section_ref()
             commentary_links = []
@@ -191,7 +191,7 @@ class RecommendationEngine:
         '''
         sheets = []
         section_ref_list = [r.section_ref() for r in oref.split_spanning_ref()]
-        range_set = {r.normal() for r in oref.range_list()}
+        range_set = {r.normal() for r in oref.all_segment_refs()}
         for section_ref in section_ref_list:
             regex_list = section_ref.regex(as_list=True)
             ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
@@ -264,7 +264,7 @@ class RecommendationEngine:
                 continue
             if temp_oref.is_range():
                 temp_range_set = {subref.normal() for subref in temp_oref.range_list()}
-                in_common = len(temp_range_set & focus_ref_set)
+                in_common = 0 if focus_ref_set is None else len(temp_range_set & focus_ref_set)
                 if in_common > 0:
                     temp_focus_range_factor = (in_common * base_score)/len(temp_range_set) if len(temp_range_set) < REF_RANGE_MAX else 0.0
                     if temp_focus_range_factor > focus_range_factor:
@@ -275,7 +275,7 @@ class RecommendationEngine:
                 final_other_data += [other_data_item] * len(temp_range_set)
 
             else:
-                if temp_oref.normal() in focus_ref_set:
+                if focus_ref_set is not None and temp_oref.normal() in focus_ref_set:
                     focus_range_factor = base_score
                     has_tref = True
                     continue
