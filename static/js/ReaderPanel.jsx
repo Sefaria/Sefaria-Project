@@ -373,7 +373,7 @@ class ReaderPanel extends Component {
     if (this.state.menuOpen === "compare") {
       this.props.closePanel();
     } else {
-      this.props.setNavigationCategories([]);
+      this.setNavigationCategories([]);
       this.closeMenus();
     }
   }
