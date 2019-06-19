@@ -520,15 +520,8 @@ class SaveButton extends Component {
         onKeyPress={e => {e.charCode == 13 ? this.onClick(e):null}}
       >
         { this.state.selected ?
-          <img
-            src="/static/img/filled-star.png"
-            alt={altText}
-          /> :
-          <img
-            src="/static/img/star.png"
-            alt={altText}
-          />
-        }
+          <img src="/static/img/filled-star.png" alt={altText}/> :
+          <img src="/static/img/star.png" alt={altText}/> }
       </div>
     );
   }
@@ -562,8 +555,7 @@ class FollowButton extends Component {
       Sefaria.following = Sefaria.following.filter(i => i !== this.props.uid);  // keep local following list up-to-date
       Sefaria.track.event("Following", "Unfollow", this.props.uid);
     });
-}
-
+  }
   onMouseEnter() {
     this.setState({hovering: true});
   }
@@ -571,6 +563,10 @@ class FollowButton extends Component {
     this.setState({hovering: false});
   }
   onClick() {
+    if (!Sefaria._uid) {
+        this.props.toggleSignUpModal();
+        return;
+    }
     if (this.state.following) {
       this._post_unfollow();
       this.setState({following: false});
@@ -602,7 +598,8 @@ class FollowButton extends Component {
 FollowButton.propTypes = {
   uid: PropTypes.number.isRequired,
   following: PropTypes.bool,  // is this person followed already?
-  large: PropTypes.bool
+  large: PropTypes.bool,
+  toggleSignUpModal: PropTypes.func.isRequired,
 };
 
 class SinglePanelNavHeader extends Component {
@@ -642,7 +639,7 @@ class CategoryColorLine extends Component {
 }
 
 
-const ProfileListing = ({ uid, url, image, name, is_followed, position }) => (
+const ProfileListing = ({ uid, url, image, name, is_followed, position, toggleSignUpModal}) => (
   <div className="authorByLine">
     <div className="authorByLineImage">
       <a href={url}>
@@ -652,12 +649,11 @@ const ProfileListing = ({ uid, url, image, name, is_followed, position }) => (
     <div className="authorByLineText">
       <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={url}
         en={name} he={name}>
-        <FollowButton large={false} uid={uid} following={is_followed}/>
+        <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
       </SimpleLinkedBlock>
       {
         !!position ? <SimpleInterfaceBlock
-          classes="systemText authorPosition"
-          en={position}
+          classes="systemText authorPosition" en={position}
           he={position}
         />:null
       }
@@ -669,7 +665,9 @@ ProfileListing.propTypes = {
   url:         PropTypes.string.isRequired,
   image:       PropTypes.string.isRequired,
   name:        PropTypes.string.isRequired,
-  is_followed: PropTypes.bool.isRequired,
+  is_followed: PropTypes.bool,
+  toggleSignUpModal: PropTypes.func.isRequired,
+
 };
 
 
