@@ -625,10 +625,15 @@ class MultiTextStoryFactory(AbstractStoryFactory):
         if not connection_ref.is_text_translated():
             mustHave += ["readsHebrew"]
 
+        if category == "Talmud":
+            title = {"en": "Related Passage", "he": u"סוגיה קשורה"}
+        else:
+            title = {"en": category + " on the Daf", "he": hebrew_term(category) + u" " + u"על הדף"}
+
         try:
             cls.generate_story(
                 refs = [connection_link.ref_opposite(connection_ref).normal(), connection_ref.normal()],
-                title={"en": category + " on the Daf", "he": hebrew_term(category) + u"על הדף "},
+                title=title,
                 lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
                 mustHave=mustHave,
                 **kwargs
@@ -907,7 +912,7 @@ class SheetListFactory(AbstractStoryFactory):
 
             cls.generate_story(
                 sheet_ids=sheet_ids,
-                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
+                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"גליונות על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
                 mustHave=mustHave,
                 **kwargs
@@ -919,7 +924,7 @@ class SheetListFactory(AbstractStoryFactory):
     def create_daf_sheet_story(cls, **kwargs):
         ids = cls._get_daf_sheet_ids()
         if ids:
-            return cls.generate_story(
+            cls.generate_story(
                 sheet_ids=cls._get_daf_sheet_ids(),
                 title={"en": "On Today's Daf", "he": u"על דף היומי"},
                 mustHave=["usesSheets"], **kwargs
