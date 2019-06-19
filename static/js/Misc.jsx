@@ -911,7 +911,7 @@ class InterruptingMessage extends Component {
               </div>;
 
     } else if (this.props.style === "modal") {
-        <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+      return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
           <div id="interruptingMessageOverlay" onClick={this.close}></div>
           <div id="interruptingMessage">
             <div id="interruptingMessageContentBox">
@@ -921,6 +921,7 @@ class InterruptingMessage extends Component {
           </div>
         </div>;
     }
+    return null;
   }
 }
 InterruptingMessage.propTypes = {

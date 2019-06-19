@@ -6,7 +6,7 @@ class InterruptingMessage(object):
     if attrs is None:
       attrs = {}
     self.name        = attrs.get("name", None)
-    self.style       = attrs.get("style", None)
+    self.style       = attrs.get("style", "modal")
     self.repetition  = attrs.get("repetition", 0)
     self.condition   = attrs.get("condition", {})
     self.request     = request
