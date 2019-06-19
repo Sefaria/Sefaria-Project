@@ -36,6 +36,15 @@ class Recommendation:
         self.sources += other.sources
         return self
 
+    def __unicode__(self):
+        return u"Recommendation: {}, {}, {}".format(self.ref.normal(), self.score, self.sources)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
+        return u"{}({}, score={}, sources={})".format(self.__class__.__name__, self.ref, self.score, self.sources)
+
     def to_dict(self):
         return {
             "ref": self.ref.normal(),
@@ -53,13 +62,32 @@ class Recommendation:
 
     def sources_interesting(self):
         # make sure either source has more than 2 sheets or direct linkss
+        # or ref is to an entire section (even if it is a range)
         filt = filter(lambda x: (x.startswith("Sheet ") or x == "direct"), self.sources)
+        if isinstance(self.ref.index_node, JaggedArrayNode):
+            # doesn't work for dictionary entries and not relevant anyway
+            range_set = {r.normal() for r in self.ref.all_segment_refs()}
+            section_range_set = {r.normal() for r in Ref(next(iter(range_set))).section_ref().all_segment_refs()}
+            if len(range_set & section_range_set) == len(section_range_set):
+                # ref is simply a full section. user didn't bother trimming it down
+                print u"Source not interesting {}".format(self.ref)
+                return False
+
         return len(filt) >= 2
 
 
 class RecommendationEngine:
 
     def __init__(self, tref, top=10, exclude_direct_commentary=True, limit_to_direct_link=False, cluster_max_dist=5):
+        """
+        returns an object with recommendations for `tref`
+        :param str tref: Ref represented as a string
+        :param int top: maximum number of recommendations to generate. you may still get less recommendations if `tref` does not have many links/sheets.
+        :param bool exclude_direct_commentary: True if you don't want recommendations to direct commentaries of `tref`. Default is True
+        :param bool limit_to_direct_link: True if you only want recommendations from the list of direct links to `tref`
+        :param int cluster_max_dist: max distance between recommendations beyond which the recommendations will not be merged into one ranged ref
+
+        """
         self.ref = Ref(tref)
         self.top = top
         self.exclude_direct_commentary = exclude_direct_commentary
