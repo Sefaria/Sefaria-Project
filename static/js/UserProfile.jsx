@@ -25,9 +25,6 @@ const Footer    = require('./Footer');
 class UserProfile extends Component {
   constructor(props) {
     super(props);
-    console.log("SLUG", Sefaria.slug);
-    console.log("UID", Sefaria._uid);
-    console.log("NAME", Sefaria.full_name);
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
@@ -188,8 +185,7 @@ class UserProfile extends Component {
             lessons, lectures, articles, and more.
           </span>
           <span className="int-he">
-            You can use sheets to save and organize sources, write new texts, create
-            lessons, lectures, articles, and more.
+            באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
           </span>
         </div>
         <a href="/sheets/new" className="resourcesLink faded">

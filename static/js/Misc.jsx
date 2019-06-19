@@ -995,12 +995,14 @@ class SheetListing extends Component {
                   target="_blank"
                   className="sheetTag"
                   key={tag}
-                  onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
+                  onClick={this.handleSheetTagClick.bind(null, tag)}>{Sefaria._v(tag)}{separator}</a>)
     });
-    const created = (new Date(sheet.created)).toDateString().substring(4);  // cutoff day of the week
+    const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
+    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    const created = (new Date(sheet.created)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
     const underInfo = this.props.infoUnderneath ? [
         sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
-        `${sheet.views} Views`,
+        `${sheet.views} ${Sefaria._('Views')}`,
         created,
         sheet.tags.length ? sheetTags : undefined,
         !!sheet.group ? (<a href={`/groups/${sheet.group}`} target="_blank">{sheet.group}</a>) : undefined,
