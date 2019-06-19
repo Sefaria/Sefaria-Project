@@ -62,17 +62,7 @@ class Recommendation:
 
     def sources_interesting(self):
         # make sure either source has more than 2 sheets or direct linkss
-        # or ref is to an entire section (even if it is a range)
         filt = filter(lambda x: (x.startswith("Sheet ") or x == "direct"), self.sources)
-        if isinstance(self.ref.index_node, JaggedArrayNode):
-            # doesn't work for dictionary entries and not relevant anyway
-            range_set = {r.normal() for r in self.ref.all_segment_refs()}
-            section_range_set = {r.normal() for r in Ref(next(iter(range_set))).section_ref().all_segment_refs()}
-            if len(range_set & section_range_set) == len(section_range_set):
-                # ref is simply a full section. user didn't bother trimming it down
-                print u"Source not interesting {}".format(self.ref)
-                return False
-
         return len(filt) >= 2
 
 
@@ -266,6 +256,24 @@ class RecommendationEngine:
         return clusters
 
     @staticmethod
+    def includes_section(oref):
+        """
+        makes sure oref is not a range which makes up at least one entire section
+        :param oref: 
+        :return: 
+        """
+        if oref.is_section_level():
+            return True
+        if isinstance(oref.index_node, JaggedArrayNode) and oref.index.schema.get("depth", 0) == 2:
+            # doesn't work for dictionary entries and not relevant anyway
+            range_set = {r.normal() for r in oref.all_segment_refs()}
+            section_range_set = {r.normal() for r in Ref(next(iter(range_set))).section_ref().all_segment_refs()}
+            if len(range_set & section_range_set) == len(section_range_set):
+                # ref is simply a full section. user didn't bother trimming it down
+                return True
+        return False
+            
+    @staticmethod
     def normalize_related_refs(related_refs, focus_ref_set, base_score, check_has_ref=False, other_data=None, count_steinsaltz=False):
         '''
 
@@ -288,7 +296,7 @@ class RecommendationEngine:
                 temp_oref = Ref(temp_tref)
             except InputError:
                 continue
-            if temp_oref.is_section_level():
+            if RecommendationEngine.includes_section(temp_oref):
                 continue
             if temp_oref.is_range():
                 temp_range_set = {subref.normal() for subref in temp_oref.range_list()}
