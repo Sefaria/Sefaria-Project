@@ -18,25 +18,51 @@ INCLUDED_REF_MAX = 50
 REF_RANGE_MAX = 30
 
 
+class RecommendationSource:
+
+    def __init__(self, source, anchor_ref):
+        self.source = source
+        self.anchor_ref = anchor_ref
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return u"RecommendationSource: {}, {}".format(self.source, self.anchor_ref.normal())
+
+    def __repr__(self):
+        return u"{}({}, {})".format(self.__class__.__name__, self.source, self.anchor_ref).encode('utf-8')
+    
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(self.source + self.anchor_ref.normal())
+    
+    def to_dict(self):
+        return {
+            "source": self.source,
+            "anchor_ref": self.anchor_ref.normal()
+        }
+
+
 class Recommendation:
 
-    def __init__(self, oref=None, relevance=0.0, score=None, novelty=None, sources=None, anchor_refs=None):
+    def __init__(self, oref=None, relevance=0.0, score=None, novelty=None, sources=None):
         self.ref = oref
         self.relevance = relevance
         self.novelty = novelty
         self._score = score
         self.sources = sources if sources is not None else []
-        self.anchor_refs = anchor_refs if anchor_refs is not None else []
 
     def __add__(self, other):
         new_ref = self.ref if self.ref is not None else other.ref
-        return Recommendation(new_ref, relevance=self.relevance + other.relevance, novelty=self.novelty, sources=self.sources + other.sources, anchor_refs=self.anchor_refs + other.anchor_refs)
+        return Recommendation(new_ref, relevance=self.relevance + other.relevance, novelty=self.novelty, sources=self.sources + other.sources)
 
     def __iadd__(self, other):
         self.ref = self.ref if self.ref is not None else other.ref
         self.relevance += other.relevance
         self.sources += other.sources
-        self.anchor_refs += other.anchor_refs
         return self
 
     def __unicode__(self):
@@ -46,14 +72,13 @@ class Recommendation:
         return unicode(self).encode('utf-8')
 
     def __repr__(self):
-        return u"{}({}, score={}, sources={}, anchor_refs={})".format(self.__class__.__name__, self.ref, self.score, self.sources, self.anchor_refs).encode('utf-8')
+        return u"{}({}, score={}, sources={})".format(self.__class__.__name__, self.ref, self.score, self.sources).encode('utf-8')
 
     def to_dict(self):
         return {
             "ref": self.ref.normal(),
             "score": self.score,
-            "sources": self.sources,
-            "anchor_refs": [r.normal() for r in self.anchor_refs]
+            "sources": [s.to_dict() for s in self.sources],
         }
 
     @property
@@ -66,7 +91,7 @@ class Recommendation:
 
     def sources_interesting(self):
         # make sure either source has more than 2 sheets or direct linkss
-        filt = filter(lambda x: (x.startswith("Sheet ") or x == "direct"), self.sources)
+        filt = filter(lambda x: (x.source.startswith("Sheet ") or x.source == "direct"), self.sources)
         return len(filt) >= 2
 
 
@@ -111,6 +136,7 @@ class RecommendationEngine:
         d = defaultdict(Recommendation)
         for temp_rec in self.recommendations:
             d[temp_rec.ref.normal()] += temp_rec
+            pass
         self.recommendations = d.values()
         return self
 
@@ -138,7 +164,8 @@ class RecommendationEngine:
                 return cluster[0]["data"]
             else:
                 scores = [item["data"].score for item in cluster]
-                sources = reduce(lambda a, b: a + b["data"].sources , cluster, [])
+                sources = reduce(lambda a, b: a + b["data"].sources, cluster, [])
+
                 if cluster[0]["data"].ref.primary_category in ("Tanakh", "Talmud"):
                     # only combine clusters for Tanakh and Talmud
                     ranged_ref = cluster[0]["data"].ref.to(cluster[-1]["data"].ref)
@@ -185,12 +212,12 @@ class RecommendationEngine:
                         # don't add same ref twice from same author
                         continue
                     commentary_author_set.add((commentary_link, author))
-                    commentary_links += [Recommendation(Ref(commentary_link), relevance=COMMENTARY_LINK_SCORE, sources=[link_tref], anchor_refs=[anchor_ref])]
+                    commentary_links += [Recommendation(Ref(commentary_link), relevance=COMMENTARY_LINK_SCORE, sources=[RecommendationSource(link_tref, anchor_ref)])]
         other_data = [(x[1], x[2]) for x in direct_links]
         direct_links, _, other_data, focus_ref_subref = RecommendationEngine.normalize_related_refs([x[0] for x in direct_links], None, DIRECT_LINK_SCORE, other_data=other_data)
         direct_ref_set = set(direct_links)
         is_comment_list, anchor_ref_list = zip(*other_data)
-        final_rex = [Recommendation(Ref(x), relevance=DIRECT_LINK_SCORE, sources=["direct"], anchor_refs=[anchor_ref]) for x, anchor_ref in zip(direct_links, anchor_ref_list)] + commentary_links
+        final_rex = [Recommendation(Ref(x), relevance=DIRECT_LINK_SCORE, sources=[RecommendationSource('direct', anchor_ref)]) for x, anchor_ref in zip(direct_links, anchor_ref_list)] + commentary_links
         commentary_ref_set = set(map(lambda x: x[0], filter(lambda x: x[1], zip(direct_links, is_comment_list))))
         return final_rex, commentary_ref_set, direct_ref_set
 
@@ -231,7 +258,7 @@ class RecommendationEngine:
                 if (k in included_ref_dict and included_ref_dict[k]["score"] < focus_range_factor) or k not in included_ref_dict:
                     included_ref_dict[k] = {"score": focus_range_factor, "source": "Sheet " + str(sheet["id"]), "anchor_ref": focus_ref_subref}
 
-        return [Recommendation(Ref(r), relevance=d["score"], sources=[d["source"]], anchor_refs=[[d["anchor_ref"]]]) for (r, _), d in included_ref_dict.items()]
+        return [Recommendation(Ref(r), relevance=d["score"], sources=[RecommendationSource(d["source"], d["anchor_ref"])]) for (r, _), d in included_ref_dict.items()]
 
     @staticmethod
     def cluster_close_refs(ref_list, data_list, dist_threshold):
