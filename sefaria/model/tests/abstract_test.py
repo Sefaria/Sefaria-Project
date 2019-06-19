@@ -105,11 +105,11 @@ class Test_Mongo_Record_Methods(object):
             "public": True,
             "foobar": "blaz"  # should raise an exception when loaded
         }
-        db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
-        db.notes.save(attrs)
+        db.notes.delete_one({"ref": "Psalms 150:1", "owner": 28})
+        db.notes.insert_one(attrs)
         with pytest.raises(Exception):
             model.Note().load({"ref": "Psalms 150:1", "owner": 28})
-        db.notes.remove({"ref": "Psalms 150:1", "owner": 28})
+        db.notes.delete_one({"ref": "Psalms 150:1", "owner": 28})
 
     def test_copy(self):
         for sub in record_classes:

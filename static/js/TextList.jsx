@@ -109,7 +109,6 @@ class TextList extends Component {
     if (summary.length && summary[0].category == "Commentary") {
       this.setState({textLoaded: false, waitForText: true});
       // Get a list of commentators on this section that we need don't have in the cache
-      var links = Sefaria.links(basetext);
       var commentators = summary[0].books.map(function(item) {
         return item.book;
       });
@@ -175,7 +174,7 @@ class TextList extends Component {
       }
     }.bind(this);
 
-    let sectionLinks = Sefaria.links(sectionRef);
+    let sectionLinks = Sefaria.getLinksFromCache(sectionRef);
     let overlaps = link => (!(Sefaria.splitRangingRef(link.anchorRef).every(aref => Sefaria.util.inArray(aref, refs) === -1)));
     let links = Sefaria._filterLinks(sectionLinks, filter)
       .filter(overlaps)
@@ -198,7 +197,7 @@ class TextList extends Component {
     var he = "אין קשרים ידועים"        + (filter.length ? " ל"    + displayFilter.map(f => Sefaria.hebrewTerm(f)).join(", ") : "") + ".";
     var noResultsMessage = <LoadingMessage message={en} heMessage={he} />;
     var message = !this.state.linksLoaded ? (<LoadingMessage />) : (links.length === 0 ? noResultsMessage : null);
-    var content = links.length == 0 ? message :
+    var content = links.length === 0 ? message :
                   this.state.waitForText && !this.state.textLoaded ?
                     (<LoadingMessage />) :
                     links.map(function(link, i) {

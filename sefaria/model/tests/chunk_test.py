@@ -179,7 +179,9 @@ def test_family_chapter_result_no_merge():
         for key in ["text", "ref", "he", "book", "commentary"]:  # todo: etc.
             assert key in c
 
-
+# Yoma.1 is no longer merged.
+# todo: find a merged text to test with
+@pytest.mark.failing
 def test_chapter_result_merge():
     v = TextFamily(Ref("Mishnah_Yoma.1"))
 

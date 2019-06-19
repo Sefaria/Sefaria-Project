@@ -45,7 +45,6 @@ class Topic(abst.AbstractMongoRecord):
         self._filtered           = False
         self.make_data_from_sheets()
 
-
     def contents(self):
         return {
             "topic": self.topic,

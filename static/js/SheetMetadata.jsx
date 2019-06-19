@@ -79,14 +79,9 @@ class SheetMetadata extends Component {
 
     for (var i = 0; i < data.sources.length; i++) {
       if ("ref" in data.sources[i]) {
-        Sefaria.ref(data.sources[i].ref, function(ref) {
-           {
-               Sefaria.links(ref.sectionRef, function(){
-                    this.forceUpdate();
-               }.bind(this))
-
-               }
-        }.bind(this));
+        Sefaria.getRef(data.sources[i].ref)
+            .then(ref => ref.sectionRef)
+            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
       }
     }
   }

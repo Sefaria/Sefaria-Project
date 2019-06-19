@@ -225,8 +225,8 @@ msgid "Receive important announcements"
 msgstr "אני מסכימ/ה לקבל עדכונים חשובים"
 
 #: sefaria/forms.py:36
-msgid "Receive our educator newsletter"
-msgstr "אני מסכימ/ה לקבל את עלון המחנכים שלנו"
+msgid "I am an educator"
+msgstr "אני מחנך"
 
 #: sefaria/forms.py:61
 msgid "A user with that email already exists."

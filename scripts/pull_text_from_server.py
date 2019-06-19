@@ -6,7 +6,8 @@ import argparse
 import unicodecsv as csv
 from StringIO import StringIO
 from functools import partial
-from multiprocessing import Pool
+#from multiprocessing import Pool
+from pathos.multiprocessing import ProcessingPool as Pool
 
 import django
 django.setup()

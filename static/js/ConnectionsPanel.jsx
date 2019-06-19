@@ -187,7 +187,7 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}, cb);
+    return Sefaria.getText(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -235,7 +235,6 @@ class ConnectionsPanel extends Component {
           });
       });
   }
-
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
     if (typeof(srefs) == "object" && srefs.length == 1) {
@@ -581,7 +580,7 @@ SheetNodeConnectionTools.propTypes = {
   multiPanel:         PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   openComparePanel:   PropTypes.func.isRequired,
-}
+};
 
 
 class ConnectionsSummary extends Component {
@@ -589,45 +588,45 @@ class ConnectionsSummary extends Component {
   // If `category` is present, shows a single category, otherwise all categories.
   // If `showBooks`, show specific text counts beneath each category.
   render() {
-    var refs          = this.props.srefs;
-    var excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-    var summary       = Sefaria.linkSummary(refs, excludedSheet);
-    var oref          = Sefaria.ref(refs[0]);
-    var isTopLevel    = !this.props.category;
-    var baseCat       = oref ? oref["categories"][0] : null;
+    const refs          = this.props.srefs;
+    const excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
+    const oref          = Sefaria.ref(refs[0]);
+    const isTopLevel    = !this.props.category;
+    const baseCat       = oref ? oref["categories"][0] : null;
+    let summary       = Sefaria.linkSummary(refs, excludedSheet);
 
-    if (!summary) { return (<LoadingMessage />); }
+    if (!summary) { return (<div className="connectionsSummaryLoading"><LoadingMessage /></div>); }
 
-    if (this.props.category == "Commentary" ) {
+    if (this.props.category === "Commentary" ) {
       // Show Quoting Commentary & Modern Commentary together with Commentary
-      summary = summary.filter(cat => (cat.category.indexOf("Commentary") != -1));
+      summary = summary.filter(cat => (cat.category.indexOf("Commentary") !== -1));
+      const order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
       summary.sort((a, b) => {
-        var order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
-        var ia = order.indexOf(a.category)
-        var ib = order.indexOf(b.category)
+        const ia = order.indexOf(a.category);
+        const ib = order.indexOf(b.category);
         return ia - ib;
       });
 
     } else if (this.props.category) {
       // Single Category Summary
-      summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));
-      if (summary.length == 0) {
+      summary = summary.filter(function(cat) { return cat.category === this.props.category; }.bind(this));
+      if (summary.length === 0) {
         summary = [{category: this.props.category, books: [], count: 0, hasEnglish: false}];
       }
 
     } else if (isTopLevel) {
       
       // Hide Quoting or Modern Commentary from the top level view
-      var topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
+      let topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
       // But include Quoting and Modern Commentary counts and english mark in top level Commentary section
-      var subCommentaryCats = summary.filter(cat => (cat.category.indexOf("Commentary") > 1));
+      let subCommentaryCats = summary.filter(cat => (cat.category.indexOf("Commentary") > 1));
       if (subCommentaryCats.length && summary[0].category !== "Commentary") {
         // handle case of having Modern/Quoting Commentary, but no Commentary
-        var topSummary = [{category: "Commentary", count: 0, books: [], hasEnglish: false}].concat(topSummary);
+         topSummary = [{category: "Commentary", count: 0, books: [], hasEnglish: false}].concat(topSummary);
       } else if (subCommentaryCats.length && summary[0].category === "Commentary") {
         // If Commentary object is present and we have sub commentary counts to add, replace the object
         // so we can add to the count without changing the underlying object.
-        var topSummary = [{category: "Commentary", count: summary[0].count, books: [], hasEnglish: summary[0].hasEnglish}].concat(topSummary.slice(1))
+         topSummary = [{category: "Commentary", count: summary[0].count, books: [], hasEnglish: summary[0].hasEnglish}].concat(topSummary.slice(1))
       }
       subCommentaryCats.map(cat => {
         topSummary[0].count += cat.count;
@@ -637,9 +636,9 @@ class ConnectionsSummary extends Component {
       summary = topSummary;
     }
 
-    var connectionsSummary = summary.map(function(cat, i) {
+    const connectionsSummary = summary.map(function(cat, i) {
 
-      var books = this.props.contentLang == "hebrew"
+      const books = this.props.contentLang === "hebrew"
                     ? cat.books.concat().sort(Sefaria.linkSummaryBookSortHebrew.bind(null, baseCat))
                     : cat.books;
       return (
@@ -1061,7 +1060,7 @@ class AddConnectionBox extends Component {
       var oRef = Sefaria.ref(ref);
       if (!oRef) {
         // If a range was selected, the ref cache may not have a Hebrew ref for us, so ask the API
-        Sefaria.ref(ref, this.setHeRefs);
+        Sefaria.getRef(ref).then(this.setHeRefs);
         return "...";
       }
       return oRef.heRef;
