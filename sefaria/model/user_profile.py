@@ -604,6 +604,7 @@ def public_user_data(uid):
         "profileUrl": "/profile/" + profile.slug,
         "imageUrl": profile.gravatar_url_small,
         "position": profile.position,
+        "organization": profile.organization,
         "isStaff": is_staff,
         "uid": uid
     }

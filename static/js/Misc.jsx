@@ -207,10 +207,23 @@ LanguageToggleButton.propTypes = {
 };
 
 
-const SimpleInterfaceBlock = ({en, he, classes}) => (
+
+const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
           <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
           <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
+        </div>
+    );
+DangerousInterfaceBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    classes: PropTypes.string
+};
+
+const SimpleInterfaceBlock = ({en, he, classes}) => (
+        <div className={classes}>
+            <span className="int-en">{en}</span>
+            <span className="int-he">{he}</span>
         </div>
     );
 SimpleInterfaceBlock.propTypes = {
@@ -639,7 +652,7 @@ class CategoryColorLine extends Component {
 }
 
 
-const ProfileListing = ({ uid, url, image, name, is_followed, position, toggleSignUpModal}) => (
+const ProfileListing = ({ uid, url, image, name, is_followed, position, organization, toggleSignUpModal}) => (
   <div className="authorByLine">
     <div className="authorByLineImage">
       <a href={url}>
@@ -652,9 +665,9 @@ const ProfileListing = ({ uid, url, image, name, is_followed, position, toggleSi
         <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
       </SimpleLinkedBlock>
       {
-        !!position ? <SimpleInterfaceBlock
-          classes="systemText authorPosition" en={position}
-          he={position}
+        !!organization ? <SimpleInterfaceBlock
+          classes="systemText authorPosition" en={organization}
+          he={organization}
         />:null
       }
     </div>
@@ -1336,6 +1349,7 @@ class CookiesNotification extends Component {
 
 
 module.exports.SimpleInterfaceBlock                      = SimpleInterfaceBlock;
+module.exports.DangerousInterfaceBlock                   = DangerousInterfaceBlock;
 module.exports.SimpleContentBlock                        = SimpleContentBlock;
 module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
 module.exports.BlockLink                                 = BlockLink;

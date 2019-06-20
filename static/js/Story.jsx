@@ -6,6 +6,7 @@ const {
     BlockLink,
     SaveButton,
     SimpleInterfaceBlock,
+    DangerousInterfaceBlock,
     SimpleContentBlock,
     FollowButton,
     SimpleLinkedBlock,
@@ -20,6 +21,7 @@ const sheetPropType = PropTypes.shape({
             publisher_url:  PropTypes.string,
             publisher_image:PropTypes.string,
             publisher_position: PropTypes.string,
+            publisher_organization: PropTypes.string,
             publisher_followed: PropTypes.bool,
             sheet_id: PropTypes.number,
             sheet_title: PropTypes.string,
@@ -73,7 +75,7 @@ const FreeTextStory = (props) => {
     <StoryTypeBlock en={lead.en} he={lead.he}/>
     <StoryTitleBlock en={title.en} he={title.he}/>
     <NaturalTimeBlock timestamp={props.timestamp}/>
-    <SimpleInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
+    <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
   </StoryFrame>
 )};
 FreeTextStory.propTypes = {
@@ -102,7 +104,7 @@ const NewIndexStory = (props) => {
         <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
         </SaveLine>
-        <SimpleInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
+        <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
             <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
         </ColorBarBox>:""}
@@ -139,7 +141,7 @@ const NewVersionStory = (props) => {
         <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
         </SaveLine>
-        <SimpleInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
+        <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
             <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
         </ColorBarBox>:""}
@@ -189,16 +191,20 @@ AuthorStory.propTypes = {
 };
 
 const UserSheetsStory = (props) => {
-      const positionBlock = (props.data.publisher_position) ?
+      /* const positionBlock = (props.data.publisher_position) ?
             <SimpleInterfaceBlock classes="systemText storySubTitle"
               en={props.data.publisher_position}
               he={props.data.publisher_position}/>:"";
-
+      */
+      const organizationBlock = (props.data.publisher_organization) ?
+            <SimpleInterfaceBlock classes="systemText storySubTitle"
+              en={props.data.publisher_organization}
+              he={props.data.publisher_organization}/>:"";
       return (
         <StoryFrame cls="userSheetsStory">
             <StoryTypeBlock en="People" he="קהילה" />
             <StoryTitleBlock en={props.data.publisher_name} he={props.data.publisher_name} url={props.data.publisher_url}>
-                {positionBlock}
+                {organizationBlock}
                 <FollowButton large={true} uid={props.data.publisher_id} following={props.data.publisher_followed}
                               toggleSignUpModal={props.toggleSignUpModal}/>
             </StoryTitleBlock>
@@ -228,6 +234,7 @@ UserSheetsStory.propTypes = {
     publisher_url:  PropTypes.string,
     publisher_image:PropTypes.string,
     publisher_position: PropTypes.string,
+    publisher_organization: PropTypes.string,
     publisher_followed: PropTypes.bool,
     sheets: PropTypes.arrayOf(PropTypes.shape({
         sheet_id: PropTypes.number,
@@ -492,6 +499,7 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
           name={sheet.publisher_name}
           is_followed={sheet.publisher_followed}
           position={sheet.publisher_position}
+          organization={sheet.publisher_organization}
           toggleSignUpModal={toggleSignUpModal}
         />
       </div>);

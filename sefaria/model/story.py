@@ -49,6 +49,7 @@ class Story(abst.AbstractMongoRecord):
             "publisher_url": udata["profileUrl"],
             "publisher_image": udata["imageUrl"],
             "publisher_position": udata["position"],
+            "publisher_organization": udata["organization"],
         }
         if return_id:
             d["publisher_id"] = publisher_id
@@ -804,6 +805,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
               "publisher_url" (derived)
               "publisher_image" (derived)
               "publisher_position" (derived)
+              "publisher_organization" (derived)
               "publisher_followed" (derived)
             },
             {...}]
@@ -857,6 +859,7 @@ class SheetListFactory(AbstractStoryFactory):
               "publisher_url" (derived)
               "publisher_image" (derived)
               "publisher_position" (derived)
+              "publisher_organization" (derived)
               "publisher_followed" (derived)
             },
             {...}]
