@@ -171,7 +171,7 @@ const AuthorStory = (props) => (
         <StoryTypeBlock en="Author" he="מחבר" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
         <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/person/" + props.data.author_key} />
-        <StoryBodyBlock en={props.data.author_bios.en} he={props.data.author_bios.he}/>
+        <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.author_bios.en} he={props.data.author_bios.he}/>
         <ReadMoreLink url={Sefaria.normRef(props.data.example_work)}/>
     </StoryFrame>
 );
@@ -229,6 +229,9 @@ UserSheetsStory.propTypes = {
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
   data:         PropTypes.shape({
+    title: bilingualPropType,
+    lead: bilingualPropType,
+    cozy: PropTypes.bool,
     publisher_id: PropTypes.number,
     publisher_name: PropTypes.string,
     publisher_url:  PropTypes.string,
@@ -248,10 +251,10 @@ UserSheetsStory.propTypes = {
 
 const GroupSheetListStory = (props) => (
     <StoryFrame cls="groupSheetListStory">
-        <StoryTypeBlock en="Group" he="קבוצה" />
+        <StoryTypeBlock en={props.data.lead?props.data.lead.en:"Group"} he={props.data.lead?props.data.lead.he:"קבוצה"} />
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
         <img className="mediumProfileImage" src={props.data.group_image} alt={props.data.title.en}/>
-        <StorySheetList sheets={props.data.sheets} toggleSignUpModal={props.toggleSignUpModal}/>
+        <StorySheetList sheets={props.data.sheets} cozy={props.data.cozy} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
 
@@ -471,9 +474,9 @@ const StoryTextListItem = ({text, toggleSignUpModal}) => (
 );
 StoryTextListItem.propTypes = {text: textPropType.isRequired};
 
-const StorySheetList = ({sheets, toggleSignUpModal}) => (
+const StorySheetList = ({sheets, toggleSignUpModal, cozy}) => (
     <div className="storySheetList">
-        {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} toggleSignUpModal={toggleSignUpModal}/>)}
+        {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} cozy={cozy} toggleSignUpModal={toggleSignUpModal}/>)}
     </div>
 );
 StorySheetList.propTypes = {
@@ -482,7 +485,7 @@ StorySheetList.propTypes = {
 };
 
 
-const SheetBlock = ({sheet,  toggleSignUpModal}) => {
+const SheetBlock = ({sheet, cozy, toggleSignUpModal}) => {
       const historyObject = {ref: "Sheet " + sheet.sheet_id,
                   sheet_title: sheet.sheet_title,
                   versions: {}};
@@ -491,8 +494,8 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle"}/>
         </SaveLine>
-        {sheet.sheet_summary?<SimpleInterfaceBlock classes="storyBody contentText" en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
-        <ProfileListing
+        {(sheet.sheet_summary && !cozy)?<SimpleInterfaceBlock classes="storyBody contentText" en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
+        {cozy?"":<ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}
           image={sheet.publisher_image}
@@ -501,7 +504,7 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
           position={sheet.publisher_position}
           organization={sheet.publisher_organization}
           toggleSignUpModal={toggleSignUpModal}
-        />
+        />}
       </div>);
 };
 SheetBlock.propTypes = {sheet: sheetPropType.isRequired};

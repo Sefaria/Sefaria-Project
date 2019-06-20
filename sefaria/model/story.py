@@ -785,7 +785,6 @@ class UserSheetsFactory(AbstractStoryFactory):
         story = cls._generate_user_story(uid=uid, author_uid=author_uid, **kwargs)
         story.save()
 
-
 class GroupSheetListFactory(AbstractStoryFactory):
     """
         "title" : {
@@ -817,12 +816,17 @@ class GroupSheetListFactory(AbstractStoryFactory):
         sheet_ids = kwargs.get("sheet_ids")
         g = Group().load({"name": kwargs.get("group_name")})
         assert g
-        return {
+
+        d = {
             "sheet_ids": sheet_ids,
             "group_image": getattr(g, "imageUrl", ""),
             "group_url": g.url,
-            "title": {"en": g.name, "he": g.name}
+            "title": kwargs.get("title",{"en": g.name, "he": g.name}),
+            "cozy": kwargs.get("cozy", False)
         }
+        if kwargs.get("lead"):
+            d["lead"] = kwargs.get("lead")
+        return d
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -837,6 +841,35 @@ class GroupSheetListFactory(AbstractStoryFactory):
     def create_user_story(cls, uid, group_name, sheet_ids, **kwargs):
         story = cls._generate_user_story(uid=uid, group_name=group_name, sheet_ids=sheet_ids, **kwargs)
         story.save()
+
+    @classmethod
+    def create_nechama_sheet_stories(cls, **kwargs):
+        def _create_nechama_sheet_story(parasha_obj, mustHave=None, **kwargs):
+            #todo: grab English sheet and show to English only users
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+
+            sheets = db.sheets.find({"status": "public", "group": u"גיליונות נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
+            sheets = [s for s in sheets]
+            selected = random.sample(sheets, 3)
+            if len(selected) < 3:
+                return
+
+            mustHave = mustHave or []
+            mustHave = mustHave + ["readsHebrew"]
+
+            cls.generate_story(
+                sheet_ids=[s["id"] for s in selected],
+                cozy=True,
+                group_name=u"גיליונות נחמה",
+                title={"en": "Nechama on " + cal["displayValue"]["en"], "he": u"נחמה על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                mustHave=mustHave,
+                **kwargs
+            ).save()
+
+        create_israel_and_diaspora_stories(_create_nechama_sheet_story, **kwargs)
+
 
 
 class SheetListFactory(AbstractStoryFactory):
@@ -904,31 +937,6 @@ class SheetListFactory(AbstractStoryFactory):
         sorted_sheets = sorted(sheets, key=lambda s: s["views"], reverse=True)
         return [s["id"] for s in sorted_sheets[:3]]
 
-    @classmethod
-    def create_nechama_sheet_stories(cls, **kwargs):
-        def _create_nechama_sheet_story(parasha_obj, mustHave=None, **kwargs):
-            #todo: grab English sheet and show to English only users
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
-            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
-
-            sheets = db.sheets.find({"status": "public", "group": u"גיליונות נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
-            sheets = [s for s in sheets]
-            selected = random.sample(sheets, 3)
-            if len(selected) < 3:
-                return
-
-            mustHave = mustHave or []
-            mustHave = mustHave + ["readsHebrew"]
-
-            cls.generate_story(
-                sheet_ids=[s["id"] for s in selected],
-                title={"en": "Nechama on " + cal["displayValue"]["en"], "he": u"נחמה על " + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
-                mustHave=mustHave,
-                **kwargs
-            ).save()
-
-        create_israel_and_diaspora_stories(_create_nechama_sheet_story, **kwargs)
 
     @classmethod
     def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
