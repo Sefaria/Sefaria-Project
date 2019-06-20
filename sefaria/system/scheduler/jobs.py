@@ -52,6 +52,9 @@ def _add_parasha_jobs(scheduler):
     scheduler.add_job(MultiTextStoryFactory.create_parasha_verse_connection_stories, "cron", id="Parasha_Connection1", replace_existing=True,
                       day_of_week="tue", hour="11", minute="5")
 
+    scheduler.add_job(SheetListFactory.create_nechama_sheet_stories, "cron", id="Nechama_on_Parasha", replace_existing=True,
+                      day_of_week="tue", hour="11", minute="10")
+
     scheduler.add_job(MultiTextStoryFactory.create_parasha_verse_commentator_stories, "cron", id="Parasha_Commentator2", replace_existing=True,
                       kwargs={"iteration": 2}, day_of_week="thu", hour="11", minute="5")
 
