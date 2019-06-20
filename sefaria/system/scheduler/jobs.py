@@ -26,10 +26,10 @@ def add_jobs(scheduler):
 
 def _add_parasha_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_aliyah, "cron", id="Aliyah", replace_existing=True,
-                      day_of_week="sun, mon, tue, wed, thu, fri", hour="4", minute="5")
+                      day_of_week="sun, mon, tue, wed, thu, fri", hour="5", minute="9")
 
     scheduler.add_job(TextPassageStoryFactory.create_haftarah, "cron", id="Haftarah", replace_existing=True,
-                      day_of_week="fri, sun", hour="4", minute="3")
+                      day_of_week="fri, sun", hour="5", minute="7")
 
     scheduler.add_job(SheetListFactory.create_parasha_sheets_stories, "cron", id="Parasha_Sheets1", replace_existing=True,
                       day_of_week="mon", hour="11", minute="5")
@@ -61,13 +61,13 @@ def _add_parasha_jobs(scheduler):
 
 def _add_daf_jobs(scheduler):
     scheduler.add_job(TextPassageStoryFactory.create_daf_yomi, "cron", id="DafYomi", replace_existing=True,
-                      hour="1", minute="20")
+                      hour="5", minute="6")
 
     scheduler.add_job(MultiTextStoryFactory.create_daf_connection_story, "cron", id="DafYomiConnection", replace_existing=True,
-                      hour="1", minute="18")
+                      hour="5", minute="4")
 
     scheduler.add_job(SheetListFactory.create_daf_sheet_story, "cron", id="DafYomiSheets", replace_existing=True,
-                      hour="1", minute="16")
+                      hour="5", minute="2")
 
 """
 scheduler.add_job(TextPassageStoryFactory.create_929, "cron", id="929", replace_existing=True,
