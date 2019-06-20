@@ -49,6 +49,7 @@ class Story(abst.AbstractMongoRecord):
             "publisher_url": udata["profileUrl"],
             "publisher_image": udata["imageUrl"],
             "publisher_position": udata["position"],
+            "publisher_organization": udata["organization"],
         }
         if return_id:
             d["publisher_id"] = publisher_id
@@ -378,8 +379,12 @@ class FreeTextStoryFactory(object):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        return {"en": kwargs.get("en"),
-                "he": kwargs.get("he")}
+        return {
+            "en": kwargs.get("en"),
+            "he": kwargs.get("he"),
+            "title": kwargs.get("title"),
+            "lead": kwargs.get("lead"),
+        }
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -625,10 +630,15 @@ class MultiTextStoryFactory(AbstractStoryFactory):
         if not connection_ref.is_text_translated():
             mustHave += ["readsHebrew"]
 
+        if category == "Talmud":
+            title = {"en": "Related Passage", "he": u"סוגיה קשורה"}
+        else:
+            title = {"en": category + " on the Daf", "he": hebrew_term(category) + u" " + u"על הדף"}
+
         try:
             cls.generate_story(
                 refs = [connection_link.ref_opposite(connection_ref).normal(), connection_ref.normal()],
-                title={"en": category + " on the Daf", "he": hebrew_term(category) + u"על הדף "},
+                title=title,
                 lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
                 mustHave=mustHave,
                 **kwargs
@@ -775,7 +785,6 @@ class UserSheetsFactory(AbstractStoryFactory):
         story = cls._generate_user_story(uid=uid, author_uid=author_uid, **kwargs)
         story.save()
 
-
 class GroupSheetListFactory(AbstractStoryFactory):
     """
         "title" : {
@@ -795,6 +804,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
               "publisher_url" (derived)
               "publisher_image" (derived)
               "publisher_position" (derived)
+              "publisher_organization" (derived)
               "publisher_followed" (derived)
             },
             {...}]
@@ -806,12 +816,17 @@ class GroupSheetListFactory(AbstractStoryFactory):
         sheet_ids = kwargs.get("sheet_ids")
         g = Group().load({"name": kwargs.get("group_name")})
         assert g
-        return {
+
+        d = {
             "sheet_ids": sheet_ids,
             "group_image": getattr(g, "imageUrl", ""),
             "group_url": g.url,
-            "title": {"en": g.name, "he": g.name}
+            "title": kwargs.get("title",{"en": g.name, "he": g.name}),
+            "cozy": kwargs.get("cozy", False)
         }
+        if kwargs.get("lead"):
+            d["lead"] = kwargs.get("lead")
+        return d
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -826,6 +841,35 @@ class GroupSheetListFactory(AbstractStoryFactory):
     def create_user_story(cls, uid, group_name, sheet_ids, **kwargs):
         story = cls._generate_user_story(uid=uid, group_name=group_name, sheet_ids=sheet_ids, **kwargs)
         story.save()
+
+    @classmethod
+    def create_nechama_sheet_stories(cls, **kwargs):
+        def _create_nechama_sheet_story(parasha_obj, mustHave=None, **kwargs):
+            #todo: grab English sheet and show to English only users
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+
+            sheets = db.sheets.find({"status": "public", "group": u"גיליונות נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
+            sheets = [s for s in sheets]
+            selected = random.sample(sheets, 3)
+            if len(selected) < 3:
+                return
+
+            mustHave = mustHave or []
+            mustHave = mustHave + ["readsHebrew"]
+
+            cls.generate_story(
+                sheet_ids=[s["id"] for s in selected],
+                cozy=True,
+                group_name=u"גיליונות נחמה",
+                title={"en": "Nechama on " + cal["displayValue"]["en"], "he": u"נחמה על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                mustHave=mustHave,
+                **kwargs
+            ).save()
+
+        create_israel_and_diaspora_stories(_create_nechama_sheet_story, **kwargs)
+
 
 
 class SheetListFactory(AbstractStoryFactory):
@@ -848,6 +892,7 @@ class SheetListFactory(AbstractStoryFactory):
               "publisher_url" (derived)
               "publisher_image" (derived)
               "publisher_position" (derived)
+              "publisher_organization" (derived)
               "publisher_followed" (derived)
             },
             {...}]
@@ -892,6 +937,7 @@ class SheetListFactory(AbstractStoryFactory):
         sorted_sheets = sorted(sheets, key=lambda s: s["views"], reverse=True)
         return [s["id"] for s in sorted_sheets[:3]]
 
+
     @classmethod
     def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
@@ -907,7 +953,7 @@ class SheetListFactory(AbstractStoryFactory):
 
             cls.generate_story(
                 sheet_ids=sheet_ids,
-                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
+                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"גליונות על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
                 mustHave=mustHave,
                 **kwargs
@@ -919,7 +965,7 @@ class SheetListFactory(AbstractStoryFactory):
     def create_daf_sheet_story(cls, **kwargs):
         ids = cls._get_daf_sheet_ids()
         if ids:
-            return cls.generate_story(
+            cls.generate_story(
                 sheet_ids=cls._get_daf_sheet_ids(),
                 title={"en": "On Today's Daf", "he": u"על דף היומי"},
                 mustHave=["usesSheets"], **kwargs

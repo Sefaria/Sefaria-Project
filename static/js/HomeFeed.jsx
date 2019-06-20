@@ -49,7 +49,7 @@ class HomeFeed extends Component {
         <div className="content hasFooter">
           <div className="contentInner">
             <div className="storyFeed">
-            {this.state.stories.map((s,i) => Story(s, i, ...this.props))}
+            {this.state.stories.map((s,i) => Story(s, i, this.props))}
             </div>
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -61,7 +61,7 @@ class HomeFeed extends Component {
 }
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func,
+  toggleSignUpModal:  PropTypes.func.isRequired,
   onlySharedStories:  PropTypes.bool
 };
 

@@ -103,7 +103,7 @@ class UserHistory(abst.AbstractMongoRecord):
             self.is_sheet       = r.index.title == "Sheet"
             if self.is_sheet:
                 self.sheet_id = r.sections[0]
-            if not self.secondary and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
+            if not self.secondary and not self.is_sheet and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
                 # logically, this would be on frontend, but easier here.
                 self.language = "hebrew"
         except InputError:   # Ref failed to resolve
@@ -604,6 +604,7 @@ def public_user_data(uid):
         "profileUrl": "/profile/" + profile.slug,
         "imageUrl": profile.gravatar_url_small,
         "position": profile.position,
+        "organization": profile.organization,
         "isStaff": is_staff,
         "uid": uid
     }
