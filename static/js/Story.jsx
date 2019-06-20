@@ -63,19 +63,29 @@ function Story(story_props, indx, props) {
                 {...props} />;
 }
 
-const FreeTextStory = (props) => (
-  <StoryFrame cls="freeTextStory">
-    <StoryTypeBlock en="New Content" he="תוכן חדש"/>
-    <NaturalTimeBlock timestamp={props.timestamp}/>
-    <StoryBodyBlock en={props.data.en} he={props.data.he}/>
-  </StoryFrame>
-);
+const FreeTextStory = (props) => {
 
+  const lead = props.data.lead || {en: "Updates", he: "עדכונים"};
+  const title = props.data.title || {en: "New in the Library", he: "חדש בספריא"};
+
+  return (
+  <StoryFrame cls="freeTextStory">
+    <StoryTypeBlock en={lead.en} he={lead.he}/>
+    <StoryTitleBlock en={title.en} he={title.he}/>
+    <NaturalTimeBlock timestamp={props.timestamp}/>
+    <SimpleInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
+  </StoryFrame>
+)};
 FreeTextStory.propTypes = {
   storyForm:    PropTypes.string.isRequired,
   timestamp:    PropTypes.number.isRequired,
   is_shared:    PropTypes.bool,
-  data:         bilingualPropType.isRequired,
+  data:         PropTypes.shape({
+      en: PropTypes.string.isRequired,
+      he: PropTypes.string.isRequired,
+      lead: bilingualPropType,
+      title: bilingualPropType
+  }),
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func
 };
@@ -92,7 +102,7 @@ const NewIndexStory = (props) => {
         <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
         </SaveLine>
-        <StoryBodyBlock en={props.data.en} he={props.data.he}/>
+        <SimpleInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
             <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
         </ColorBarBox>:""}
@@ -129,7 +139,7 @@ const NewVersionStory = (props) => {
         <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
         </SaveLine>
-        <StoryBodyBlock en={props.data.en} he={props.data.he}/>
+        <SimpleInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
             <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
         </ColorBarBox>:""}

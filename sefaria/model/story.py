@@ -378,8 +378,12 @@ class FreeTextStoryFactory(object):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        return {"en": kwargs.get("en"),
-                "he": kwargs.get("he")}
+        return {
+            "en": kwargs.get("en"),
+            "he": kwargs.get("he"),
+            "title": kwargs.get("title"),
+            "lead": kwargs.get("lead"),
+        }
 
     @classmethod
     def _story_form(cls, **kwargs):
