@@ -255,6 +255,7 @@ class UserProfile extends Component {
   renderFollower(item) {
     return (
       <ProfileListing
+        key={item.id}
         openProfile={this.props.openProfile}
         uid={item.id}
         slug={item.slug}
@@ -269,7 +270,16 @@ class UserProfile extends Component {
   renderEmptyFollowerList() {
     return (
       <div>
-        No Followers
+        <span className="int-en">0 followers</span>
+        <span className="int-he">0 עוקבים</span>
+      </div>
+    );
+  }
+  renderEmptyFollowingList() {
+    return (
+      <div>
+        <span className="int-en">0 following</span>
+        <span className="int-he">0 נעקבים</span>
       </div>
     );
   }
@@ -362,7 +372,7 @@ class UserProfile extends Component {
                     filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
-                    renderEmptyList={this.renderEmptyFollowerList}
+                    renderEmptyList={this.renderEmptyFollowingList}
                     renderHeader={this.renderFollowingHeader}
                     sortOptions={[]}
                     getData={this.getFollowing}
