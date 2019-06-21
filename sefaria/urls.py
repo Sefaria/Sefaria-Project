@@ -188,6 +188,7 @@ urlpatterns += [
     url(r'^api/sheets/tag-list/?$',                                   sheets_views.tag_list_api),
     url(r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              sheets_views.user_tag_list_api),
     url(r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',            sheets_views.tag_list_api),
+    url(r'^api/sheets/ref/(?P<ref>[^/]+)$',                           sheets_views.sheets_by_ref_api),
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
 ]
