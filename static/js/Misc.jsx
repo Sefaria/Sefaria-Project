@@ -19,11 +19,13 @@ class ProfilePic extends Component {
     this.setState({ showDefault: false });
   }
   render() {
-    const { url, name, len, outerStyle } = this.props;
+    const { url, name, len, outerStyle, hideOnDefault } = this.props;
+    if (hideOnDefault && this.state.showDefault) { return null; }
     const nameArray = !!name.trim() ? name.split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
     const defaultViz = this.state.showDefault ? 'flex' : 'none';
     const profileViz = this.state.showDefault ? 'none' : 'block';
+    const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
     return (
       <div style={outerStyle}>
         <div className="default-profile-img noselect" style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
@@ -32,7 +34,7 @@ class ProfilePic extends Component {
         <img
           className="img-circle profile-img"
           style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-          src={url.replace(/d=.+$/, 'd=thisimagedoesntexistandshouldfail')}
+          src={imageSrc}
           alt="User Profile Picture"
           onLoad={this.showNonDefaultPic}
         />
@@ -44,6 +46,7 @@ ProfilePic.propTypes = {
   url:     PropTypes.string,
   initials:PropTypes.string,
   len:     PropTypes.number,
+  hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
 };
 
 
@@ -818,7 +821,8 @@ class FollowButton extends Component {
   onMouseLeave() {
     this.setState({hovering: false});
   }
-  onClick() {
+  onClick(e) {
+    e.stopPropagation();
     if (this.state.following) {
       this._post_unfollow();
       this.setState({following: false});

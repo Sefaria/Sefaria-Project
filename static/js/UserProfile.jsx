@@ -480,7 +480,12 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         </div>
       </div>
       <div className="summary-column end">
-        <ProfilePic url={p.gravatar_url} name={p.full_name} len={175} />
+        <ProfilePic
+          url={p.gravatar_url}
+          name={p.full_name}
+          len={175}
+          hideOnDefault={true}
+        />
       </div>
     </div>
   );
