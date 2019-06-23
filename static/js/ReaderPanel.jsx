@@ -373,7 +373,7 @@ class ReaderPanel extends Component {
     if (this.state.menuOpen === "compare") {
       this.props.closePanel();
     } else {
-      this.props.setNavigationCategories([]);
+      this.setNavigationCategories([]);
       this.closeMenus();
     }
   }
@@ -940,7 +940,7 @@ class ReaderPanel extends Component {
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
-                    onlyGlobalStories={true}
+                    onlySharedStories={true}
       />);
       */
 

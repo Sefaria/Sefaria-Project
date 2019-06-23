@@ -3166,7 +3166,7 @@ class Ref(object):
         """
         return self.is_text_fully_available("en")
 
-    def is_empty(self):
+    def is_empty(self, lang=None):
         """
         Checks if :class:`Ref` has any corresponding data in :class:`Version` records.
 
@@ -3178,7 +3178,7 @@ class Ref(object):
         # depricated
         # return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
 
-        return db.texts.count_documents(self.condition_query()) == 0
+        return db.texts.count_documents(self.condition_query(lang)) == 0
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
