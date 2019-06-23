@@ -1,4 +1,5 @@
-const React      = require('react');
+//const React      = require('react');
+import React, { useState, useEffect } from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
@@ -473,71 +474,43 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   placeholder: PropTypes.bool,
 };
 
+// const [mounted, setMounted] = React.useState(true);
+// useEffect(() => {return () => {setMounted(false)}}, []);
+function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
+  const [selected, setSelected] = useState(placeholder || isSelected());
+  useEffect(() => {
+    if (placeholder) { return; }
+    setSelected(isSelected())
+  }, [historyObject.ref]);
 
-class SaveButton extends Component {
-  constructor(props) {
-    super(props);
-    this._posting = false;
-    this.state = {
-      selected: props.placeholder || !!Sefaria.getSavedItem(props.historyObject),
-    }
-  }
-  componentDidMount() {
-    this._isMounted = true;
-  }
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-  setSelected(props) {
-    if (this._isMounted) {
-      this.setState({ selected: !!Sefaria.getSavedItem(props.historyObject) });
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.props.placeholder) { return; }
-    if (this.props.historyObject.ref !== nextProps.historyObject.ref) {
-      this.setSelected(nextProps);
-    }
-  }
-  onClick(e) {
-    if (this._posting) { return; }
-    this._posting = true;
-    const { historyObject } = this.props;
-    Sefaria.track.event("Saved", "saving", historyObject.ref);
-    Sefaria.toggleSavedItem(historyObject).then(() => {
-      // since request is async, check if it's selected from data
-      this._posting = false;
-      this.setSelected(this.props);
-    }).catch(e => {
-      if (e == 'notSignedIn') {
-        this.props.toggleSignUpModal();
-      }
-      this._posting = false;
-    })
-  }
-  render() {
-    const { placeholder, historyObject, tooltip } = this.props;
-    const style = placeholder ? {visibility: 'hidden'} : {};
-    const altText = placeholder ? '' :
-      `${Sefaria._(this.state.selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
+  const [isPosting, setPosting] = useState(false);
+
+  const style = placeholder ? {visibility: 'hidden'} : {};
+  const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
+  const altText = placeholder ? '' :
+      `${Sefaria._(selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}'`;
 
-    const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-    return (
-      <div
-        aria-label={altText} tabIndex="0"
-        className={classes}
-        role="button"
-        style={style}
-        onClick={this.onClick}
-        onKeyPress={e => {e.charCode == 13 ? this.onClick(e):null}}
-      >
-        { this.state.selected ?
-          <img src="/static/img/filled-star.png" alt={altText}/> :
+  function onClick() {
+    if (isPosting) { return; }
+    setPosting(true);
+    Sefaria.track.event("Saved", "saving", historyObject.ref);
+    Sefaria.toggleSavedItem(historyObject)
+        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(); }})
+        .finally(() => { setPosting(false); });
+  }
+
+  return (
+      <div aria-label={altText} tabIndex="0"
+        className={classes} role="button"
+        style={style} onClick={onClick}
+        onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+        { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
           <img src="/static/img/star.png" alt={altText}/> }
       </div>
     );
-  }
 }
 SaveButton.propTypes = {
   historyObject: PropTypes.shape({
@@ -548,6 +521,7 @@ SaveButton.propTypes = {
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
 
 class FollowButton extends Component {
   constructor(props) {
@@ -615,25 +589,18 @@ FollowButton.propTypes = {
   toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-class SinglePanelNavHeader extends Component {
-  render() {
-    var enTitle = this.props.enTitle;
-    var heTitle = this.props.heTitle || Sefaria.hebrewTerm(enTitle);
-    var colorCat = this.props.colorLineCategory || "Other";
-    return (
+const SinglePanelNavHeader = (props) =>
       <div className="readerNavTop searchOnly">
-          <CategoryColorLine category={colorCat} />
-          <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
+          <CategoryColorLine category={props.colorLineCategory || "Other"} />
+          <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <span className="int-en">{enTitle}</span>
-            <span className="int-he">{heTitle}</span>
+            <span className="int-en">{props.enTitle}</span>
+            <span className="int-he">{props.heTitle || Sefaria.hebrewTerm(props.enTitle)}</span>
           </h2>
-          {this.props.showDisplaySettings ?
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+          {props.showDisplaySettings ?
+            <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
             : <div className="readerOptions"></div> }
-      </div>);
-  }
-}
+      </div>;
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
   enTitle:             PropTypes.string,
@@ -644,12 +611,8 @@ SinglePanelNavHeader.propTypes = {
 };
 
 
-class CategoryColorLine extends Component {
-  render() {
-    var style = {backgroundColor: Sefaria.palette.categoryColor(this.props.category)};
-    return (<div className="categoryColorLine" style={style}></div>);
-  }
-}
+const CategoryColorLine = ({category}) =>
+  <div className="categoryColorLine" style={{backgroundColor: Sefaria.palette.categoryColor(category)}}/>;
 
 
 const ProfileListing = ({ uid, url, image, name, is_followed, position, organization, toggleSignUpModal}) => (
