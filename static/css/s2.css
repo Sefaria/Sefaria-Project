@@ -6285,6 +6285,9 @@ span.purim-emoji img{
   font-size: 75px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.default-profile-img.invisible {
+  visibility: hidden;
+}
 .interface-hebrew .profile-page .sheet a img {
   margin: 0 0 0 10px;
 }

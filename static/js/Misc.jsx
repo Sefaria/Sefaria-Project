@@ -20,7 +20,6 @@ class ProfilePic extends Component {
   }
   render() {
     const { url, name, len, outerStyle, hideOnDefault } = this.props;
-    if (hideOnDefault && this.state.showDefault) { return null; }
     const nameArray = !!name.trim() ? name.split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
     const defaultViz = this.state.showDefault ? 'flex' : 'none';
@@ -28,7 +27,10 @@ class ProfilePic extends Component {
     const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
     return (
       <div style={outerStyle}>
-        <div className="default-profile-img noselect" style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
+        <div
+          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
+        >
           { `${initials}` }
         </div>
         <img
