@@ -1,4 +1,4 @@
-const React      = require('react');
+import React, { useState, useEffect } from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
@@ -129,36 +129,29 @@ StoryEditor.propTypes = {
   interfaceLang:  PropTypes.string
 };
 
-class StoryEditBar extends Component {
-  constructor(props) {
-    super(props);
+function StoryEditBar(props) {
+    const [isDeleting, setDeleting] = useState(false);
 
-    this.state = {
-      deleting: false
-    };
-  }
-    handlePublish() {
-        this.props.handlePublish(this.props.story.storyForm, this.props.story.data, this.props.story.timestamp)
+    function handlePublish() {
+        props.handlePublish(props.story.storyForm, props.story.data, props.story.timestamp)
     }
-    onDelete() {
-        if(this.props.isDraft) {
-            this.props.removeDraft(this.props.story.timestamp);
+    function onDelete() {
+        if(props.isDraft) {
+            props.removeDraft(props.story.timestamp);
         } else {
-            this.setState({deleting: true});
-            this.props.onDelete(this.props.story._id);
+            setDeleting(true);
+            props.onDelete(props.story._id);
         }
     }
-    render() {
-        return (Sefaria.is_moderator?<div className="storyEditBar">
-            {(this.props.isDraft)?<div className="story-action-button" onClick={this.handlePublish}>Publish</div>:""}
-            {this.state.deleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
-            <div className="story-action-button" onClick={this.onDelete}>Delete</div>
-            }
-            {this.props.story.mustHave && this.props.story.mustHave.map((trait,i) => <div className="storyEditorTag mustHave" key={i}>{trait}</div>)}
-            {this.props.story.cantHave && this.props.story.cantHave.map((trait,i) => <div className="storyEditorTag cantHave" key={i}>{trait}</div>)}
 
-        </div>:<div/>);
-    }
+    return (Sefaria.is_moderator?<div className="storyEditBar">
+        {(props.isDraft)?<div className="story-action-button" onClick={handlePublish}>Publish</div>:""}
+        {isDeleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
+                    <div className="story-action-button" onClick={onDelete}>Delete</div>}
+        {props.story.mustHave && props.story.mustHave.map((trait,i) => <div className="storyEditorTag mustHave" key={i}>{trait}</div>)}
+        {props.story.cantHave && props.story.cantHave.map((trait,i) => <div className="storyEditorTag cantHave" key={i}>{trait}</div>)}
+    </div>:<div/>);
+
 }
 StoryEditBar.propTypes = {
   interfaceLang:     PropTypes.string,
