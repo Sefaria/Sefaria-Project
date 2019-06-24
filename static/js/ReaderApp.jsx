@@ -27,10 +27,10 @@ class ReaderApp extends Component {
     var panels               = [];
     var header               = {};
     var defaultVersions      = Sefaria.util.clone(props.initialDefaultVersions) || {};
-    var defaultPanelSettings = this.getDefaultPanelSettings();
+    //var defaultPanelSettings = this.getDefaultPanelSettings();
 
     if (!props.multiPanel && !props.headerMode) {
-      if (props.initialPanels && props.initialPanels.length > 0 && props.initialPanels[0].menuOpen == "book toc") {
+      if (props.initialPanels && props.initialPanels.length > 0 && props.initialPanels[0].menuOpen === "book toc") {
         panels[0] = {
             settings: Sefaria.util.clone(defaultPanelSettings),
             menuOpen: "book toc",

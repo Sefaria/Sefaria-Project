@@ -40,7 +40,7 @@ const {
   ToggleSet,
 }                                = require('./Misc');
 import Component from 'react-class';
-
+const SettingsContext = require('./settingsContext');
 
 class ReaderPanel extends Component {
   constructor(props) {
@@ -114,12 +114,10 @@ class ReaderPanel extends Component {
       $(curPanel).find(':focusable').first().focus();
     }
 
-    if (this.state.mode == "Sheet") {
-      var newSettings = this.state.settings
-      newSettings["language"] = this.state.sheet.options.language || "bilingual"
-      this.conditionalSetState({ settings: newSettings});
+    if (this.state.mode === "Sheet") {
+      this.state.settings["language"] = this.state.sheet.options.language || "bilingual";
+      this.conditionalSetState({ settings: this.state.settings});
     }
-
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
