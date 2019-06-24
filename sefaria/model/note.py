@@ -8,6 +8,7 @@ import bleach
 
 from . import abstract as abst
 from sefaria.model.text import Ref, IndexSet
+from sefaria.system.exceptions import InputError
 
 
 class Note(abst.AbstractMongoRecord):

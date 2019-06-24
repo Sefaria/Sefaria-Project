@@ -1,6 +1,9 @@
 const React      = require('react');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
+const {
+  ProfilePic,
+}                = require('./Misc');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 import Component      from 'react-class';
@@ -16,12 +19,13 @@ class SearchSheetResult extends Component {
       );
     }
     handleProfileClick(e) {
-      var href = e.target.closest('a').getAttribute("href");
       e.preventDefault();
-      var s = this.props.data._source;
-      Sefaria.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`,
-          {hitCallback: () => window.location = href}
-      );
+      const href = e.target.closest('a').getAttribute("href");
+      const slugMatch = href.match(/profile\/(.+)$/);
+      const slug = !!slugMatch ? slugMatch[1] : '';
+      const s = this.props.data._source;
+      Sefaria.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`);
+      this.props.openProfile(slug, s.owner_name);
     }
     get_snippet_markup(data) {
       let snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
@@ -46,7 +50,11 @@ class SearchSheetResult extends Component {
                 </a>
               <a href={s.profile_url} onClick={this.handleProfileClick}>
                 <div className="version">
-                  <img className='img-circle owner_image' src={s.owner_image} alt={s.owner_name} />
+                  <ProfilePic
+                    url={s.owner_image}
+                    name={s.owner_name}
+                    len={30}
+                  />
                   <span className="owner-metadata">
                     <div className={classNames({'owner_name': 1, 'in-en': !ownerIsHe, 'in-he': ownerIsHe})}>{s.owner_name}</div>
                     <div className='tags-views'>
@@ -62,7 +70,8 @@ class SearchSheetResult extends Component {
 }
 SearchSheetResult.propTypes = {
   query: PropTypes.string,
-  data: PropTypes.object
+  data: PropTypes.object,
+  openProfile: PropTypes.func.isRequired,
 };
 
 

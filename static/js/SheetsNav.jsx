@@ -5,6 +5,7 @@ const {
   ReaderNavigationMenuMenuButton,
   LoadingMessage,
   TwoOrThreeBox,
+  ProfilePic,
 }                = require('./Misc');
 const React      = require('react');
 const ReactDOM   = require('react-dom');
@@ -64,7 +65,9 @@ class SheetsNav extends Component {
                         tag={this.props.groupTag}
                         width={this.state.width}
                         toggleLanguage={this.props.toggleLanguage}
-                        interfaceLang={this.props.interfaceLang} />);
+                        interfaceLang={this.props.interfaceLang}
+                        openProfile={this.props.openProfile}
+                      />);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage
@@ -112,6 +115,7 @@ SheetsNav.propTypes = {
   hideNavHeader:   PropTypes.bool,
   multiPanel:      PropTypes.bool,
   interfaceLang:   PropTypes.string,
+  openProfile:     PropTypes.func.isRequired,
 };
 
 
@@ -382,7 +386,11 @@ class PublicSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
               <div className="sheetTextInfo">
-                {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+                <ProfilePic
+                  name={sheet.ownerName}
+                  url={sheet.ownerImageUrl}
+                  len={40}
+                />
                 <div className="sheetAuthTitle">
                   <div className="sheetAuthor">{sheet.ownerName}</div>
                   <div className="sheetTitle">{title}</div>
