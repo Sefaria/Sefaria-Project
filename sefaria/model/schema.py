@@ -222,7 +222,6 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "scheme",
         "order",
         "ref",
-        "sensitive",
         "category"
     ]
 
