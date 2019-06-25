@@ -4875,6 +4875,27 @@ h2.splitHeader .he {
 .groupPage .emptyMessage a {
   text-decoration: underline;
 }
+.groupPage .groupSearchBox {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  margin-top: 20px;
+}
+.groupPage .groupSearchIcon {
+  font-size: 22px;
+  opacity: 0.4;
+}
+.groupPage .groupSearchInput {
+  padding: 12px 10px;
+  flex: 1;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+}
+.groupPage .tagsList {
+  margin-top: 30px;
+}
 .groupInvitationBox {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
@@ -6283,6 +6304,20 @@ span.purim-emoji img{
 }
 .storyFeed .storyBody a {
   text-decoration: underline;
+}
+.storyEditBar {
+    padding-bottom: 30px;
+}
+.storyEditorTag {
+    display: inline-block;
+    float: right;
+}
+.storyEditorTag.mustHave {
+    color: #66aa66;
+    padding: 0 10px;
+}
+.storyEditorTag.cantHave {
+    color: #aa6666;
 }
 .learnMoreLink a {
   text-decoration: none;
