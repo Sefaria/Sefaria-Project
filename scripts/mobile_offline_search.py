@@ -39,7 +39,7 @@ def main():
     DESCRIPTION = '{}-{}'.format(start, end)
 
     ####### parse lib words #########
-    parse_lib_to_json(start, end)
+    OfflineTextIndexer.parse_lib_to_json(start, end)
 
     ####### get ref_strs from json files ########
     #get_from_json(test_word)
@@ -85,7 +85,7 @@ class OfflineTextIndexer(object):
     @classmethod
     def index_segment(cls, text, ref, heRef, version):
         title = version.title
-        section_ref = TextIndexer.get_section_ref(ref)
+        section_ref = OfflineTextIndexer.get_section_ref(ref)
         if title != cls.curr_title:
             # new book
             cls.curr_title = title
@@ -116,7 +116,7 @@ class OfflineTextIndexer(object):
         TextIndexer.index_all("", True, for_es=False, action=OfflineTextIndexer.index_segment)
         # after it's done there's likely an extra section that hasn't been indexed
         cls.index_section(cls.curr_title, cls.section_ref, cls.curr_section_text)
-
+        """
         indexes = library.all_index_records()
         indexes = indexes[start:end]
         print("Running on {} indexes".format(len(indexes)))
@@ -141,6 +141,7 @@ class OfflineTextIndexer(object):
         print('saving to json...')
         save(REF_NUM_MIN_N_TITLE, ref_num_min_N_title)
         save(REF_NUM_2_PART, ref_num_2_part)
+        """
 
         # convert sets to lists for json
         words_2_ref_nums = {key: sorted(list(value)) for key, value in words_2_ref_nums.iteritems()}
