@@ -63,6 +63,7 @@ class SheetsNav extends Component {
                         setGroupTag={this.props.setGroupTag}
                         tag={this.props.groupTag}
                         width={this.state.width}
+                        searchInGroup={this.props.searchInGroup}
                         toggleLanguage={this.props.toggleLanguage}
                         interfaceLang={this.props.interfaceLang} />);
 
@@ -109,6 +110,7 @@ SheetsNav.propTypes = {
   setSheetTag:     PropTypes.func.isRequired,
   setSheetTagSort: PropTypes.func.isRequired,
   toggleLanguage:  PropTypes.func.isRequired,
+  searchInGroup:   PropTypes.func,
   hideNavHeader:   PropTypes.bool,
   multiPanel:      PropTypes.bool,
   interfaceLang:   PropTypes.string,
