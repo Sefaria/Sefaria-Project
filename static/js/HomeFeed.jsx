@@ -1,63 +1,55 @@
-const React      = require('react');
-const ReactDOM   = require('react-dom');
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 const $          = require('./sefaria/sefariaJquery');
-const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Story      = require('./Story');
 const Footer     = require('./Footer');
-import Component from 'react-class';
 
 
-class HomeFeed extends Component {
-  constructor(props) {
-    super(props);
+function HomeFeed(props) {
+  const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
+  const [page, setPage] = useState(0);
+  const [nextPage, setNextPage] = useState(1);
+  const [stories, setStories] = useState([]);
+  const [loadedToEnd, setLoadedToEnd] = useState(false);
 
-    this.state = {
-      page: 0,
-      loadedToEnd: false,
-      loading: false,
-      stories: [],
-    };
-  }
-  componentDidMount() {
-    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
-    this.getMoreStories();
-  }
-  handleScroll() {
-    if (this.state.loadedToEnd || this.state.loading) { return; }
-    const $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+  useEffect(() => {
+    const $scrl = $(".homeFeedWrapper .content");
     const margin = 600;
-    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-      this.getMoreStories();
-    }
-  }
-  getMoreStories() {
-    const url = "/api/stories?" + (this.props.onlySharedStories ? "shared_only=1" : "") + "&page=" + this.state.page;
-    $.getJSON(url, this.loadMoreStories);
-    this.setState({loading: true});
-  }
-  loadMoreStories(data) {
-    if (data.count < data.page_size) {
-      this.setState({loadedToEnd: true});
-    }
-    this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
-  }
+    const handleScroll = () => {
+      if (loadedToEnd || page === nextPage) { return; }
+      if ($scrl.scrollTop() + $scrl.innerHeight() + margin >= $scrl[0].scrollHeight) {
+        setPage(nextPage);
+      }
+    };
+    $scrl.on("scroll", handleScroll);
+    return (() => {$scrl.off("scroll", handleScroll);})
+  }, [loadedToEnd, page, nextPage]);
 
-  render() {
-    return (
-      <div className="homeFeedWrapper">
-        <div className="content hasFooter">
-          <div className="contentInner">
-            <div className="storyFeed">
-            {this.state.stories.map((s,i) => Story(s, i, this.props))}
-            </div>
+  useEffect(() => {
+    const url = "/api/stories?" + (onlySharedStories ? "shared_only=1" : "") + "&page=" + page;
+    $.getJSON(url, (data) => {
+      setStories(prev => ([...prev, ...data.stories]));
+      if (data.count < data.page_size) {
+        setLoadedToEnd(true);
+      } else {
+        setNextPage(page + 1);
+      }
+    });
+  }, [page]);
+
+  return (
+    <div className="homeFeedWrapper">
+      <div className="content hasFooter">
+        <div className="contentInner">
+          <div className="storyFeed">
+          {stories.map((s,i) => Story(s, i, props))}
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
         </div>
-      </div>);
-  }
+        <footer id="footer" className={`interface-${interfaceLang} static sans`}>
+          <Footer />
+        </footer>
+      </div>
+    </div>);
 }
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
