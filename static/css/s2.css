@@ -1529,6 +1529,7 @@ a.readerNavCategory {
   text-align: center;
   font-size: 28px;
   line-height: 1.3;
+  unicode-bidi: plaintext;
 }
 .readerTextTableOfContents .currentSection,
 .readerTextTableOfContents .authorStatement,
