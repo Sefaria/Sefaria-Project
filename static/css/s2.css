@@ -5914,8 +5914,9 @@ span.purim-emoji img{
   flex: 1;
 }
 .sheetContent .media .mediaCaption .he {
-  font-size: 80%;
+  font-size: 72%;
   flex: 1;
+  font-family: "Heebo", "sans-serif";
 }
 .sheetContent .media .mediaCaption.heOnly .he,
 .sheetContent .media .mediaCaption.enOnly .en {

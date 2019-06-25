@@ -1689,9 +1689,10 @@ line-height: normal;
 	flex: 1;
 }
 #sheet .media .mediaCaption .he {
-	font-size: 18px;
+	font-size: 15px;
 	margin-top: -5px;
 	flex: 1;
+	font-family: "Heebo", sans-serif;
 }
 #sheet .media .mediaCaption.heOnly .he,
 #sheet .media .mediaCaption.enOnly .en {
