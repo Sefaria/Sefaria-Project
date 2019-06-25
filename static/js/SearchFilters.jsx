@@ -238,7 +238,7 @@ class SheetSearchFilterPanel extends Component {
 
 
     return (
-      <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
+      <DropdownModal positionUnset={true} close={this.props.closeBox} isOpen={this.props.displayFilters}>
         <DropdownButton
           isOpen={this.props.displayFilters}
           toggle={this.props.toggleFilterView}
@@ -304,7 +304,7 @@ class TextSearchFilterPanel extends Component {
   }
   render() {
     return (
-      <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
+      <DropdownModal positionUnset={true} close={this.props.closeBox} isOpen={this.props.displayFilters}>
         <DropdownButton
           isOpen={this.props.displayFilters}
           toggle={this.props.toggleFilterView}

@@ -2201,6 +2201,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dropdown-modal {
   position: relative;
 }
+.dropdown-modal.position-unset {
+  position: unset;
+}
 .dropdown-button {
   color: #666;
   margin-left: 5px;
