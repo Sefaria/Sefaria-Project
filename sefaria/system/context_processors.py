@@ -90,7 +90,7 @@ def body_flags(request):
     return {"EMBED": "embed" in request.GET}
 
 
-@data_only
+
 def user_and_notifications(request):
     """
     Load data that comes from a user profile.
