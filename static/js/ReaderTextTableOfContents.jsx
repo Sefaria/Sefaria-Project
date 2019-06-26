@@ -50,8 +50,7 @@ class ReaderTextTableOfContents extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    var data = Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
-    return data;
+    return Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
   }
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed

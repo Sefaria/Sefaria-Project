@@ -207,17 +207,43 @@ LanguageToggleButton.propTypes = {
 };
 
 
-const SimpleBlock = ({en, he, classes}) => (
+
+const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-          <span className="int-en">{en}</span>
-          <span className="int-he">{he}</span>
+          <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
+          <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
         </div>
     );
-SimpleBlock.propTypes = {
+DangerousInterfaceBlock.propTypes = {
     en: PropTypes.string,
     he: PropTypes.string,
     classes: PropTypes.string
 };
+
+const SimpleInterfaceBlock = ({en, he, classes}) => (
+        <div className={classes}>
+            <span className="int-en">{en}</span>
+            <span className="int-he">{he}</span>
+        </div>
+    );
+SimpleInterfaceBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    classes: PropTypes.string
+};
+
+const SimpleContentBlock = ({en, he, classes}) => (
+        <div className={classes}>
+          <span className="he" dangerouslySetInnerHTML={ {__html: he } } />
+          <span className="en" dangerouslySetInnerHTML={ {__html: en } } />
+        </div>
+    );
+SimpleContentBlock.propTypes = {
+    en: PropTypes.string,
+    he: PropTypes.string,
+    classes: PropTypes.string
+};
+
 
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children}) => (
         <div className={classes}>
@@ -507,15 +533,8 @@ class SaveButton extends Component {
         onKeyPress={e => {e.charCode == 13 ? this.onClick(e):null}}
       >
         { this.state.selected ?
-          <img
-            src="/static/img/filled-star.png"
-            alt={altText}
-          /> :
-          <img
-            src="/static/img/star.png"
-            alt={altText}
-          />
-        }
+          <img src="/static/img/filled-star.png" alt={altText}/> :
+          <img src="/static/img/star.png" alt={altText}/> }
       </div>
     );
   }
@@ -539,16 +558,17 @@ class FollowButton extends Component {
     }
   }
   _post_follow() {
-      $.post("/api/follow/" + this.props.uid, {}, function(data) {
-          Sefaria.track.event("Following", "New Follow", this.props.uid);
-      });
+    $.post("/api/follow/" + this.props.uid, {}, data => {
+      Sefaria.following.push(this.props.uid);  // keep local following list up-to-date
+      Sefaria.track.event("Following", "New Follow", this.props.uid);
+    });
   }
   _post_unfollow() {
-      $.post("/api/unfollow/" + this.props.uid, {}, function(data) {
-          Sefaria.track.event("Following", "Unfollow", this.props.uid);
-      });
+    $.post("/api/unfollow/" + this.props.uid, {}, data => {
+      Sefaria.following = Sefaria.following.filter(i => i !== this.props.uid);  // keep local following list up-to-date
+      Sefaria.track.event("Following", "Unfollow", this.props.uid);
+    });
   }
-
   onMouseEnter() {
     this.setState({hovering: true});
   }
@@ -556,6 +576,10 @@ class FollowButton extends Component {
     this.setState({hovering: false});
   }
   onClick() {
+    if (!Sefaria._uid) {
+        this.props.toggleSignUpModal();
+        return;
+    }
     if (this.state.following) {
       this._post_unfollow();
       this.setState({following: false});
@@ -587,7 +611,8 @@ class FollowButton extends Component {
 FollowButton.propTypes = {
   uid: PropTypes.number.isRequired,
   following: PropTypes.bool,  // is this person followed already?
-  large: PropTypes.bool
+  large: PropTypes.bool,
+  toggleSignUpModal: PropTypes.func.isRequired,
 };
 
 class SinglePanelNavHeader extends Component {
@@ -625,6 +650,38 @@ class CategoryColorLine extends Component {
     return (<div className="categoryColorLine" style={style}></div>);
   }
 }
+
+
+const ProfileListing = ({ uid, url, image, name, is_followed, position, organization, toggleSignUpModal}) => (
+  <div className="authorByLine">
+    <div className="authorByLineImage">
+      <a href={url}>
+        <img className="smallProfileImage" src={image} alt={name}/>
+      </a>
+    </div>
+    <div className="authorByLineText">
+      <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={url}
+        en={name} he={name}>
+        <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
+      </SimpleLinkedBlock>
+      {
+        !!organization ? <SimpleInterfaceBlock
+          classes="systemText authorPosition" en={organization}
+          he={organization}
+        />:null
+      }
+    </div>
+  </div>
+);
+ProfileListing.propTypes = {
+  uid:         PropTypes.number.isRequired,
+  url:         PropTypes.string.isRequired,
+  image:       PropTypes.string.isRequired,
+  name:        PropTypes.string.isRequired,
+  is_followed: PropTypes.bool,
+  toggleSignUpModal: PropTypes.func.isRequired,
+
+};
 
 
 class SheetListing extends Component {
@@ -865,7 +922,7 @@ class InterruptingMessage extends Component {
               </div>;
 
     } else if (this.props.style === "modal") {
-        <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+      return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
           <div id="interruptingMessageOverlay" onClick={this.close}></div>
           <div id="interruptingMessage">
             <div id="interruptingMessageContentBox">
@@ -875,6 +932,7 @@ class InterruptingMessage extends Component {
           </div>
         </div>;
     }
+    return null;
   }
 }
 InterruptingMessage.propTypes = {
@@ -1290,7 +1348,9 @@ class CookiesNotification extends Component {
 }
 
 
-module.exports.SimpleBlock                               = SimpleBlock;
+module.exports.SimpleInterfaceBlock                      = SimpleInterfaceBlock;
+module.exports.DangerousInterfaceBlock                   = DangerousInterfaceBlock;
+module.exports.SimpleContentBlock                        = SimpleContentBlock;
 module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
 module.exports.BlockLink                                 = BlockLink;
 module.exports.CategoryColorLine                         = CategoryColorLine;
@@ -1306,6 +1366,7 @@ module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
+module.exports.ProfileListing                            = ProfileListing;
 module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;

@@ -193,6 +193,8 @@ Sefaria = extend(Sefaria, {
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
     if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }
 
+    if (ref.indexOf("-") == -1) { return [ref]; }
+
     const oRef     = Sefaria.parseRef(ref);
     const isDepth1 = oRef.sections.length === 1;
     const textData = Sefaria.getTextFromCache(ref);
@@ -200,7 +202,7 @@ Sefaria = extend(Sefaria, {
         return Sefaria.makeSegments(textData).map(segment => segment.ref);
     } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
       // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
-      // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+      // e.g., in "Shabbat 2a:5-2b:8", what is the last segment of Shabbat 2a?
       // For now, just return the split of the first non-spanning ref.
       const newRef = Sefaria.util.clone(oRef);
       newRef.toSections = newRef.sections;
@@ -565,7 +567,7 @@ Sefaria = extend(Sefaria, {
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   _indexDetails: {},
-  hasIndexDetails: title => {title in this._indexDetails},
+  /* hasIndexDetails: title => {title in this._indexDetails}, */
   getIndexDetails: function(title) {
     return new Promise((resolve, reject) => {
         var details = title in this._indexDetails ? this._indexDetails[title] : null;
@@ -580,7 +582,7 @@ Sefaria = extend(Sefaria, {
         }
     });
   },
-  indexDetails: function(title, cb) {
+/*  indexDetails: function(title, cb) {
     // Returns detailed index record for `title` which includes info like author and description
     console.log("The indexDetails method is deprecated.  Please use getIndexDetails.");
     var details = title in this._indexDetails ? this._indexDetails[title] : null;
@@ -594,7 +596,7 @@ Sefaria = extend(Sefaria, {
       Sefaria._indexDetails[title] = data;
     });
     return details;
-  },
+  }, */
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
@@ -685,15 +687,14 @@ Sefaria = extend(Sefaria, {
   },
 
   // lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
-  lookup: function(name, callback, onError, refOnly) {
-    /* Deprecated in favor of getName */
+  /* lookup: function(name, callback, onError, refOnly) {
+    // Deprecated in favor of getName
 
-    /*
-      * name - string to lookup
-      * callback - callback function, takes one argument, a data object
-      * onError - callback
-      * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
-     */
+    //  * name - string to lookup
+    //  * callback - callback function, takes one argument, a data object
+    //  * onError - callback
+    //  * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
+
     name = name.trim();
     var cache = refOnly? this._ref_lookups: this._lookups;
     onError = onError || function() {};
@@ -712,7 +713,7 @@ Sefaria = extend(Sefaria, {
           }.bind(this)
         });
     }
-  },
+  }, */
   _lexiconCompletions: {},
   lexiconCompletion: function(word, lexicon, callback) {
       word = word.trim();
@@ -788,6 +789,7 @@ Sefaria = extend(Sefaria, {
     ref = Sefaria.humanRef(ref);
     return ref in this._links ? this._links[ref] : [];
   },
+  /*
   links: function(ref, cb) {
     // Returns a list of links known for `ref`.
     // WARNING: calling this function with spanning refs can cause bad state in cache.
@@ -811,7 +813,7 @@ Sefaria = extend(Sefaria, {
           cb(data);
         }.bind(this));
     }
-  },
+  }, */
   _saveLinkData: function(ref, data) {
     ref = Sefaria.humanRef(ref);
     const l = this._saveLinksByRef(data);
@@ -925,12 +927,11 @@ Sefaria = extend(Sefaria, {
     // If `excludedSheet` is present, exclude links to that sheet ID.
 
     let links;
-    if (!this.linksLoaded(ref)) { return null; }
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
     if (typeof ref == "string") {
-      links = this.links(ref);
+      links = this.getLinksFromCache(ref);
     } else {
       links = [];
       ref.map(function(r) {
@@ -1327,7 +1328,6 @@ Sefaria = extend(Sefaria, {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
     if (!data || "error" in data) { return []; }
-    //debugger;
     var segments  = [];
     var highlight = data.sections.length === data.textDepth;
     var wrap = (typeof data.text == "string");
@@ -2230,6 +2230,8 @@ Sefaria.palette.indexColor = function(title) {
       Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
       Sefaria.palette.categoryColor("Other");
 };
+
+Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 
 
 Sefaria.setup = function(data) {

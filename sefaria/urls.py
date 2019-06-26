@@ -152,13 +152,14 @@ urlpatterns += [
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
+    url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     url(r'^api/words/completion/(?P<word>.+)/(?P<lexicon>.+)$', reader_views.dictionary_completion_api),
     url(r'^api/words/completion/(?P<word>.+)$', reader_views.dictionary_completion_api),   # Search all dicts
     url(r'^api/words/(?P<word>.+)$', reader_views.dictionary_api),
     url(r'^api/notifications/?$', reader_views.notifications_api),
     url(r'^api/notifications/read', reader_views.notifications_read_api),
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
-    url(r'^api/stories/?$', reader_views.stories_api),
+    url(r'^api/stories/?(?P<gid>.+)?$', reader_views.stories_api),
     url(r'^api/story_reflector/?$', reader_views.story_reflector),
     url(r'^api/messages/?$', reader_views.messages_api),
 ]

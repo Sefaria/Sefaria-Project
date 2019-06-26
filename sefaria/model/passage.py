@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 class Passage(abst.AbstractMongoRecord):
     """
-    Homo Sapiens
+    Sugyot
     """
     collection = 'passage'
 
@@ -19,6 +19,12 @@ class Passage(abst.AbstractMongoRecord):
     optional_attrs = [
         "same_as"    # []
     ]
+
+    @classmethod
+    def containing_segment(cls, ref):
+        assert isinstance(ref, text.Ref)
+        assert ref.is_segment_level()
+        return cls().load({"ref_list": ref.starting_ref().normal()})
 
     def _normalize(self):
         super(Passage, self)._normalize()

@@ -33,7 +33,7 @@ class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
+    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False, required=False)
 
     captcha_lang = "iw" if get_language() == 'he' else "en"
     captcha = ReCaptchaField(

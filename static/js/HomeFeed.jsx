@@ -25,14 +25,14 @@ class HomeFeed extends Component {
   }
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
-    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 600;
+    const $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    const margin = 600;
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreStories();
     }
   }
   getMoreStories() {
-    const url = "/api/stories?" + (this.props.onlyGlobalStories ? "only_global=1" : "") + "&page=" + this.state.page;
+    const url = "/api/stories?" + (this.props.onlySharedStories ? "shared_only=1" : "") + "&page=" + this.state.page;
     $.getJSON(url, this.loadMoreStories);
     this.setState({loading: true});
   }
@@ -44,15 +44,12 @@ class HomeFeed extends Component {
   }
 
   render() {
-    const classes = {"readerNavMenu": 1};
-    const classStr = classNames(classes);
-
     return (
-      <div className={classStr}>
+      <div className="homeFeedWrapper">
         <div className="content hasFooter">
           <div className="contentInner">
             <div className="storyFeed">
-            {this.state.stories.map((s,i) => Story(s, i, ...this.props))}
+            {this.state.stories.map((s,i) => Story(s, i, this.props))}
             </div>
           </div>
           <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
@@ -64,8 +61,8 @@ class HomeFeed extends Component {
 }
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func,
-  onlyGlobalStories:  PropTypes.bool
+  toggleSignUpModal:  PropTypes.func.isRequired,
+  onlySharedStories:  PropTypes.bool
 };
 
 module.exports = HomeFeed;

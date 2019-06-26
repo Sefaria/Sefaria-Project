@@ -888,7 +888,8 @@ input.noselect {
 .readerPanel.dark {
   background-color: #333331;
 }
-.readerNavMenu {
+.readerNavMenu,
+.homeFeedWrapper {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -900,7 +901,8 @@ input.noselect {
   z-index: 101;
   background-color: #FBFBFA;
 }
-.readerNavMenu .content {
+.readerNavMenu .content,
+.homeFeedWrapper .content {
   position: relative;
   box-sizing: border-box;
   padding: 30px 10px 10px;
@@ -909,22 +911,27 @@ input.noselect {
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-.interface-hebrew.multiPanel .readerNavMenu .content {
+.interface-hebrew.multiPanel .readerNavMenu .content,
+.interface-hebrew.multiPanel .homeFeedWrapper .content {
   padding-right: 40px;
 }
-.multiPanel .readerNavMenu .content {
+.multiPanel .readerNavMenu .content,
+.multiPanel .homeFeedWrapper .content {
   padding: 30px 30px 70px 30px;
 }
-.multiPanel .readerNavMenu .content.hasFooter {
+.multiPanel .readerNavMenu .content.hasFooter,
+.multiPanel .homeFeedWrapper .content.hasFooter {
   padding: 30px 0 0 0;
 }
-.multiPanel .readerNavMenu.noHeader .content {
+.multiPanel .readerNavMenu.noHeader .content,
+.multiPanel .homeFeedWrapper.noHeader .content {
   padding-top: 80px;
 }
 .multiPanel .readerNavMenu.compare .content {
   padding-top: 30px;
 }
-.readerNavMenu .content .contentInner {
+.readerNavMenu .content .contentInner,
+.homeFeedWrapper .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
 }
@@ -4868,6 +4875,27 @@ h2.splitHeader .he {
 .groupPage .emptyMessage a {
   text-decoration: underline;
 }
+.groupPage .groupSearchBox {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  margin-top: 20px;
+}
+.groupPage .groupSearchIcon {
+  font-size: 22px;
+  opacity: 0.4;
+}
+.groupPage .groupSearchInput {
+  padding: 12px 10px;
+  flex: 1;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+}
+.groupPage .tagsList {
+  margin-top: 30px;
+}
 .groupInvitationBox {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
@@ -5722,38 +5750,30 @@ span.purim-emoji img{
 .sheetContent table tr td:last-of-type {
   padding-right: 0;
 }
-
-
 .sheetContent tbody {
   width: 100%;
 }
-
 .readerPanel.hebrew .sheetItem .he {
   display: block;
 }
-
 .readerPanel.english .sheetItem .en {
   display: block;
 }
-
 .readerPanel .sheetItem.indented-1 > .en,
 .readerPanel .sheetItem.indented-1 > .he {
   padding-left:  30px;
   padding-right: 30px;
 }
-
 .readerPanel .sheetItem.indented-2 > .en,
 .readerPanel .sheetItem.indented-2 > .he {
   padding-left:  60px;
   padding-right: 60px;
 }
-
 .readerPanel .sheetItem.indented-3 > .en,
 .readerPanel .sheetItem.indented-3 > .he {
   padding-left:  90px;
   padding-right: 90px;
 }
-
 .sheetContent .customSourceTitle {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-transform: none;
@@ -5790,8 +5810,6 @@ span.purim-emoji img{
   top: 23px;
   text-align: center;
 }
-
-
 .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   margin-left: auto;
   right: -32px;
@@ -5801,8 +5819,6 @@ span.purim-emoji img{
 .singlePanel .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   right: -18px;
 }
-
-
 .sheetTocIcon {
   color: #ccc;
   font-size: 16px;
@@ -5812,7 +5828,6 @@ span.purim-emoji img{
   margin: 0 8px;
   vertical-align: middle;
 }
-
 .readerTextTableOfContents .content h2.tagsTitle {
   text-align: center;
   color:black;
@@ -5821,36 +5836,29 @@ span.purim-emoji img{
   padding-bottom: 8px;
 
 }
-
 .sheetMetaDataBox {
   margin: 40px auto 0 auto;
   text-align: center;
 }
-
 .bookMetaDataBox {
   margin: 40px auto;
   text-align: center;
 }
-
-
 .bilingual .bookMetaDataBox .he,
 .english .bookMetaDataBox .he,
 .hebrew .bookMetaDataBox .en {
   display: none;
 }
-
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;
   display: block;
 }
-
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
 .readerPanel.english .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.he {
   display: none;
 }
-
 .readerPanel.hebrew .sheetContent .sheetItem.segment.enOnly .sourceContentText.outsideBiText.en {
   display: inline;
 }
@@ -5860,12 +5868,10 @@ span.purim-emoji img{
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
-
 .sheetContent .sheetItem.segment .sourceContentText p:last-child,
 .sheetContent .sheetItem.segment .sourceContentText p:last-child {
   margin-bottom: 0;
 }
-
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
@@ -5875,20 +5881,53 @@ span.purim-emoji img{
 .interface-hebrew .sheetContent .sheetItem.segment .addedBy {
   float: right;
 }
-
 .youTubeContainer {
   position: relative;
   padding-bottom: 56.25%; /* 16:9 */
   padding-top: 25px;
   height: 0;
 }
-
 .youTubeContainer iframe {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+}
+.sheetContent .media {
+  margin: 0 auto;
+  display: table;
+  table-layout: fixed;
+}
+.sheetContent .media.fullWidth {
+  width: 100%;
+}
+.sheetContent .media .mediaCaption {
+  display: table-caption;
+  caption-side: bottom;
+  padding-top: 8px;
+}
+.sheetContent .media .mediaCaptionInner {
+  display: flex;
+  justify-content: space-between;
+}
+.sheetContent .media .mediaCaption .en {
+  font-size: 80%;
+  text-align: left;
+  flex: 1;
+}
+.sheetContent .media .mediaCaption .he {
+  font-size: 72%;
+  flex: 1;
+  font-family: "Heebo", "sans-serif";
+}
+.sheetContent .media .mediaCaption.heOnly .he,
+.sheetContent .media .mediaCaption.enOnly .en {
+  display: block;
+}
+.sheetContent .media .mediaCaption.heOnly .en,
+.sheetContent .media .mediaCaption.enOnly .he {
+  display: none;
 }
 .oldSheetNotice,
 .oldSheetNotice a,
@@ -6089,10 +6128,13 @@ span.purim-emoji img{
   display: inline-block;
 }
 
+
+.bilingual .homeFeedWrapper span.he {
+  display: block;
+  padding-bottom: 10px;
+}
 .storyFeed .story {
-  margin: 20px 0;
-  padding: 20px 0;
-  border-top: 4px solid transparent;
+  padding: 30px 0;
 }
 .storyFeed .story .storyTitleBlock {
   clear: both;
@@ -6103,13 +6145,45 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTitleBlock {
   float: right;
 }
+
+.colorBarBox {
+  clear: both;
+}
+.interface-english .colorBarBox  {
+  border-left: 4px solid transparent;
+  padding-left: 30px;
+}
+.interface-hebrew .colorBarBox  {
+  border-right: 4px solid transparent;
+  padding-right: 30px;
+}
+.interface-english .citationLine,
+.interface-english .learnMoreLink {
+  padding-left: 34px;
+}
+.interface-hebrew .citationLine,
+.interface-hebrew .learnMoreLink {
+  padding-right: 34px;
+}
+
+.storyTextListItem {
+  padding-bottom: 18px;
+}
+.storyTextListItem:last-child {
+  padding-bottom: 0;
+}
+
 .publishSheetStory .saveButton  {
   float: right;
   padding-top: 20px;
 }
 
+
 .storyFeed .story .storyTitle {
-  padding: 10px 0;
+  padding: 10px 0 30px;
+}
+.storyTitleWrapper .saveButton {
+    padding-bottom: 20px;
 }
 .storyFeed .story .storySubTitle {
   padding-bottom: 10px;
@@ -6137,28 +6211,45 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTypeBlock {
   float: right;
 }
-.interface-english .storyFeed .story .topTailBlock,
+.interface-english .storyFeed .story .topTailBlock {
+  padding: 10px 0;
+  float: right;
+}
+.interface-hebrew .storyFeed .story .topTailBlock {
+  padding: 10px 0;
+  float: left;
+}
 .interface-english .storyFeed .story .mediumProfileImage {
   float: right;
 }
-.interface-hebrew .storyFeed .story .topTailBlock,
 .interface-hebrew .storyFeed .story .mediumProfileImage {
   float: left;
 }
+
+
+
 .storyFeed .story .storyBody {
   clear: both;
-  padding: 10px 0;
+  margin: 10px 0;
   text-align: justify;
 }
 .storyFeed .story .storySheetList {
   clear: both;
 }
 .storyFeed .story .storySheetListItem {
-  padding-top: 20px;
+  padding-bottom: 20px;
 }
-.storyFeed .story .storySheetList .storyTitle span {
+.storyFeed .story .storySheetListItem:last-child {
+  padding-bottom: 0;
+}
+
+.storyFeed .story .storySheetList .sheetTitle {
+  padding-bottom: 10px;
+}
+.storyFeed .story .storySheetList .pageTitle span {
   font-size: 20px;
 }
+
 
 .storyFeed .story .saveLine {
   display: flex;
@@ -6217,6 +6308,20 @@ span.purim-emoji img{
 }
 .storyFeed .storyBody a {
   text-decoration: underline;
+}
+.storyEditBar {
+    padding-bottom: 30px;
+}
+.storyEditorTag {
+    display: inline-block;
+    float: right;
+}
+.storyEditorTag.mustHave {
+    color: #66aa66;
+    padding: 0 10px;
+}
+.storyEditorTag.cantHave {
+    color: #aa6666;
 }
 .learnMoreLink a {
   text-decoration: none;

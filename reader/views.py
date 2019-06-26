@@ -2089,6 +2089,23 @@ def flag_text_api(request, title, lang, version):
 
 @catch_error_as_json
 @csrf_exempt
+def tag_category_api(request, path=None):
+    if request.method == "GET":
+        if not path or path == "index":
+            categories = TermSet({"scheme": "Tag Category"})
+
+        else:
+            categories = TermSet({"category": path})
+
+
+        category_names = [{"tag": category.get_primary_title(), "heTag": category.get_primary_title("he"), } for category in categories]
+        return jsonResponse(category_names)
+
+
+
+
+@catch_error_as_json
+@csrf_exempt
 def category_api(request, path=None):
     """
     API for looking up categories and adding Categories to the Category collection.
@@ -2405,19 +2422,27 @@ def stories_api(request, gid=None):
 
         page      = int(request.GET.get("page", 0))
         page_size = int(request.GET.get("page_size", 10))
-        only_global = bool(request.GET.get("only_global", False))
+        shared_only = bool(request.GET.get("shared_only", False))
+        admin_feed = bool(request.GET.get("admin_feed", False))
 
         if not request.user.is_authenticated:
-            only_global = True
+            shared_only = True
             user = None
+            traits = get_session_traits(request)
         else:
             user = UserProfile(id=request.user.id)
+            traits = get_session_traits(request, request.user.id)
 
-        if only_global or not user:
-            stories = SharedStorySet(limit=page_size, page=page).contents()
+        if admin_feed:
+            if not request.user.is_staff:
+                return {"error": "Permission Denied"}
+            stories = SharedStorySet({}, limit=page_size, page=page).contents()
+            count = len(stories)
+        elif shared_only or not user:
+            stories = SharedStorySet.for_traits(traits, limit=page_size, page=page).contents()
             count = len(stories)
         else:
-            stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+            stories = UserStorySet.recent_for_user(request.user.id, traits, limit=page_size, page=page).contents()
             count = len(stories)
             stories = addDynamicStories(stories, user, page)
 
@@ -2484,10 +2509,20 @@ def addDynamicStories(stories, user, page):
     :return: Array of Story.contents() dicts.
     """
     if page == 0:
+        # Disable most recent story
+        return stories
+
         # Keep Reading Most recent
         most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
         if most_recent:
-            stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
+            if getattr(most_recent, "is_sheet", None):
+                stry = SheetListFactory().generate_story(
+                    sheet_ids=[most_recent.sheet_id],
+                    title={"en": "Keep Reading", "he": u"המשך לקרוא"},
+                    lead={"en": "Sheets", "he": u"דפים"}
+                )
+            else:
+                stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
                     lead={"en": "Keep Reading", "he": u"המשך לקרוא"})
             stories = [stry.contents()] + stories
 

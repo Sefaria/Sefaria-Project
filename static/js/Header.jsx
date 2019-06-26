@@ -52,25 +52,19 @@ class Header extends Component {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: "left-12 top+14", at: "left bottom"},
       minLength: 3,
-      select: function( event, ui ) {
+      select: ( event, ui ) => {
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
-      }.bind(this),
-
-      source: function(request, response) {
-        Sefaria.lookup(
-            request.term,
-            d => {
-              if (d["completions"].length > 0) {
-                response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
-              } else {
-                response([])
-              }
-            },
-            e => response([])
-        );
-      }.bind(this)
+      },
+      source: (request, response) => Sefaria.getName(request.term)
+        .then(d => {
+          if (d["completions"].length > 0) {
+            response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+          } else {
+            response([])
+          }
+        }, e => response([]))
     });
   }
   showVirtualKeyboardIcon(show){
@@ -148,7 +142,8 @@ class Header extends Component {
       return;
     }
 
-    Sefaria.lookup(query, function(d) {
+    Sefaria.getName(query)
+        .then(d => {
       // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
       if (Sefaria.isACaseVariant(query, d)) {
         this.submitSearch(Sefaria.repairCaseVariant(query, d));
@@ -160,15 +155,15 @@ class Header extends Component {
         Sefaria.track.event("Search", action, query);
         this.clearSearchBox();
         this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-      } else if (d["type"] == "Person") {
+      } else if (d["type"] === "Person") {
         Sefaria.track.event("Search", "Search Box Navigation - Person", query);
         this.closeSearchAutocomplete();
         this.showPerson(d["key"]);
-      } else if (d["type"] == "Group") {
+      } else if (d["type"] === "Group") {
         Sefaria.track.event("Search", "Search Box Navigation - Group", query);
         this.closeSearchAutocomplete();
         this.showGroup(d["key"]);
-      } else if (d["type"] == "TocCategory") {
+      } else if (d["type"] === "TocCategory") {
         Sefaria.track.event("Search", "Search Box Navigation - Category", query);
         this.closeSearchAutocomplete();
         this.showLibrary(d["key"]);  // "key" holds the category path
@@ -177,7 +172,7 @@ class Header extends Component {
         this.closeSearchAutocomplete();
         this.showSearch(query);
       }
-    }.bind(this));
+    });
   }
   closeSearchAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
@@ -254,6 +249,7 @@ class Header extends Component {
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}
                           registerAvailableFilters={this.props.registerAvailableFilters}
+                          searchInGroup={this.props.searchInGroup}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
@@ -337,6 +333,7 @@ Header.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
+  searchInGroup:               PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   handleInAppLinkClick:        PropTypes.func,
   headerMesssage:              PropTypes.string,
