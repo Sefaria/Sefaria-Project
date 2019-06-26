@@ -22,7 +22,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -2663,7 +2663,8 @@ class Ref(object):
                     break
 
     def all_segment_refs(self):
-        assert isinstance(self.index_node, JaggedArrayNode)
+        supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
+        assert isinstance(self.index_node, supported_classes)
 
         if self.is_range():
             input_refs = self.range_list()
@@ -2676,10 +2677,15 @@ class Ref(object):
                 ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += temp_ref.all_subrefs()
-            else: #you're higher than section level
-                sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
-                ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+            else: # you're higher than section level
+                if self.index_node.is_virtual:
+                    sub_refs = temp_ref.all_subrefs()
+                    ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
+                    ref_list += [refs for refs in ref_list_list]
+                else:
+                    sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                    ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
+                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
 
         return ref_list
 
@@ -3166,7 +3172,7 @@ class Ref(object):
         """
         return self.is_text_fully_available("en")
 
-    def is_empty(self):
+    def is_empty(self, lang=None):
         """
         Checks if :class:`Ref` has any corresponding data in :class:`Version` records.
 
@@ -3178,7 +3184,7 @@ class Ref(object):
         # depricated
         # return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
 
-        return db.texts.count_documents(self.condition_query()) == 0
+        return db.texts.count_documents(self.condition_query(lang)) == 0
 
     def _iter_text_section(self, forward=True, depth_up=1):
         """
@@ -3307,6 +3313,10 @@ class Ref(object):
         """
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
+
+        if self.index_node.is_virtual:
+            size = len(self.text().text)
+            return self.subrefs(size)
 
         size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
         if size is None:

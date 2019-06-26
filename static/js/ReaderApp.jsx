@@ -1525,6 +1525,19 @@ class ReaderApp extends Component {
       this.setState({panels: [panel]});
     }
   }
+  searchInGroup(searchQuery, group) {
+    let panel;
+    const textSearchState =  new SearchState({ type: 'text' });
+    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [group], appliedFilterAggTypes: ['group']});
+
+    if (this.props.multiPanel) {
+      panel = this.makePanelState({mode: "Header", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
+      this.setState({header: panel, panels: []});
+    } else {
+      panel = this.makePanelState({menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
+      this.setState({panels: [panel]});
+    }
+  }
   showSheets() {
     var updates = {menuOpen: "sheets"};
     this.setStateInHeaderOrSinglePanel(updates);
@@ -1643,6 +1656,7 @@ class ReaderApp extends Component {
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
+                    searchInGroup={this.searchInGroup}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchTab={this.updateSearchTabInHeader}
                     updateSearchFilter={this.updateSearchFilterInHeader}
@@ -1728,6 +1742,7 @@ class ReaderApp extends Component {
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}
                       registerAvailableFilters={updateAvailableFilters}
+                      searchInGroup={this.searchInGroup}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}

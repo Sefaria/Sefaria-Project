@@ -373,7 +373,7 @@ class ReaderPanel extends Component {
     if (this.state.menuOpen === "compare") {
       this.props.closePanel();
     } else {
-      this.props.setNavigationCategories([]);
+      this.setNavigationCategories([]);
       this.closeMenus();
     }
   }
@@ -862,6 +862,7 @@ class ReaderPanel extends Component {
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
                     setGroupTag={this.setGroupTag}
+                    searchInGroup={this.props.searchInGroup}
                     key={"SheetsNav"} />);
 
     } else if (this.state.menuOpen === "topics") {
@@ -940,7 +941,7 @@ class ReaderPanel extends Component {
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
-                    onlyGlobalStories={true}
+                    onlySharedStories={true}
       />);
       */
 
@@ -1087,6 +1088,7 @@ ReaderPanel.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
+  searchInGroup:               PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   addToSourceSheet:            PropTypes.func,

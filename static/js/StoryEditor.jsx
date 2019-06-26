@@ -8,6 +8,12 @@ const Story      = require('./Story');
 
 import Component from 'react-class';
 
+// These are duplicated in trend.py needs to be more graceful
+const traits = ["readsHebrew",
+"toleratesEnglish",
+"usesSheets",
+"inDiaspora",
+"inIsrael"];
 
 class StoryEditor extends Component {
   constructor(props) {
@@ -28,14 +34,14 @@ class StoryEditor extends Component {
   }
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
-    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 600;
+    const $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    const margin = 600;
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreStories();
     }
   }
   getMoreStories() {
-    $.getJSON("/api/stories?only_global=1&page=" + this.state.page, this.loadMoreStories);
+    $.getJSON("/api/stories?admin_feed=1&page=" + this.state.page, this.loadMoreStories);
     this.setState({loading: true});
   }
   loadMoreStories(data) {
@@ -59,8 +65,8 @@ class StoryEditor extends Component {
       this.setState({stories: this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp)});
   }
   addStory(data) {
-        this.state.stories.unshift(data);
-        this.setState({stories: this.state.stories});
+      this.state.stories.unshift(data);
+      this.setState({stories: this.state.stories});
   }
   handlePublish(type, content, timestamp) {
     this.setState({"submitting": true, "error": null});
@@ -90,11 +96,8 @@ class StoryEditor extends Component {
     });
   }
   render() {
-    var classes = {systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
-    var classStr = classNames(classes);
-
     return (
-      <div className={classStr}>
+      <div className="homeFeedWrapper">
         <div className="content hasFooter">
           <div className="contentInner">
             <h1>
@@ -102,7 +105,7 @@ class StoryEditor extends Component {
               <span className="int-he">עדכונים</span>
             </h1>
 
-            {Sefaria.is_moderator?<CreateStoryForm addStory={this.addStory}/>:""}
+            <CreateStoryForm addStory={this.addStory}/>
 
             <div className="storyFeed">
             {this.state.stories.map((s,i) =>
@@ -146,13 +149,15 @@ class StoryEditBar extends Component {
         }
     }
     render() {
-        if (!Sefaria.is_moderator) {return}
-        return (<div>
+        return (Sefaria.is_moderator?<div className="storyEditBar">
             {(this.props.isDraft)?<div className="story-action-button" onClick={this.handlePublish}>Publish</div>:""}
             {this.state.deleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
             <div className="story-action-button" onClick={this.onDelete}>Delete</div>
             }
-        </div>);
+            {this.props.story.mustHave && this.props.story.mustHave.map((trait,i) => <div className="storyEditorTag mustHave" key={i}>{trait}</div>)}
+            {this.props.story.cantHave && this.props.story.cantHave.map((trait,i) => <div className="storyEditorTag cantHave" key={i}>{trait}</div>)}
+
+        </div>:<div/>);
     }
 }
 StoryEditBar.propTypes = {
@@ -213,7 +218,7 @@ class CreateStoryForm extends Component {
                       </select>
                   </label>
               </div>
-              <EditForm/>
+              {Sefaria.is_moderator?<EditForm/>:""}
           </div>
       );
   }

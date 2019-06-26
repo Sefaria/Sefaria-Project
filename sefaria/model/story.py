@@ -10,6 +10,7 @@ import random
 from datetime import datetime
 
 from sefaria.utils.hebrew import hebrew_term
+from sefaria.utils.talmud import amud_ref_to_daf_ref
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from . import abstract as abst
@@ -17,7 +18,8 @@ from . import user_profile
 from . import person
 from . import text
 from . import following
-
+from . import ref_data
+from . import passage
 
 import logging
 logger = logging.getLogger(__name__)
@@ -47,6 +49,7 @@ class Story(abst.AbstractMongoRecord):
             "publisher_url": udata["profileUrl"],
             "publisher_image": udata["imageUrl"],
             "publisher_position": udata["position"],
+            "publisher_organization": udata["organization"],
         }
         if return_id:
             d["publisher_id"] = publisher_id
@@ -173,6 +176,16 @@ class SharedStorySet(abst.AbstractMongoSet):
         sort = sort or [["timestamp", -1]]
         super(SharedStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
 
+    @classmethod
+    def for_traits(cls, traits, query=None, page=0, limit=0, sort=None):
+        q = {
+            "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
+            "cantHave": {"$nin": traits}
+        }
+        if query is not None:
+            q.update(query)
+        return cls(q, limit=limit, page=page, sort=sort)
+
     def register_for_user(self, uid):
         for shared_story in self:
             UserStory.from_shared_story(uid, shared_story).save()
@@ -290,17 +303,8 @@ class UserStorySet(abst.AbstractMongoSet):
         latest_id_for_user = UserStory.latest_shared_for_user(uid)
         latest_shared_id = SharedStory.latest_id()
         if latest_shared_id and (latest_shared_id != latest_id_for_user):
-            if latest_id_for_user is None:
-                SharedStorySet({
-                    "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
-                    "cantHave": {"$nin": traits}
-                }, limit=10).register_for_user(uid)
-            else:
-                SharedStorySet({
-                    "_id": {"$gt": latest_id_for_user},
-                    "$or": [{"mustHave": {"$exists": False}}, {"$expr": {"$setIsSubset": ["$mustHave", traits]}}],
-                    "cantHave": {"$nin": traits}
-                }, limit=10).register_for_user(uid)
+            query = {"_id": {"$gt": latest_id_for_user}} if latest_id_for_user is not None else None
+            SharedStorySet.for_traits(traits, query=query, limit=10).register_for_user(uid)
 
     def contents(self, **kwargs):
         if self.uid:
@@ -375,8 +379,12 @@ class FreeTextStoryFactory(object):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        return {"en": kwargs.get("en"),
-                "he": kwargs.get("he")}
+        return {
+            "en": kwargs.get("en"),
+            "he": kwargs.get("he"),
+            "title": kwargs.get("title"),
+            "lead": kwargs.get("lead"),
+        }
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -491,6 +499,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     def _story_form(cls, **kwargs):
         return "textPassage"
 
+    """
     @classmethod
     def create_parasha(cls, **kwargs):
         def _create_parasha_story(parasha_obj, mustHave=None, **kwargs):
@@ -499,6 +508,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             cls._generate_shared_story(ref=cal["ref"], lead=cal["title"], title=cal["displayValue"],
                                        mustHave=mustHave or [], **kwargs).save()
         create_israel_and_diaspora_stories(_create_parasha_story, **kwargs)
+    """
 
     @classmethod
     def create_haftarah(cls, **kwargs):
@@ -534,9 +544,24 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
         create_israel_and_diaspora_stories(_create_aliyah_story, **kwargs)
 
+    """
     @classmethod
     def create_daf_yomi(cls, **kwargs):
         cls.generate_calendar(key="Daf Yomi", **kwargs).save()
+    """
+
+    @classmethod
+    def create_daf_yomi(cls, **kwargs):
+        daf_ref = daf_yomi_ref()
+        top_ref = ref_data.RefDataSet.from_ref(daf_ref).top_ref()
+        sugya = passage.Passage.containing_segment(top_ref)
+
+        cls._generate_shared_story(
+            ref=sugya.ref().normal(),
+            lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
+            title=daf_yomi_display_value(),
+            **kwargs
+        ).save()
 
     @classmethod
     def create_929(cls, **kwargs):
@@ -590,7 +615,38 @@ class MultiTextStoryFactory(AbstractStoryFactory):
     def _story_form(cls, **kwargs):
         return "multiText"
 
-    # todo: the below two methods share a lot of code...
+    @classmethod
+    def create_daf_connection_story(cls, **kwargs):
+        # todo: use reccomendation engine
+        daf_ref = daf_yomi_ref()
+        connection_link, connection_ref = random_connection_to(daf_ref)
+
+        if not connection_ref:
+            return
+
+        category = connection_ref.index.categories[0]
+
+        mustHave = []
+        if not connection_ref.is_text_translated():
+            mustHave += ["readsHebrew"]
+
+        if category == "Talmud":
+            title = {"en": "Related Passage", "he": u"סוגיה קשורה"}
+        else:
+            title = {"en": category + " on the Daf", "he": hebrew_term(category) + u" " + u"על הדף"}
+
+        try:
+            cls.generate_story(
+                refs = [connection_link.ref_opposite(connection_ref).normal(), connection_ref.normal()],
+                title=title,
+                lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
+                mustHave=mustHave,
+                **kwargs
+            ).save()
+        except AttributeError:
+            # connection_link.ref_opposite(connection_ref).normal() err's out ... why?
+            return
+
     @classmethod
     def create_parasha_verse_connection_stories(cls, iteration=1, **kwargs):
         def _create_parasha_verse_connection_story(parasha_obj, mustHave=None, **kwargs):
@@ -604,17 +660,14 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
 
-            connection_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type != "commentary", top_ref.linkset())]
+            connection_link, connection_ref = random_connection_to(top_ref)
+            if not connection_ref:
+                return
 
-            connection_ref = None
-            while connection_ref is None:
-                connection_ref = random.choice(connection_refs)
-                category = connection_ref.index.categories[0]
-                if category == "Tanakh" or category == "Reference":  # Quoting commentary isn't best for this
-                    connection_ref = None
-                    continue
-                if not connection_ref.is_text_translated():
-                    mustHave += ["readsHebrew"]
+            category = connection_ref.index.categories[0]
+
+            if not connection_ref.is_text_translated():
+                mustHave += ["readsHebrew"]
 
             cls.generate_story(
                 refs = [top_ref.normal(), connection_ref.normal()],
@@ -638,8 +691,11 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             parasha_ref = text.Ref(parasha_obj["ref"])
 
             top_ref = ref_data.RefDataSet.from_ref(parasha_ref).nth_ref(iteration)
-            commentary_refs = [l.ref_opposite(top_ref) for l in filter(lambda x: x.type == "commentary", top_ref.linkset())]
-            commentary_ref = random.choice(commentary_refs)
+
+            commentary_ref = random_commentary_on(top_ref)
+            if not commentary_ref:
+                return
+
             if not commentary_ref.is_text_translated():
                 mustHave += ["readsHebrew"]
             commentator = commentary_ref.index.collective_title
@@ -729,7 +785,6 @@ class UserSheetsFactory(AbstractStoryFactory):
         story = cls._generate_user_story(uid=uid, author_uid=author_uid, **kwargs)
         story.save()
 
-
 class GroupSheetListFactory(AbstractStoryFactory):
     """
         "title" : {
@@ -749,6 +804,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
               "publisher_url" (derived)
               "publisher_image" (derived)
               "publisher_position" (derived)
+              "publisher_organization" (derived)
               "publisher_followed" (derived)
             },
             {...}]
@@ -760,12 +816,17 @@ class GroupSheetListFactory(AbstractStoryFactory):
         sheet_ids = kwargs.get("sheet_ids")
         g = Group().load({"name": kwargs.get("group_name")})
         assert g
-        return {
+
+        d = {
             "sheet_ids": sheet_ids,
             "group_image": getattr(g, "imageUrl", ""),
             "group_url": g.url,
-            "title": {"en": g.name, "he": g.name}
+            "title": kwargs.get("title",{"en": g.name, "he": g.name}),
+            "cozy": kwargs.get("cozy", False)
         }
+        if kwargs.get("lead"):
+            d["lead"] = kwargs.get("lead")
+        return d
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -780,6 +841,35 @@ class GroupSheetListFactory(AbstractStoryFactory):
     def create_user_story(cls, uid, group_name, sheet_ids, **kwargs):
         story = cls._generate_user_story(uid=uid, group_name=group_name, sheet_ids=sheet_ids, **kwargs)
         story.save()
+
+    @classmethod
+    def create_nechama_sheet_stories(cls, **kwargs):
+        def _create_nechama_sheet_story(parasha_obj, mustHave=None, **kwargs):
+            #todo: grab English sheet and show to English only users
+            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+
+            sheets = db.sheets.find({"status": "public", "group": u"גיליונות נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
+            sheets = [s for s in sheets]
+            selected = random.sample(sheets, 3)
+            if len(selected) < 3:
+                return
+
+            mustHave = mustHave or []
+            mustHave = mustHave + ["readsHebrew"]
+
+            cls.generate_story(
+                sheet_ids=[s["id"] for s in selected],
+                cozy=True,
+                group_name=u"גיליונות נחמה",
+                title={"en": "Nechama on " + cal["displayValue"]["en"], "he": u"נחמה על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                mustHave=mustHave,
+                **kwargs
+            ).save()
+
+        create_israel_and_diaspora_stories(_create_nechama_sheet_story, **kwargs)
+
 
 
 class SheetListFactory(AbstractStoryFactory):
@@ -802,6 +892,7 @@ class SheetListFactory(AbstractStoryFactory):
               "publisher_url" (derived)
               "publisher_image" (derived)
               "publisher_position" (derived)
+              "publisher_organization" (derived)
               "publisher_followed" (derived)
             },
             {...}]
@@ -840,6 +931,14 @@ class SheetListFactory(AbstractStoryFactory):
         # return [s.id for s in sheets]
 
     @classmethod
+    def _get_daf_sheet_ids(cls):
+        from sefaria.sheets import get_sheets_for_ref
+        sheets = get_sheets_for_ref(daf_yomi_ref().normal())
+        sorted_sheets = sorted(sheets, key=lambda s: s["views"], reverse=True)
+        return [s["id"] for s in sorted_sheets[:3]]
+
+
+    @classmethod
     def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
@@ -849,15 +948,28 @@ class SheetListFactory(AbstractStoryFactory):
             if len(sheet_ids) < k:
                 return
 
+            mustHave = mustHave or []
+            mustHave = mustHave + ["usesSheets"]
+
             cls.generate_story(
                 sheet_ids=sheet_ids,
-                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"דפים על " + cal["displayValue"]["he"]},
+                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"גליונות על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
-                mustHave=mustHave or [],
+                mustHave=mustHave,
                 **kwargs
             ).save()
 
         create_israel_and_diaspora_stories(_create_parasha_sheet_story, **kwargs)
+
+    @classmethod
+    def create_daf_sheet_story(cls, **kwargs):
+        ids = cls._get_daf_sheet_ids()
+        if ids:
+            cls.generate_story(
+                sheet_ids=cls._get_daf_sheet_ids(),
+                title={"en": "On Today's Daf", "he": u"על דף היומי"},
+                mustHave=["usesSheets"], **kwargs
+            ).save()
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
@@ -994,6 +1106,40 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_random_shared_story(cls, **kwargs):
         cls.generate_random_shared_story(**kwargs).save()
+
+
+##### Utils #####
+
+def daf_yomi_ref():
+    from sefaria.utils.calendars import get_keyed_calendar_items
+    cal = get_keyed_calendar_items()["Daf Yomi"]
+    daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
+    return daf_ref
+
+def daf_yomi_display_value():
+    from sefaria.utils.calendars import get_keyed_calendar_items
+    return get_keyed_calendar_items()["Daf Yomi"]["displayValue"]
+
+
+def random_commentary_on(ref):
+    commentary_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type == "commentary", ref.linkset())]
+    candidates = filter(lambda r: not r.is_empty(), commentary_refs)
+    return random.choice(candidates)
+
+
+def random_connection_to(ref):
+    connection_refs = [(l, l.ref_opposite(ref)) for l in filter(lambda x: x.type != "commentary", ref.linkset())]
+
+    def is_useful(r):
+        if r.is_empty():
+            return False
+        category = r.index.categories[0]
+        if category == "Tanakh" or category == "Reference":
+            return False
+        return True
+
+    candidates = filter(lambda (link, ref): is_useful(ref), connection_refs)
+    return random.choice(candidates)
 
 
 def create_israel_and_diaspora_stories(create_story_fn, **kwargs):

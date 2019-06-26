@@ -6,6 +6,7 @@ const {
     BlockLink,
     SaveButton,
     SimpleInterfaceBlock,
+    DangerousInterfaceBlock,
     SimpleContentBlock,
     FollowButton,
     SimpleLinkedBlock,
@@ -20,6 +21,7 @@ const sheetPropType = PropTypes.shape({
             publisher_url:  PropTypes.string,
             publisher_image:PropTypes.string,
             publisher_position: PropTypes.string,
+            publisher_organization: PropTypes.string,
             publisher_followed: PropTypes.bool,
             sheet_id: PropTypes.number,
             sheet_title: PropTypes.string,
@@ -38,7 +40,7 @@ const bilingualPropType = PropTypes.shape({
 
 // This is a pseudo Component.  It uses `storyForms` to determine the component to render.
 // It's important that it's capitalized, so that React treats it as a component.
-function Story(story_props, indx, ...props) {
+function Story(story_props, indx, props) {
     const storyForms = {
         freeText:       FreeTextStory,
         newIndex:       NewIndexStory,
@@ -63,21 +65,31 @@ function Story(story_props, indx, ...props) {
                 {...props} />;
 }
 
-const FreeTextStory = (props) => (
-  <StoryFrame cls="freeTextStory">
-    <StoryTypeBlock en="New Content" he="תוכן חדש"/>
-    <NaturalTimeBlock timestamp={props.timestamp}/>
-    <StoryBodyBlock en={props.data.en} he={props.data.he}/>
-  </StoryFrame>
-);
+const FreeTextStory = (props) => {
 
+  const lead = props.data.lead || {en: "Updates", he: "עדכונים"};
+  const title = props.data.title || {en: "New in the Library", he: "חדש בספריא"};
+
+  return (
+  <StoryFrame cls="freeTextStory">
+    <StoryTypeBlock en={lead.en} he={lead.he}/>
+    <StoryTitleBlock en={title.en} he={title.he}/>
+    <NaturalTimeBlock timestamp={props.timestamp}/>
+    <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
+  </StoryFrame>
+)};
 FreeTextStory.propTypes = {
   storyForm:    PropTypes.string.isRequired,
   timestamp:    PropTypes.number.isRequired,
   is_shared:    PropTypes.bool,
-  data:         bilingualPropType.isRequired,
+  data:         PropTypes.shape({
+      en: PropTypes.string.isRequired,
+      he: PropTypes.string.isRequired,
+      lead: bilingualPropType,
+      title: bilingualPropType
+  }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 const NewIndexStory = (props) => {
@@ -89,10 +101,10 @@ const NewIndexStory = (props) => {
     <StoryFrame cls="newIndexStory" cardColor={Sefaria.palette.indexColor(title)}>
         <StoryTypeBlock en="New Text" he="טקסט חדש"/>
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignupModal} classes={"storyTitleWrapper"}>
+        <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
         </SaveLine>
-        <StoryBodyBlock en={props.data.en} he={props.data.he}/>
+        <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
             <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
         </ColorBarBox>:""}
@@ -113,7 +125,7 @@ NewIndexStory.propTypes = {
       text: bilingualPropType,
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 // Todo: merge the class above and below.  They're nearly identical.
@@ -126,10 +138,10 @@ const NewVersionStory = (props) => {
     <StoryFrame cls="newVersionStory" cardColor={Sefaria.palette.indexColor(title)}>
         <StoryTypeBlock en="New Version" he="גרסה חדשה" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignupModal} classes={"storyTitleWrapper"}>
+        <SaveLine dref={props.data.ref || title} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={title} he={heTitle} url={url} />
         </SaveLine>
-        <StoryBodyBlock en={props.data.en} he={props.data.he}/>
+        <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.en} he={props.data.he}/>
         {props.data.ref?<ColorBarBox tref={props.data.ref}>
             <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
         </ColorBarBox>:""}
@@ -150,16 +162,17 @@ NewVersionStory.propTypes = {
       text: bilingualPropType,
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
+//         <ReadMoreLink url={"/person/" + props.data.author_key}/>
 const AuthorStory = (props) => (
     <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(props.data.example_work)}>
         <StoryTypeBlock en="Author" he="מחבר" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
         <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/person/" + props.data.author_key} />
-        <StoryBodyBlock en={props.data.author_bios.en} he={props.data.author_bios.he}/>
-        <ReadMoreLink url={"/person/" + props.data.author_key}/>
+        <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.author_bios.en} he={props.data.author_bios.he}/>
+        <ReadMoreLink url={Sefaria.normRef(props.data.example_work)}/>
     </StoryFrame>
 );
 
@@ -174,28 +187,33 @@ AuthorStory.propTypes = {
       author_bios: bilingualPropType.isRequired,
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 const UserSheetsStory = (props) => {
-      const positionBlock = (props.data.publisher_position) ?
+      /* const positionBlock = (props.data.publisher_position) ?
             <SimpleInterfaceBlock classes="systemText storySubTitle"
               en={props.data.publisher_position}
               he={props.data.publisher_position}/>:"";
-
+      */
+      const organizationBlock = (props.data.publisher_organization) ?
+            <SimpleInterfaceBlock classes="systemText storySubTitle"
+              en={props.data.publisher_organization}
+              he={props.data.publisher_organization}/>:"";
       return (
         <StoryFrame cls="userSheetsStory">
             <StoryTypeBlock en="People" he="קהילה" />
             <StoryTitleBlock en={props.data.publisher_name} he={props.data.publisher_name} url={props.data.publisher_url}>
-                {positionBlock}
-                <FollowButton large={true} uid={props.data.publisher_id} following={props.data.publisher_followed}/>
+                {organizationBlock}
+                <FollowButton large={true} uid={props.data.publisher_id} following={props.data.publisher_followed}
+                              toggleSignUpModal={props.toggleSignUpModal}/>
             </StoryTitleBlock>
 
             <img className="mediumProfileImage" src={props.data.publisher_image} alt={props.data.publisher_name}/>
             <div className="storySheetList">
                 {props.data.sheets.map(sheet =>
                     <div className="storySheetListItem" key={sheet.sheet_id}>
-                        <SaveLine toggleSignUpModal={props.toggleSignupModal} historyObject={{ref: "Sheet " + sheet.sheet_id,
+                        <SaveLine toggleSignUpModal={props.toggleSignUpModal} historyObject={{ref: "Sheet " + sheet.sheet_id,
                                 sheet_title: sheet.sheet_title, versions: {} }}>
                             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} aclasses="contentText"/>
                         </SaveLine>
@@ -211,11 +229,15 @@ UserSheetsStory.propTypes = {
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
   data:         PropTypes.shape({
+    title: bilingualPropType,
+    lead: bilingualPropType,
+    cozy: PropTypes.bool,
     publisher_id: PropTypes.number,
     publisher_name: PropTypes.string,
     publisher_url:  PropTypes.string,
     publisher_image:PropTypes.string,
     publisher_position: PropTypes.string,
+    publisher_organization: PropTypes.string,
     publisher_followed: PropTypes.bool,
     sheets: PropTypes.arrayOf(PropTypes.shape({
         sheet_id: PropTypes.number,
@@ -224,15 +246,15 @@ UserSheetsStory.propTypes = {
     })).isRequired
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func.isRequired
 };
 
 const GroupSheetListStory = (props) => (
     <StoryFrame cls="groupSheetListStory">
-        <StoryTypeBlock en="Group" he="קבוצה" />
+        <StoryTypeBlock en={props.data.lead?props.data.lead.en:"Group"} he={props.data.lead?props.data.lead.he:"קבוצה"} />
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
         <img className="mediumProfileImage" src={props.data.group_image} alt={props.data.title.en}/>
-        <StorySheetList sheets={props.data.sheets} toggleSignupModal={props.toggleSignupModal}/>
+        <StorySheetList sheets={props.data.sheets} cozy={props.data.cozy} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
 
@@ -248,7 +270,7 @@ GroupSheetListStory.propTypes = {
     sheets: PropTypes.arrayOf(sheetPropType).isRequired
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 const SheetListStory = (props) => {
@@ -258,7 +280,7 @@ const SheetListStory = (props) => {
     <StoryFrame cls="sheetListStory">
         <StoryTypeBlock en={lead.en} he={lead.he}/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
-        <StorySheetList sheets={props.data.sheets} toggleSignupModal={props.toggleSignupModal}/>
+        <StorySheetList sheets={props.data.sheets} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
   );
 };
@@ -268,12 +290,12 @@ SheetListStory.propTypes = {
   timestamp:    PropTypes.number,
   is_shared:    PropTypes.bool,
   data:         PropTypes.shape({
+      lead: bilingualPropType,
       title: bilingualPropType.isRequired,
-      lead: bilingualPropType.isRequired,
       sheets: PropTypes.arrayOf(sheetPropType).isRequired
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 
@@ -291,7 +313,7 @@ PublishSheetStory.propTypes = {
   is_shared:    PropTypes.bool,
   data:         sheetPropType.isRequired,
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func.isRequired
 };
 
 //todo: This might be a sheet!!
@@ -303,7 +325,7 @@ const TextPassageStory = (props) => {
     <StoryFrame cls="textPassageStory" cardColor={Sefaria.palette.indexColor(props.data.index)}>
         <StoryTypeBlock en={lead.en} he={lead.he} />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <SaveLine dref={props.data.ref} toggleSignUpModal={props.toggleSignupModal} classes={"storyTitleWrapper"}>
+        <SaveLine dref={props.data.ref} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={url}/>
         </SaveLine>
         <ColorBarBox tref={props.data.ref}>
@@ -327,7 +349,7 @@ TextPassageStory.propTypes = {
       language: PropTypes.string
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 const TopicTextsStory = (props) => (
@@ -335,7 +357,7 @@ const TopicTextsStory = (props) => (
         <StoryTypeBlock en="Topic" he="" />
         <SeeAllLink url="/topics"/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={"/topics/" + props.data.title.en}/>
-        <StoryTextList texts={props.data.texts} />
+        <StoryTextList texts={props.data.texts} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
 
@@ -348,14 +370,14 @@ TopicTextsStory.propTypes = {
       texts: PropTypes.arrayOf(textPropType)
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 const MultiTextStory = (props) => (
     <StoryFrame cls="multiTextStory">
         <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
-        <StoryTextList texts={props.data.texts} />
+        <StoryTextList texts={props.data.texts} toggleSignUpModal={props.toggleSignUpModal} />
     </StoryFrame>
 );
 
@@ -369,7 +391,7 @@ MultiTextStory.propTypes = {
       texts: PropTypes.arrayOf(textPropType)
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 const TopicListStory = (props) => (
@@ -393,7 +415,7 @@ TopicListStory.propTypes = {
       topics: PropTypes.arrayOf(bilingualPropType)
   }),
   interfaceLang:      PropTypes.string,
-  toggleSignupModal:  PropTypes.func
+  toggleSignUpModal:  PropTypes.func
 };
 
 
@@ -435,31 +457,35 @@ const StoryTitleBlock = ({url, he, en, children}) => {
 const ColorBarBox = ({tref, children}) =>  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>;
 const StoryBodyBlock = ({en, he}) => <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>;
 
-const StoryTextList = ({texts, toggleSignupModal}) => (
+const StoryTextList = ({texts, toggleSignUpModal}) => (
     <div className="storyTextList">
-        {texts.map((text,i) => <StoryTextListItem text={text} key={i} toggleSignupModal={toggleSignupModal} />)}
+        {texts.map((text,i) => <StoryTextListItem text={text} key={i} toggleSignUpModal={toggleSignUpModal} />)}
     </div>
 );
-const StoryTextListItem = ({text, toggleSignupModal}) => (
+const StoryTextListItem = ({text, toggleSignUpModal}) => (
     <div className="storyTextListItem">
         <ColorBarBox tref={text.ref} >
             <StoryBodyBlock en={text.en} he={text.he}/>
         </ColorBarBox>
-        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignupModal}>
+        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock url={"/" + Sefaria.normRef(text.ref)} en={text.ref} he={text.heRef} classes="contentText citationLine"/>
         </SaveLine>
     </div>
 );
 StoryTextListItem.propTypes = {text: textPropType.isRequired};
 
-const StorySheetList = ({sheets, toggleSignUpModal}) => (
+const StorySheetList = ({sheets, toggleSignUpModal, cozy}) => (
     <div className="storySheetList">
-        {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} toggleSignUpModal={toggleSignUpModal}/>)}
+        {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} cozy={cozy} toggleSignUpModal={toggleSignUpModal}/>)}
     </div>
 );
+StorySheetList.propTypes = {
+    sheets: PropTypes.arrayOf(sheetPropType).isRequired,
+    toggleSignUpModal: PropTypes.func.isRequired
+};
 
 
-const SheetBlock = ({sheet,  toggleSignUpModal}) => {
+const SheetBlock = ({sheet, cozy, toggleSignUpModal}) => {
       const historyObject = {ref: "Sheet " + sheet.sheet_id,
                   sheet_title: sheet.sheet_title,
                   versions: {}};
@@ -468,15 +494,17 @@ const SheetBlock = ({sheet,  toggleSignUpModal}) => {
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle"}/>
         </SaveLine>
-        {sheet.sheet_summary?<StoryBodyBlock en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
-        <ProfileListing
+        {(sheet.sheet_summary && !cozy)?<SimpleInterfaceBlock classes="storyBody contentText" en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
+        {cozy?"":<ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}
           image={sheet.publisher_image}
           name={sheet.publisher_name}
           is_followed={sheet.publisher_followed}
           position={sheet.publisher_position}
-        />
+          organization={sheet.publisher_organization}
+          toggleSignUpModal={toggleSignUpModal}
+        />}
       </div>);
 };
 SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
