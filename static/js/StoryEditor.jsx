@@ -5,6 +5,7 @@ const Sefaria    = require('./sefaria/sefaria');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Story      = require('./Story');
+const { usePaginatedScroll } = require('./Hooks');
 
 import Component from 'react-class';
 
@@ -15,115 +16,67 @@ const traits = ["readsHebrew",
 "inDiaspora",
 "inIsrael"];
 
-class StoryEditor extends Component {
-  constructor(props) {
-    super(props);
 
-    this.state = {
-      page: 0,
-      loadedToEnd: false,
-      loading: false,
-      stories: [],
-      submitting: false,
-      error: null
-    };
-  }
-  componentDidMount() {
-    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
-    this.getMoreStories();
-  }
-  handleScroll() {
-    if (this.state.loadedToEnd || this.state.loading) { return; }
-    const $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    const margin = 600;
-    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-      this.getMoreStories();
-    }
-  }
-  getMoreStories() {
-    $.getJSON("/api/stories?admin_feed=1&page=" + this.state.page, this.loadMoreStories);
-    this.setState({loading: true});
-  }
-  loadMoreStories(data) {
-    if (data.count < data.page_size) {
-      this.setState({loadedToEnd: true});
-    }
-    this.setState({page: data.page + 1, loading: false, stories: this.state.stories.concat(data.stories)});
-  }
-  onDelete(id) {
-    $.ajax({
-        url: '/api/stories/' + id,
-        type: 'DELETE',
-        success: function(result) {
-          if (result.status == "ok") {
-              this.setState({stories: this.state.stories.filter(u => u._id != id)});
-          }
-        }.bind(this)
-    });
-  }
-  removeDraft(timestamp) {
-      this.setState({stories: this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp)});
-  }
-  addStory(data) {
-      this.state.stories.unshift(data);
-      this.setState({stories: this.state.stories});
-  }
-  handlePublish(type, content, timestamp) {
-    this.setState({"submitting": true, "error": null});
-    const payload = {
-      storyForm: type,
-      data: content
-    };
-    $.ajax({
-      url: "/api/stories",
-      dataType: 'json',
-      type: 'POST',
-      data: {json: JSON.stringify(payload)},
-      success: function(data) {
-        if (data.status == "ok") {
-          payload.date = Date();
-          const stories = this.state.stories.filter(u => (!u.draft) || u.timestamp != timestamp); // Get rid of draft.
-          stories.unshift(payload);
-          this.setState({submitting: false, stories: stories});
+function StoryEditor(props) {
+  const [stories, setStories] = useState([]);
+  const [error, setError] = useState(null);
+
+  usePaginatedScroll(
+      $(".homeFeedWrapper .content"),
+      "/api/stories?admin_feed=1",
+      data => setStories(prev => ([...prev, ...data.stories]))
+  );
+
+  const onDelete = (id) => $.ajax({url: '/api/stories/' + id, type: 'DELETE',
+    success: (result) => { if (result.status === "ok") { setStories(s => s.filter(u => u._id !== id)) }}
+  });
+  const removeDraft = (timestamp) => setStories(s => s.filter(u => (!u.draft) || u.timestamp !== timestamp));
+  const addStory = (data) => setStories(s => [data, ...s]);
+  const handlePublish = (type, content, timestamp) => {
+    setError(null);
+
+    $.ajax({url: "/api/stories", dataType: 'json', type: 'POST',
+      data: {json: JSON.stringify({storyForm: type, data: content})},
+      success: (data) => {
+        if (data.status === "ok") {
+          removeDraft(timestamp);
+          addStory(data.story);
         } else {
-          this.setState({"error": "Error - " + data.error});
+          setError(data.error);
         }
-      }.bind(this),
-      error: function(xhr, status, err) {
-        this.setState({"error": "Error - " + err.toString()});
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
+      },
+      error: (xhr, status, err) => { setError(err.toString()); }
     });
-  }
-  render() {
-    return (
-      <div className="homeFeedWrapper">
-        <div className="content hasFooter">
-          <div className="contentInner">
-            <h1>
-              <span className="int-en">Stories</span>
-              <span className="int-he">עדכונים</span>
-            </h1>
+  };
 
-            <CreateStoryForm addStory={this.addStory}/>
+  return (<div className="homeFeedWrapper">
+    <div className="content hasFooter">
+      <div className="contentInner">
+        <h1>
+          <span className="int-en">Stories</span>
+          <span className="int-he">עדכונים</span>
+        </h1>
 
-            <div className="storyFeed">
-            {this.state.stories.map((s,i) =>
-                [
-                    Story(s,i),
-                    <StoryEditBar
-                        onDelete={this.onDelete}
-                        removeDraft={this.removeDraft}
-                        handlePublish={this.handlePublish}
-                        isDraft={s.draft}
-                        key={s.timestamp + "-" + i + "-editor"}
-                        story={s}/>
-                ]).flat() }
-            </div>
-          </div>
+        <CreateStoryForm addStory={addStory}/>
+        <span className="error">{error}</span>
+
+        <div className="storyFeed">
+        {stories.map((s,i) =>
+            [
+                Story(s,i, props),
+                <StoryEditBar
+                    onDelete={onDelete}
+                    removeDraft={removeDraft}
+                    handlePublish={handlePublish}
+                    isDraft={s.draft}
+                    key={s.timestamp + "-" + i + "-editor"}
+                    story={s}/>
+            ]).flat() }
         </div>
-      </div>);
-  }
+      </div>
+    </div>
+  </div>);
+
 }
 StoryEditor.propTypes = {
   interfaceLang:  PropTypes.string
@@ -255,7 +208,6 @@ function withButton(WrappedFormComponent, addStory) {
             }.bind(this),
             error: function (xhr, status, err) {
                 this.setState({"error": "Error - " + err.toString()});
-                console.error(this.props.url, status, err.toString());
             }.bind(this)
         });
     }

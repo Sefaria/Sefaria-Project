@@ -946,6 +946,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "story_editor") {
       menu = (<StoryEditor
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
       />);
 

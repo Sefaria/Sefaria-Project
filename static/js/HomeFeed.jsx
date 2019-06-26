@@ -3,39 +3,18 @@ const $          = require('./sefaria/sefariaJquery');
 const PropTypes  = require('prop-types');
 const Story      = require('./Story');
 const Footer     = require('./Footer');
+const { usePaginatedScroll } = require('./Hooks');
 
 
 function HomeFeed(props) {
   const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
-  const [page, setPage] = useState(0);
-  const [nextPage, setNextPage] = useState(1);
   const [stories, setStories] = useState([]);
-  const [loadedToEnd, setLoadedToEnd] = useState(false);
 
-  useEffect(() => {
-    const $scrl = $(".homeFeedWrapper .content");
-    const margin = 600;
-    const handleScroll = () => {
-      if (loadedToEnd || page === nextPage) { return; }
-      if ($scrl.scrollTop() + $scrl.innerHeight() + margin >= $scrl[0].scrollHeight) {
-        setPage(nextPage);
-      }
-    };
-    $scrl.on("scroll", handleScroll);
-    return (() => {$scrl.off("scroll", handleScroll);})
-  }, [loadedToEnd, page, nextPage]);
-
-  useEffect(() => {
-    const url = "/api/stories?" + (onlySharedStories ? "shared_only=1" : "") + "&page=" + page;
-    $.getJSON(url, (data) => {
-      setStories(prev => ([...prev, ...data.stories]));
-      if (data.count < data.page_size) {
-        setLoadedToEnd(true);
-      } else {
-        setNextPage(page + 1);
-      }
-    });
-  }, [page]);
+  usePaginatedScroll(
+      $(".homeFeedWrapper .content"),
+      "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
+      data => setStories(prev => ([...prev, ...data.stories]))
+  );
 
   return (
     <div className="homeFeedWrapper">
