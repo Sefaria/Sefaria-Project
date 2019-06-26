@@ -5899,6 +5899,9 @@ span.purim-emoji img{
   display: table;
   table-layout: fixed;
 }
+.sheetContent .media.fullWidth {
+  width: 100%;
+}
 .sheetContent .media .mediaCaption {
   display: table-caption;
   caption-side: bottom;

@@ -595,12 +595,14 @@ class SheetMedia extends Component {
 
   makeMediaEmbedContent() {
     var mediaLink;
-    var mediaCaption;
+    var mediaCaption = "";
+    var mediaClass = "media fullWidth";
     var mediaURL = this.props.source.media;
     var caption  = this.props.source.caption;
 
     if (mediaURL.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
+      mediaClass = "media"
     }
 
     else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
@@ -627,7 +629,7 @@ class SheetMedia extends Component {
                  "</div></div>";
     }
 
-    return "<div class='media'>" + mediaLink + mediaCaption + "</div>";
+    return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
   }
 
   render() {
