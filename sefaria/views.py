@@ -188,7 +188,8 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
-    linker_version = linker_version or "3" 
+    CURRENT_LINKER_VERSION = "2"
+    linker_version = linker_version or CURRENT_LINKER_VERSION
     linker_link = "js/linker.v" + linker_version + ".js"
 
     attrs = {
