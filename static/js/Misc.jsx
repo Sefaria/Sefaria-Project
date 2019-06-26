@@ -12,11 +12,11 @@ class ProfilePic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showDefault: true,
+      showDefault: false,
     };
   }
-  showNonDefaultPic() {
-    this.setState({ showDefault: false });
+  showDefaultPic() {
+    this.setState({ showDefault: true });
   }
   render() {
     const { url, name, len, outerStyle, hideOnDefault } = this.props;
@@ -38,7 +38,7 @@ class ProfilePic extends Component {
           style={{display: profileViz, width: len, height: len, fontSize: len/2}}
           src={imageSrc}
           alt="User Profile Picture"
-          onLoad={this.showNonDefaultPic}
+          onError={this.showDefaultPic}
         />
       </div>
     );
