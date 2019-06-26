@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-
 from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
-import django.contrib.auth.views as django_auth_views
 
 from emailusernames.forms import EmailAuthenticationForm
 

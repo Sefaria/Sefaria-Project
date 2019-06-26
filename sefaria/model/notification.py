@@ -237,15 +237,14 @@ class Notification(abst.AbstractMongoRecord):
         self.read_via = via
         return self
 
-    def to_JSON(self):
-        notification = self.contents()
-        if "_id" in notification:
-            notification["_id"] = self.id
-        if "global_id" in notification:
-            notification["global_id"] = str(notification["global_id"])
-        notification["date"] = notification["date"].isoformat()    
-    
-        return json.dumps(notification)
+    def contents(self, **kwargs):
+        cts = super(Notification, self).contents()
+        if "_id" in cts:
+            cts["_id"] = self.id
+        if "global_id" in cts:
+            cts["global_id"] = str(cts["global_id"])
+        cts["date"] = cts["date"].isoformat()
+        return cts
 
     def to_HTML(self):
         html = render_to_string("elements/notification.html", {"notification": self}).strip()
@@ -345,9 +344,6 @@ class NotificationSet(abst.AbstractMongoSet):
     def like_count(self):
         """Returns the number of likes in this NotificationSet"""
         return len([n for n in self if n.type == "sheet like"])
-
-    def to_JSON(self):
-        return "[%s]" % ", ".join([n.to_JSON() for n in self])
 
     def to_HTML(self):
         html = [n.to_HTML() for n in self]
