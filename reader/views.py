@@ -355,7 +355,8 @@ def data_props(request):
     :param request:
     :return:
     """
-    from sefaria.settings import SEARCH_HOST, SEARCH_INDEX_NAME, GLOBAL_WARNING, GLOBAL_WARNING_MESSAGE
+    from sefaria.settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, GLOBAL_WARNING, GLOBAL_WARNING_MESSAGE, DEBUG
+    from sefaria.site.site_settings import SITE_SETTINGS
     from sefaria.system.context_processors import user_and_notifications
     from reader.templatetags.sefaria_tags import escape_quotes, has_group, jsonify
     from sefaria.utils import calendars
@@ -369,15 +370,14 @@ def data_props(request):
           "terms":               library.get_simple_term_mapping(),
           "books":               library.full_title_list(),
           "calendars":           calendars.get_todays_calendar_items(diaspora=request.diaspora),
-          "searchBaseUrl":       SEARCH_HOST if SEARCH_HOST else "http://localhost:9200",
-          "searchIndex":         SEARCH_INDEX_NAME,
+          "searchIndexText":     SEARCH_INDEX_NAME_TEXT,
+          "searchIndexSheet":    SEARCH_INDEX_NAME_SHEET,
           "loggedIn":            True if request.user.is_authenticated else False,
           "is_moderator":        True if request.user.is_staff else False,
           "is_editor":           True if has_group(request.user,"Editors") else False,
           "notificationCount":   user_and_notifications_dict.get("notifications_count", 0),
           "notifications":       user_and_notifications_dict.get("notifications", []),
           "notificationsHtml":   escape_quotes(user_and_notifications_dict.get("notifications_html", "")),
-          "recentlyViewed":      user_and_notifications_dict.get("recentlyViewed"),
           "interfaceLang":       request.interfaceLang,
           "globalWarningMessage": GLOBAL_WARNING if GLOBAL_WARNING_MESSAGE else None,
           "interruptingMessage": user_and_notifications_dict.get("interrupting_message"),
@@ -385,6 +385,13 @@ def data_props(request):
           "_uid":                getattr(request.user,"id", None),
           "_partner_group":      user_and_notifications_dict.get("partner_group", None),
           "_partner_role":       user_and_notifications_dict.get("partner_role", None),
+          "saved":               user_and_notifications_dict.get("saved", None),
+          "slug":                user_and_notifications_dict.get("slug", ""),
+          "full_name":           user_and_notifications_dict.get("full_name", ""),
+          "following":           user_and_notifications_dict.get("following", []),
+          "gravatar_url":        user_and_notifications_dict.get("gravatar_url", ""),
+          "_siteSettings":       SITE_SETTINGS,
+
     }
 
 
@@ -3112,7 +3119,7 @@ def user_profile(request, username):
     desc = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
 
     propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
+    html = render_react_component(request, "ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON":      propsJSON,
         "title":          title,
@@ -3350,7 +3357,7 @@ def home(request, show_feed=None):
             "initialMenu": "homefeed"
         })
         propsJSON = json.dumps(props)
-        html = render_react_component("ReaderApp", propsJSON)
+        html = render_react_component(request, "ReaderApp", propsJSON)
         return render(request, 'base.html', {
             "propsJSON": propsJSON,
             "html": html,
