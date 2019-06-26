@@ -370,7 +370,7 @@ class SheetSource extends Component {
 
     return (
 
-
+        <section className="SheetSource">
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
           {this.props.source.title ? <div className="customSourceTitle" role="heading" aria-level="3"><div className="titleBox">{this.props.source.title.stripHtml()}</div></div> : null}
 
@@ -409,6 +409,7 @@ class SheetSource extends Component {
         }
 
       </div>
+        </section>
     )
   }
 }
@@ -445,6 +446,7 @@ class SheetComment extends Component {
       );
 
     return (
+        <section className="SheetContent">
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
@@ -460,6 +462,7 @@ class SheetComment extends Component {
                 : null
             }
       </div>
+        </section>
     )
   }
 }
@@ -497,6 +500,7 @@ class SheetOutsideText extends Component {
 
 
     return (
+                <section className="SheetOutsideText">
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
@@ -513,6 +517,7 @@ class SheetOutsideText extends Component {
         }
 
       </div>
+                </section>
     )
   }
 }
@@ -548,6 +553,7 @@ class SheetOutsideBiText extends Component {
           this.props.source.options ? this.props.source.options.indented : null
       )
     return (
+        <section className="SheetOutsideBiText">
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en">
@@ -572,6 +578,7 @@ class SheetOutsideBiText extends Component {
         }
 
       </div>
+            </section>
     )
   }
 
@@ -633,6 +640,7 @@ class SheetMedia extends Component {
           this.props.source.options ? this.props.source.options.indented : null
       )
     return (
+        <section className="SheetMedia">
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
@@ -648,6 +656,7 @@ class SheetMedia extends Component {
         }
 
       </div>
+            </section>
 
     )
   }
