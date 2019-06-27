@@ -275,7 +275,11 @@ def process_index_title_change_in_links(indx, **kwargs):
     links = LinkSet({"$or": queries})
     for l in links:
         l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.refs]
+        l.expandedRefs0 = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.expandedRefs0]
+        l.expandedRefs1 = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.expandedRefs1]
         try:
+            l._skip_lang_check = True
+            l._skip_expanded_refs_set = True
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract
             logger.warning(u"Deleting link that failed to save: {} - {}".format(l.refs[0], l.refs[1]))
