@@ -3187,8 +3187,11 @@ class Ref(object):
         if self.is_section_level() or self.is_segment_level():
             # Using mongo queries to slice and merge versions
             # is much faster than actually using the Version State doc
-            text = self.text(lang=lang).text
-            return bool(len(text) and all(text))
+            try:
+                text = self.text(lang=lang).text
+                return bool(len(text) and all(text))
+            except NoVersionFoundError:
+                return False
         else:
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
