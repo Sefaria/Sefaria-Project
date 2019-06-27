@@ -127,20 +127,19 @@ class AbstractTest(object):
 
     def nav_to_account(self):
         if self.is_logged_in():
-            self.driver.find_element_by_css_selector('.accountLinks .account').click()
-            WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".accountPanel")))
+            self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
         else:
             raise Exception("Can't nav to account.  Not logged in.")
         return self
 
     def nav_to_sheets(self):
         self.nav_to_account()
-        el = self.driver.find_element_by_css_selector('.sheets-link')
-        el.click()
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".sheetsNewButton .button")))
-        #WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".userSheet")))
-        #WebDriverWait(self.driver, TEMPER).until(invisibility_of_element_located((By.CSS_SELECTOR, ".loadingMessage")))
-        el = self.driver.find_element_by_css_selector(".sheetsNewButton .button")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
+        time.sleep(5)
+        try:
+            el = self.driver.find_element_by_css_selector('.sheet-header .resourcesLink')
+        except NoSuchElementException:
+            el = self.driver.find_element_by_css_selector('.emptyList .resourcesLink')
         el.click()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.ID, "inlineAdd")))
         return self
@@ -153,7 +152,7 @@ class AbstractTest(object):
 
     def is_logged_in(self):
         try:
-            self.driver.find_element_by_css_selector('.accountLinks .account')
+            self.driver.find_element_by_css_selector('.accountLinks .my-profile')
             return True
         except NoSuchElementException:
             return False
@@ -1544,8 +1543,8 @@ class TestResultSet(AbstractTestResult):
 class Trial(object):
 
     # default_local_driver = webdriver.Chrome
-    # default_local_driver = webdriver.Firefox
-    default_local_driver = webdriver.Safari
+    default_local_driver = webdriver.Firefox
+    # default_local_driver = webdriver.Safari
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities

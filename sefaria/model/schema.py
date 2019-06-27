@@ -222,7 +222,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "scheme",
         "order",
         "ref",
-        "sensitive",
+        "good_to_promote",
         "category"
     ]
 
