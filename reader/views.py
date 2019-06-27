@@ -1099,8 +1099,9 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
+            library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
-        except:
+        except BookNameError:
             pass
         indexJSON = json.dumps({"title": new_title})
         text_exists = False
