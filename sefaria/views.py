@@ -394,10 +394,10 @@ def reset_cached_api(request, apiurl):
             raise Http404("API not in cache")
 
     except Resolver404 as re:
-        logger.warn("Attempted to reset invalid url")
+        logger.warn(u"Attempted to reset invalid url")
         raise Http404()
     except Exception as e:
-        logger.warn("Unable to reset cache for {}".format(apiurl))
+        logger.warn(u"Unable to reset cache for {}".format(apiurl))
         raise Http404()
 
 
@@ -581,7 +581,7 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
-    logger.error("This is a simple error")
+    logger.error(u"This is a simple error")
     try:
         erorr = excepting
     except Exception as e:

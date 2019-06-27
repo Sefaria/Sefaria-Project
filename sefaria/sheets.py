@@ -410,7 +410,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			index_name = search.get_new_and_current_index_names("sheet")['current']
 			search.index_sheet(index_name, sheet["id"])
 		except:
-			logger.error("Failed index on " + str(sheet["id"]))
+			logger.error(u"Failed index on " + str(sheet["id"]))
 
 	'''
 	global last_updated

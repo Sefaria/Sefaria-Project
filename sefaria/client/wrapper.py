@@ -190,7 +190,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         try:
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
-            logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            logger.warning(u"Bad link: {} - {}".format(link.refs[0], link.refs[1]))
             continue
         except AttributeError as e:
             logger.error(u"AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
@@ -273,7 +273,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             com[vtitleInHeAttr] = versionTitlesInHebrew
             links.append(com)
         except NoVersionFoundError as e:
-            logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
+            logger.warning(u"Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
 
     # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
