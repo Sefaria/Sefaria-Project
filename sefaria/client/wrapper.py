@@ -285,6 +285,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             base_links = get_links(base_ref)
             def add_prefix(link):
                 link["anchorRef"] = prefix + link["anchorRef"]
+                link["anchorRefExpanded"] = [prefix + l for l in link["anchorRefExpanded"]]
                 return link
             base_links = [add_prefix(link) for link in base_links]
             orig_links_refs = [(origlink['sourceRef'], origlink['anchorRef']) for origlink in links]

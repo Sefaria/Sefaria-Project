@@ -275,7 +275,7 @@ class DropdownModal extends Component {
   }
   render() {
     return (
-      <div className="dropdown-modal">
+      <div className={classNames({"dropdown-modal": 1, "position-unset": this.props.positionUnset})}>
         { this.props.children }
       </div>
     );
@@ -284,6 +284,7 @@ class DropdownModal extends Component {
 DropdownModal.propTypes = {
   close:   PropTypes.func.isRequired,
   isOpen:  PropTypes.bool.isRequired,
+  positionUnset: PropTypes.bool,  // for search filters
 };
 
 class Link extends Component {

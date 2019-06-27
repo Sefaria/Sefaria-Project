@@ -1529,6 +1529,7 @@ a.readerNavCategory {
   text-align: center;
   font-size: 28px;
   line-height: 1.3;
+  unicode-bidi: plaintext;
 }
 .readerTextTableOfContents .currentSection,
 .readerTextTableOfContents .authorStatement,
@@ -2200,6 +2201,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .dropdown-modal {
   position: relative;
+}
+.dropdown-modal.position-unset {
+  position: unset;
 }
 .dropdown-button {
   color: #666;
