@@ -15,12 +15,12 @@ subscribe(text.process_index_change_in_toc,                             text.Ind
 
 # Index Name Change
 subscribe(text.process_index_title_change_in_core_cache,                text.Index, "attributeChange", "title")
+subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
 subscribe(link.process_index_title_change_in_links,                     text.Index, "attributeChange", "title")
 subscribe(note.process_index_title_change_in_notes,                     text.Index, "attributeChange", "title")
 subscribe(history.process_index_title_change_in_history,                text.Index, "attributeChange", "title")
 subscribe(text.process_index_title_change_in_versions,                  text.Index, "attributeChange", "title")
 subscribe(text.process_index_title_change_in_dependant_records,         text.Index, "attributeChange", "title")
-subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
 subscribe(cascade(notification.GlobalNotificationSet, "content.index"), text.Index, "attributeChange", "title")
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
