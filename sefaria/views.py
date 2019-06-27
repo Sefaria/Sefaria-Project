@@ -99,7 +99,7 @@ def register_api(request):
     if len(errors) == 0:
         return jsonResponse(token_dict)
 
-    return jsonResponse({"error": errors})
+    return jsonResponse(errors)
 
 
 def register(request):
