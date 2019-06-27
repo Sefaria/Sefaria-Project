@@ -8,6 +8,7 @@ from sets import Set
 from random import choice
 from pprint import pprint
 import json
+import requests
 import urlparse
 import urllib2
 import urllib
@@ -140,13 +141,13 @@ def render_react_component(request, component, props):
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
-    encoded_args = urllib.urlencode({
+    args = {
         "propsJSON": propsJSON,
         "dataJSON": dataJSON
-    })
+    }
     try:
-        response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
-        html = response.read()
+        response = requests.post(url, data=args, timeout=NODE_TIMEOUT)
+        html = response.text
         return html
     except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
@@ -391,7 +392,6 @@ def data_props(request):
           "following":           user_and_notifications_dict.get("following", []),
           "gravatar_url":        user_and_notifications_dict.get("gravatar_url", ""),
           "_siteSettings":       SITE_SETTINGS,
-
     }
 
 
