@@ -1248,7 +1248,7 @@ $(function() {
       }
     });
 
-    $("#addmediaDiv").on("click", ".button", function(e) {
+    $("#addmediaDiv").on("click", ".button:first", function(e) {
       var $target = $("#addInterface").prev(".sheetItem");
       var source = {media: "", isNew: true};
       if (sjs.can_add) {
@@ -2523,6 +2523,7 @@ function readSources($target) {
 	// Used recursively to read sub-sources
 	var sources = [];
 	$target.children().each(function() {
+		if ($(this).hasClass("addInterface")) { return; }
 		var source = readSource($(this));
 		sources.push(source);
 	});
@@ -2696,6 +2697,12 @@ function readSource($target) {
         	sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
+		if ($target.find(".mediaCaption").length) {
+			source["caption"] = {
+				"en": $target.find(".mediaCaption .en").html(),
+				"he": $target.find(".mediaCaption .he").html()
+			}
+		}
 	}
 	
 
@@ -3018,35 +3025,43 @@ function buildSource($target, source, appendOrInsert) {
 	}
 	else if ("media" in source) {
 		var mediaLink;
-		
+		var mediaClass = "media fullWidth";
+
 		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
+			mediaClass = "media";
 		}
-		
 		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
-
 		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
 			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
 		}
-
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
-		
 		else {
 			mediaLink = '';
 		}
-		additionalRefData = "";
+
+		var additionalRefData = "";
 		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
+		var mediaCaption = "";
+		if (source.caption && (source.caption.en || source.caption.he) ) {
+			var cls = source.caption.en && source.caption.he ? "" :
+						source.caption.en ? "enOnly" : "heOnly";
+			var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
+								"<div class='en'>" + (source.caption.en || "") + "</div>" + 
+								"<div class='he'>" + (source.caption.he || "") + "</div>" + 
+							   "</div></div>";
 		}
 
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
+							"<div class='" + mediaClass + (sjs.loading ? "" : " new") + "'>" + mediaLink + mediaCaption + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 							appendInlineAddButton() +
 						  "</li>";
@@ -3764,7 +3779,7 @@ var addmediaUploadImageToImgur = function(imageData) {
       type: "base64"
     },
     success: function(result) {
-			var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
+	  var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
       $("#inlineAddMediaInput").val(imageUrl);
       $("#addmediaDiv").find(".button").first().trigger("click");
 			$("#inlineAddMediaInput").val("");

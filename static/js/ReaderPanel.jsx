@@ -241,6 +241,7 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
+    console.log(source);
     this.conditionalSetState({highlightedNodes: source.node});
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
@@ -867,6 +868,8 @@ class ReaderPanel extends Component {
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
                     setGroupTag={this.setGroupTag}
+                    searchInGroup={this.props.searchInGroup}
+                    openProfile={this.props.openProfile}
                     key={"SheetsNav"}
                     openProfile={this.props.openProfile}
                   />);
@@ -1103,6 +1106,7 @@ ReaderPanel.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
+  searchInGroup:               PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   addToSourceSheet:            PropTypes.func,
