@@ -158,7 +158,7 @@ class ProfileMiddleware(MiddlewareMixin):
             sys.stdout = out
 
             stats = hotshot.stats.load(self.tmpfile.name)
-            stats.strip_dirs().sort_stats("cumulative")
+            stats.strip_dirs().sort_stats("tottime")
             stats.print_stats()
 
             sys.stdout = old_stdout
