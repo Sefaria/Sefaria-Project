@@ -171,8 +171,10 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+    'ROTATE_REFRESH_TOKENS': True,
+    'SIGNING_KEY': 'PPi8sVJ8SQLrJ6ayxlDpL4WIMuQFC0U25a9H5nEpBuXRidPAJ6yI51D6XdxwMp81eZkUypHdvHYhLAhuu9Jq4W9E7KJGNhr1sfJN1WUVAgeXlpWyeYvbp3kf',
 }
 
 LOCALE_PATHS = (
