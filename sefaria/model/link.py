@@ -122,7 +122,6 @@ class Link(abst.AbstractMongoRecord):
         or one more specific, and the second Ref is the opposing Ref in the link.
         :return:
         """
-
         reg = re.compile(from_ref.regex())
         if reg.match(self.refs[1]):
             from_tref = self.refs[1]
