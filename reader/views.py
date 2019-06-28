@@ -72,7 +72,7 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn("Initializing library objects.")
+logger.warn(u"Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()

@@ -1203,7 +1203,7 @@ class VersionSet(abst.AbstractMongoSet):
         """
         for v in self:
             if not getattr(v, "versionTitle", None):
-                logger.error("No version title for Version: {}".format(vars(v)))
+                logger.error(u"No version title for Version: {}".format(vars(v)))
         if node is None:
             return merge_texts([getattr(v, "chapter", []) for v in self], [getattr(v, "versionTitle", None) for v in self])
         return merge_texts([v.content_node(node) for v in self], [getattr(v, "versionTitle", None) for v in self])
@@ -3187,8 +3187,11 @@ class Ref(object):
         if self.is_section_level() or self.is_segment_level():
             # Using mongo queries to slice and merge versions
             # is much faster than actually using the Version State doc
-            text = self.text(lang=lang).text
-            return bool(len(text) and all(text))
+            try:
+                text = self.text(lang=lang).text
+                return bool(len(text) and all(text))
+            except NoVersionFoundError:
+                return False
         else:
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
@@ -4384,36 +4387,36 @@ class Library(object):
 
     def cross_lexicon_auto_completer(self):
         if self._cross_lexicon_auto_completer is None:
-            logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
+            logger.warning(u"Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built cross lexicon auto completer.")
+            logger.warning(u"Built cross lexicon auto completer.")
         return self._cross_lexicon_auto_completer
 
     def lexicon_auto_completer(self, lexicon):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
-            logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
+            logger.warning(u"Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
-            logger.warning("Built {} auto completer.".format(lexicon))
+            logger.warning(u"Built {} auto completer.".format(lexicon))
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
-            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
+            logger.warning(u"Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built full {} auto completer.".format(lang))
+            logger.warning(u"Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
     def ref_auto_completer(self, lang):
         try:
             return self._ref_auto_completer[lang]
         except KeyError:
-            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
+            logger.warning(u"Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built {} ref auto completer.".format(lang))
+            logger.warning(u"Built {} ref auto completer.".format(lang))
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
@@ -5153,6 +5156,21 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.base_text_titles.pop(pos)
         didx.base_text_titles.insert(pos, kwargs["new"])
         didx.save()
+
+def process_index_title_change_in_sheets(indx, **kwargs):
+    print "Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new'])
+
+    regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
+                for pattern in Ref(kwargs["new"]).regex(as_list=True)]
+    ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
+    query = {"$or": ref_clauses }
+    sheets = db.sheets.find(query)
+    for sheet in sheets:
+        sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        for source in sheet.get("sources", []):
+            if "ref" in source:
+                source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), source["ref"]) else source["ref"]
+        db.sheets.save(sheet)
 
 
 def process_index_delete_in_versions(indx, **kwargs):
