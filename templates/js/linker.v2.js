@@ -25,8 +25,7 @@
     /* filter array to distinct values */
     function distinct(value, index, self) {return self.indexOf(value) === index;}
 
-    //var base_url = "http://localhost:8000/"
-    var base_url = 'https://www.sefaria.org/';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}"https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -476,10 +475,11 @@
     }
 
     ns._trackPage = function() {
-        //console.log("TRACK")
         var canonical = document.head.querySelector("link[rel~=canonical]");
         var url = canonical ? canonical.href : document.href;
-        var meta = document.head.querySelector("meta[name~=description]");
+        var meta = document.head.querySelector("meta[name~=description]")
+                   || document.head.querySelector("meta[name~='og:description']")
+                   || document.head.querySelector("meta[name~='twitter:description']");
         var description = meta ? meta.content : "";
         var data = {
             "url": url,
