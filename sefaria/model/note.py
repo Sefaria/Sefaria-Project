@@ -4,11 +4,12 @@ Writes to MongoDB Collection: notes
 """
 
 import regex as re
-import bleach
 
 from . import abstract as abst
-from sefaria.model.text import Ref, IndexSet
-from sefaria.system.exceptions import InputError
+from sefaria.model.text import Ref
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Note(abst.AbstractMongoRecord):

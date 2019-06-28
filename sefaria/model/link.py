@@ -11,7 +11,6 @@ from sefaria.system.database import db
 from . import abstract as abst
 from . import text
 
-
 import logging
 logger = logging.getLogger(__name__)
 
