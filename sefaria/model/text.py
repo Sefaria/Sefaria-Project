@@ -5157,6 +5157,21 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.base_text_titles.insert(pos, kwargs["new"])
         didx.save()
 
+def process_index_title_change_in_sheets(indx, **kwargs):
+    print "Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new'])
+
+    regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
+                for pattern in Ref(kwargs["new"]).regex(as_list=True)]
+    ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
+    query = {"$or": ref_clauses }
+    sheets = db.sheets.find(query)
+    for sheet in sheets:
+        sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        for source in sheet.get("sources", []):
+            if "ref" in source:
+                source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), source["ref"]) else source["ref"]
+        db.sheets.save(sheet)
+
 
 def process_index_delete_in_versions(indx, **kwargs):
     VersionSet({"title": indx.title}).delete()
