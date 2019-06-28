@@ -27,12 +27,12 @@ function StoryEditor(props) {
       data => setStories(prev => ([...prev, ...data.stories]))
   );
 
-  const onDelete = (id) => $.ajax({url: '/api/stories/' + id, type: 'DELETE',
+  const deleteStory = (id) => $.ajax({url: '/api/stories/' + id, type: 'DELETE',
     success: (result) => { if (result.status === "ok") { setStories(s => s.filter(u => u._id !== id)) }}
   });
   const removeDraft = (timestamp) => setStories(s => s.filter(u => (!u.draft) || u.timestamp !== timestamp));
   const addStory = (data) => setStories(s => [data, ...s]);
-  const handlePublish = (type, content, timestamp) => {
+  const saveStory = (type, content, timestamp) => {
     setError(null);
 
     $.ajax({url: "/api/stories", dataType: 'json', type: 'POST',
@@ -65,9 +65,9 @@ function StoryEditor(props) {
             [
                 Story(s,i, props),
                 <StoryEditBar
-                    onDelete={onDelete}
+                    deleteStory={deleteStory}
                     removeDraft={removeDraft}
-                    handlePublish={handlePublish}
+                    handlePublish={saveStory}
                     isDraft={s.draft}
                     key={s.timestamp + "-" + i + "-editor"}
                     story={s}/>
@@ -82,58 +82,44 @@ StoryEditor.propTypes = {
   interfaceLang:  PropTypes.string
 };
 
-function StoryEditBar(props) {
+function StoryEditBar({story, isDraft, saveStory, deleteStory, removeDraft}) {
     const [isDeleting, setDeleting] = useState(false);
 
-    function handlePublish() {
-        props.handlePublish(props.story.storyForm, props.story.data, props.story.timestamp)
+    function onPublish() {
+        saveStory(story.storyForm, story.data, story.timestamp)
     }
     function onDelete() {
-        if(props.isDraft) {
-            props.removeDraft(props.story.timestamp);
+        if(isDraft) {
+            removeDraft(story.timestamp);
         } else {
             setDeleting(true);
-            props.onDelete(props.story._id);
+            deleteStory(story._id);
         }
     }
 
     return (Sefaria.is_moderator?<div className="storyEditBar">
-        {(props.isDraft)?<div className="story-action-button" onClick={handlePublish}>Publish</div>:""}
+        {(isDraft)?<div className="story-action-button" onClick={onPublish}>Publish</div>:""}
         {isDeleting?<div className="lds-ring"><div></div><div></div><div></div><div></div></div>:
                     <div className="story-action-button" onClick={onDelete}>Delete</div>}
-        {props.story.mustHave && props.story.mustHave.map((trait,i) => <div className="storyEditorTag mustHave" key={i}>{trait}</div>)}
-        {props.story.cantHave && props.story.cantHave.map((trait,i) => <div className="storyEditorTag cantHave" key={i}>{trait}</div>)}
+        {story.mustHave && story.mustHave.map((trait,i) => <div className="storyEditorTag mustHave" key={i}>{trait}</div>)}
+        {story.cantHave && story.cantHave.map((trait,i) => <div className="storyEditorTag cantHave" key={i}>{trait}</div>)}
     </div>:<div/>);
-
 }
 StoryEditBar.propTypes = {
   interfaceLang:     PropTypes.string,
-  onDelete:          PropTypes.func,
-  handlePublish:     PropTypes.func,
+  deleteStory:       PropTypes.func,
+  saveStory:         PropTypes.func,
   removeDraft:       PropTypes.func,
   isDraft:           PropTypes.bool,
   story:             PropTypes.object
 };
 
 
-class CreateStoryForm extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        typeName: 'New Index',
-        data: {},
-        error: ''
-    };
-  }
-  componentWillReceiveProps(nextProps) {
-    this.setState({"error": nextProps.error});
-  }
-  handleTypeNameChange(e) {
-    this.setState({typeName: e.target.value, error: null});
-  }
 
-  editForms() {
-    return {
+const CreateStoryForm = ({addStory}) => {
+    const [typeName, setTypeName] = useState('New Index');
+
+    const editForms = {
         "Free Text":        FreeTextStoryForm,
         "New Index":        NewIndexStoryForm,
         "New Version":      NewVersionStoryForm,
@@ -149,26 +135,23 @@ class CreateStoryForm extends Component {
         groupSheetList: GroupSheetListStory
         */
     };
-  }
 
-  render() {
-      const EditForm = withButton(this.editForms()[this.state.typeName], this.props.addStory);
+    const EditForm = withButton(editForms[typeName], addStory);
 
-      return (
-          <div className="globalUpdateForm">
-              <div>
-                  <label>
-                      Story Type:
-                      <select value={this.state.typeName} onChange={this.handleTypeNameChange}>
-                          {Object.entries(this.editForms()).map(e => <option value={e[0]} key={e[0]}>{e[0]}</option>)}
-                      </select>
-                  </label>
-              </div>
-              {Sefaria.is_moderator?<EditForm/>:""}
+    return (
+      <div className="globalUpdateForm">
+          <div>
+              <label>
+                  Story Type:
+                  <select value={typeName} onChange={e => setTypeName(e.target.value)}>
+                      {Object.entries(editForms).map(e => <option value={e[0]} key={e[0]}>{e[0]}</option>)}
+                  </select>
+              </label>
           </div>
-      );
-  }
-}
+          {Sefaria.is_moderator?<EditForm/>:""}
+      </div>
+    );
+};
 CreateStoryForm.propTypes = {
   addStory:         PropTypes.func
 };

@@ -871,7 +871,6 @@ class GroupSheetListFactory(AbstractStoryFactory):
         create_israel_and_diaspora_stories(_create_nechama_sheet_story, **kwargs)
 
 
-
 class SheetListFactory(AbstractStoryFactory):
     """
         "title" : {
@@ -918,7 +917,7 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def _get_featured_ids(cls, k):
-        shts = db.sheets.find({"is_featured": True}, {"id":1})
+        shts = db.sheets.find({"is_featured": True}, {"id": 1})
         ids = [s["id"] for s in shts]
         return random.sample(ids, k)
 
