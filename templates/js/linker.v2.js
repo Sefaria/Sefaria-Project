@@ -25,7 +25,7 @@
     /* filter array to distinct values */
     function distinct(value, index, self) {return self.indexOf(value) === index;}
 
-    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}"https://www.sefaria.org/{% endif %}';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
