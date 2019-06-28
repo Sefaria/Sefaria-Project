@@ -26,6 +26,9 @@ from sefaria.utils.util import epoch_time
 from django.utils import translation
 from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class UserHistory(abst.AbstractMongoRecord):
     collection = 'user_history'
@@ -240,13 +243,6 @@ class UserProfile(object):
 
         self._name_updated      = False
 
-
-        # Update with saved profile doc in MongoDB
-        profile = db.profiles.find_one({"id": id})
-        profile = self.migrateFromOldRecents(profile)
-        if profile:
-            self.update(profile)
-
         # Followers
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
@@ -256,6 +252,13 @@ class UserProfile(object):
         gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
         self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
         self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+
+        # Update with saved profile doc in MongoDB
+        profile = db.profiles.find_one({"id": id})
+        profile = self.migrateFromOldRecents(profile)
+        if profile:
+            self.update(profile)
+
 
     @property
     def full_name(self):
@@ -352,7 +355,7 @@ class UserProfile(object):
         # Sanitize & Linkify fields that allow HTML
         self.bio = bleach.linkify(self.bio)
 
-        d = self.to_DICT()
+        d = self.to_mongo_dict()
         if self._id:
             d["_id"] = self._id
         db.profiles.save(d)
@@ -492,10 +495,11 @@ class UserProfile(object):
 
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
-
-    def to_DICT(self):
-        """Return a json serializble dictionary this profile"""
-        dictionary = {
+    def to_mongo_dict(self):
+        """
+        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
+        """
+        return {
             "id":                    self.id,
             "slug":                  self.slug,
             "position":              self.position,
@@ -518,10 +522,38 @@ class UserProfile(object):
             "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
         }
+
+
+    def to_api_dict(self, basic=False):
+        """
+        Return a json serializble dictionary this profile which includes fields used in profile API methods
+        If basic is True, only return enough data to display a profile listing 
+        """
+        if basic:
+            return {
+                "id": self.id,
+                "slug": self.slug,
+                "gravatar_url": self.gravatar_url,
+                "full_name": self.full_name,
+                "position": self.position,
+                "organization": self.organization
+            }
+        dictionary = self.to_mongo_dict()
+        other_info = {
+            "full_name":             self.full_name,
+            "followers":             self.followers.uids,
+            "followees":             self.followees.uids,
+            "gravatar_url":          self.gravatar_url
+        }
+        dictionary.update(other_info)
         return dictionary
 
-    def to_JSON(self):
-        return json.dumps(self.to_DICT)
+
+    def to_mongo_json(self):
+        """
+        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
+        """
+        return json.dumps(self.to_mongo_dict())
 
 
 def email_unread_notifications(timeframe):
@@ -675,3 +707,21 @@ def annotate_user_list(uids):
         annotated_list.append(annotated)
 
     return annotated_list
+
+
+def process_index_title_change_in_user_history(indx, **kwargs):
+    print "Cascading User History from {} to {}".format(kwargs['old'], kwargs['new'])
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    objs = UserHistorySet({"$or": queries})
+    for o in objs:
+        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        try:
+            o.save()
+        except InputError:
+            logger.warning(u"Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
+

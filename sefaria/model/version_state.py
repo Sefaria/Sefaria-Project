@@ -117,7 +117,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             try:
                 index = library.get_index(index)
             except BookNameError as e:
-                logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
+                logger.warning(u"Failed to load Index for VersionState {}: {}".format(index, e))
                 raise
 
         self.index = index

@@ -83,14 +83,16 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.user_profile),
+    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile$', reader_views.profile_api),
-    url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
+    url(r'^api/profile/sync$', reader_views.profile_sync_api),
+    url(r'^api/profile$', reader_views.profile_api),
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
+    url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
@@ -199,6 +201,7 @@ urlpatterns += [
     url(r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.groups_role_api),
     url(r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.groups_invite_api),
     url(r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
+    url(r'^api/groups/user-groups/(?P<user_id>\d+)$', sheets_views.user_groups_api),
 ]
 
 # Search API
@@ -326,11 +329,15 @@ urlpatterns += [
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)', sefaria_views.text_download_api),
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)',sefaria_views.text_download_api),
     url(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
-    url(r'^api/text-upload$', sefaria_views.text_upload_api)
+    url(r'^api/text-upload$', sefaria_views.text_upload_api),
+    url(r'^api/linker-track$', sefaria_views.linker_tracking_api),
+
 ]
+
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]
+
 # File Uploads
 urlpatterns += [
     url(r'^api/file/upload$', sefaria_views.file_upload),
