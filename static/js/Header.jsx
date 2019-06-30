@@ -2,6 +2,7 @@ const {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
   TestMessage,
+  ProfilePic,
 }                = require('./Misc');
 const React      = require('react');
 const PropTypes  = require('prop-types');
@@ -100,13 +101,15 @@ class Header extends Component {
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
-  showAccount(e) {
+  openMyProfile(e) {
     e.preventDefault();
     if (typeof sjs !== "undefined") {
-      window.location = "/account";
+      window.location = "/my/profile";
       return;
     }
-    this.props.setCentralState({menuOpen: "account"});
+    if (!this.state.profile || Sefaria._uid !== this.state.profile.id) {
+      this.props.openProfile(Sefaria.slug, Sefaria.full_name);
+    }
     this.clearSearchBox();
   }
   showNotifications(e) {
@@ -249,13 +252,16 @@ class Header extends Component {
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}
                           registerAvailableFilters={this.props.registerAvailableFilters}
+                          searchInGroup={this.props.searchInGroup}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
-                          toggleSignUpModal={this.props.toggleSignUpModal}/>) : null;
+                          toggleSignUpModal={this.props.toggleSignUpModal}
+                          openProfile={this.props.openProfile}
+                        />) : null;
 
 
     var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});
@@ -264,8 +270,8 @@ class Header extends Component {
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/account" className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></a>
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
+                            <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.gravatar_url} name={Sefaria.full_name} /></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login signupLink" href={"/register" + nextParam}>
@@ -332,6 +338,7 @@ Header.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
+  searchInGroup:               PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   handleInAppLinkClick:        PropTypes.func,
   headerMesssage:              PropTypes.string,
@@ -339,6 +346,7 @@ Header.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   toggleSignUpModal:           PropTypes.func.isRequired,
+  openProfile:                 PropTypes.func.isRequired,
 };
 
 

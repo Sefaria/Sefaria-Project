@@ -37,7 +37,7 @@ class MyGroupsPanel extends Component {
               <span className="int-en">My Groups</span>
               <span className="int-he">הקבוצות שלי</span>
             </h1> : null }
-            {this.props.multiPanel ? 
+            {this.props.multiPanel ?
             <center>
               <a className="button white" href="/groups/new">
                 <span className="int-en">Create a Group</span>
@@ -87,17 +87,17 @@ class PublicGroupsPanel extends Component {
         }
         <div className="content hasFooter">
           <div className="contentInner">
-            {this.props.multiPanel ? 
+            {this.props.multiPanel ?
             <h1>
               <span className="int-en">Public Groups</span>
               <span className="int-he">קבוצות</span>
             </h1> : null}
-            {this.props.multiPanel ? 
+            {this.props.multiPanel ?
             <center>
               <a className="button white" href="/groups/new">
                 <span className="int-en">Create a Group</span>
                 <span className="int-he">צור קבוצה</span>
-              </a>  
+              </a>
             </center> : null}
 
             <div className="groupsList">
@@ -125,31 +125,38 @@ class GroupListing extends Component {
     var imageClass = classNames({groupListingImage: 1, default: !this.props.data.imageUrl});
     var groupUrl = "/groups/" + this.props.data.name.replace(/\s/g, "-")
     return (<div className="groupListing">
-              <a href={groupUrl}>
-                <div className="groupListingImageBox">
-                  <img className={imageClass} src={imageUrl} alt="Group Logo"/>
+              <div className="left-content">
+                <a href={groupUrl}>
+                  <div className="groupListingImageBox">
+                    <img className={imageClass} src={imageUrl} alt="Group Logo"/>
+                  </div>
+                </a>
+                <div className="groupListingText">
+                  <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
+                  <div className="groupListingDetails">
+                    <span className="groupListingDetail groupListingMemberCount">
+                      <span className="int-en">{this.props.data.memberCount} Members</span>
+                      <span className="int-he">{this.props.data.memberCount} חברים</span>
+                    </span>
+                    <span className="groupListingDetailSeparator">•</span>
+                    <span className="groupListingDetail groupListingSheetCount">
+                      <span className="int-en">{this.props.data.sheetCount} Sheets</span>
+                      <span className="int-he">{this.props.data.sheetCount} דפים</span>
+                    </span>
+                  </div>
                 </div>
-              </a>
-              <a href={groupUrl} className="groupListingName">{this.props.data.name}</a>
-              <div className="groupListingDetails">
-                <span className="groupListingDetail groupListingMemberCount">
-                  <span className="int-en">{this.props.data.memberCount} Members</span>
-                  <span className="int-he">{this.props.data.memberCount} חברים</span>
-                </span>
-                <span className="groupListingDetailSeparator">•</span>
-                <span className="groupListingDetail groupListingSheetCount">
-                  <span className="int-en">{this.props.data.sheetCount} Sheets</span>
-                  <span className="int-he">{this.props.data.sheetCount} דפים</span>
-                </span>
               </div>
-              <div className="clearFix"></div>
+              <div className="right-content">
+                { this.props.showMembership ? this.props.data.membership : null }
+              </div>
             </div>);
   }
 }
 GroupListing.propTypes = {
   data: PropTypes.object.isRequired,
+  showMembership: PropTypes.bool,
 };
 
-
+module.exports.GroupListing = GroupListing;
 module.exports.MyGroupsPanel = MyGroupsPanel;
 module.exports.PublicGroupsPanel = PublicGroupsPanel;

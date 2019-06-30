@@ -139,12 +139,12 @@ class AddToSourceSheetBox extends Component {
               </div>);
     }
     var sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
-    var sheetsList = Sefaria._uid && sheets ? sheets.map(function(sheet) {
+    var sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
       var classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
       var title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
       var selectSheet = this.selectSheet.bind(this, sheet);
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
-    }.bind(this)) : (Sefaria._uid ? <LoadingMessage /> : null);
+    }) : (Sefaria._uid ? <LoadingMessage /> : null);
 
     // Uses
     return (
@@ -203,4 +203,42 @@ ConfirmAddToSheet.propTypes = {
   sheetId: PropTypes.number.isRequired
 };
 
-module.exports = AddToSourceSheetBox;
+
+class AddToSourceSheetWindow extends Component {
+  close () {
+    if (this.props.close) {
+      this.props.close();
+    }
+  }
+  render () {
+    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+
+    return (<div className="addToSourceSheetModal">
+      <div className="sourceSheetBoxTitle">
+        <img src="/static/img/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
+        {Sefaria.loggedIn ? null : <span>
+            In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
+        </span>}
+        <div className="clearFix"></div>
+      </div>
+      {Sefaria.loggedIn ?
+        <AddToSourceSheetBox
+          srefs = {this.props.srefs}
+          en = {this.props.en}
+          he = {this.props.he}
+          note = {this.props.note}
+        /> : null }
+      </div>);
+  }
+}
+AddToSourceSheetWindow.propTypes = {
+  srefs:        PropTypes.array,
+  close:        PropTypes.func,
+  en:           PropTypes.string,
+  he:           PropTypes.string,
+  note:         PropTypes.string,
+};
+
+
+module.exports.AddToSourceSheetBox = AddToSourceSheetBox;
+module.exports.AddToSourceSheetWindow = AddToSourceSheetWindow;

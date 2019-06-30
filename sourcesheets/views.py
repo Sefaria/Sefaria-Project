@@ -2,6 +2,7 @@
 import json
 import httplib2
 from urllib3.exceptions import NewConnectionError
+from elasticsearch.exceptions import AuthorizationException
 
 from datetime import datetime, timedelta
 from StringIO import StringIO
@@ -148,19 +149,14 @@ def can_publish(user, sheet):
 	return False
 
 
-def get_user_groups(uid):
+def get_user_groups(uid, private=True):
 	"""
 	Returns a list of Groups that user belongs to.
 	"""
 	if not uid:
 		return None
-	groups = GroupSet().for_user(uid)
-	groups = [ {
-					"name": group.name,
-					"headerUrl": getattr(group, "headerUrl", ""),
-					"canPublish": group.can_publish(uid),
-				}
-				for group in groups]
+	groups = GroupSet().for_user(uid, private=private)
+	groups = [group.listing_contents(uid) for group in groups]
 	return groups
 
 
@@ -246,7 +242,7 @@ def view_sheet(request, sheet_id, editorMode = False):
 												"viewer_is_liker": viewer_is_liker,
 												"current_url": request.get_full_path,
 												"canonical_url": canonical_url,
-											  	"assignments_from_sheet":assignments_from_sheet(sheet_id),
+												  "assignments_from_sheet":assignments_from_sheet(sheet_id),
 											})
 
 def assignments_from_sheet(sheet_id):
@@ -386,7 +382,9 @@ def delete_sheet_api(request, sheet_id):
 		es_index_name = search.get_new_and_current_index_names("sheet")['current']
 		search.delete_sheet(es_index_name, id)
 	except NewConnectionError as e:
-		logger.warn("Failed to connect to elastic search server on sheet delete.")
+		logger.warn(u"Failed to connect to elastic search server on sheet delete.")
+	except AuthorizationException as e:
+		logger.warn(u"Failed to connect to elastic search server on sheet delete.")
 
 
 	return jsonResponse({"status": "ok"})
@@ -407,10 +405,18 @@ def groups_api(request, group=None):
 			else:
 				user_id = apikey["uid"]
 			return groups_post_api(request, user_id, group_name=group)
-
 		else:
 			user_id = request.user.id
 			return protected_groups_post_api(request, user_id, group_name=group)
+
+
+@csrf_exempt
+def user_groups_api(request, user_id):
+	if request.method == "GET":
+		is_me = request.user.id == int(user_id)
+		groups_serialized = get_user_groups(int(user_id), is_me)
+		return jsonResponse(groups_serialized)
+	return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @csrf_protect
@@ -654,18 +660,16 @@ def user_sheet_list_api(request, user_id):
 	"""
 	API for listing the sheets that belong to user_id.
 	"""
-	if int(user_id) != request.user.id:
-		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(user_sheets(user_id), callback=request.GET.get("callback", None))
+	# only return private sheets if you are logged in as user_id
+	private = int(user_id) == request.user.id
+	return jsonResponse(user_sheets(user_id, private=private), callback=request.GET.get("callback", None))
 
 
 def user_sheet_list_api_with_sort(request, user_id, sort_by="date", limiter=0, offset=0):
 	limiter  = int(limiter)
 	offset   = int(offset)
-
-	if int(user_id) != request.user.id:
-		return jsonResponse({"error": "You are not authorized to view that."})
-	return jsonResponse(user_sheets(user_id, sort_by, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
+	private = int(user_id) == request.user.id
+	return jsonResponse(user_sheets(user_id, sort_by, private=private, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
 
 
 def private_sheet_list_api(request, group):
@@ -943,6 +947,13 @@ def sheets_by_tag_api(request, tag):
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response
+
+
+def sheets_by_ref_api(request, ref):
+	"""
+	API to get public sheets by ref. 
+	"""
+	return jsonResponse(get_sheets_for_ref(ref))
 
 
 def get_aliyot_by_parasha_api(request, parasha):

@@ -41,7 +41,7 @@ class Count(abst.AbstractMongoRecord):
                 self.index_attr_keys = attrs.keys()
                 self.__dict__.update(attrs)
             except BookNameError as e:
-                logger.warning("Count object failed to get Index for {} : {} Normal right after Index name change.".format(self.title, e))
+                logger.warning(u"Count object failed to get Index for {} : {} Normal right after Index name change.".format(self.title, e))
 
         #todo: this needs to be considered.  What happens when the data is modified? etc.
         if getattr(self, "allVersionCounts", None) is not None:

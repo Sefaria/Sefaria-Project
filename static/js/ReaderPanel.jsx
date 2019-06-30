@@ -22,6 +22,7 @@ const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
+const UserProfile               = require('./UserProfile');
 const UpdatesPanel              = require('./UpdatesPanel');
 const HomeFeed                  = require('./HomeFeed');
 const StoryEditor               = require('./StoryEditor');
@@ -103,6 +104,7 @@ class ReaderPanel extends Component {
       displaySettingsOpen:  false,
       tagSort: "count",
       mySheetSort: "date",
+      profile: props.initialProfile || null,
       initialAnalyticsTracked: false
     }
   }
@@ -239,6 +241,7 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
+    console.log(source);
     this.conditionalSetState({highlightedNodes: source.node});
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
@@ -623,6 +626,7 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
+          openProfile={this.props.openProfile}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
@@ -715,6 +719,7 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
+          openProfile={this.props.openProfile}
           key="connections" />
       );
     }
@@ -843,6 +848,7 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
+                    openProfile={this.props.openProfile}
                   />);
 
     } else if (this.state.menuOpen === "sheets") {
@@ -862,7 +868,11 @@ class ReaderPanel extends Component {
                     setSheetTagSort={this.setSheetTagSort}
                     setSheetTag={this.setSheetTag}
                     setGroupTag={this.setGroupTag}
-                    key={"SheetsNav"} />);
+                    searchInGroup={this.props.searchInGroup}
+                    openProfile={this.props.openProfile}
+                    key={"SheetsNav"}
+                    openProfile={this.props.openProfile}
+                  />);
 
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopic) {
@@ -970,7 +980,15 @@ class ReaderPanel extends Component {
           hideNavHeader={this.props.hideNavHeader}
           interfaceLang={this.props.interfaceLang}
         />
-      )
+      );
+    } else if (this.state.menuOpen === "profile") {
+      menu = (
+        <UserProfile
+          profile={this.state.profile}
+          handleInAppLinkClick={this.props.handleInAppLinkClick}
+          openProfile={this.props.openProfile}
+        />
+      );
     }
 
     let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
@@ -1063,6 +1081,7 @@ ReaderPanel.propTypes = {
   initialSheetSearchField:          PropTypes.string,
   initialSheetSearchSortType:       PropTypes.string,
   initialSheetsTag:            PropTypes.string,
+  initialProfile:              PropTypes.object,
   initialState:                PropTypes.object, // if present, overrides all props above
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,
@@ -1087,6 +1106,7 @@ ReaderPanel.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
+  searchInGroup:               PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   addToSourceSheet:            PropTypes.func,
@@ -1108,6 +1128,8 @@ ReaderPanel.propTypes = {
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
+  profile:                     PropTypes.object,
+  openProfile:                 PropTypes.func,
 };
 
 
