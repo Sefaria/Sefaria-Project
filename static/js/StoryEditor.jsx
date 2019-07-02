@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext} from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
@@ -15,6 +15,8 @@ const traits = ["readsHebrew",
 "usesSheets",
 "inDiaspora",
 "inIsrael"];
+
+const FormFunctions = React.createContext({addStory: null, setError: null});
 
 
 function StoryEditor(props) {
@@ -57,7 +59,9 @@ function StoryEditor(props) {
           <span className="int-he">עדכונים</span>
         </h1>
 
-        <CreateStoryForm addStory={addStory}/>
+        <FormFunctions.Provider value={{addStory: addStory, setError: setError}}>
+            <CreateStoryForm/>
+        </FormFunctions.Provider>
         <span className="error">{error}</span>
 
         <div className="storyFeed">
@@ -116,7 +120,7 @@ StoryEditBar.propTypes = {
 
 
 
-const CreateStoryForm = ({addStory}) => {
+const CreateStoryForm = () => {
     const [typeName, setTypeName] = useState('New Index');
 
     const editForms = {
@@ -136,7 +140,7 @@ const CreateStoryForm = ({addStory}) => {
         */
     };
 
-    const EditForm = withButton(editForms[typeName], addStory);
+    const EditForm = editForms[typeName];
 
     return (
       <div className="globalUpdateForm">
@@ -152,11 +156,41 @@ const CreateStoryForm = ({addStory}) => {
       </div>
     );
 };
-CreateStoryForm.propTypes = {
-  addStory:         PropTypes.func
-};
 
 
+function usePreviewButton({payload, isValid}) {
+    const [isSubmitting, setSubmitting] = useState(false);
+    const {addStory, setError} = useContext(FormFunctions);
+    const handleReflect = () => {
+        if (!isValid()) {
+            setError("Incomplete");
+            return;
+        }
+        setSubmitting(true);
+        setError(null);
+        $.ajax({
+            url: "/api/story_reflector",
+            dataType: 'json',
+            type: 'POST',
+            data: {json: JSON.stringify(payload)},
+            success: (data) => {
+                if ("error" in data) { setError(data.error); }
+                else {
+                    data["draft"] = true;
+                    addStory(data);
+                    setSubmitting(false);
+                }
+            },
+            error: (x, s, err) => setError(err.toString())
+        });
+    };
+    if (isSubmitting) {
+        return <div className="lds-ring"><div></div><div></div><div></div><div></div></div>;
+    } else {
+        return <input type="button" value="Preview" disabled={disabled} onClick={handleReflect}/>
+    }
+}
+/*
 function withButton(WrappedFormComponent, addStory) {
   // ...and returns another component...
   return class extends React.Component {
@@ -207,29 +241,20 @@ function withButton(WrappedFormComponent, addStory) {
       </div>;
     }
   };
-}
+} */
 
 
-class FeaturedSheetsStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            error: ''
-        };
-    }
-    payload() {
-        return {
+const FeaturedSheetsStoryForm = () => {
+    const PreviewButton =  usePreviewButton({
+        payload: {
           factory: "SheetListFactory",
-          method: "generate_featured_story",
-        };
-    }
-    isValid() {
-        return true;
-    }
-    render() {
-        return null;
-    }
-}
+          method: "generate_featured_story"
+        },
+        isValid: () => true,
+    });
+    return <div><PreviewButton/></div>;
+};
+
 
 
 class SheetListStoryForm extends Component {
