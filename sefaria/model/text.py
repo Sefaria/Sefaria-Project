@@ -646,6 +646,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
             raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
 
+        try:
+            int(getattr(self, "errorMargin", 0))
+        except (ValueError):
+            raise InputError("composition date error margin must be an integer")
+
         #complex style records- all records should now conform to this
         if self.nodes:
             # Make sure that all primary titles match
