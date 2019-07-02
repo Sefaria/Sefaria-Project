@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext} from 'react';
+import React, { useState, useEffect, useContext, useRef} from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
@@ -190,58 +190,6 @@ function usePreviewButton({payload, isValid}) {
         return <input type="button" value="Preview" disabled={disabled} onClick={handleReflect}/>
     }
 }
-/*
-function withButton(WrappedFormComponent, addStory) {
-  // ...and returns another component...
-  return class extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            submitting: false,
-            error: null,
-        };
-        this.formRef = React.createRef();
-        this.handleReflect = this.handleReflect.bind(this);
-    }
-    handleReflect() {
-        if (!this.formRef.current.isValid()) {
-            this.setState({"error": "Incomplete"});
-            return;
-        }
-        this.setState({"submitting": true, "error": null});
-        $.ajax({
-            url: "/api/story_reflector",
-            dataType: 'json',
-            type: 'POST',
-            data: {json: JSON.stringify(this.formRef.current.payload())},
-            success: function (data) {
-                if ("error" in data) {
-                  this.setState({"error": "Error - " + data.error});
-                } else {
-                    data["draft"] = true;
-                    addStory(data);
-                    this.setState({submitting: false});
-                }
-            }.bind(this),
-            error: function (xhr, status, err) {
-                this.setState({"error": "Error - " + err.toString()});
-            }.bind(this)
-        });
-    }
-    render() {
-      // ... and renders the wrapped component with the fresh data!
-      // Notice that we pass through any additional props
-      const disabled = (this.state.submitting ||
-          (this.formRef.current && (!this.formRef.current.isValid())));
-
-      return <div>
-        <WrappedFormComponent ref={this.formRef} {...this.props} />
-        <input type="button" value="Preview" disabled={disabled} onClick={this.handleReflect}/>
-        <span className="error">{this.state.error}</span>
-      </div>;
-    }
-  };
-} */
 
 
 const FeaturedSheetsStoryForm = () => {
@@ -255,27 +203,8 @@ const FeaturedSheetsStoryForm = () => {
     return <div><PreviewButton/></div>;
 };
 
-
-
-class SheetListStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        const ids_string = this.field_refs.ids.getValue();
-        const ids = ids_string.split(/\s*,\s*/);
-        return {
-          factory: "SheetListFactory",
-          method: "_generate_shared_story",
-          sheet_ids: ids
-        };
-    }
-    isValid() {
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
+    /* From old is_valid()
+            if (!Object.values(this.field_refs).every(e => e.isValid())) {
             return false;
         }
         // Required Fields
@@ -283,19 +212,24 @@ class SheetListStoryForm extends Component {
             return false;
         }
         return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormTextField placeholder="id, id, id" ref={this.recordRef("ids")} />
-            </div>);
-    }
-}
+     */
 
+const SheetListStoryForm = () => {
+    const idsEl = useRef(null);
+    const PreviewButton =  usePreviewButton({
+        payload: {
+          factory: "SheetListFactory",
+          method: "_generate_shared_story",
+          sheet_ids: idsEl ? idEl.getValue().split(/\s*,\s*/) : null
+        },
+        isValid: () => {idsEl.isValid() && idsEl.getValue()},
+    });
 
+    return <div>
+        <StoryFormTextField placeholder="id, id, id" ref={idsEl} />
+        <PreviewButton/>
+    </div>;
+};
 
 class UserSheetsStoryForm extends Component {
     constructor(props) {
