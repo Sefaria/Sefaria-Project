@@ -4248,6 +4248,7 @@ class Library(object):
         self._index_map = {i.title: i for i in IndexSet() if i.nodes}
         forest = [i.nodes for i in self._index_map.values()]
         self._title_node_maps = {lang: {} for lang in self.langs}
+        self._index_title_maps = {lang:{} for lang in self.langs}
 
         for tree in forest:
             try:
