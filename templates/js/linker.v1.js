@@ -18,8 +18,7 @@
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
 
-    //var base_url = 'http://localhost:8000/';
-    var base_url = 'https://www.sefaria.org/';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -317,10 +316,14 @@
     };
 
     ns._trackPage = function() {
-        //console.log("TRACK")
         var canonical = document.head.querySelector("link[rel~=canonical]");
         var url = canonical ? canonical.href : document.href;
-        var meta = document.head.querySelector("meta[name~=description]");
+        var meta = document.head.querySelector("meta[name~=description]")
+                   || document.head.querySelector("meta[property~=description]")
+                   || document.head.querySelector("meta[name~='og:description']")
+                   || document.head.querySelector("meta[property~='og:description']")
+                   || document.head.querySelector("meta[name~='twitter:description']")
+                   || document.head.querySelector("meta[property~='twitter:description']");
         var description = meta ? meta.content : "";
         var data = {
             "url": url,
