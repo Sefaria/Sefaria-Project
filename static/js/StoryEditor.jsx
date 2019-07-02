@@ -118,8 +118,6 @@ StoryEditBar.propTypes = {
   story:             PropTypes.object
 };
 
-
-
 const CreateStoryForm = () => {
     const [typeName, setTypeName] = useState('New Index');
 
@@ -168,11 +166,12 @@ function usePreviewButton({payload, isValid}) {
         }
         setSubmitting(true);
         setError(null);
+        const currentPayload = (payload instanceof Function) ? payload() : payload;
         $.ajax({
             url: "/api/story_reflector",
             dataType: 'json',
             type: 'POST',
-            data: {json: JSON.stringify(payload)},
+            data: {json: JSON.stringify(currentPayload)},
             success: (data) => {
                 if ("error" in data) { setError(data.error); }
                 else {
@@ -187,20 +186,20 @@ function usePreviewButton({payload, isValid}) {
     if (isSubmitting) {
         return <div className="lds-ring"><div></div><div></div><div></div><div></div></div>;
     } else {
-        return <input type="button" value="Preview" disabled={disabled} onClick={handleReflect}/>
+        return <input type="button" value="Preview" onClick={handleReflect}/>
     }
 }
 
 
 const FeaturedSheetsStoryForm = () => {
-    const PreviewButton =  usePreviewButton({
+    const previewButton = usePreviewButton({
         payload: {
           factory: "SheetListFactory",
           method: "generate_featured_story"
         },
         isValid: () => true,
     });
-    return <div><PreviewButton/></div>;
+    return <div>{previewButton}</div>;
 };
 
     /* From old is_valid()
@@ -216,18 +215,18 @@ const FeaturedSheetsStoryForm = () => {
 
 const SheetListStoryForm = () => {
     const idsEl = useRef(null);
-    const PreviewButton =  usePreviewButton({
-        payload: {
+    const previewButton =  usePreviewButton({
+        payload: () => ({
           factory: "SheetListFactory",
           method: "_generate_shared_story",
-          sheet_ids: idsEl ? idEl.getValue().split(/\s*,\s*/) : null
-        },
-        isValid: () => {idsEl.isValid() && idsEl.getValue()},
+          sheet_ids: idsEl.current ? idsEl.current.getValue().split(/\s*,\s*/) : null
+        }),
+        isValid: () => (idsEl.current.isValid() && idsEl.current.getValue()),
     });
 
     return <div>
         <StoryFormTextField placeholder="id, id, id" ref={idsEl} />
-        <PreviewButton/>
+        {previewButton}
     </div>;
 };
 
