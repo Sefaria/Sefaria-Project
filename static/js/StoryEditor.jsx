@@ -460,50 +460,38 @@ FreeTextStoryForm.propTypes = {
     
 };
 
-class NewVersionStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            type: 'newVersion',
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        const d = { index: this.field_refs.index.getValue() };
-        Object.assign(d, this.field_refs.version.getValue());
-        ["ref","en","he"].forEach(p => {if (!!this.field_refs[p].getValue()) {d[p] = this.field_refs[p].getValue()}});
-        return {
-          storyForm: this.state.type,
-          data: d
-        };
-    }
-    isValid() {
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["index"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormIndexField ref={this.recordRef("index")}/>
-                <StoryFormVersionFields ref={this.recordRef("version")}/>
-                <StoryFormTextareaField ref={this.recordRef("en")} placeholder="English Description (optional)"/>
-                <StoryFormTextareaField ref={this.recordRef("he")} placeholder="Hebrew Description (optional)"/>
-                <StoryFormRefField ref={this.recordRef("ref")} />
-            </div>);
-    }
-}
-NewVersionStoryForm.propTypes = {
-    
+const NewVersionStoryForm = () => {
+    const refs = {
+        index:  useRef(null),
+        version: useRef(null),
+        en:     useRef(null),
+        he:     useRef(null),
+        ref:    useRef(null),
+    };
+    const previewButton =  usePreviewButton({
+        payload: () => {
+            const d = Object.keys(refs).reduce((obj, k) => {
+                    const v = refs[k].current.getValue();
+                    if (v) { obj[k] = v; }
+                    return obj;
+                }, {});
+            return {
+                storyForm: 'newVersion',
+                data: d
+                }
+            },
+        isValid: () => (refs.index.current.isValid() && refs.index.current.getValue() &&
+                        refs.version.current.isValid() && refs.version.current.getValue()),
+    });
+
+    return <div>
+        <StoryFormIndexField ref={refs.index}/>
+        <StoryFormVersionFields ref={refs.version}/>
+        <StoryFormTextareaField ref={refs.en} placeholder="English Description (optional)"/>
+        <StoryFormTextareaField ref={refs.he} placeholder="Hebrew Description (optional)"/>
+        <StoryFormRefField ref={refs.ref} />
+        {previewButton}
+    </div>;
 };
 
 const NewIndexStoryForm = () => {
