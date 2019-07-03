@@ -120,18 +120,10 @@ class UserHistory(abst.AbstractMongoRecord):
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
-            try:
-                del d["uid"]
-            except KeyError:
-                pass
-            try:
-                del d["server_time_stamp"]
-            except KeyError:
-                pass
-            try:
-                d["datetime"] = str(d["datetime"])
-            except KeyError:
-                pass
+            keys = {'ref': u'', 'he_ref': u'', 'book': u'', 'versions': {}}
+            d = {
+                key: d.get(key, default) for key, default in keys.items()
+            }
         return d
 
     def _sanitize(self):

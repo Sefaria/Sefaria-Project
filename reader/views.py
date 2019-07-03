@@ -20,6 +20,7 @@ import socket
 import bleach
 from collections import OrderedDict
 
+from rest_framework.decorators import api_view
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
@@ -3127,6 +3128,7 @@ def profile_follow_api(request, ftype, slug):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@api_view(["POST"])
 @catch_error_as_json
 def profile_sync_api(request):
     """
@@ -3153,7 +3155,7 @@ def profile_sync_api(request):
             # send back items after `last_sync`
             last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
-            ret = {"last_sync": now, "user_history": [uh.contents() for uh in uhs.array()]}
+            ret = {"last_sync": now, "user_history": [uh.contents(for_api=True) for uh in uhs.array()]}
             if "last_sync" not in post:
                 # request was made from web. update last_sync on profile
                 profile.update({"last_sync_web": now})
