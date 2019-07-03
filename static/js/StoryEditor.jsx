@@ -378,86 +378,51 @@ class TopicSheetsStoryForm extends Component {
     }
 }
 
-class TextPassageStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            type: 'textPassage',
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        const d = { ref: this.field_refs.ref.getValue() };
-        return {
-          storyForm: this.state.type,
-          data: d
-        };
-    }
-    isValid() {
+const TextPassageStoryForm = () => {
+    const refs = {
+        en:     useRef(null),
+        he:     useRef(null),
+    };
+    const previewButton =  usePreviewButton({
+        payload: () => ({
+            storyForm: 'textPassage',
+            data: { ref: refs.ref.current.getValue() }
+        }),
+        isValid: () => (refs.ref.current.isValid() && refs.ref.current.getValue()),
+    });
 
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["ref"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormRefField ref={this.recordRef("ref")} />
-            </div>);
-    }
-}
+    return <div>
+        <StoryFormRefField ref={refs.ref} />
+        {previewButton}
+    </div>;
+};
 
-class FreeTextStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            type: 'freeText',
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        const d = {
-            en: this.field_refs.en.getValue(),
-            he: this.field_refs.he.getValue(),
-        };
-        return {
-          storyForm: this.state.type,
-          data: d
-        };
-    }
-    isValid() {
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["en","he"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormTextareaField ref={this.recordRef("en")} placeholder="English"/>
-                <StoryFormTextareaField ref={this.recordRef("he")} placeholder="Hebrew"/>
-            </div>);
-    }
-}
-FreeTextStoryForm.propTypes = {
-    
+const FreeTextStoryForm = () => {
+    const refs = {
+        en:     useRef(null),
+        he:     useRef(null),
+    };
+    const previewButton =  usePreviewButton({
+        payload: () => {
+            const d = Object.keys(refs).reduce((obj, k) => {
+                    const v = refs[k].current.getValue();
+                    if (v) { obj[k] = v; }
+                    return obj;
+                }, {});
+            return {
+                storyForm: 'freeText',
+                data: d
+                }
+            },
+        isValid: () => (refs.en.current.isValid() && refs.en.current.getValue() &&
+                        refs.he.current.isValid() && refs.he.current.getValue()),
+    });
+
+    return <div>
+        <StoryFormTextareaField ref={refs.en} placeholder="English"/>
+        <StoryFormTextareaField ref={refs.he} placeholder="Hebrew"/>
+        {previewButton}
+    </div>;
 };
 
 const NewVersionStoryForm = () => {
