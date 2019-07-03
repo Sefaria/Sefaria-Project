@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useContext, useRef} from 'react';
-const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Story      = require('./Story');
 const { usePaginatedScroll } = require('./Hooks');
-
 import Component from 'react-class';
 
 // These are duplicated in trend.py needs to be more graceful
@@ -17,7 +14,6 @@ const traits = ["readsHebrew",
 "inIsrael"];
 
 const FormFunctions = React.createContext({addStory: null, setError: null});
-
 
 function StoryEditor(props) {
   const [stories, setStories] = useState([]);
@@ -83,7 +79,8 @@ function StoryEditor(props) {
 
 }
 StoryEditor.propTypes = {
-  interfaceLang:  PropTypes.string
+  interfaceLang:  PropTypes.string,
+  toggleSignUpModal: PropTypes.func
 };
 
 function StoryEditBar({story, isDraft, saveStory, deleteStory, removeDraft}) {
@@ -142,7 +139,7 @@ const CreateStoryForm = () => {
 
     return (
       <div className="globalUpdateForm">
-          <div>
+          <div className="storyTypeSelector">
               <label>
                   Story Type:
                   <select value={typeName} onChange={e => setTypeName(e.target.value)}>
@@ -154,7 +151,6 @@ const CreateStoryForm = () => {
       </div>
     );
 };
-
 
 function usePreviewButton({payload, isValid}) {
     const [isSubmitting, setSubmitting] = useState(false);
@@ -214,14 +210,16 @@ const FeaturedSheetsStoryForm = () => {
 */
 
 const SheetListStoryForm = () => {
-    const idsEl = useRef(null);
+    const refs = {
+        ids:     useRef(null),
+    };
     const previewButton =  usePreviewButton({
         payload: () => ({
           factory: "SheetListFactory",
           method: "_generate_shared_story",
-          sheet_ids: idsEl.current.getValue().split(/\s*,\s*/)
+          sheet_ids: refs.ids.current.getValue().split(/\s*,\s*/)
         }),
-        isValid: () => (idsEl.current.isValid() && idsEl.current.getValue()),
+        isValid: () => refs.ids.current.isValid(),
     });
 
     return <div>
@@ -240,7 +238,7 @@ const UserSheetsStoryForm = () => {
           method: "_generate_shared_story",
           topic: refs.author_uid.current.getValue()
         }),
-        isValid: () => (refs.author_uid.current.isValid() && refs.author_uid.current.getValue()),
+        isValid: () => refs.author_uid.current.isValid()
     });
 
     return <div>
@@ -259,7 +257,7 @@ const AuthorStoryForm = () => {
           method: "_generate_shared_story",
           topic: refs.person.current.getValue()
         }),
-        isValid: () => (refs.person.current.isValid() && refs.person.current.getValue()),
+        isValid: () => refs.person.current.isValid()
     });
 
     return <div>
@@ -278,7 +276,7 @@ const TopicSourcesStoryForm = () => {
           method: "_generate_shared_story",
           topic: refs.topic.current.getValue()
         }),
-        isValid: () => (refs.topic.current.isValid() && refs.topic.current.getValue()),
+        isValid: () => refs.topic.current.isValid()
     });
 
     return <div>
@@ -297,7 +295,7 @@ const TopicSheetsStoryForm = () => {
           method: "generate_topic_story",
           topic: refs.topic.current.getValue()
         }),
-        isValid: () => (refs.topic.current.isValid() && refs.topic.current.getValue()),
+        isValid: () => refs.topic.current.isValid()
     });
 
     return <div>
@@ -316,7 +314,7 @@ const TextPassageStoryForm = () => {
             storyForm: 'textPassage',
             data: { ref: refs.ref.current.getValue() }
         }),
-        isValid: () => (refs.ref.current.isValid() && refs.ref.current.getValue()),
+        isValid: () => refs.ref.current.isValid()
     });
 
     return <div>
@@ -342,8 +340,7 @@ const FreeTextStoryForm = () => {
                 data: d
                 }
             },
-        isValid: () => (refs.en.current.isValid() && refs.en.current.getValue() &&
-                        refs.he.current.isValid() && refs.he.current.getValue()),
+        isValid: () => (refs.en.current.isValid() && refs.he.current.isValid())
     });
 
     return <div>
@@ -373,8 +370,7 @@ const NewVersionStoryForm = () => {
                 data: d
                 }
             },
-        isValid: () => (refs.index.current.isValid() && refs.index.current.getValue() &&
-                        refs.version.current.isValid() && refs.version.current.getValue()),
+        isValid: () => (refs.index.current.isValid() && refs.version.current.isValid()),
     });
 
     return <div>
@@ -406,7 +402,7 @@ const NewIndexStoryForm = () => {
                 data: d
                 }
             },
-        isValid: () => (refs.index.current.isValid() && refs.index.current.getValue()),
+        isValid: () => refs.index.current.isValid()
     });
 
     return <div>

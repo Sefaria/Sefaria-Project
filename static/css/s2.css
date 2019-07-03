@@ -4454,8 +4454,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .globalUpdateForm {
   padding: 15px;
+  font-size: 20px;
   background-color: #ddd;
 }
+
+.globalUpdateForm .storyTypeSelector {
+  padding-bottom: 15px;
+}
+
 .globalUpdateForm .error {
   color: red;
   font-size: 90%;
