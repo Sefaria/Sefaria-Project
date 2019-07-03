@@ -202,16 +202,16 @@ const FeaturedSheetsStoryForm = () => {
     return <div>{previewButton}</div>;
 };
 
-    /* From old is_valid()
-            if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["ids"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-     */
+/* From old is_valid()
+        if (!Object.values(this.field_refs).every(e => e.isValid())) {
+        return false;
+    }
+    // Required Fields
+    if (!["ids"].every(k => this.field_refs[k].getValue())) {
+        return false;
+    }
+    return true;
+*/
 
 const SheetListStoryForm = () => {
     const idsEl = useRef(null);
@@ -219,7 +219,7 @@ const SheetListStoryForm = () => {
         payload: () => ({
           factory: "SheetListFactory",
           method: "_generate_shared_story",
-          sheet_ids: idsEl.current ? idsEl.current.getValue().split(/\s*,\s*/) : null
+          sheet_ids: idsEl.current.getValue().split(/\s*,\s*/)
         }),
         isValid: () => (idsEl.current.isValid() && idsEl.current.getValue()),
     });
@@ -230,153 +230,81 @@ const SheetListStoryForm = () => {
     </div>;
 };
 
-class UserSheetsStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        return {
+const UserSheetsStoryForm = () => {
+    const refs = {
+        author_uid:     useRef(null),
+    };
+    const previewButton =  usePreviewButton({
+        payload: () => ({
           factory: "UserSheetsFactory",
           method: "_generate_shared_story",
-          author_uid: this.field_refs.author_uid.getValue()
-        };
-    }
-    isValid() {
+          topic: refs.author_uid.current.getValue()
+        }),
+        isValid: () => (refs.author_uid.current.isValid() && refs.author_uid.current.getValue()),
+    });
 
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["author_uid"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormTextField placeholder="User ID" ref={this.recordRef("author_uid")} />
-            </div>);
-    }
-}
+    return <div>
+        <StoryFormTextField placeholder="User ID" ref={refs.author_uid} />
+        {previewButton}
+    </div>;
+};
 
-class AuthorStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        return {
+const AuthorStoryForm = () => {
+    const refs = {
+        person:     useRef(null),
+    };
+    const previewButton =  usePreviewButton({
+        payload: () => ({
           factory: "AuthorStoryFactory",
           method: "_generate_shared_story",
-          person: this.field_refs.person.getValue()
-        };
-    }
-    isValid() {
+          topic: refs.person.current.getValue()
+        }),
+        isValid: () => (refs.person.current.isValid() && refs.person.current.getValue()),
+    });
 
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["person"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormTextField placeholder="Author Key" ref={this.recordRef("person")} />
-            </div>);
-    }
-}
+    return <div>
+        <StoryFormTextField placeholder="Author Key" ref={refs.person} />
+        {previewButton}
+    </div>;
+};
 
-class TopicSourcesStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        return {
+const TopicSourcesStoryForm = () => {
+    const refs = {
+        topic:     useRef(null),
+    };
+    const previewButton =  usePreviewButton({
+        payload: () => ({
           factory: "TopicTextsStoryFactory",
           method: "_generate_shared_story",
-          topic: this.field_refs.topic.getValue()
-        };
-    }
-    isValid() {
+          topic: refs.topic.current.getValue()
+        }),
+        isValid: () => (refs.topic.current.isValid() && refs.topic.current.getValue()),
+    });
 
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["topic"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormTextField placeholder="Topic" ref={this.recordRef("topic")} />
-            </div>);
-    }
-}
+    return <div>
+        <StoryFormTextField placeholder="Topic" ref={refs.topic} />
+        {previewButton}
+    </div>;
+};
 
-class TopicSheetsStoryForm extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            error: ''
-        };
-        this.field_refs = {};
-    }
-    payload() {
-        return {
+const TopicSheetsStoryForm = () => {
+    const refs = {
+        topic:     useRef(null),
+    };
+    const previewButton =  usePreviewButton({
+        payload: () => ({
           factory: "SheetListFactory",
           method: "generate_topic_story",
-          topic: this.field_refs.topic.getValue()
-        };
-    }
-    isValid() {
+          topic: refs.topic.current.getValue()
+        }),
+        isValid: () => (refs.topic.current.isValid() && refs.topic.current.getValue()),
+    });
 
-        if (!Object.values(this.field_refs).every(e => e.isValid())) {
-            return false;
-        }
-        // Required Fields
-        if (!["topic"].every(k => this.field_refs[k].getValue())) {
-            return false;
-        }
-        return true;
-    }
-    recordRef(field) {
-        return ref => this.field_refs[field] = ref;
-    }
-    render() {
-        return (
-            <div>
-                <StoryFormTextField placeholder="Topic" ref={this.recordRef("topic")} />
-            </div>);
-    }
-}
+    return <div>
+        <StoryFormTextField placeholder="Topic" ref={refs.topic} />
+        {previewButton}
+    </div>;
+};
 
 const TextPassageStoryForm = () => {
     const refs = {
