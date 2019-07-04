@@ -599,6 +599,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         for attr in deprecated_attrs:
             if getattr(self, attr, None):
                 delattr(self, attr)
+        try:
+            error_margin_value = getattr(self, "errorMargin", 0)
+            int(error_margin_value)
+        except ValueError:
+            logger.warning(u"Index record '{}' has invalid 'errorMargin': {} field, removing".format(self.title, error_margin_value))
+            delattr(self, "errorMargin")
 
     def _validate(self):
         assert super(Index, self)._validate()
