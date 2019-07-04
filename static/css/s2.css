@@ -4453,15 +4453,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0 5px;
 }
 .globalUpdateForm {
-  padding: 15px;
-  font-size: 20px;
+  padding: 20px;
   background-color: #ddd;
+  border-radius: 15px;
 }
 
 .globalUpdateForm .storyTypeSelector {
   padding-bottom: 15px;
 }
-
+.globalUpdateForm  select {
+  margin: 0 0 0 15px;
+}
 .globalUpdateForm .error {
   color: red;
   font-size: 90%;
@@ -4470,11 +4472,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .globalUpdateForm input[type="text"] {
   padding: 5px;
-  margin: 8px 0;
+  margin: 0 0 0 15px;
 }
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
   margin: 8px;
+}
+.globalUpdateForm label {
+  padding-top: 10px;
+  display: block;
+}
+.globalUpdateForm .previewButton {
+  margin-left: 85%;
+  font-size: 20px;
 }
 
 .story-action-button {

@@ -182,7 +182,7 @@ function usePreviewButton({payload, isValid}) {
     if (isSubmitting) {
         return <div className="lds-ring"><div></div><div></div><div></div><div></div></div>;
     } else {
-        return <input type="button" value="Preview" onClick={handleReflect}/>
+        return <input className="previewButton" type="button" value="Preview" onClick={handleReflect}/>
     }
 }
 
@@ -223,7 +223,7 @@ const SheetListStoryForm = () => {
     });
 
     return <div>
-        <StoryFormTextField placeholder="id, id, id" ref={idsEl} />
+        <StoryFormTextField label="List of IDs" placeholder="id, id, id" ref={refs.ids} />
         {previewButton}
     </div>;
 };
@@ -242,7 +242,7 @@ const UserSheetsStoryForm = () => {
     });
 
     return <div>
-        <StoryFormTextField placeholder="User ID" ref={refs.author_uid} />
+        <StoryFormTextField label="User ID" ref={refs.author_uid} />
         {previewButton}
     </div>;
 };
@@ -261,7 +261,7 @@ const AuthorStoryForm = () => {
     });
 
     return <div>
-        <StoryFormTextField placeholder="Author Key" ref={refs.person} />
+        <StoryFormTextField label="Author Key" ref={refs.person} />
         {previewButton}
     </div>;
 };
@@ -280,7 +280,7 @@ const TopicSourcesStoryForm = () => {
     });
 
     return <div>
-        <StoryFormTextField placeholder="Topic" ref={refs.topic} />
+        <StoryFormTextField label="Topic" ref={refs.topic} />
         {previewButton}
     </div>;
 };
@@ -299,7 +299,7 @@ const TopicSheetsStoryForm = () => {
     });
 
     return <div>
-        <StoryFormTextField placeholder="Topic" ref={refs.topic} />
+        <StoryFormTextField label="Topic" ref={refs.topic} />
         {previewButton}
     </div>;
 };
@@ -318,7 +318,7 @@ const TextPassageStoryForm = () => {
     });
 
     return <div>
-        <StoryFormRefField ref={refs.ref} />
+        <StoryFormRefField ref={refs.ref} label="Ref"/>
         {previewButton}
     </div>;
 };
@@ -344,8 +344,8 @@ const FreeTextStoryForm = () => {
     });
 
     return <div>
-        <StoryFormTextareaField ref={refs.en} placeholder="English"/>
-        <StoryFormTextareaField ref={refs.he} placeholder="Hebrew"/>
+        <StoryFormTextareaField ref={refs.en} label="English"/>
+        <StoryFormTextareaField ref={refs.he} label="Hebrew"/>
         {previewButton}
     </div>;
 };
@@ -376,9 +376,9 @@ const NewVersionStoryForm = () => {
     return <div>
         <StoryFormIndexField ref={refs.index}/>
         <StoryFormVersionFields ref={refs.version}/>
-        <StoryFormTextareaField ref={refs.en} placeholder="English Description (optional)"/>
-        <StoryFormTextareaField ref={refs.he} placeholder="Hebrew Description (optional)"/>
-        <StoryFormRefField ref={refs.ref} />
+        <StoryFormTextareaField ref={refs.en} label="English Description (optional)"/>
+        <StoryFormTextareaField ref={refs.he} label="Hebrew Description (optional)"/>
+        <StoryFormRefField ref={refs.ref} label="Ref (optional)" />
         {previewButton}
     </div>;
 };
@@ -406,26 +406,25 @@ const NewIndexStoryForm = () => {
     });
 
     return <div>
-        <StoryFormIndexField ref={refs.index}/>
-        <StoryFormTextareaField ref={refs.en} placeholder="English Description (optional)"/>
-        <StoryFormTextareaField ref={refs.he} placeholder="Hebrew Description (optional)"/>
-        <StoryFormRefField ref={refs.ref} />
+        <StoryFormIndexField ref={refs.index} />
+        <StoryFormTextareaField ref={refs.en} label="English Description (optional)" />
+        <StoryFormTextareaField ref={refs.he} label="Hebrew Description (optional)" />
+        <StoryFormRefField ref={refs.ref} label="Ref (optional)" />
         {previewButton}
     </div>;
 };
 
 
-
+/********************************/
 /*          Fields              */
+/********************************/
+
 
 class StoryFormIndexField extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        value: '',
-        error: ''
-    };
-  }
+    constructor(props) {
+        super(props);
+        this.state = {value: '', error: ''};
+    }
     getValue() {
         return this.state.value.trim();
     }
@@ -433,35 +432,25 @@ class StoryFormIndexField extends Component {
         return (this.state.value && (!this.state.error));
     }
     handleChange(e) {
-        this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-      /*
-        if (Sefaria.index(this.state.value)) {
-            this.setState({error: ''});
-        } else {
-            this.setState({error: "Not an Index"});
-        }
-        */
+        const value = e.target.value;
+        const error = (Sefaria.index(value)) ? '' : "Not an Index";
+        this.setState({value: value, error: error});
     }
     render() {
       return <div>
-        <input type="text" placeholder="Index Title" onChange={this.handleChange} />
+        <label>Index
+            <input type="text" onChange={this.handleChange} />
+        </label>
         <span className="error">{this.state.error}</span>
       </div>;
   }
 }
 
 class StoryFormVersionFields extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        language: "en",
-        version: '',
-        error: ''
-    };
-  }
+    constructor(props) {
+        super(props);
+        this.state = {value: '', error: '', language: "en"};
+    }
     getValue() {
         return {
             language: this.state.language,
@@ -473,35 +462,33 @@ class StoryFormVersionFields extends Component {
     }
     handleLanguageChange(e) {
         this.setState({language: e.target.value});
-        this.validate();
+        // Validate
     }
     handleVersionChange(e) {
         this.setState({version: e.target.value});
-        this.validate();
-    }
-    validate() {
         //todo: See if this is a valid version
     }
     render() {
       return <div>
-        <select type="text" value={this.state.language} placeholder="Version Language" onChange={this.handleLanguageChange}>
-            <option value="en">English</option>
-            <option value="he">Hebrew</option>
-          </select>
-        <input type="text" value={this.state.version} placeholder="Version Title" onChange={this.handleVersionChange}/>
+        <label>Version Language
+            <select type="text" value={this.state.language} onChange={this.handleLanguageChange}>
+                <option value="en">English</option>
+                <option value="he">Hebrew</option>
+            </select>
+        </label>
+        <label>Version Title
+            <input type="text" value={this.state.version} onChange={this.handleVersionChange}/>
+        </label>
         <span className="error">{this.state.error}</span>
       </div>
     }
 }
 
 class StoryFormTextareaField extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        value: '',
-        error: ''
-    };
-  }
+    constructor(props) {
+        super(props);
+        this.state = {value: '', error: ''};
+    }
     getValue() {
         return this.state.value.trim();
     }
@@ -510,32 +497,32 @@ class StoryFormTextareaField extends Component {
     }
     handleChange(e) {
         this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-
+        // Validate
     }
     render() {
       return <div>
-        <textarea
-            placeholder={this.props.placeholder}
-            value={this.state.value}
-            onChange={this.handleChange}
-            rows="3"
-            cols="80" />
+          <label>{this.props.label}
+            <textarea
+                placeholder={this.props.placeholder}
+                value={this.state.value}
+                onChange={this.handleChange}
+                rows="3"
+                cols="80" />
+          </label>
         <span className="error">{this.state.error}</span>
       </div>;
     }
 }
+StoryFormTextareaField.propTypes = {
+    placeholder:    PropTypes.string,
+    label:          PropTypes.string,
+};
 
 class StoryFormTextField extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-        value: '',
-        error: ''
-    };
-  }
+    constructor(props) {
+        super(props);
+        this.state = {value: '', error: ''};
+    }
     getValue() {
         return this.state.value.trim();
     }
@@ -544,29 +531,26 @@ class StoryFormTextField extends Component {
     }
     handleChange(e) {
         this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-
+        // Validate
     }
     render() {
       return <div>
-            <input type="text" value={this.state.value} placeholder={this.props.placeholder} onChange={this.handleChange}/>
+            <label>{this.props.label}
+                <input type="text" value={this.state.value} placeholder={this.props.placeholder} onChange={this.handleChange}/>
+            </label>
             <span className="error">{this.state.error}</span>
       </div>;
     }
 }
 StoryFormTextField.propTypes = {
-    placeholder: PropTypes.string
+    placeholder:    PropTypes.string,
+    label:          PropTypes.string,
 };
 
 class StoryFormRefField extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            value: '',
-            error: ''
-        };
+        this.state = {value: '', error: ''};
     }
 
     getValue() {
@@ -578,24 +562,24 @@ class StoryFormRefField extends Component {
     }
 
     handleChange(e) {
-        this.setState({value: e.target.value});
-        this.validate();
-    }
-    validate() {
-        if (Sefaria.isRef(this.state.value)) {
-            this.setState({error: ''});
-        } else {
-            this.setState({error: "Not a Ref"});
-        }
+        const value = e.target.value;
+        const error = (Sefaria.isRef(value)) ? '' : "Not a Ref";
+        this.setState({value: value, error: error});
     }
 
     render() {
         return <div>
-            <input type="text" value={this.state.value} placeholder="Ref" onChange={this.handleChange}/>
+            <label>{this.props.label}
+                <input type="text" value={this.state.value} onChange={this.handleChange}/>
+            </label>
             <span className="error">{this.state.error}</span>
         </div>;
     }
 }
+StoryFormRefField.propTypes = {
+    label: PropTypes.string,
+};
+
 
 class StoryFormUserField extends Component {
 
