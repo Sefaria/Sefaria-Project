@@ -1043,6 +1043,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "extendedNotes",
         "extendedNotesHebrew",
+        "purchaseInformation" # subkeys: purchase_url, purchase_name, purchase_image
     ]
 
     def __unicode__(self):
@@ -1060,7 +1061,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        assert self.get_index() is not None
+        if self.get_index() is None:
+            raise InputError("Versions cannot be created for non existing Index records")
+        buy_info = getattr(self, "purchaseInformation", None)
+        if buy_info and not (isinstance(buy_info, dict) or set(buy_info.keys()) <= set("purchase_url", "purchase_name", "purchase_image")):
+            raise InputError("Version purchase information must only contain purchase_url, purchase_name, purchase_image")
         return True
 
     def _normalize(self):
