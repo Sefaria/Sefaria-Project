@@ -36,7 +36,7 @@ class MultiServerMonitor(MessagingNode):
             return
 
         if msg["type"] != "message":
-            logger.error("Surprising redis message type: {}".format(msg))
+            logger.error(u"Surprising redis message type: {}".format(msg))
 
         elif msg["channel"] == MULTISERVER_REDIS_EVENT_CHANNEL:
             data = json.loads(msg["data"])
@@ -45,7 +45,7 @@ class MultiServerMonitor(MessagingNode):
             data = json.loads(msg["data"])
             self._process_confirm(data)
         else:
-            logger.error("Surprising redis message channel: {}".format(msg["channel"]))
+            logger.error(u"Surprising redis message channel: {}".format(msg["channel"]))
 
         # There may be more than one message waiting
         self.process_messages()
@@ -81,7 +81,7 @@ class MultiServerMonitor(MessagingNode):
         event_record = self.events.get(event_id)
 
         if not event_record:
-            logger.error("Got confirmation of unknown event. {}".format(data))
+            logger.error(u"Got confirmation of unknown event. {}".format(data))
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]

@@ -6,8 +6,8 @@
 <html>
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
-    <meta charset="utf-8">
-    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}">
+    <meta charset="utf-8"/>
+    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
 
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />

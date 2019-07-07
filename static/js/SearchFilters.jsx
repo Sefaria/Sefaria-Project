@@ -1,5 +1,7 @@
 const {
   DropdownModal,
+  DropdownButton,
+  DropdownOptionList,
   LoadingMessage,
 }                = require('./Misc');
 const React      = require('react');
@@ -198,27 +200,6 @@ SearchFilters.propTypes = {
 };
 
 
-class SearchDropdownButton extends Component {
-  render() {
-    const { isOpen, toggle, enText, heText } = this.props;
-    const filterTextClasses = classNames({ searchFilterToggle: 1, active: isOpen });
-    return (
-      <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
-        <span className="int-en">{enText}</span>
-        <span className="int-he">{heText}</span>
-        {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
-      </div>
-    )
-  }
-}
-SearchDropdownButton.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  toggle: PropTypes.func.isRequired,
-  enText: PropTypes.string.isRequired,
-  heText: PropTypes.string.isRequired,
-}
-
-
 class SearchFilterTabRow extends Component {
   render() {
     return (
@@ -257,8 +238,8 @@ class SheetSearchFilterPanel extends Component {
 
 
     return (
-      <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
-        <SearchDropdownButton
+      <DropdownModal positionUnset={true} close={this.props.closeBox} isOpen={this.props.displayFilters}>
+        <DropdownButton
           isOpen={this.props.displayFilters}
           toggle={this.props.toggleFilterView}
           enText={"Filter"}
@@ -323,8 +304,8 @@ class TextSearchFilterPanel extends Component {
   }
   render() {
     return (
-      <DropdownModal close={this.props.closeBox} isOpen={this.props.displayFilters}>
-        <SearchDropdownButton
+      <DropdownModal positionUnset={true} close={this.props.closeBox} isOpen={this.props.displayFilters}>
+        <DropdownButton
           isOpen={this.props.displayFilters}
           toggle={this.props.toggleFilterView}
           enText={"Filter"}
@@ -403,34 +384,18 @@ class SearchSortBox extends Component {
   render() {
     const filterTextClasses = classNames({ searchFilterToggle: 1, active: this.props.visible });
     return (<DropdownModal close={this.props.closeBox} isOpen={this.props.visible}>
-      <SearchDropdownButton
+      <DropdownButton
         isOpen={this.props.visible}
         toggle={this.props.toggleSortView}
         enText={"Sort"}
         heText={"מיון"}
       />
-      <div className={(this.props.visible) ? "searchSortBox" :"searchSortBox hidden"}>
-        <table>
-          <tbody>
-            {
-              SearchState.metadataByType[this.props.type].sortTypeArray.map( (sortTypeObj, iSortTypeObj) => {
-                const tempClasses = classNames({'filter-title': 1, unselected: this.props.sortType !== sortTypeObj.type});
-                return (
-                  <tr key={`${this.props.type}|${sortTypeObj.type}`} className={tempClasses} onClick={()=>{ this.handleClick(sortTypeObj.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.handleClick(sortTypeObj.type) : null}} aria-label={`Sort by ${sortTypeObj.name}`}>
-                    <td>
-                      <img className="searchSortCheck" src="/static/img/check-mark.svg" alt={`${sortTypeObj.name} sort selected`}/>
-                    </td>
-                    <td>
-                      <span className="int-en">{sortTypeObj.name}</span>
-                      <span className="int-he" dir="rtl">{sortTypeObj.heName}</span>
-                    </td>
-                  </tr>
-                );
-              })
-            }
-          </tbody>
-        </table>
-      </div>
+      <DropdownOptionList
+        isOpen={this.props.visible}
+        options={SearchState.metadataByType[this.props.type].sortTypeArray}
+        currOptionSelected={this.props.sortType}
+        handleClick={this.handleClick}
+      />
     </DropdownModal>);
   }
 }

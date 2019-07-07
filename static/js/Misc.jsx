@@ -7,6 +7,259 @@ const PropTypes  = require('prop-types');
 import Component      from 'react-class';
 
 
+/* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
+class ProfilePic extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showDefault: true,
+    };
+  }
+  showNonDefaultPic() {
+    this.setState({ showDefault: false });
+  }
+  render() {
+    const { url, name, len, outerStyle, hideOnDefault } = this.props;
+    const nameArray = !!name.trim() ? name.split(/\s/) : [];
+    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
+    const defaultViz = this.state.showDefault ? 'flex' : 'none';
+    const profileViz = this.state.showDefault ? 'none' : 'block';
+    const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
+    return (
+      <div style={outerStyle}>
+        <div
+          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
+        >
+          { `${initials}` }
+        </div>
+        <img
+          className="img-circle profile-img"
+          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          src={imageSrc}
+          alt="User Profile Picture"
+          onLoad={this.showNonDefaultPic}
+        />
+      </div>
+    );
+  }
+}
+ProfilePic.propTypes = {
+  url:     PropTypes.string,
+  initials:PropTypes.string,
+  len:     PropTypes.number,
+  hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
+};
+
+
+class FilterableList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      currFilter: '',
+      currSortOption: props.sortOptions[0],
+      displaySort: false,
+      loading: true,
+      data: [],
+    };
+  }
+  componentDidMount() {
+    this._isMounted = true;
+    this.load();
+  }
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+  load(ignoreCache) {
+    this.props.getData(ignoreCache).then(data => {
+      if (this._isMounted) {
+        this.setState({ loading: false, data });
+      }
+    });
+  }
+  reload() {
+    this.setState({ loading: true, data: [] }, () => this.load(true));
+  }
+  closeSort() {
+    this.setState({ displaySort: false });
+  }
+  toggleSort() {
+    this.setState({ displaySort: !this.state.displaySort });
+  }
+  filterFunc(item) {
+    if (!this.state.currFilter) { return true; }
+    return this.props.filterFunc(this.state.currFilter, item);
+  }
+  sortFunc(itemA, itemB) {
+    return this.props.sortFunc(this.state.currSortOption, itemA, itemB);
+  }
+  onFilterChange(e) {
+    this.setState({currFilter: e.target.value});
+  }
+  onSortChange(sortOption) {
+    if (sortOption === this.props.currSortOption) {
+      return;
+    }
+    this.setState({currSortOption: sortOption});
+    this.closeSort();
+  }
+  render() {
+    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter } = this.props;
+    const { loading, currFilter, displaySort, currSortOption, data } = this.state;
+    const newData = data.filter(this.filterFunc).sort(this.sortFunc);
+    return (
+      <div className="filterable-list">
+        <div className="filter-bar">
+          <div>
+            <ReaderNavigationMenuSearchButton />
+            <input
+              type="text"
+              placeholder={Sefaria._("Search")}
+              name="filterableListInput"
+              value={currFilter}
+              onChange={this.onFilterChange}
+            />
+          </div>
+          <div>
+            { sortOptions.length ?
+              <DropdownModal close={this.closeSort} isOpen={displaySort}>
+                <DropdownButton
+                  isOpen={displaySort}
+                  toggle={this.toggleSort}
+                  enText={"Sort"}
+                  heText={"מיון"}
+                />
+                <DropdownOptionList
+                  isOpen={displaySort}
+                  options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
+                  currOptionSelected={currSortOption}
+                  handleClick={this.onSortChange}
+                />
+              </DropdownModal>
+              : null
+            }
+          </div>
+        </div>
+        {
+          loading ? <LoadingMessage /> :
+          ( data.length ?
+            (
+              <div className="filter-content">
+                { !!renderHeader ? renderHeader() : null }
+                { data.filter(this.filterFunc).sort(this.sortFunc).map(renderItem) }
+                { !!renderFooter ? renderFooter() : null }
+              </div>
+            ) : ( !!renderEmptyList ? renderEmptyList() : null )
+          )
+        }
+      </div>
+    )
+  }
+}
+FilterableList.propTypes = {
+  filterFunc:  PropTypes.func.isRequired,
+  sortFunc:    PropTypes.func.isRequired,
+  renderItem:  PropTypes.func.isRequired,
+  sortOptions: PropTypes.array.isRequired,
+  getData:     PropTypes.func.isRequired,
+  renderEmptyList: PropTypes.func,
+  renderHeader: PropTypes.func,
+  renderFooter: PropTypes.func,
+};
+
+class TabView extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      openTabIndex: 0,
+    };
+  }
+  openTab(index) {
+    this.setState({openTabIndex: index});
+  }
+  onClickTab(e) {
+    let target = $(event.target);
+    while (!target.attr("data-tab-index")) { target = target.parent(); }
+    const tabIndex = target.attr("data-tab-index");
+    this.openTab(parseInt(tabIndex));
+  }
+  renderTab(tab, index) {
+    return (
+      <div className={classNames({active: this.state.openTabIndex === index})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+        {this.props.renderTab(tab, index)}
+      </div>
+    );
+  }
+  render() {
+    return (
+      <div className="tab-view">
+        <div className="tab-list">
+          { this.props.tabs.map(this.renderTab)}
+        </div>
+        { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
+      </div>
+    );
+  }
+}
+TabView.propTypes = {
+  tabs: PropTypes.array.isRequired,
+  renderTab: PropTypes.func.isRequired,
+};
+
+class DropdownOptionList extends Component {
+  render() {
+    return (
+      <div className={(this.props.isOpen) ? "dropdown-option-list" :"dropdown-option-list hidden"}>
+        <table>
+          <tbody>
+            {
+              this.props.options.map( (option, iSortTypeObj) => {
+                const tempClasses = classNames({'filter-title': 1, unselected: this.props.currOptionSelected !== option.type});
+                return (
+                  <tr key={option.type} className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
+                    <td>
+                      <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
+                    </td>
+                    <td>
+                      <span className="int-en">{option.name}</span>
+                      <span className="int-he" dir="rtl">{option.heName}</span>
+                    </td>
+                  </tr>
+                );
+              })
+            }
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+}
+DropdownOptionList.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  options: PropTypes.array.isRequired,
+  currOptionSelected: PropTypes.string.isRequired,
+  handleClick: PropTypes.func.isRequired,
+};
+class DropdownButton extends Component {
+  render() {
+    const { isOpen, toggle, enText, heText } = this.props;
+    const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen });
+    return (
+      <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
+        <span className="int-en">{enText}</span>
+        <span className="int-he">{heText}</span>
+        {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+      </div>
+    )
+  }
+}
+DropdownButton.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  toggle: PropTypes.func.isRequired,
+  enText: PropTypes.string.isRequired,
+  heText: PropTypes.string.isRequired,
+}
+
 class DropdownModal extends Component {
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
@@ -22,7 +275,7 @@ class DropdownModal extends Component {
   }
   render() {
     return (
-      <div>
+      <div className={classNames({"dropdown-modal": 1, "position-unset": this.props.positionUnset})}>
         { this.props.children }
       </div>
     );
@@ -31,6 +284,7 @@ class DropdownModal extends Component {
 DropdownModal.propTypes = {
   close:   PropTypes.func.isRequired,
   isOpen:  PropTypes.bool.isRequired,
+  positionUnset: PropTypes.bool,  // for search filters
 };
 
 class Link extends Component {
@@ -245,8 +499,8 @@ SimpleContentBlock.propTypes = {
 };
 
 
-const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children}) => (
-        <div className={classes}>
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
+        <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
               <span className="int-en">{en}</span>
               <span className="int-he">{he}</span>
@@ -452,7 +706,7 @@ class ReaderNavigationMenuCloseButton extends Component {
 class ReaderNavigationMenuDisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ? 
+    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
       <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
       <span className="textIcon">Aa</span>;
     return (<a
@@ -575,7 +829,8 @@ class FollowButton extends Component {
   onMouseLeave() {
     this.setState({hovering: false});
   }
-  onClick() {
+  onClick(e) {
+    e.stopPropagation();
     if (!Sefaria._uid) {
         this.props.toggleSignUpModal();
         return;
@@ -637,7 +892,7 @@ class SinglePanelNavHeader extends Component {
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
   enTitle:             PropTypes.string,
-  heTitle:             PropTypes.string, 
+  heTitle:             PropTypes.string,
   showDisplaySettings: PropTypes.bool,
   openDisplaySettings: PropTypes.func,
   colorLineCategory:   PropTypes.string,
@@ -652,27 +907,47 @@ class CategoryColorLine extends Component {
 }
 
 
-const ProfileListing = ({ uid, url, image, name, is_followed, position, organization, toggleSignUpModal}) => (
-  <div className="authorByLine">
-    <div className="authorByLineImage">
-      <a href={url}>
-        <img className="smallProfileImage" src={image} alt={name}/>
-      </a>
-    </div>
-    <div className="authorByLineText">
-      <SimpleLinkedBlock classes="authorName" aclasses="systemText" url={url}
-        en={name} he={name}>
-        <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
-      </SimpleLinkedBlock>
-      {
-        !!organization ? <SimpleInterfaceBlock
-          classes="systemText authorPosition" en={organization}
-          he={organization}
-        />:null
-      }
-    </div>
-  </div>
-);
+class ProfileListing extends Component {
+  openProfile(e) {
+    e.preventDefault();
+    this.props.openProfile(this.props.slug, this.props.name);
+  }
+  render() {
+    const { url, image, name, uid, is_followed, position, toggleSignUpModal } = this.props;
+    return (
+      <div className="authorByLine">
+        <div className="authorByLineImage">
+          <a href={url} onClick={this.openProfile}>
+            <ProfilePic
+              len={40}
+              url={image}
+              name={name}
+            />
+          </a>
+        </div>
+        <div className="authorByLineText">
+          <SimpleLinkedBlock
+            classes="authorName"
+            aclasses="systemText"
+            url={url}
+            en={name}
+            he={name}
+            onClick={this.openProfile}
+          >
+            <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
+          </SimpleLinkedBlock>
+          {
+            !!position ? <SimpleInterfaceBlock
+              classes="systemText authorPosition"
+              en={position}
+              he={position}
+            />:null
+          }
+        </div>
+      </div>
+    );
+  }
+}
 ProfileListing.propTypes = {
   uid:         PropTypes.number.isRequired,
   url:         PropTypes.string.isRequired,
@@ -686,7 +961,7 @@ ProfileListing.propTypes = {
 
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
-  handleSheetClick(e, sheet) {
+  handleSheetClick(e) {
       Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
       //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
@@ -694,13 +969,22 @@ class SheetListing extends Component {
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
-    this.props.handleSheetClick(e, sheet, null, this.props.connectedRefs);
+    this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
   }
-  handleSheetOwnerClick() {
+  handleSheetOwnerClick(e) {
+    e.preventDefault();
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
+    const slugMatch = this.props.sheet.ownerProfileUrl.match(/profile\/(.+)$/);
+    const slug = !!slugMatch ? slugMatch[1] : '';
+    this.props.openProfile(slug, this.props.sheet.ownerName);
   }
   handleSheetTagClick(tag) {
     Sefaria.track.event("Tools", "Sheet Tag Click", tag);
+  }
+  handleSheetDelete() {
+    if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+      Sefaria.sheets.deleteSheetById(this.props.sheet.id).then(this.props.handleSheetDelete);
+    }
   }
   render() {
     var sheet = this.props.sheet;
@@ -712,29 +996,72 @@ class SheetListing extends Component {
         <div className="sheetInfo">
           <div className="sheetUser">
             <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
-              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
+              <ProfilePic
+                outerStyle={{display: "inline-block"}}
+                name={sheet.ownerName}
+                url={sheet.ownerImageUrl}
+                len={26}
+              />
             </a>
             <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
           </div>
           {viewsIcon}
         </div>
 
+    const sheetTags = sheet.tags.map((tag, i) => {
+      const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
+      return (<a href={`/sheets/tags/${tag}`}
+                  target="_blank"
+                  className="sheetTag"
+                  key={tag}
+                  onClick={this.handleSheetTagClick.bind(null, tag)}>{Sefaria._v(tag)}{separator}</a>)
+    });
+    const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
+    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    const created = (new Date(sheet.created)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+    const underInfo = this.props.infoUnderneath ? [
+        sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
+        `${sheet.views} ${Sefaria._('Views')}`,
+        created,
+        sheet.tags.length ? sheetTags : undefined,
+        !!sheet.group ? (<a href={`/groups/${sheet.group}`} target="_blank">{sheet.group}</a>) : undefined,
+      ].filter(x => x !== undefined) : [sheetTags];
+
     return (
       <div className="sheet" key={sheet.sheetUrl}>
-        {sheetInfo}
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
-          <span className="sheetTitleText">{sheet.title}</span>
-        </a>
-        <div className="sheetTags">
-          {sheet.tags.map(function(tag, i) {
-            var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-            return (<a href={"/sheets/tags/" + tag}
-                        target="_blank"
-                        className="sheetTag"
-                        key={tag}
-                        onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
-          }.bind(this))}
+        <div className="sheetLeft">
+          {sheetInfo}
+          <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={this.handleSheetClick}>
+            <img src="/static/img/sheet.svg" className="sheetIcon"/>
+            <span className="sheetTitleText">{sheet.title}</span>
+          </a>
+          <div className="sheetTags">
+            {
+              underInfo.map((i, ii) => (
+                <span key={ii}>
+                  { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+                  {i}
+                </span>
+              ))
+            }
+          </div>
+        </div>
+        <div className="sheetRight">
+          {
+            this.props.editable ?
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
+              : null
+          }
+          {
+            this.props.deletable ?
+              <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
+              : null
+          }
+          {
+            this.props.saveable ?
+              <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} />
+              : null
+          }
         </div>
       </div>);
   }
@@ -743,7 +1070,13 @@ SheetListing.propTypes = {
   sheet:            PropTypes.object.isRequired,
   connectedRefs:    PropTypes.array.isRequired,
   handleSheetClick: PropTypes.func.isRequired,
+  handleSheetDelete:PropTypes.func,
+  openProfile:      PropTypes.func,
+  handleSheetEdit:  PropTypes.func,
+  deletable:        PropTypes.bool,
+  saveable:         PropTypes.bool,
   hideAuthor:       PropTypes.bool,
+  infoUnderneath:   PropTypes.bool,
 };
 
 
@@ -1357,8 +1690,11 @@ module.exports.CategoryColorLine                         = CategoryColorLine;
 module.exports.CategoryAttribution                       = CategoryAttribution;
 module.exports.CookiesNotification                       = CookiesNotification;
 module.exports.Dropdown                                  = Dropdown;
+module.exports.DropdownButton                            = DropdownButton;
 module.exports.DropdownModal                             = DropdownModal;
+module.exports.DropdownOptionList                        = DropdownOptionList;
 module.exports.FeedbackBox                               = FeedbackBox;
+module.exports.FilterableList                            = FilterableList;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
@@ -1367,6 +1703,7 @@ module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.Note                                      = Note;
 module.exports.ProfileListing                            = ProfileListing;
+module.exports.ProfilePic                                = ProfilePic;
 module.exports.ReaderMessage                             = ReaderMessage;
 module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
 module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
@@ -1380,6 +1717,7 @@ module.exports.SignUpModal                               = SignUpModal;
 module.exports.SheetListing                              = SheetListing;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;
 module.exports.SheetTagLink                              = SheetTagLink;
+module.exports.TabView                                   = TabView;
 module.exports.TextBlockLink                             = TextBlockLink;
 module.exports.TestMessage                               = TestMessage;
 module.exports.ThreeBox                                  = ThreeBox;
