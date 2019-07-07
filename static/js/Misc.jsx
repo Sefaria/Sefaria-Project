@@ -913,7 +913,7 @@ class ProfileListing extends Component {
     this.props.openProfile(this.props.slug, this.props.name);
   }
   render() {
-    const { url, image, name, uid, is_followed, position } = this.props;
+    const { url, image, name, uid, is_followed, position, toggleSignUpModal } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
@@ -934,7 +934,7 @@ class ProfileListing extends Component {
             he={name}
             onClick={this.openProfile}
           >
-            <FollowButton large={false} uid={uid} following={is_followed}/>
+            <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
           </SimpleLinkedBlock>
           {
             !!position ? <SimpleInterfaceBlock
