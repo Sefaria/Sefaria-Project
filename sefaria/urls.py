@@ -50,6 +50,8 @@ urlpatterns = [
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^story_editor/?$', reader_views.story_editor),
+    url(r'^user_stats/?$', reader_views.user_stats),
+
 ]
 
 # People Pages
@@ -163,6 +165,7 @@ urlpatterns += [
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     url(r'^api/stories/?(?P<gid>.+)?$', reader_views.stories_api),
     url(r'^api/story_reflector/?$', reader_views.story_reflector),
+    url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
 ]
 

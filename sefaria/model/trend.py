@@ -107,7 +107,8 @@ def setUserSheetTraits():
 def setUserCategoryTraits():
     from sefaria.model.category import TOP_CATEGORIES
 
-    cat_to_name = lambda c: "Category" + c
+    def cat_to_name(c):
+        return "Category" + c
 
     TrendSet({"name": {"$in": map(cat_to_name, TOP_CATEGORIES)}}).delete()
 
@@ -293,6 +294,7 @@ class EnglishToleranceFactory(TrendFactory):
     datatype = "float"   # int, float, str, bool, dict
     for_user = True
     for_group = False
+
 
 class HebrewAbilityFactory(TrendFactory):
     name = "HebrewAbility"

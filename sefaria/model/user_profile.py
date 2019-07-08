@@ -644,6 +644,22 @@ def public_user_data(uid):
     return data
 
 
+def user_stats_data(uid):
+    from sefaria.model.category import TOP_CATEGORIES
+    from sefaria.model.trend import Trend, TrendSet
+
+    uid = int(uid)
+    def cat_to_name(c):
+        return "Category" + c
+
+    d = public_user_data(uid)
+    d["sheetsRead"] = UserHistorySet({"is_sheet": True, "secondary": False, "uid": uid}).count()
+    d["textsRead"] = UserHistorySet({"is_sheet": False, "secondary": False, "uid": uid}).count()
+    d["categoriesRead"] = {t.name[8:]: t.value for t in TrendSet({"uid":uid, "name": {"$in": map(cat_to_name, TOP_CATEGORIES)}})}
+
+    return d
+
+
 def user_name(uid):
     """Returns a string of a user's full name"""
     data = public_user_data(uid)
@@ -667,7 +683,7 @@ def is_user_staff(uid):
     """
     Returns True if the user with uid is staff.
     """
-    data = public_user_data(uid)
+    data = public_user_data(uid)  #needed?
     try:
         uid  = int(uid)
         user = User.objects.get(id=uid)

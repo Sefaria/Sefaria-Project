@@ -38,7 +38,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
@@ -906,12 +906,17 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
-@login_required
+@staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
 
+@staff_member_required
+def user_stats(request):
+    props = base_props(request)
+    title = _("User Stats")
+    return menu_page(request, props, "user_stats", title)
 
 @login_required
 def account(request):
@@ -2538,6 +2543,11 @@ def addDynamicStories(stories, user, page):
 
     return stories
 
+
+@staff_member_required
+def user_stats_api(request, uid):
+    assert request.method == "GET", "Unsupported Method"
+    return jsonResponse(user_stats_data(uid))
 
 @staff_member_required
 def story_reflector(request):

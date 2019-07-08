@@ -593,6 +593,11 @@ class ReaderApp extends Component {
             hist.url = "story_editor";
             hist.mode = "story_editor";
             break;
+          case "user_stats":
+            hist.title = Sefaria._("User Stats");
+            hist.url = "user_stats";
+            hist.mode = "user_stats";
+            break;
           case "saved":
             hist.title = Sefaria._("My Saved Content");
             hist.url = "texts/saved";
