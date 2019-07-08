@@ -7,13 +7,90 @@ class Search {
     constructor(searchIndexText, searchIndexSheet) {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
-      this._cache = {}
+      this._cache = {};
+      this.sefariaQueryQueue = [];
+      this.dictaQueryQueue = [];
+      this.queryDictaFlag = true;
+      this.dictaCounts = null;
     }
     cache(key, result) {
         if (result !== undefined) {
            this._cache[key] = result;
         }
         return this._cache[key];
+    }
+    sefariaQuery(args) {
+        return new Promise((resolve, reject) => {
+            let req = JSON.stringify(this.get_query_object(args));
+            $.ajax({
+                url: `${Sefaria.apiHost}/api/search-wrapper`,
+                type: 'POST',
+                data: req,
+                contentType: "application/json; charset=utf-8",
+                crossDomain: true,
+                processData: false,
+                dataType: 'json',
+                success: data => resolve(data),
+                error: reject
+            })
+        })
+
+    }
+    dictaQuery(args) {
+        function ammendArgsForDicta(standardArgs) {
+            return {};
+        }
+        if (!this.queryDictaFlag) {
+            return Promise.resolve([]);
+        }
+        else {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: 'foo/api/search',
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(ammendArgsForDicta(args)),
+                    success: data => resolve(data),
+                    error: reject()
+                })
+
+            })
+        }
+    }
+
+    dictaBooksQuery(args) {
+        if (this.dictaCounts === null) {
+            if (this.queryDictaFlag) {
+                return new Promise((resolve, reject) => {
+                    let query = args.query;
+                    $.ajax({
+                        url: 'foo/api/books',
+                        type: 'POST',
+                        dataType: 'json',
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify(query),
+                        success: data => resolve(data),
+                        error: reject()
+                    })
+                })
+            }
+            else {
+                return Promise.resolve([]);
+            }
+        }
+        else {
+            return Promise.resolve(this.dictaCounts);
+        }
+
+    }
+    isDictaQuery(args) {
+        return false
+    }
+    handleTripleQuery(args) {
+        let sefariaQuery = this.sefariaQuery(args);
+        let dictaBooksQuery = this.dictaBooksQuery(args);
+        let dictaSearchQuery = this.dictaQuery(args);
     }
     execute_query(args) {
         // To replace sjs.search.post in search.js
@@ -34,6 +111,11 @@ class Search {
         if (!args.query) {
             return;
         }
+
+        if (!this.isDictaQuery(args)) {
+            this.queryDictaFlag = false;
+        }
+
         var req = JSON.stringify(this.get_query_object(args));
         var cache_result = this.cache(req);
         if (cache_result) {
