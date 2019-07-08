@@ -8,22 +8,20 @@ import Html from 'slate-html-serializer'
 
 
 
-function SheetItem(props) {
-  return (
-      <div className="sheetItem">{props.children}</div>
-  )
-}
 
 const BLOCK_TAGS = {
   blockquote: 'quote',
   p: 'paragraph',
+  div: 'div',
   pre: 'code',
+  section: 'sheetItem'
 }
 
 // Add a dictionary of mark tags.
 const MARK_TAGS = {
   em: 'italic',
   strong: 'bold',
+  b: 'bold',
   u: 'underline',
 }
 
@@ -53,8 +51,12 @@ const rules = [
             )
           case 'paragraph':
             return <p className={obj.data.get('className')}>{children}</p>
+          case 'div':
+            return <div className={obj.data.get('className')}>{children}</div>
           case 'quote':
             return <blockquote>{children}</blockquote>
+          case 'sheetItem':
+            return <section className={obj.data.get('className')}>{children}</section>
         }
       }
     },
@@ -91,7 +93,6 @@ const html = new Html({ rules })
 
 
 function SefariaEditor(props) {
-    console.log(props.data)
     const [slateValue, setSlateValue] = useState(html.deserialize(props.data));
 
     function onKeyDown(event, editor, next) {
@@ -100,9 +101,46 @@ function SefariaEditor(props) {
     }
 
   function renderBlock(props, editor, next) {
-        return <SheetItem {...props} />
-      //return next()
+    switch (props.node.type) {
+      case 'code':
+        return (
+          <pre {...props.attributes}>
+            <code>{props.children}</code>
+          </pre>
+        )
+      case 'paragraph':
+        return (
+          <p {...props.attributes} className={props.node.data.get('className')}>
+            {props.children}
+          </p>
+        )
+      case 'div':
+        return (
+          <div {...props.attributes} className={props.node.data.get('className')}>
+            {props.children}
+          </div>
+        )
+      case 'quote':
+        return <blockquote {...props.attributes}>{props.children}</blockquote>
+      default:
+        return next()
+    }  }
+
+  // Add a `renderMark` method to render marks.
+  function renderMark(props, editor, next) {
+    const { mark, attributes } = props
+    switch (mark.type) {
+      case 'bold':
+        return <strong {...attributes}>{props.children}</strong>
+      case 'italic':
+        return <em {...attributes}>{props.children}</em>
+      case 'underline':
+        return <u {...attributes}>{props.children}</u>
+      default:
+        return next()
+    }
   }
+
 
 
 
@@ -112,6 +150,7 @@ function SefariaEditor(props) {
             onChange={({value}) => setSlateValue(value)}
             onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
             renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
+            renderMark={(props, editor, next) => renderMark(props, editor, next)}
         />
     )
 

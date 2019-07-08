@@ -107,7 +107,7 @@ class Sheet extends Component {
              this.setState({scrollDir: "down"});
            }
         }}>
-            {this.state.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={renderToString(content)} /></div> : content}
+            {this.state.editor == true && sheet ? <SefariaEditor data={renderToString(content)} /> : content}
 
 
 
@@ -446,7 +446,7 @@ class SheetComment extends Component {
       );
 
     return (
-        <section className="SheetContent">
+        <section className="SheetComment">
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
