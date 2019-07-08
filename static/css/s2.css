@@ -919,12 +919,10 @@ input.noselect {
 .interface-hebrew.multiPanel .homeFeedWrapper .content {
   padding-right: 40px;
 }
-.multiPanel .readerNavMenu .content,
-.multiPanel .homeFeedWrapper .content {
+.multiPanel .readerNavMenu .content {
   padding: 30px 30px 70px 30px;
 }
-.multiPanel .readerNavMenu .content.hasFooter,
-.multiPanel .homeFeedWrapper .content.hasFooter {
+.multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0 0 0;
 }
 .multiPanel .readerNavMenu.noHeader .content,
@@ -2142,7 +2140,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchTopMatter .search-dropdown-button {
   font-size: 18px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
   padding: 15px;
@@ -6594,7 +6592,6 @@ span.purim-emoji img{
   opacity: 1;
   transition: all 0.75s ease;
 }
-
 .largeFollowButton {
   display: inline-block;
   padding: 7px;
@@ -6618,7 +6615,6 @@ span.purim-emoji img{
 .largeFollowButton.following span {
   color: #666;
 }
-
 .smallFollowButton {
   height: 18px;
   line-height: 18px;
@@ -6632,17 +6628,85 @@ span.purim-emoji img{
   display: none;
   letter-spacing: normal;
 }
-
 .smallFollowButton.smallText span {
   color: #666;
 }
-
+body .homeFeedWrapper {
+  background-color: white;
+}
+body .homeFeedWrapper .content {
+  padding: 0;
+}
+.homeFeedWrapper #homeCover {
+  height: 200px;
+  padding: 30px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  left: -20px;
+  width: calc(100% + 20px);
+}
+.homeFeedWrapper #homeVideo {
+  position: absolute;
+  top: -270px;
+  left: 0;
+  width: 100%;
+  min-width: 1200px;
+  z-index: 0;
+}
+.homeFeedWrapper #homeCover h1.featureTitle {
+  color: white;
+  margin-bottom: 20px;
+  position: relative;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-en,
+.homeFeedWrapper #homeCover h1.featureTitle .int-he {
+  color: white;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-en {
+  font-size: 36px;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-he {
+  font-size: 44px;
+}
+.homeFeedWrapper #homeCover .sub {
+  color: white;
+  font-size: 16px;
+  margin: 0;
+  position: relative;
+}
+.homeFeedWrapper #homeCover .sub a {
+  font-size: 18px;
+}
+.homeFeedWrapper #homeCover .sub .int-en {
+}
+.homeFeedWrapper #homeCover a {
+  color: white;
+  font-style: normal;
+  position: relative;
+}
+.homeFeedColumns {
+  display: flex;
+  flex-direction: row;
+}
+.homeFeedSidebar {
+  flex: 0 0 400px;
+  background-color: #FBFBFA;
+}
+.storyFeed {
+  flex: 1;
+  background-color: white;
+}
+.storyFeedInner {
+  max-width: 700px;
+  margin: 0 auto;
+}
 .storyByLine:hover .smallFollowButton,
 .authorName:hover .smallFollowButton {
   display: inline-block;
 }
-
-
 .bilingual .homeFeedWrapper span.he {
   display: block;
   padding-bottom: 10px;
@@ -6659,7 +6723,6 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTitleBlock {
   float: right;
 }
-
 .colorBarBox {
   clear: both;
 }
@@ -6679,20 +6742,16 @@ span.purim-emoji img{
 .interface-hebrew .learnMoreLink {
   padding-right: 34px;
 }
-
 .storyTextListItem {
   padding-bottom: 18px;
 }
 .storyTextListItem:last-child {
   padding-bottom: 0;
 }
-
 .publishSheetStory .saveButton  {
   float: right;
   padding-top: 20px;
 }
-
-
 .storyFeed .story .storyTitle {
   padding: 10px 0 30px;
 }
@@ -6739,9 +6798,6 @@ img.smallProfileImage {
 .interface-hebrew .storyFeed .story .mediumProfileImage {
   float: left;
 }
-
-
-
 .storyFeed .story .storyBody {
   clear: both;
   margin: 10px 0;
@@ -6763,8 +6819,6 @@ img.smallProfileImage {
 .storyFeed .story .storySheetList .pageTitle span {
   font-size: 20px;
 }
-
-
 .storyFeed .story .saveLine {
   display: flex;
   clear: both;
@@ -6781,7 +6835,6 @@ img.smallProfileImage {
 .storyFeed .story .saveLine .saveButton {
   align-self: center;
 }
-
 .storyFeed .story .citationLine.contentText .int-en,
 .storyFeed .story .citationLine.contentText .int-he {
   color: #999;
@@ -6793,17 +6846,14 @@ img.smallProfileImage {
   width: 100%;
   letter-spacing: 2px;
 }
-
 .authorByLine {
   display: flex;
 }
-
 .authorByLine .authorByLineText {
   letter-spacing: 2px;
   padding: 0 10px;
   line-height: 22px;
 }
-
 .authorByLine .authorPosition,
 .authorByLine .authorName {
   display: block;
@@ -6812,7 +6862,6 @@ img.smallProfileImage {
   position: relative;
   bottom: 12px;
 }
-
 .systemText.authorPosition span {
   color: #999;
 }
