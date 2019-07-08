@@ -736,7 +736,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   useEffect(() => {
     if (placeholder) { return; }
     setSelected(isSelected())
-  }, [historyObject.ref]);
+  }, [historyObject && historyObject.ref]);
 
   const [isPosting, setPosting] = useState(false);
 
