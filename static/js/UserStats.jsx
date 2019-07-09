@@ -44,7 +44,7 @@ const UserDataBlock = ({data}) => (
     <div>
         <h2><a href={data.profileUrl}>{data.name}</a></h2>
         <div>{data.position?(data.position + " at " + data.organization):data.organization}</div>
-        <div><img src={data.imageUrl}/></div>
+        <div><img src={data.imageUrl} width="128" height="128" style={{float: "right"}}/></div>
         <br/>
         <div>{data.sheetsRead} Sheets Read</div>
         <div>{data.textsRead} Texts Read</div>
@@ -64,9 +64,11 @@ const makeOtherCategory = data => {
 
 //Object.entries(data.categoriesRead).sort((a,b)=>b[1]-a[1]).map((e,i) => <div key={i}>{e[0]}: {Number(e[1]).toLocaleString(undefined,{style: 'percent', minimumFractionDigits:2})}</div>)}
 const CategoriesPie = ({catsRead}) => {
-    const width = 500;
-    const height = 500;
-    const data = makeOtherCategory(Object.entries(catsRead).map(e => ({name: e[0], value: e[1]})));
+    const width = 420;
+    const height = 420;
+    const raw_data = Object.entries(catsRead).map(e => ({name: e[0], value: e[1]}));
+    if (!raw_data.length) {return <div></div>}
+    const data = makeOtherCategory(raw_data);
     const compare = (a,b) => (
         a.name==="Other"? 1
         :b.name==="Other"? -1
@@ -86,6 +88,8 @@ const CategoriesPie = ({catsRead}) => {
 
     useEffect(()=>{
         const svg = d3.select("svg.cat-pie");
+        if (!svg) {return;}
+
         const g = svg.append("g")
             .attr("transform", `translate(${width / 2},${height / 2})`);
         g.selectAll("path")
@@ -119,7 +123,7 @@ const CategoriesPie = ({catsRead}) => {
     }, [catsRead]);
     return (
         <div>
-            <svg width={500} height={500} textAnchor="middle" style={{font: "12px sans-serif"}} className="cat-pie"/>
+            <svg width={420} height={420} textAnchor="middle" style={{font: "12px sans-serif"}} className="cat-pie"/>
         </div>
     );
 };
