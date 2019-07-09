@@ -8,7 +8,7 @@ class Search {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
       this._cache = {};
-      this.sefariaQueryQueue = {hits: {hits:[]}};
+      this.sefariaQueryQueue = {hits: {hits:[], total: 0, max_score: 0.0}};
       this.dictaQueryQueue = [];
       this.queryDictaFlag = true;
       this.dictaCounts = null;
@@ -34,9 +34,14 @@ class Search {
                 error: reject
             });
         }).then(x => {
-            console.log(this);
-            console.log(x);
-            this.sefariaQueryQueue.hits.hits.concat(x.hits.hits);
+            if (x.hits.hits.length > 0) {
+            }
+            /*
+            this.sefariaQueryQueue.hits.total += x.hits.total;
+            this.sefariaQueryQueue.hits.max_score += x.hits.max_score;
+            this.sefariaQueryQueue.hits.hits.push(... x.hits.hits);
+             */
+            this.sefariaQueryQueue = x;
         });
 
     }
@@ -59,7 +64,7 @@ class Search {
             else {
                 resolve([]);
             }
-        }).then(x => console.log(x)).catch(x => console.log([]));
+        }).then(x => {}).catch(x => {});
     }
     dictaBooksQuery(args) {
         return new Promise((resolve, reject) => {
@@ -83,7 +88,7 @@ class Search {
             else {
                 resolve(this.dictaCounts);
             }
-        }).then(x => console.log(x)).catch(x => console.log([]));
+        }).then(x => {}).catch(x => {});
     }
     isDictaQuery(args) {
         return true
@@ -145,8 +150,9 @@ class Search {
             this.sefariaQuery(args),
             this.dictaQuery(args),
             this.dictaBooksQuery(args)
-        ]).then(args.success(this.sefariaQueryQueue)).catch(args.error);
-        console.log(this.sefariaQueryQueue);
+        ]).then(() => {
+            args.success(this.sefariaQueryQueue)
+        }).catch(args.error);
         return null;
     }
     get_query_object({
