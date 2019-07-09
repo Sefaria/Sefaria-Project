@@ -8,7 +8,7 @@ class Search {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
       this._cache = {};
-      this.sefariaQueryQueue = [];
+      this.sefariaQueryQueue = {hits: {hits:[]}};
       this.dictaQueryQueue = [];
       this.queryDictaFlag = true;
       this.dictaCounts = null;
@@ -32,60 +32,61 @@ class Search {
                 dataType: 'json',
                 success: data => resolve(data),
                 error: reject
-            })
-        })
+            });
+        }).then(x => {
+            console.log(this);
+            console.log(x);
+            this.sefariaQueryQueue.hits.hits.concat(x.hits.hits);
+        });
 
     }
     dictaQuery(args) {
         function ammendArgsForDicta(standardArgs) {
             return {};
         }
-        if (!this.queryDictaFlag) {
-            return Promise.resolve([]);
-        }
-        else {
-            return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
+            if (this.queryDictaFlag) {
                 $.ajax({
                     url: 'foo/api/search',
                     type: 'POST',
                     dataType: 'json',
                     contentType: 'application/json; charset=UTF-8',
-                    data: JSON.stringify(ammendArgsForDicta(args)),
+                    data: JSON.stringify((ammendArgsForDicta(args))),
                     success: data => resolve(data),
                     error: reject()
-                })
-
-            })
-        }
+                });
+            }
+            else {
+                resolve([]);
+            }
+        }).then(x => console.log(x)).catch(x => console.log([]));
     }
-
     dictaBooksQuery(args) {
-        if (this.dictaCounts === null) {
-            if (this.queryDictaFlag) {
-                return new Promise((resolve, reject) => {
-                    let query = args.query;
+        return new Promise((resolve, reject) => {
+            if (this.dictaCounts === null) {
+                if (this.queryDictaFlag) {
                     $.ajax({
                         url: 'foo/api/books',
                         type: 'POST',
                         dataType: 'json',
                         contentType: "application/json;charset=UTF-8",
-                        data: JSON.stringify(query),
+                        data: JSON.stringify(args.query),
+                        timeout: 3000,
                         success: data => resolve(data),
                         error: reject()
                     })
-                })
+                }
+                else {
+                    resolve([]);
+                }
             }
             else {
-                return Promise.resolve([]);
+                resolve(this.dictaCounts);
             }
-        }
-        else {
-            return Promise.resolve(this.dictaCounts);
-        }
-
+        }).then(x => console.log(x)).catch(x => console.log([]));
     }
     isDictaQuery(args) {
-        return false
+        return true
     }
     handleTripleQuery(args) {
         let sefariaQuery = this.sefariaQuery(args);
@@ -112,16 +113,19 @@ class Search {
             return;
         }
 
-        if (!this.isDictaQuery(args)) {
-            this.queryDictaFlag = false;
+        let isQueryStart = !('start' in args); // first query has no start value, (start is defaulted to 0)
+        if (isQueryStart) {
+            this.dictaCounts = null;
+            this.queryDictaFlag = this.isDictaQuery(args);
         }
 
-        var req = JSON.stringify(this.get_query_object(args));
-        var cache_result = this.cache(req);
+        let req = JSON.stringify(this.get_query_object(args));
+        let cache_result = this.cache(req);
         if (cache_result) {
             args.success(cache_result);
             return null;
         }
+        /*
         return $.ajax({
             url: `${Sefaria.apiHost}/api/search-wrapper`,
             type: 'POST',
@@ -136,6 +140,14 @@ class Search {
             }.bind(this),
             error: args.error
         });
+         */
+        Promise.all([
+            this.sefariaQuery(args),
+            this.dictaQuery(args),
+            this.dictaBooksQuery(args)
+        ]).then(args.success(this.sefariaQueryQueue)).catch(args.error);
+        console.log(this.sefariaQueryQueue);
+        return null;
     }
     get_query_object({
       query,
