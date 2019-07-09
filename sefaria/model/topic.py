@@ -31,11 +31,12 @@ class Topic(abst.AbstractMongoRecord):
         "topic",
         "related_topics",
         "sources",
-        "sheets"
+        "sheets",
+        "good_to_promote"
     ]
     optional_attrs = []
 
-    def __init__(self, topic, sources_dict=None, related_topics_dict=None):
+    def __init__(self, topic, sources_dict=None, related_topics_dict=None, good_to_promote=False):
         self.topic               = topic
         self.related_topics      = None
         self.sources             = None
@@ -43,6 +44,7 @@ class Topic(abst.AbstractMongoRecord):
         self.sources_dict        = sources_dict
         self.related_topics_dict = related_topics_dict
         self._filtered           = False
+        self.good_to_promote     = good_to_promote
         self.make_data_from_sheets()
 
     def contents(self):
@@ -50,6 +52,7 @@ class Topic(abst.AbstractMongoRecord):
             "topic": self.topic,
             "related_topics": self.related_topics[0:self.MAX_RELATED],
             "sources": self.sources[0:self.MAX_SOURCES],
+            "good_to_promote": self.good_to_promote
             #"sheets": self.sheets,
         }
 
@@ -150,7 +153,7 @@ class TopicsManager(object):
                         tags[tag]["related_topics_dict"][related_tag] += 1
 
         for tag in tags:
-            topic = Topic(tag, sources_dict=tags[tag]["sources_dict"], related_topics_dict=tags[tag]["related_topics_dict"])
+            topic = Topic(tag, good_to_promote=getattr(Term(tag), "good_to_promote", False), sources_dict=tags[tag]["sources_dict"], related_topics_dict=tags[tag]["related_topics_dict"])
             topic.filter_sources()
             if len(topic.sources) > 0:
                 self.topics[tag] = topic
@@ -207,7 +210,7 @@ class TopicsManager(object):
         }
         results = []
         for topic in self.topics.keys():
-            results.append({"tag": topic, "count": len(self.topics[topic].sources)})
+            results.append({"tag": topic, "good_to_promote": self.topics[topic].good_to_promote, "count": len(self.topics[topic].sources)})
         results = sorted(results, key=sort_keys[sort_by])
 
         self.sorted_topics[sort_by] = results
