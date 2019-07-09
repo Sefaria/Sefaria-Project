@@ -987,6 +987,7 @@ class ReaderPanel extends Component {
           profile={this.state.profile}
           handleInAppLinkClick={this.props.handleInAppLinkClick}
           openProfile={this.props.openProfile}
+          toggleSignUpModal={this.props.toggleSignUpModal}
         />
       );
     }
