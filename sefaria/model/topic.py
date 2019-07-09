@@ -153,7 +153,7 @@ class TopicsManager(object):
                         tags[tag]["related_topics_dict"][related_tag] += 1
 
         for tag in tags:
-            topic = Topic(tag, good_to_promote=getattr(Term(tag), "good_to_promote", False), sources_dict=tags[tag]["sources_dict"], related_topics_dict=tags[tag]["related_topics_dict"])
+            topic = Topic(tag, good_to_promote=getattr(Term().load_by_title(tag), "good_to_promote", False), sources_dict=tags[tag]["sources_dict"], related_topics_dict=tags[tag]["related_topics_dict"])
             topic.filter_sources()
             if len(topic.sources) > 0:
                 self.topics[tag] = topic
