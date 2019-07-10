@@ -12,6 +12,7 @@ class Search {
       this.dictaQueryQueue = [];
       this.queryDictaFlag = true;
       this.dictaCounts = null;
+      this.sefariaSheetsResult = null;
     }
     cache(key, result) {
         if (result !== undefined) {
@@ -34,6 +35,10 @@ class Search {
                 error: reject
             });
         }).then(x => {
+            if (args.type === "sheet") {
+                this.sefariaSheetsResult = x;
+                return null;
+            }
             if (x.hits.hits.length > 0) {
             }
             /*
@@ -50,35 +55,35 @@ class Search {
             return {};
         }
         return new Promise((resolve, reject) => {
-            if (this.queryDictaFlag) {
+            if (this.queryDictaFlag && args.type === "text") {
                 $.ajax({
-                    url: 'foo/api/search',
+                    url: 'https://search.dicta.org.il/api/search',
                     type: 'POST',
                     dataType: 'json',
                     contentType: 'application/json; charset=UTF-8',
                     data: JSON.stringify((ammendArgsForDicta(args))),
                     success: data => resolve(data),
-                    error: reject()
+                    error: reject
                 });
             }
             else {
                 resolve([]);
             }
-        }).then(x => {}).catch(x => {});
+        }).then(x => console.log(x)).catch(x => console.log([]));
     }
     dictaBooksQuery(args) {
         return new Promise((resolve, reject) => {
-            if (this.dictaCounts === null) {
+            if (this.dictaCounts === null && args.type === "text") {
                 if (this.queryDictaFlag) {
                     $.ajax({
-                        url: 'foo/api/books',
+                        url: 'https://search.dicta.org.il/api/books',
                         type: 'POST',
                         dataType: 'json',
                         contentType: "application/json;charset=UTF-8",
-                        data: JSON.stringify(args.query),
+                        data: JSON.stringify({query: args.query}),
                         timeout: 3000,
                         success: data => resolve(data),
-                        error: reject()
+                        error: reject
                     })
                 }
                 else {
@@ -88,7 +93,12 @@ class Search {
             else {
                 resolve(this.dictaCounts);
             }
-        }).then(x => {}).catch(x => {});
+        }).then(x => {
+            this.dictaCounts = x;
+        }, x => {
+            //debugger;
+            console.log(x);
+        });
     }
     isDictaQuery(args) {
         return true
@@ -119,7 +129,8 @@ class Search {
         }
 
         let isQueryStart = !('start' in args); // first query has no start value, (start is defaulted to 0)
-        if (isQueryStart) {
+        if (isQueryStart && args.type === 'text') // don't touch these parameters if not a text search
+        {
             this.dictaCounts = null;
             this.queryDictaFlag = this.isDictaQuery(args);
         }
@@ -151,7 +162,12 @@ class Search {
             this.dictaQuery(args),
             this.dictaBooksQuery(args)
         ]).then(() => {
-            args.success(this.sefariaQueryQueue)
+            if (args.type === "sheet") {
+                args.success(this.sefariaSheetsResult);
+            }
+            else {
+                args.success(this.sefariaQueryQueue)
+            }
         }).catch(args.error);
         return null;
     }
