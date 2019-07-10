@@ -16,11 +16,11 @@ const UserStats = () => {
 
     useEffect(() => {
         $.getJSON("/api/site_stats")
-            .then(setSiteData);
-    }, [uid]);
+            .then(d => setSiteData(d));
+    }, []);
     useEffect(() => {
         $.getJSON("/api/user_stats/" + uid)
-            .then(setUserData);
+            .then(d => setUserData(d));
     }, [uid]);
 
     return (
@@ -31,14 +31,7 @@ const UserStats = () => {
           <span className="int-he">סטטיסטיקות משתמש</span>
         </h1>
         <UserChooser setter={setUid}/>
-        {user_data.uid && <UserDataBlock user_data={user_data}/>}
-        <div style={{display: "flex", justifyContent:"space-around"}}>
-          <CategoriesPie title="User" cats={user_data.categoriesRead}/>
-          <CategoriesPie title="Site" cats={site_data.categoriesRead}/>
-        </div>
-        <div style={{display: "flex", justifyContent:"space-around"}}>
-          <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
-        </div>
+        {user_data.uid && site_data.categoriesRead && <UserDataBlock user_data={user_data} site_data={site_data}/>}
       </div>
     </div>
     );
@@ -52,14 +45,27 @@ const UserChooser = ({setter}) => (
     </div>
 );
 
-const UserDataBlock = ({user_data}) => (
+const UserDataBlock = ({user_data, site_data}) => (
     <div>
         <h2><a href={user_data.profileUrl}>{user_data.name}</a></h2>
-        <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
-        <div><img src={user_data.imageUrl} width="80" height="80" style={{float: "right"}}/></div>
-        <br/>
-        <div>{user_data.sheetsRead} Sheets Read</div>
-        <div>{user_data.textsRead} Texts Read</div>
+
+        <div style={{display: "flex", justifyContent:"center"}}>
+            <div style={{padding: "0 10px"}}>
+                <img src={user_data.imageUrl} width="80" height="80"/>
+            </div>
+            <div style={{padding: "0 10px"}}>
+                <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
+                <div>{user_data.sheetsRead} Sheets Read</div>
+                <div>{user_data.textsRead} Texts Read</div>
+            </div>
+        </div>
+        <div style={{display: "flex", justifyContent:"space-around"}}>
+          <CategoriesPie title="User" cats={user_data.categoriesRead}/>
+          <CategoriesPie title="Site" cats={site_data.categoriesRead}/>
+        </div>
+        <div style={{display: "flex", justifyContent:"space-around"}}>
+          <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
+        </div>
     </div>
 );
 
@@ -87,7 +93,6 @@ const categoryColor = Sefaria.palette.categoryColor;
 const brighterCategoryColor = (cat) => d3.color(Sefaria.palette.categoryColor(cat)).brighter().hex();
 
 const CategoryBars = ({user_cats, site_cats}) => {
-    if (!(user_cats && site_cats)) return null;
     const svg_ref = useRef();
 
     const height = 420;
@@ -160,7 +165,6 @@ const CategoryBars = ({user_cats, site_cats}) => {
         return () => {svg.selectAll("*").remove();}
     }, [user_cats, site_cats]);
 
-
     return (
         <div style={{font: "12px sans-serif"}}>
             <h3>Comparison to Sitewide</h3>
@@ -170,13 +174,11 @@ const CategoryBars = ({user_cats, site_cats}) => {
 };
 
 const CategoriesPie = ({cats, title}) => {
-    if (!cats) return null;
     const svg_ref = useRef();
 
     const width = 420;
     const height = 420;
     const raw_data = Object.entries(cats).map(e => ({name: e[0], value: e[1]}));
-    if (!raw_data.length) {return <div></div>}
     const data = (raw_data.length > 2)?makeOtherCategory(raw_data):raw_data;
     const total = data.map(e => e.value).reduce((a, b) => a + b, 0);
     const compare = (a,b) => (
@@ -228,6 +230,8 @@ const CategoriesPie = ({cats, title}) => {
 
         return () => {svg.selectAll("*").remove();}
     }, [cats]);
+
+    // if (!raw_data.length) {return <div></div>}
 
     return (
         <div style={{font: "12px sans-serif", padding: "0 10px"}}>
