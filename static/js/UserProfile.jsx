@@ -264,6 +264,7 @@ class UserProfile extends Component {
         image={item.gravatar_url}
         is_followed={Sefaria.following.indexOf(item.id) > -1}
         position={item.position}
+        toggleSignUpModal={this.props.toggleSignUpModal}
       />
     );
   }
@@ -292,7 +293,11 @@ class UserProfile extends Component {
       </div>
     );
   }
-  message(e) { e.preventDefault(); this._messageModalRef.makeVisible(); }
+  message(e) {
+    e.preventDefault();
+    if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
+    this._messageModalRef.makeVisible();
+  }
   follow() { Sefaria.followAPI(this.props.profile.id); }
   openFollowers(e) {
     e.preventDefault();
@@ -315,6 +320,7 @@ class UserProfile extends Component {
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
                 />
                 <TabView
                   ref={this._getTabViewRef}
@@ -399,7 +405,7 @@ UserProfile.propTypes = {
   handleInAppLinkClick: PropTypes.func.isRequired,
 }
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing }) => {
+const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
@@ -466,6 +472,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               large={true}
               uid={p.id}
               following={Sefaria.following.indexOf(p.id) > -1}
+              toggleSignUpModal={toggleSignUpModal}
             />
             <a href="#" className="resourcesLink" onClick={message}>
               <span className="en">Message</span>
@@ -496,6 +503,7 @@ ProfileSummary.propTypes = {
   follow:        PropTypes.func.isRequired,
   openFollowers: PropTypes.func.isRequired,
   openFollowing: PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func.isRequired,
 }
 
 

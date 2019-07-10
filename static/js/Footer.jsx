@@ -155,7 +155,7 @@ class Footer extends Component {
                   <span className="int-en">Join Us</span>
                   <span className="int-he">הצטרף אלינו</span>
               </div>
-              <a href="/donate" className="outOfAppLink">
+              <a href="https://sefaria.nationbuilder.com/supportsefaria" className="outOfAppLink">
                   <span className="int-en">Donate</span>
                   <span className="int-he">תרומות</span>
               </a>
