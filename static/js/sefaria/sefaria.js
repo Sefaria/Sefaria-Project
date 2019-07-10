@@ -1948,6 +1948,10 @@ Sefaria = extend(Sefaria, {
     const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
     return Sefaria._promiseAPI(url);
   },
+  calendarRef: function(calendarTitle) {
+    const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
+    return cal.length ? cal[0].ref : null;
+  },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
     var categories = {
