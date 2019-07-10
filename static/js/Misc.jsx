@@ -241,6 +241,8 @@ DropdownOptionList.propTypes = {
   currOptionSelected: PropTypes.string.isRequired,
   handleClick: PropTypes.func.isRequired,
 };
+
+
 class DropdownButton extends Component {
   render() {
     const { isOpen, toggle, enText, heText } = this.props;
@@ -462,7 +464,6 @@ LanguageToggleButton.propTypes = {
 };
 
 
-
 const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
           <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
@@ -516,6 +517,7 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
+
 
 class BlockLink extends Component {
   render() {
@@ -1083,6 +1085,61 @@ Note.propTypes = {
 };
 
 
+function NewsletterSignUpForm(props) {
+  const {contextName} = props;
+  const [input, setInput] = useState('');
+  const [subscribeMessage, setSubscribeMessage] = useState(null);
+
+  function handleSubscribeKeyUp(e) {
+    if (e.keyCode === 13) {
+      handleSubscribe();
+    }
+  }
+
+  function handleSubscribe() {
+    var email = input;
+    if (Sefaria.util.isValidEmailAddress(email)) {
+      setSubscribeMessage("Subscribing...");
+      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+      $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
+        if ("error" in data) {
+          setSubscribeMessage(data.error);
+        } else {
+          setSubscribeMessage("Subscribed! Welcome to our list.");
+          Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
+        }
+      }).error(data => setSubscribeMessage("Sorry, there was an error."));
+    } else {
+      setSubscribeMessage("Please enter a valid email address.");
+    }
+  }
+
+  return (
+    <div className="newsletterSignUpBox">
+      <span className="int-en">
+        <input 
+          className="newsletterInput" 
+          placeholder="Sign up for Newsletter" 
+          value={input} 
+          onChange={e => setInput(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      <span className="int-he">
+        <input 
+          className="newsletterInput"
+          placeholder="הצטרפו לרשימת התפוצה" 
+          value={input} 
+          onChange={e => setInput(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
+      { subscribeMessage ? 
+        <div className="subscribeMessage">{subscribeMessage}</div>
+        : null }
+    </div>);
+}
+
+
 class LoginPrompt extends Component {
   render() {
     var nextParam = "?next=" + Sefaria.util.currentPath();
@@ -1477,7 +1534,6 @@ class FeedbackBox extends Component {
       type: null,
       alertmsg: null,
       feedbackSent: false,
-
     };
   }
   sendFeedback() {
@@ -1526,9 +1582,7 @@ class FeedbackBox extends Component {
     this.setState({type: type});
   }
 
-
   render() {
-
     if (this.state.feedbackSent) {
         return (
             <div className="feedbackBox">
@@ -1664,6 +1718,7 @@ module.exports.LanguageToggleButton                      = LanguageToggleButton;
 module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
+module.exports.NewsletterSignUpForm                      = NewsletterSignUpForm;
 module.exports.Note                                      = Note;
 module.exports.ProfileListing                            = ProfileListing;
 module.exports.ProfilePic                                = ProfilePic;
