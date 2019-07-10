@@ -38,7 +38,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data, site_stats_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
@@ -2548,6 +2548,13 @@ def addDynamicStories(stories, user, page):
 def user_stats_api(request, uid):
     assert request.method == "GET", "Unsupported Method"
     return jsonResponse(user_stats_data(uid))
+
+
+@staff_member_required
+def site_stats_api(request):
+    assert request.method == "GET", "Unsupported Method"
+    return jsonResponse(site_stats_data())
+
 
 @staff_member_required
 def story_reflector(request):

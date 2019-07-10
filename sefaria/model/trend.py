@@ -23,6 +23,14 @@ periods = {
 }
 
 
+def read_in_category_key(c):
+    return "ReadInCategory" + c
+
+
+def reverse_read_in_category_key(k):
+    return k[14:]
+
+
 def get_session_traits(request, uid=None):
     # keys for these traits are duplicated in story editor.  Could be more graceful.
 
@@ -104,27 +112,40 @@ def setUserSheetTraits():
         }).save()
 
 
-def setUserCategoryTraits():
+def setCategoryTraits():
     from sefaria.model.category import TOP_CATEGORIES
 
-    def cat_to_name(c):
-        return "Category" + c
+    TrendSet({"name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
 
-    TrendSet({"name": {"$in": map(cat_to_name, TOP_CATEGORIES)}}).delete()
+    site_data = {cat: 0 for cat in TOP_CATEGORIES}
 
+    # User Traits
     all_users = getAllUsersCategories()
     for uid, data in all_users.iteritems():
-        total = float(data["total"])
         for cat, val in data["categories"].items():
+            if cat not in TOP_CATEGORIES:
+                continue
             Trend({
-                "name":         cat_to_name(cat),
-                "value":        val / total,
-                "datatype":     "float",
+                "name":         read_in_category_key(cat),
+                "value":        val,
+                "datatype":     "int",
                 "timestamp":    datetime.utcnow(),
                 "period":       "alltime",
                 "scope":        "user",
                 "uid":          uid
             }).save()
+            site_data[cat] += val
+
+    # Site Traits
+    for cat, val in site_data.iteritems():
+        Trend({
+            "name": read_in_category_key(cat),
+            "value": val,
+            "datatype": "int",
+            "timestamp": datetime.utcnow(),
+            "period": "alltime",
+            "scope": "site"
+        }).save()
 
 
 def setUserLanguageTraits():

@@ -643,19 +643,29 @@ def public_user_data(uid):
     public_user_data_cache[uid] = data
     return data
 
+# Properly, this doesn't belong here, but it's being developed alongside user_stats_data
+# todo: relocate the stats methods?
+def site_stats_data():
+    from sefaria.model.category import TOP_CATEGORIES
+    from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
+
+    d = {"categoriesRead": {reverse_read_in_category_key(t.name): t.value
+                            for t in TrendSet({"scope": "site", "period": "alltime",
+                                "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}
+                            })}}
+    return d
+
 
 def user_stats_data(uid):
     from sefaria.model.category import TOP_CATEGORIES
-    from sefaria.model.trend import Trend, TrendSet
+    from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
 
     uid = int(uid)
-    def cat_to_name(c):
-        return "Category" + c
 
     d = public_user_data(uid)
     d["sheetsRead"] = UserHistorySet({"is_sheet": True, "secondary": False, "uid": uid}).count()
     d["textsRead"] = UserHistorySet({"is_sheet": False, "secondary": False, "uid": uid}).count()
-    d["categoriesRead"] = {t.name[8:]: t.value for t in TrendSet({"uid":uid, "name": {"$in": map(cat_to_name, TOP_CATEGORIES)}})}
+    d["categoriesRead"] = {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}})}
 
     return d
 

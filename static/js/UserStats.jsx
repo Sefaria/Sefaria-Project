@@ -11,11 +11,16 @@ import Component from 'react-class';
 const UserStats = () => {
 
     const [uid, setUid] = useState(1);
-    const [data, setData] = useState({});
+    const [user_data, setUserData] = useState({});
+    const [site_data, setSiteData] = useState({});
 
     useEffect(() => {
+        $.getJSON("/api/site_stats")
+            .then(setSiteData);
+    }, [uid]);
+    useEffect(() => {
         $.getJSON("/api/user_stats/" + uid)
-            .then(setData);
+            .then(setUserData);
     }, [uid]);
 
     return (
@@ -26,7 +31,9 @@ const UserStats = () => {
               <span className="int-he">סטטיסטיקות משתמש</span>
             </h1>
           <UserChooser setter={setUid}/>
-          {data.uid?<UserDataBlock data={data}/>:""}
+          {user_data.uid && <UserDataBlock user_data={user_data}/>}
+        <br/>
+              {user_data.uid && <CategoriesPie catsRead={user_data.categoriesRead}/>}
           </div>
         </div>
     );
@@ -40,38 +47,39 @@ const UserChooser = ({setter}) => (
     </div>
 );
 
-const UserDataBlock = ({data}) => (
+const UserDataBlock = ({user_data}) => (
     <div>
-        <h2><a href={data.profileUrl}>{data.name}</a></h2>
-        <div>{data.position?(data.position + " at " + data.organization):data.organization}</div>
-        <div><img src={data.imageUrl} width="128" height="128" style={{float: "right"}}/></div>
+        <h2><a href={user_data.profileUrl}>{user_data.name}</a></h2>
+        <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
+        <div><img src={user_data.imageUrl} width="80" height="80" style={{float: "right"}}/></div>
         <br/>
-        <div>{data.sheetsRead} Sheets Read</div>
-        <div>{data.textsRead} Texts Read</div>
-        <br/>
-        <CategoriesPie catsRead={data.categoriesRead}/>
+        <div>{user_data.sheetsRead} Sheets Read</div>
+        <div>{user_data.textsRead} Texts Read</div>
     </div>
 );
 
 const makeOtherCategory = data => {
     const total = data.map(e => e.value).reduce((a, b) => a + b, 0);
-    const bar = total * .04;
+    const bar = total * .02;
     const remainder = data.filter(e => e.value < bar).map(e => e.value).reduce((a, b) => a + b, 0);
     const result = data.filter(e => e.value >= bar);
-    result.push({name: "Other", value: remainder});
+    result.push({name: "Etc", value: remainder});
     return result;
 };
 
 //Object.entries(data.categoriesRead).sort((a,b)=>b[1]-a[1]).map((e,i) => <div key={i}>{e[0]}: {Number(e[1]).toLocaleString(undefined,{style: 'percent', minimumFractionDigits:2})}</div>)}
 const CategoriesPie = ({catsRead}) => {
+    const svg_ref = useRef();
+
     const width = 420;
     const height = 420;
     const raw_data = Object.entries(catsRead).map(e => ({name: e[0], value: e[1]}));
     if (!raw_data.length) {return <div></div>}
-    const data = makeOtherCategory(raw_data);
+    const data = (raw_data.length > 2)?makeOtherCategory(raw_data):raw_data;
+    const total = data.map(e => e.value).reduce((a, b) => a + b, 0);
     const compare = (a,b) => (
-        a.name==="Other"? 1
-        :b.name==="Other"? -1
+        a.name==="Etc"? 1
+        :b.name==="Etc"? -1
         :b.value - a.value);
     const pie = d3.pie()
         .sort(compare)
@@ -87,7 +95,7 @@ const CategoriesPie = ({catsRead}) => {
         .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
 
     useEffect(()=>{
-        const svg = d3.select("svg.cat-pie");
+        const svg = d3.select(svg_ref.current);
         if (!svg) {return;}
 
         const g = svg.append("g")
@@ -117,13 +125,14 @@ const CategoriesPie = ({catsRead}) => {
           .attr("x", 0)
           .attr("y", "0.7em")
           .attr("fill-opacity", 0.7)
-          .text(d => d.data.value.toLocaleString(undefined,{style: 'percent', minimumFractionDigits:2}));
+          .text(d => d.data.value + " (" + (d.data.value/total).toLocaleString(undefined,{style: 'percent'}) +")");
 
         return () => {}; //remove svg
     }, [catsRead]);
+
     return (
         <div>
-            <svg width={420} height={420} textAnchor="middle" style={{font: "12px sans-serif"}} className="cat-pie"/>
+            <svg ref={svg_ref} width={420} height={420} textAnchor="middle" style={{font: "12px sans-serif"}} className="cat-pie"/>
         </div>
     );
 };
