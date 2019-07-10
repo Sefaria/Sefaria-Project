@@ -4454,6 +4454,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 20px;
   background-color: #ddd;
   border-radius: 15px;
+  font-size: 18px;
 }
 
 .globalUpdateForm .storyTypeSelector {
@@ -4465,8 +4466,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .globalUpdateForm .error {
   color: red;
   font-size: 90%;
-  display: inline-block;
-  padding: 0 10px;
 }
 .globalUpdateForm input[type="text"] {
   padding: 5px;
