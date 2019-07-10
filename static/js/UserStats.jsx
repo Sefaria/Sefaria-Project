@@ -25,22 +25,24 @@ const UserStats = () => {
 
     return (
         <div className="content hasFooter" style={{overflowY: "scroll"}}>
-          <div className="contentInner">
-            <h1>
+          <div className="contentInner" style={{margin: "0 80px"}}>
+            <h1 style={{textAlign: "center"}}>
               <span className="int-en">User Stats</span>
               <span className="int-he">סטטיסטיקות משתמש</span>
             </h1>
           <UserChooser setter={setUid}/>
           {user_data.uid && <UserDataBlock user_data={user_data}/>}
-        <br/>
-              {user_data.uid && <CategoriesPie catsRead={user_data.categoriesRead}/>}
+          <div style={{display: "flex", justifyContent:"space-around"}}>
+              {user_data.uid && <CategoriesPie title="User" cats={user_data.categoriesRead}/>}
+              <CategoriesPie title="Site" cats={site_data.categoriesRead}/>
+          </div>
           </div>
         </div>
     );
 };
 
 const UserChooser = ({setter}) => (
-    <div>
+    <div style={{textAlign: "center"}}>
       <label>User ID:
         <input type="text" onChange={e => setter(e.target.value)}/>
       </label>
@@ -68,12 +70,13 @@ const makeOtherCategory = data => {
 };
 
 //Object.entries(data.categoriesRead).sort((a,b)=>b[1]-a[1]).map((e,i) => <div key={i}>{e[0]}: {Number(e[1]).toLocaleString(undefined,{style: 'percent', minimumFractionDigits:2})}</div>)}
-const CategoriesPie = ({catsRead}) => {
+const CategoriesPie = ({cats, title}) => {
+    if (!cats) return null;
     const svg_ref = useRef();
 
     const width = 420;
     const height = 420;
-    const raw_data = Object.entries(catsRead).map(e => ({name: e[0], value: e[1]}));
+    const raw_data = Object.entries(cats).map(e => ({name: e[0], value: e[1]}));
     if (!raw_data.length) {return <div></div>}
     const data = (raw_data.length > 2)?makeOtherCategory(raw_data):raw_data;
     const total = data.map(e => e.value).reduce((a, b) => a + b, 0);
@@ -90,9 +93,12 @@ const CategoriesPie = ({catsRead}) => {
     const arc = d3.arc()
         .innerRadius(0)
         .outerRadius(Math.min(width, height) / 2 - 1);
-    const color = d3.scaleOrdinal()
+    /* const color = d3.scaleOrdinal()
         .domain(data.map(d => d.name))
         .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+    */
+    //const color = Sefaria.palette.categoryColor;
+    const color = (cat) => d3.color(Sefaria.palette.categoryColor(cat)).brighter().hex();
 
     useEffect(()=>{
         const svg = d3.select(svg_ref.current);
@@ -128,11 +134,12 @@ const CategoriesPie = ({catsRead}) => {
           .text(d => d.data.value + " (" + (d.data.value/total).toLocaleString(undefined,{style: 'percent'}) +")");
 
         return () => {}; //remove svg
-    }, [catsRead]);
+    }, [cats]);
 
     return (
-        <div>
-            <svg ref={svg_ref} width={420} height={420} textAnchor="middle" style={{font: "12px sans-serif"}} className="cat-pie"/>
+        <div style={{font: "12px sans-serif", padding: "0 10px"}} className="cat-pie">
+            <h3>{title}</h3>
+            <svg ref={svg_ref} width={420} height={420} textAnchor="middle" />
         </div>
     );
 };
