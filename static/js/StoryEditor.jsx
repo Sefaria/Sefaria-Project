@@ -307,8 +307,7 @@ const TopicSheetsStoryForm = () => {
 
 const TextPassageStoryForm = () => {
     const refs = {
-        en:     useRef(null),
-        he:     useRef(null),
+        ref:     useRef(null),
     };
     const previewButton =  usePreviewButton({
         payload: () => ({
