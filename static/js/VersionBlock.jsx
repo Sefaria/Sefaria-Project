@@ -18,7 +18,10 @@ class VersionBlock extends Component {
       "digitizedBySefaria",
       "status",
       "versionTitleInHebrew",
-      "versionNotesInHebrew"
+      "versionNotesInHebrew",
+      "purchaseInformationImage",
+      "purchaseInformationURL",
+
     ];
     var s = {
       editing: false,
@@ -45,33 +48,17 @@ class VersionBlock extends Component {
       this.props.openVersionInReader(this.props.version.versionTitle, this.props.version.language);
     }
   }
-  onLicenseChange(event) {
-    this.setState({license: event.target.value, "error": null});
+  handleInputChange(event) {
+    const target = event.target;
+    const name = target.name;
+    const value = target.type === 'checkbox' ? (name === "status" ? (target.checked ? "locked" : null) : target.checked ) : target.value;
+
+    this.setState({
+      [name]: value,
+      error: null
+    });
   }
-  onVersionSourceChange(event) {
-    this.setState({versionSource: event.target.value, "error": null});
-  }
-  onVersionNotesChange(event) {
-    this.setState({versionNotes: event.target.value, "error": null});
-  }
-  onVersionNotesInHebrewChange(event) {
-    this.setState({versionNotesInHebrew: event.target.value, "error": null});
-  }
-  onPriorityChange(event) {
-    this.setState({priority: event.target.value, "error": null});
-  }
-  onDigitizedBySefariaChange(event) {
-    this.setState({digitizedBySefaria: event.target.checked, "error": null});
-  }
-  onLockedChange(event) {
-    this.setState({status: event.target.checked ? "locked" : null, "error": null});
-  }
-  onVersionTitleChange(event) {
-    this.setState({versionTitle: event.target.value, "error": null});
-  }
-  onVersionTitleInHebrewChange(event) {
-    this.setState({versionTitleInHebrew: event.target.value, "error": null});
-  }
+
   saveVersionUpdate(event) {
     var v = this.props.version;
 
@@ -152,6 +139,7 @@ class VersionBlock extends Component {
   }
   render() {
     var v = this.props.version;
+    console.log(v);
 
     if (this.state.editing) {
       // Editing View
@@ -167,33 +155,40 @@ class VersionBlock extends Component {
 
             <label htmlFor="versionTitle" className="">Version Title</label>
             {close_icon}
-            <input id="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.onVersionTitleChange} />
+            <input id="versionTitle" name="versionTitle" className="" type="text" value={this.state.versionTitle} onChange={this.handleInputChange} />
 
             <label htmlFor="versionTitleInHebrew" className="">Hebrew Version Title</label>
-            <input id="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.onVersionTitleInHebrewChange} />
+            <input id="versionTitleInHebrew" name="versionTitleInHebrew" className="" type="text" value={this.state.versionTitleInHebrew} onChange={this.handleInputChange} />
 
             <label htmlFor="versionSource">Version Source</label>
-            <input id="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.onVersionSourceChange} />
+            <input id="versionSource" name="versionSource" className="" type="text" value={this.state.versionSource} onChange={this.handleInputChange} />
 
             <label id="license_label" htmlFor="license">License</label>
-            <select id="license" className="" value={this.state.license} onChange={this.onLicenseChange}>
+            <select id="license" name="license" className=""  value={this.state.license} onChange={this.handleInputChange}>
               {licenses.map(v => <option key={v} value={v}>{v?v:"(None Listed)"}</option>)}
             </select>
 
             <label id="digitzedBySefaria_label" htmlFor="digitzedBySefaria">Digitized by Sefaria</label>
-            <input type="checkbox" id="digitzedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.onDigitizedBySefariaChange}/>
+            <input type="checkbox" id="digitzedBySefaria" name="digitizedBySefaria" checked={this.state.digitizedBySefaria} onChange={this.handleInputChange}/>
 
             <label id="priority_label" htmlFor="priority">Priority</label>
-            <input id="priority" className="" type="text" value={this.state.priority} onChange={this.onPriorityChange} />
+            <input id="priority" name="priority" className="" type="text" value={this.state.priority} onChange={this.handleInputChange} />
 
             <label id="locked_label" htmlFor="locked">Locked</label>
-            <input type="checkbox" id="locked" checked={this.state.status == "locked"} onChange={this.onLockedChange}/>
+            <input type="checkbox" id="locked" name="status" checked={this.state.status == "locked"} onChange={this.handleInputChange}/>
 
             <label id="versionNotes_label" htmlFor="versionNotes">VersionNotes</label>
-            <textarea id="versionNotes" placeholder="Version Notes" onChange={this.onVersionNotesChange} value={this.state.versionNotes} rows="5" cols="40"/>
+            <textarea id="versionNotes" name="versionNotes" placeholder="Version Notes" onChange={this.handleInputChange} value={this.state.versionNotes} rows="5" cols="40"/>
 
             <label id="versionNotesInHebrew_label" htmlFor="versionNotes_in_hebrew">Hebrew VersionNotes</label>
-            <textarea id="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.onVersionNotesInHebrewChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
+            <textarea id="versionNotesInHebrew" name="versionNotesInHebrew" placeholder="Hebrew Version Notes" onChange={this.handleInputChange} value={this.state.versionNotesInHebrew} rows="5" cols="40"/>
+            <div>
+              <h3>Purchase Information</h3>
+              <label htmlFor="purchase_url">Buy URL (Link to Store Item):</label>
+              <input id="purchase_url" name="purchaseInformationURL" className="" type="text" value={this.state.purchaseInformationURL}  onChange={this.handleInputChange} />
+              <label htmlFor="purchase_image">Buy Image (Image to Display for Link)</label>
+              <input id="purchase_image" name="purchaseInformationImage" className="" type="text" value={this.state.purchaseInformationImage} onChange={this.handleInputChange} />
+            </div>
             <div>
               <div id="delete_button" onClick={this.deleteVersion}>Delete Version</div>
               <div id="save_button" onClick={this.saveVersionUpdate}>SAVE</div>
