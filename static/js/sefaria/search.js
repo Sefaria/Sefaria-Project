@@ -41,18 +41,17 @@ class Search {
             }
             if (x.hits.hits.length > 0) {
             }
-            /*
-            this.sefariaQueryQueue.hits.total += x.hits.total;
-            this.sefariaQueryQueue.hits.max_score += x.hits.max_score;
-            this.sefariaQueryQueue.hits.hits.push(... x.hits.hits);
-             */
             this.sefariaQueryQueue = x;
         });
 
     }
     dictaQuery(args) {
         function ammendArgsForDicta(standardArgs) {
-            return {};
+            return {
+                query: standardArgs.query,
+                from: ('start' in standardArgs) ? standardArgs.start : 0,
+                size: standardArgs.size
+            };
         }
         return new Promise((resolve, reject) => {
             if (this.queryDictaFlag && args.type === "text") {
@@ -67,9 +66,40 @@ class Search {
                 });
             }
             else {
-                resolve([]);
+                resolve({total: 0, hits: []});
             }
-        }).then(x => console.log(x)).catch(x => console.log([]));
+        }).then(x => {
+            let adaptedHits = [];
+            x.hits.forEach(hit => {
+                const bookData = hit.xmlId.split(".");
+                const categories = bookData.slice(0, 2);
+                const bookTitle = bookData[2].replace(/_/g, ' ');
+                const bookLoc = bookData.slice(3, 5).join(':');
+                //debugger;
+                const version = "Tanach with Ta'amei Hamikra";
+                adaptedHits.push({
+                    _source: {
+                        type: 'text',
+                        lang: "he",
+                        comp_date: 1,
+                        version: version,
+                        path: categories,
+                        ref: `${bookTitle} ${bookLoc}`,
+                        heRef: hit.hebrewPath,
+                    },
+                    highlight: {naive_lemmatizer: [hit.highlight[0].text]},
+                    _id: `${bookTitle} ${bookLoc} (${version} [he])`,
+
+                });
+            });
+            this.dictaQueryQueue = {
+                hits: {
+                    total: x.total,
+                    hits: adaptedHits
+                }
+
+            }
+        }).catch(x => console.log(x));
     }
     dictaBooksQuery(args) {
         return new Promise((resolve, reject) => {
@@ -94,19 +124,36 @@ class Search {
                 resolve(this.dictaCounts);
             }
         }).then(x => {
-            this.dictaCounts = x;
+            let buckets = [];
+            x.forEach(bucket => {
+               buckets.push({
+                   key: bucket['englishBookName'].map(i => i.replace(/_/g, " ")).join('/'),
+                   doc_count: bucket['count']
+               });
+            });
+            this.dictaCounts = buckets;
+            //console.log(this.dictaCounts);
         }, x => {
-            //debugger;
+            this.queryDictaFlag = false;
             console.log(x);
         });
     }
     isDictaQuery(args) {
-        return true
+        return RegExp(/^[א-ת\s]+$/).test(args.query); // only query dicta on fully Hebrew queries
     }
-    handleTripleQuery(args) {
-        let sefariaQuery = this.sefariaQuery(args);
-        let dictaBooksQuery = this.dictaBooksQuery(args);
-        let dictaSearchQuery = this.dictaQuery(args);
+    mergeQueries(addAggregations) {
+        if(addAggregations) {
+            let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
+                x => !(RegExp(/^Tanakh\//).test(x.key)));
+            newBuckets = newBuckets.concat(this.dictaCounts);
+            this.sefariaQueryQueue.aggregations.path.buckets = newBuckets;
+
+            this.sefariaQueryQueue.hits.total += this.dictaQueryQueue.hits.total;
+
+            let newHits = this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories));
+            newHits = this.dictaQueryQueue.hits.hits.concat(newHits);
+            this.sefariaQueryQueue.hits.hits = newHits;
+        }
     }
     execute_query(args) {
         // To replace sjs.search.post in search.js
@@ -166,6 +213,8 @@ class Search {
                 args.success(this.sefariaSheetsResult);
             }
             else {
+                this.mergeQueries((isQueryStart && this.queryDictaFlag));
+                console.log(this.sefariaQueryQueue);
                 args.success(this.sefariaQueryQueue)
             }
         }).catch(args.error);
@@ -213,7 +262,7 @@ class Search {
           newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
           newHits[newHitsIndex].insertInOrder(hits[i], (a, b) => a._source.version_priority - b._source.version_priority);
         } else {
-          newHits.push([hits[i]])
+          newHits.push([hits[i]]);
           newHitsObj[currRef] = newHits.length - 1;
         }
       }
