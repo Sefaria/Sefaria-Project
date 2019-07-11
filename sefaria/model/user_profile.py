@@ -659,13 +659,35 @@ def site_stats_data():
 def user_stats_data(uid):
     from sefaria.model.category import TOP_CATEGORIES
     from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
+    from sefaria.sheets import user_sheets
 
     uid = int(uid)
+    usheets = user_sheets(uid)["sheets"]
+    usheet_ids = [s["id"] for s in usheets]
+
+    usheet_views = db.user_history.aggregate([
+        {"$match": {
+            "is_sheet": True,
+            "sheet_id": {"$in": usheet_ids},
+            }},
+        {"$group": {
+            "_id": "$sheet_id",
+            "cnt": {"$sum": 1}}},
+
+    ])
+    most_popular_sheet_ids = [s["_id"] for s in sorted(usheet_views, key=lambda o: o["cnt"], reverse=True)[:3]]
+    most_popular_sheets = [s for s in usheets if s["id"] in most_popular_sheet_ids]
+    sheets_this_year = [s for s in usheets if datetime.strptime(s["created"], "%Y-%m-%dT%H:%M:%S.%f") > datetime(2018,9,9)]
+
 
     d = public_user_data(uid)
     d["sheetsRead"] = UserHistorySet({"is_sheet": True, "secondary": False, "uid": uid}).count()
     d["textsRead"] = UserHistorySet({"is_sheet": False, "secondary": False, "uid": uid}).count()
     d["categoriesRead"] = {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}})}
+    d["totalSheets"] = len(usheets)
+    d["publicSheets"] = len([s for s in usheets if s["status"] == "public"])
+    d["popularSheets"] = most_popular_sheets
+    d["sheetsThisYear"] = len(sheets_this_year)
 
     return d
 

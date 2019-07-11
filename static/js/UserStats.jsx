@@ -4,6 +4,7 @@ const d3 = require('./lib/d3.v5.min');
 const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
 const Story      = require('./Story');
+const {SimpleLinkedBlock}    = require('./Misc');
 const { usePaginatedScroll } = require('./Hooks');
 import Component from 'react-class';
 
@@ -47,16 +48,30 @@ const UserChooser = ({setter}) => (
 
 const UserDataBlock = ({user_data, site_data}) => (
     <div>
-        <h2><a href={user_data.profileUrl}>{user_data.name}</a></h2>
-
         <div style={{display: "flex", justifyContent:"center"}}>
             <div style={{padding: "0 10px"}}>
                 <img src={user_data.imageUrl} width="80" height="80"/>
             </div>
             <div style={{padding: "0 10px"}}>
+                <h3><a href={user_data.profileUrl}>{user_data.name}</a>   </h3>
                 <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
+            </div>
+            <div style={{padding: "0 10px"}}>
+                <h3>Reading</h3>
                 <div>{user_data.sheetsRead} Sheets Read</div>
                 <div>{user_data.textsRead} Texts Read</div>
+            </div>
+            <div style={{padding: "0 10px"}}>
+                <h3>Writing</h3>
+                <div>{user_data.totalSheets} Sheets Created</div>
+                <div>{user_data.publicSheets} Public Sheets</div>
+                <div>{user_data.sheetsThisYear} Sheets Created This Year</div>
+            </div>
+            <div style={{padding: "0 10px"}}>
+                <h3>Most Popular This Year</h3>
+                {user_data.popularSheets.map((sheet, i) =>
+                    <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
+                )}
             </div>
         </div>
         <div style={{display: "flex", justifyContent:"space-around"}}>
