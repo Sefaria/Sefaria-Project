@@ -516,6 +516,31 @@ SimpleLinkedBlock.propTypes = {
     aclasses: PropTypes.string
 };
 
+const BuyButton = ({book, image, url}) => (
+    <div className="buy-button">
+      <div className="buy-image">
+        <img
+          className="buy-img"
+          src={image}
+          alt="Buy Now"
+        />
+      </div>
+      <div className="buy-link">
+        <div className="book-name">{book}</div>
+        <a className="button" href={url}>
+          <span className="int-en">Buy Now</span>
+          <span className="int-he">קנה עכשיו</span>
+        </a>
+      </div>
+    </div>
+);
+BuyButton.propTypes = {
+  book: PropTypes.string,
+  image: PropTypes.string,
+  url: PropTypes.string,
+};
+
+
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
