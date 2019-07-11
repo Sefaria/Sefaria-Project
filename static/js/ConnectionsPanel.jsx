@@ -190,9 +190,12 @@ class ConnectionsPanel extends Component {
     return Sefaria.getText(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}).then(cb);
   }
   getVersionFromData(d, lang) {
+      console.log(d);
     //d - data received from this.getData()
     //language - the language of the version
+    const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
     return {
+      ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
       language:               lang,
       versionTitle:           lang == "he" ? d.heVersionTitle : d.versionTitle,
       versionSource:          lang == "he" ? d.heVersionSource : d.versionSource,
