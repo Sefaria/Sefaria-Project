@@ -1043,7 +1043,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "extendedNotes",
         "extendedNotesHebrew",
-        "purchaseInformation" # subkeys: purchase_url, purchase_name, purchase_image
+        "purchaseInformationImage",
+        "purchaseInformationURL"
     ]
 
     def __unicode__(self):
@@ -1063,9 +1064,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         """
         if self.get_index() is None:
             raise InputError("Versions cannot be created for non existing Index records")
-        buy_info = getattr(self, "purchaseInformation", None)
-        if buy_info and not (isinstance(buy_info, dict) or set(buy_info.keys()) <= set("purchase_url", "purchase_name", "purchase_image")):
-            raise InputError("Version purchase information must only contain purchase_url, purchase_name, purchase_image")
         return True
 
     def _normalize(self):
@@ -3971,7 +3969,7 @@ class Ref(object):
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
