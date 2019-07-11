@@ -1683,7 +1683,10 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionEditForm #versionSource,
 .readerTextTableOfContents .versionEditForm #versionNotes,
 .readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
-.readerTextTableOfContents .versionEditForm #versionNotesInHebrew
+.readerTextTableOfContents .versionEditForm #versionNotesInHebrew,
+.readerTextTableOfContents .versionEditForm #purchase_name,
+.readerTextTableOfContents .versionEditForm #purchase_url,
+.readerTextTableOfContents .versionEditForm #purchase_image
  {
   width: 98%;
 }
@@ -5786,6 +5789,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .aboutBox .currVersionSection {
   padding-bottom: 30px;
+}
+.buy-button {
+  display: flex;
+}
+.buy-button .buy-link{
+  display: flex;
+  flex-direction: column;
 }
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
