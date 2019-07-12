@@ -11,16 +11,17 @@ const { usePaginatedScroll }   = require('./Hooks');
 function HomeFeed(props) {
   const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
   const [stories, setStories] = useState([]);
+  const scrollable_element = useRef();
 
   usePaginatedScroll(
-      $(".homeFeedWrapper .content"),
+      scrollable_element,
       "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
       data => setStories(prev => ([...prev, ...data.stories]))
   );
 
   return (
     <div className="homeFeedWrapper">
-      <div className="content hasFooter">
+      <div className="content hasFooter" ref={scrollable_element}>
         
         <div id="homeCover">
             <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">

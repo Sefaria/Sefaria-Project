@@ -18,9 +18,10 @@ const FormFunctions = React.createContext({addStory: null, setError: null});
 function StoryEditor(props) {
   const [stories, setStories] = useState([]);
   const [error, setError] = useState(null);
+  const scrollable_element = useRef();
 
   usePaginatedScroll(
-      $(".homeFeedWrapper .content"),
+      scrollable_element,
       "/api/stories?admin_feed=1",
       data => setStories(prev => ([...prev, ...data.stories]))
   );
@@ -48,7 +49,7 @@ function StoryEditor(props) {
   };
 
   return (<div className="homeFeedWrapper">
-    <div className="content hasFooter">
+    <div className="content hasFooter" ref={scrollable_element}>
       <div className="contentInner">
         <h1>
           <span className="int-en">Stories</span>
@@ -306,8 +307,7 @@ const TopicSheetsStoryForm = () => {
 
 const TextPassageStoryForm = () => {
     const refs = {
-        en:     useRef(null),
-        he:     useRef(null),
+        ref:     useRef(null),
     };
     const previewButton =  usePreviewButton({
         payload: () => ({
