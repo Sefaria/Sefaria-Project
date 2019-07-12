@@ -2547,7 +2547,11 @@ def addDynamicStories(stories, user, page):
 @staff_member_required
 def user_stats_api(request, uid):
     assert request.method == "GET", "Unsupported Method"
-    return jsonResponse(user_stats_data(uid))
+    quick = bool(request.GET.get("quick", False))
+    if quick:
+        return jsonResponse(public_user_data(uid))
+    # Todo: or now, we're hard-coding Rosh Hashannah 2018.
+    return jsonResponse(user_stats_data(uid, start=datetime(2018, 9, 9)))
 
 
 @staff_member_required

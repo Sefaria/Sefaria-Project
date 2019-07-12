@@ -13,6 +13,7 @@ const UserStats = () => {
 
     const [uid, setUid] = useState(1);
     const [user_data, setUserData] = useState({});
+    const [quick_data, setQuickData] = useState({});
     const [site_data, setSiteData] = useState({});
 
     useEffect(() => {
@@ -20,9 +21,16 @@ const UserStats = () => {
             .then(d => setSiteData(d));
     }, []);
     useEffect(() => {
+        setQuickData({});
+        setUserData({});
+        $.getJSON("/api/user_stats/" + uid + "?quick=1")
+            .then(d => { if (parseInt(uid)===parseInt(d.uid)) setQuickData(d); else console.log(uid + "!=" + d.uid)});
         $.getJSON("/api/user_stats/" + uid)
-            .then(d => setUserData(d));
+            .then(d => { if (parseInt(uid)===parseInt(d.uid)) setUserData(d); else console.log(uid + "!=" + d.uid)});  /// !!
     }, [uid]);
+
+    const all_user_data = {...quick_data, ...user_data};
+    const all_ready = user_data.uid && site_data.categoriesRead;
 
     return (
     <div className="homeFeedWrapper">
@@ -32,7 +40,8 @@ const UserStats = () => {
           <span className="int-he">סטטיסטיקות משתמש</span>
         </h1>
         <UserChooser setter={setUid}/>
-        {user_data.uid && site_data.categoriesRead && <UserDataBlock user_data={user_data} site_data={site_data}/>}
+        <UserProfileBlock user_data={all_user_data}/>
+        {all_ready?<UserDataBlock user_data={all_user_data} site_data={site_data}/>:"Loading"}
       </div>
     </div>
     );
@@ -41,21 +50,25 @@ const UserStats = () => {
 const UserChooser = ({setter}) => (
     <div style={{textAlign: "center"}}>
       <label>User ID:
-        <input type="text" onChange={e => setter(e.target.value)}/>
+        <input type="text" onChange={e => setter(parseInt(e.target.value))}/>
       </label>
     </div>
 );
 
-const UserDataBlock = ({user_data, site_data}) => (
-    <div>
+const UserProfileBlock = ({user_data}) => (
         <div style={{display: "flex", justifyContent:"center"}}>
             <div style={{padding: "0 10px"}}>
                 <img src={user_data.imageUrl} width="80" height="80"/>
             </div>
             <div style={{padding: "0 10px"}}>
-                <h3><a href={user_data.profileUrl}>{user_data.name}</a>   </h3>
+                <h3><a href={user_data.profileUrl}>{user_data.name}</a></h3>
                 <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
             </div>
+        </div>
+);
+const UserDataBlock = ({user_data, site_data}) => (
+    <div>
+        <div style={{display: "flex", justifyContent:"center"}}>
             <div style={{padding: "0 10px"}}>
                 <h3>Reading</h3>
                 <div>{user_data.sheetsRead} Sheets Read</div>
@@ -65,7 +78,7 @@ const UserDataBlock = ({user_data, site_data}) => (
                 <h3>Writing</h3>
                 <div>{user_data.totalSheets} Sheets Created</div>
                 <div>{user_data.publicSheets} Public Sheets</div>
-                <div>{user_data.sheetsThisYear} Sheets Created This Year</div>
+                <div>{user_data.sheetsThisPeriod} Sheets Created This Year</div>
             </div>
             <div style={{padding: "0 10px"}}>
                 <h3>Most Popular This Year</h3>

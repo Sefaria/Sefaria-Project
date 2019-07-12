@@ -159,6 +159,25 @@ class UserHistory(abst.AbstractMongoRecord):
         return uh
 
     @staticmethod
+    def timeclause(start=None, end=None):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if start is None and end is None:
+            return {}
+
+        timerange = {}
+        if start:
+            timerange["$gte"] = start
+        if end:
+            timerange["$lte"] = end
+        return {"datetime": timerange}
+
+
+    @staticmethod
     def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
         query = {}
         if uid is not None:
@@ -656,15 +675,27 @@ def site_stats_data():
     return d
 
 
-def user_stats_data(uid):
+def user_stats_data(uid, start=None, end=None):
+    """
+
+    :param uid: int or something cast-able to int
+    :param start: datetime
+    :param end: datetime
+    :return:
+    """
     from sefaria.model.category import TOP_CATEGORIES
     from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
     from sefaria.sheets import user_sheets
 
     uid = int(uid)
+
+    # todo: needs more thought.  The method below handles the Nones, but later usages in this method aren't so graceful.
+    timeclause = UserHistory.timeclause(start, end)
+    end = end or datetime.now()
+    start = start or datetime(2017, 12, 1)  # start of Sefaria epoch
+
     usheets = user_sheets(uid)["sheets"]
     usheet_ids = [s["id"] for s in usheets]
-
     usheet_views = db.user_history.aggregate([
         {"$match": {
             "is_sheet": True,
@@ -673,21 +704,27 @@ def user_stats_data(uid):
         {"$group": {
             "_id": "$sheet_id",
             "cnt": {"$sum": 1}}},
-
     ])
     most_popular_sheet_ids = [s["_id"] for s in sorted(usheet_views, key=lambda o: o["cnt"], reverse=True)[:3]]
     most_popular_sheets = [s for s in usheets if s["id"] in most_popular_sheet_ids]
-    sheets_this_year = [s for s in usheets if datetime.strptime(s["created"], "%Y-%m-%dT%H:%M:%S.%f") > datetime(2018,9,9)]
+    sheets_this_period = [s for s in usheets if start <= datetime.strptime(s["created"], "%Y-%m-%dT%H:%M:%S.%f") <= end]
 
 
     d = public_user_data(uid)
-    d["sheetsRead"] = UserHistorySet({"is_sheet": True, "secondary": False, "uid": uid}).count()
-    d["textsRead"] = UserHistorySet({"is_sheet": False, "secondary": False, "uid": uid}).count()
+
+    sheetsReadQuery = {"is_sheet": True, "secondary": False, "uid": uid}
+    sheetsReadQuery.update(timeclause)
+    d["sheetsRead"] = UserHistorySet(sheetsReadQuery).count()
+
+    textsReadQuery = {"is_sheet": False, "secondary": False, "uid": uid}
+    textsReadQuery.update(timeclause)
+    d["textsRead"] = UserHistorySet(textsReadQuery).count()
+
     d["categoriesRead"] = {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}})}
     d["totalSheets"] = len(usheets)
     d["publicSheets"] = len([s for s in usheets if s["status"] == "public"])
     d["popularSheets"] = most_popular_sheets
-    d["sheetsThisYear"] = len(sheets_this_year)
+    d["sheetsThisPeriod"] = len(sheets_this_period)
 
     return d
 
