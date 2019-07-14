@@ -516,7 +516,7 @@ SimpleLinkedBlock.propTypes = {
     aclasses: PropTypes.string
 };
 
-const BuyButton = ({book, image, url}) => (
+const BuyButton = ({title, heTitle, image, url}) => (
     <div className="buy-button">
       <div className="buy-image">
         <img
@@ -526,8 +526,11 @@ const BuyButton = ({book, image, url}) => (
         />
       </div>
       <div className="buy-link">
-        <div className="book-name">{book}</div>
-        <a className="button" href={url}>
+        <div className="book-name">
+          <span className="int-en">{title}</span>
+          <span className="int-he">{heTitle}</span>
+        </div>
+        <a className="button fillWidth" href={url} target="_blank">
           <span className="int-en">Buy Now</span>
           <span className="int-he">קנה עכשיו</span>
         </a>
@@ -535,7 +538,8 @@ const BuyButton = ({book, image, url}) => (
     </div>
 );
 BuyButton.propTypes = {
-  book: PropTypes.string,
+  title: PropTypes.string,
+  heTitle: PropTypes.string,
   image: PropTypes.string,
   url: PropTypes.string,
 };
@@ -1749,3 +1753,4 @@ module.exports.ThreeBox                                  = ThreeBox;
 module.exports.ToggleSet                                 = ToggleSet;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;
+module.exports.BuyButton                                 = BuyButton;

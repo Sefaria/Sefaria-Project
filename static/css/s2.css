@@ -5792,10 +5792,34 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .buy-button {
   display: flex;
+  margin-bottom: 40px;
+}
+.buy-button .buy-link{
+  min-width: 50%;
+}
+.interface-english .buy-button .buy-image{
+  margin-right: 15px;
+}
+.interface-hebrew .buy-button .buy-image{
+  margin-left: 15px;
+}
+.buy-button .book-name{
+  font-size: 20px;
+}
+.buy-button a.button{
+  color: #FFFFFF;
 }
 .buy-button .buy-link{
   display: flex;
   flex-direction: column;
+}
+.buy-button img.buy-img {
+    height: 100px;
+    width: 60px;
+    border-radius: 2px;
+}
+.buy-button .book-name .int-en {
+    font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
