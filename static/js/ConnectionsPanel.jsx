@@ -190,23 +190,15 @@ class ConnectionsPanel extends Component {
     return Sefaria.getText(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}).then(cb);
   }
   getVersionFromData(d, lang) {
-      console.log(d);
     //d - data received from this.getData()
     //language - the language of the version
+    //console.log(d);
     const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
     return {
       ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
-      language:               lang,
-      versionTitle:           lang == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:          lang == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:          lang == "he" ? d.heVersionStatus : d.versionStatus,
-      license:                lang == "he" ? d.heLicense : d.license,
+      title:                  d.indexTitle,
+      heTitle:                d.heIndexTitle,
       sources:                lang == "he" ? d.heSources : d.sources,
-      versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
-      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
-      extendedNotes:          lang == "he" ? d.extendedNotesHebrew : d.extendedNotes,
       merged:                 lang == "he" ? !!d.heSources : !!d.sources,
     }
   }
