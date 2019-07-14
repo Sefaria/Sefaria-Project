@@ -532,7 +532,7 @@ const BuyButton = ({title, heTitle, image, url}) => (
         </div>
         <a className="button fillWidth" href={url} target="_blank">
           <span className="int-en">Buy Now</span>
-          <span className="int-he">קנה עכשיו</span>
+          <span className="int-he">לקניית הספר</span>
         </a>
       </div>
     </div>

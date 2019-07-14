@@ -5804,7 +5804,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-left: 15px;
 }
 .buy-button .book-name{
-  font-size: 20px;
+  font-size: 25px;
+  margin-bottom: 5px;
 }
 .buy-button a.button{
   color: #FFFFFF;
@@ -5814,8 +5815,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   flex-direction: column;
 }
 .buy-button img.buy-img {
-    height: 100px;
-    width: 60px;
+    height: 105px;
+    width: 65px;
     border-radius: 2px;
 }
 .buy-button .book-name .int-en {
