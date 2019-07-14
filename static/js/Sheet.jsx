@@ -1,6 +1,11 @@
 const {
   LoadingMessage,
   ReaderMessage,
+  SheetMetaDataBox,
+  SheetAuthorStatement,
+  SheetTitle,
+  GroupStatement,
+
 } = require('./Misc');
 
 const React = require('react');
@@ -12,7 +17,6 @@ const $ = require('./sefaria/sefariaJquery');
 const Sefaria = require('./sefaria/sefaria');
 const sanitizeHtml = require('sanitize-html');
 import Component from 'react-class';
-import { renderToString } from 'react-dom/server';
 
 class Sheet extends Component {
   constructor(props) {
@@ -22,7 +26,6 @@ class Sheet extends Component {
         scrollDir: "down",
         editor: true
     }
-
   }
 
   componentDidMount() {
@@ -43,7 +46,7 @@ class Sheet extends Component {
   onDataLoad(data) {
     this.forceUpdate();
 
-    for (var i = 0; i < data.sources.length; i++) {
+    for (let i = 0; i < data.sources.length; i++) {
       if ("ref" in data.sources[i]) {
         Sefaria.getRef(data.sources[i].ref)
             .then(ref => ref.sectionRef)
@@ -61,7 +64,7 @@ class Sheet extends Component {
   setPaddingForScrollbar() {
     // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
     // compared to the header. This functions sets appropriate padding to compensate.
-    var width = Sefaria.util.getScrollbarWidth();
+    const width = Sefaria.util.getScrollbarWidth();
     if (this.props.interfaceLang == "hebrew") {
       this.$container.css({paddingRight: width, paddingLeft: 0});
     } else {
@@ -70,9 +73,9 @@ class Sheet extends Component {
   }
 
   render() {
-    var sheet = this.getSheetFromCache();
-    var classes = classNames({sheetsInPanel: 1});
-    var content;
+    const sheet = this.getSheetFromCache();
+    const classes = classNames({sheetsInPanel: 1});
+    let content;
     if (!sheet) {
       content = (<LoadingMessage />);
     }
@@ -107,7 +110,7 @@ class Sheet extends Component {
              this.setState({scrollDir: "down"});
            }
         }}>
-            {this.state.editor == true && sheet ? <SefariaEditor data={renderToString(content)} /> : content}
+            {this.state.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={sheet} /></div> : content}
 
 
 
@@ -209,7 +212,7 @@ class SheetContent extends Component {
       if ("ref" in source) {
         const highlighted = this.props.highlightedNodes ?
             this.props.highlightedNodes == source.node :
-              highlightedRef ? 
+              highlightedRef ?
               Sefaria.refContains(source.ref, highlightedRef) :
                 false;
         return (
@@ -292,33 +295,21 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-        <div className="sheetMetaDataBox">
-            <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(this.props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
-                {this.props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
-            </div>
 
-            <div className="authorStatement">
-                <div className="groupListingImageBox imageBox">
-                    <a href={this.props.authorUrl}>
-                        <img className="groupListingImage img-circle" src={this.props.authorImage} alt="Author Avatar" />
-                    </a>
-                </div>
-                <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
-            </div>
+        <SheetMetaDataBox>
+            <SheetTitle title={this.props.title} />
+            <SheetAuthorStatement
+                authorUrl={this.props.authorUrl}
+                authorImage={this.props.authorImage}
+                authorStatement={this.props.authorStatement}
+            />
+            <GroupStatement
+                group={this.props.group}
+                groupLogo={this.props.groupLogo}
+            />
+        </SheetMetaDataBox>
 
-            {this.props.group && this.props.group != "" ?
-                <div className="groupStatement">
-                    <div className="groupListingImageBox imageBox">
-                        <a href={"/groups/"+this.props.group}>
-                            <img className="groupListingImage img-circle" src={this.props.groupLogo} alt="Group Logo" />
-                        </a>
-                    </div>
-                    <a href={"/groups/"+this.props.group}>{this.props.group}</a>
-                </div>
 
-                : null}
-
-        </div>
         <div className="text">
             <div className="textInner">{sources}</div>
         </div>
@@ -634,8 +625,8 @@ class SheetMedia extends Component {
     if (caption && (caption.en || caption.he) ) {
       var cls = caption.en && caption.he ? "" : caption.en ? "enOnly" : "heOnly";
       var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
-                "<div class='en'>" + (caption.en || "") + "</div>" + 
-                "<div class='he'>" + (caption.he || "") + "</div>" + 
+                "<div class='en'>" + (caption.en || "") + "</div>" +
+                "<div class='he'>" + (caption.he || "") + "</div>" +
                  "</div></div>";
     }
 

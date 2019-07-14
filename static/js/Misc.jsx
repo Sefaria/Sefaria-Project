@@ -1347,6 +1347,66 @@ class CookiesNotification extends Component {
   }
 }
 
+const SheetTitle = (props) => (
+        <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+            {props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
+        </div>
+    )
+SheetTitle.propTypes = {
+    title:          PropTypes.string,
+};
+
+const SheetAuthorStatement = (props) => (
+    <div className="authorStatement">
+      <div className="groupListingImageBox imageBox">
+        <a href={props.authorUrl}>
+          <img className="groupListingImage img-circle" src={props.authorImage} alt="Author Avatar"/>
+        </a>
+      </div>
+      <span>by <a href={props.authorUrl}>{props.authorStatement}</a></span>
+    </div>
+)
+
+SheetAuthorStatement.propTypes = {
+    authorImage:      PropTypes.string,
+    authorStatement:  PropTypes.string,
+    authorUrl:        PropTypes.string,
+};
+
+const GroupStatement = (props) => (
+    props.group && props.group != "" ?
+        <div className="groupStatement">
+          <div className="groupListingImageBox imageBox">
+            <a href={"/groups/" + props.group}>
+              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
+            </a>
+          </div>
+          <a href={"/groups/" + props.group}>{props.group}</a>
+        </div> : null
+)
+
+GroupStatement.propTypes = {
+    group:      PropTypes.string,
+    groupLogo:  PropTypes.string,
+};
+
+
+const SheetMetaDataBox = (props) => (
+    <div className="sheetMetaDataBox">
+      {props.children}
+    </div>
+);
+
+SheetMetaDataBox.propTypes = {
+    title:          PropTypes.string,
+    authorUrl:      PropTypes.string,
+    authorImage:    PropTypes.string,
+    authorStatement:PropTypes.string,
+    group:          PropTypes.string,
+    groupLogo:      PropTypes.string,
+};
+
+
 
 module.exports.SimpleInterfaceBlock                      = SimpleInterfaceBlock;
 module.exports.DangerousInterfaceBlock                   = DangerousInterfaceBlock;
@@ -1386,3 +1446,7 @@ module.exports.ThreeBox                                  = ThreeBox;
 module.exports.ToggleSet                                 = ToggleSet;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;
+module.exports.SheetMetaDataBox                          = SheetMetaDataBox;
+module.exports.SheetAuthorStatement                      = SheetAuthorStatement;
+module.exports.SheetTitle                                = SheetTitle;
+module.exports.GroupStatement                            = GroupStatement;
