@@ -4,6 +4,7 @@ const classNames             = require('classnames');
 const Sefaria                = require('./sefaria/sefaria');
 const $                      = require('./sefaria/sefariaJquery');
 import Component             from 'react-class';
+const { BuyButton }          = require('./Misc');
 
 
 class VersionBlock extends Component {
@@ -139,7 +140,6 @@ class VersionBlock extends Component {
   }
   render() {
     var v = this.props.version;
-    console.log(v);
 
     if (this.state.editing) {
       // Editing View
@@ -228,8 +228,17 @@ class VersionBlock extends Component {
 
       const versionSidebarLink = this.makeVersionLink('side');
       const versionReaderLink = this.makeVersionLink(this.props.version.language);
+
+      const buyButton = (this.props.additionalInterfaceElements &&  !this.props.version.merged && this.props.version.purchaseInformationURL) ?
+          <BuyButton
+              title={this.props.version.title}
+              heTitle={this.props.version.heTitle}
+              image={this.props.version.purchaseInformationImage}
+              url={this.props.version.purchaseInformationURL} />
+          : null;
       return (
         <div className = "versionBlock">
+          {buyButton}
           {!!this.props.openVersionInSidebar || !!this.props.openVersionInReader ?
             <div>
               <a className="versionTitle"
@@ -287,10 +296,12 @@ VersionBlock.propTypes = {
   isCurrent:       PropTypes.bool,
   openVersion:     PropTypes.func,
   viewExtendedNotes: PropTypes.func,
+  additionalInterfaceElements: PropTypes.bool,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
-  showNotes: true
+  showNotes: true,
+  additionalInterfaceElements: false
 };
 
 module.exports = VersionBlock;
