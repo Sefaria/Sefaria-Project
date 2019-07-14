@@ -1348,9 +1348,9 @@ class CookiesNotification extends Component {
 }
 
 const SheetTitle = (props) => (
-        <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
-            {props.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}
-        </div>
+        <span className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+            {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
+        </span>
     )
 SheetTitle.propTypes = {
     title:          PropTypes.string,
@@ -1363,7 +1363,7 @@ const SheetAuthorStatement = (props) => (
           <img className="groupListingImage img-circle" src={props.authorImage} alt="Author Avatar"/>
         </a>
       </div>
-      <span>by <a href={props.authorUrl}>{props.authorStatement}</a></span>
+      <span>by <a href={props.authorUrl}>{props.children ? props.children : props.authorStatement}</a></span>
     </div>
 )
 

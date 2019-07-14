@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Editor} from 'slate-react'
 import {Block, Value} from 'slate'
 import Html from 'slate-html-serializer'
+import PlaceholderPlugin from 'slate-react-placeholder'
 
 const {
     SheetMetaDataBox,
@@ -96,6 +97,20 @@ const html = new Html({rules})
 
 function SefariaEditor(props) {
 
+    const plugins = [
+        {
+            queries: {
+                isEmpty: editor => editor.value.document.text === '',
+            },
+        },
+        PlaceholderPlugin({
+            placeholder:
+                'Untitled Source Sheet',
+            when: 'isEmpty',
+            style: {color: '#333'},
+        }),
+    ]
+
     function transformSheetJsonToDraft(sheet) {
 
         return (
@@ -112,12 +127,12 @@ function SefariaEditor(props) {
                                     "object": "inline",
                                     "type": "SheetTitle",
                                     "data": {
-                                      "title": sheet.title
+                                        "title": sheet.title
                                     },
                                     "nodes": [
                                         {
                                             "object": "text",
-                                            "text": "banana",
+                                            "text": sheet.title.stripHtmlKeepLineBreaks(),
                                         }
                                     ]
                                 },
@@ -125,15 +140,15 @@ function SefariaEditor(props) {
                                     "object": "inline",
                                     "type": "SheetAuthorStatement",
                                     "data": {
-                                      "authorImage": sheet.ownerImageUrl,
-                                      "authorUrl": sheet.ownerProfileUrl,
-                                      "authorStatement": sheet.ownerName,
+                                        "authorImage": sheet.ownerImageUrl,
+                                        "authorUrl": sheet.ownerProfileUrl,
+                                        "authorStatement": sheet.ownerName,
                                     },
 
                                     "nodes": [
                                         {
                                             "object": "text",
-                                            "text": "potato",
+                                            "text": sheet.ownerName,
                                         }
                                     ]
                                 }
@@ -145,7 +160,7 @@ function SefariaEditor(props) {
                             "nodes": [
                                 {
                                     "object": "text",
-                                    "text": "",
+                                    "text": "w00t",
                                 }
                             ]
                         },
@@ -168,11 +183,11 @@ function SefariaEditor(props) {
             normalize: (editor, {code, node, child, index}) => {
                 switch (code) {
                     case 'child_type_invalid': {
-                        const type = index === 0 ? 'title' : 'paragraph'
+                        const type = index === 0 ? 'SheetMetaDataBox' : 'paragraph'
                         return editor.setNodeByKey(child.key, type)
                     }
                     case 'child_min_invalid': {
-                        const block = Block.create(index === 0 ? 'title' : 'paragraph')
+                        const block = Block.create(index === 0 ? 'SheetMetaDataBox' : 'paragraph')
                         return editor.insertNodeByKey(node.key, index, block)
                     }
                 }
@@ -233,12 +248,12 @@ function SefariaEditor(props) {
                         authorUrl={authorUrl}
                         authorImage={authorImage}
                         authorStatement={authorStatement}
-                    />
+                    >{children}</SheetAuthorStatement>
                 )
             case 'SheetTitle':
                 const title = data.get('title')
                 return (
-                    <SheetTitle title={title} />
+                    <SheetTitle {...attributes} title={title}>{children}</SheetTitle>
                 )
             default:
                 return next()
@@ -253,6 +268,7 @@ function SefariaEditor(props) {
             renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
             renderMark={(props, editor, next) => renderMark(props, editor, next)}
             renderInline={(props, editor, next) => renderInline(props, editor, next)}
+            plugins={plugins}
         />
     )
 

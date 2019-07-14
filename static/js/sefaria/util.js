@@ -221,7 +221,7 @@ class Util {
         };
 
         String.prototype.stripHtmlKeepLineBreaks = function() {
-            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/<p>/g, ' <p>'),['br']);
+            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/<p>/g, ' <p>').replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' '));
         };
 
 
