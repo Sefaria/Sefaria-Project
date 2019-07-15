@@ -400,18 +400,20 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.alt_titles_dict(lang).get(title)
 
     def get_alt_struct_nodes(self):
+
+        def alt_struct_nodes_helper(self, node, nodes):
+            if node.is_leaf():
+                nodes.append(node)
+            else:
+                for child in node.children:
+                    self.alt_struct_nodes_helper(child, nodes)
+
         nodes = []
         for tree in self.get_alt_structures().values():
             for node in tree.children:
                 self.alt_struct_nodes_helper(node, nodes)
         return nodes
 
-    def alt_struct_nodes_helper(self, node, nodes):
-        if node.is_leaf():
-            nodes.append(node)
-        else:
-            for child in node.children:
-                self.alt_struct_nodes_helper(child, nodes)
 
     def composition_place(self):
         from . import place
