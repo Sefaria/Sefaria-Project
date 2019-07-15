@@ -62,7 +62,7 @@ function HomeFeed(props) {
                         </div>
                     </div>
                     <div className="imageBox">
-                        <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Parashat HaShavua"))} style={{borderColor: "rgb(0, 78, 95)"}}>
+                        <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Parashat Hashavua"))} style={{borderColor: "rgb(0, 78, 95)"}}>
                             <span className="int-en">Weekly Torah Portion</span>
                             <span className="int-he">פרשה</span>
                         </a>
