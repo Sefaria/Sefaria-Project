@@ -956,6 +956,7 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "story_editor") {
       menu = (<StoryEditor
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
       />);
 
@@ -987,6 +988,7 @@ class ReaderPanel extends Component {
           profile={this.state.profile}
           handleInAppLinkClick={this.props.handleInAppLinkClick}
           openProfile={this.props.openProfile}
+          toggleSignUpModal={this.props.toggleSignUpModal}
         />
       );
     }

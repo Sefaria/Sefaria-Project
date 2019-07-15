@@ -2468,8 +2468,8 @@ def stories_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                SharedStory(payload).save()
-                return jsonResponse({"status": "ok"})
+                s = SharedStory(payload).save()
+                return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
 
@@ -2478,8 +2478,8 @@ def stories_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    SharedStory(payload).save()
-                    return jsonResponse({"status": "ok"})
+                    s = SharedStory(payload).save()
+                    return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
 

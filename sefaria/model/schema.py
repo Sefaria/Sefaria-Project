@@ -786,7 +786,8 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
             raise IndexSchemaError(u"Schema node {} with sharedTitle can not have explicit titles".format(self))
 
-        if not self.sharedTitle:
+        # disable this check while data is still not conforming to validation
+        if not self.sharedTitle and False:
             special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Judges"]
             for title in self.title_group.titles:
                 title = title["text"]

@@ -919,12 +919,10 @@ input.noselect {
 .interface-hebrew.multiPanel .homeFeedWrapper .content {
   padding-right: 40px;
 }
-.multiPanel .readerNavMenu .content,
-.multiPanel .homeFeedWrapper .content {
+.multiPanel .readerNavMenu .content {
   padding: 30px 30px 70px 30px;
 }
-.multiPanel .readerNavMenu .content.hasFooter,
-.multiPanel .homeFeedWrapper .content.hasFooter {
+.multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0 0 0;
 }
 .multiPanel .readerNavMenu.noHeader .content,
@@ -2142,7 +2140,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchTopMatter .search-dropdown-button {
   font-size: 18px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
   padding: 15px;
@@ -4453,22 +4451,37 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0 5px;
 }
 .globalUpdateForm {
-  padding: 15px;
+  padding: 20px;
   background-color: #ddd;
+  border-radius: 15px;
+  font-size: 18px;
+}
+
+.globalUpdateForm .storyTypeSelector {
+  padding-bottom: 15px;
+}
+.globalUpdateForm  select {
+  margin: 0 0 0 15px;
 }
 .globalUpdateForm .error {
   color: red;
   font-size: 90%;
-  display: inline-block;
-  padding: 0 10px;
 }
 .globalUpdateForm input[type="text"] {
   padding: 5px;
-  margin: 8px 0;
+  margin: 0 0 0 15px;
 }
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
   margin: 8px;
+}
+.globalUpdateForm label {
+  padding-top: 10px;
+  display: block;
+}
+.globalUpdateForm .previewButton {
+  margin-left: 85%;
+  font-size: 20px;
 }
 
 .story-action-button {
@@ -5614,11 +5627,11 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .header.connect {
   text-transform: uppercase;
 }
-#newsletterFooterBox {
+.newsletterSignUpBox {
   position: relative;
   margin-bottom: 4px;
 }
-#newsletterInput {
+.newsletterInput {
   border-radius: 6px;
   padding: 8px 32px 11px 16px;
   width: 150px;
@@ -5627,12 +5640,12 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 6px;
   color: #333;
 }
-#newsletterInput ::-webkit-input-placeholder,
-#newsletterInput ::-moz-placeholder,
-#newsletterInput :-ms-input-placeholder {
+.newsletterInput ::-webkit-input-placeholder,
+.newsletterInput ::-moz-placeholder,
+.newsletterInput :-ms-input-placeholder {
   color: #AAA;
 }
-#newsletterFooterBox img {
+.newsletterSignUpBox img {
   height: 18px;
   width: 18px;
   opacity: 0.2;
@@ -5640,17 +5653,19 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   top: 10px;
   right: 12px;
 }
-.interface-hebrew #footer #newsletterInput {
+.interface-hebrew .newsletterInput {
   padding: 8px 16px 11px 32px;
 }
-.interface-hebrew #footer #newsletterFooterBox img {
+.interface-hebrew .newsletterSignUpBox img {
   right: auto;
   left: 12px;
   transform: scale(-1, 1);
 }
-#subscribeMessage {
+.subscribeMessage {
   margin-bottom: 14px;
   color: #333;
+  font-size: 14px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: italic;
   text-align: center;
 }
@@ -5985,7 +6000,6 @@ span.purim-emoji img{
   font-size: 13px;
   margin-bottom: 0;
   padding-bottom: 8px;
-
 }
 .sheetMetaDataBox {
   margin: 40px auto 0 auto;
@@ -6578,7 +6592,6 @@ span.purim-emoji img{
   opacity: 1;
   transition: all 0.75s ease;
 }
-
 .largeFollowButton {
   display: inline-block;
   padding: 7px;
@@ -6602,7 +6615,6 @@ span.purim-emoji img{
 .largeFollowButton.following span {
   color: #666;
 }
-
 .smallFollowButton {
   height: 18px;
   line-height: 18px;
@@ -6616,23 +6628,176 @@ span.purim-emoji img{
   display: none;
   letter-spacing: normal;
 }
-
 .smallFollowButton.smallText span {
   color: #666;
 }
-
+body .homeFeedWrapper {
+  background-color: white;
+}
+body .homeFeedWrapper .content {
+  padding: 0;
+}
+.homeFeedWrapper #homeCover {
+  height: 200px;
+  padding: 30px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  left: -20px;
+  width: calc(100% + 20px);
+}
+.homeFeedWrapper #homeVideo {
+  position: absolute;
+  top: -270px;
+  left: 0;
+  width: 100%;
+  min-width: 1200px;
+  z-index: 0;
+}
+.homeFeedWrapper #homeCover h1.featureTitle {
+  color: white;
+  margin-bottom: 20px;
+  position: relative;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-en,
+.homeFeedWrapper #homeCover h1.featureTitle .int-he {
+  color: white;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-en {
+  font-size: 36px;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-he {
+  font-size: 44px;
+}
+.homeFeedWrapper #homeCover .sub {
+  color: white;
+  font-size: 16px;
+  margin: 0;
+  position: relative;
+}
+.homeFeedWrapper #homeCover .sub a {
+  font-size: 18px;
+}
+.homeFeedWrapper #homeCover .sub .int-en {
+}
+.homeFeedWrapper #homeCover a {
+  color: white;
+  font-style: normal;
+  position: relative;
+}
+.homeFeedColumns {
+  display: flex;
+  flex-direction: row;
+}
+.homeFeedSidebar {
+  flex: 0 0 320px;
+  max-width: 40%;
+  background-color: #FBFBFA;
+  padding: 60px 50px;
+}
+.homeFeedSidebar .section {
+  margin-bottom: 70px;
+}
+.homeFeedSidebar .section h2 {
+  text-transform: none;
+  font-size: 24px;
+  letter-spacing: normal;
+  text-align: inherit;
+  margin: 0 0 30px 0;
+}
+.homeFeedSidebar .section h2 .int-en {
+  text-align: left;
+}
+.homeFeedSidebar .section h2 .int-he {
+  text-align: right;
+}
+.homeFeedSidebar .section .description {
+  margin-bottom: 25px;
+}
+.homeFeedSidebar .button img {
+  width: 16px;
+  height: 16px;
+  margin: 0 5px;
+  position: relative;
+  top: 2px;
+  filter: invert(1);
+}
+.homeFeedSidebar .button.white img {
+  filter: none;
+  opacity: .4;
+}
+.homeFeedSidebar .button .fa {
+  opacity: .4;
+  margin: 0 5px;
+}
+.homeFeedSidebar .inlineButtonBox {
+  display: flex;
+  justify-content: space-between;
+}
+.homeFeedSidebar .inlineButtonBox a {
+  flex: 1;
+}
+.homeFeedSidebar .inlineButtonBox a .button {
+  width: 100%;
+}
+.homeFeedSidebar #homeLearn .refLink {
+  display: block;
+  height: 56px;
+  line-height: 56px;
+  border-top: 4px solid;
+  color: #000;
+  font-size: 20px;
+}
+.homeFeedSidebar #homeLearn .refLink .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.homeFeedSidebar .newsletterInput {
+  width: 100%;
+  box-sizing: border-box;
+}
+.homeFeedSidebar #homeSocialButtons {
+  margin-top: 15px;
+}
+.homeFeedSidebar #homeSocialButtons .fa {
+  font-size: 18px;
+  color: white;
+  background-color: #aaa;
+  display: inline-block;
+  height: 30px;
+  width: 30px;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 15px;
+  margin-right: 5px;
+}
+.interface-hebrew .homeFeedSidebar #homeSocialButtons .fa {
+  margin: 0 0 0 5px;
+}
+.homeFeedSidebar #homeSocialButtons .fa:hover {
+  text-decoration: none;
+  background-color: #999;
+}
+.storyFeed {
+  flex: 1;
+  background-color: white;
+}
+.storyFeedInner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding-top: 60px;
+}
 .storyByLine:hover .smallFollowButton,
 .authorName:hover .smallFollowButton {
   display: inline-block;
 }
-
-
 .bilingual .homeFeedWrapper span.he {
   display: block;
   padding-bottom: 10px;
 }
 .storyFeed .story {
-  padding: 30px 0;
+  padding: 0 0 60px 0;
 }
 .storyFeed .story .storyTitleBlock {
   clear: both;
@@ -6643,7 +6808,6 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTitleBlock {
   float: right;
 }
-
 .colorBarBox {
   clear: both;
 }
@@ -6663,25 +6827,21 @@ span.purim-emoji img{
 .interface-hebrew .learnMoreLink {
   padding-right: 34px;
 }
-
 .storyTextListItem {
   padding-bottom: 18px;
 }
 .storyTextListItem:last-child {
   padding-bottom: 0;
 }
-
 .publishSheetStory .saveButton  {
   float: right;
   padding-top: 20px;
 }
-
-
 .storyFeed .story .storyTitle {
   padding: 10px 0 30px;
 }
 .storyTitleWrapper .saveButton {
-    padding-bottom: 20px;
+  padding-bottom: 20px;
 }
 .storyFeed .story .storySubTitle {
   padding-bottom: 10px;
@@ -6691,16 +6851,16 @@ span.purim-emoji img{
   color: #666;
 }
 img.smallProfileImage {
-    height: 40px;
-    width: 40px;
-    margin: 0;
-    border-radius: 20px;
+  height: 40px;
+  width: 40px;
+  margin: 0;
+  border-radius: 20px;
 }
 .storyFeed .story img.mediumProfileImage {
-    height: 64px;
-    width: 64px;
-    margin: 0;
-    border-radius: 32px;
+  height: 64px;
+  width: 64px;
+  margin: 0;
+  border-radius: 32px;
 }
 .interface-english .storyFeed .story .storyTypeBlock {
   float: left;
@@ -6723,9 +6883,6 @@ img.smallProfileImage {
 .interface-hebrew .storyFeed .story .mediumProfileImage {
   float: left;
 }
-
-
-
 .storyFeed .story .storyBody {
   clear: both;
   margin: 10px 0;
@@ -6747,8 +6904,6 @@ img.smallProfileImage {
 .storyFeed .story .storySheetList .pageTitle span {
   font-size: 20px;
 }
-
-
 .storyFeed .story .saveLine {
   display: flex;
   clear: both;
@@ -6765,7 +6920,6 @@ img.smallProfileImage {
 .storyFeed .story .saveLine .saveButton {
   align-self: center;
 }
-
 .storyFeed .story .citationLine.contentText .int-en,
 .storyFeed .story .citationLine.contentText .int-he {
   color: #999;
@@ -6777,17 +6931,14 @@ img.smallProfileImage {
   width: 100%;
   letter-spacing: 2px;
 }
-
 .authorByLine {
   display: flex;
 }
-
 .authorByLine .authorByLineText {
   letter-spacing: 2px;
   padding: 0 10px;
   line-height: 22px;
 }
-
 .authorByLine .authorPosition,
 .authorByLine .authorName {
   display: block;
@@ -6796,11 +6947,9 @@ img.smallProfileImage {
   position: relative;
   bottom: 12px;
 }
-
 .systemText.authorPosition span {
   color: #999;
 }
-
 .storyFeed a {
   color: #000;
 }
@@ -6808,24 +6957,23 @@ img.smallProfileImage {
   text-decoration: underline;
 }
 .storyEditBar {
-    padding-bottom: 30px;
+  padding-bottom: 30px;
 }
 .storyEditorTag {
-    display: inline-block;
-    float: right;
+  display: inline-block;
+  float: right;
 }
 .storyEditorTag.mustHave {
-    color: #66aa66;
-    padding: 0 10px;
+  color: #66aa66;
+  padding: 0 10px;
 }
 .storyEditorTag.cantHave {
-    color: #aa6666;
+  color: #aa6666;
 }
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;
 }
-
 .segment .queryTextHighlight {
   background-color: #D2DCFF;
   padding-left: 2px;
