@@ -487,7 +487,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             "ref": oref.normal(),
             "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()})
         }
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
 
         if kwargs.get("versions"):
@@ -824,7 +824,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
             "title": kwargs.get("title",{"en": g.name, "he": g.name}),
             "cozy": kwargs.get("cozy", False)
         }
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
         return d
 
@@ -906,7 +906,7 @@ class SheetListFactory(AbstractStoryFactory):
             "title": title,
         }
 
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
 
         return d
