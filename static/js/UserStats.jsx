@@ -5,7 +5,7 @@ const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
 const Story      = require('./Story');
 const {SimpleLinkedBlock}    = require('./Misc');
-const { usePaginatedScroll } = require('./Hooks');
+const { useDebounce } = require('./Hooks');
 import Component from 'react-class';
 
 
@@ -13,23 +13,20 @@ const UserStats = () => {
 
     const [uid, setUid] = useState(1);
     const [user_data, setUserData] = useState({});
-    const [quick_data, setQuickData] = useState({});
     const [site_data, setSiteData] = useState({});
+
+    const debouncedUID = useDebounce(uid, 500);
 
     useEffect(() => {
         $.getJSON("/api/site_stats")
             .then(d => setSiteData(d));
     }, []);
     useEffect(() => {
-        setQuickData({});
         setUserData({});
-        $.getJSON("/api/user_stats/" + uid + "?quick=1")
-            .then(d => { if (parseInt(uid)===parseInt(d.uid)) setQuickData(d); else console.log(uid + "!=" + d.uid)});
-        $.getJSON("/api/user_stats/" + uid)
-            .then(d => { if (parseInt(uid)===parseInt(d.uid)) setUserData(d); else console.log(uid + "!=" + d.uid)});  /// !!
-    }, [uid]);
+        $.getJSON("/api/user_stats/" + debouncedUID)
+            .then(d => setUserData(d));
+    }, [debouncedUID]);
 
-    const all_user_data = {...quick_data, ...user_data};
     const all_ready = user_data.uid && site_data.categoriesRead;
 
     return (
@@ -40,8 +37,8 @@ const UserStats = () => {
           <span className="int-he">סטטיסטיקות משתמש</span>
         </h1>
         <UserChooser setter={setUid}/>
-        <UserProfileBlock user_data={all_user_data}/>
-        {all_ready?<UserDataBlock user_data={all_user_data} site_data={site_data}/>:"Loading"}
+        {all_ready?<UserProfileBlock user_data={user_data}/>:"Loading"}
+        {all_ready && <UserDataBlock user_data={user_data} site_data={site_data}/>}
       </div>
     </div>
     );
