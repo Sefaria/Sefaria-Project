@@ -70,20 +70,27 @@ const UserDataBlock = ({user_data, site_data}) => (
                 <h3>Reading</h3>
                 <div>{user_data.sheetsRead} Sheets Read</div>
                 <div>{user_data.textsRead} Texts Read</div>
-            </div>
-            <div style={{padding: "0 10px"}}>
                 <h3>Writing</h3>
                 <div>{user_data.totalSheets} Sheets Created</div>
                 <div>{user_data.publicSheets} Public Sheets</div>
                 <div>{user_data.sheetsThisPeriod} Sheets Created This Year</div>
-            </div>
-            <div style={{padding: "0 10px"}}>
-                <h3>Most Popular This Year</h3>
+                <h3>My Most Read Sheets</h3>
                 {user_data.popularSheets.map((sheet, i) =>
                     <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
                 )}
             </div>
+            <div style={{padding: "0 10px"}}>
+                <h3>Texts I returned to</h3>
+                {user_data.mostViewedRefs.map((r,i) => <div key={i}><RefLink tref={r}/></div>)}
+            </div>
+            <div style={{padding: "0 10px"}}>
+                <h3>Sheets I returned to</h3>
+                {user_data.mostViewedSheets.map((sheet,i) =>
+                    <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
+                )}
+            </div>
         </div>
+
         <div style={{display: "flex", justifyContent:"space-around"}}>
           <CategoriesPie title="User" cats={user_data.categoriesRead}/>
           <CategoriesPie title="Site" cats={site_data.categoriesRead}/>
@@ -93,6 +100,10 @@ const UserDataBlock = ({user_data, site_data}) => (
         </div>
     </div>
 );
+
+const RefLink = ({tref}) => {
+    return <a href={"/" + Sefaria.normRef(tref)}>{tref}</a>;
+};
 
 const mapToPercentage = data => {
     const newData = {};

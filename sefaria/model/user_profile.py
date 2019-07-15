@@ -685,31 +685,69 @@ def user_stats_data(uid, start=None, end=None):
     """
     from sefaria.model.category import TOP_CATEGORIES
     from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
-    from sefaria.sheets import user_sheets
+    from sefaria.sheets import user_sheets, sheet_list
 
     uid = int(uid)
 
-    # todo: needs more thought.  The method below handles the Nones, but later usages in this method aren't so graceful.
+    # todo: needs more thought.  UserHistory.timeclause handles the Nones, but later usages in this method aren't so graceful.
     timeclause = UserHistory.timeclause(start, end)
     end = end or datetime.now()
     start = start or datetime(2017, 12, 1)  # start of Sefaria epoch
 
+    # All of user's sheets
     usheets = user_sheets(uid)["sheets"]
     usheet_ids = [s["id"] for s in usheets]
-    usheet_views = db.user_history.aggregate([
-        {"$match": {
+
+    # Sheet views in this period
+    match_clause = {
             "is_sheet": True,
             "sheet_id": {"$in": usheet_ids},
-            }},
+            }
+    match_clause.update(timeclause)
+    usheet_views = db.user_history.aggregate([
+        {"$match": match_clause},
         {"$group": {
             "_id": "$sheet_id",
             "cnt": {"$sum": 1}}},
     ])
+
     most_popular_sheet_ids = [s["_id"] for s in sorted(usheet_views, key=lambda o: o["cnt"], reverse=True)[:3]]
     most_popular_sheets = [s for s in usheets if s["id"] in most_popular_sheet_ids]
     sheets_this_period = [s for s in usheets if start <= datetime.strptime(s["created"], "%Y-%m-%dT%H:%M:%S.%f") <= end]
 
+    # Refs I viewed
+    match_clause = {
+            "uid": uid,
+            "secondary": False,
+            "is_sheet": False
+            }
+    match_clause.update(timeclause)
+    refs_viewed = db.user_history.aggregate([
+        {"$match": match_clause},
+        {"$group": {
+            "_id": "$ref",
+            "cnt": {"$sum": 1}}},
+    ])
+    most_viewed_refs = [s["_id"] for s in sorted(refs_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and "Genesis 1" not in s["_id"]][:10]
 
+
+    # Sheets I viewed
+    match_clause = {
+            "uid": uid,
+            "secondary": False,
+            "is_sheet": True
+            }
+    match_clause.update(timeclause)
+    sheets_viewed = db.user_history.aggregate([
+        {"$match": match_clause},
+        {"$group": {
+            "_id": "$sheet_id",
+            "cnt": {"$sum": 1}}},
+    ])
+    most_viewed_sheets_ids = [s["_id"] for s in sorted(sheets_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and s["_id"] not in usheet_ids][:10]
+    most_viewed_sheets = sheet_list({"id": {"$in":most_viewed_sheets_ids}})
+
+    # Construct returned data
     d = public_user_data(uid)
 
     sheetsReadQuery = {"is_sheet": True, "secondary": False, "uid": uid}
@@ -725,7 +763,8 @@ def user_stats_data(uid, start=None, end=None):
     d["publicSheets"] = len([s for s in usheets if s["status"] == "public"])
     d["popularSheets"] = most_popular_sheets
     d["sheetsThisPeriod"] = len(sheets_this_period)
-
+    d["mostViewedRefs"] = most_viewed_refs
+    d["mostViewedSheets"] = most_viewed_sheets
     return d
 
 
