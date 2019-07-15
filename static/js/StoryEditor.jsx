@@ -68,7 +68,7 @@ function StoryEditor(props) {
                 <StoryEditBar
                     deleteStory={deleteStory}
                     removeDraft={removeDraft}
-                    handlePublish={saveStory}
+                    saveStory={saveStory}
                     isDraft={s.draft}
                     key={s.timestamp + "-" + i + "-editor"}
                     story={s}/>
