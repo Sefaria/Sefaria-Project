@@ -23,7 +23,7 @@ const sheetPropType = PropTypes.shape({
             publisher_position: PropTypes.string,
             publisher_organization: PropTypes.string,
             publisher_followed: PropTypes.bool,
-            sheet_id: PropTypes.number,
+            sheet_id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
             sheet_title: PropTypes.string,
             sheet_summary: PropTypes.string,
       });
