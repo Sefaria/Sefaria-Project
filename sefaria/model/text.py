@@ -399,21 +399,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
-    def get_alt_struct_nodes(self, lang="he"):
-        title_list = []
+    def get_alt_struct_nodes(self):
+        nodes = []
         for tree in self.get_alt_structures().values():
-            title_list.extend(tree.title_dict(lang).values())
-        all_nodes = list(set(title_list))
-        array_map_nodes = []
-        for node in all_nodes:
-            try:
-                node.nodeType
-                array_map_nodes.append(node)
-                for node_child in node.all_children():
-                    array_map_nodes.append(node_child)
-            except AttributeError:
-                continue
-        return array_map_nodes
+            for node in tree.children:
+                self.alt_struct_nodes_helper(node, nodes)
+        return nodes
+
+    def alt_struct_nodes_helper(self, node, nodes):
+        if node.is_leaf():
+            nodes.append(node)
+        else:
+            for child in node.children:
+                self.alt_struct_nodes_helper(child, nodes)
 
     def composition_place(self):
         from . import place
