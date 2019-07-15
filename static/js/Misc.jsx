@@ -1,4 +1,5 @@
-const React      = require('react');
+//const React      = require('react');
+import React, { useState, useEffect } from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
@@ -240,6 +241,8 @@ DropdownOptionList.propTypes = {
   currOptionSelected: PropTypes.string.isRequired,
   handleClick: PropTypes.func.isRequired,
 };
+
+
 class DropdownButton extends Component {
   render() {
     const { isOpen, toggle, enText, heText } = this.props;
@@ -461,7 +464,6 @@ LanguageToggleButton.propTypes = {
 };
 
 
-
 const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
           <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
@@ -515,6 +517,7 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
+
 
 class BlockLink extends Component {
   render() {
@@ -727,71 +730,43 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   placeholder: PropTypes.bool,
 };
 
+// const [mounted, setMounted] = React.useState(true);
+// useEffect(() => {return () => {setMounted(false)}}, []);
+function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
+  const [selected, setSelected] = useState(placeholder || isSelected());
+  useEffect(() => {
+    if (placeholder) { return; }
+    setSelected(isSelected())
+  }, [historyObject && historyObject.ref]);
 
-class SaveButton extends Component {
-  constructor(props) {
-    super(props);
-    this._posting = false;
-    this.state = {
-      selected: props.placeholder || !!Sefaria.getSavedItem(props.historyObject),
-    }
-  }
-  componentDidMount() {
-    this._isMounted = true;
-  }
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-  setSelected(props) {
-    if (this._isMounted) {
-      this.setState({ selected: !!Sefaria.getSavedItem(props.historyObject) });
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.props.placeholder) { return; }
-    if (this.props.historyObject.ref !== nextProps.historyObject.ref) {
-      this.setSelected(nextProps);
-    }
-  }
-  onClick(e) {
-    if (this._posting) { return; }
-    this._posting = true;
-    const { historyObject } = this.props;
-    Sefaria.track.event("Saved", "saving", historyObject.ref);
-    Sefaria.toggleSavedItem(historyObject).then(() => {
-      // since request is async, check if it's selected from data
-      this._posting = false;
-      this.setSelected(this.props);
-    }).catch(e => {
-      if (e == 'notSignedIn') {
-        this.props.toggleSignUpModal();
-      }
-      this._posting = false;
-    })
-  }
-  render() {
-    const { placeholder, historyObject, tooltip } = this.props;
-    const style = placeholder ? {visibility: 'hidden'} : {};
-    const altText = placeholder ? '' :
-      `${Sefaria._(this.state.selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
+  const [isPosting, setPosting] = useState(false);
+
+  const style = placeholder ? {visibility: 'hidden'} : {};
+  const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
+  const altText = placeholder ? '' :
+      `${Sefaria._(selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}'`;
 
-    const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-    return (
-      <div
-        aria-label={altText} tabIndex="0"
-        className={classes}
-        role="button"
-        style={style}
-        onClick={this.onClick}
-        onKeyPress={e => {e.charCode == 13 ? this.onClick(e):null}}
-      >
-        { this.state.selected ?
-          <img src="/static/img/filled-star.png" alt={altText}/> :
+  function onClick() {
+    if (isPosting) { return; }
+    setPosting(true);
+    Sefaria.track.event("Saved", "saving", historyObject.ref);
+    Sefaria.toggleSavedItem(historyObject)
+        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(); }})
+        .finally(() => { setPosting(false); });
+  }
+
+  return (
+      <div aria-label={altText} tabIndex="0"
+        className={classes} role="button"
+        style={style} onClick={onClick}
+        onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+        { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
           <img src="/static/img/star.png" alt={altText}/> }
       </div>
     );
-  }
 }
 SaveButton.propTypes = {
   historyObject: PropTypes.shape({
@@ -802,6 +777,7 @@ SaveButton.propTypes = {
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
 
 class FollowButton extends Component {
   constructor(props) {
@@ -870,25 +846,18 @@ FollowButton.propTypes = {
   toggleSignUpModal: PropTypes.func.isRequired,
 };
 
-class SinglePanelNavHeader extends Component {
-  render() {
-    var enTitle = this.props.enTitle;
-    var heTitle = this.props.heTitle || Sefaria.hebrewTerm(enTitle);
-    var colorCat = this.props.colorLineCategory || "Other";
-    return (
+const SinglePanelNavHeader = (props) =>
       <div className="readerNavTop searchOnly">
-          <CategoryColorLine category={colorCat} />
-          <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
+          <CategoryColorLine category={props.colorLineCategory || "Other"} />
+          <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <span className="int-en">{enTitle}</span>
-            <span className="int-he">{heTitle}</span>
+            <span className="int-en">{props.enTitle}</span>
+            <span className="int-he">{props.heTitle || Sefaria.hebrewTerm(props.enTitle)}</span>
           </h2>
-          {this.props.showDisplaySettings ?
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+          {props.showDisplaySettings ?
+            <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
             : <div className="readerOptions"></div> }
-      </div>);
-  }
-}
+      </div>;
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
   enTitle:             PropTypes.string,
@@ -899,12 +868,8 @@ SinglePanelNavHeader.propTypes = {
 };
 
 
-class CategoryColorLine extends Component {
-  render() {
-    var style = {backgroundColor: Sefaria.palette.categoryColor(this.props.category)};
-    return (<div className="categoryColorLine" style={style}></div>);
-  }
-}
+const CategoryColorLine = ({category}) =>
+  <div className="categoryColorLine" style={{backgroundColor: Sefaria.palette.categoryColor(category)}}/>;
 
 
 class ProfileListing extends Component {
@@ -913,7 +878,7 @@ class ProfileListing extends Component {
     this.props.openProfile(this.props.slug, this.props.name);
   }
   render() {
-    const { url, image, name, uid, is_followed, position, toggleSignUpModal } = this.props;
+    const { url, image, name, uid, is_followed, toggleSignUpModal, position } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
@@ -1118,6 +1083,61 @@ Note.propTypes = {
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
 };
+
+
+function NewsletterSignUpForm(props) {
+  const {contextName} = props;
+  const [input, setInput] = useState('');
+  const [subscribeMessage, setSubscribeMessage] = useState(null);
+
+  function handleSubscribeKeyUp(e) {
+    if (e.keyCode === 13) {
+      handleSubscribe();
+    }
+  }
+
+  function handleSubscribe() {
+    var email = input;
+    if (Sefaria.util.isValidEmailAddress(email)) {
+      setSubscribeMessage("Subscribing...");
+      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+      $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
+        if ("error" in data) {
+          setSubscribeMessage(data.error);
+        } else {
+          setSubscribeMessage("Subscribed! Welcome to our list.");
+          Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
+        }
+      }).error(data => setSubscribeMessage("Sorry, there was an error."));
+    } else {
+      setSubscribeMessage("Please enter a valid email address.");
+    }
+  }
+
+  return (
+    <div className="newsletterSignUpBox">
+      <span className="int-en">
+        <input 
+          className="newsletterInput" 
+          placeholder="Sign up for Newsletter" 
+          value={input} 
+          onChange={e => setInput(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      <span className="int-he">
+        <input 
+          className="newsletterInput"
+          placeholder="הצטרפו לרשימת התפוצה" 
+          value={input} 
+          onChange={e => setInput(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
+      { subscribeMessage ? 
+        <div className="subscribeMessage">{subscribeMessage}</div>
+        : null }
+    </div>);
+}
 
 
 class LoginPrompt extends Component {
@@ -1514,7 +1534,6 @@ class FeedbackBox extends Component {
       type: null,
       alertmsg: null,
       feedbackSent: false,
-
     };
   }
   sendFeedback() {
@@ -1563,9 +1582,7 @@ class FeedbackBox extends Component {
     this.setState({type: type});
   }
 
-
   render() {
-
     if (this.state.feedbackSent) {
         return (
             <div className="feedbackBox">
@@ -1701,6 +1718,7 @@ module.exports.LanguageToggleButton                      = LanguageToggleButton;
 module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
+module.exports.NewsletterSignUpForm                      = NewsletterSignUpForm;
 module.exports.Note                                      = Note;
 module.exports.ProfileListing                            = ProfileListing;
 module.exports.ProfilePic                                = ProfilePic;
