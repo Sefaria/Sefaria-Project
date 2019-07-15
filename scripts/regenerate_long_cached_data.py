@@ -6,11 +6,17 @@ from sefaria.system.database import db
 from sefaria.model import *
 from sefaria.system.cache import django_cache
 from sefaria.model.link import get_book_link_collection, get_link_counts
+from sefaria.settings import USE_VARNISH
+if USE_VARNISH:
+    from sefaria.system.varnish.common import purge_url
+    from sefaria.settings import FRONT_END_URL
 
 
 def regenerate_version_status_tree():
     for lang in [None, "he", "en"]:
         django_cache(action="set", cache_prefix='version_status_tree_api')(library.simplify_toc)(lang=lang if lang else "")
+        if USE_VARNISH:
+            purge_url(u"{}/api/texts/version-status/tree/{}".format(FRONT_END_URL, lang))
 
 
 def regenerate_bare_links_api(cat1, cat2):

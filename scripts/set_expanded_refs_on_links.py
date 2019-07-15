@@ -20,4 +20,6 @@ for i, link in enumerate(links):
 		if i % 1000 == 1:
 			print "\r{}".format(i)
 	except:
+		if i % 1000 == 1:
+			print "\r{}".format(i)		
 		continue

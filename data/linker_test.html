@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html >
 	<head>
-		<meta charset="utf-8" /> 
-	</head>
+		<meta charset="utf-8" />
+        <title>Linker Test Page</title>
+        <meta name="description"content="A page to test ref catching by the Sefaria linker" />
+    </head>
 	<body>
     <a href="javascript: (function () {
         var linkerScript = document.createElement('script');
@@ -76,9 +78,9 @@
             <span class="">Rashi on Genesis is different than "Rashi on Exodus", but neither one is like <span class="Amos">"Esther" or rashi on numbers</span></span>
 		</div>
 
-	<script type="text/javascript" charset="utf-8" src="https://sefaria.org/linker.js"></script>
+	<script type="text/javascript" charset="utf-8" src="http://localhost:8000/linker.js"></script>
 	<script>
-	    sefaria.link();
+	    sefaria.link({interfaceLang: "hebrew"});
 	</script>
 
 	</body>

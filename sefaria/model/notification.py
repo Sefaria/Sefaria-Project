@@ -174,7 +174,7 @@ class Notification(abst.AbstractMongoRecord):
 
         gnote = GlobalNotification().load({"_id": self.global_id})
         if gnote is None:
-            logger.error("Tried to load non-existent global notification: {}".format(self.global_id))
+            logger.error(u"Tried to load non-existent global notification: {}".format(self.global_id))
         else:
             self.content = gnote.content
             self.type    = gnote.type

@@ -22,7 +22,7 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -1203,7 +1203,7 @@ class VersionSet(abst.AbstractMongoSet):
         """
         for v in self:
             if not getattr(v, "versionTitle", None):
-                logger.error("No version title for Version: {}".format(vars(v)))
+                logger.error(u"No version title for Version: {}".format(vars(v)))
         if node is None:
             return merge_texts([getattr(v, "chapter", []) for v in self], [getattr(v, "versionTitle", None) for v in self])
         return merge_texts([v.content_node(node) for v in self], [getattr(v, "versionTitle", None) for v in self])
@@ -2691,7 +2691,8 @@ class Ref(object):
                     break
 
     def all_segment_refs(self):
-        assert isinstance(self.index_node, JaggedArrayNode)
+        supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
+        assert isinstance(self.index_node, supported_classes)
 
         if self.is_range():
             input_refs = self.range_list()
@@ -2704,10 +2705,15 @@ class Ref(object):
                 ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += temp_ref.all_subrefs()
-            else: #you're higher than section level
-                sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
-                ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
-                ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
+            else: # you're higher than section level
+                if self.index_node.is_virtual:
+                    sub_refs = temp_ref.all_subrefs()
+                    ref_list_list = [sub_ref.all_segment_refs() for sub_ref in sub_refs]
+                    ref_list += [refs for refs in ref_list_list]
+                else:
+                    sub_ja = temp_ref.get_state_ja().subarray_with_ref(temp_ref)
+                    ref_list_sections = [temp_ref.subref([i + 1 for i in k ]) for k in sub_ja.non_empty_sections() ]
+                    ref_list += [ref_seg for ref_sec in ref_list_sections for ref_seg in ref_sec.all_subrefs()]
 
         return ref_list
 
@@ -3181,8 +3187,11 @@ class Ref(object):
         if self.is_section_level() or self.is_segment_level():
             # Using mongo queries to slice and merge versions
             # is much faster than actually using the Version State doc
-            text = self.text(lang=lang).text
-            return bool(len(text) and all(text))
+            try:
+                text = self.text(lang=lang).text
+                return bool(len(text) and all(text))
+            except NoVersionFoundError:
+                return False
         else:
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
@@ -3335,6 +3344,10 @@ class Ref(object):
         """
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
+
+        if self.index_node.is_virtual:
+            size = len(self.text().text)
+            return self.subrefs(size)
 
         size = self.get_state_ja(lang).sub_array_length([i - 1 for i in self.sections])
         if size is None:
@@ -4235,6 +4248,7 @@ class Library(object):
         self._index_map = {i.title: i for i in IndexSet() if i.nodes}
         forest = [i.nodes for i in self._index_map.values()]
         self._title_node_maps = {lang: {} for lang in self.langs}
+        self._index_title_maps = {lang:{} for lang in self.langs}
 
         for tree in forest:
             try:
@@ -4374,36 +4388,36 @@ class Library(object):
 
     def cross_lexicon_auto_completer(self):
         if self._cross_lexicon_auto_completer is None:
-            logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
+            logger.warning(u"Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built cross lexicon auto completer.")
+            logger.warning(u"Built cross lexicon auto completer.")
         return self._cross_lexicon_auto_completer
 
     def lexicon_auto_completer(self, lexicon):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
-            logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
+            logger.warning(u"Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
-            logger.warning("Built {} auto completer.".format(lexicon))
+            logger.warning(u"Built {} auto completer.".format(lexicon))
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
-            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
+            logger.warning(u"Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built full {} auto completer.".format(lang))
+            logger.warning(u"Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
     def ref_auto_completer(self, lang):
         try:
             return self._ref_auto_completer[lang]
         except KeyError:
-            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
+            logger.warning(u"Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built {} ref auto completer.".format(lang))
+            logger.warning(u"Built {} ref auto completer.".format(lang))
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
@@ -5143,6 +5157,21 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.base_text_titles.pop(pos)
         didx.base_text_titles.insert(pos, kwargs["new"])
         didx.save()
+
+def process_index_title_change_in_sheets(indx, **kwargs):
+    print "Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new'])
+
+    regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
+                for pattern in Ref(kwargs["new"]).regex(as_list=True)]
+    ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
+    query = {"$or": ref_clauses }
+    sheets = db.sheets.find(query)
+    for sheet in sheets:
+        sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        for source in sheet.get("sources", []):
+            if "ref" in source:
+                source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), source["ref"]) else source["ref"]
+        db.sheets.save(sheet)
 
 
 def process_index_delete_in_versions(indx, **kwargs):

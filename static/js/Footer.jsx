@@ -1,8 +1,8 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
+const React                    = require('react');
+const Sefaria                  = require('./sefaria/sefaria');
+const $                        = require('./sefaria/sefariaJquery');
+const { NewsletterSignUpForm } = require('./Misc');
 import Component from 'react-class';
-
 
 
 class Footer extends Component {
@@ -155,7 +155,7 @@ class Footer extends Component {
                   <span className="int-en">Join Us</span>
                   <span className="int-he">הצטרף אלינו</span>
               </div>
-              <a href="/donate" className="outOfAppLink">
+              <a href="https://sefaria.nationbuilder.com/supportsefaria" className="outOfAppLink">
                   <span className="int-en">Donate</span>
                   <span className="int-he">תרומות</span>
               </a>
@@ -178,18 +178,7 @@ class Footer extends Component {
                   <span className="int-en">Connect</span>
                   <span className="int-he">התחבר</span>
               </div>
-              <div id="newsletterFooterBox">
-                <span className="int-en">
-                  <input id="newsletterInput" placeholder="Sign up for Newsletter" onKeyUp={this.handleSubscribeKeyUp} />
-                </span>
-                <span className="int-he">
-                  <input id="newsletterInput" placeholder="הצטרפו לרשימת התפוצה" onKeyUp={this.handleSubscribeKeyUp} />
-                </span>
-                <img src="/static/img/circled-arrow-right.svg" onClick={this.handleSubscribe} />
-                { this.state.subscribeMessage ? 
-                  <div id="subscribeMessage">{this.state.subscribeMessage}</div>
-                  : null }
-              </div>
+              <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
               <a href={fbURL} target="_blank" className="outOfAppLink">
                 <span className="int-en">Facebook</span>

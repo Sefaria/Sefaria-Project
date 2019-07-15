@@ -51,7 +51,7 @@ class ServerCoordinator(MessagingNode):
         popped_msg = self.pubsub.get_message()
         while popped_msg:
             if popped_msg["data"] != msg_data:
-                logger.warning("Multiserver Message collision!")
+                logger.warning(u"Multiserver Message collision!")
                 self._process_message(popped_msg)
             popped_msg = self.pubsub.get_message()
 
@@ -62,7 +62,7 @@ class ServerCoordinator(MessagingNode):
             return
 
         if msg["type"] != "message":
-            logger.error("Surprising redis message type: {}".format(msg["type"]))
+            logger.error(u"Surprising redis message type: {}".format(msg["type"]))
 
         self._process_message(msg)
         self.sync()  # While there are still live messages, keep processing them.
@@ -114,7 +114,7 @@ class ServerCoordinator(MessagingNode):
             }
 
         except Exception as e:
-            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, e.message))
+            logger.error(u"Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, e.message))
 
             confirm_msg = {
                 'event_id': data["id"],

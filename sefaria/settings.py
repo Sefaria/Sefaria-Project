@@ -120,6 +120,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
+    'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',

@@ -193,6 +193,8 @@ Sefaria = extend(Sefaria, {
     // e.g. "Genesis 1:1-2" -> ["Genesis 1:1", "Genesis 1:2"]
     if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }
 
+    if (ref.indexOf("-") == -1) { return [ref]; }
+
     const oRef     = Sefaria.parseRef(ref);
     const isDepth1 = oRef.sections.length === 1;
     const textData = Sefaria.getTextFromCache(ref);
@@ -200,7 +202,7 @@ Sefaria = extend(Sefaria, {
         return Sefaria.makeSegments(textData).map(segment => segment.ref);
     } else if (!isDepth1 && oRef.sections[oRef.sections.length - 2] !== oRef.toSections[oRef.sections.length - 2]) {
       // TODO handle spanning refs when no text data is available to answer how many segments are in each section.
-      // e.g., in "Shabbat 2a:5-2b:8" what is the last segment of Shabbat 2a?
+      // e.g., in "Shabbat 2a:5-2b:8", what is the last segment of Shabbat 2a?
       // For now, just return the split of the first non-spanning ref.
       const newRef = Sefaria.util.clone(oRef);
       newRef.toSections = newRef.sections;
@@ -1373,7 +1375,6 @@ Sefaria = extend(Sefaria, {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
     if (!data || "error" in data) { return []; }
-    //debugger;
     var segments  = [];
     var highlight = data.sections.length === data.textDepth;
     var wrap = (typeof data.text == "string");
@@ -1946,6 +1947,10 @@ Sefaria = extend(Sefaria, {
   userGroups: function(uid) {
     const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
     return Sefaria._promiseAPI(url);
+  },
+  calendarRef: function(calendarTitle) {
+    const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
+    return cal.length ? cal[0].ref : null;
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.

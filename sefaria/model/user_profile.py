@@ -26,6 +26,9 @@ from sefaria.utils.util import epoch_time
 from django.utils import translation
 from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class UserHistory(abst.AbstractMongoRecord):
     collection = 'user_history'
@@ -704,3 +707,21 @@ def annotate_user_list(uids):
         annotated_list.append(annotated)
 
     return annotated_list
+
+
+def process_index_title_change_in_user_history(indx, **kwargs):
+    print "Cascading User History from {} to {}".format(kwargs['old'], kwargs['new'])
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    objs = UserHistorySet({"$or": queries})
+    for o in objs:
+        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        try:
+            o.save()
+        except InputError:
+            logger.warning(u"Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
+

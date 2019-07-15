@@ -73,7 +73,7 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn("Initializing library objects.")
+logger.warn(u"Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
@@ -1146,8 +1146,9 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
+            library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
-        except:
+        except BookNameError:
             pass
         indexJSON = json.dumps({"title": new_title})
         text_exists = False
@@ -2514,8 +2515,8 @@ def stories_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                SharedStory(payload).save()
-                return jsonResponse({"status": "ok"})
+                s = SharedStory(payload).save()
+                return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
 
@@ -2524,8 +2525,8 @@ def stories_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    SharedStory(payload).save()
-                    return jsonResponse({"status": "ok"})
+                    s = SharedStory(payload).save()
+                    return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
 
