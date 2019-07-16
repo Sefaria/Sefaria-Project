@@ -6,7 +6,7 @@ const Story      = require('./Story');
 const { usePaginatedScroll } = require('./Hooks');
 import Component from 'react-class';
 
-// These are duplicated in trend.py needs to be more graceful
+// These are duplicated in trend.py - should we make it more graceful?
 const traits = ["readsHebrew",
 "toleratesEnglish",
 "usesSheets",
@@ -170,7 +170,10 @@ function usePreviewButton({payload, isValid}) {
             type: 'POST',
             data: {json: JSON.stringify(currentPayload)},
             success: (data) => {
-                if ("error" in data) { setError(data.error); }
+                if ("error" in data) {
+                    setError(data.error);
+                    setSubmitting(false);
+                }
                 else {
                     data["draft"] = true;
                     addStory(data);

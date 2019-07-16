@@ -252,7 +252,7 @@ UserSheetsStory.propTypes = {
 const GroupSheetListStory = (props) => (
     <StoryFrame cls="groupSheetListStory">
         <StoryTypeBlock en={props.data.lead?props.data.lead.en:"Group"} he={props.data.lead?props.data.lead.he:"קבוצה"} />
-        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
+        <StoryTitleBlock url={props.data.group_url} en={props.data.title.en} he={props.data.title.he}/>
         <img className="mediumProfileImage" src={props.data.group_image} alt={props.data.title.en}/>
         <StorySheetList sheets={props.data.sheets} cozy={props.data.cozy} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
