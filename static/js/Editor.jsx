@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {Editor} from 'slate-react'
 import {Block, Value, Data} from 'slate'
 import Html from 'slate-html-serializer'
-import PlaceholderPlugin from 'slate-react-placeholder'
 
 const {
     SheetMetaDataBox,
@@ -19,7 +18,7 @@ const MARK_TAGS = {
     strong: 'bold',
     b: 'bold',
     u: 'underline',
-}
+};
 
 const BLOCK_TAGS = {
     blockquote: 'block-quote',
@@ -29,13 +28,13 @@ const BLOCK_TAGS = {
     ol: 'numbered-list',
     h1: 'heading-one',
     h2: 'heading-two'
-}
+};
 
 
 export const rules = [
     {
         deserialize(el, next) {
-            const type = BLOCK_TAGS[el.tagName.toLowerCase()]
+            const type = BLOCK_TAGS[el.tagName.toLowerCase()];
             if (type) {
                 return {
                     object: 'block',
@@ -92,25 +91,11 @@ export const rules = [
             }
         },
     },
-]
+];
 
 const html = new Html({rules})
 
 function SefariaEditor(props) {
-
-    const plugins = [
-        {
-            queries: {
-                isEmpty: editor => editor.value.document.text === '',
-            },
-        },
-        PlaceholderPlugin({
-            placeholder:
-                'Untitled Source Sheet',
-            when: 'isEmpty',
-            style: {color: '#333'},
-        }),
-    ]
 
     function transformSheetJsonToDraft(sheet) {
         const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
@@ -190,7 +175,7 @@ function SefariaEditor(props) {
     }
 
 
-    const initialValue = Value.fromJSON(transformSheetJsonToDraft(props.data))
+    const initialValue = Value.fromJSON(transformSheetJsonToDraft(props.data));
     const schema = {
         document: {
             nodes: [
@@ -198,14 +183,13 @@ function SefariaEditor(props) {
                 {match: {type: 'paragraph'}, min: 1},
             ],
             normalize: (editor, {code, node, child, index}) => {
-                console.log("doc:", code, index)
                 switch (code) {
                     case 'child_type_invalid': {
-                        const type = index === 0 ? 'SheetMetaDataBox' : 'paragraph'
+                        const type = index === 0 ? 'SheetMetaDataBox' : 'paragraph';
                         return editor.setNodeByKey(child.key, type)
                     }
                     case 'child_min_invalid': {
-                        const block = Block.create(index === 0 ? 'SheetMetaDataBox' : 'paragraph')
+                        const block = Block.create(index === 0 ? 'SheetMetaDataBox' : 'paragraph');
                         return editor.insertNodeByKey(node.key, index, block)
                     }
                 }
@@ -215,30 +199,82 @@ function SefariaEditor(props) {
             SheetMetaDataBox: {
                 nodes: [
                     {
-                        match: {type: 'SheetTitle', min: 1, max: 1}
+                        match: {type: 'SheetTitle'}, min: 1, max: 1
                     },
                     {
-                        match: {type: 'SheetAuthorStatement', min: 1, max: 1}
+                        match: {type: 'SheetAuthorStatement'}, min: 1, max: 1
                     },
                     {
-                        match: {type: 'GroupStatement', max: 1}
+                        match: {type: 'GroupStatement'}, max: 1
                     },
                 ],
                 normalize: (editor, {code, node, child, index}) => {
-                    console.log("block:", code, index)
-
+                    console.log(code, index);
                     switch (code) {
                         case 'child_type_invalid': {
-                            console.log(getNode(child.key).toJSON())
-                            return null
+                            switch (index) {
+                                case 0: { //SheetTitle
+                                    return editor.setNodeByKey(child.key, {
+                                        type: "SheetTitle",
+                                        data: {title: "Untitled Source Sheet"},
+                                        nodes: [
+                                            {
+                                                "object": "text",
+                                                "text": "Untitled Source Sheet",
+                                            }
+                                        ]
+                                    })
+                                }
+                                case 1: { //SheetAuthorStatement
+                                    return editor.setNodeByKey(child.key, {
+                                        type: "SheetAuthorStatement",
+                                        data: {title: "Untitled Source Sheet"},
+                                        nodes: [
+                                            {
+                                                "object": "text",
+                                                "text": "Untitled Source Sheet",
+                                            }
+                                        ]
+                                    })
+                                }
+                                default: {
+                                    return null
+                                }
+
+                            }
                         }
                         case 'child_min_invalid': {
+                            const titleBlock = Block.create({
+                                type: 'SheetTitle',
+                                data: {title: "Untitled Source Sheet"},
+                                nodes: [
+                                    {
+                                        "object": "text",
+                                        "text": "Untitled Source Sheet",
+                                    }
+                                ]
+                            });
 
-                            const block = Block.create(index === 0 ? 'SheetTitle' : 'SheetAuthorStatement')
-                            return editor.insertNodeByKey(node.key, index, block)
+                            const authorBlock = Block.create({
+                                type: 'SheetAuthorStatement',
+                                data: {
+                                    authorImage: props.data.ownerImageUrl,
+                                    authorUrl: props.data.ownerProfileUrl,
+                                    authorStatement: props.data.ownerName,
+                                },
+
+                                nodes: [
+                                    {
+                                        object: "text",
+                                        text: props.data.ownerName,
+                                    }
+                                ]
+                            });
+
+                            return editor.insertNodeByKey(node.key, 0, titleBlock).insertNodeByKey(node.key, 1, authorBlock)
                         }
                     }
-                },
+                }
 
             },
             paragraph: {
@@ -269,8 +305,8 @@ function SefariaEditor(props) {
     }
 
     function renderBlock(props, editor, next) {
-        const { attributes, children, node } = props
-        const { data } = node
+        const { attributes, children, node } = props;
+        const { data } = node;
 
         switch (node.type) {
             case 'paragraph':
@@ -278,15 +314,15 @@ function SefariaEditor(props) {
                     <p {...attributes}>
                         {children}
                     </p>
-                )
+                );
             case 'SheetMetaDataBox':
                 return (
                     <SheetMetaDataBox>{children}</SheetMetaDataBox>
-                )
+                );
             case 'SheetAuthorStatement':
-                const authorUrl = data.get('authorUrl')
-                const authorImage = data.get('authorImage')
-                const authorStatement = data.get('authorStatement')
+                const authorUrl = data.get('authorUrl');
+                const authorImage = data.get('authorImage');
+                const authorStatement = data.get('authorStatement');
                 return (
                     <SheetAuthorStatement
                         authorUrl={authorUrl}
@@ -294,35 +330,35 @@ function SefariaEditor(props) {
                         authorStatement={authorStatement}
                         schema={schema}
                     >{children}</SheetAuthorStatement>
-                )
+                );
             case 'GroupStatement':
-                const group = data.get('group')
-                const groupLogo = data.get('groupLogo')
+                const group = data.get('group');
+                const groupLogo = data.get('groupLogo');
                 return (
                     <GroupStatement
                         group={group}
                         groupLogo={groupLogo}
                     >{children}</GroupStatement>
-                )
+                );
             case 'SheetTitle':
-                const title = data.get('title')
+                const title = data.get('title');
                 return (
                     <SheetTitle {...attributes} title={title}>{children}</SheetTitle>
-                )
+                );
             default:
                 return next()
         }
     }
 
     function renderMark(props, editor, next) {
-        const {mark, attributes} = props
+        const {mark, attributes} = props;
         switch (mark.type) {
             case 'bold':
-                return <strong {...attributes}>{props.children}</strong>
+                return <strong {...attributes}>{props.children}</strong>;
             case 'italic':
-                return <em {...attributes}>{props.children}</em>
+                return <em {...attributes}>{props.children}</em>;
             case 'underline':
-                return <u {...attributes}>{props.children}</u>
+                return <u {...attributes}>{props.children}</u>;
             default:
                 return next()
         }
@@ -362,7 +398,6 @@ function SefariaEditor(props) {
             renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
             renderMark={(props, editor, next) => renderMark(props, editor, next)}
             renderInline={(props, editor, next) => renderInline(props, editor, next)}
-            plugins={plugins}
             schema={schema}
         />
     )

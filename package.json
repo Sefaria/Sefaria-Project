@@ -62,7 +62,6 @@
     "slate": "^0.47.4",
     "slate-html-serializer": "^0.8.6",
     "slate-react": "^0.22.4",
-    "slate-react-placeholder": "^0.2.4",
     "source-list-map": "^2.0.0",
     "striptags": "^2.1.1",
     "sync-exec": "^0.6.2",
