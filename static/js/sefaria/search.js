@@ -48,10 +48,10 @@ class Search {
     }
     dictaQuery(args) {
         function ammendArgsForDicta(standardArgs) {
-            let filters = standardArgs.applied_filters.map(book => {
+            let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
                 book = book.replace(/\//g, '.');
                 return book.replace(/ /g, '_');
-            });
+            }) : false;
             return {
                 query: standardArgs.query,
                 from: ('start' in standardArgs) ? standardArgs.start : 0,
@@ -62,12 +62,13 @@ class Search {
         return new Promise((resolve, reject) => {
             if (this.queryDictaFlag && args.type === "text") {
                 $.ajax({
-                    url: `${this.dictaSearchUrl}/api/search`,
+                    url: `${this.dictaSearchUrl}/search`,
                     type: 'POST',
                     dataType: 'json',
                     contentType: 'application/json; charset=UTF-8',
                     data: JSON.stringify((ammendArgsForDicta(args))),
-                    success: data => resolve(data),
+                    success: data => resolve(data)
+                    ,
                     error: reject
                 });
             }
@@ -81,7 +82,6 @@ class Search {
                 const categories = bookData.slice(0, 2);
                 const bookTitle = bookData[2].replace(/_/g, ' ');
                 const bookLoc = bookData.slice(3, 5).join(':');
-                //debugger;
                 const version = "Tanach with Ta'amei Hamikra";
                 adaptedHits.push({
                     _source: {
@@ -112,7 +112,7 @@ class Search {
             if (this.dictaCounts === null && args.type === "text") {
                 if (this.queryDictaFlag) {
                     $.ajax({
-                        url: `${this.dictaSearchUrl}/api/books`,
+                        url: `${this.dictaSearchUrl}/books`,
                         type: 'POST',
                         dataType: 'json',
                         contentType: "application/json;charset=UTF-8",
@@ -127,9 +127,11 @@ class Search {
                 }
             }
             else {
-                resolve(this.dictaCounts);
+                resolve(null);
             }
         }).then(x => {
+            if(x === null)
+                return;
             let buckets = [];
             x.forEach(bucket => {
                buckets.push({
@@ -153,7 +155,8 @@ class Search {
                 x => !(RegExp(/^Tanakh\//).test(x.key)));
             newBuckets = newBuckets.concat(this.dictaCounts);
             this.sefariaQueryQueue.aggregations.path.buckets = newBuckets;
-
+        }
+         if(this.queryDictaFlag) {
             this.sefariaQueryQueue.hits.total += this.dictaQueryQueue.hits.total;
 
             let newHits = this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories));
@@ -181,7 +184,7 @@ class Search {
             return;
         }
 
-        let isQueryStart = !('start' in args); // first query has no start value, (start is defaulted to 0)
+        let isQueryStart = (args.aggregationsToUpdate.length > 0); // aggregations update on first query
         if (isQueryStart && args.type === 'text') // don't touch these parameters if not a text search
         {
             this.dictaCounts = null;
@@ -219,11 +222,13 @@ class Search {
                 args.success(this.sefariaSheetsResult);
             }
             else {
-                this.mergeQueries((isQueryStart && this.queryDictaFlag));
+                // debugger;
+                this.mergeQueries(isQueryStart);
                 console.log(this.sefariaQueryQueue);
                 args.success(this.sefariaQueryQueue)
             }
-        }).catch(args.error);
+        }).catch(x => console.log(x));
+        // }).catch(args.error);
         return null;
     }
     get_query_object({
