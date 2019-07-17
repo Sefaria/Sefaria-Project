@@ -254,6 +254,7 @@ class NewHomeFeedbackBox extends Component {
         url: "/newhome",
         uid: Sefaria._uid || null
     };
+    if (!feedback.msg) { return; }
     var postData = {json: JSON.stringify(feedback)};
     var url = "/api/send_feedback";
 
