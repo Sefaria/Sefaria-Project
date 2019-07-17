@@ -121,17 +121,12 @@ const makeOtherCategory = data => {
     return result;
 };
 
-/* const color = d3.scaleOrdinal()
-    .domain(data.map(d => d.name))
-    .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
-*/
 const categoryColor = Sefaria.palette.categoryColor;
-const brighterCategoryColor = (cat) => d3.color(Sefaria.palette.categoryColor(cat)).brighter().hex();
 
 const CategoryBars = ({user_cats, site_cats}) => {
     const svg_ref = useRef();
 
-    const height = 420;
+    const height = 500;
     const width = 1000;
     const margin = {top: 10, right: 10, bottom: 20, left: 40};
 
@@ -140,70 +135,65 @@ const CategoryBars = ({user_cats, site_cats}) => {
 
     useEffect(()=> {
         const svg = d3.select(svg_ref.current);
-        if (!svg) {
-            return;
-        }
-        const orderedCats = Object.entries(site_cats).sort((a, b) => b[1] - a[1]).map(d => d[0]);
+        if (!svg) {return;}
 
-        const up = mapToPercentage(user_cats);
-        const sp = mapToPercentage(site_cats);
-        const data = orderedCats.map(cat => ({cat: cat, site: sp[cat], user: up[cat]}));
+        const user_percents = mapToPercentage(user_cats);
+        const site_percents = mapToPercentage(site_cats);
+        const orderedCats = Object.entries(user_cats).sort((a, b) => b[1] - a[1]).map(d => d[0]);
+        const data = orderedCats.slice(0,5).map(cat => ({cat: cat, site: site_percents[cat], user: user_percents[cat]}));
 
-        const x0 = d3.scaleBand()
-            .domain(orderedCats)
-            .rangeRound([margin.left, width - margin.right])
+        const y = d3.scaleBand()
+            .domain(data.map(d => d.cat))
+            .rangeRound([margin.top + 10, height - margin.bottom])
             .paddingInner(0.1);
 
-        const x1 = d3.scaleBand()
-            .domain(keys)
-            .rangeRound([0, x0.bandwidth()])
-            .padding(0.05);
+        const inter_bar_padding = 0.05;
+        const below_text_padding = 10;
+        const userbar = 5;
+        const sitebar = 34;
 
-        const y = d3.scaleLinear()
-            .domain([0, .5]).nice()
-            .rangeRound([height - margin.bottom, margin.top]);
+        const x = d3.scaleLinear()
+            .domain([0, d3.max(data.map(d => [d.site, d.user]).flat()) + .10]).nice()
+            .rangeRound([0,width - margin.right]);
 
-        const xAxis = g => g
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x0).tickSizeOuter(0))
-            .call(g => g.select(".domain").remove());
-
-        const yAxis = g => g
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).ticks(5, "%"))
-            .call(g => g.select(".domain").remove())
-            .call(g => g.select(".tick:last-of-type text").clone()
-                .attr("x", 3)
-                .attr("text-anchor", "start")
-                .attr("font-weight", "bold")
-                .text("Percent"));
-
-        svg.append("g")
+        const groups = svg.append("g")
             .selectAll("g")
             .data(data)
             .join("g")
-            .attr("transform", d => `translate(${x0(d.cat)},0)`)
-            .selectAll("rect")
+            .attr("transform", d => `translate(${margin.left}, ${y(d.cat)})`);
+
+        groups.append("text")
+            .attr("font-family", '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif')
+            .attr("text-anchor", "start")
+            .attr("letter-spacing", 1.5)
+            .attr("font-size", 22)
+            .text(d => d.cat.toUpperCase());
+
+        groups.selectAll("rect")
             .data(d => keys.map(key => ({key, cat:d.cat, value: d[key]})))
             .join("rect")
-            .attr("x", d => x1(d.key))
-            .attr("y", d => y(d.value))
-            .attr("width", x1.bandwidth())
-            .attr("height", d => y(0) - y(d.value))
-            .attr("fill", d => d.key === "site" ? categoryColor(d.cat) : "#aaa");
+            .attr("class", d => d.key)
+            .attr("x", 0)
+            .attr("y", d => d.key === "user" ? below_text_padding : below_text_padding + userbar + inter_bar_padding)
+            .attr("width", d => x(d.value))
+            .attr("height", d => d.key === "user" ? userbar : sitebar)
+            .attr("fill", d => d.key === "user" ? categoryColor(d.cat) : "#ededec");
 
-        svg.append("g")
-            .call(xAxis);
-
-        svg.append("g")
-            .call(yAxis);
+        d3.select("svg g g:first-child")
+            .append("text")
+            .attr("y", below_text_padding + userbar + inter_bar_padding + sitebar - 11)
+            .attr("x", d => x(d.site) > 250 ? x(d.site) - 20 : x(d.site) + 20)
+            .attr("font-size", 16)
+            .attr("fill", "#999")
+            .attr("text-anchor", d => x(d.site) > 250 ? "end" : "start")
+            .text("Average Sefaria User");
 
         return () => {svg.selectAll("*").remove();}
     }, [user_cats, site_cats]);
 
     return (
         <div style={{font: "12px sans-serif"}}>
-            <h3>Comparison to Sitewide</h3>
+            <h3>Your Top Categories</h3>
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
         </div>
     );

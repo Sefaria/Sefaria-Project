@@ -13,7 +13,6 @@ const {
     ProfileListing,
 }                = require('./Misc');
 
-import Component from 'react-class';
 
 const sheetPropType = PropTypes.shape({
             publisher_id: PropTypes.number,
