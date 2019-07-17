@@ -120,7 +120,7 @@ class UserHistory(abst.AbstractMongoRecord):
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
-            keys = {'ref': u'', 'he_ref': u'', 'book': u'', 'versions': {}}
+            keys = {'ref': u'', 'he_ref': u'', 'book': u'', 'versions': {}, 'time_stamp': 0}
             d = {
                 key: d.get(key, default) for key, default in keys.items()
             }

@@ -3155,13 +3155,17 @@ def profile_sync_api(request):
             # send back items after `last_sync`
             last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
-            ret = {"last_sync": now, "user_history": [uh.contents(for_api=True) for uh in uhs.array()]}
+            ret = {
+                "last_sync": now,
+                "user_history": [uh.contents(for_api=True) for uh in uhs.array()],
+                "created": []
+            }
             if "last_sync" not in post:
                 # request was made from web. update last_sync on profile
                 profile.update({"last_sync_web": now})
                 profile.save()
         else:
-            ret = {}
+            ret = {"created": []}
         # sync items from request
         for field in syncable_fields:
             if field not in post:
@@ -3178,7 +3182,7 @@ def profile_sync_api(request):
             elif field == "user_history":
                 for hist in field_data:
                     uh = UserHistory.save_history_item(request.user.id, hist, now)
-                    ret["created"] = uh.contents(for_api=True)
+                    ret["created"] += [uh.contents(for_api=True)]
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})

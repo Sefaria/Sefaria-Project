@@ -1573,8 +1573,8 @@ Sefaria = extend(Sefaria, {
           if (!!response['error']) {
             reject(response['error'])
           } else {
-            if (action === "add_saved" && !!response.created) {
-              Sefaria.saved.unshift(response.created);
+            if (action === "add_saved" && !!response.created && response.created.length > 0) {
+              Sefaria.saved = response.created.concat(Sefaria.saved);
             } else {
               // delete
               Sefaria.removeSavedItem({ ref, versions });
