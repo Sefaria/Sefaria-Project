@@ -38,7 +38,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data, site_stats_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
@@ -906,12 +906,17 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
-@login_required
+@staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
 
+@staff_member_required
+def user_stats(request):
+    props = base_props(request)
+    title = _("User Stats")
+    return menu_page(request, props, "user_stats", title)
 
 @login_required
 def account(request):
@@ -2468,8 +2473,8 @@ def stories_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                SharedStory(payload).save()
-                return jsonResponse({"status": "ok"})
+                s = SharedStory(payload).save()
+                return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
 
@@ -2478,8 +2483,8 @@ def stories_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    SharedStory(payload).save()
-                    return jsonResponse({"status": "ok"})
+                    s = SharedStory(payload).save()
+                    return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
 
@@ -2537,6 +2542,22 @@ def addDynamicStories(stories, user, page):
             stories = [stry.contents()] + stories
 
     return stories
+
+
+@staff_member_required
+def user_stats_api(request, uid):
+    assert request.method == "GET", "Unsupported Method"
+    quick = bool(request.GET.get("quick", False))
+    if quick:
+        return jsonResponse(public_user_data(uid))
+    # Todo: or now, we're hard-coding Rosh Hashannah 2018.
+    return jsonResponse(user_stats_data(uid, start=datetime(2018, 9, 9)))
+
+
+@staff_member_required
+def site_stats_api(request):
+    assert request.method == "GET", "Unsupported Method"
+    return jsonResponse(site_stats_data())
 
 
 @staff_member_required

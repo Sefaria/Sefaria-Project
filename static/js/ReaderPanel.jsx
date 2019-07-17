@@ -26,6 +26,7 @@ const UserProfile               = require('./UserProfile');
 const UpdatesPanel              = require('./UpdatesPanel');
 const HomeFeed                  = require('./HomeFeed');
 const StoryEditor               = require('./StoryEditor');
+const UserStats                 = require('./UserStats');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
   MyGroupsPanel,
@@ -956,8 +957,11 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "story_editor") {
       menu = (<StoryEditor
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
       />);
+    } else if (this.state.menuOpen === "user_stats") {
+      menu = (<UserStats/>);
 
     /* todo: do we need this here?
                     multiPanel={this.props.multiPanel}
