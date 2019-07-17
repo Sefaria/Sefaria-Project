@@ -13,6 +13,7 @@ class Search {
       this.queryDictaFlag = true;
       this.dictaCounts = null;
       this.sefariaSheetsResult = null;
+      this.dictaSearchUrl = 'http://34.206.201.228';
     }
     cache(key, result) {
         if (result !== undefined) {
@@ -47,16 +48,21 @@ class Search {
     }
     dictaQuery(args) {
         function ammendArgsForDicta(standardArgs) {
+            let filters = standardArgs.applied_filters.map(book => {
+                book = book.replace(/\//g, '.');
+                return book.replace(/ /g, '_');
+            });
             return {
                 query: standardArgs.query,
                 from: ('start' in standardArgs) ? standardArgs.start : 0,
-                size: standardArgs.size
+                size: standardArgs.size,
+                limitedToBooks: filters
             };
         }
         return new Promise((resolve, reject) => {
             if (this.queryDictaFlag && args.type === "text") {
                 $.ajax({
-                    url: 'https://search.dicta.org.il/api/search',
+                    url: `${this.dictaSearchUrl}/api/search`,
                     type: 'POST',
                     dataType: 'json',
                     contentType: 'application/json; charset=UTF-8',
@@ -106,7 +112,7 @@ class Search {
             if (this.dictaCounts === null && args.type === "text") {
                 if (this.queryDictaFlag) {
                     $.ajax({
-                        url: 'https://search.dicta.org.il/api/books',
+                        url: `${this.dictaSearchUrl}/api/books`,
                         type: 'POST',
                         dataType: 'json',
                         contentType: "application/json;charset=UTF-8",
