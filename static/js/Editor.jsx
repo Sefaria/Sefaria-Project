@@ -8,6 +8,7 @@ const {
     SheetMetaDataBox,
     SheetAuthorStatement,
     SheetTitle,
+    GroupStatement,
 
 } = require('./Misc');
 
@@ -151,6 +152,21 @@ function SefariaEditor(props) {
                                             "text": sheet.ownerName,
                                         }
                                     ]
+                                },
+                               {
+                                    "object": "block",
+                                    "type": "GroupStatement",
+                                    "data": {
+                                        "group": sheet.group,
+                                        "groupLogo": sheet.groupLogo,
+                                    },
+
+                                    "nodes": [
+                                        {
+                                            "object": "text",
+                                            "text": sheet.ownerName,
+                                        }
+                                    ]
                                 }
 
                             ]
@@ -203,6 +219,9 @@ function SefariaEditor(props) {
                     },
                     {
                         match: {type: 'SheetAuthorStatement', min: 1, max: 1}
+                    },
+                    {
+                        match: {type: 'GroupStatement', max: 1}
                     },
                 ],
                 normalize: (editor, {code, node, child, index}) => {
@@ -260,10 +279,6 @@ function SefariaEditor(props) {
                         {children}
                     </p>
                 )
-            case 'title':
-                return (
-                    <div {...attributes} className="title" role="heading" aria-level="1">{children}</div>
-                )
             case 'SheetMetaDataBox':
                 return (
                     <SheetMetaDataBox>{children}</SheetMetaDataBox>
@@ -280,6 +295,15 @@ function SefariaEditor(props) {
                         schema={schema}
                     >{children}</SheetAuthorStatement>
                 )
+            case 'GroupStatement':
+                const group = data.get('group')
+                const groupLogo = data.get('groupLogo')
+                return (
+                    <GroupStatement
+                        group={group}
+                        groupLogo={groupLogo}
+                    >{children}</GroupStatement>
+                )
             case 'SheetTitle':
                 const title = data.get('title')
                 return (
@@ -290,7 +314,6 @@ function SefariaEditor(props) {
         }
     }
 
-    // Add a `renderMark` method to render marks.
     function renderMark(props, editor, next) {
         const {mark, attributes} = props
         switch (mark.type) {

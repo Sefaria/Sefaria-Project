@@ -1381,7 +1381,7 @@ const GroupStatement = (props) => (
               <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
             </a>
           </div>
-          <a href={"/groups/" + props.group}>{props.group}</a>
+          <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
         </div> : null
 )
 
