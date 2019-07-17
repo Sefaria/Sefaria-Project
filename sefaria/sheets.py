@@ -107,8 +107,10 @@ def get_sheet_for_panel(id=None):
 			sheet["groupLogo"] = None
 	return sheet
 
-def user_sheets(user_id, sort_by="date", limit=0, skip=0):
+def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	query = {"owner": int(user_id)}
+	if not private:
+		query["status"] = "public"
 	if sort_by == "date":
 		sort = [["dateModified", -1]]
 	elif sort_by == "views":
@@ -152,6 +154,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		"owner": 1,
 		"views": 1,
 		"dateModified": 1,
+		"dateCreated": 1,
 		"tags": 1,
 		"group": 1,
 	}
@@ -187,7 +190,9 @@ def sheet_to_dict(sheet):
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
 		"views": sheet["views"],
+		"group": sheet.get("group", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
+		"created": sheet.get("dateCreated", None),
 		"tags": sheet["tags"] if "tags" in sheet else [],
 		"options": sheet["options"] if "options" in sheet else [],
 	}
@@ -405,7 +410,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			index_name = search.get_new_and_current_index_names("sheet")['current']
 			search.index_sheet(index_name, sheet["id"])
 		except:
-			logger.error("Failed index on " + str(sheet["id"]))
+			logger.error(u"Failed index on " + str(sheet["id"]))
 
 	'''
 	global last_updated
@@ -547,7 +552,7 @@ def refine_ref_by_text(ref, text):
 
 def update_included_refs(query=None, hours=None, refine_refs=False):
 	"""
-	Rebuild included_refs index on sheets matching `query` or sheets 
+	Rebuild included_refs index on sheets matching `query` or sheets
 	that have been modified in the last `hours`.
 	"""
 	if hours:
@@ -580,7 +585,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
-	If `in_group` (list) is present, only return sheets in one of the listed groups. 
+	If `in_group` (list) is present, only return sheets in one of the listed groups.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref

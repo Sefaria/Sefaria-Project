@@ -78,6 +78,7 @@ class ReaderApp extends Component {
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
+          profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
@@ -118,6 +119,7 @@ class ReaderApp extends Component {
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
+          profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           navigationGroupTag: props.initialGroupTag,
@@ -153,6 +155,7 @@ class ReaderApp extends Component {
         }),
         navigationCategories: props.initialNavigationCategories,
         navigationTopic: props.initialTopic,
+        profile: props.initialProfile,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
         navigationGroupTag: props.initialGroupTag,
@@ -550,6 +553,11 @@ class ReaderApp extends Component {
             hist.url   = "account";
             hist.mode  = "account";
             break;
+          case "profile":
+            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`
+            hist.url   = `profile/${state.profile.slug}`;
+            hist.mode = "profile";
+            break;
           case "notifications":
             hist.title = Sefaria._(siteName + " Notifcations");
             hist.url   = "notifications";
@@ -584,6 +592,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("Story Editor");
             hist.url = "story_editor";
             hist.mode = "story_editor";
+            break;
+          case "user_stats":
+            hist.title = Sefaria._("User Stats");
+            hist.url = "user_stats";
+            hist.mode = "user_stats";
             break;
           case "saved":
             hist.title = Sefaria._("My Saved Content");
@@ -847,6 +860,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
       textHighlights:          state.textHighlights          || null,
+      profile:                 state.profile                 || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1272,9 +1286,9 @@ class ReaderApp extends Component {
     this.state.defaultVersions[indexTitle] = this.state.defaultVersions[indexTitle] || {};
     this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   }
-  setHeaderState(state, replaceHistory) {
+  setHeaderState(state, replaceHistory, cb) {
     this.state.header = extend(this.state.header, state);
-    this.setState({header: this.state.header});
+    this.setState({header: this.state.header}, cb);
   }
   setDefaultOption(option, value) {
     if (value !== this.state.defaultPanelSettings[option]) {
@@ -1554,15 +1568,23 @@ class ReaderApp extends Component {
     var updates = {menuOpen: "myNotes"};
     this.setStateInHeaderOrSinglePanel(updates);
   }
-  setStateInHeaderOrSinglePanel(state) {
+  setStateInHeaderOrSinglePanel(state, cb) {
     // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
     // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
     if (this.props.multiPanel) {
-      this.setHeaderState(state);
+      this.setHeaderState(state, false, cb);
     } else {
       state = this.makePanelState(state);
-      this.setState({panels: [state]});
+      this.setState({panels: [state]}, cb);
     }
+  }
+  openProfile(slug, full_name) {
+    // requires slug and full_name to properly set window title and url in history
+    this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile: { slug, full_name } }, () => {
+      Sefaria.profileAPI(slug).then(profile => {
+        this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
+      });
+    });
   }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
@@ -1670,6 +1692,7 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
                     translateISOLanguageCode={this.translateISOLanguageCode}
+                    openProfile={this.openProfile}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
 
     var panels = [];
@@ -1757,6 +1780,7 @@ class ReaderApp extends Component {
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
+                      openProfile={this.openProfile}
                     />
                   </div>);
     }
@@ -1812,6 +1836,7 @@ ReaderApp.propTypes = {
   initialSheetSearchSortType:  PropTypes.string,
   initialSheetsTag:            PropTypes.string,
   initialTopic:                PropTypes.string,
+  initialProfile:              PropTypes.object,
   initialNavigationCategories: PropTypes.array,
   initialSettings:             PropTypes.object,
   initialPanels:               PropTypes.array,
@@ -1830,6 +1855,7 @@ ReaderApp.defaultProps = {
   initialQuery:                null,
   initialSheetsTag:            null,
   initialTopic:                null,
+  initialProfile:              null,
   initialNavigationCategories: [],
   initialPanels:               [],
   initialDefaultVersions:      {},

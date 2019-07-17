@@ -5,7 +5,7 @@ const {
   SheetAuthorStatement,
   SheetTitle,
   GroupStatement,
-
+  ProfilePic,
 } = require('./Misc');
 
 const React = require('react');
@@ -98,6 +98,7 @@ class Sheet extends Component {
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
             sheetID = {sheet.id}
+            openProfile={this.props.openProfile}
           />
       )
     }
@@ -206,6 +207,13 @@ class SheetContent extends Component {
     this.props.onRefClick(ref);
   }
 
+  openProfile(e) {
+    e.preventDefault();
+    const slugMatch = this.props.authorUrl.match(/profile\/(.+)$/);
+    const slug = !!slugMatch ? slugMatch[1] : '';
+    this.props.openProfile(slug, this.props.authorStatement);
+  }
+
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -300,9 +308,14 @@ class SheetContent extends Component {
             <SheetTitle title={this.props.title} />
             <SheetAuthorStatement
                 authorUrl={this.props.authorUrl}
-                authorImage={this.props.authorImage}
                 authorStatement={this.props.authorStatement}
-            />
+            >
+              <ProfilePic
+                url={this.props.authorImage}
+                len={30}
+                name={this.props.authorStatement}
+              />
+            </SheetAuthorStatement>
             <GroupStatement
                 group={this.props.group}
                 groupLogo={this.props.groupLogo}
@@ -598,12 +611,14 @@ class SheetMedia extends Component {
 
   makeMediaEmbedContent() {
     var mediaLink;
-    var mediaCaption;
+    var mediaCaption = "";
+    var mediaClass = "media fullWidth";
     var mediaURL = this.props.source.media;
     var caption  = this.props.source.caption;
 
     if (mediaURL.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
+      mediaClass = "media"
     }
 
     else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
@@ -630,7 +645,7 @@ class SheetMedia extends Component {
                  "</div></div>";
     }
 
-    return "<div class='media'>" + mediaLink + mediaCaption + "</div>";
+    return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
   }
 
   render() {

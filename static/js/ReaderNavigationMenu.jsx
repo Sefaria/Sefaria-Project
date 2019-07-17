@@ -212,7 +212,7 @@ class ReaderNavigationMenu extends Component {
       topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);
 
       const donation  = <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink"
-                           img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/"/>;
+                           img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>;
 
       const title = (<h1>
                     { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?

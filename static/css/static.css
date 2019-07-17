@@ -746,6 +746,9 @@ input#id_email{
 #supportersPage .supporters p.tagline:first-child {
   margin-bottom: 20px;
 }
+#supportersPage .supporter .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
 #supportersPage h2 {
     margin-top: 25px;
 }

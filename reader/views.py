@@ -38,7 +38,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data, site_stats_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
@@ -72,7 +72,7 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn("Initializing library objects.")
+logger.warn(u"Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
@@ -906,12 +906,17 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
-@login_required
+@staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
 
+@staff_member_required
+def user_stats(request):
+    props = base_props(request)
+    title = _("User Stats")
+    return menu_page(request, props, "user_stats", title)
 
 @login_required
 def account(request):
@@ -1099,8 +1104,9 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
+            library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
-        except:
+        except BookNameError:
             pass
         indexJSON = json.dumps({"title": new_title})
         text_exists = False
@@ -2467,8 +2473,8 @@ def stories_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                SharedStory(payload).save()
-                return jsonResponse({"status": "ok"})
+                s = SharedStory(payload).save()
+                return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
 
@@ -2477,8 +2483,8 @@ def stories_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    SharedStory(payload).save()
-                    return jsonResponse({"status": "ok"})
+                    s = SharedStory(payload).save()
+                    return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
 
@@ -2536,6 +2542,22 @@ def addDynamicStories(stories, user, page):
             stories = [stry.contents()] + stories
 
     return stories
+
+
+@staff_member_required
+def user_stats_api(request, uid):
+    assert request.method == "GET", "Unsupported Method"
+    quick = bool(request.GET.get("quick", False))
+    if quick:
+        return jsonResponse(public_user_data(uid))
+    # Todo: or now, we're hard-coding Rosh Hashannah 2018.
+    return jsonResponse(user_stats_data(uid, start=datetime(2018, 9, 9)))
+
+
+@staff_member_required
+def site_stats_api(request):
+    assert request.method == "GET", "Unsupported Method"
+    return jsonResponse(site_stats_data())
 
 
 @staff_member_required
@@ -3047,60 +3069,38 @@ def leaderboard(request):
 
 @ensure_csrf_cookie
 @sanitize_get_params
-def user_profile(request, username, page=1):
+def user_profile(request, username):
     """
     User's profile page.
     """
     try:
-        profile    = UserProfile(slug=username)
+        profile = UserProfile(slug=username)
     except Exception, e:
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this
-        user       = get_object_or_404(User, username=username)
-        profile    = UserProfile(id=user.id)
+        user = get_object_or_404(User, username=username)
+        profile = UserProfile(id=user.id)
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
 
+    props = base_props(request)
+    profileJSON = profile.to_api_dict()
+    props.update({
+        "initialMenu":  "profile",
+        "initialProfile": profileJSON,
+    })
+    title = u"%(full_name)s on Sefaria" % {"full_name": profile.full_name}
+    desc = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
 
-    following      = profile.followed_by(request.user.id) if request.user.is_authenticated else False
-
-    page_size      = 20
-    page           = int(page) if page else 1
-    if page > 40:
-        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render(request,'static/generic.html', generic_response)
-
-    query          = {"user": profile.id}
-    filter_type    = request.GET["type"] if "type" in request.GET else None
-    activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
-    notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
-
-    contributed    = activity[0]["date"] if activity else None
-    scores         = db.leaders_alltime.find_one({"_id": profile.id})
-    score          = int(scores["count"]) if scores else 0
-    user_texts     = scores.get("texts", None) if scores else None
-    sheets         = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
-
-    next_page      = apage + 1 if apage else None
-    next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
-
-    return render(request,"profile.html",
-                             {
-                                'profile': profile,
-                                'following': following,
-                                'activity': activity,
-                                'sheets': sheets,
-                                'notes': notes,
-                                'joined': profile.date_joined,
-                                'contributed': contributed,
-                                'score': score,
-                                'scores': scores,
-                                'user_texts': user_texts,
-                                'filter_type': filter_type,
-                                'next_page': next_page,
-                                "single": False,
-                              })
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request,'base.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    })
 
 
 @catch_error_as_json
@@ -3126,7 +3126,25 @@ def profile_api(request):
             return jsonResponse({"error": error})
         else:
             profile.save()
-            return jsonResponse(profile.to_DICT())
+            return jsonResponse(profile.to_mongo_dict())
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def profile_get_api(request, slug):
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        return jsonResponse(profile.to_api_dict())
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def profile_follow_api(request, ftype, slug):
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        follow_set = FollowersSet(profile.id) if ftype == "followers" else FolloweesSet(profile.id)
+        response = [UserProfile(id=uid).to_api_dict(basic=True) for uid in follow_set.uids]
+        return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

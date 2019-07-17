@@ -3025,27 +3025,26 @@ function buildSource($target, source, appendOrInsert) {
 	}
 	else if ("media" in source) {
 		var mediaLink;
-		
+		var mediaClass = "media fullWidth";
+
 		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
+			mediaClass = "media";
 		}
-		
 		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
-
 		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
 			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
 		}
-
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
 		}
-		
 		else {
 			mediaLink = '';
 		}
-		additionalRefData = "";
+
+		var additionalRefData = "";
 		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
@@ -3062,7 +3061,7 @@ function buildSource($target, source, appendOrInsert) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + mediaCaption + "</div>" +
+							"<div class='" + mediaClass + (sjs.loading ? "" : " new") + "'>" + mediaLink + mediaCaption + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 							appendInlineAddButton() +
 						  "</li>";

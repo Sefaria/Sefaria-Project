@@ -26,6 +26,9 @@ from sefaria.utils.util import epoch_time
 from django.utils import translation
 from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class UserHistory(abst.AbstractMongoRecord):
     collection = 'user_history'
@@ -156,6 +159,25 @@ class UserHistory(abst.AbstractMongoRecord):
         return uh
 
     @staticmethod
+    def timeclause(start=None, end=None):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if start is None and end is None:
+            return {}
+
+        timerange = {}
+        if start:
+            timerange["$gte"] = start
+        if end:
+            timerange["$lte"] = end
+        return {"datetime": timerange}
+
+
+    @staticmethod
     def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
         query = {}
         if uid is not None:
@@ -240,13 +262,6 @@ class UserProfile(object):
 
         self._name_updated      = False
 
-
-        # Update with saved profile doc in MongoDB
-        profile = db.profiles.find_one({"id": id})
-        profile = self.migrateFromOldRecents(profile)
-        if profile:
-            self.update(profile)
-
         # Followers
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
@@ -256,6 +271,13 @@ class UserProfile(object):
         gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
         self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
         self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+
+        # Update with saved profile doc in MongoDB
+        profile = db.profiles.find_one({"id": id})
+        profile = self.migrateFromOldRecents(profile)
+        if profile:
+            self.update(profile)
+
 
     @property
     def full_name(self):
@@ -352,7 +374,7 @@ class UserProfile(object):
         # Sanitize & Linkify fields that allow HTML
         self.bio = bleach.linkify(self.bio)
 
-        d = self.to_DICT()
+        d = self.to_mongo_dict()
         if self._id:
             d["_id"] = self._id
         db.profiles.save(d)
@@ -492,10 +514,11 @@ class UserProfile(object):
 
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
-
-    def to_DICT(self):
-        """Return a json serializble dictionary this profile"""
-        dictionary = {
+    def to_mongo_dict(self):
+        """
+        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
+        """
+        return {
             "id":                    self.id,
             "slug":                  self.slug,
             "position":              self.position,
@@ -518,10 +541,38 @@ class UserProfile(object):
             "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
         }
+
+
+    def to_api_dict(self, basic=False):
+        """
+        Return a json serializble dictionary this profile which includes fields used in profile API methods
+        If basic is True, only return enough data to display a profile listing 
+        """
+        if basic:
+            return {
+                "id": self.id,
+                "slug": self.slug,
+                "gravatar_url": self.gravatar_url,
+                "full_name": self.full_name,
+                "position": self.position,
+                "organization": self.organization
+            }
+        dictionary = self.to_mongo_dict()
+        other_info = {
+            "full_name":             self.full_name,
+            "followers":             self.followers.uids,
+            "followees":             self.followees.uids,
+            "gravatar_url":          self.gravatar_url
+        }
+        dictionary.update(other_info)
         return dictionary
 
-    def to_JSON(self):
-        return json.dumps(self.to_DICT)
+
+    def to_mongo_json(self):
+        """
+        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
+        """
+        return json.dumps(self.to_mongo_dict())
 
 
 def email_unread_notifications(timeframe):
@@ -611,6 +662,111 @@ def public_user_data(uid):
     public_user_data_cache[uid] = data
     return data
 
+# Properly, this doesn't belong here, but it's being developed alongside user_stats_data
+# todo: relocate the stats methods?
+def site_stats_data():
+    from sefaria.model.category import TOP_CATEGORIES
+    from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
+
+    d = {"categoriesRead": {reverse_read_in_category_key(t.name): t.value
+                            for t in TrendSet({"scope": "site", "period": "alltime",
+                                "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}
+                            })}}
+    return d
+
+
+def user_stats_data(uid, start=None, end=None):
+    """
+
+    :param uid: int or something cast-able to int
+    :param start: datetime
+    :param end: datetime
+    :return:
+    """
+    from sefaria.model.category import TOP_CATEGORIES
+    from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
+    from sefaria.sheets import user_sheets, sheet_list
+
+    uid = int(uid)
+
+    # todo: needs more thought.  UserHistory.timeclause handles the Nones, but later usages in this method aren't so graceful.
+    timeclause = UserHistory.timeclause(start, end)
+    end = end or datetime.now()
+    start = start or datetime(2017, 12, 1)  # start of Sefaria epoch
+
+    # All of user's sheets
+    usheets = user_sheets(uid)["sheets"]
+    usheet_ids = [s["id"] for s in usheets]
+
+    # Sheet views in this period
+    match_clause = {
+            "is_sheet": True,
+            "sheet_id": {"$in": usheet_ids},
+            }
+    match_clause.update(timeclause)
+    usheet_views = db.user_history.aggregate([
+        {"$match": match_clause},
+        {"$group": {
+            "_id": "$sheet_id",
+            "cnt": {"$sum": 1}}},
+    ])
+
+    most_popular_sheet_ids = [s["_id"] for s in sorted(usheet_views, key=lambda o: o["cnt"], reverse=True)[:3]]
+    most_popular_sheets = [s for s in usheets if s["id"] in most_popular_sheet_ids]
+    sheets_this_period = [s for s in usheets if start <= datetime.strptime(s["created"], "%Y-%m-%dT%H:%M:%S.%f") <= end]
+
+    # Refs I viewed
+    match_clause = {
+            "uid": uid,
+            "secondary": False,
+            "is_sheet": False
+            }
+    match_clause.update(timeclause)
+    refs_viewed = db.user_history.aggregate([
+        {"$match": match_clause},
+        {"$group": {
+            "_id": "$ref",
+            "cnt": {"$sum": 1}}},
+    ])
+    most_viewed_refs = [s["_id"] for s in sorted(refs_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and "Genesis 1" not in s["_id"]][:10]
+
+
+    # Sheets I viewed
+    match_clause = {
+            "uid": uid,
+            "secondary": False,
+            "is_sheet": True
+            }
+    match_clause.update(timeclause)
+    sheets_viewed = db.user_history.aggregate([
+        {"$match": match_clause},
+        {"$group": {
+            "_id": "$sheet_id",
+            "cnt": {"$sum": 1}}},
+    ])
+    most_viewed_sheets_ids = [s["_id"] for s in sorted(sheets_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and s["_id"] not in usheet_ids][:10]
+    most_viewed_sheets = sheet_list({"id": {"$in":most_viewed_sheets_ids}})
+
+    # Construct returned data
+    d = public_user_data(uid)
+
+    sheetsReadQuery = {"is_sheet": True, "secondary": False, "uid": uid}
+    sheetsReadQuery.update(timeclause)
+    d["sheetsRead"] = UserHistorySet(sheetsReadQuery).count()
+
+    textsReadQuery = {"is_sheet": False, "secondary": False, "uid": uid}
+    textsReadQuery.update(timeclause)
+    d["textsRead"] = UserHistorySet(textsReadQuery).count()
+
+    d["categoriesRead"] = {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}})}
+    d["totalSheets"] = len(usheets)
+    d["publicSheets"] = len([s for s in usheets if s["status"] == "public"])
+    d["popularSheets"] = most_popular_sheets
+    d["sheetsThisPeriod"] = len(sheets_this_period)
+    d["mostViewedRefs"] = most_viewed_refs
+    d["mostViewedSheets"] = most_viewed_sheets
+    return d
+
 
 def user_name(uid):
     """Returns a string of a user's full name"""
@@ -635,7 +791,7 @@ def is_user_staff(uid):
     """
     Returns True if the user with uid is staff.
     """
-    data = public_user_data(uid)
+    data = public_user_data(uid)  #needed?
     try:
         uid  = int(uid)
         user = User.objects.get(id=uid)
@@ -675,3 +831,21 @@ def annotate_user_list(uids):
         annotated_list.append(annotated)
 
     return annotated_list
+
+
+def process_index_title_change_in_user_history(indx, **kwargs):
+    print "Cascading User History from {} to {}".format(kwargs['old'], kwargs['new'])
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    objs = UserHistorySet({"$or": queries})
+    for o in objs:
+        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        try:
+            o.save()
+        except InputError:
+            logger.warning(u"Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
+

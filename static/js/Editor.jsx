@@ -8,7 +8,7 @@ const {
     SheetAuthorStatement,
     SheetTitle,
     GroupStatement,
-
+    ProfilePic,
 } = require('./Misc');
 
 
@@ -126,12 +126,19 @@ function SefariaEditor(props) {
                                     "object": "block",
                                     "type": "SheetAuthorStatement",
                                     "data": {
-                                        "authorImage": sheet.ownerImageUrl,
                                         "authorUrl": sheet.ownerProfileUrl,
                                         "authorStatement": sheet.ownerName,
                                     },
 
                                     "nodes": [
+                                        {
+                                            "object": "block",
+                                            "type": "ProfilePic",
+                                            "data": {
+                                                "authorImage": sheet.ownerImageUrl,
+                                                "authorStatement": sheet.ownerName,
+                                            }
+                                        },
                                         {
                                             "object": "text",
                                             "text": sheet.ownerName,
@@ -230,9 +237,18 @@ function SefariaEditor(props) {
                                         type: "SheetAuthorStatement",
                                         data: {title: "Untitled Source Sheet"},
                                         nodes: [
+
+                                            {
+                                                "object": "block",
+                                                "type": "ProfilePic",
+                                                "data": {
+                                                    "authorImage": props.data.ownerImageUrl,
+                                                    "authorStatement": props.data.ownerName,
+                                                }
+                                            },
                                             {
                                                 "object": "text",
-                                                "text": "Untitled Source Sheet",
+                                                "text": props.data.ownerName,
                                             }
                                         ]
                                     })
@@ -264,9 +280,18 @@ function SefariaEditor(props) {
                                 },
 
                                 nodes: [
+
                                     {
-                                        object: "text",
-                                        text: props.data.ownerName,
+                                        "object": "block",
+                                        "type": "ProfilePic",
+                                        "data": {
+                                            "authorImage": props.data.ownerImageUrl,
+                                            "authorStatement": props.data.ownerName,
+                                        }
+                                    },
+                                    {
+                                        "object": "text",
+                                        "text": props.data.ownerName,
                                     }
                                 ]
                             });
@@ -321,16 +346,25 @@ function SefariaEditor(props) {
                 );
             case 'SheetAuthorStatement':
                 const authorUrl = data.get('authorUrl');
-                const authorImage = data.get('authorImage');
                 const authorStatement = data.get('authorStatement');
                 return (
                     <SheetAuthorStatement
                         authorUrl={authorUrl}
-                        authorImage={authorImage}
                         authorStatement={authorStatement}
-                        schema={schema}
                     >{children}</SheetAuthorStatement>
                 );
+            case 'ProfilePic':
+                const authorImage = data.get('authorImage');
+                const name = data.get('authorStatement');
+
+                return (
+                    <ProfilePic
+                        url={authorImage}
+                        len={30}
+                        name={name}
+                    />
+                );
+
             case 'GroupStatement':
                 const group = data.get('group');
                 const groupLogo = data.get('groupLogo');

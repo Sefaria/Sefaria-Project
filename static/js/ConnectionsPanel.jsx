@@ -19,7 +19,7 @@ const $                      = require('./sefaria/sefariaJquery');
 const TextRange              = require('./TextRange');
 const TextList               = require('./TextList');
 const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
-const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
+const { AddToSourceSheetBox }= require('./AddToSourceSheet');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
 const VersionsBox            = require('./VersionsBox');
@@ -350,6 +350,7 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
+                    openProfile={this.props.openProfile}
                   /> : null }
 
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
@@ -358,6 +359,7 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
+                    openProfile={this.props.openProfile}
                   /> : null }
 
                 </div>);
@@ -532,6 +534,7 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
+  openProfile:             PropTypes.func.isRequired,
 };
 
 
@@ -544,7 +547,7 @@ class ResourcesList extends Component {
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
@@ -684,7 +687,7 @@ class MySheetsList extends Component {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -703,7 +706,7 @@ class PublicSheetsList extends Component {
       // My sheets are shown already in MySheetList
       return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -901,20 +904,9 @@ class AddNoteBox extends Component {
     this.setState({isPrivate: false});
   }
   deleteNote() {
+          alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
-    var url = "/api/notes/" + this.props.noteId;
-    $.ajax({
-      type: "delete",
-      url: url,
-      success: function() {
-        Sefaria.clearPrivateNotes();
-        Sefaria.track.event("Tools", "Delete Note", this.props.noteId);
-        this.props.onDelete();
-      }.bind(this),
-      error: function() {
-        alert(Sefaria._("Something went wrong (that's all I know)."));
-      }
-    });
+    Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
   render() {
     if (!Sefaria._uid) {
@@ -927,7 +919,7 @@ class AddNoteBox extends Component {
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
-          <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
+          <span className="int-he">{this.props.noteId ? "שמירה": "הוספת הערה"}</span>
         </div>
         {this.props.noteId ?
           <div className="button white fillWidth" onClick={this.props.onCancel}>
@@ -937,7 +929,7 @@ class AddNoteBox extends Component {
         {this.props.noteId ?
           (<div className="deleteNote" onClick={this.deleteNote}>
             <span className="int-en">Delete Note</span>
-            <span className="int-he">מחק רשומה</span>
+            <span className="int-he">מחיקת הערה</span>
            </div>): null }
       </div>);
 

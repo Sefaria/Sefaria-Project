@@ -222,7 +222,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "scheme",
         "order",
         "ref",
-        "sensitive",
+        "good_to_promote",
         "category"
     ]
 
@@ -780,6 +780,20 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
 
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
             raise IndexSchemaError(u"Schema node {} with sharedTitle can not have explicit titles".format(self))
+
+        # disable this check while data is still not conforming to validation
+        if not self.sharedTitle and False:
+            special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]
+            for title in self.title_group.titles:
+                title = title["text"]
+                if title in special_book_cases:
+                    break
+                term = Term().load_by_title(title)
+                if term:
+                    if "scheme" in vars(term).keys():
+                        if vars(term)["scheme"] == "Parasha":
+                            raise InputError(
+                                "Nodes that represent Parashot must contain the corresponding sharedTitles.")
 
         #if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))

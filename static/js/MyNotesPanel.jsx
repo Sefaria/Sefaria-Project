@@ -13,7 +13,7 @@ const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
 const $                   = require('./sefaria/sefariaJquery');
 const TextRange           = require('./TextRange');
-const AddToSourceSheetBox = require('./AddToSourceSheetBox');
+const { AddToSourceSheetWindow } = require('./AddToSourceSheet');
 const Footer              = require('./Footer');
 import Component          from 'react-class';
 
@@ -167,40 +167,5 @@ NoteListing.defaultProps = {
   showText: true
 };
 
-
-class AddToSourceSheetWindow extends Component {
-  close () {
-    if (this.props.close) {
-      this.props.close();
-    }
-  }
-  render () {
-    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
-
-    return (<div className="addToSourceSheetModal">
-      <div className="sourceSheetBoxTitle">
-        <img src="/static/img/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
-        {Sefaria.loggedIn ? null : <span>
-            In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
-        </span>}
-        <div className="clearFix"></div>
-      </div>
-      {Sefaria.loggedIn ?
-        <AddToSourceSheetBox
-          srefs = {this.props.srefs}
-          en = {this.props.en}
-          he = {this.props.he}
-          note = {this.props.note}
-        /> : null }
-      </div>);
-  }
-}
-AddToSourceSheetWindow.propTypes = {
-  srefs:        PropTypes.array,
-  close:        PropTypes.func,
-  en:           PropTypes.string,
-  he:           PropTypes.string,
-  note:         PropTypes.string,
-};
 
 module.exports = MyNotesPanel;
