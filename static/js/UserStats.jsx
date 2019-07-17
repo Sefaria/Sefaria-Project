@@ -92,8 +92,8 @@ const UserDataBlock = ({user_data, site_data}) => (
         </div>
 
         <div style={{display: "flex", justifyContent:"space-around"}}>
-          <CategoriesPie title="User" cats={user_data.categoriesRead}/>
-          <CategoriesPie title="Site" cats={site_data.categoriesRead}/>
+          <CategoriesDonut title="User" cats={user_data.categoriesRead}/>
+          <CategoriesDonut title="Site" cats={site_data.categoriesRead}/>
         </div>
         <div style={{display: "flex", justifyContent:"space-around"}}>
           <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
@@ -199,7 +199,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
     );
 };
 
-const CategoriesPie = ({cats, title}) => {
+const CategoriesDonut = ({cats, title}) => {
     const svg_ref = useRef();
 
     const width = 420;
@@ -215,7 +215,7 @@ const CategoriesPie = ({cats, title}) => {
         .sort(compare)
         .value(d => d.value);
     const arcs = pie(data);
-    const radius = Math.min(width, height) / 2 * 0.8;
+    const radius = Math.min(width, height) / 2 * 0.75;
     const arcLabel = d3.arc().innerRadius(radius).outerRadius(radius);
     const arc = d3.arc()
         .innerRadius(Math.min(width, height) / 2 - 10)
@@ -245,22 +245,20 @@ const CategoriesPie = ({cats, title}) => {
       text.append("tspan")
           .attr("x", 0)
           .attr("y", "-0.7em")
-          .style("font-weight", "bold")
           .text(d => d.data.name);
 
       text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
           .attr("x", 0)
           .attr("y", "0.7em")
-          .attr("fill-opacity", 0.7)
-          .text(d => d.data.value + " (" + (d.data.value/total).toLocaleString(undefined,{style: 'percent'}) +")");
+          .attr("fill", "#999")
+          .text(d => (d.data.value/total).toLocaleString(undefined,{style: 'percent'}) );
 
         return () => {svg.selectAll("*").remove();}
     }, [cats]);
 
-    // if (!raw_data.length) {return <div></div>}
 
     return (
-        <div style={{font: "12px sans-serif", padding: "0 10px"}}>
+        <div style={{font: "14px sans-serif", padding: "0 10px"}}>
             <h3>{title}</h3>
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
         </div>
