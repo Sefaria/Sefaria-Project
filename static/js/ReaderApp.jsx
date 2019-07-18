@@ -610,7 +610,7 @@ class ReaderApp extends Component {
             break;
           case "homefeed":
             hist.title = Sefaria._("Sefaria Stories");
-            hist.url = "";
+            hist.url = "new-home";
             hist.mode = "homefeed";
             break;
         }

@@ -906,11 +906,19 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
+
+def new_home(request):
+    props = base_props(request)
+    title = _("Sefaria Stories")
+    return menu_page(request, props, "homefeed", title)
+
+
 @staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
+
 
 @staff_member_required
 def user_stats(request):
@@ -3304,11 +3312,13 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
+
 @login_required
 def enable_home_feed(request):
     resp = home(request, True)
     resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
     return resp
+
 
 @login_required
 def disable_home_feed(request):
@@ -3326,19 +3336,7 @@ def home(request, show_feed=None):
         show_feed = request.COOKIES.get("home_feed", None)
 
     if show_feed:
-        props = base_props(request)
-
-        props.update({
-            "initialMenu": "homefeed"
-        })
-        propsJSON = json.dumps(props)
-        html = render_react_component("ReaderApp", propsJSON)
-        return render(request, 'base.html', {
-            "propsJSON": propsJSON,
-            "html": html,
-            "title": "Sefaria Stories",
-            "desc": "",
-        })
+        return redirect("/new-home")
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
