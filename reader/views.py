@@ -1879,6 +1879,7 @@ def notes_api(request, note_id_or_ref):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@api_view(["GET"])
 @catch_error_as_json
 def all_notes_api(request):
 
