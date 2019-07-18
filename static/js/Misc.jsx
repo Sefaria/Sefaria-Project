@@ -869,7 +869,7 @@ SinglePanelNavHeader.propTypes = {
 
 
 const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{backgroundColor: Sefaria.palette.categoryColor(category)}}/>;
+  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
 
 
 class ProfileListing extends Component {
