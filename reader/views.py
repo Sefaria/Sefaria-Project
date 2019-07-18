@@ -39,7 +39,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data, site_stats_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
@@ -953,12 +953,25 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
-@login_required
+
+def new_home(request):
+    props = base_props(request)
+    title = _("Sefaria Stories")
+    return menu_page(request, props, "homefeed", title)
+
+
+@staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
 
+
+@staff_member_required
+def user_stats(request):
+    props = base_props(request)
+    title = _("User Stats")
+    return menu_page(request, props, "user_stats", title)
 
 @login_required
 def account(request):
@@ -2587,6 +2600,22 @@ def addDynamicStories(stories, user, page):
 
 
 @staff_member_required
+def user_stats_api(request, uid):
+    assert request.method == "GET", "Unsupported Method"
+    quick = bool(request.GET.get("quick", False))
+    if quick:
+        return jsonResponse(public_user_data(uid))
+    # Todo: or now, we're hard-coding Rosh Hashannah 2018.
+    return jsonResponse(user_stats_data(uid, start=datetime(2018, 9, 9)))
+
+
+@staff_member_required
+def site_stats_api(request):
+    assert request.method == "GET", "Unsupported Method"
+    return jsonResponse(site_stats_data())
+
+
+@staff_member_required
 def story_reflector(request):
     """
     Show what a story will look like.
@@ -3330,11 +3359,13 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
+
 @login_required
 def enable_home_feed(request):
     resp = home(request, True)
     resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
     return resp
+
 
 @login_required
 def disable_home_feed(request):
@@ -3352,19 +3383,7 @@ def home(request, show_feed=None):
         show_feed = request.COOKIES.get("home_feed", None)
 
     if show_feed:
-        props = base_props(request)
-
-        props.update({
-            "initialMenu": "homefeed"
-        })
-        propsJSON = json.dumps(props)
-        html = render_react_component(request, "ReaderApp", propsJSON)
-        return render(request, 'base.html', {
-            "propsJSON": propsJSON,
-            "html": html,
-            "title": "Sefaria Stories",
-            "desc": "",
-        })
+        return redirect("/new-home")
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
