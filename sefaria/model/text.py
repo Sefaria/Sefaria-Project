@@ -401,17 +401,17 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def get_alt_struct_nodes(self):
 
-        def alt_struct_nodes_helper(self, node, nodes):
+        def alt_struct_nodes_helper(node, nodes):
             if node.is_leaf():
                 nodes.append(node)
             else:
                 for child in node.children:
-                    self.alt_struct_nodes_helper(child, nodes)
+                    alt_struct_nodes_helper(child, nodes)
 
         nodes = []
         for tree in self.get_alt_structures().values():
             for node in tree.children:
-                self.alt_struct_nodes_helper(node, nodes)
+                alt_struct_nodes_helper(node, nodes)
         return nodes
 
 
