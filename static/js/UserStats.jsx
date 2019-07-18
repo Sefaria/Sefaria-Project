@@ -3,10 +3,13 @@ const $          = require('./sefaria/sefariaJquery');
 const d3 = require('./lib/d3.v5.min');
 const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
-const Story      = require('./Story');
-const {SimpleLinkedBlock}    = require('./Misc');
+const {SheetBlock}      = require('./Story');
+const {
+    SimpleLinkedBlock,
+    TextBlockLink,
+    ThreeBox
+    }    = require('./Misc');
 const { useDebounce } = require('./Hooks');
-import Component from 'react-class';
 
 
 const UserStats = () => {
@@ -79,18 +82,17 @@ const UserDataBlock = ({user_data, site_data}) => (
                     <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
                 )}
             </div>
-            <div style={{padding: "0 10px"}}>
-                <h3>Texts I returned to</h3>
-                {user_data.mostViewedRefs.map((r,i) => <div key={i}><RefLink tref={r}/></div>)}
-            </div>
-            <div style={{padding: "0 10px"}}>
-                <h3>Sheets I returned to</h3>
-                {user_data.mostViewedSheets.map((sheet,i) =>
-                    <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
-                )}
-            </div>
-        </div>
 
+        </div>
+        <div>
+            <h3>Your Favorite Texts</h3>
+            <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
+                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book}/>)}/>
+        </div>
+        <div>
+            <h3>Your Favorite Sheets</h3>
+            {user_data.mostViewedSheets.map((sheet,i) => <SheetBlock sheet={sheet} key={i}/>)}
+        </div>
         <div style={{display: "flex", justifyContent:"space-around"}}>
           <CategoriesDonut title="User" cats={user_data.categoriesRead}/>
           <CategoriesDonut title="Site" cats={site_data.categoriesRead}/>

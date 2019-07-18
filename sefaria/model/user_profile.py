@@ -685,6 +685,7 @@ def user_stats_data(uid, start=None, end=None):
     """
     from sefaria.model.category import TOP_CATEGORIES
     from sefaria.model.trend import Trend, TrendSet, read_in_category_key, reverse_read_in_category_key
+    from sefaria.model.story import Story
     from sefaria.sheets import user_sheets, sheet_list
 
     uid = int(uid)
@@ -728,7 +729,9 @@ def user_stats_data(uid, start=None, end=None):
             "_id": "$ref",
             "cnt": {"$sum": 1}}},
     ])
-    most_viewed_refs = [s["_id"] for s in sorted(refs_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and "Genesis 1" not in s["_id"]][:10]
+    most_viewed_trefs = [s["_id"] for s in sorted(refs_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and "Genesis 1" not in s["_id"]][:9]
+    most_viewed_refs = [Ref(r) for r in most_viewed_trefs]
+    most_viewed_ref_dicts = [{"en": r.normal(), "he": r.he_normal(), "book": r.index.title} for r in most_viewed_refs]
 
 
     # Sheets I viewed
@@ -744,8 +747,11 @@ def user_stats_data(uid, start=None, end=None):
             "_id": "$sheet_id",
             "cnt": {"$sum": 1}}},
     ])
-    most_viewed_sheets_ids = [s["_id"] for s in sorted(sheets_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and s["_id"] not in usheet_ids][:10]
-    most_viewed_sheets = sheet_list({"id": {"$in":most_viewed_sheets_ids}})
+    most_viewed_sheets_ids = [s["_id"] for s in sorted(sheets_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and s["_id"] not in usheet_ids][:3]
+
+    most_viewed_sheets = [Story._sheet_metadata(i, return_id=True) for i in most_viewed_sheets_ids]
+    for sheet_dict in most_viewed_sheets:
+        sheet_dict.update(Story._publisher_metadata(sheet_dict["publisher_id"]))
 
     # Construct returned data
     d = public_user_data(uid)
@@ -763,7 +769,7 @@ def user_stats_data(uid, start=None, end=None):
     d["publicSheets"] = len([s for s in usheets if s["status"] == "public"])
     d["popularSheets"] = most_popular_sheets
     d["sheetsThisPeriod"] = len(sheets_this_period)
-    d["mostViewedRefs"] = most_viewed_refs
+    d["mostViewedRefs"] = most_viewed_ref_dicts
     d["mostViewedSheets"] = most_viewed_sheets
     return d
 

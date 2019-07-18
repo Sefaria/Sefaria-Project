@@ -960,6 +960,7 @@ class ReaderPanel extends Component {
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
       />);
+
     } else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats/>);
 

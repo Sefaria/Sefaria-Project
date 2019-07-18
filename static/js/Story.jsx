@@ -530,4 +530,5 @@ SaveLine.propTypes = {
 
 const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
 
-module.exports = Story;
+module.exports.Story = Story;
+module.exports.SheetBlock = SheetBlock;

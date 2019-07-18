@@ -1,8 +1,4 @@
 const {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  LanguageToggleButton,
   LoadingMessage,
   TabView,
   FilterableList,
@@ -13,14 +9,12 @@ const {
 }               = require('./Misc');
 const React      = require('react');
 const PropTypes = require('prop-types');
-const classNames = require('classnames');
 const Sefaria   = require('./sefaria/sefaria');
-const TextRange  = require('./TextRange');
 const { GroupListing } = require('./MyGroupsPanel');
 const NoteListing = require('./NoteListing');
 import Component from 'react-class';
 const Footer    = require('./Footer');
-
+const UserStats = require('./UserStats');
 
 class UserProfile extends Component {
   constructor(props) {
@@ -403,7 +397,7 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
   openProfile: PropTypes.func.isRequired,
   handleInAppLinkClick: PropTypes.func.isRequired,
-}
+};
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
@@ -496,7 +490,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
       </div>
     </div>
   );
-}
+};
 ProfileSummary.propTypes = {
   profile:       PropTypes.object.isRequired,
   message:       PropTypes.func.isRequired,
@@ -504,7 +498,7 @@ ProfileSummary.propTypes = {
   openFollowers: PropTypes.func.isRequired,
   openFollowing: PropTypes.func.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
-}
+};
 
 
 class MessageModal extends Component {
