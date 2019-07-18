@@ -201,6 +201,11 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
         self.sharedTitle = term
         self._process_terms()
 
+    def remove_shared_term(self, term):
+        if self.sharedTitle == term:
+            self.sharedTitle = None
+            self.title_group = self.title_group.copy()
+            return 1
 
 class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
@@ -783,10 +788,10 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
 
         # disable this check while data is still not conforming to validation
         if not self.sharedTitle and False:
-            special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]
+            special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Judges"]
             for title in self.title_group.titles:
                 title = title["text"]
-                if title in special_book_cases:
+                if self.get_primary_title() in special_book_cases:
                     break
                 term = Term().load_by_title(title)
                 if term:
