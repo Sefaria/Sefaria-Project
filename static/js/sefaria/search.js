@@ -4,7 +4,7 @@ const FilterNode = require('./FilterNode');
 const SearchState = require('./searchState');
 
 
-class QueryWrapper{
+class HackyQueryAborter{
     /*Used to abort multiple ajax queries. Stand-in until AbortController is no longer experimental. At that point
     * we'll want to replace our ajax queries with fetch*/
     constructor() {
@@ -25,7 +25,7 @@ class Search {
       this.searchIndexSheet = searchIndexSheet;
       this._cache = {};
       this.sefariaQueryQueue = {hits: {hits:[], total: 0, max_score: 0.0}};
-      this.dictaQueryQueue = [];
+      this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits:[]}};
       this.queryDictaFlag = true;
       this.dictaCounts = null;
       this.sefariaSheetsResult = null;
@@ -37,7 +37,7 @@ class Search {
         }
         return this._cache[key];
     }
-    sefariaQuery(args, wrapper) {
+    sefariaQuery(args, isQueryStart, wrapper) {
         return new Promise((resolve, reject) => {
             let req = JSON.stringify(this.get_query_object(args));
             wrapper.addQuery($.ajax({
@@ -62,31 +62,39 @@ class Search {
         });
 
     }
-    dictaQuery(args, wrapper) {
-        function ammendArgsForDicta(standardArgs) {
+    dictaQuery(args, isQueryStart, wrapper) {
+        function ammendArgsForDicta(standardArgs, lastSeen) {
+            console.log(standardArgs);
             let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
                 book = book.replace(/\//g, '.');
                 return book.replace(/ /g, '_');
             }) : false;
             return {
                 query: standardArgs.query,
-                from: ('start' in standardArgs) ? standardArgs.start : 0,
+                from: ('start' in standardArgs) ? lastSeen + 1 : 0,
                 size: standardArgs.size,
-                limitedToBooks: filters
+                limitedToBooks: filters,
+                sort: (standardArgs.sort_type === "relevance") ? '' : 'corpus_order_path'
             };
         }
         return new Promise((resolve, reject) => {
             if (this.queryDictaFlag && args.type === "text") {
-                wrapper.addQuery($.ajax({
-                    url: `${this.dictaSearchUrl}/search`,
-                    type: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json; charset=UTF-8',
-                    data: JSON.stringify((ammendArgsForDicta(args))),
-                    success: data => resolve(data)
-                    ,
-                    error: reject
-                }));
+                // debugger;
+                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && !(isQueryStart)) {
+                    resolve({total: 0, hits: []});
+                }
+                else {
+                    wrapper.addQuery($.ajax({
+                        url: `${this.dictaSearchUrl}/search`,
+                        type: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json; charset=UTF-8',
+                        data: JSON.stringify(ammendArgsForDicta(args, this.dictaQueryQueue.lastSeen)),
+                        success: data => resolve(data),
+                        error: reject
+                    }));
+                }
+
             }
             else {
                 resolve({total: 0, hits: []});
@@ -118,7 +126,8 @@ class Search {
                 hits: {
                     total: x.total,
                     hits: adaptedHits
-                }
+                },
+                lastSeen: this.dictaQueryQueue.lastSeen + adaptedHits.length
 
             }
         }).catch(x => console.log(x));
@@ -213,7 +222,7 @@ class Search {
             args.success(cache_result);
             return null;
         }
-        let wrapper = new QueryWrapper();
+        let queryAborter = new HackyQueryAborter();
         /*
         return $.ajax({
             url: `${Sefaria.apiHost}/api/search-wrapper`,
@@ -231,9 +240,9 @@ class Search {
         });
          */
         Promise.all([
-            this.sefariaQuery(args, wrapper),
-            this.dictaQuery(args, wrapper),
-            this.dictaBooksQuery(args, wrapper)
+            this.sefariaQuery(args, isQueryStart, queryAborter),
+            this.dictaQuery(args, isQueryStart, queryAborter),
+            this.dictaBooksQuery(args, queryAborter)
         ]).then(() => {
             if (args.type === "sheet") {
                 args.success(this.sefariaSheetsResult);
@@ -245,7 +254,7 @@ class Search {
             }
         }).catch(x => console.log(x));
         // }).catch(args.error);
-        return wrapper;
+        return queryAborter;
     }
     get_query_object({
       query,
