@@ -3,6 +3,22 @@ const extend            = require('extend');
 const FilterNode = require('./FilterNode');
 const SearchState = require('./searchState');
 
+
+class QueryWrapper{
+    /*Used to abort multiple ajax queries. Stand-in until AbortController is no longer experimental. At that point
+    * we'll want to replace our ajax queries with fetch*/
+    constructor() {
+        this._queryList = [];
+    }
+    addQuery(ajaxQuery) {
+        this._queryList.push(ajaxQuery);
+    }
+    abort() {
+        this._queryList.map(ajaxQuery => ajaxQuery.abort());
+    }
+}
+
+
 class Search {
     constructor(searchIndexText, searchIndexSheet) {
       this.searchIndexText = searchIndexText;
@@ -21,10 +37,10 @@ class Search {
         }
         return this._cache[key];
     }
-    sefariaQuery(args) {
+    sefariaQuery(args, wrapper) {
         return new Promise((resolve, reject) => {
             let req = JSON.stringify(this.get_query_object(args));
-            $.ajax({
+            wrapper.addQuery($.ajax({
                 url: `${Sefaria.apiHost}/api/search-wrapper`,
                 type: 'POST',
                 data: req,
@@ -34,7 +50,7 @@ class Search {
                 dataType: 'json',
                 success: data => resolve(data),
                 error: reject
-            });
+            }));
         }).then(x => {
             if (args.type === "sheet") {
                 this.sefariaSheetsResult = x;
@@ -46,7 +62,7 @@ class Search {
         });
 
     }
-    dictaQuery(args) {
+    dictaQuery(args, wrapper) {
         function ammendArgsForDicta(standardArgs) {
             let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
                 book = book.replace(/\//g, '.');
@@ -61,7 +77,7 @@ class Search {
         }
         return new Promise((resolve, reject) => {
             if (this.queryDictaFlag && args.type === "text") {
-                $.ajax({
+                wrapper.addQuery($.ajax({
                     url: `${this.dictaSearchUrl}/search`,
                     type: 'POST',
                     dataType: 'json',
@@ -70,7 +86,7 @@ class Search {
                     success: data => resolve(data)
                     ,
                     error: reject
-                });
+                }));
             }
             else {
                 resolve({total: 0, hits: []});
@@ -107,11 +123,11 @@ class Search {
             }
         }).catch(x => console.log(x));
     }
-    dictaBooksQuery(args) {
+    dictaBooksQuery(args, wrapper) {
         return new Promise((resolve, reject) => {
             if (this.dictaCounts === null && args.type === "text") {
                 if (this.queryDictaFlag) {
-                    $.ajax({
+                    wrapper.addQuery($.ajax({
                         url: `${this.dictaSearchUrl}/books`,
                         type: 'POST',
                         dataType: 'json',
@@ -120,7 +136,7 @@ class Search {
                         timeout: 3000,
                         success: data => resolve(data),
                         error: reject
-                    })
+                    }));
                 }
                 else {
                     resolve([]);
@@ -197,6 +213,7 @@ class Search {
             args.success(cache_result);
             return null;
         }
+        let wrapper = new QueryWrapper();
         /*
         return $.ajax({
             url: `${Sefaria.apiHost}/api/search-wrapper`,
@@ -214,9 +231,9 @@ class Search {
         });
          */
         Promise.all([
-            this.sefariaQuery(args),
-            this.dictaQuery(args),
-            this.dictaBooksQuery(args)
+            this.sefariaQuery(args, wrapper),
+            this.dictaQuery(args, wrapper),
+            this.dictaBooksQuery(args, wrapper)
         ]).then(() => {
             if (args.type === "sheet") {
                 args.success(this.sefariaSheetsResult);
@@ -224,12 +241,11 @@ class Search {
             else {
                 // debugger;
                 this.mergeQueries(isQueryStart);
-                console.log(this.sefariaQueryQueue);
-                args.success(this.sefariaQueryQueue)
+                args.success(this.sefariaQueryQueue);
             }
         }).catch(x => console.log(x));
         // }).catch(args.error);
-        return null;
+        return wrapper;
     }
     get_query_object({
       query,
