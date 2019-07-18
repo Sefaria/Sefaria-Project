@@ -93,5 +93,7 @@ def ensure_indices():
     db.user_story.ensure_index([("timestamp", pymongo.DESCENDING)])
     db.passage.ensure_index("ref_list")
     db.user_history.ensure_index("uid")
+    db.user_history.ensure_index("sheet_id")
+    db.user_history.ensure_index("datetime")
     db.trend.ensure_index("name")
     db.trend.ensure_index("uid")

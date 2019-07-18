@@ -68,7 +68,7 @@ function StoryEditor(props) {
                 <StoryEditBar
                     deleteStory={deleteStory}
                     removeDraft={removeDraft}
-                    handlePublish={saveStory}
+                    saveStory={saveStory}
                     isDraft={s.draft}
                     key={s.timestamp + "-" + i + "-editor"}
                     story={s}/>
@@ -213,17 +213,33 @@ const FeaturedSheetsStoryForm = () => {
 const SheetListStoryForm = () => {
     const refs = {
         ids:     useRef(null),
+        lead_en:     useRef(null),
+        lead_he:     useRef(null),
+        title_en:     useRef(null),
+        title_he:     useRef(null)
     };
     const previewButton =  usePreviewButton({
         payload: () => ({
           factory: "SheetListFactory",
           method: "_generate_shared_story",
+          lead: {
+            en:  refs.lead_en.current.getValue(),
+            he:  refs.lead_he.current.getValue()
+          },
+          title: {
+            en: refs.title_en.current.getValue(),
+            he: refs.title_he.current.getValue()
+          },
           sheet_ids: refs.ids.current.getValue().split(/\s*,\s*/)
         }),
-        isValid: () => refs.ids.current.isValid(),
+        isValid: () => refs.ids.current.isValid() && refs.title_en.current.isValid() && refs.title_he.current.isValid(),
     });
 
     return <div>
+        <StoryFormTextField label="Lead (en) (optional)" ref={refs.lead_en} />
+        <StoryFormTextField label="Lead (he) (optional)" ref={refs.lead_he} />
+        <StoryFormTextField label="Title (en)" ref={refs.title_en} />
+        <StoryFormTextField label="Title (he)" ref={refs.title_he} />
         <StoryFormTextField label="List of IDs" placeholder="id, id, id" ref={refs.ids} />
         {previewButton}
     </div>;
@@ -237,7 +253,7 @@ const UserSheetsStoryForm = () => {
         payload: () => ({
           factory: "UserSheetsFactory",
           method: "_generate_shared_story",
-          topic: refs.author_uid.current.getValue()
+          author_uid: refs.author_uid.current.getValue()
         }),
         isValid: () => refs.author_uid.current.isValid()
     });
@@ -256,7 +272,7 @@ const AuthorStoryForm = () => {
         payload: () => ({
           factory: "AuthorStoryFactory",
           method: "_generate_shared_story",
-          topic: refs.person.current.getValue()
+          person: refs.person.current.getValue()
         }),
         isValid: () => refs.person.current.isValid()
     });
@@ -308,17 +324,36 @@ const TopicSheetsStoryForm = () => {
 const TextPassageStoryForm = () => {
     const refs = {
         ref:     useRef(null),
+        lead_en:     useRef(null),
+        lead_he:     useRef(null),
+        title_en:     useRef(null),
+        title_he:     useRef(null)
     };
     const previewButton =  usePreviewButton({
         payload: () => ({
             storyForm: 'textPassage',
-            data: { ref: refs.ref.current.getValue() }
+            data: {
+                lead: {
+                    en:  refs.lead_en.current.getValue(),
+                    he:  refs.lead_he.current.getValue()
+                },
+                title: {
+                    en: refs.title_en.current.getValue(),
+                    he: refs.title_he.current.getValue()
+                },
+                ref: refs.ref.current.getValue(),
+            }
         }),
-        isValid: () => refs.ref.current.isValid()
+        isValid: () => refs.ref.current.isValid() && refs.title_en.current.isValid() && refs.title_he.current.isValid()
     });
 
     return <div>
-        <StoryFormRefField ref={refs.ref} label="Ref"/>
+        <StoryFormTextField label="Lead (en) (optional)" ref={refs.lead_en} />
+        <StoryFormTextField label="Lead (he) (optional)" ref={refs.lead_he} />
+        <StoryFormTextField label="Title (en)" ref={refs.title_en} />
+        <StoryFormTextField label="Title (he)" ref={refs.title_he} />
+        <StoryFormRefField label="Ref" ref={refs.ref} />
+
         {previewButton}
     </div>;
 };
