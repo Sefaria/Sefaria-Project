@@ -843,7 +843,7 @@ FollowButton.propTypes = {
   uid: PropTypes.number.isRequired,
   following: PropTypes.bool,  // is this person followed already?
   large: PropTypes.bool,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func,
 };
 
 const SinglePanelNavHeader = (props) =>
@@ -919,7 +919,7 @@ ProfileListing.propTypes = {
   image:       PropTypes.string.isRequired,
   name:        PropTypes.string.isRequired,
   is_followed: PropTypes.bool,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func,
 
 };
 

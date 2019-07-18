@@ -24,6 +24,7 @@ const UserStats = () => {
         $.getJSON("/api/site_stats")
             .then(d => setSiteData(d));
     }, []);
+
     useEffect(() => {
         setUserData({});
         $.getJSON("/api/user_stats/" + debouncedUID)
@@ -66,23 +67,24 @@ const UserProfileBlock = ({user_data}) => (
             </div>
         </div>
 );
-const UserDataBlock = ({user_data, site_data}) => (
-    <div>
-        <div style={{display: "flex", justifyContent:"center"}}>
-            <div style={{padding: "0 10px"}}>
-                <h3>Reading</h3>
-                <div>{user_data.sheetsRead} Sheets Read</div>
-                <div>{user_data.textsRead} Texts Read</div>
-                <h3>Writing</h3>
-                <div>{user_data.totalSheets} Sheets Created</div>
-                <div>{user_data.publicSheets} Public Sheets</div>
-                <div>{user_data.sheetsThisPeriod} Sheets Created This Year</div>
-                <h3>My Most Read Sheets</h3>
-                {user_data.popularSheets.map((sheet, i) =>
-                    <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
-                )}
-            </div>
 
+const StatCard = ({icon_file, name, number}) => (
+    <div style={{height: "220px", width: "220px", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", borderRadius: "10px", display: "flex", flexDirection: "column", justifyContent:"center"}}>
+        <img style={{opacity: .4, height: "70px", width: "70px", margin: "0 auto 20px"}} src={"static/icons/" + icon_file}/>
+        <div style={{fontSize: "28px", textAlign: "center"}}>{number}</div>
+        <div style={{fontSize: "24px", textAlign: "center", color: "#aaa"}}>{name}</div>
+    </div>
+);
+
+    const UserDataBlock = ({user_data, site_data}) => (
+    <div>
+        <div>
+            <h3>Your Overall Activity</h3>
+            <div style={{display: "flex", justifyContent:"space-around"}}>
+                <StatCard icon_file="iconmonstr-book-15.svg" number={user_data.textsRead} name="Texts Read"/>
+                <StatCard icon_file="iconmonstr-file-3.svg" number={user_data.sheetsRead} name="Sheets Read"/>
+                <StatCard icon_file="iconmonstr-plus-6.svg" number={user_data.totalSheets} name="Sheets Created"/>
+            </div>
         </div>
         <div>
             <h3>Your Favorite Texts</h3>
@@ -93,19 +95,29 @@ const UserDataBlock = ({user_data, site_data}) => (
             <h3>Your Favorite Sheets</h3>
             {user_data.mostViewedSheets.map((sheet,i) => <SheetBlock sheet={sheet} key={i}/>)}
         </div>
-        <div style={{display: "flex", justifyContent:"space-around"}}>
-          <CategoriesDonut title="User" cats={user_data.categoriesRead}/>
-          <CategoriesDonut title="Site" cats={site_data.categoriesRead}/>
+        <div>
+            <h3>Your Most Popular Sheets</h3>
+            {user_data.popularSheets.map((sheet, i) => <div key={i}>
+                    <SimpleLinkedBlock en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
+                    <div>{sheet.views} Views</div>
+                </div>
+            )}
         </div>
-        <div style={{display: "flex", justifyContent:"space-around"}}>
-          <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
+        <div>
+            <h3>Your Reading by Category</h3>
+            <div style={{display: "flex", justifyContent:"space-around"}}>
+                <CategoriesDonut title="User" cats={user_data.categoriesRead}/>
+                <CategoriesDonut title="Site" cats={site_data.categoriesRead}/>
+            </div>
+        </div>
+        <div>
+            <h3>Your Top Categories</h3>
+            <div style={{display: "flex", justifyContent:"space-around"}}>
+                <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
+            </div>
         </div>
     </div>
 );
-
-const RefLink = ({tref}) => {
-    return <a href={"/" + Sefaria.normRef(tref)}>{tref}</a>;
-};
 
 const mapToPercentage = data => {
     const newData = {};
@@ -122,8 +134,6 @@ const makeOtherCategory = data => {
     result.push({name: "Etc", value: remainder});
     return result;
 };
-
-const categoryColor = Sefaria.palette.categoryColor;
 
 const CategoryBars = ({user_cats, site_cats}) => {
     const svg_ref = useRef();
@@ -179,7 +189,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("y", d => d.key === "user" ? below_text_padding : below_text_padding + userbar + inter_bar_padding)
             .attr("width", d => x(d.value))
             .attr("height", d => d.key === "user" ? userbar : sitebar)
-            .attr("fill", d => d.key === "user" ? categoryColor(d.cat) : "#ededec");
+            .attr("fill", d => d.key === "user" ? Sefaria.palette.categoryColor(d.cat) : "#ededec");
 
         d3.select("svg g g:first-child")
             .append("text")
@@ -232,7 +242,7 @@ const CategoriesDonut = ({cats, title}) => {
         g.selectAll("path")
           .data(arcs)
           .enter().append("path")
-            .attr("fill", d => categoryColor(d.data.name))
+            .attr("fill", d => Sefaria.palette.categoryColor(d.data.name))
             .attr("stroke", "white")
             .attr("d", arc)
           .append("title")

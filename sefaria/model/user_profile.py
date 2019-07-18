@@ -713,7 +713,10 @@ def user_stats_data(uid, start=None, end=None):
     ])
 
     most_popular_sheet_ids = [s["_id"] for s in sorted(usheet_views, key=lambda o: o["cnt"], reverse=True)[:3]]
-    most_popular_sheets = [s for s in usheets if s["id"] in most_popular_sheet_ids]
+    most_popular_sheets = []
+    for sheet_id in most_popular_sheet_ids:
+        most_popular_sheets += filter(lambda s: s["id"] == sheet_id, usheets)
+
     sheets_this_period = [s for s in usheets if start <= datetime.strptime(s["created"], "%Y-%m-%dT%H:%M:%S.%f") <= end]
 
     # Refs I viewed
