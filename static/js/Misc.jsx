@@ -195,7 +195,8 @@ class TabView extends Component {
     return (
       <div className="tab-view">
         <div className="tab-list">
-          { this.props.tabs.map(this.renderTab)}
+          {this.props.tabs.map(this.renderTab)}
+          {this.props.tail && this.props.tail}
         </div>
         { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
       </div>
@@ -205,6 +206,7 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs: PropTypes.array.isRequired,
   renderTab: PropTypes.func.isRequired,
+    //tail: html/jsx
 };
 
 class DropdownOptionList extends Component {

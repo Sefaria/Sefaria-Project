@@ -70,7 +70,7 @@ const UserProfileBlock = ({user_data}) => (
 
 const StatCard = ({icon_file, name, number}) => (
     <div style={{height: "220px", width: "220px", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", borderRadius: "10px", display: "flex", flexDirection: "column", justifyContent:"center"}}>
-        <img style={{opacity: .4, height: "70px", width: "70px", margin: "0 auto 20px"}} src={"static/icons/" + icon_file}/>
+        <img style={{opacity: .4, height: "70px", width: "70px", margin: "0 auto 20px"}} src={"static/img/" + icon_file}/>
         <div style={{fontSize: "28px", textAlign: "center"}}>{number}</div>
         <div style={{fontSize: "24px", textAlign: "center", color: "#aaa"}}>{name}</div>
     </div>
@@ -81,9 +81,9 @@ const StatCard = ({icon_file, name, number}) => (
         <div>
             <h3>Your Overall Activity</h3>
             <div style={{display: "flex", justifyContent:"space-around"}}>
-                <StatCard icon_file="iconmonstr-book-15.svg" number={user_data.textsRead} name="Texts Read"/>
-                <StatCard icon_file="iconmonstr-file-3.svg" number={user_data.sheetsRead} name="Sheets Read"/>
-                <StatCard icon_file="iconmonstr-plus-6.svg" number={user_data.totalSheets} name="Sheets Created"/>
+                <StatCard icon_file="book-icon.svg" number={user_data.textsRead} name="Texts Read"/>
+                <StatCard icon_file="file-icon.svg" number={user_data.sheetsRead} name="Sheets Read"/>
+                <StatCard icon_file="plus.svg" number={user_data.totalSheets} name="Sheets Created"/>
             </div>
         </div>
         <div>

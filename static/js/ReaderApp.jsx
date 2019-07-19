@@ -554,7 +554,7 @@ class ReaderApp extends Component {
             hist.mode  = "account";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`
+            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
             hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
@@ -993,6 +993,8 @@ class ReaderApp extends Component {
       this.showMyGroups();
     } else if (path == "my/notes") {
       this.showMyNotes();
+    } else if (path == "user_stats") {
+      this.showUserStats();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1554,6 +1556,10 @@ class ReaderApp extends Component {
   }
   showSheets() {
     var updates = {menuOpen: "sheets"};
+    this.setStateInHeaderOrSinglePanel(updates);
+  }
+  showUserStats() {
+    var updates = {menuOpen: "user_stats"};
     this.setStateInHeaderOrSinglePanel(updates);
   }
   showMySheets() {

@@ -33,7 +33,7 @@ class UserProfile extends Component {
       { text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
       { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
       { text: Sefaria._("Followers"), invisible: true },
-      { text: Sefaria._("Following"), invisible: true },
+      { text: Sefaria._("Following"), invisible: true }
     ];
     if (showNotes) {
       tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
@@ -320,6 +320,12 @@ class UserProfile extends Component {
                   ref={this._getTabViewRef}
                   tabs={this.state.tabs}
                   renderTab={this.renderTab}
+                  tail = {<div className="tab">
+                            <a href="/user_stats" onClick={this.props.handleInAppLinkClick}>
+                              <img src="/static/img/chart-icon.svg" alt="User Stats Icon"/>
+                              Stats
+                            </a>
+                         </div>}
                 >
                   <FilterableList
                     key="sheet"
@@ -383,7 +389,7 @@ class UserProfile extends Component {
                     </div> : null
                   }
                 </TabView>
-              </div>
+            </div>
             }
             <MessageModal uid={this.props.profile.id} name={this.props.profile.full_name} ref={this._getMessageModalRef} />
           </div>
