@@ -487,7 +487,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             "ref": oref.normal(),
             "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()})
         }
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
 
         if kwargs.get("versions"):
@@ -824,7 +824,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
             "title": kwargs.get("title",{"en": g.name, "he": g.name}),
             "cozy": kwargs.get("cozy", False)
         }
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
         return d
 
@@ -906,7 +906,7 @@ class SheetListFactory(AbstractStoryFactory):
             "title": title,
         }
 
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
 
         return d
@@ -1011,9 +1011,9 @@ class TopicListStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def create_trending_story(cls, **kwargs):
-        days = kwargs.get("days", 14)
+        days = kwargs.get("days", 7)
         from sefaria import sheets
-        topics = [t["tag"] for t in sheets.recent_public_tags(days=days, ntags=6)]
+        topics = [t["tag"] for t in sheets.trending_tags(days=days, ntags=6)]
         cls.create_shared_story(topics=topics)
 
     @classmethod

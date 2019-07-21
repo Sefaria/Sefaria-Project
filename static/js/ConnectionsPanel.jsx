@@ -542,7 +542,7 @@ class ResourcesList extends Component {
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
@@ -914,7 +914,7 @@ class AddNoteBox extends Component {
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
-          <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
+          <span className="int-he">{this.props.noteId ? "שמירה": "הוספת הערה"}</span>
         </div>
         {this.props.noteId ?
           <div className="button white fillWidth" onClick={this.props.onCancel}>
@@ -924,7 +924,7 @@ class AddNoteBox extends Component {
         {this.props.noteId ?
           (<div className="deleteNote" onClick={this.deleteNote}>
             <span className="int-en">Delete Note</span>
-            <span className="int-he">מחק רשומה</span>
+            <span className="int-he">מחיקת הערה</span>
            </div>): null }
       </div>);
 
