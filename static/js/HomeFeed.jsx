@@ -68,7 +68,7 @@ function HomeFeed(props) {
                     <div className="imageBox">
                         <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Parashat Hashavua"))} style={{borderColor: "rgb(0, 78, 95)"}}>
                             <span className="int-en">Weekly Torah Portion</span>
-                            <span className="int-he">פרשה</span>
+                            <span className="int-he">פרשת השבוע</span>
                         </a>
                         <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Daf Yomi"))} style={{borderColor: "rgb(204, 180, 121)"}}>
                             <span className="int-en">Daily Talmud</span>
@@ -292,10 +292,10 @@ class NewHomeFeedbackBox extends Component {
             
             {this.state.goodbyePrompt ? 
             <div><p className="int-en">Before you go, would you tell why you're going back?</p>
-            <p className="int-he">Before you go, would you tell why you're going back?</p></div>
+            <p className="int-he">עוזבים? ספרו לנו מדוע אתם חוזרים למצב הישן</p></div>
             : 
             <div><p className="int-en">Thanks for trying out the new homepage!</p>
-            <p className="int-he">אנחנו מעוניינים במשוב ממך</p></div>}
+            <p className="int-he">תודה שניסיתם את דף הבית החדש!</p></div>}
 
             {this.state.alertmsg ?
                 <div>
@@ -315,11 +315,11 @@ class NewHomeFeedbackBox extends Component {
             {this.state.goodbyePrompt ?
              <div><div className="button" role="button" onClick={this.sendFeedbackAndGoBack}>
                  <span className="int-en">Submit & Go Back</span>
-                 <span className="int-he">Submit & Go Back</span>
+                 <span className="int-he">שליחה וחזרה</span>
              </div>
              <div className="button white" role="button" onClick={this.toggleGoodbyePrompt}>
                  <span className="int-en">Stay on new homepage</span>
-                 <span className="int-he">Stay on new homepage</span>
+                 <span className="int-he">המשך שימוש בדף הבית החדש</span>
              </div></div>           
              :
              <div><div className="button" role="button" onClick={this.sendFeedback}>
@@ -328,7 +328,7 @@ class NewHomeFeedbackBox extends Component {
              </div>
              <div className="button white" role="button" onClick={this.toggleGoodbyePrompt}>
                  <span className="int-en">Back to old homepage</span>
-                 <span className="int-he">Back to old homepage</span>
+                 <span className="int-he">חזרה לדף הבית הישן</span>
              </div></div>}
 
             {this.state.feedbackSent ?
