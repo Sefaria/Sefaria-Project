@@ -490,7 +490,7 @@ const StorySheetList = ({sheets, toggleSignUpModal, cozy}) => (
 );
 StorySheetList.propTypes = {
     sheets: PropTypes.arrayOf(sheetPropType).isRequired,
-    toggleSignUpModal: PropTypes.func.isRequired
+    toggleSignUpModal: PropTypes.func
 };
 
 
@@ -543,3 +543,4 @@ const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallT
 
 module.exports.Story = Story;
 module.exports.SheetBlock = SheetBlock;
+module.exports.StorySheetList = StorySheetList;

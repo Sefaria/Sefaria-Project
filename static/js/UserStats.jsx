@@ -2,8 +2,7 @@ import React, { useState, useEffect, useContext, useRef} from 'react';
 const $          = require('./sefaria/sefariaJquery');
 const d3 = require('./lib/d3.v5.min');
 const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const {SheetBlock}      = require('./Story');
+const {StorySheetList}      = require('./Story');
 const {
     SimpleLinkedBlock,
     TextBlockLink,
@@ -96,7 +95,9 @@ const UserDataBlock = ({user_data, site_data}) => (
         </div>
         <div>
             <h2>Your Favorite Sheets</h2>
-            {user_data.mostViewedSheets.map((sheet,i) => <SheetBlock sheet={sheet} key={i}/>)}
+            <div className="story">
+                <StorySheetList sheets={user_data.mostViewedSheets}/>
+            </div>
         </div>
         <div>
             <h2>Your Most Popular Sheets</h2>
@@ -109,8 +110,8 @@ const UserDataBlock = ({user_data, site_data}) => (
         <div>
             <h2>Your Reading by Category</h2>
             <div className="chartRow">
-                <CategoriesDonut title="User" cats={user_data.categoriesRead}/>
-                <CategoriesDonut title="Site" cats={site_data.categoriesRead}/>
+                <CategoriesDonut title="Your Reading" cats={user_data.categoriesRead}/>
+                <CategoriesDonut title="Average Sefaria User" cats={site_data.categoriesRead}/>
             </div>
         </div>
         <div>
@@ -141,8 +142,8 @@ const makeOtherCategory = data => {
 const CategoryBars = ({user_cats, site_cats}) => {
     const svg_ref = useRef();
 
-    const height = 500;
-    const width = 1000;
+    const height = 400;
+    const width = 610;
     const margin = {top: 10, right: 10, bottom: 20, left: 40};
 
     const keys = ["user", "site"];
@@ -181,7 +182,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("font-family", '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif')
             .attr("text-anchor", "start")
             .attr("letter-spacing", 1.5)
-            .attr("font-size", 22)
+            .attr("font-size", 16)
             .text(d => d.cat.toUpperCase());
 
         groups.selectAll("rect")
@@ -217,8 +218,8 @@ const CategoryBars = ({user_cats, site_cats}) => {
 const CategoriesDonut = ({cats, title}) => {
     const svg_ref = useRef();
 
-    const width = 420;
-    const height = 420;
+    const width = 280;
+    const height = 280;
     const raw_data = Object.entries(cats).map(e => ({name: e[0], value: e[1]}));
     const data = (raw_data.length > 2)?makeOtherCategory(raw_data):raw_data;
     const total = data.map(e => e.value).reduce((a, b) => a + b, 0);
@@ -274,8 +275,8 @@ const CategoriesDonut = ({cats, title}) => {
 
     return (
         <div className="chartWrapper">
-            <h2>{title}</h2>
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
+            <h2>{title}</h2>
         </div>
     );
 };
