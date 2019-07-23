@@ -186,7 +186,7 @@ class TabView extends Component {
   }
   renderTab(tab, index) {
     return (
-      <div className={classNames({active: this.state.openTabIndex === index})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: this.state.openTabIndex === index, applink: tab.applink})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -196,7 +196,6 @@ class TabView extends Component {
       <div className="tab-view">
         <div className="tab-list">
           {this.props.tabs.map(this.renderTab)}
-          {this.props.tail && this.props.tail}
         </div>
         { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
       </div>
@@ -206,7 +205,6 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs: PropTypes.array.isRequired,
   renderTab: PropTypes.func.isRequired,
-    //tail: html/jsx
 };
 
 class DropdownOptionList extends Component {

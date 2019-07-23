@@ -33,7 +33,8 @@ class UserProfile extends Component {
       { text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
       { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
       { text: Sefaria._("Followers"), invisible: true },
-      { text: Sefaria._("Following"), invisible: true }
+      { text: Sefaria._("Following"), invisible: true },
+      { text: Sefaria._("Stats"), icon: "/static/img/chart-icon.svg", href: "/user_stats", applink: true}
     ];
     if (showNotes) {
       tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
@@ -281,6 +282,16 @@ class UserProfile extends Component {
   }
   renderTab(tab) {
     if (tab.invisible) { return null; }
+    if (tab.applink) {
+      return (
+          <div className="tab">
+            <a href={tab.href} onClick={this.props.handleInAppLinkClick}>
+              <img src={tab.icon} alt={`${tab.text} icon`}/>
+              {tab.text}
+            </a>
+          </div>
+      );
+    }
     return (
       <div className="tab">
         <img src={tab.icon} alt={`${tab.text} icon`} />
@@ -321,12 +332,6 @@ class UserProfile extends Component {
                   ref={this._getTabViewRef}
                   tabs={this.state.tabs}
                   renderTab={this.renderTab}
-                  tail = {<div className="tab">
-                            <a href="/user_stats" onClick={this.props.handleInAppLinkClick}>
-                              <img src="/static/img/chart-icon.svg" alt="User Stats Icon"/>
-                              Stats
-                            </a>
-                         </div>}
                 >
                   <FilterableList
                     key="sheet"

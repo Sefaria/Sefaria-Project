@@ -6225,6 +6225,15 @@ span.purim-emoji img{
 .interface-hebrew .tab-view .tab-list .tab img {
   margin: 0 0 0 10px;
 }
+.tab-view .tab-list .applink {
+  margin: 0 0 0 auto;
+}
+.tab-view .tab-list .applink a {
+    color: #666;
+}
+.interface-hebrew .tab-view .tab-list .applink {
+  margin: 0 auto 0 0;
+}
 .tab-list :not(.active) .tab {
     color: #666;
 }
