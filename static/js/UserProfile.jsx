@@ -14,7 +14,6 @@ const { GroupListing } = require('./MyGroupsPanel');
 const NoteListing = require('./NoteListing');
 import Component from 'react-class';
 const Footer    = require('./Footer');
-const UserStats = require('./UserStats');
 
 class UserProfile extends Component {
   constructor(props) {

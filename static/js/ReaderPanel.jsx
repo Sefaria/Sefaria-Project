@@ -964,11 +964,6 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats/>);
 
-    /* todo: do we need this here?
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")} />);
-                    */
-
     } else if (this.state.menuOpen === "modtools") {
       menu = (<ModeratorToolsPanel
                     interfaceLang={this.props.interfaceLang} />);

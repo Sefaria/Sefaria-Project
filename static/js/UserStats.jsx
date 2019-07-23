@@ -14,7 +14,7 @@ const { useDebounce } = require('./Hooks');
 
 const UserStats = () => {
 
-    const [uid, setUid] = useState(1);
+    const [uid, setUid] = useState(null);
     const [user_data, setUserData] = useState({});
     const [site_data, setSiteData] = useState({});
 
@@ -26,23 +26,24 @@ const UserStats = () => {
     }, []);
 
     useEffect(() => {
+        const uid = debouncedUID || Sefaria._uid;
         setUserData({});
-        $.getJSON("/api/user_stats/" + debouncedUID)
+        $.getJSON("/api/user_stats/" + uid)
             .then(d => setUserData(d));
     }, [debouncedUID]);
 
     const all_ready = user_data.uid && site_data.categoriesRead;
 
     return (
-    <div className="homeFeedWrapper">
+    <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
-        <h1 style={{textAlign: "center"}}>
-          <span className="int-en">User Stats</span>
-          <span className="int-he">סטטיסטיקות משתמש</span>
-        </h1>
-        <UserChooser setter={setUid}/>
-        {all_ready?<UserProfileBlock user_data={user_data}/>:"Loading"}
-        {all_ready && <UserDataBlock user_data={user_data} site_data={site_data}/>}
+          <div className="contentInner">
+              <h1 style={{textAlign: "center"}}>
+                  {all_ready? user_data.name : <div className="lds-ring"><div></div><div></div><div></div><div></div></div>}
+              </h1>
+              {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
+              {all_ready && <UserDataBlock user_data={user_data} site_data={site_data}/>}
+          </div>
       </div>
     </div>
     );
@@ -56,47 +57,49 @@ const UserChooser = ({setter}) => (
     </div>
 );
 
+/*
 const UserProfileBlock = ({user_data}) => (
         <div style={{display: "flex", justifyContent:"center"}}>
             <div style={{padding: "0 10px"}}>
                 <img src={user_data.imageUrl} width="80" height="80"/>
             </div>
             <div style={{padding: "0 10px"}}>
-                <h3><a href={user_data.profileUrl}>{user_data.name}</a></h3>
+                <h2><a href={user_data.profileUrl}>{user_data.name}</a></h2>
                 <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
             </div>
         </div>
 );
+*/
 
 const StatCard = ({icon_file, name, number}) => (
-    <div style={{height: "220px", width: "220px", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", borderRadius: "10px", display: "flex", flexDirection: "column", justifyContent:"center"}}>
-        <img style={{opacity: .4, height: "70px", width: "70px", margin: "0 auto 20px"}} src={"static/img/" + icon_file}/>
-        <div style={{fontSize: "28px", textAlign: "center"}}>{number}</div>
-        <div style={{fontSize: "24px", textAlign: "center", color: "#aaa"}}>{name}</div>
+    <div className="statcard">
+        <img src={"static/img/" + icon_file}/>
+        <div className="statcardValue">{number}</div>
+        <div className="statcardLabel">{name}</div>
     </div>
 );
 
-    const UserDataBlock = ({user_data, site_data}) => (
+const UserDataBlock = ({user_data, site_data}) => (
     <div>
         <div>
-            <h3>Your Overall Activity</h3>
-            <div style={{display: "flex", justifyContent:"space-around"}}>
-                <StatCard icon_file="book-icon.svg" number={user_data.textsRead} name="Texts Read"/>
-                <StatCard icon_file="file-icon.svg" number={user_data.sheetsRead} name="Sheets Read"/>
-                <StatCard icon_file="plus.svg" number={user_data.totalSheets} name="Sheets Created"/>
+            <h2>Your Overall Activity</h2>
+            <div className="statcardRow">
+                <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
+                <StatCard icon_file="file-icon-black.svg" number={user_data.sheetsRead} name="Sheets Read"/>
+                <StatCard icon_file="plus-icon-black.svg" number={user_data.totalSheets} name="Sheets Created"/>
             </div>
         </div>
         <div>
-            <h3>Your Favorite Texts</h3>
+            <h2>Your Favorite Texts</h2>
             <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
                 <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book}/>)}/>
         </div>
         <div>
-            <h3>Your Favorite Sheets</h3>
+            <h2>Your Favorite Sheets</h2>
             {user_data.mostViewedSheets.map((sheet,i) => <SheetBlock sheet={sheet} key={i}/>)}
         </div>
         <div>
-            <h3>Your Most Popular Sheets</h3>
+            <h2>Your Most Popular Sheets</h2>
             {user_data.popularSheets.map((sheet, i) => <div key={i}>
                     <SimpleLinkedBlock en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
                     <div>{sheet.views} Views</div>
@@ -104,15 +107,15 @@ const StatCard = ({icon_file, name, number}) => (
             )}
         </div>
         <div>
-            <h3>Your Reading by Category</h3>
-            <div style={{display: "flex", justifyContent:"space-around"}}>
+            <h2>Your Reading by Category</h2>
+            <div className="chartRow">
                 <CategoriesDonut title="User" cats={user_data.categoriesRead}/>
                 <CategoriesDonut title="Site" cats={site_data.categoriesRead}/>
             </div>
         </div>
         <div>
-            <h3>Your Top Categories</h3>
-            <div style={{display: "flex", justifyContent:"space-around"}}>
+            <h2>Your Top Categories</h2>
+            <div className="chartRow">
                 <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
             </div>
         </div>
@@ -204,8 +207,8 @@ const CategoryBars = ({user_cats, site_cats}) => {
     }, [user_cats, site_cats]);
 
     return (
-        <div style={{font: "12px sans-serif"}}>
-            <h3>Your Top Categories</h3>
+        <div className="chartWrapper">
+            <h2>Your Top Categories</h2>
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
         </div>
     );
@@ -270,8 +273,8 @@ const CategoriesDonut = ({cats, title}) => {
 
 
     return (
-        <div style={{font: "14px sans-serif", padding: "0 10px"}}>
-            <h3>{title}</h3>
+        <div className="chartWrapper">
+            <h2>{title}</h2>
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
         </div>
     );
