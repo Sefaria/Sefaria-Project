@@ -24,7 +24,7 @@ class Search {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
       this._cache = {};
-      this.sefariaQueryQueue = {hits: {hits:[], total: 0, max_score: 0.0}};
+      this.sefariaQueryQueue = {hits: {hits:[], total: 0, max_score: 0.0}, lastSeen: -1};
       this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits:[]}};
       this.queryDictaFlag = true;
       this.dictaCounts = null;
@@ -56,9 +56,13 @@ class Search {
                 this.sefariaSheetsResult = x;
                 return null;
             }
-            if (x.hits.hits.length > 0) {
+            for (let i=0; i < x.hits.hits.length; i++) {
+                x.hits.hits[i]['comp_date'] = x.hits.hits[i]._source.comp_date;
             }
+
+            let mergedHits = this.sefariaQueryQueue.hits.hits.concat(x.hits.hits);
             this.sefariaQueryQueue = x;
+            this.sefariaQueryQueue.hits.hits = mergedHits;
         });
 
     }
@@ -79,7 +83,6 @@ class Search {
         }
         return new Promise((resolve, reject) => {
             if (this.queryDictaFlag && args.type === "text") {
-                // debugger;
                 if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && !(isQueryStart)) {
                     resolve({total: 0, hits: []});
                 }
@@ -111,13 +114,15 @@ class Search {
                     _source: {
                         type: 'text',
                         lang: "he",
-                        comp_date: 1,
                         version: version,
                         path: categories,
                         ref: `${bookTitle} ${bookLoc}`,
                         heRef: hit.hebrewPath,
+                        pagesheetrank: hit.pagerank,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},
+                    score: hit.pagerank,
+                    comp_date: -10000 + adaptedHits.length,
                     _id: `${bookTitle} ${bookLoc} (${version} [he])`,
 
                 });
@@ -174,20 +179,56 @@ class Search {
     isDictaQuery(args) {
         return RegExp(/^[א-ת\s]+$/).test(args.query); // only query dicta on fully Hebrew queries
     }
-    mergeQueries(addAggregations) {
+    mergeQueries(addAggregations, sortType) {
+        function getPivot(queue, minValue) {
+            let pivot = queue.findIndex(x => x[sortType] > minValue);
+            return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
+        }
+        let result = {hits: {}};
+
         if(addAggregations) {
             let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
                 x => !(RegExp(/^Tanakh\//).test(x.key)));
             newBuckets = newBuckets.concat(this.dictaCounts);
-            this.sefariaQueryQueue.aggregations.path.buckets = newBuckets;
+            result.aggregations = {path: {buckets: newBuckets}};
         }
-         if(this.queryDictaFlag) {
-            this.sefariaQueryQueue.hits.total += this.dictaQueryQueue.hits.total;
 
-            let newHits = this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories));
-            newHits = this.dictaQueryQueue.hits.hits.concat(newHits);
-            this.sefariaQueryQueue.hits.hits = newHits;
+        result.hits.total = this.sefariaQueryQueue.hits.total + this.dictaQueryQueue.hits.total;
+        let sefariaHits = (this.queryDictaFlag)
+            ? this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories))
+            : this.sefariaQueryQueue.hits.hits;
+        let dictaHits = this.dictaQueryQueue.hits.hits;
+
+        let finalHits;
+        if (!(dictaHits.length) || !(sefariaHits.length)) /* either or both queues are empty */ {
+            finalHits = dictaHits.concat(sefariaHits);
+            this.sefariaQueryQueue.hits.hits = [];
+            this.dictaQueryQueue.hits.hits = [];
         }
+        else {
+            const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
+            const sefariaPivot = getPivot(sefariaHits, lastScore);
+            const dictaPivot = getPivot(dictaHits, lastScore);
+
+            this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
+            sefariaHits = sefariaHits.slice(0, sefariaPivot);
+            this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
+            dictaHits = dictaHits.slice(0, dictaPivot);
+            finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
+        }
+        result.hits.hits = finalHits;
+        return result;
+
+        // if(this.queryDictaFlag) {
+        //     this.sefariaQueryQueue.hits.total += this.dictaQueryQueue.hits.total;
+        //
+        //     let sefariaHits = this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories));
+        // else {
+        //         sefariaHits = this.sefariaQueryQueue.hits.hits;
+        //      }
+        //     // newHits = this.dictaQueryQueue.hits.hits.concat(newHits);
+        //     // this.sefariaQueryQueue.hits.hits = newHits;
+        // }
     }
     execute_query(args) {
         // To replace sjs.search.post in search.js
@@ -239,6 +280,7 @@ class Search {
             error: args.error
         });
          */
+        // const sortType = (args.)
         Promise.all([
             this.sefariaQuery(args, isQueryStart, queryAborter),
             this.dictaQuery(args, isQueryStart, queryAborter),
@@ -248,9 +290,10 @@ class Search {
                 args.success(this.sefariaSheetsResult);
             }
             else {
-                // debugger;
-                this.mergeQueries(isQueryStart);
-                args.success(this.sefariaQueryQueue);
+                const sortType = (args.sort_type === 'relevance'? 'relevance' : 'comp_date');
+                const blah = this.mergeQueries(isQueryStart, sortType);
+                console.log(blah);
+                args.success(blah);
             }
         }).catch(x => console.log(x));
         // }).catch(args.error);
