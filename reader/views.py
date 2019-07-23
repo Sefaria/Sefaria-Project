@@ -49,7 +49,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -631,7 +631,7 @@ def sheets(request):
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
         "tagList": public_tag_list(sort_by="count"),
-        "trendingTags": recent_public_tags(days=14, ntags=18)
+        "trendingTags": trending_tags(ntags=18)
     })
 
     title = _("Sefaria Source Sheets")
@@ -813,7 +813,7 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
         "topicList": topics.list(sort_by="count"),
-        "trendingTags": recent_public_tags(days=14, ntags=12),
+        "trendingTags": trending_tags(ntags=12),
     })
 
     propsJSON = json.dumps(props)
@@ -906,11 +906,19 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
+
+def new_home(request):
+    props = base_props(request)
+    title = _("Sefaria Stories")
+    return menu_page(request, props, "homefeed", title)
+
+
 @staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
+
 
 @staff_member_required
 def user_stats(request):
@@ -3304,11 +3312,13 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
+
 @login_required
 def enable_home_feed(request):
     resp = home(request, True)
     resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
     return resp
+
 
 @login_required
 def disable_home_feed(request):
@@ -3326,19 +3336,7 @@ def home(request, show_feed=None):
         show_feed = request.COOKIES.get("home_feed", None)
 
     if show_feed:
-        props = base_props(request)
-
-        props.update({
-            "initialMenu": "homefeed"
-        })
-        propsJSON = json.dumps(props)
-        html = render_react_component("ReaderApp", propsJSON)
-        return render(request, 'base.html', {
-            "propsJSON": propsJSON,
-            "html": html,
-            "title": "Sefaria Stories",
-            "desc": "",
-        })
+        return redirect("/new-home")
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")

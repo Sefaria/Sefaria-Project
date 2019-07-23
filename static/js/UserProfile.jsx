@@ -258,6 +258,7 @@ class UserProfile extends Component {
         image={item.gravatar_url}
         is_followed={Sefaria.following.indexOf(item.id) > -1}
         position={item.position}
+        organization={item.organization}
         toggleSignUpModal={this.props.toggleSignUpModal}
       />
     );
