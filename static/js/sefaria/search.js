@@ -73,7 +73,6 @@ class Search {
     }
     dictaQuery(args, isQueryStart, wrapper) {
         function ammendArgsForDicta(standardArgs, lastSeen) {
-            console.log(standardArgs);
             let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
                 book = book.replace(/\//g, '.');
                 return book.replace(/ /g, '_');
@@ -180,7 +179,6 @@ class Search {
                });
             });
             this.dictaCounts = buckets;
-            //console.log(this.dictaCounts);
         }, x => {
             this.queryDictaFlag = false;
             console.log(x);
@@ -319,9 +317,7 @@ class Search {
             }
             else {
                 const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
-                const blah = this.mergeQueries(isQueryStart, sortType, args.applied_filters);
-                console.log(blah);
-                args.success(blah);
+                args.success(this.mergeQueries(isQueryStart, sortType, args.applied_filters));
             }
         }).catch(x => console.log(x));
         // }).catch(args.error);
