@@ -4457,7 +4457,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 15px;
   font-size: 18px;
 }
-
 .globalUpdateForm .storyTypeSelector {
   padding-bottom: 15px;
 }
@@ -4484,7 +4483,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-left: 85%;
   font-size: 20px;
 }
-
 .story-action-button {
   display: inline-block;
   background: #CB6158;
@@ -6182,7 +6180,7 @@ span.purim-emoji img{
   padding: 16px 22px;
   margin-bottom: 20px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 18px;
   border-radius: 4px;
   box-shadow: none;
   border: 1px solid #E9E9E9;
@@ -6369,6 +6367,9 @@ span.purim-emoji img{
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   background-color: transparent;
+}
+.filterable-list .loadingMessage {
+  margin-top: 30px;
 }
 .profile-page .filterable-list .filter-content {
   padding-top: 25px;
@@ -6634,8 +6635,8 @@ body .homeFeedWrapper .content {
   padding: 0;
 }
 .homeFeedWrapper #homeCover {
-  height: 200px;
-  padding: 30px 0;
+  height: 240px;
+  padding: 50px 0;
   background-color: #ADA99B;
   box-sizing: border-box;
   text-align: center;
@@ -6646,7 +6647,7 @@ body .homeFeedWrapper .content {
 }
 .homeFeedWrapper #homeVideo {
   position: absolute;
-  top: -270px;
+  top: -90px;
   left: 0;
   width: 100%;
   min-width: 1200px;
@@ -6803,6 +6804,10 @@ body .homeFeedWrapper .content {
 .storyFeed {
   flex: 1;
   background-color: white;
+  margin: 0 30px 0 15px;
+}
+.interface-hebrew .storyFeed {
+  margin: 0 15px 0 30px;
 }
 .storyFeedInner {
   max-width: 700px;
@@ -6854,12 +6859,15 @@ body .homeFeedWrapper .content {
 .storyTextListItem:last-child {
   padding-bottom: 0;
 }
-.publishSheetStory .saveButton  {
-  float: right;
-  padding-top: 20px;
+.storyFeed .story.publishSheetStory .saveLine .saveButton  {
+  align-self: flex-start;
+  margin-top: 15px;
+}
+.storyFeed .story.publishSheetStory .storyTitle {
+  padding-bottom: 10px;
 }
 .storyFeed .story .storyTitle {
-  padding: 10px 0 30px;
+  padding: 5px 0 15px;
 }
 .storyTitleWrapper .saveButton {
   padding-bottom: 20px;
@@ -6885,17 +6893,14 @@ img.smallProfileImage {
 }
 .interface-english .storyFeed .story .storyTypeBlock {
   float: left;
-  padding: 10px 0;
 }
 .interface-hebrew .storyFeed .story .storyTypeBlock {
   float: right;
 }
 .interface-english .storyFeed .story .topTailBlock {
-  padding: 10px 0;
   float: right;
 }
 .interface-hebrew .storyFeed .story .topTailBlock {
-  padding: 10px 0;
   float: left;
 }
 .interface-english .storyFeed .story .mediumProfileImage {
@@ -6918,7 +6923,6 @@ img.smallProfileImage {
 .storyFeed .story .storySheetListItem:last-child {
   padding-bottom: 0;
 }
-
 .storyFeed .story .storySheetList .sheetTitle {
   padding-bottom: 10px;
 }
@@ -6959,8 +6963,9 @@ img.smallProfileImage {
   letter-spacing: 2px;
   padding: 0 10px;
   line-height: 22px;
+  margin-top: -1px;
 }
-.authorByLine .authorPosition,
+.authorByLine .authorOrganization,
 .authorByLine .authorName {
   display: block;
 }
@@ -6968,7 +6973,7 @@ img.smallProfileImage {
   position: relative;
   bottom: 12px;
 }
-.systemText.authorPosition span {
+.systemText.authorOrganization span {
   color: #999;
 }
 .storyFeed a {
