@@ -29,6 +29,7 @@ class Search {
       this.queryDictaFlag = true;
       this.dictaCounts = null;
       this.sefariaSheetsResult = null;
+      this.buckets = [];
       this.dictaSearchUrl = 'http://34.206.201.228';
     }
     cache(key, result) {
@@ -58,6 +59,7 @@ class Search {
             }
             for (let i=0; i < x.hits.hits.length; i++) {
                 x.hits.hits[i]['comp_date'] = x.hits.hits[i]._source.comp_date;
+                x.hits.hits[i]['cameFrom'] = 'Sefaria';
             }
 
             let mergedHits = this.sefariaQueryQueue.hits.hits.concat(x.hits.hits);
@@ -78,12 +80,16 @@ class Search {
                 from: ('start' in standardArgs) ? lastSeen + 1 : 0,
                 size: standardArgs.size,
                 limitedToBooks: filters,
-                sort: (standardArgs.sort_type === "relevance") ? '' : 'corpus_order_path'
+                sort: (standardArgs.sort_type === "relevance") ? 'pagerank' : ''
             };
         }
         return new Promise((resolve, reject) => {
+
             if (this.queryDictaFlag && args.type === "text") {
-                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && !(isQueryStart)) {
+                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && ('start' in args)) {
+                    /* don't make new queries if results are exhausted.
+                     * 'start' is omitted on first query (defaults to 0). On a first query, we'll always want to query.
+                     */
                     resolve({total: 0, hits: []});
                 }
                 else {
@@ -124,6 +130,7 @@ class Search {
                     score: hit.pagerank,
                     comp_date: -10000 + adaptedHits.length,
                     _id: `${bookTitle} ${bookLoc} (${version} [he])`,
+                    cameFrom: 'dicta'
 
                 });
             });
@@ -179,29 +186,41 @@ class Search {
     isDictaQuery(args) {
         return RegExp(/^[א-ת\s]+$/).test(args.query); // only query dicta on fully Hebrew queries
     }
-    mergeQueries(addAggregations, sortType) {
+    mergeQueries(addAggregations, sortType, filters) {
         function getPivot(queue, minValue) {
             let pivot = queue.findIndex(x => x[sortType] > minValue);
             return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
         }
         let result = {hits: {}};
-
         if(addAggregations) {
+
             let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
                 x => !(RegExp(/^Tanakh\//).test(x.key)));
             newBuckets = newBuckets.concat(this.dictaCounts);
             result.aggregations = {path: {buckets: newBuckets}};
+            this.buckets = newBuckets;
+        }
+        if (!!filters) {
+            const expression = new RegExp(`^(${filters.join('|')})(\/.*|$)`);
+            result.hits.total = this.buckets.reduce((total, currentBook) => {
+                if (expression.test(currentBook.key)) {
+                    total += currentBook.doc_count;
+                }
+                return total
+            }, 0);
+        }
+        else {
+            result.hits.total = this.sefariaQueryQueue.hits.total + this.dictaQueryQueue.hits.total;
         }
 
-        result.hits.total = this.sefariaQueryQueue.hits.total + this.dictaQueryQueue.hits.total;
         let sefariaHits = (this.queryDictaFlag)
-            ? this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories))
+            ? this.sefariaQueryQueue.hits.hits.filter(i => !(i._source.categories.includes("Tanakh")))
             : this.sefariaQueryQueue.hits.hits;
         let dictaHits = this.dictaQueryQueue.hits.hits;
 
         let finalHits;
         if (!(dictaHits.length) || !(sefariaHits.length)) /* either or both queues are empty */ {
-            finalHits = dictaHits.concat(sefariaHits);
+            finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
             this.sefariaQueryQueue.hits.hits = [];
             this.dictaQueryQueue.hits.hits = [];
         }
@@ -246,6 +265,7 @@ class Search {
          success: callback on success
          error: callback on error
          */
+        // if (args.type === "text") {debugger;}
         if (!args.query) {
             return;
         }
@@ -290,8 +310,8 @@ class Search {
                 args.success(this.sefariaSheetsResult);
             }
             else {
-                const sortType = (args.sort_type === 'relevance'? 'relevance' : 'comp_date');
-                const blah = this.mergeQueries(isQueryStart, sortType);
+                const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
+                const blah = this.mergeQueries(isQueryStart, sortType, args.applied_filters);
                 console.log(blah);
                 args.success(blah);
             }
