@@ -60,11 +60,14 @@ class Search {
             for (let i=0; i < x.hits.hits.length; i++) {
                 x.hits.hits[i]['comp_date'] = x.hits.hits[i]._source.comp_date;
                 x.hits.hits[i]['cameFrom'] = 'Sefaria';
+                x.hits.hits[i]['score'] =  x.hits.hits[i]['_score'] * -1;
             }
 
             let mergedHits = this.sefariaQueryQueue.hits.hits.concat(x.hits.hits);
+            let lastSeen = this.sefariaQueryQueue.lastSeen + x.hits.hits.length;
             this.sefariaQueryQueue = x;
             this.sefariaQueryQueue.hits.hits = mergedHits;
+            this.sefariaQueryQueue.lastSeen = lastSeen;
         });
 
     }
@@ -127,7 +130,7 @@ class Search {
                         pagesheetrank: hit.pagerank,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},
-                    score: hit.pagerank,
+                    score: hit.pagerank * -1,
                     comp_date: -10000 + adaptedHits.length,
                     _id: `${bookTitle} ${bookLoc} (${version} [he])`,
                     cameFrom: 'dicta'
@@ -187,7 +190,9 @@ class Search {
         return RegExp(/^[א-ת\s]+$/).test(args.query); // only query dicta on fully Hebrew queries
     }
     mergeQueries(addAggregations, sortType, filters) {
-        function getPivot(queue, minValue) {
+        function getPivot(queue, minValue, lastSeen, total) {
+            if (lastSeen + 1 >= total)
+                return queue.length;
             let pivot = queue.findIndex(x => x[sortType] > minValue);
             return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
         }
@@ -226,8 +231,8 @@ class Search {
         }
         else {
             const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
-            const sefariaPivot = getPivot(sefariaHits, lastScore);
-            const dictaPivot = getPivot(dictaHits, lastScore);
+            const sefariaPivot = getPivot(sefariaHits, lastScore, this.sefariaQueryQueue.lastSeen, this.sefariaQueryQueue.hits.total);
+            const dictaPivot = getPivot(dictaHits, lastScore, this.dictaQueryQueue.lastSeen, this.dictaQueryQueue.hits.total);
 
             this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
             sefariaHits = sefariaHits.slice(0, sefariaPivot);
@@ -235,6 +240,9 @@ class Search {
             dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
         }
+        // debugger;
+        // if (sortType !== "score")
+        //     finalHits.reverse();
         result.hits.hits = finalHits;
         return result;
 
