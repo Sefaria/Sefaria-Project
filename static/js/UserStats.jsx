@@ -17,6 +17,9 @@ const UserStats = () => {
     const [user_data, setUserData] = useState({});
     const [site_data, setSiteData] = useState({});
 
+    const [activeMode, setMode] = useState("Year to Date");
+    const modes = ["Year to Date", "Last Year", "All Time"];
+
     const debouncedUID = useDebounce(uid, 500);
 
     useEffect(() => {
@@ -32,7 +35,6 @@ const UserStats = () => {
     }, [debouncedUID]);
 
     const all_ready = user_data.uid && site_data.categoriesRead;
-
     return (
     <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
@@ -41,12 +43,26 @@ const UserStats = () => {
                   {all_ready? user_data.name : <div className="lds-ring"><div></div><div></div><div></div><div></div></div>}
               </h1>
               {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
+              <UserStatModeChooser modes={modes} activeMode={activeMode} setMode={setMode}/>
               {all_ready && <UserDataBlock user_data={user_data} site_data={site_data}/>}
           </div>
       </div>
     </div>
     );
 };
+
+const UserStatModeChooser = ({modes, activeMode, setMode}) => (
+  <div className="userStatModeChooser">
+      {modes.map(m => <UserStatModeButton key={m} thisMode={m} activeMode={activeMode} setMode={setMode}/>)}
+  </div>
+);
+
+const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
+    <div className={"userStatModeButton" + (thisMode === activeMode?" active":"")}
+         onClick  ={()=>setMode(thisMode)}>
+        <span>{Sefaria._(thisMode)}</span>
+    </div>
+);
 
 const UserChooser = ({setter}) => (
     <div style={{textAlign: "center"}}>
@@ -209,7 +225,6 @@ const CategoryBars = ({user_cats, site_cats}) => {
 
     return (
         <div className="chartWrapper">
-            <h2>Your Top Categories</h2>
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
         </div>
     );
