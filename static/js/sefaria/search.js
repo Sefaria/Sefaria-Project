@@ -203,7 +203,7 @@ class Search {
             result.aggregations = {path: {buckets: newBuckets}};
             this.buckets = newBuckets;
         }
-        if (!!filters) {
+        if (!!filters.length) {
             const expression = new RegExp(`^(${filters.join('|')})(\/.*|$)`);
             result.hits.total = this.buckets.reduce((total, currentBook) => {
                 if (expression.test(currentBook.key)) {
