@@ -13,14 +13,8 @@ from . import text
 
 from sefaria.system.database import db
 
-from sefaria.system.exceptions import InputError
-
 import logging
 logger = logging.getLogger(__name__)
-
-periods = {
-    "alltime": {"query": {}}
-}
 
 
 def read_in_category_key(c):
@@ -53,11 +47,76 @@ def get_session_traits(request, uid=None):
     return [k for k, v in traits.items() if v]
 
 
+class DateRange(object):
+    def __init__(self, key, start=None, end=None):
+        """
+        :param start: datetime or None, meaning open ended
+        :param end: datetime or None, meaning open ended
+        """
+        self.start = start
+        self.end = end
+        self.key = key
+
+    @classmethod
+    def alltime(cls):
+        return cls("alltime", None, None)
+
+    @classmethod
+    def this_hebrew_year(cls):
+        #todo: improve me!
+        return cls("this_hebrew_year", datetime(2018, 9, 10), datetime(2019, 9, 29))
+
+#       "5780": DateRange(datetime(2019, 9, 30), datetime(2020, 9, 18))
+
+    def needs_clause(self):
+        return self.start or self.end
+
+    def query_clause(self):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if self.start is None and self.end is None:
+            return {}
+
+        timeclause = {}
+        if self.start:
+            timeclause["$gte"] = self.start
+        if self.end:
+            timeclause["$lte"] = self.end
+        return timeclause
+
+    def update_match(self, match_clause, field="datetime"):
+        """
+        Update a mongo query dict with a time period query
+        :param match_clause: dict
+        :param field: the field to match in this query
+        :return: dict (though it's been updated in place)
+        """
+        if self.needs_clause():
+            match_clause[field] = self.query_clause()
+        return match_clause
+
+    def contains(self, dt):
+        """
+        Check if the supplied datetime falls in this range
+        :param dt:
+        :return:
+        """
+        return ((self.start is None or self.start <= dt)
+                and (self.end is None or dt <= self.end))
+
+
+active_dateranges = [DateRange.alltime(), DateRange.this_hebrew_year()]
+
+
 class Trend(abst.AbstractMongoRecord):
     '''
     Value
     Timestamp
-    Period Covered [week, month, season, alltime]
+    Period Covered [week, month, season, alltime, this_hebrew_year]
     Scope [user, user network, comparable, site]
     '''
 
@@ -99,17 +158,18 @@ class TrendSet(abst.AbstractMongoSet):
 def setUserSheetTraits():
     TrendSet({"name": "SheetsRead"}).delete()
 
-    all_users = getAllUsersSheetUsage()
-    for uid, data in all_users.iteritems():
-        Trend({
-            "name":         "SheetsRead",
-            "value":        int(data["cnt"]),
-            "datatype":     "int",
-            "timestamp":    datetime.utcnow(),
-            "period":       "alltime",
-            "scope":        "user",
-            "uid":          uid
-        }).save()
+    for daterange in active_dateranges:
+        all_users = getAllUsersSheetUsage(daterange)
+        for uid, data in all_users.iteritems():
+            Trend({
+                "name":         "SheetsRead",
+                "value":        int(data["cnt"]),
+                "datatype":     "int",
+                "timestamp":    datetime.utcnow(),
+                "period":       daterange.key,
+                "scope":        "user",
+                "uid":          uid
+            }).save()
 
 
 def setCategoryTraits():
@@ -120,89 +180,90 @@ def setCategoryTraits():
     site_data = {cat: 0 for cat in TOP_CATEGORIES}
 
     # User Traits
-    all_users = getAllUsersCategories()
-    for uid, data in all_users.iteritems():
-        for cat, val in data["categories"].items():
-            if cat not in TOP_CATEGORIES:
-                continue
-            Trend({
-                "name":         read_in_category_key(cat),
-                "value":        val,
-                "datatype":     "int",
-                "timestamp":    datetime.utcnow(),
-                "period":       "alltime",
-                "scope":        "user",
-                "uid":          uid
-            }).save()
-            site_data[cat] += val
+    for daterange in active_dateranges:
+        all_users = getAllUsersCategories(daterange)
+        for uid, data in all_users.iteritems():
+            for cat, val in data["categories"].items():
+                if cat not in TOP_CATEGORIES:
+                    continue
+                Trend({
+                    "name":         read_in_category_key(cat),
+                    "value":        val,
+                    "datatype":     "int",
+                    "timestamp":    datetime.utcnow(),
+                    "period":       daterange.key,
+                    "scope":        "user",
+                    "uid":          uid
+                }).save()
+                site_data[cat] += val
 
-    # Site Traits
-    for cat, val in site_data.iteritems():
-        Trend({
-            "name": read_in_category_key(cat),
-            "value": val,
-            "datatype": "int",
-            "timestamp": datetime.utcnow(),
-            "period": "alltime",
-            "scope": "site"
-        }).save()
+        # Site Traits
+        for cat, val in site_data.iteritems():
+            Trend({
+                "name": read_in_category_key(cat),
+                "value": val,
+                "datatype": "int",
+                "timestamp": datetime.utcnow(),
+                "period": daterange.key,
+                "scope": "site"
+            }).save()
 
 
 def setUserLanguageTraits():
     TrendSet({"name": {"$in": ["EnglishTolerance", "HebrewAbility"]}}).delete()
 
-    all_users = getAllUsersLanguageUsage()
+    for daterange in active_dateranges:
+        all_users = getAllUsersLanguageUsage(daterange)
+        for uid, data in all_users.iteritems():
+            profile = user_profile.UserProfile(id=uid)
 
-    for uid, data in all_users.iteritems():
-        profile = user_profile.UserProfile(id=uid)
+            he = float(data["languages"].get("hebrew", 0.0))
+            en = float(data["languages"].get("english", 0.0))
+            bi = float(data["languages"].get("bilingual", 0.0))
+            total = float(data.get("total", 0.0))
+            assert total
 
-        he = float(data["languages"].get("hebrew", 0.0))
-        en = float(data["languages"].get("english", 0.0))
-        bi = float(data["languages"].get("bilingual", 0.0))
-        total = float(data.get("total", 0.0))
-        assert total
+            # EnglishTolerance
+            # If user has English interface conclude English tolerance
+            if profile.settings.get("interface_language") == "english" or not he:
+                value = 1.0
+            else:
+                # percentage of visits registered w/ English content
+                value = (en + bi) / total
 
-        # EnglishTolerance
-        # If user has English interface conclude English tolerance
-        if profile.settings.get("interface_language") == "english" or not he:
-            value = 1.0
-        else:
-            # percentage of visits registered w/ English content
-            value = (en + bi) / total
+            Trend({
+                "name":         "EnglishTolerance",
+                "value":        value,
+                "datatype":     "float",
+                "timestamp":    datetime.utcnow(),
+                "period":       daterange.key,
+                "scope":        "user",
+                "uid":          uid
+            }).save()
 
-        Trend({
-            "name":         "EnglishTolerance",
-            "value":        value,
-            "datatype":     "float",
-            "timestamp":    datetime.utcnow(),
-            "period":       "alltime",
-            "scope":        "user",
-            "uid":          uid
-        }).save()
+            # HebrewAbility
+            # If user has Hebrew interface conclude Hebrew ability
+            if profile.settings.get("interface_language") == "hebrew":
+                value = 1.0
 
-        # HebrewAbility
-        # If user has Hebrew interface conclude Hebrew ability
-        if profile.settings.get("interface_language") == "hebrew":
-            value = 1.0
+            # all bi is .50,  Each he adds a bunch.  Each en takes away a bit.
+            else:
+                ent = en/total
+                het = he/total * 5.0
+                value = 0.5 + het - ent
 
-        # all bi is .50,  Each he adds a bunch.  Each en takes away a bit.
-        else:
-            ent = en/total
-            het = he/total * 5.0
-            value = 0.5 + het - ent
-
-        Trend({
-            "name":         "HebrewAbility",
-            "value":        value,
-            "datatype":     "float",
-            "timestamp":    datetime.utcnow(),
-            "period":       "alltime",
-            "scope":        "user",
-            "uid":          uid
-        }).save()
+            Trend({
+                "name":         "HebrewAbility",
+                "value":        value,
+                "datatype":     "float",
+                "timestamp":    datetime.utcnow(),
+                "period":       daterange.key,
+                "scope":        "user",
+                "uid":          uid
+            }).save()
 
 
-def getAllUsersLanguageUsage():
+def getAllUsersLanguageUsage(daterange):
     '''
     Returns dictionary mapping user ids to dictionaries that look like:
     {u'_id': 62298,
@@ -215,9 +276,10 @@ def getAllUsersLanguageUsage():
     '''
 
     pipeline = [
-        {"$match": {
+        {"$match": daterange.update_match({
             "secondary": False,
-            "language": {"$in": ["hebrew", "english", "bilingual"]}}},
+            "language": {"$in": ["hebrew", "english", "bilingual"]}
+        })},
         {"$group": {
             "_id": {"language": "$language", "uid": "$uid"},
             "cnt": {"$sum": 1}}},
@@ -233,31 +295,33 @@ def getAllUsersLanguageUsage():
     return {d["_id"]: d for d in results}
 
 
-def getAllUsersSheetUsage():
+def getAllUsersSheetUsage(daterange):
     pipeline = [
-            {"$match": {
+            {"$match": daterange.update_match({
                 "secondary": False,
-                "is_sheet": True}},
+                "is_sheet": True
+            })},
             {"$group": {
                 "_id": "$uid",
-                "cnt": {"$sum" : 1}}}
+                "cnt": {"$sum": 1}}}     # Sheet records never have num_times_read greater than 1.
         ]
 
     results = db.user_history.aggregate(pipeline)
     return {d["_id"]: d for d in results}
 
 
-def getAllUsersCategories():
+def getAllUsersCategories(daterange):
     pipeline = [
-        {"$match": {
+        {"$match": daterange.update_match({
             "secondary": False,
             "is_sheet": False,
             "categories.0": {
                 "$exists": True
-            }}},
+            }})},
         {"$group": {
             "_id": {"uid": "$uid", "category": {"$arrayElemAt" : ["$categories", 0]}},
-            "cnt": {"$sum": 1}}},
+             "cnt": { "$sum": {"$max": ["$num_times_read", 1]}}}},
+             # "cnt": {"$sum": 1}}},
         {"$group": {
             "_id": "$_id.uid",
             "categories": {"$push": {"k": "$_id.category", "v": "$cnt"}},
