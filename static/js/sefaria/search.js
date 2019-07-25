@@ -82,7 +82,7 @@ class Search {
                 from: ('start' in standardArgs) ? lastSeen + 1 : 0,
                 size: standardArgs.size,
                 limitedToBooks: filters,
-                sort: (standardArgs.sort_type === "relevance") ? 'pagerank' : ''
+                sort: (standardArgs.sort_type === "relevance") ? 'pagerank' : 'corpus_order_path'
             };
         }
         return new Promise((resolve, reject) => {
