@@ -903,11 +903,13 @@ const CategoryColorLine = ({category}) =>
 
 class ProfileListing extends Component {
   openProfile(e) {
-    e.preventDefault();
-    this.props.openProfile(this.props.slug, this.props.name);
+    if (this.props.openProfile) {
+      e.preventDefault();
+      this.props.openProfile(this.props.slug, this.props.name);
+    }
   }
   render() {
-    const { url, image, name, uid, is_followed, toggleSignUpModal, position } = this.props;
+    const { url, image, name, uid, is_followed, toggleSignUpModal, organization } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
@@ -931,10 +933,10 @@ class ProfileListing extends Component {
             <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
           </SimpleLinkedBlock>
           {
-            !!position ? <SimpleInterfaceBlock
-              classes="systemText authorPosition"
-              en={position}
-              he={position}
+            !!organization ? <SimpleInterfaceBlock
+              classes="systemText authorOrganization"
+              en={organization}
+              he={organization}
             />:null
           }
         </div>

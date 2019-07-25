@@ -28,9 +28,9 @@ function HomeFeed(props) {
       <div className="content hasFooter" ref={scrollable_element}>
         
         <div id="homeCover">
-            <video id="homeVideo" poster="/static/img/home-video.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
-                <source src="/static/img/home-video.webm" type="video/webm" />
-                <source src="/static/img/home-video.mp4" type="video/mp4" />
+            <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
+                <source src="/static/img/home-video-narrow.webm" type="video/webm" />
+                <source src="/static/img/home-video-narrow.mp4" type="video/mp4" />
                 Video of sofer writing letters of the Torah
             </video>
             <h1 className="featureTitle">
@@ -106,12 +106,10 @@ function HomeFeed(props) {
                             <span className="int-en">Mix and match sources from our library, as well as outside sources, comments, images and videos.</span>
                             <span className="int-he">אתם יכולים לשלב מקורות מהספריה שלנו, יחד עם מקורות חיצוניים, ולהוסיף הערות, תמונות וסרטונים.</span>
                         </div>
-                        <a href="/sheets/new">
-                            <div className="button fillWidth control-elem">
-                                <img src="/static/img/sheet.svg" />
-                                <span className="int-en">Start a Sheet</span>
-                                <span className="int-he">צור דף מקורות</span>
-                            </div>
+                        <a href="/sheets/new" className="button fillWidth control-elem">
+                            <img src="/static/img/sheet.svg" />
+                            <span className="int-en">Start a Sheet</span>
+                            <span className="int-he">צור דף מקורות</span>
                         </a>
                     </div>
                 </div>
@@ -221,7 +219,6 @@ function HomeFeed(props) {
 
         </div>
 
-        <Footer />
       </div>
     </div>);
 }
