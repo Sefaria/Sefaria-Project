@@ -38,10 +38,11 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data, site_stats_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
+from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -2561,8 +2562,7 @@ def user_stats_api(request, uid):
     quick = bool(request.GET.get("quick", False))
     if quick:
         return jsonResponse(public_user_data(uid))
-    # Todo: or now, we're hard-coding Rosh Hashannah 2018.
-    return jsonResponse(user_stats_data(uid, start=datetime(2018, 9, 9)))
+    return jsonResponse(user_stats_data(uid))
 
 
 @staff_member_required
