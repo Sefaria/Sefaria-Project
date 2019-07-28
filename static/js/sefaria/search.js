@@ -228,6 +228,15 @@ class Search {
             this.dictaQueryQueue.hits.hits = [];
         }
         else {
+            // when sorting by relevance get average tf-idf score for Sefaria results and scale dicta results
+            if (sortType === "relevance"){
+                const meanTfIdf = sefariaHits.reduce(
+                    (total, nextValue) => total + nextValue._source.pagesheetrank / sefariaHits.length, 0);
+                for (let i=0; i < dictaHits.length; i++) {
+                    dictaHits[i].score = dictaHits[i].score * meanTfIdf;
+                }
+            }
+
             const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
             const sefariaPivot = getPivot(sefariaHits, lastScore, this.sefariaQueryQueue.lastSeen, this.sefariaQueryQueue.hits.total);
             const dictaPivot = getPivot(dictaHits, lastScore, this.dictaQueryQueue.lastSeen, this.dictaQueryQueue.hits.total);
@@ -238,7 +247,6 @@ class Search {
             dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
         }
-        // debugger;
         // if (sortType !== "score")
         //     finalHits.reverse();
         result.hits.hits = finalHits;
