@@ -17,7 +17,7 @@ var palette = {
     red:       "#802f3e",
     teal:      "#00827f",
     lightbg:   "#B8D4D3",
-    tan:       "#D4896C"   
+    tan:       "#D4896C"
   }
 };
 palette.categoryColors = {
@@ -43,7 +43,8 @@ palette.categoryColors = {
   "Targum":             palette.colors.lavender,
   "Modern Works":       palette.colors.lightbg,
   "Modern Commentary":  palette.colors.lightbg,
-  "Reference":          palette.colors.tan  
+  "Reference":          palette.colors.tan,
+  "Static":             "linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)"
 };
 palette.categoryColor = function(cat) {
   if (cat in palette.categoryColors) {
