@@ -387,8 +387,12 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
-                    interfaceLang={this.props.interfaceLang}
-      />);
+                    interfaceLang={this.props.interfaceLang} />);
+
+    } else if (this.props.mode === "WebPages") {
+      content = (<WebPagesList
+                    srefs={this.props.srefs}
+                    interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
@@ -400,7 +404,6 @@ class ConnectionsPanel extends Component {
                     masterPanelLanguage={this.props.masterPanelLanguage} />);
 
     } else if (this.props.mode === "Share") {
-        console.log('share');
       content = (<ShareBox
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
@@ -436,6 +439,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
+
     } else if (this.props.mode === "About") {
       content = (<AboutBox
                   currObjectVersions={this.state.currObjectVersions}
@@ -443,8 +447,8 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
-                  viewExtendedNotes={this.props.viewExtendedNotes}
-                />);
+                  viewExtendedNotes={this.props.viewExtendedNotes} />);
+
     } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
       content = (<VersionsBox
                   currObjectVersions={this.state.currObjectVersions}
@@ -461,7 +465,8 @@ class ConnectionsPanel extends Component {
                   getDataRef={this.getDataRef}
                   onRangeClick={this.props.onTextClick}
                   viewExtendedNotes={this.props.viewExtendedNotes}
-                  onCitationClick={this.props.onCitationClick}/>);
+                  onCitationClick={this.props.onCitationClick} />);
+
     } else if (this.props.mode === "extended notes") {
       content = (<ExtendedNotes
                   currVersions={this.props.currVersions}
@@ -544,7 +549,8 @@ class ResourcesList extends Component {
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
@@ -712,6 +718,27 @@ PublicSheetsList.propTypes = {
   srefs: PropTypes.array.isRequired,
   connectedSheet: PropTypes.string,
 };
+
+class WebPagesList extends Component {
+  // List of web pages for a ref in the sidebar
+  render() {
+    var webpages = Sefaria.webPagesByRef(this.props.srefs);
+    var content = webpages.length ? webpages.map(webpage => {
+      return (<div className="webpage" key={webpage.url}>
+        <img className="icon" src={webpage.faviconUrl} />
+        <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
+        <div className="domain">{webpage.domain}</div>
+        <div className="description">{webpage.description}</div>
+        <div className="stats">[Hits: {webpage.linkerHits}, Citing: {webpage.anchorRef}]</div>
+      </div>)
+    }, this) : null;
+    return content && content.length ? (<div className="webpageList">{content}</div>) : null;
+  }
+}
+WebPagesList.propTypes = {
+  srefs: PropTypes.array.isRequired,
+};
+
 
 
 class ToolsList extends Component {

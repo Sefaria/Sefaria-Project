@@ -2750,7 +2750,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
   display: flex;
@@ -3992,6 +3991,32 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
+.webpageList .webpage {
+  margin-bottom: 30px;
+  text-align: left;
+}
+.webpageList .webpage .icon {
+  margin-right: 10px;
+}
+.webpageList .webpage .title {
+  font-size: 22px;
+  color: black;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .title:hover {
+  text-decoration: none;
+}
+.webpageList .webpage .domain {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .description {
+  font-size: 18px;
+  color: #999;
+}
 .textRange .numberLabel {
   position: absolute;
   top: 14px;
@@ -4431,7 +4456,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     transform: rotate(360deg);
   }
 }
-
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;

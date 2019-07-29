@@ -1198,6 +1198,41 @@ Sefaria = extend(Sefaria, {
     }
     return notes.length;
   },
+  deleteNote: function(noteId) {
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        type: "delete",
+        url: `/api/notes/${noteId}`,
+        success: () => {
+          Sefaria.clearPrivateNotes();
+          Sefaria.track.event("Tools", "Delete Note", noteId);
+          resolve();
+        },
+        error: reject
+      });
+    });
+  },
+  _webpages: {},
+  webPagesByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs;
+    refs.map(r => {
+      // Also include webpages linked at section level. Deduped below. 
+      if (r.indexOf(":") !== -1) {
+        refs.push(r.slice(0, r.lastIndexOf(":"))); 
+      }
+    }, this);
+
+
+    var webpages = [];
+    refs.map(r => {
+      if (this._webpages[r]) { webpages = webpages.concat(this._webpages[r]); }
+    }, this);
+
+    return webpages.filter((obj, pos, arr) => {
+      // Remove duplicates by url field
+      return arr.map(mapObj => mapObj["url"]).indexOf(obj["url"]) === pos;
+    }).sort((a, b) => (a.linkerHits > b.linkerHits) ? -1 : 1);
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
@@ -1225,14 +1260,15 @@ Sefaria = extend(Sefaria, {
           links: this._saveLinkData(ref, data.links),
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
+          webpages: this._saveItemsByRef(data.webpages, this._webpages),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }

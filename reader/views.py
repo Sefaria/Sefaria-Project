@@ -41,6 +41,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
+from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
@@ -1909,6 +1910,7 @@ def related_api(request, tref):
             "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
+            "webpages": get_webpages_for_ref(tref),
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
