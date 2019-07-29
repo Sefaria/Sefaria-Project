@@ -3818,17 +3818,13 @@ def random_by_topic_api(request):
     Returns Texts API data for a random text taken from popular topic tags
     """
     cb = request.GET.get("callback", None)
-    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    topics_filtered = filter(lambda x: x['good_to_promote'], get_topics().list())
     if len(topics_filtered) == 0:
         resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
         resp['Content-Type'] = "application/json; charset=utf-8"
         return resp
     random_topic = choice(topics_filtered)['tag']
     term = Term().load_by_title(random_topic)
-    if term is not None and getattr(term, "sensitive", False):
-        # term is sensitive, try again
-        return random_by_topic_api(request)
-        
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
