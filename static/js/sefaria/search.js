@@ -126,10 +126,10 @@ class Search {
                         path: categories,
                         ref: `${bookTitle} ${bookLoc}`,
                         heRef: hit.hebrewPath,
-                        pagesheetrank: hit.pagerank,
+                        pagesheetrank: (hit.pagerank) ? hit.pagerank : 0,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},
-                    score: hit.pagerank * -1,
+                    score: (hit.pagerank) ? hit.pagerank * -1 : 0,
                     comp_date: -10000 + adaptedHits.length,
                     _id: `${bookTitle} ${bookLoc} (${version} [he])`,
                     cameFrom: 'dicta'
@@ -228,12 +228,33 @@ class Search {
             this.dictaQueryQueue.hits.hits = [];
         }
         else {
-            // when sorting by relevance get average tf-idf score for Sefaria results and scale dicta results
-            if (sortType === "relevance"){
-                const meanTfIdf = sefariaHits.reduce(
-                    (total, nextValue) => total + nextValue._source.pagesheetrank / sefariaHits.length, 0);
+            // when sorting by relevance adjust Dicta score's mean and standard deviation to match Sefaria's
+            if (sortType === "score"){
+                let sefariaMeanScore = sefariaHits.reduce(
+                    (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
+                );
+                let dictaMeanScore = dictaHits.reduce(
+                    (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
+                );
+
+                let sefariaStd = Math.sqrt(sefariaHits.reduce(
+                    (total, nextValue) => total + Math.pow(nextValue.score - sefariaMeanScore, 2), 0
+                ));
+                let dictaStd = Math.sqrt(dictaHits.reduce(
+                    (total, nextValue) => total + Math.pow(nextValue.score - dictaMeanScore, 2), 0
+                ));
+
+                let factor = sefariaStd/dictaStd;
+                for (let i=0; i<dictaHits.length; i++) {
+                    dictaHits[i].score = dictaHits[i].score * factor;
+                }
+
+                dictaMeanScore = dictaHits.reduce(
+                    (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
+                );
+                let delta = sefariaMeanScore - dictaMeanScore;
                 for (let i=0; i < dictaHits.length; i++) {
-                    dictaHits[i].score = dictaHits[i].score * meanTfIdf;
+                    dictaHits[i].score = dictaHits[i].score + delta;
                 }
             }
 
