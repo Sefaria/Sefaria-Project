@@ -23,7 +23,7 @@ const sheetPropType = PropTypes.shape({
             publisher_position: PropTypes.string,
             publisher_organization: PropTypes.string,
             publisher_followed: PropTypes.bool,
-            sheet_id: PropTypes.number,
+            sheet_id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
             sheet_title: PropTypes.string,
             sheet_summary: PropTypes.string,
       });
@@ -165,14 +165,13 @@ NewVersionStory.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-//         <ReadMoreLink url={"/person/" + props.data.author_key}/>
+//         <ReadMoreLink url={Sefaria.normRef(props.data.example_work)}/>
 const AuthorStory = (props) => (
     <StoryFrame cls="authorStory" cardColor={Sefaria.palette.indexColor(props.data.example_work)}>
         <StoryTypeBlock en="Author" he="מחבר" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
         <StoryTitleBlock en={props.data.author_names.en} he={props.data.author_names.he} url={"/person/" + props.data.author_key} />
         <DangerousInterfaceBlock classes="storyBody contentText" en={props.data.author_bios.en} he={props.data.author_bios.he}/>
-        <ReadMoreLink url={Sefaria.normRef(props.data.example_work)}/>
     </StoryFrame>
 );
 
@@ -303,7 +302,7 @@ const PublishSheetStory = (props) => (
     <StoryFrame cls="publishSheetStory">
         <StoryTypeBlock en="New Sheet" he="דף מקורות חדש" />
         <NaturalTimeBlock timestamp={props.timestamp}/>
-        <SheetBlock sheet={props.data} toggleSignUpModal={props.toggleSignUpModal}/>
+        <SheetBlock sheet={props.data} toggleSignUpModal={props.toggleSignUpModal} isTitle={true}/>
     </StoryFrame>
 );
 
@@ -436,15 +435,19 @@ StoryFrame.propTypes = {
     cardColor:  PropTypes.string
 };
 
+
 const NaturalTimeBlock = ({timestamp}) => <SimpleInterfaceBlock
         classes = "topTailBlock smallText"
         en = {Sefaria.util.naturalTime(timestamp) + " ago"}
         he = {"לפני " + Sefaria.util.naturalTime(timestamp)}
     />;
 
+
 const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>;
 
+
 const StoryTypeBlock = ({en, he}) => <SimpleInterfaceBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
+
 
 const StoryTitleBlock = ({url, he, en, children}) => {
         const SBlock = url ? SimpleLinkedBlock : SimpleInterfaceBlock;
@@ -454,14 +457,20 @@ const StoryTitleBlock = ({url, he, en, children}) => {
         </div>;
 };
 
+
 const ColorBarBox = ({tref, children}) =>  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>;
+
+
 const StoryBodyBlock = ({en, he}) => <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>;
+
 
 const StoryTextList = ({texts, toggleSignUpModal}) => (
     <div className="storyTextList">
         {texts.map((text,i) => <StoryTextListItem text={text} key={i} toggleSignUpModal={toggleSignUpModal} />)}
     </div>
 );
+
+
 const StoryTextListItem = ({text, toggleSignUpModal}) => (
     <div className="storyTextListItem">
         <ColorBarBox tref={text.ref} >
@@ -474,6 +483,7 @@ const StoryTextListItem = ({text, toggleSignUpModal}) => (
 );
 StoryTextListItem.propTypes = {text: textPropType.isRequired};
 
+
 const StorySheetList = ({sheets, toggleSignUpModal, cozy}) => (
     <div className="storySheetList">
         {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} cozy={cozy} toggleSignUpModal={toggleSignUpModal}/>)}
@@ -485,14 +495,14 @@ StorySheetList.propTypes = {
 };
 
 
-const SheetBlock = ({sheet, cozy, toggleSignUpModal}) => {
+const SheetBlock = ({sheet, cozy, isTitle, toggleSignUpModal}) => {
       const historyObject = {ref: "Sheet " + sheet.sheet_id,
                   sheet_title: sheet.sheet_title,
                   versions: {}};
 
       return (<div className="storySheetListItem">
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
-            <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle"}/>
+            <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle" + (isTitle ? " storyTitle" : "")}/>
         </SaveLine>
         {(sheet.sheet_summary && !cozy)?<SimpleInterfaceBlock classes="storyBody contentText" en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
         {cozy?"":<ProfileListing
@@ -508,6 +518,7 @@ const SheetBlock = ({sheet, cozy, toggleSignUpModal}) => {
       </div>);
 };
 SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
+
 
 const SaveLine = (props) => (
     <div className={"saveLine " + props.classes}>

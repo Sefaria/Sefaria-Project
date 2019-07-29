@@ -151,6 +151,13 @@
 .static a.button.transparent {
   color: #666;
 }
+
+.static .refLink {
+  text-decoration: none;
+}
+.static .refLink:hover {
+  text-decoration: underline;
+}
 .static label {
   color: #999;
   letter-spacing: 1px;
@@ -224,9 +231,18 @@
 .static .quotation {
   text-align: center;
   font-weight: bold;
+  color: #666;
 }
-.static .quotation.he {
+
+.static .quotation a {
+  color: #666;
+}
+
+.static .quotation he {
   font-family: frank ruehl libre,taamey frank,times new roman,serif;
+}
+.static .quotation int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage {
   overflow: hidden;
@@ -745,6 +761,9 @@ input#id_email{
 }
 #supportersPage .supporters p.tagline:first-child {
   margin-bottom: 20px;
+}
+#supportersPage .supporter .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #supportersPage h2 {
     margin-top: 25px;
@@ -1759,4 +1778,16 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .phone-number{
   unicode-bidi: plaintext;
+}
+#koschitzky.static {
+  margin-top: 60px;
+}
+.categoryColorLine {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)
 }

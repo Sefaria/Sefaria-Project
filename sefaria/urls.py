@@ -49,7 +49,10 @@ urlpatterns = [
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
+    url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
+    url(r'^user_stats/?$', reader_views.user_stats),
+
 ]
 
 # People Pages
@@ -83,14 +86,16 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.user_profile),
+    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile$', reader_views.profile_api),
-    url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
+    url(r'^api/profile/sync$', reader_views.profile_sync_api),
+    url(r'^api/profile$', reader_views.profile_api),
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
+    url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
@@ -161,6 +166,8 @@ urlpatterns += [
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     url(r'^api/stories/?(?P<gid>.+)?$', reader_views.stories_api),
     url(r'^api/story_reflector/?$', reader_views.story_reflector),
+    url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
+    url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
 ]
 
@@ -188,6 +195,7 @@ urlpatterns += [
     url(r'^api/sheets/tag-list/?$',                                   sheets_views.tag_list_api),
     url(r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              sheets_views.user_tag_list_api),
     url(r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',            sheets_views.tag_list_api),
+    url(r'^api/sheets/ref/(?P<ref>[^/]+)$',                           sheets_views.sheets_by_ref_api),
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
 ]
@@ -198,6 +206,7 @@ urlpatterns += [
     url(r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.groups_role_api),
     url(r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.groups_invite_api),
     url(r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
+    url(r'^api/groups/user-groups/(?P<user_id>\d+)$', sheets_views.user_groups_api),
 ]
 
 # Search API

@@ -25,6 +25,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     # The text we're asked to get links to
     anchorTref = link.refs[pos]
     anchorRef  = Ref(anchorTref)
+    anchorTrefExpanded = getattr(link, "expandedRefs{}".format(pos))
 
     # The link we found to anchorRef
     linkPos   = (pos + 1) % 2
@@ -33,18 +34,19 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     langs     = getattr(link, "availableLangs", [[],[]])
     linkLangs = langs[linkPos]
 
-    com["_id"]              = str(link._id)
-    com['index_title']      = linkRef.index.title
-    com["category"]         = linkRef.primary_category #usually the index's categories[0] or "Commentary".
-    com["type"]             = link.type
-    com["ref"]              = linkTref
-    com["anchorRef"]        = anchorTref
-    com["sourceRef"]        = linkTref
-    com["sourceHeRef"]      = linkRef.he_normal()
-    com["anchorVerse"]      = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["sourceHasEn"]      = "en" in linkLangs
-    com["anchorText"]       = getattr(link, "anchorText", "")
-    com["inline_reference"] = getattr(link, "inline_reference", None)
+    com["_id"]               = str(link._id)
+    com['index_title']       = linkRef.index.title
+    com["category"]          = linkRef.primary_category #usually the index's categories[0] or "Commentary".
+    com["type"]              = link.type
+    com["ref"]               = linkTref
+    com["anchorRef"]         = anchorTref
+    com["anchorRefExpanded"] = anchorTrefExpanded
+    com["sourceRef"]         = linkTref
+    com["sourceHeRef"]       = linkRef.he_normal()
+    com["anchorVerse"]       = anchorRef.sections[-1] if len(anchorRef.sections) else 0
+    com["sourceHasEn"]       = "en" in linkLangs
+    com["anchorText"]        = getattr(link, "anchorText", "")
+    com["inline_reference"]  = getattr(link, "inline_reference", None)
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:
@@ -182,13 +184,13 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         # find the position (0 or 1) of "anchor", the one we're getting links for
         # If both sides of the ref are in the same section of a text, only one direction will be used.  bug? maybe not.
         if reRef:
-            pos = 0 if re.match(reRef, link.refs[0]) else 1
+            pos = 0 if any(re.match(reRef, tref) for tref in link.expandedRefs0) else 1
         else:
-            pos = 0 if nRef == link.refs[0][:lenRef] else 1
+            pos = 0 if any(nRef == tref[:lenRef] for tref in link.expandedRefs0) else 1
         try:
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
-            # logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            logger.warning(u"Bad link: {} - {}".format(link.refs[0], link.refs[1]))
             continue
         except AttributeError as e:
             logger.error(u"AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
@@ -271,7 +273,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             com[vtitleInHeAttr] = versionTitlesInHebrew
             links.append(com)
         except NoVersionFoundError as e:
-            logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
+            logger.warning(u"Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
 
     # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
@@ -283,6 +285,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             base_links = get_links(base_ref)
             def add_prefix(link):
                 link["anchorRef"] = prefix + link["anchorRef"]
+                link["anchorRefExpanded"] = [prefix + l for l in link["anchorRefExpanded"]]
                 return link
             base_links = [add_prefix(link) for link in base_links]
             orig_links_refs = [(origlink['sourceRef'], origlink['anchorRef']) for origlink in links]

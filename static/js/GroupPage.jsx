@@ -4,6 +4,7 @@ const {
   TwoOrThreeBox,
   SheetTagLink,
   SheetAccessIcon,
+  ProfilePic,
 }                = require('./Misc');
 const React      = require('react');
 const PropTypes  = require('prop-types');
@@ -320,6 +321,7 @@ class GroupPage extends Component {
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
                                 onDataChange={this.onDataLoad}
+                                openProfile={this.props.openProfile}
                                 key={member.uid} />;
                      }.bind(this)) }
                     </div>
@@ -337,6 +339,7 @@ GroupPage.propTypes = {
   tag:            PropTypes.string,
   interfaceLang:  PropTypes.string,
   searchInGroup:  PropTypes.func,
+  openProfile:    PropTypes.func.isRequired,
 };
 
 
@@ -450,6 +453,12 @@ GroupInvitationBox.propTypes = {
 
 
 class GroupMemberListing extends Component {
+  openProfile(e) {
+    e.preventDefault();
+    const slugMatch = this.props.member.profileUrl.match(/profile\/(.+)$/);
+    const slug = !!slugMatch ? slugMatch[1] : ''
+    this.props.openProfile(slug, this.props.member.name);
+  }
   render() {
     if (this.props.member.role == "Invitation") {
       return this.props.isAdmin ?
@@ -462,13 +471,19 @@ class GroupMemberListing extends Component {
 
     return (
       <div className="groupMemberListing">
-        <a href={this.props.member.profileUrl}>
-          <img className="groupMemberListingProfileImage" src={this.props.member.imageUrl} alt="" />
-        </a>
+        <div className="groupLeft">
+          <a href={this.props.member.profileUrl} onClick={this.openProfile}>
+            <ProfilePic
+              url={this.props.member.imageUrl}
+              name={this.props.member.name}
+              len={50}
+            />
+          </a>
 
-        <a href={this.props.member.profileUrl} className="groupMemberListingName">
-          {this.props.member.name}
-        </a>
+          <a href={this.props.member.profileUrl} className="groupMemberListingName" onClick={this.openProfile}>
+            {this.props.member.name}
+          </a>
+        </div>
 
         <div className="groupMemberListingRoleBox">
           <span className="groupMemberListingRole">{this.props.member.role}</span>
@@ -491,6 +506,7 @@ GroupMemberListing.propTypes ={
   isSelf:       PropTypes.bool,
   groupName:    PropTypes.string,
   onDataChange: PropTypes.func,
+  openProfile:  PropTypes.func.isRequired,
 };
 
 

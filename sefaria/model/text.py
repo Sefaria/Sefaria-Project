@@ -1203,7 +1203,7 @@ class VersionSet(abst.AbstractMongoSet):
         """
         for v in self:
             if not getattr(v, "versionTitle", None):
-                logger.error("No version title for Version: {}".format(vars(v)))
+                logger.error(u"No version title for Version: {}".format(vars(v)))
         if node is None:
             return merge_texts([getattr(v, "chapter", []) for v in self], [getattr(v, "versionTitle", None) for v in self])
         return merge_texts([v.content_node(node) for v in self], [getattr(v, "versionTitle", None) for v in self])
@@ -1433,7 +1433,7 @@ class TextChunk(AbstractTextRecord):
         self._pad(content)
         self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
 
-        self._check_available_text()
+        self._check_available_text_pre_save()
 
         self.full_version.save()
         self._oref.recalibrate_next_prev_refs(len(self.text))
@@ -1473,35 +1473,39 @@ class TextChunk(AbstractTextRecord):
         """
         self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
 
-    def _check_available_text(self):
+    def _check_available_text_pre_save(self):
         """
-        Stores the availability of this text in this language before a save is made,
-        so that link langauges availability can be updated after save if changed. 
+        Stores the availability of this text in before a save is made,
+        so that we can know if segments have been added or deleted overall. 
         """
-        try:
-            self._available_text_pre_save = self._oref.text(lang=self.lang).text
-        except NoVersionFoundError:
-            self._available_text_pre_save = []
+        self._available_text_pre_save = {}
+        langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
+        for lang in langs_checked:
+            try:
+                self._available_text_pre_save[lang] = self._oref.text(lang=lang).text
+            except NoVersionFoundError:
+                self._available_text_pre_save[lang] = []
 
-    def _update_link_language_availability(self):
+    def _check_available_segments_changed_post_save(self, lang=None):
         """
-        Check if current save has changed the overall availabilty of text for refs
-        in this language, pass refs to update revelant links if so. 
+        Returns a list of tuples containing a Ref and a boolean availability
+        for each Ref that was either made available or unavailble for `lang`.
+        If `lang` is None, returns changed availability across all langauges. 
         """
-        def text_to_ref_available(text):
-            flat = JaggedArray(text).flatten_to_array_with_indices()
-            refs_available = []
-            for item in flat:
-                d = self._oref._core_dict()
-                d["sections"] = d["sections"] + item[0]
-                d["toSections"] = d["sections"]
-                ref = Ref(_obj=d)
-                available = bool(item[1])
-                refs_available += [[ref, available]]
-            return refs_available
+        if lang:
+            old_refs_available = self._text_to_ref_available(self._available_text_pre_save[self.lang])
+        else:
+            # Looking for availability of in all langauges, merge results of Hebrew and English
+            old_en_refs_available = self._text_to_ref_available(self._available_text_pre_save["en"])
+            old_he_refs_available = self._text_to_ref_available(self._available_text_pre_save["he"])
+            zipped = list(itertools.izip_longest(old_en_refs_available, old_he_refs_available))
+            old_refs_available = []
+            for item in zipped:
+                en, he = item[0], item[1]
+                ref = en[0] if en else he[0]
+                old_refs_available.append((ref, (en and en[1] or he and he[1])))
 
-        old_refs_available = text_to_ref_available(self._available_text_pre_save)
-        new_refs_available = text_to_ref_available(self.text)
+        new_refs_available = self._text_to_ref_available(self.text)
 
         changed = []
         zipped = list(itertools.izip_longest(old_refs_available, new_refs_available))
@@ -1513,17 +1517,41 @@ class TextChunk(AbstractTextRecord):
             if not had_previously and have_now:
                 changed.append(new_text)
             elif had_previously and not have_now:
-                # Current save is deleting a line of text, but it could still be available in a different
-                # version for this language. Check again.
-                current_text = old_text[0].text(lang=self.lang).text
-                if not bool(current_text):
+                # Current save is deleting a line of text, but it could still be 
+                # available in a different version for this language. Check again.
+                if lang:
+                    text_still_available = bool(old_text[0].text(lang=lang).text)
+                else:
+                    text_still_available = bool(old_text[0].text("en").text) or bool(old_text[0].text("he").text)
+                if not text_still_available:
                     changed.append([old_text[0], False])
+
+        return changed
+
+    def _text_to_ref_available(self, text):
+        """Converts a JaggedArray of text to flat list of (Ref, bool) if text is availble"""
+        flat = JaggedArray(text).flatten_to_array_with_indices()
+        refs_available = []
+        for item in flat:
+            d = self._oref._core_dict()
+            d["sections"] = d["sections"] + item[0]
+            d["toSections"] = d["sections"]
+            ref = Ref(_obj=d)
+            available = bool(item[1])
+            refs_available += [[ref, available]]
+        return refs_available
+
+    def _update_link_language_availability(self):
+        """
+        Check if current save has changed the overall availabilty of text for refs
+        in this language, pass refs to update revelant links if so. 
+        """
+        changed = self._check_available_segments_changed_post_save(lang=self.lang)
 
         if len(changed):
             from . import link
             for change in changed:
                 link.update_link_language_availabiliy(change[0], self.lang, change[1])
-
 
     def _validate(self):
         """
@@ -3159,8 +3187,11 @@ class Ref(object):
         if self.is_section_level() or self.is_segment_level():
             # Using mongo queries to slice and merge versions
             # is much faster than actually using the Version State doc
-            text = self.text(lang=lang).text
-            return bool(len(text) and all(text))
+            try:
+                text = self.text(lang=lang).text
+                return bool(len(text) and all(text))
+            except NoVersionFoundError:
+                return False
         else:
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
@@ -4217,6 +4248,7 @@ class Library(object):
         self._index_map = {i.title: i for i in IndexSet() if i.nodes}
         forest = [i.nodes for i in self._index_map.values()]
         self._title_node_maps = {lang: {} for lang in self.langs}
+        self._index_title_maps = {lang:{} for lang in self.langs}
 
         for tree in forest:
             try:
@@ -4356,36 +4388,36 @@ class Library(object):
 
     def cross_lexicon_auto_completer(self):
         if self._cross_lexicon_auto_completer is None:
-            logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
+            logger.warning(u"Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built cross lexicon auto completer.")
+            logger.warning(u"Built cross lexicon auto completer.")
         return self._cross_lexicon_auto_completer
 
     def lexicon_auto_completer(self, lexicon):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
-            logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
+            logger.warning(u"Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
-            logger.warning("Built {} auto completer.".format(lexicon))
+            logger.warning(u"Built {} auto completer.".format(lexicon))
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
-            logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
+            logger.warning(u"Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built full {} auto completer.".format(lang))
+            logger.warning(u"Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
     def ref_auto_completer(self, lang):
         try:
             return self._ref_auto_completer[lang]
         except KeyError:
-            logger.warning("Failed to load {} ref auto completer, rebuilding.".format(lang))
+            logger.warning(u"Failed to load {} ref auto completer, rebuilding.".format(lang))
             self.build_ref_auto_completer()  # I worry that these could pile up.
-            logger.warning("Built {} ref auto completer.".format(lang))
+            logger.warning(u"Built {} ref auto completer.".format(lang))
             return self._ref_auto_completer[lang]
 
     def recount_index_in_toc(self, indx):
@@ -5125,6 +5157,21 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.base_text_titles.pop(pos)
         didx.base_text_titles.insert(pos, kwargs["new"])
         didx.save()
+
+def process_index_title_change_in_sheets(indx, **kwargs):
+    print "Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new'])
+
+    regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
+                for pattern in Ref(kwargs["new"]).regex(as_list=True)]
+    ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
+    query = {"$or": ref_clauses }
+    sheets = db.sheets.find(query)
+    for sheet in sheets:
+        sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        for source in sheet.get("sources", []):
+            if "ref" in source:
+                source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(regex_list), source["ref"]) else source["ref"]
+        db.sheets.save(sheet)
 
 
 def process_index_delete_in_versions(indx, **kwargs):
