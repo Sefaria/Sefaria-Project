@@ -432,7 +432,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background: white;
 	border: 1px solid #ddd;
 	border-radius: 3px;
-	z-index: 101;
+	z-index: 19;
 	width: 600px;
 	display: none;
 }
