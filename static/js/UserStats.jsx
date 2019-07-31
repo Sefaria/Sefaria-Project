@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useContext, useRef} from 'react';
-const $          = require('./sefaria/sefariaJquery');
-const d3 = require('./lib/d3.v5.min');
-const Sefaria    = require('./sefaria/sefaria');
-const {StorySheetList}      = require('./Story');
+const $                 = require('./sefaria/sefariaJquery');
+const d3                = require('./lib/d3.v5.min');
+const Sefaria           = require('./sefaria/sefaria');
+const {StorySheetList}  = require('./Story');
+const { useDebounce }   = require('./Hooks');
 const {
     SimpleLinkedBlock,
     TextBlockLink,
     ThreeBox
-    }    = require('./Misc');
-const { useDebounce } = require('./Hooks');
+    }                   = require('./Misc');
 
 
 const UserStats = () => {
@@ -18,7 +18,11 @@ const UserStats = () => {
     const [site_data, setSiteData] = useState({});
 
     const [activeMode, setMode] = useState("Year to Date");
-    const modes = ["Year to Date", "Last Year", "All Time"];
+    const modes = ["Year to Date", "All Time"];
+    const modekeys = {
+        "Year to Date": "this_hebrew_year",
+        "All Time": "alltime"
+    };
 
     const debouncedUID = useDebounce(uid, 500);
 
@@ -34,7 +38,7 @@ const UserStats = () => {
             .then(d => setUserData(d));
     }, [debouncedUID]);
 
-    const all_ready = user_data.uid && site_data.categoriesRead;
+    const all_ready = user_data.uid && site_data.alltime;
     return (
     <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
@@ -44,7 +48,7 @@ const UserStats = () => {
               </h1>
               {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
               <UserStatModeChooser modes={modes} activeMode={activeMode} setMode={setMode}/>
-              {all_ready && <UserDataBlock user_data={user_data} site_data={site_data}/>}
+              {all_ready && <UserDataBlock user_data={user_data[modekeys[activeMode]]} site_data={site_data[modekeys[activeMode]]}/>}
           </div>
       </div>
     </div>
@@ -72,20 +76,6 @@ const UserChooser = ({setter}) => (
     </div>
 );
 
-/*
-const UserProfileBlock = ({user_data}) => (
-        <div style={{display: "flex", justifyContent:"center"}}>
-            <div style={{padding: "0 10px"}}>
-                <img src={user_data.imageUrl} width="80" height="80"/>
-            </div>
-            <div style={{padding: "0 10px"}}>
-                <h2><a href={user_data.profileUrl}>{user_data.name}</a></h2>
-                <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
-            </div>
-        </div>
-);
-*/
-
 const StatCard = ({icon_file, name, number}) => (
     <div className="statcard">
         <img src={"static/img/" + icon_file}/>
@@ -101,7 +91,7 @@ const UserDataBlock = ({user_data, site_data}) => (
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
                 <StatCard icon_file="file-icon-black.svg" number={user_data.sheetsRead} name="Sheets Read"/>
-                <StatCard icon_file="plus-icon-black.svg" number={user_data.totalSheets} name="Sheets Created"/>
+                <StatCard icon_file="plus-icon-black.svg" number={user_data.sheetsThisPeriod} name="Sheets Created"/>
             </div>
         </div>
         <div>
