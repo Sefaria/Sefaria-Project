@@ -202,6 +202,9 @@ class UserHistory(abst.AbstractMongoRecord):
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
 
+    def hits(self):
+        return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
+
 
 class UserProfile(object):
     def __init__(self, id=None, slug=None, email=None):

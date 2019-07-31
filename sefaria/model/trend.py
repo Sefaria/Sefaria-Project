@@ -319,7 +319,6 @@ def getAllUsersCategories(daterange):
         {"$group": {
             "_id": {"uid": "$uid", "category": {"$arrayElemAt" : ["$categories", 0]}},
              "cnt": { "$sum": {"$max": ["$num_times_read", 1]}}}},
-             # "cnt": {"$sum": 1}}},
         {"$group": {
             "_id": "$_id.uid",
             "categories": {"$push": {"k": "$_id.category", "v": "$cnt"}},
@@ -391,7 +390,7 @@ def user_stats_data(uid):
                 })},
             {"$group": {
                 "_id": "$ref",
-                "cnt": {"$sum": {"$max": ["$num_times_read", 1]}}}},
+                "cnt": {"$sum": 1}}},  # Using $num_times_read isn't reliable.  It counts book views, but not text views.
         ])
         most_viewed_trefs = [s["_id"] for s in sorted(refs_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and "Genesis 1" not in s["_id"]][:9]
         most_viewed_refs = [text.Ref(r) for r in most_viewed_trefs]
@@ -416,8 +415,8 @@ def user_stats_data(uid):
 
         # Construct returned data
         user_stats_dict[daterange.key] = {
-            "sheetsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": True, "secondary": False, "uid": uid})).count(),
-            "textsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": False, "secondary": False, "uid": uid})).count(),
+            "sheetsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": True, "secondary": False, "uid": uid})).hits(),
+            "textsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": False, "secondary": False, "uid": uid})).hits(),
             "categoriesRead": {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "period": daterange.key, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}})},
             "totalSheets": len(usheets),
             "publicSheets": len([s for s in usheets if s["status"] == "public"]),
