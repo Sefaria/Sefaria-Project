@@ -43,20 +43,25 @@ class Header extends Component {
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
       _renderItem: function( ul, item) {
         var override = item.label.match(this._searchOverrideRegex());
-		return $( "<li></li>" )
-			.data( "item.autocomplete", item )
-            .toggleClass("search-override", !!override)
-			.append( $( "<a role='option'></a>" ).text( item.label ) )
-			.appendTo( ul );
-	  }.bind(this)
+        return $( "<li></li>" )
+          .addClass('ui-menu-item')
+          .data( "item.autocomplete", item )
+          .toggleClass("search-override", !!override)
+          .append( $( "<a role='option' data-value='" + item.value + "'></a>" ).text( item.label ) )
+          .appendTo( ul );
+      }.bind(this)
     });
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
-      position: {my: "left-12 top+14", at: "left bottom"},
+      position: {my: "left-12 top+17", at: "left bottom"},
       minLength: 3,
       select: ( event, ui ) => {
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
+      },
+      focus: function( event, ui ) {
+        $(".ui-state-focus").removeClass("ui-state-focus");
+        $(".ui-menu-item a[data-value='" + ui.item.value + "']").addClass("ui-state-focus");
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
@@ -227,6 +232,8 @@ class Header extends Component {
     var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
+    } else {
+      $(ReactDOM.findDOMNode(this)).find(".search").focus();
     }
   }
   handleFirstTab(e) {

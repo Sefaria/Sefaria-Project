@@ -2309,13 +2309,7 @@ label[for="sourceSheetShareSelect"] {
 	display: inline-block;
 }
 
-.ui-widget-content {
-	border: 1px solid #d3d3d3;
-    background: #e6e6e6;
-    font-weight: normal;
-}
-
-.ui-icon-close {
+.tagit.ui-icon-close {
     background-position: -80px -128px;
 }
 
@@ -2329,19 +2323,13 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
-.ui-icon {
+.tagit .ui-icon {
     width: 16px;
     height: 16px;
-}
-.ui-icon {
     display: block;
     text-indent: -99999px;
     overflow: hidden;
     background-repeat: no-repeat;
-}
-
-.ui-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #fff;
 }
 
 ul.tagit li.tagit-choice {
