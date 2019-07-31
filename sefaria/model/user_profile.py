@@ -56,7 +56,8 @@ class UserHistory(abst.AbstractMongoRecord):
         "num_times_read",     # int: legacy for migrating old recent views
         "sheet_title",        # str: for sheet history
         "sheet_owner",        # str: ditto
-        "sheet_id"            # int: ditto
+        "sheet_id",           # int: ditto
+        "delete_saved",       # bool: True if this item was saved and but then was deleted
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
@@ -126,7 +127,8 @@ class UserHistory(abst.AbstractMongoRecord):
                 'book': u'',
                 'versions': {},
                 'time_stamp': 0,
-                'saved': False
+                'saved': False,
+                'delete_saved': False,
             }
             d = {
                 key: d.get(key, default) for key, default in keys.items()
@@ -152,7 +154,8 @@ class UserHistory(abst.AbstractMongoRecord):
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
         uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
             "saved": saved,
-            "server_time_stamp": hist["server_time_stamp"]
+            "server_time_stamp": hist["server_time_stamp"],
+            "delete_saved": action == "delete_saved"
         })
         uh.save()
         return uh

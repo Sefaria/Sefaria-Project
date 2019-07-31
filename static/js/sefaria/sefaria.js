@@ -1568,7 +1568,7 @@ Sefaria = extend(Sefaria, {
       const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
-          { user_history: JSON.stringify([savedItem]) }
+          { user_history: JSON.stringify([savedItem]), client: 'web' }
         ).done(response => {
           if (!!response['error']) {
             reject(response['error'])

@@ -3147,26 +3147,13 @@ def profile_sync_api(request):
     # fields in the POST req which can be synced
     syncable_fields = ["settings", "user_history"]
     if request.method == "POST":
+        profile_updated = False
         post = request.POST
         from sefaria.utils.util import epoch_time
         now = epoch_time()
         no_return = request.GET.get("no_return", False)
         profile = UserProfile(id=request.user.id)
-        if not no_return:
-            # send back items after `last_sync`
-            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
-            ret = {
-                "last_sync": now,
-                "user_history": [uh.contents(for_api=True) for uh in uhs.array()],
-                "created": []
-            }
-            if "last_sync" not in post:
-                # request was made from web. update last_sync on profile
-                profile.update({"last_sync_web": now})
-                profile.save()
-        else:
-            ret = {"created": []}
+        ret = {"created": []}
         # sync items from request
         for field in syncable_fields:
             if field not in post:
@@ -3179,11 +3166,27 @@ def profile_sync_api(request):
                         field: field_data,
                         "attr_time_stamps": profile.attr_time_stamps.update({field: field_data["time_stamp"]})
                     })
+                    profile_updated = True
                     ret["settings"] = profile.settings
             elif field == "user_history":
-                for hist in field_data:
+                # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
+                for hist in reversed(field_data):
                     uh = UserHistory.save_history_item(request.user.id, hist, now)
                     ret["created"] += [uh.contents(for_api=True)]
+
+        if not no_return:
+            # determine return value after new history saved to include new saved and deleted saves
+            # send back items after `last_sync`
+            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            ret["last_sync"] = now
+            ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
+            if post.get("client", "") == "web":
+                # request was made from web. update last_sync on profile
+                profile.update({"last_sync_web": now})
+                profile_updated = True
+        if profile_updated:
+            profile.save()
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
