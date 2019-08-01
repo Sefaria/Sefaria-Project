@@ -55,6 +55,9 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   letter-spacing: 0.05em;
   color: #333;
 }
+.chapterText.lowercase .int-en {
+  text-transform: none;
+}
 .sectionTitleText .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
@@ -1121,7 +1124,7 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: center;
   font-size: 15px;
-  font-weight: 200;
+  font-weight: 300;
   color: #666;
   margin-bottom: 20px;
   letter-spacing: 2px;
@@ -7029,7 +7032,8 @@ body .homeFeedWrapper.userStats {
 .userStats h2 {
   text-transform: none;
   padding-top: 40px;
-  font-size: 19px;
+  font-size: 21px;
+  color: #888;
 }
 
 .userStats .statcardRow {
@@ -7069,7 +7073,7 @@ body .homeFeedWrapper.userStats {
 
 .userStats .chartRow {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
 }
 
 .userStats .chartRow .chartWrapper {
@@ -7114,4 +7118,16 @@ body .homeFeedWrapper.userStats {
 .userStatModeButton span {
   display: block;
   margin: 12px 0;
+}
+
+.userStats .blockLink {
+}
+
+.userStats .yourPopularSheetsBlock > div {
+  padding: 10px 0;
+}
+
+.userStats .chartLabel {
+  text-align: center;
+  padding-top: 8px;
 }

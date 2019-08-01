@@ -6,6 +6,7 @@ const {StorySheetList}  = require('./Story');
 const { useDebounce }   = require('./Hooks');
 const {
     SimpleLinkedBlock,
+    SimpleInterfaceBlock,
     TextBlockLink,
     ThreeBox
     }                   = require('./Misc');
@@ -95,29 +96,10 @@ const UserDataBlock = ({user_data, site_data}) => (
             </div>
         </div>
         <div>
-            <h2>Your Favorite Texts</h2>
-            <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
-                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book}/>)}/>
-        </div>
-        <div>
-            <h2>Your Favorite Sheets</h2>
-            <div className="story">
-                <StorySheetList sheets={user_data.mostViewedSheets}/>
-            </div>
-        </div>
-        <div>
-            <h2>Your Most Popular Sheets</h2>
-            {user_data.popularSheets.map((sheet, i) => <div key={i}>
-                    <SimpleLinkedBlock en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
-                    <div>{sheet.views} Views</div>
-                </div>
-            )}
-        </div>
-        <div>
             <h2>Your Reading by Category</h2>
             <div className="chartRow">
-                <CategoriesDonut title="Your Reading" cats={user_data.categoriesRead}/>
-                <CategoriesDonut title="Average Sefaria User" cats={site_data.categoriesRead}/>
+                <CategoriesDonut title="Your Reading" heTitle="..." cats={user_data.categoriesRead}/>
+                <CategoriesDonut title="Average Sefaria User" heTitle="..." cats={site_data.categoriesRead}/>
             </div>
         </div>
         <div>
@@ -125,6 +107,25 @@ const UserDataBlock = ({user_data, site_data}) => (
             <div className="chartRow">
                 <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
             </div>
+        </div>
+        <div className="yourFavoriteTextsBlock">
+            <h2>Your Favorite Texts</h2>
+            <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
+                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book}/>)}/>
+        </div>
+        <div className="yourFavoriteSheetsBlock">
+            <h2>Your Favorite Sheets</h2>
+            <div className="story">
+                <StorySheetList sheets={user_data.mostViewedSheets} compact={true} smallfonts={true}/>
+            </div>
+        </div>
+        <div className="yourPopularSheetsBlock">
+            <h2>Your Most Popular Sheets</h2>
+            {user_data.popularSheets.map((sheet, i) => <div key={i}>
+                    <SimpleLinkedBlock classes="chapterText lowercase sheetLink" en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
+                    <SimpleInterfaceBlock classes="sheetViews smallText" en={sheet.views +" Views"} he={sheet.views + " צפיות"}/>
+                </div>
+            )}
         </div>
     </div>
 );
@@ -149,8 +150,8 @@ const CategoryBars = ({user_cats, site_cats}) => {
     const svg_ref = useRef();
 
     const height = 400;
-    const width = 610;
-    const margin = {top: 10, right: 10, bottom: 20, left: 40};
+    const width = 660;
+    const margin = {top: 10, right: 0, bottom: 20, left: 0};
 
     const keys = ["user", "site"];
 
@@ -220,7 +221,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
     );
 };
 
-const CategoriesDonut = ({cats, title}) => {
+const CategoriesDonut = ({cats, title, heTitle}) => {
     const svg_ref = useRef();
 
     const width = 280;
@@ -281,7 +282,7 @@ const CategoriesDonut = ({cats, title}) => {
     return (
         <div className="chartWrapper">
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
-            <h2>{title}</h2>
+            <SimpleInterfaceBlock classes="chartLabel smallText" en={title} he={heTitle}/>
         </div>
     );
 };

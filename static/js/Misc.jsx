@@ -880,7 +880,7 @@ class ProfileListing extends Component {
     }
   }
   render() {
-    const { url, image, name, uid, is_followed, toggleSignUpModal, organization } = this.props;
+    const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
@@ -895,7 +895,7 @@ class ProfileListing extends Component {
         <div className="authorByLineText">
           <SimpleLinkedBlock
             classes="authorName"
-            aclasses="systemText"
+            aclasses={smallfonts?"smallText":"systemText"}
             url={url}
             en={name}
             he={name}
@@ -905,7 +905,7 @@ class ProfileListing extends Component {
           </SimpleLinkedBlock>
           {
             !!organization ? <SimpleInterfaceBlock
-              classes="systemText authorOrganization"
+              classes={"authorOrganization" + (smallfonts?"smallText":"systemText")}
               en={organization}
               he={organization}
             />:null
