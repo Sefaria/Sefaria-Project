@@ -18,6 +18,8 @@ const MARK_TAGS = {
     strong: 'bold',
     b: 'bold',
     u: 'underline',
+    small: 'small',
+    big: 'big',
 };
 
 const BLOCK_TAGS = {
@@ -27,8 +29,19 @@ const BLOCK_TAGS = {
     li: 'list-item',
     ol: 'numbered-list',
     h1: 'heading-one',
-    h2: 'heading-two'
+    h2: 'heading-two',
 };
+
+const sheet_item_els = {
+    ref: 'SheetSource',
+    comment: 'SheetComment',
+    outsideText: 'SheetOutsideText',
+    outsideBiText: 'SheetOutsideBiText',
+    media: 'SheetMedia',
+}
+
+
+
 
 
 export const rules = [
@@ -60,6 +73,10 @@ export const rules = [
                         return <li>{children}</li>
                     case 'numbered-list':
                         return <ol>{children}</ol>
+                    case 'small':
+                        return <small>{children}</small>
+                    case 'big':
+                        return <big>{children}</big>
                 }
             }
         },
@@ -83,7 +100,7 @@ export const rules = [
                         return <strong>{children}</strong>
                     case 'italic':
                         return <em>{children}</em>
-                    case 'underlined':
+                    case 'underline':
                         return <u>{children}</u>
                     case 'code':
                         return <code>{children}</code>
@@ -97,9 +114,134 @@ const html = new Html({rules})
 
 function SefariaEditor(props) {
 
+    function renderSheetItem(source) {
+
+        const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0]
+
+        switch (sheetItemType) {
+            case 'ref': {
+                const content = (
+                        {
+                            "object": "block",
+                            "type": sheet_item_els[sheetItemType],
+                            "data": {
+                                "ref": source.ref,
+                                "title": source.title || null,
+                                "node": source.node
+                            },
+                            "nodes": [
+                                {
+                                    "object": "block",
+                                    "type": "he",
+                                    "nodes": html.deserialize(source.text.he).toJSON()["document"]["nodes"]
+                                },
+                                {
+                                    "object": "block",
+                                    "type": "en",
+                                    "nodes": html.deserialize(source.text.en).toJSON()["document"]["nodes"]
+                                }
+                            ]
+                        }
+                )
+                return content
+            }
+            case 'comment': {
+                const content = (
+                        {
+                            "object": "block",
+                            "type": sheet_item_els[sheetItemType],
+                            "nodes": html.deserialize(source.comment).toJSON()["document"]["nodes"]
+                        }
+                )
+                return content
+            }
+            case 'outsideText': {
+                const content = (
+                        {
+                            "object": "block",
+                            "type": sheet_item_els[sheetItemType],
+                            "nodes": html.deserialize(source.outsideText).toJSON()["document"]["nodes"]
+                        }
+                )
+                return content
+            }
+            case 'outsideBiText': {
+                const content = (
+                        {
+                            "object": "block",
+                            "type": sheet_item_els[sheetItemType],
+                            "nodes": [
+                                {
+                                    "object": "block",
+                                    "type": "he",
+                                    "nodes": html.deserialize(source.outsideBiText.he).toJSON()["document"]["nodes"]
+                                },
+                                {
+                                    "object": "block",
+                                    "type": "en",
+                                    "nodes": html.deserialize(source.outsideBiText.en).toJSON()["document"]["nodes"]
+                                }
+                            ]
+                        }
+                )
+                return content
+            }
+            case 'media': {
+                const content = (
+                        {
+                            "object": "block",
+                            "type": sheet_item_els[sheetItemType],
+                            "data": {
+                                "mediaUrl": source.media
+                            },
+                            "nodes": [
+                                {
+                                    "object": "text",
+                                    "text": source.media
+                                }
+                            ]
+                        }
+                )
+                return content
+            }
+            case 'comment': {
+                const content = (
+                        {
+                            "object": "block",
+                            "type": sheet_item_els[sheetItemType],
+                            "nodes": [
+                                {
+                                    "object": "text",
+                                    "text": sheet_item_els[sheetItemType]
+                                }
+                            ]
+                        }
+                )
+                return content
+            }
+            default: {
+                return {
+                    "object": "text",
+                    "text": ""
+                }
+
+            }
+        }
+    }
+
     function transformSheetJsonToDraft(sheet) {
         const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
-        return (
+
+        const sourceNodes = sheet.sources.map(source => (
+                {
+                    "object": "block",
+                    "type": "SheetItem",
+                    "nodes": [renderSheetItem(source)]
+                }
+            )
+        );
+
+        let sheetJSON = (
             {
                 "object": "value",
                 "document": {
@@ -165,13 +307,8 @@ function SefariaEditor(props) {
                         },
                         {
                             "object": "block",
-                            "type": "paragraph",
-                            "nodes": [
-                                {
-                                    "object": "text",
-                                    "text": "w00t",
-                                }
-                            ]
+                            "type": "SheetContent",
+                            "nodes": sourceNodes
                         },
 
 
@@ -179,6 +316,11 @@ function SefariaEditor(props) {
                 }
             }
         )
+
+        console.log(sheetJSON)
+
+
+        return sheetJSON;
     }
 
 
@@ -187,22 +329,22 @@ function SefariaEditor(props) {
         document: {
             nodes: [
                 {match: {type: 'SheetMetaDataBox'}, min: 1, max: 1},
-                {match: {type: 'paragraph'}, min: 1},
+                {match: {type: 'SheetContent'}, min: 1},
             ],
             normalize: (editor, {code, node, child, index}) => {
                 switch (code) {
                     case 'child_type_invalid': {
-                        const type = index === 0 ? 'SheetMetaDataBox' : 'paragraph';
+                        const type = index === 0 ? 'SheetMetaDataBox' : 'SheetContent';
                         return editor.setNodeByKey(child.key, type)
                     }
                     case 'child_min_invalid': {
-                        const block = Block.create(index === 0 ? 'SheetMetaDataBox' : 'paragraph');
+                        const block = Block.create(index === 0 ? 'SheetMetaDataBox' : 'SheetContent');
                         return editor.insertNodeByKey(node.key, index, block)
                     }
                 }
             },
         },
-       blocks: {
+        blocks: {
             SheetMetaDataBox: {
                 nodes: [
                     {
@@ -302,12 +444,104 @@ function SefariaEditor(props) {
                 }
 
             },
-            paragraph: {
+            SheetContent: {
+                nodes: [
+                    {
+                        match: {type: 'SheetItem'},
+                    },
+                ],
+            },
+            SheetItem: {
                 nodes: [
                     {
                         match: {object: 'text'},
                     },
-                ],
+                    {
+                        match: {type: 'SheetSource'},
+                    },
+                    {
+                        match: {type: 'SheetComment'},
+                    },
+                    {
+                        match: {type: 'SheetOutsideText'},
+                    },
+                    {
+                        match: {type: 'SheetOutsideBiText'},
+                    },
+                    {
+                        match: {type: 'SheetMedia'},
+                    },
+                ]
+            },
+            SheetSource: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                    {
+                        match: {object: 'block'},
+                    },
+                ]
+            },
+            he: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                    {
+                        match: {object: 'block'},
+                    },
+                ]
+            },
+            en: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                    {
+                        match: {object: 'block'},
+                    },
+                ]
+            },
+            SheetComment: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                    {
+                        match: {object: 'block'},
+                    },
+                ]
+            },
+            SheetOutsideText: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                    {
+                        match: {object: 'block'},
+                    },
+                ]
+            },
+            SheetOutsideBiText: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                    {
+                        match: {object: 'block'},
+                    },
+                ]
+            },
+            SheetMedia: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                    {
+                        match: {object: 'block'},
+                    },
+                ]
             },
             SheetTitle: {
                 nodes: [
@@ -315,9 +549,9 @@ function SefariaEditor(props) {
                         match: {object: 'text'},
                     },
                 ],
-                  data: {
+                data: {
                     title: v => v,
-      },
+                },
             },
 
         },
@@ -334,11 +568,63 @@ function SefariaEditor(props) {
         const { data } = node;
 
         switch (node.type) {
-            case 'paragraph':
+            case 'SheetItem':
                 return (
-                    <p {...attributes}>
+                    <div className="sheetItem segment" {...attributes}>
                         {children}
-                    </p>
+                    </div>
+                );
+            case 'SheetSource':
+                return (
+                    <div {...attributes}>
+                        {children}
+                    </div>
+                );
+
+            case 'SheetComment':
+                return (
+                    <div {...attributes}>
+                        {children}
+                    </div>
+                );
+
+            case 'SheetOutsideText':
+                return (
+                    <div {...attributes}>
+                        {children}
+                    </div>
+                );
+
+            case 'SheetOutsideBiText':
+                return (
+                    <div {...attributes}>
+                        {children}
+                    </div>
+                );
+
+            case 'SheetMedia':
+                return (
+                    <div {...attributes}>
+                        {children}
+                    </div>
+                );
+            case 'he':
+                return (
+                    <div className="he">
+                        {children}
+                    </div>
+                );
+            case 'en':
+                return (
+                    <div className="en">
+                        {children}
+                    </div>
+                );
+            case 'SheetContent':
+                return (
+                    <div className="text" {...attributes}>
+                        {children}
+                    </div>
                 );
             case 'SheetMetaDataBox':
                 return (
