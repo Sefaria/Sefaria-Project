@@ -51,7 +51,7 @@ urlpatterns = [
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
-    url(r'^user_stats/?$', reader_views.user_stats),
+    url(r'^torahtracker/?$', reader_views.user_stats),
 
 ]
 

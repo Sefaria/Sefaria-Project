@@ -151,7 +151,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
 
     const height = 400;
     const width = 660;
-    const margin = {top: 10, right: 0, bottom: 20, left: 0};
+    const margin = {top: 10, right: 0, bottom: 0, left: 0};
 
     const keys = ["user", "site"];
 
