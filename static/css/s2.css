@@ -1938,7 +1938,6 @@ a.readerNavCategory {
   cursor: pointer;
 }
 .versionBlock .versionTitle {
-  display: block;
   font-size: 18px;
   color: #000;
   unicode-bidi: plaintext;
@@ -1966,6 +1965,10 @@ a.readerNavCategory {
   padding-top: 10px;
   color: #666;
   font-size: 18px;
+}
+.versionBlock .versionEditIcon {
+  margin: 0 7px;
+  vertical-align: 1px;
 }
 .modTools {
   width: 50%;
