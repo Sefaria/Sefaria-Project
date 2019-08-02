@@ -25,10 +25,17 @@ class WebPage(abst.AbstractMongoRecord):
         "description",
         "body",
     ]
+
     def load(self, url_or_query):
         query = {"url": url_or_query} if isinstance(url_or_query, basestring) else url_or_query
         return super(WebPage, self).load(query)
         
+    def _set_derived_attributes(self):
+        self.domain  = urlparse(self.url).netloc
+        self.favicon = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
+        self._load_site_data()
+        self.site_name = self._site_data["name"] if self._site_data else self.domain
+
     def _init_defaults(self):
         self.linkerHits = 0
 
@@ -40,28 +47,65 @@ class WebPage(abst.AbstractMongoRecord):
     def _validate(self):
         super(WebPage, self)._validate()
 
-    def domain(self):
-        return urlparse(self.url).netloc
-
-    def favicon(self):
-        return "https://www.google.com/s2/favicons?domain={}".format(self.domain())
-
     def update_from_linker(self, updates):
         self.load_from_dict(updates)
         self.linkerHits += 1
         self.lastUpdated = datetime.now()
         self.save()
 
-    def contents(self, **kwargs):
-        d = super(WebPage, self).contents(**kwargs)
-        d["domain"] = self.domain()
-        d["faviconUrl"] = self.favicon() 
-        return d
+    def _load_site_data(self):
+        self._site_data = None
+        for site in sites_data:
+            for domain in site["domains"]:
+                if self.domain.endswith(domain):
+                    self._site_data = site
+                    return
 
     def client_contents(self):
         d = self.contents()
+        d["domain"]     = self.domain
+        d["siteName"]   = self.site_name
+        d["faviconUrl"] = self.favicon 
         del d["lastUpdated"]
+        d = self.clean_client_contents(d)
         return d
+
+    def clean_client_contents(self, d):
+        d["title"]       = self.clean_title()
+        d["description"] = self.clean_description()
+        return d
+
+    def clean_title(self):
+        if not self._site_data:
+            return self.title
+        title = self.title
+        title = title.replace("&amp;", "&")
+        brands = [self.site_name] + self._site_data.get("title_branding", [])
+        separators = [u"-", u"|", u"—", u"»"]
+        for separator in separators:
+            for brand in brands:
+                if self._site_data.get("initial_title_branding", False):
+                    brand_str = u"{} {} ".format(brand, separator)
+                    if title.startswith(brand_str):
+                        title = title[len(brand_str):]                   
+                else:    
+                    brand_str = u" {} {}".format(separator, brand)
+                    if title.endswith(brand_str):
+                        title = title[:-len(brand_str)]
+
+        return title if len(title) else self._site_data["name"]
+
+    def clean_description(self):
+        description = self.description
+        for uhoh_string in ["*/", "*******"]:
+            if description.find(uhoh_string) != -1:
+                return None
+        description = description.replace("&amp;", "&")
+        description = description.replace("&nbsp;", " ")
+
+
+        return description
+
 
 class WebPageSet(abst.AbstractMongoSet):
     recordClass = WebPage
@@ -78,13 +122,13 @@ def get_webpages_for_ref(tref):
     for webpage in results:
         matched_refs = [r for r in webpage.refs if regex.match(ref_re, r)]
         for ref in matched_refs:
-            webpage_contents = webpage.contents()
-            del webpage_contents["lastUpdated"]
+            webpage_contents = webpage.client_contents()
+            if webpage_contents["domain"] in sites_blacklist:
+                continue
             webpage_contents["anchorRef"] = ref
             client_results.append(webpage_contents)
     
     return client_results
-
 
 
 def webpages_stats():
@@ -158,3 +202,82 @@ def webpages_stats():
 
         print "{}: {}%".format(cat, round(covered*100.0/total, 2))
 
+
+
+sites_data = [
+    {   
+        "name":           "My Jewish Learning",
+        "domains":        ["myjewishlearning.com"],
+    },
+    {
+        "name":           "Virtual Beit Midrash",
+        "domains":        ["etzion.org.il", "vbm-torah.org"],
+        "title_branding": ["vbm haretzion"],
+    },
+    {
+        "name":           "Rabbi Sacks",
+        "domains":        ["rabbisacks.org"],
+    },
+    {
+        "name":           "Halachipedia",
+        "domains":        ["halachipedia.com"],
+    },
+    {
+        "name":           "Torah In Motion",
+        "domains":        ["torahinmotion.org"],
+    },
+    {
+        "name":           u"בית הלל",
+        "domains":        ["beithillel.org.il"],
+        "title_branding": [u"בית הלל - הנהגה תורנית קשובה"]
+    },
+    {
+        "name":                   "ParshaNut",
+        "domains":                ["parshanut.com"],
+        "title_branding":         ["PARSHANUT"],
+        "initial_title_branding": True,
+    },
+    {
+        "name":            "Real Clear Daf",
+        "domains":         ["realcleardaf.com"],
+    },
+    {
+        "name":           "NACH NOOK",
+        "domains":        ["nachnook.com"],
+    },
+    {
+        "name":           "Congregation Beth Jacob, Redwood City",
+        "domains":        ["bethjacobrwc.org"],
+        "title_branding": ["CBJ"]
+    },
+    {
+        "name":    "Amen V’Amen",
+        "domains": ["amenvamen.com"],
+    },
+    {
+        "name":    "Rabbi Sharon Sobel",
+        "domains": ["rabbisharonsobel.com"],
+    },
+    {
+        "name":    "The Kosher Backpacker",
+        "domains": ["thekosherbackpacker.com"]
+    }
+
+]
+sites_blacklist = ["dailympails.gq", "192.116.49.119", "webcache.googleusercontent.com", "www.google.com"]
+
+
+"""
+chinuch.org.uk: 3
+shamar.org: 2
+cncc.bingj.com: 1
+www.kveller.com: 1
+www.torahmusings.com: 1
+www.shamar.org: 1
+www.mechon-mamre.org: 1
+www.ou.org: 1
+www.chabad.org: 1
+he.wikisource.org: 1
+blogs.timesofisrael.com: 1
+www.meshivat-nefesh.org.il: 1
+"""

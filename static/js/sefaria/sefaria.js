@@ -1248,6 +1248,7 @@ Sefaria = extend(Sefaria, {
   _webpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs;
+    var ref = Sefaria.normRefList(refs);
     refs.map(r => {
       // Also include webpages linked at section level. Deduped below. 
       if (r.indexOf(":") !== -1) {
@@ -1264,7 +1265,18 @@ Sefaria = extend(Sefaria, {
     return webpages.filter((obj, pos, arr) => {
       // Remove duplicates by url field
       return arr.map(mapObj => mapObj["url"]).indexOf(obj["url"]) === pos;
-    }).sort((a, b) => (a.linkerHits > b.linkerHits) ? -1 : 1);
+    }).sort((a, b) => {
+      var aIsHe, bIsHe;
+      [aIsHe, bIsHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
+      if (aIsHe !== bIsHe) { return bIsHe ? -1 : 1; }
+
+      // 3: exact match, 2: range match: 1: section match
+      var aSpecificity, bSpecificity;
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
+      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+
+      return (a.linkerHits > b.linkerHits) ? -1 : 1
+    });
   },
   _related: {},
   related: function(ref, callback) {

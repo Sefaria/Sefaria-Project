@@ -210,7 +210,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "extended notes"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "Web Pages", "extended notes"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"

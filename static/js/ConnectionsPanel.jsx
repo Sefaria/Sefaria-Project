@@ -28,7 +28,6 @@ const classNames             = require('classnames');
 import Component             from 'react-class';
 
 
-
 class ConnectionsPanel extends Component {
   constructor(props) {
     super(props);
@@ -287,7 +286,8 @@ class ConnectionsPanel extends Component {
                     openComparePanel={this.props.openComparePanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
-                    notesCount={Sefaria.notesTotalCount(this.props.srefs)} />
+                    notesCount={Sefaria.notesTotalCount(this.props.srefs)}
+                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length} />
                   </div>);
 
     } else if (this.props.mode === "ConnectionsList") {
@@ -391,10 +391,13 @@ class ConnectionsPanel extends Component {
                     onCitationClick={this.props.onCitationClick}
                     interfaceLang={this.props.interfaceLang} />);
 
-    } else if (this.props.mode === "WebPages") {
+    } else if (this.props.mode === "WebPages" || this.props.mode === "WebPagesList") {
       content = (<WebPagesList
                     srefs={this.props.srefs}
-                    interfaceLang={this.props.interfaceLang} />);
+                    filter={this.props.mode == "WebPages" ? null : this.props.webPagesFilter}
+                    setWebPagesFilter={this.props.setWebPagesFilter}
+                    interfaceLang={this.props.interfaceLang} 
+                    key="WebPages"/>);
 
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
@@ -474,9 +477,8 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages"].indexOf(this.props.mode) != -1;
 
-    //marginless = 0;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -544,8 +546,7 @@ ConnectionsPanel.propTypes = {
 
 
 class ResourcesList extends Component {
-  // A list of Resources in addition to connections
-
+  // A list of Resources in addition to connection
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
@@ -553,10 +554,10 @@ class ResourcesList extends Component {
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
-              <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
+              <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -724,18 +725,42 @@ PublicSheetsList.propTypes = {
 
 class WebPagesList extends Component {
   // List of web pages for a ref in the sidebar
+  setFilter(filter) {
+    this.props.setWebPagesFilter(filter);
+  }
   render() {
-    var webpages = Sefaria.webPagesByRef(this.props.srefs);
-    var content = webpages.length ? webpages.map(webpage => {
-      return (<div className="webpage" key={webpage.url}>
-        <img className="icon" src={webpage.faviconUrl} />
-        <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
-        <div className="domain">{webpage.domain}</div>
-        <div className="description">{webpage.description}</div>
-        <div className="stats">[Hits: {webpage.linkerHits}, Citing: {webpage.anchorRef}]</div>
-      </div>)
-    }, this) : null;
-    return content && content.length ? (<div className="webpageList">{content}</div>) : null;
+    let webpages = Sefaria.webPagesByRef(this.props.srefs)
+
+    if (!this.props.filter) {
+      let sites = {};
+      webpages.map(page => {
+        if (page.siteName in sites) {
+          sites[page.siteName].count++;
+        } else {
+          sites[page.siteName] = {name: page.siteName, faviconUrl: page.faviconUrl, count: 1};
+        }
+      });
+      sites = Object.values(sites).sort((a, b) => b.count - a.count);
+      const content = sites.map(site => {
+        return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
+          <img className="icon" src={site.faviconUrl} />
+          <span className="siteName toolsButtonText">{site.name} <span className="connectionsCount">({site.count})</span></span>
+        </div>);
+      });
+      return content && content.length ? (<div className="websiteList">{content}</div>) : null;
+    } else {
+      webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
+      const content = webpages.length ? webpages.map(webpage => {
+        return (<div className="webpage" key={webpage.url}>
+          <img className="icon" src={webpage.faviconUrl} />
+          <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
+          <div className="domain">{webpage.domain}</div>
+          {webpage.description ? <div className="description">{webpage.description}</div> : null}
+          <div className="stats">[Hits: {webpage.linkerHits}, Citing: {webpage.anchorRef}]</div>
+        </div>)
+      }, this) : null;
+      return content && content.length ? (<div className="webpageList">{content}</div>) : null;
+    }
   }
 }
 WebPagesList.propTypes = {
