@@ -3025,7 +3025,7 @@ function buildSource($target, source, appendOrInsert) {
 	}
 	else if ("media" in source) {
 		var mediaLink;
-		var mediaClass = "media fullWidth";
+		var mediaClass = "media";
 
 		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
@@ -3036,9 +3036,11 @@ function buildSource($target, source, appendOrInsert) {
 		}
 		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
 			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
+			mediaClass = "media fullWidth";
 		}
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+			mediaClass = "media fullWidth";
 		}
 		else {
 			mediaLink = '';

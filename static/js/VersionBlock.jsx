@@ -211,7 +211,7 @@ class VersionBlock extends Component {
           </span>
         ;
       }
-      var edit_icon = (Sefaria.is_moderator)?<i className="fa fa-pencil" aria-hidden="true" onClick={this.openEditor}/>:"";
+      var edit_icon = (Sefaria.is_moderator && !this.props.openVersionInSidebar)?<i className="fa fa-pencil versionEditIcon" aria-hidden="true" onClick={this.openEditor}/>:"";
 
       var versionNotes = "";
       if (this.props.showNotes) {

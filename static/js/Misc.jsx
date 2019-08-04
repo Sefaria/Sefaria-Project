@@ -774,8 +774,8 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
   const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
-          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}'`;
+      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick() {
     if (isPosting) { return; }
