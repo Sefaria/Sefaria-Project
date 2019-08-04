@@ -84,6 +84,7 @@ class VersionsBox extends Component {
               {
                 this.state.versionLangMap[lang].map((v) => (
                   <VersionBlock
+                    sidebarDisplay={true}
                     version={v}
                     currVersions={currVersions}
                     currentRef={this.props.srefs[0]}

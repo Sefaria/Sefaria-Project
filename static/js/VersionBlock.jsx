@@ -4,7 +4,6 @@ const classNames             = require('classnames');
 const Sefaria                = require('./sefaria/sefaria');
 const $                      = require('./sefaria/sefariaJquery');
 import Component             from 'react-class';
-const { BuyButton }          = require('./Misc');
 
 
 class VersionBlock extends Component {
@@ -229,16 +228,8 @@ class VersionBlock extends Component {
       const versionSidebarLink = this.makeVersionLink('side');
       const versionReaderLink = this.makeVersionLink(this.props.version.language);
 
-      const buyButton = (this.props.additionalInterfaceElements &&  !this.props.version.merged && this.props.version.purchaseInformationURL) ?
-          <BuyButton
-              title={this.props.version.title}
-              heTitle={this.props.version.heTitle}
-              image={this.props.version.purchaseInformationImage}
-              url={this.props.version.purchaseInformationURL} />
-          : null;
-      return (
+      let versionBlockRes = (
         <div className = "versionBlock">
-          {buyButton}
           {!!this.props.openVersionInSidebar || !!this.props.openVersionInReader ?
             <div>
               <a className="versionTitle"
@@ -278,6 +269,15 @@ class VersionBlock extends Component {
           }
         </div>
       );
+
+      if(this.props.sidebarDisplay && !this.props.version.merged && this.props.version.purchaseInformationURL){
+        return (<VersionBuyButton
+              image={this.props.version.purchaseInformationImage}
+              url={this.props.version.purchaseInformationURL} >{versionBlockRes}</VersionBuyButton>);
+      }else{
+        return versionBlockRes;
+      }
+
     }
 
   }
@@ -296,12 +296,43 @@ VersionBlock.propTypes = {
   isCurrent:       PropTypes.bool,
   openVersion:     PropTypes.func,
   viewExtendedNotes: PropTypes.func,
-  additionalInterfaceElements: PropTypes.bool,
+  sidebarDisplay: PropTypes.bool,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
   showNotes: true,
-  additionalInterfaceElements: false
+  sidebarDisplay: false
+};
+
+
+const VersionBuyButton = ({children, image, url}) => (
+    <div className="version-with-buy-button">
+      <div className="version-text-image">
+        {children}
+        <div className="version-with-buy-button-image">
+          <img
+            className="buy-img"
+            src={image}
+            alt="Buy Now"
+          />
+        </div>
+      </div>
+      <div className="version-with-buy-button-link">
+        <a className="button fillWidth" href={url} target="_blank">
+          <span className="int-en">Buy Now</span>
+          <span className="int-he">לקניית הספר</span>
+        </a>
+      </div>
+    </div>
+);
+
+VersionBuyButton.propTypes = {
+  title: PropTypes.string,
+  heTitle: PropTypes.string,
+  image: PropTypes.string,
+  url: PropTypes.string,
 };
 
 module.exports = VersionBlock;
+
+

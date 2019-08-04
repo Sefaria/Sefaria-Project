@@ -5818,37 +5818,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection {
   padding-bottom: 30px;
 }
-.buy-button {
+.version-with-buy-button {
   display: flex;
   margin-bottom: 40px;
-}
-.buy-button .buy-link{
-  min-width: 50%;
-}
-.interface-english .buy-button .buy-image{
-  margin-right: 15px;
-}
-.interface-hebrew .buy-button .buy-image{
-  margin-left: 15px;
-}
-.buy-button .book-name{
-  font-size: 25px;
-  margin-bottom: 5px;
-}
-.buy-button a.button{
-  color: #FFFFFF;
-}
-.buy-button .buy-link{
-  display: flex;
   flex-direction: column;
 }
-.buy-button img.buy-img {
-    height: 105px;
-    width: 65px;
-    border-radius: 2px;
+.version-with-buy-button .version-text-image{
+  display: flex;
+  justify-content: space-between;
 }
-.buy-button .book-name .int-en {
-    font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+.version-with-buy-button .version-text-image .versionBlock{
+  align-self: flex-start;
+}
+.version-with-buy-button .version-text-image .version-with-buy-button-image{
+  align-self: flex-end;
+}
+.version-with-buy-button .version-with-buy-button-link{
+  align-content: flex-start;
+  min-width: 50%;
+}
+.version-with-buy-button .version-with-buy-button-link a.button{
+  color: #FFFFFF;
+}
+.version-with-buy-button .version-text-image .version-with-buy-button-image img.buy-img {
+    height: 105px;
+    width: 85px;
+    border-radius: 2px;
 }
 .versionsBox .versionLanguage {
   padding-bottom: 15px;

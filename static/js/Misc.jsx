@@ -518,33 +518,7 @@ SimpleLinkedBlock.propTypes = {
     aclasses: PropTypes.string
 };
 
-const BuyButton = ({title, heTitle, image, url}) => (
-    <div className="buy-button">
-      <div className="buy-image">
-        <img
-          className="buy-img"
-          src={image}
-          alt="Buy Now"
-        />
-      </div>
-      <div className="buy-link">
-        <div className="book-name">
-          <span className="int-en">{title}</span>
-          <span className="int-he">{heTitle}</span>
-        </div>
-        <a className="button fillWidth" href={url} target="_blank">
-          <span className="int-en">Buy Now</span>
-          <span className="int-he">לקניית הספר</span>
-        </a>
-      </div>
-    </div>
-);
-BuyButton.propTypes = {
-  title: PropTypes.string,
-  heTitle: PropTypes.string,
-  image: PropTypes.string,
-  url: PropTypes.string,
-};
+
 
 
 
@@ -1770,4 +1744,3 @@ module.exports.ThreeBox                                  = ThreeBox;
 module.exports.ToggleSet                                 = ToggleSet;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;
-module.exports.BuyButton                                 = BuyButton;

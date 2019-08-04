@@ -161,7 +161,7 @@ class AboutBox extends Component {
           <span className="int-he">גרסה עברית נוכחית</span>
         </h2>
         <VersionBlock
-          additionalInterfaceElements = {true}
+          sidebarDisplay = {true}
           version={vh}
           currVersions={currVersions}
           currentRef={this.props.srefs[0]}
@@ -175,7 +175,7 @@ class AboutBox extends Component {
           <span className="int-he">גרסה אנגלית נוכחית</span>
         </h2>
         <VersionBlock
-          additionalInterfaceElements = {true}
+          sidebarDisplay = {true}
           version={ve}
           currVersions={currVersions}
           currentRef={this.props.srefs[0]}
