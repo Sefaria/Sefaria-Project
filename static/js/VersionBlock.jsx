@@ -318,7 +318,7 @@ const VersionBuyButton = ({children, image, url}) => (
         </div>
       </div>
       <div className="version-with-buy-button-link">
-        <a className="button fillWidth" href={url} target="_blank">
+        <a className="button" href={url} target="_blank">
           <span className="int-en">Buy Now</span>
           <span className="int-he">לקניית הספר</span>
         </a>

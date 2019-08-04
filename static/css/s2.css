@@ -1968,6 +1968,7 @@ a.readerNavCategory {
   padding-top: 10px;
   color: #666;
   font-size: 18px;
+  text-align: start;
 }
 .versionBlock .versionEditIcon {
   margin: 0 7px;
@@ -5820,7 +5821,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .version-with-buy-button {
   display: flex;
-  margin-bottom: 40px;
   flex-direction: column;
 }
 .version-with-buy-button .version-text-image{
@@ -5830,8 +5830,18 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .version-with-buy-button .version-text-image .versionBlock{
   align-self: flex-start;
 }
-.version-with-buy-button .version-text-image .version-with-buy-button-image{
-  align-self: flex-end;
+.versionsBox .version-with-buy-button{
+    border-top: solid 1px #CCC;
+}
+.versionsBox .version-with-buy-button .versionBlock{
+    border-top: none;
+}
+.versionsBox .version-with-buy-button .version-text-image .version-with-buy-button-image
+{
+  padding: 20px;
+}
+.versionsBox .version-with-buy-button .version-with-buy-button-link{
+    padding: 10px 20px;
 }
 .version-with-buy-button .version-with-buy-button-link{
   align-content: flex-start;
@@ -5839,10 +5849,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .version-with-buy-button .version-with-buy-button-link a.button{
   color: #FFFFFF;
+  padding: 7px 20px;
 }
 .version-with-buy-button .version-text-image .version-with-buy-button-image img.buy-img {
-    height: 105px;
-    width: 85px;
+    height: 85px;
     border-radius: 2px;
 }
 .versionsBox .versionLanguage {
