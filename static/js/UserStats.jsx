@@ -77,16 +77,18 @@ const UserChooser = ({setter}) => (
     </div>
 );
 
-const StatCard = ({icon_file, name, number}) => (
-    <div className="statcard">
-        <img src={"static/img/" + icon_file}/>
-        <div className="statcardValue">{number}</div>
-        <div className="statcardLabel">{name}</div>
+const UserDataBlock = ({user_data, site_data}) => (
+    <div>
+        <OverallActivityBlock user_data={user_data}/>
+        <DonutsBlock user_data={user_data} site_data={site_data}/>
+        <CategoryBarchartBlock user_data={user_data} site_data={site_data}/>
+        <YourFavoriteTextsBlock user_data={user_data} />
+        <YourFavoriteSheetsBlock user_data={user_data} />
+        <MostPopularSheetsBlock user_data={user_data} />
     </div>
 );
 
-const UserDataBlock = ({user_data, site_data}) => (
-    <div>
+const OverallActivityBlock = ({user_data}) => (
         <div>
             <h2>Your Overall Activity</h2>
             <div className="statcardRow">
@@ -95,6 +97,17 @@ const UserDataBlock = ({user_data, site_data}) => (
                 <StatCard icon_file="plus-icon-black.svg" number={user_data.sheetsThisPeriod} name="Sheets Created"/>
             </div>
         </div>
+);
+
+const StatCard = ({icon_file, name, number}) => (
+    <div className="statcard">
+        <img src={"static/img/" + icon_file}/>
+        <div className="statcardValue">{number}</div>
+        <div className="statcardLabel">{name}</div>
+    </div>
+);
+
+const DonutsBlock = ({user_data, site_data}) => (
         <div>
             <h2>Your Reading by Category</h2>
             <div className="chartRow">
@@ -102,23 +115,36 @@ const UserDataBlock = ({user_data, site_data}) => (
                 <CategoriesDonut title="Average Sefaria User" heTitle="..." cats={site_data.categoriesRead}/>
             </div>
         </div>
+);
+const CategoryBarchartBlock = ({user_data, site_data}) => (
         <div>
             <h2>Your Top Categories</h2>
             <div className="chartRow">
                 <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
             </div>
         </div>
+);
+const YourFavoriteTextsBlock = ({user_data}) => (
+    user_data.mostViewedRefs.length ?
         <div className="yourFavoriteTextsBlock">
             <h2>Your Favorite Texts</h2>
             <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
                 <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book}/>)}/>
         </div>
+    : null
+);
+const YourFavoriteSheetsBlock = ({user_data}) => (
+    user_data.mostViewedSheets.length ?
         <div className="yourFavoriteSheetsBlock">
             <h2>Your Favorite Sheets</h2>
             <div className="story">
                 <StorySheetList sheets={user_data.mostViewedSheets} compact={true} smallfonts={true}/>
             </div>
         </div>
+    : null
+);
+const MostPopularSheetsBlock = ({user_data}) => (
+    user_data.popularSheets.length ?
         <div className="yourPopularSheetsBlock">
             <h2>Your Most Popular Sheets</h2>
             {user_data.popularSheets.map((sheet, i) => <div key={i}>
@@ -127,7 +153,7 @@ const UserDataBlock = ({user_data, site_data}) => (
                 </div>
             )}
         </div>
-    </div>
+    : null
 );
 
 const mapToPercentage = data => {

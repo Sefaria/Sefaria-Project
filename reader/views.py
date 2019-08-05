@@ -921,7 +921,7 @@ def story_editor(request):
     return menu_page(request, props, "story_editor", title)
 
 
-@staff_member_required
+@login_required
 def user_stats(request):
     props = base_props(request)
     title = _("User Stats")

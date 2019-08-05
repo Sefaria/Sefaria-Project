@@ -33,7 +33,7 @@ class UserProfile extends Component {
       { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
       { text: Sefaria._("Followers"), invisible: true },
       { text: Sefaria._("Following"), invisible: true },
-      { text: Sefaria._("Stats"), icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true}
+      { text: Sefaria._("Torah Tracker"), icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true}
     ];
     if (showNotes) {
       tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
