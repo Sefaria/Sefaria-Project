@@ -200,7 +200,7 @@ class Search {
 
         // return whole queue if the last item in queue is equal to minValue
 
-        if (minValue - 0.01 <= queue[queue.length - 1][sortType] <= minValue + 0.01) // float comparison
+        if (Math.abs(queue[queue.length - 1][sortType] - minValue) <= 0.001 ) // float comparison
             return queue.length;
 
         const pivot = queue.findIndex(x => x[sortType] > minValue);
@@ -321,7 +321,6 @@ class Search {
          success: callback on success
          error: callback on error
          */
-        if (args.type === "text") {debugger;}
         if (!args.query) {
             return;
         }
