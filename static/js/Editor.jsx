@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Editor} from 'slate-react'
-import {Block, Value, Data} from 'slate'
+import {Block, Value, Data, Inline} from 'slate'
 import Html from 'slate-html-serializer'
 
 const {
@@ -126,18 +126,47 @@ function SefariaEditor(props) {
                             "type": sheet_item_els[sheetItemType],
                             "data": {
                                 "ref": source.ref,
+                                "heRef": source.heRef,
                                 "title": source.title || null,
                                 "node": source.node
                             },
                             "nodes": [
+                                        {
+                                            "object": "block",
+                                            "type": "TextRef",
+                                            "data": {
+                                                "ref": source.ref
+                                            },
+                                            "nodes": [
+                                                {
+                                                    "object": "text",
+                                                    "text": source.ref
+                                                }
+                                            ]
+                                        },
                                 {
                                     "object": "block",
                                     "type": "he",
+                                    "data": {"heRef": source.heRef},
                                     "nodes": html.deserialize(source.text.he).toJSON()["document"]["nodes"]
                                 },
                                 {
+                                            "object": "block",
+                                            "type": "TextRef",
+                                            "data": {
+                                                "ref": source.ref
+                                            },
+                                            "nodes": [
+                                                {
+                                                    "object": "text",
+                                                    "text": source.heRef
+                                                }
+                                            ]
+                                        },
+                                {
                                     "object": "block",
                                     "type": "en",
+                                    "data": {"ref": source.ref},
                                     "nodes": html.deserialize(source.text.en).toJSON()["document"]["nodes"]
                                 }
                             ]
@@ -317,9 +346,6 @@ function SefariaEditor(props) {
             }
         )
 
-        console.log(sheetJSON)
-
-
         return sheetJSON;
     }
 
@@ -343,6 +369,8 @@ function SefariaEditor(props) {
                     }
                 }
             },
+        },
+        inlines: {
         },
         blocks: {
             SheetMetaDataBox: {
@@ -473,6 +501,7 @@ function SefariaEditor(props) {
                     },
                 ]
             },
+
             SheetSource: {
                 nodes: [
                     {
@@ -480,6 +509,9 @@ function SefariaEditor(props) {
                     },
                     {
                         match: {object: 'block'},
+                    },
+                    {
+                        match: {type: 'TextRef'},
                     },
                 ]
             },
@@ -511,7 +543,7 @@ function SefariaEditor(props) {
                     {
                         match: {object: 'block'},
                     },
-                ]
+               ]
             },
             SheetOutsideText: {
                 nodes: [
@@ -521,7 +553,7 @@ function SefariaEditor(props) {
                     {
                         match: {object: 'block'},
                     },
-                ]
+               ]
             },
             SheetOutsideBiText: {
                 nodes: [
@@ -531,7 +563,7 @@ function SefariaEditor(props) {
                     {
                         match: {object: 'block'},
                     },
-                ]
+               ]
             },
             SheetMedia: {
                 nodes: [
@@ -553,6 +585,16 @@ function SefariaEditor(props) {
                     title: v => v,
                 },
             },
+            TextRef: {
+                nodes: [
+                    {
+                        match: {object: 'text'},
+                    },
+                ],
+                data: {
+                    ref: v => v,
+                },
+            },
 
         },
 
@@ -565,9 +607,13 @@ function SefariaEditor(props) {
 
     function renderBlock(props, editor, next) {
         const { attributes, children, node } = props;
-        const { data } = node;
+        const {data} = node;
+
+        const heRef = data.get('heRef');
+        const ref = data.get('ref');
 
         switch (node.type) {
+
             case 'SheetItem':
                 return (
                     <div className="sheetItem segment" {...attributes}>
@@ -575,8 +621,9 @@ function SefariaEditor(props) {
                     </div>
                 );
             case 'SheetSource':
+                console.log(children[0].props)
                 return (
-                    <div {...attributes}>
+                    <div className="SheetSource" {...attributes}>
                         {children}
                     </div>
                 );
@@ -665,6 +712,12 @@ function SefariaEditor(props) {
                 return (
                     <SheetTitle {...attributes} title={title}>{children}</SheetTitle>
                 );
+            case 'TextRef':
+                const ref = data.get('ref')
+                console.log(ref)
+                return (
+                    <div className="ref"><a href={"/"+ref}>{children}</a></div>
+                )
             default:
                 return next()
         }
@@ -685,25 +738,16 @@ function SefariaEditor(props) {
     }
 
     function renderInline(props, editor, next) {
+        console.log("inlinr!")
+
         const { attributes, children, node } = props
         const { data } = node
         switch (node.type) {
-            case 'SheetAuthorStatement':
-                const authorUrl = data.get('authorUrl')
-                const authorImage = data.get('authorImage')
-                const authorStatement = data.get('authorStatement')
+            case 'TextRef':
+                const ref = data.get('ref')
+                console.log(ref)
                 return (
-                    <SheetAuthorStatement
-                        authorUrl={authorUrl}
-                        authorImage={authorImage}
-                        authorStatement={authorStatement}
-                        schema={schema}
-                    >{children}</SheetAuthorStatement>
-                )
-            case 'SheetTitle':
-                const title = data.get('title')
-                return (
-                    <SheetTitle {...attributes} title={title}>{children}</SheetTitle>
+                    <div className="ref"><a href={"/"+ref}>{children}</a></div>
                 )
             default:
                 return next()
