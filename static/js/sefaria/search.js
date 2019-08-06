@@ -30,7 +30,9 @@ class Search {
       this.dictaCounts = null;
       this.sefariaSheetsResult = null;
       this.buckets = [];
-      this.dictaSearchUrl = 'http://34.206.201.228';
+      this.queryAborter = new HackyQueryAborter();
+      // this.dictaSearchUrl = 'http://34.206.201.228';
+      this.dictaSearchUrl = 'https://sefaria.loadbalancer.dicta.org.il';
     }
     cache(key, result) {
         if (result !== undefined) {
@@ -144,7 +146,9 @@ class Search {
                 lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length
 
             }
-        }).catch(x => console.log(x));
+        }).catch(x => {
+            console.log(x)
+        });
     }
     dictaBooksQuery(args, wrapper) {
         return new Promise((resolve, reject) => {
@@ -187,13 +191,28 @@ class Search {
     isDictaQuery(args) {
         return RegExp(/^[א-ת\s]+$/).test(args.query); // only query dicta on fully Hebrew queries
     }
+    getPivot(queue, minValue, sortType) {
+
+        // if this is the last query, this will be the last chance to return results
+        if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total &&
+            this.sefariaQueryQueue.lastSeen + 1 >= this.sefariaQueryQueue.hits.total)
+            return queue.length;
+
+        // return whole queue if the last item in queue is equal to minValue
+
+        if (minValue - 0.01 <= queue[queue.length - 1][sortType] <= minValue + 0.01) // float comparison
+            return queue.length;
+
+        const pivot = queue.findIndex(x => x[sortType] > minValue);
+        return (pivot >= 0) ? pivot : 0;
+    }
     mergeQueries(addAggregations, sortType, filters) {
-        function getPivot(queue, minValue, lastSeen, total) {
-            if (lastSeen + 1 >= total)
-                return queue.length;
-            let pivot = queue.findIndex(x => x[sortType] > minValue);
-            return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
-        }
+        // function getPivot(queue, minValue, lastSeen, total) {
+        //     if (lastSeen + 1 >= total)
+        //         return queue.length;
+        //     let pivot = queue.findIndex(x => x[sortType] > minValue);
+        //     return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
+        // }
         let result = {hits: {}};
         if(addAggregations) {
 
@@ -244,7 +263,7 @@ class Search {
                     (total, nextValue) => total + Math.pow(nextValue.score - dictaMeanScore, 2), 0
                 ));
 
-                let factor = sefariaStd/dictaStd;
+                let factor = (dictaStd !== 0) ?sefariaStd/dictaStd : 1;
                 for (let i=0; i<dictaHits.length; i++) {
                     dictaHits[i].score = dictaHits[i].score * factor;
                 }
@@ -259,8 +278,10 @@ class Search {
             }
 
             const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
-            const sefariaPivot = getPivot(sefariaHits, lastScore, this.sefariaQueryQueue.lastSeen, this.sefariaQueryQueue.hits.total);
-            const dictaPivot = getPivot(dictaHits, lastScore, this.dictaQueryQueue.lastSeen, this.dictaQueryQueue.hits.total);
+            //const sefariaPivot = getPivot(sefariaHits, lastScore, this.sefariaQueryQueue.lastSeen, this.sefariaQueryQueue.hits.total);
+            //const dictaPivot = getPivot(dictaHits, lastScore, this.dictaQueryQueue.lastSeen, this.dictaQueryQueue.hits.total);
+            const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
+            const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
 
             this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
             sefariaHits = sefariaHits.slice(0, sefariaPivot);
@@ -300,16 +321,21 @@ class Search {
          success: callback on success
          error: callback on error
          */
-        // if (args.type === "text") {debugger;}
+        if (args.type === "text") {debugger;}
         if (!args.query) {
             return;
         }
 
-        let isQueryStart = (args.aggregationsToUpdate.length > 0); // aggregations update on first query
-        if (isQueryStart && args.type === 'text') // don't touch these parameters if not a text search
+        let isQueryStart = !(args.start);
+        if (isQueryStart) // don't touch these parameters if not a text search
         {
-            this.dictaCounts = null;
-            this.queryDictaFlag = this.isDictaQuery(args);
+            if (args.type === 'text') {
+                this.dictaCounts = null;
+                this.queryDictaFlag = this.isDictaQuery(args);
+                this.sefariaQueryQueue = {hits: {hits: [], total: 0, max_score: 0.0}, lastSeen: -1};
+                this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits: []}};
+                this.queryAborter.abort();
+            }
         }
 
         let req = JSON.stringify(this.get_query_object(args));
@@ -319,6 +345,7 @@ class Search {
             return null;
         }
         let queryAborter = new HackyQueryAborter();
+        this.queryAborter = queryAborter;
         /*
         return $.ajax({
             url: `${Sefaria.apiHost}/api/search-wrapper`,
@@ -336,9 +363,10 @@ class Search {
         });
          */
         // const sortType = (args.)
+        const updateAggreagations = (args.aggregationsToUpdate.length > 0);
         Promise.all([
-            this.sefariaQuery(args, isQueryStart, queryAborter),
-            this.dictaQuery(args, isQueryStart, queryAborter),
+            this.sefariaQuery(args, updateAggreagations, queryAborter),
+            this.dictaQuery(args, updateAggreagations, queryAborter),
             this.dictaBooksQuery(args, queryAborter)
         ]).then(() => {
             if (args.type === "sheet") {
@@ -346,7 +374,7 @@ class Search {
             }
             else {
                 const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
-                args.success(this.mergeQueries(isQueryStart, sortType, args.applied_filters));
+                args.success(this.mergeQueries(updateAggreagations, sortType, args.applied_filters));
             }
         }).catch(x => console.log(x));
         // }).catch(args.error);
