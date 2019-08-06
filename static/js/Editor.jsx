@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Editor} from 'slate-react'
 import {Block, Value, Data, Inline} from 'slate'
 import Html from 'slate-html-serializer'
@@ -135,7 +135,8 @@ function SefariaEditor(props) {
                                             "object": "block",
                                             "type": "TextRef",
                                             "data": {
-                                                "ref": source.ref
+                                                "ref": source.ref,
+                                                "lang": "en"
                                             },
                                             "nodes": [
                                                 {
@@ -154,7 +155,8 @@ function SefariaEditor(props) {
                                             "object": "block",
                                             "type": "TextRef",
                                             "data": {
-                                                "ref": source.ref
+                                                "ref": source.ref,
+                                                "lang": "he"
                                             },
                                             "nodes": [
                                                 {
@@ -351,6 +353,9 @@ function SefariaEditor(props) {
 
 
     const initialValue = Value.fromJSON(transformSheetJsonToDraft(props.data));
+
+    const [value, setValue] = useState(initialValue);
+
     const schema = {
         document: {
             nodes: [
@@ -621,7 +626,6 @@ function SefariaEditor(props) {
                     </div>
                 );
             case 'SheetSource':
-                console.log(children[0].props)
                 return (
                     <div className="SheetSource" {...attributes}>
                         {children}
@@ -714,9 +718,11 @@ function SefariaEditor(props) {
                 );
             case 'TextRef':
                 const ref = data.get('ref')
-                console.log(ref)
+                const lang = data.get('lang')
                 return (
-                    <div className="ref"><a href={"/"+ref}>{children}</a></div>
+                    <div className={lang}>
+                        <div className="ref"><a href={"/"+ref}>{children}</a></div>
+                    </div>
                 )
             default:
                 return next()
@@ -738,24 +744,53 @@ function SefariaEditor(props) {
     }
 
     function renderInline(props, editor, next) {
-        console.log("inlinr!")
-
-        const { attributes, children, node } = props
-        const { data } = node
+        const {attributes, children, node} = props
+        const {data} = node
         switch (node.type) {
             case 'TextRef':
                 const ref = data.get('ref')
                 console.log(ref)
                 return (
-                    <div className="ref"><a href={"/"+ref}>{children}</a></div>
+                    <div className="ref"><a href={"/" + ref}>{children}</a></div>
                 )
             default:
                 return next()
         }
     }
 
+    function onChange({value}) {
+        setValue(value)
 
+        const menu = hoverMenu.current
+
+        const native = window.getSelection()
+        const range = native.getRangeAt(0)
+        const rect = range.getBoundingClientRect()
+
+        const container = $('.sheetsInPanel');
+        const containerYOffset = container.scrollTop() - container.offset().top;
+        const containerXOffset = parseInt($(".sheetContent").css("marginLeft"));
+
+        menu.style.opacity = 1
+        menu.style.top = `${rect.top + containerYOffset - (2 * menu.offsetHeight)}px`
+
+        menu.style.left = `${rect.left +
+          window.pageXOffset -
+          containerXOffset -
+          menu.offsetWidth / 2 +
+          rect.width / 2}px`
+
+
+    }
+
+    const hoverMenu = React.createRef();
     return (
+        <div>
+            <div ref={hoverMenu} className="hoverMenu">
+                <button>Bold</button>
+                <button>Italic</button>
+                <button>Underline</button>
+            </div>
         <Editor
             onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
             defaultValue={initialValue}
@@ -763,7 +798,9 @@ function SefariaEditor(props) {
             renderMark={(props, editor, next) => renderMark(props, editor, next)}
             renderInline={(props, editor, next) => renderInline(props, editor, next)}
             schema={schema}
+            onChange={ () => onChange({value}) }
         />
+        </div>
     )
 
 
