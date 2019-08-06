@@ -918,9 +918,9 @@ def group_tag_list_api(request, group):
 
 def trending_tags_api(request):
 	"""
-	API to retrieve the list of peopke who like sheet_id.
+	API to retrieve the list of trending tags. 
 	"""
-	response = recent_public_tags(days=14, ntags=18)
+	response = trending_tags(ntags=18)
 	response = jsonResponse(response, callback=request.GET.get("callback", None))
 	response["Cache-Control"] = "max-age=3600"
 	return response

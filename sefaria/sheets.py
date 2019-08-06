@@ -210,14 +210,12 @@ def user_tags(uid):
 
 def sheet_tag_counts(query, sort_by="count"):
 	"""
-	Returns tags ordered by count for sheets matching query.
+	Returns tags ordered by count for sheets matching `query`.
 	"""
 	if sort_by == "count":
 		sort_query = SON([("count", -1), ("_id", -1)])
 	elif sort_by == "alpha":
 		sort_query = SON([("_id", 1)])
-	elif sort_by == "trending":
-		return recent_public_tags(days=14)
 	else:
 		return []
 
@@ -253,27 +251,43 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 
-def recent_public_tags(days=14, ntags=14):
+def trending_tags(days=7, ntags=14):
 	"""
-	Returns list of tag/counts on public sheets modified in the last 'days'.
+	Returns a list of trending tags plus sheet count and author count modified in the last `days`.
 	"""
-	cutoff            = datetime.now() - timedelta(days=days)
-	query             = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
-	unnormalized_tags = sheet_tag_counts(query)[:ntags]
+	cutoff = datetime.now() - timedelta(days=days)
+	query  = {
+		"status": "public",
+		"dateModified": { "$gt": cutoff.isoformat() },
+		"viaOwner": {"$exists": 0}, 
+		"assignment_id": {"$exists": 0}
+	}
 
-	tags = defaultdict(int)
+	tags = db.sheets.aggregate([
+			{"$match": query },
+			{"$unwind": "$tags"},
+			{"$group": {"_id": "$tags", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
+			{"$project": { "_id": 0, "tag": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
+
+	unnormalized_tags = list(tags)
+	tags = defaultdict(lambda: {"sheet_count": 0, "authors": set()})
 	results = []
 
 	for tag in unnormalized_tags:
-		tags[model.Term.normalize(tag["tag"])] += tag["count"]
+		norm_term = model.Term.normalize(tag["tag"])
+		tags[norm_term]["sheet_count"] += tag["sheet_count"]
+		tags[norm_term]["authors"].update(set(tag["authors"]))
 
 	for tag in tags.items():
-		if len(tag[0]):
-			results.append({"tag": tag[0], "count": tag[1], "he_tag": model.Term.normalize(tag[0], "he")})
+		if len(tag[0]) and len(tag[1]["authors"]) > 1:  # A trend needs to include at least 2 people
+			results.append({"tag": tag[0], 
+							"count": tag[1]["sheet_count"],
+							"author_count": len(tag[1]["authors"]),
+							"he_tag": model.Term.normalize(tag[0], "he")})
 
-	results = sorted(results, key=lambda x: -x["count"])
+	results = sorted(results, key=lambda x: -x["author_count"])
 
-	return results
+	return results[:ntags]
 
 
 def rebuild_sheet_nodes(sheet):
