@@ -1,8 +1,0 @@
-[
-  "summaries_test.py::Test_Toc::()::test_toc_integrity", 
-  "summaries_test.py::Test_Toc::()::test_new_index_title_change", 
-  "summaries_test.py::Test_Toc::()::test_index_add_delete", 
-  "summaries_test.py::Test_Toc::()::test_index_attr_change", 
-  "summaries_test.py::Test_Toc::()::test_text_change", 
-  "summaries_test.py::Test_Toc::()::test_index_title_change"
-]
