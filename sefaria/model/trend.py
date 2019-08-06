@@ -175,10 +175,10 @@ def setCategoryTraits():
 
     TrendSet({"name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
 
-    site_data = {cat: 0 for cat in TOP_CATEGORIES}
-
     # User Traits
     for daterange in active_dateranges:
+        site_data = {cat: 0 for cat in TOP_CATEGORIES}
+
         all_users = getAllUsersCategories(daterange)
         for uid, data in all_users.iteritems():
             for cat, val in data["categories"].items():
