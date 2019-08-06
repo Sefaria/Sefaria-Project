@@ -745,8 +745,8 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   const style = placeholder ? {visibility: 'hidden'} : {};
   const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
   const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
-          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}'`;
+      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick() {
     if (isPosting) { return; }
@@ -869,16 +869,18 @@ SinglePanelNavHeader.propTypes = {
 
 
 const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{backgroundColor: Sefaria.palette.categoryColor(category)}}/>;
+  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
 
 
 class ProfileListing extends Component {
   openProfile(e) {
-    e.preventDefault();
-    this.props.openProfile(this.props.slug, this.props.name);
+    if (this.props.openProfile) {
+      e.preventDefault();
+      this.props.openProfile(this.props.slug, this.props.name);
+    }
   }
   render() {
-    const { url, image, name, uid, is_followed, toggleSignUpModal, position } = this.props;
+    const { url, image, name, uid, is_followed, toggleSignUpModal, organization } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
@@ -902,10 +904,10 @@ class ProfileListing extends Component {
             <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
           </SimpleLinkedBlock>
           {
-            !!position ? <SimpleInterfaceBlock
-              classes="systemText authorPosition"
-              en={position}
-              he={position}
+            !!organization ? <SimpleInterfaceBlock
+              classes="systemText authorOrganization"
+              en={organization}
+              he={organization}
             />:null
           }
         </div>
@@ -1537,7 +1539,6 @@ class FeedbackBox extends Component {
     };
   }
   sendFeedback() {
-
     if (!this.state.type) {
       this.setState({alertmsg: Sefaria._("Please select a feedback type")});
       return
@@ -1558,7 +1559,7 @@ class FeedbackBox extends Component {
         uid: Sefaria._uid || null
     };
     var postData = {json: JSON.stringify(feedback)};
-      var url = "/api/send_feedback";
+    var url = "/api/send_feedback";
 
     this.setState({feedbackSent: true});
 
@@ -1571,8 +1572,8 @@ class FeedbackBox extends Component {
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
         alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+        this.setState({feedbackSent: true});
     });
-
   }
   validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -1581,7 +1582,6 @@ class FeedbackBox extends Component {
   setType(type) {
     this.setState({type: type});
   }
-
   render() {
     if (this.state.feedbackSent) {
         return (
@@ -1603,7 +1603,6 @@ class FeedbackBox extends Component {
                 </div>
                 : null
             }
-
 
             <Dropdown
               options={[
