@@ -40,6 +40,7 @@ const UserStats = () => {
     }, [debouncedUID]);
 
     const all_ready = user_data.uid && site_data.alltime;
+    const user_active = true; // !!
     return (
     <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
@@ -49,7 +50,8 @@ const UserStats = () => {
               </h1>
               {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
               <UserStatModeChooser modes={modes} activeMode={activeMode} setMode={setMode}/>
-              {all_ready && <UserDataBlock user_data={user_data[modekeys[activeMode]]} site_data={site_data[modekeys[activeMode]]}/>}
+              {all_ready && user_active &&  <UserDataBlock user_data={user_data[modekeys[activeMode]]} site_data={site_data[modekeys[activeMode]]}/>}
+              {all_ready && (!user_active) && <SiteDataBlock site_data={site_data[modekeys[activeMode]]}/>}
           </div>
       </div>
     </div>
@@ -77,11 +79,39 @@ const UserChooser = ({setter}) => (
     </div>
 );
 
+const SiteDataBlock = ({site_data}) => (
+    <div>
+        <div>
+            <span className="int-he">
+                לא ראינו אותך מזמן!
+                <br/>
+                גלה מה אנשים אחרים עושים בספריא
+            </span>
+            <span classname="int-en">
+                Looks like we haven’t seen you in a while!<br/>
+                Discover what other people are doing on Sefaria...
+            </span>
+        </div>
+
+        <div>
+            <h2>What People are Reading</h2>
+            <div className="chartRow">
+                <CategoriesDonut title="Average Sefaria User" heTitle="..." cats={site_data.categoriesRead}/>
+            </div>
+        </div>
+        <div>
+            <h2>Top Categories</h2>
+            <div className="chartRow">
+                <CategoryBars user_cats={site_data.categoriesRead} site_cats={site_data.categoriesRead}/>
+            </div>
+        </div>
+    </div>
+);
 const UserDataBlock = ({user_data, site_data}) => (
     <div>
         <OverallActivityBlock user_data={user_data}/>
-        <DonutsBlock user_data={user_data} site_data={site_data}/>
-        <CategoryBarchartBlock user_data={user_data} site_data={site_data}/>
+        <UserDonutsBlock user_data={user_data} site_data={site_data}/>
+        <UserCategoryBarchartBlock user_data={user_data} site_data={site_data}/>
         <YourFavoriteTextsBlock user_data={user_data} />
         <YourFavoriteSheetsBlock user_data={user_data} />
         <MostPopularSheetsBlock user_data={user_data} />
@@ -107,7 +137,7 @@ const StatCard = ({icon_file, name, number}) => (
     </div>
 );
 
-const DonutsBlock = ({user_data, site_data}) => (
+const UserDonutsBlock = ({user_data, site_data}) => (
         <div>
             <h2>Your Reading by Category</h2>
             <div className="chartRow">
@@ -116,7 +146,7 @@ const DonutsBlock = ({user_data, site_data}) => (
             </div>
         </div>
 );
-const CategoryBarchartBlock = ({user_data, site_data}) => (
+const UserCategoryBarchartBlock = ({user_data, site_data}) => (
         <div>
             <h2>Your Top Categories</h2>
             <div className="chartRow">

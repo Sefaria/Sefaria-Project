@@ -2565,7 +2565,7 @@ def user_stats_api(request, uid):
     return jsonResponse(user_stats_data(uid))
 
 
-@staff_member_required
+@login_required
 def site_stats_api(request):
     assert request.method == "GET", "Unsupported Method"
     return jsonResponse(site_stats_data())
