@@ -3167,7 +3167,6 @@ def profile_sync_api(request):
                         "attr_time_stamps": profile.attr_time_stamps.update({field: field_data["time_stamp"]})
                     })
                     profile_updated = True
-                    ret["settings"] = profile.settings
             elif field == "user_history":
                 # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
                 for hist in reversed(field_data):
@@ -3181,6 +3180,7 @@ def profile_sync_api(request):
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
+            ret["settings"] = profile.settings
             if post.get("client", "") == "web":
                 # request was made from web. update last_sync on profile
                 profile.update({"last_sync_web": now})
