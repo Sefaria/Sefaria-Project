@@ -3812,6 +3812,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: lighter;
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  unicode-bidi: isolate;
 }
 .englishAvailableTag {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -4093,6 +4094,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .websiteList .website .icon {
   height: 16px;
   width: 16px;
+  margin-top: 2px;
 }
 .webpageList .webpage {
   margin-bottom: 30px;

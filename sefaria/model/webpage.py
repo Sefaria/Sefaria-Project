@@ -227,6 +227,10 @@ sites_data = [
         "domains":        ["torahinmotion.org"],
     },
     {
+        "name":           "The Open Siddur Project",
+        "domains":        ["opensiddur.org"],
+    },
+    {
         "name":           u"בית הלל",
         "domains":        ["beithillel.org.il"],
         "title_branding": [u"בית הלל - הנהגה תורנית קשובה"]
