@@ -1247,7 +1247,7 @@ Sefaria = extend(Sefaria, {
   },
   _webpages: {},
   webPagesByRef: function(refs) {
-    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs;
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
     refs.map(r => {
       // Also include webpages linked at section level. Deduped below. 
@@ -1255,7 +1255,6 @@ Sefaria = extend(Sefaria, {
         refs.push(r.slice(0, r.lastIndexOf(":"))); 
       }
     }, this);
-
 
     var webpages = [];
     refs.map(r => {
