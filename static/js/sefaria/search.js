@@ -363,7 +363,8 @@ class Search {
          */
         // const sortType = (args.)
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
-        Promise.all([
+        if (this.queryDictaFlag) {
+            Promise.all([
             this.sefariaQuery(args, updateAggreagations, queryAborter),
             this.dictaQuery(args, updateAggreagations, queryAborter),
             this.dictaBooksQuery(args, queryAborter)
@@ -377,6 +378,17 @@ class Search {
             }
         }).catch(x => console.log(x));
         // }).catch(args.error);
+        }
+        else {
+            this.sefariaQuery(args, updateAggreagations, queryAborter)
+                .then(() => {
+                    if (args.type === "sheet")
+                        args.success(this.sefariaSheetsResult);
+                    else
+                        args.success(this.sefariaQueryQueue);
+                    })
+        }
+
         return queryAborter;
     }
     get_query_object({
