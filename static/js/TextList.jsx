@@ -220,12 +220,13 @@ class TextList extends Component {
                                       hideTitle={hideTitle}
                                       numberLabel={link.category === "Commentary" ? link.anchorVerse : 0}
                                       basetext={false}
+                                      textHighlights={link.highlightedWords || null}
+                                      inlineReference={link.inline_reference || null}
                                       onRangeClick={this.props.onTextClick}
                                       onCitationClick={this.props.onCitationClick}
                                       onNavigationClick={this.props.onNavigationClick}
                                       onCompareClick={this.props.onCompareClick}
-                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-                                      inlineReference={link.inline_reference}/>
+                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick} />
                                       {Sefaria.is_moderator || Sefaria.is_editor ?
                                       <EditorLinkOptions
                                         _id={link._id}
