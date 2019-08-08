@@ -186,7 +186,10 @@ var timelineConfig = config({
     output: {
         path: path.resolve(buildDir + 'timeline'),
         filename: 'timeline.js'
-    }
+    },
+    plugins: [
+        new BundleTracker({filename: './node/webpack-stats.timeline.json'}),
+    ]
 });
 
 module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig];

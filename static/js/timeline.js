@@ -323,7 +323,6 @@ function updateTrees(treesObj) {
             .style("stroke-opacity", 1e-6)
             .remove();
 
-
       //update
       selection.transition(t1)
           .attr("d", d3.linkHorizontal()
@@ -340,7 +339,6 @@ function updateTrees(treesObj) {
         .transition(t2)
           .style("stroke-opacity", 1);
   }
-
 
 
   ["future","past"].forEach(klass => {
@@ -505,7 +503,7 @@ function buildFrame() {
         .style("direction", "rtl");
     svg = d3.select("#content").append("svg")
         .attr("width", w + margin[1] + margin[3] - 16)
-        .attr("height", graphBox_height + 150);  // todo: 150 is slop becuase I'm too lazy to sit and do arithmetic
+        .attr("height", graphBox_height + 150);  // todo: 150 is slop because I'm too lazy to sit and do arithmetic
     svg.append("svg:desc").text("This SVG displays visually ...");
     graphBox = svg.append("g")
         // .attr("height", graphBox_height)
@@ -517,11 +515,13 @@ function buildFrame() {
         .attr("stroke-width", 1.5);
 
     timeScale = d3.scaleLinear()
-    .domain([-1500, 2050])
-    .range([0, w]);
+        .domain([-1500, 400, 2050])
+        .range([0, w/5, w]);
     s = n => timeScale(getDate(n));
 
-    let axis = d3.axisTop(timeScale);
+    let axis = d3.axisTop(timeScale)
+        .tickValues([-1500,400,1100,1800]);
+
     graphBox.append("g")
         .attr("transform", "translate(0,50)")
         .call(axis);

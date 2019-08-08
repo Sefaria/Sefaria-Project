@@ -131,7 +131,7 @@ class ServerCoordinator(MessagingNode):
 
 
 class MultiServerEventListenerMiddleware(object):
-    delay = 20  # Will check for library updates every X requests.  0 means every request.
+    delay = 40  # Will check for library updates every X requests.  0 means every request.
 
     def __init__(self, get_response):
         self.get_response = get_response
