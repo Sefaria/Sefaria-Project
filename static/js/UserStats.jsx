@@ -40,7 +40,10 @@ const UserStats = () => {
     }, [debouncedUID]);
 
     const all_ready = user_data.uid && site_data.alltime;
-    const user_active = true; // !!
+
+    let user_active = (user_data.textsRead > 2)
+        || (user_data.sheetsRead > 2)
+        || (user_data.sheetsThisPeriod > 1);
     return (
     <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
@@ -81,21 +84,23 @@ const UserChooser = ({setter}) => (
 
 const SiteDataBlock = ({site_data}) => (
     <div>
-        <div>
-            <span className="int-he">
-                לא ראינו אותך מזמן!
-                <br/>
-                גלה מה אנשים אחרים עושים בספריא
-            </span>
-            <span classname="int-en">
-                Looks like we haven’t seen you in a while!<br/>
-                Discover what other people are doing on Sefaria...
-            </span>
+        <div className="chartRow centered">
+            <div className="systemText statHeader">
+                <span className="int-he">
+                    לא ראינו אותך מזמן!
+                    <br/>
+                    גלה מה אנשים אחרים עושים בספריא
+                </span>
+                <span className="int-en">
+                    Looks like we haven’t seen you in a while!<br/>
+                    Discover what other people are doing on Sefaria...
+                </span>
+            </div>
         </div>
 
         <div>
             <h2>What People are Reading</h2>
-            <div className="chartRow">
+            <div className="chartRow centered">
                 <CategoriesDonut title="Average Sefaria User" heTitle="..." cats={site_data.categoriesRead}/>
             </div>
         </div>
