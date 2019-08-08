@@ -19,10 +19,8 @@ console.log(currentRef);
 
 /*****          Hebrew / English Handling              *****/
 let lang;
-
-function isHebrew() { return lang == "he"; }
-function isEnglish() { return lang == "en"; }
-
+function isHebrew() { return lang === "he"; }
+function isEnglish() { return lang === "en"; }
 function switchToEnglish() { lang = "en"; }
 function switchToHebrew() { lang = "he"; }
 
@@ -31,12 +29,10 @@ function switchToHebrew() { lang = "he"; }
 /*  GLOBALS Defined in template, with attributes:
         interfaceLang
 */
+(GLOBALS.interfaceLang === "hebrew") ? switchToHebrew() : switchToEnglish();
 
-(GLOBALS.interfaceLang == "hebrew") ? switchToHebrew() : switchToEnglish();
 
 /*****                   Currying Data                  *****/
-
-
 
 const getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
 const linkKey = l => l.source.data.ref + "-" + l.target.data.ref;
