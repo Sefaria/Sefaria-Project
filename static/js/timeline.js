@@ -523,7 +523,7 @@ function buildFrame() {
         .tickValues([-1500,400,1100,1800]);
 
     graphBox.append("g")
-        .attr("transform", "translate(0,50)")
+        .attr("transform", "translate(0,10)")
         .call(axis);
 }
 
