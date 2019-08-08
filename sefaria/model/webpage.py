@@ -132,7 +132,6 @@ def get_webpages_for_ref(tref):
 
 
 def webpages_stats():
-
     webpages = WebPageSet()
     total_pages  = webpages.count()
     total_links  = 0
@@ -202,6 +201,29 @@ def webpages_stats():
 
         print "{}: {}%".format(cat, round(covered*100.0/total, 2))
 
+
+def clean_webpages(delete=False):
+    bad_urls = [
+        "rabbisacks\.org\/.+\/\?s=",                # Rabbi Sacks search results
+        "halachipedia\.com\/index\.php\?search=",   # Halachipedia search results
+    ]
+
+    bad_titles = [
+        "Page \d+ of \d+",  # Rabbi Sacks paged archives
+    ]
+
+    pages = WebPageSet({"$or": [
+            {"url": {"$regex": ("|").join(bad_urls)}}, 
+            {"title": {"$regex": ("|").join(bad_titles)}}
+        ]})
+
+    if delete:
+        pages.delete()
+        print "Deleted {} pages.".format(pages.count())
+    else:
+        for page in pages:
+            print page.url
+        print "\n {} pages would be deleted".format(pages.count())
 
 
 sites_data = [
