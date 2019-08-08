@@ -1,5 +1,5 @@
 # coding=utf-8
-import regex
+import regex as re
 from urlparse import urlparse
 from datetime import datetime
 from collections import defaultdict
@@ -31,10 +31,10 @@ class WebPage(abst.AbstractMongoRecord):
         return super(WebPage, self).load(query)
         
     def _set_derived_attributes(self):
-        self.domain  = urlparse(self.url).netloc
-        self.favicon = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
-        self._load_site_data()
-        self.site_name = self._site_data["name"] if self._site_data else self.domain
+        self.domain     = WebPage.domain_for_url(self.url)
+        self.favicon    = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
+        self._site_data = WebPage.site_data_for_domain(self.domain)
+        self.site_name  = self._site_data["name"] if self._site_data else self.domain
 
     def _init_defaults(self):
         self.linkerHits = 0
@@ -47,19 +47,42 @@ class WebPage(abst.AbstractMongoRecord):
     def _validate(self):
         super(WebPage, self)._validate()
 
+
+    @classmethod
+    def normalize_url(cls, url):
+        rewrite_rules = {
+            "use https": lambda url: re.sub(r"^http://", "https://", url),
+            "remove hash": lambda url: re.sub(r"#.+", "", url),
+            "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
+            "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
+            "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
+        }
+        global_rules = ["remove hash"]
+        domain = WebPage.domain_for_url(url)
+        site_data = WebPage.site_data_for_domain(domain) or {}
+        site_rules = global_rules + site_data.get("normalization_rules", [])
+        for rule in site_rules:
+            url = rewrite_rules[rule](url)
+
+        return url
+
+    @classmethod
+    def domain_for_url(cls, url):
+        return urlparse(url).netloc
+
+    @classmethod
+    def site_data_for_domain(cls, domain):
+        for site in sites_data:
+            for site_domain in site["domains"]:
+                if domain.endswith(site_domain):
+                    return site
+        return None
+
     def update_from_linker(self, updates):
         self.load_from_dict(updates)
         self.linkerHits += 1
         self.lastUpdated = datetime.now()
         self.save()
-
-    def _load_site_data(self):
-        self._site_data = None
-        for site in sites_data:
-            for domain in site["domains"]:
-                if self.domain.endswith(domain):
-                    self._site_data = site
-                    return
 
     def client_contents(self):
         d = self.contents()
@@ -106,10 +129,21 @@ class WebPage(abst.AbstractMongoRecord):
 
         return description
 
+def test_normalization():
+    pages = WebPageSet()
+    count = 0
+    for page in pages:
+        norm = WebPage.normalize_url(page.url)
+        if page.url != norm:
+            print page.url.encode("utf-8")
+            print norm.encode("utf-8")
+            print "\n"
+            count += 1
+    print "{} pages normalized".format(count)
+
 
 class WebPageSet(abst.AbstractMongoSet):
     recordClass = WebPage
-
 
 def get_webpages_for_ref(tref):
     oref = text.Ref(tref)
@@ -120,7 +154,7 @@ def get_webpages_for_ref(tref):
     client_results = []
     ref_re = "("+'|'.join(regex_list)+")"
     for webpage in results:
-        matched_refs = [r for r in webpage.refs if regex.match(ref_re, r)]
+        matched_refs = [r for r in webpage.refs if re.match(ref_re, r)]
         for ref in matched_refs:
             webpage_contents = webpage.client_contents()
             if webpage_contents["domain"] in sites_blacklist:
@@ -239,10 +273,12 @@ sites_data = [
     {
         "name":           "Rabbi Sacks",
         "domains":        ["rabbisacks.org"],
+        "normalization_rules": ["use https", "remove www"]
     },
     {
         "name":           "Halachipedia",
         "domains":        ["halachipedia.com"],
+        "normalization_rules": ["remove www", "remove mediawiki params"]
     },
     {
         "name":           "Torah In Motion",
