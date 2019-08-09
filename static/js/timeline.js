@@ -10,19 +10,19 @@ let h = 730 - margin[0] - margin[2];
 let textBox_height = 150;
 let graphBox_height = h - textBox_height;
 
-let svg, timeScale, s, t, textBox, graphBox;
+let svg, timeScale, s, textBox, graphBox;
 
 const urlParams = new URLSearchParams(window.location.search);
-let startingRef = urlParams.get('ref');
+const startingRef = urlParams.get('ref');
 let currentRef = startingRef || "Shabbat 32a:4";
 console.log(currentRef);
 
 /*****          Hebrew / English Handling              *****/
 let lang;
-function isHebrew() { return lang === "he"; }
-function isEnglish() { return lang === "en"; }
-function switchToEnglish() { lang = "en"; }
-function switchToHebrew() { lang = "he"; }
+const isHebrew = () => lang === "he";
+const isEnglish = () => lang === "en";
+const switchToEnglish = () => lang = "en";
+const switchToHebrew = () => lang = "he";
 
 
 /*****          Initial screen construction            *****/
@@ -38,11 +38,12 @@ const getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undef
 const linkKey = l => l.source.data.ref + "-" + l.target.data.ref;
 const nodeKey = n => n.data.ref;
 
-let _partitionedLinks = {}; // cache.  ref: [past, future, concurrent]
+const _partitionedLinks = {}; // cache.  ref: {past, future, concurrent}
+
 async function getPartitionedLinks(ref, year) {
     // ref: String (required)
     // year: Integer (optional.  derived from ref if not provided.)
-    // Returns three arrays: [past, future, concurrent]
+    // Returns obj w/ three arrays: {past, future, concurrent}
 
     if (ref in _partitionedLinks) return _partitionedLinks[ref];
 
@@ -62,11 +63,9 @@ async function refineLinks(alllinks) {
 
     // Expand links to include full passages
     const refs = mainlinks.filter(l => l.category === "Talmud").map(l => l.ref);
-    if (refs.length) {
+    if (refs.length > 0) {
         const passageRefs = await Sefaria.getPassages(refs);
-        mainlinks.forEach(l => {
-            l.ref = passageRefs[l.ref] || l.ref
-        }); // Most of these will stay the same.
+        mainlinks.forEach(l => l.ref = passageRefs[l.ref] || l.ref);    // Most of these will stay the same.
     }
     return mainlinks
 }
@@ -74,7 +73,7 @@ async function refineLinks(alllinks) {
 function sortLinks(a1,b1) {
     const a = a1.data;
     const b = b1.data;
-    if (a.index_title == b.index_title) {
+    if (a.index_title === b.index_title) {
         return a.commentaryNum - b.commentaryNum;
     }
     if (isHebrew()) {
@@ -86,9 +85,10 @@ function sortLinks(a1,b1) {
         return a.sourceRef > b.sourceRef ? 1 : -1;
     }
 }
+
 function partitionLinks(links, year) {
   // Split array of links into three arrays, based on year
-  // Returns three arrays: [past, future, concurrent]
+  // Returns obj w/ three arrays: {past, future, concurrent}
 
   let past = [], future = [], concurrent=[];
   links.forEach(l => {
@@ -96,21 +96,21 @@ function partitionLinks(links, year) {
       let lyear = getDate(l);
       ((lyear > year) ? future : (lyear < year) ? past : concurrent).push(l);
   });
-  return [past, future, concurrent];
+  return {past, future, concurrent};
 }
 
 async function getPastLinks(ref, year) {
-    let [past, future, concurrent] = await getPartitionedLinks(ref, year);
+    const {past} = await getPartitionedLinks(ref, year);
     return past;
 }
 
 async function getFutureLinks(ref, year) {
-    let [past, future, concurrent] = await getPartitionedLinks(ref, year);
+    const {future} = await getPartitionedLinks(ref, year);
     return future;
 }
 
 async function getConcurrentLinks(ref, year) {
-    let [past, future, concurrent] = await getPartitionedLinks(ref, year);
+    const {concurrent} = await getPartitionedLinks(ref, year);
     return concurrent;
 }
 
