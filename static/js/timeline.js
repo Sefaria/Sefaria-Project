@@ -145,7 +145,7 @@ async function buildFutureTree(obj) {
     // Remove dangling commentary branches
     // If an link has category "Commentary" and no future oriented links leave it off the chart.
     // (we don't know how it contributes to anything downstream)
-    obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
+    // obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
     return obj;
 }
 
@@ -164,7 +164,7 @@ async function buildPastTree(obj) {
         obj.future = await futureLinks;
     }
 
-    obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
+    // obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
     return obj;
 }
 
@@ -195,7 +195,8 @@ async function buildRawTrees(ref) {
         ref: ref,
         compDate: i.compDate,
         errorMargin: i.errorMargin,
-        category: i.category
+        category: i.category,
+        index_title: i.title
     };
 
     let a = buildFutureTree(obj);
@@ -219,6 +220,8 @@ function buildNetwork(treesObj) {
     treesObj.additionalLinks = [];  // List of pairs: [early ref, later ref]
     treesObj.refLookup = {};
     treesObj.refLookup[treesObj.ref] = treesObj;
+    treesObj.indexes = {};
+    treesObj.indexes[treesObj.index_title] = {refs: [treesObj], past:{}, future:{}};
 
     // Walk the past tree
     //   Build up a dict of nodes in the space
@@ -232,6 +235,19 @@ function buildNetwork(treesObj) {
             } else {
                 treesObj.refLookup[e.ref] = e;
             }
+
+            if (e.index_title in treesObj.indexes) {
+                treesObj.indexes[e.index_title].refs.push(e);
+            } else {
+                treesObj.indexes[e.index_title] = {refs: [e], past:{}, future:{}};
+            }
+
+            if (e.index_title in treesObj.indexes[node.index_title].past) {
+                treesObj.indexes[node.index_title].past[e.index_title].weight += 1;
+            } else {
+                treesObj.indexes[node.index_title].past[e.index_title] = {weight: 1};
+            }
+
         });
         node.past = node.past.filter(a => a);
         node.past.forEach(trimPast);
@@ -246,6 +262,19 @@ function buildNetwork(treesObj) {
             } else {
                 treesObj.refLookup[e.ref] = e;
             }
+
+            if (e.index_title in treesObj.indexes) {
+                treesObj.indexes[e.index_title].refs.push(e);
+            } else {
+                treesObj.indexes[e.index_title] = {refs: [e], past:{}, future:{}};
+            }
+
+            if (e.index_title in treesObj.indexes[node.index_title].future) {
+                treesObj.indexes[node.index_title].future[e.index_title].weight += 1;
+            } else {
+                treesObj.indexes[node.index_title].future[e.index_title] = {weight: 1};
+            }
+
         });
         node.future = node.future.filter(a => a);
         node.future.forEach(trimFuture);
@@ -261,6 +290,12 @@ function buildNetwork(treesObj) {
             e.future.forEach(f => {
                 if (f.ref in treesObj.refLookup) {
                     treesObj.additionalLinks.push([e.ref, f.ref]);
+                }
+
+                if (f.index_title in treesObj.indexes[e.index_title].future) {
+                    treesObj.indexes[e.index_title].future[f.index_title].weight += 1;
+                } else {
+                    treesObj.indexes[e.index_title].future[f.index_title] = {weight: 1};
                 }
             });
         });
@@ -302,7 +337,16 @@ function layoutTrees(treesObj) {
 
     return treesObj;
 }
+function buildIndexNetwork(treesObj) {
+    // Walk past, future, additional
+    // Aggregate links under Indexes
+    // Build up edges, with weights for Index to Index
 
+    const indexes = {}
+
+
+    return treesObj;
+}
 function cleanObject(treesObj) {
     delete treesObj.past;
     delete treesObj.future;
