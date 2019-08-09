@@ -100,18 +100,36 @@ function partitionLinks(links, year) {
 }
 
 async function getPastLinks(ref, year) {
-    const {past} = await getPartitionedLinks(ref, year);
-    return past;
+    try {
+        const {past} = await getPartitionedLinks(ref, year);
+        return past;
+    } catch(err) {
+        console.log("Error in retrieving past links for " + ref);
+        console.log(err);
+        return [];
+    }
 }
 
 async function getFutureLinks(ref, year) {
-    const {future} = await getPartitionedLinks(ref, year);
-    return future;
+    try {
+        const {future} = await getPartitionedLinks(ref, year);
+        return future;
+    } catch(err) {
+        console.log("Error in retrieving future links for " + ref);
+        console.log(err);
+        return [];
+    }
 }
 
 async function getConcurrentLinks(ref, year) {
-    const {concurrent} = await getPartitionedLinks(ref, year);
-    return concurrent;
+    try {
+        const {concurrent} = await getPartitionedLinks(ref, year);
+        return concurrent;
+    } catch(err) {
+        console.log("Error in retrieving concurrent links for " + ref);
+        console.log(err);
+        return [];
+    }
 }
 
 // Tree Builders
@@ -127,18 +145,24 @@ async function buildFutureTree(obj) {
     // Remove dangling commentary branches
     // If an link has category "Commentary" and no future oriented links leave it off the chart.
     // (we don't know how it contributes to anything downstream)
-
     obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
     return obj;
 }
 
 async function buildPastTree(obj) {
     obj.past = await getPastLinks(obj.ref, getDate(obj));
-    const f = getFutureLinks(obj.ref, getDate(obj));           // For secondary links
-    let promises = obj.past.map(buildPastTree);
 
+    let futureLinks;
+    if (!obj.future) {  // root obj will already have future.
+        futureLinks = getFutureLinks(obj.ref, getDate(obj));           // For secondary links
+    }
+
+    let promises = obj.past.map(buildPastTree);
     await Promise.all(promises);
-    obj.future = await f;
+
+    if (!obj.future) {
+        obj.future = await futureLinks;
+    }
 
     obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
     return obj;
@@ -254,6 +278,7 @@ function buildNetwork(treesObj) {
 }
 
 function layoutTrees(treesObj) {
+
     let pt = d3.tree().size([w/2, graphBox_height])(treesObj.pastHierarchy);
     let ft = d3.tree().size([w/2, graphBox_height])(treesObj.futureHierarchy);
 
