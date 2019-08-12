@@ -342,7 +342,7 @@ function buildIndexNetwork(treesObj) {
     // Aggregate links under Indexes
     // Build up edges, with weights for Index to Index
 
-    const indexes = {}
+    const indexes = {};
 
 
     return treesObj;

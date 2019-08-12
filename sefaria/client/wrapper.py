@@ -302,3 +302,87 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         links += formatted_sheet_links
 
     return links
+
+
+class LinkNetwork(object):
+    def __init__(self, base_tref):
+        self._initialBaseTref = base_tref  # needed?
+        self._partionedLinks = {}
+        self.future = []
+        self.past = []
+        self.concurrent = []
+        self.base_oref = Ref(self.expand_passage(base_tref))
+        self.index = self.base_oref.index
+        self.category = self.index.category
+
+        try:
+            self.compDate = getattr(self.index, "compDate")
+            try:
+                self.errorMargin = int(getattr(self.index, "errorMargin", 0))
+            except ValueError:
+                self.errorMargin = 0
+        except AttributeError:
+            raise InputError("Can not build network around text with unknown date.")
+
+    def build_trees(self):
+        def build_future_tree(oref):
+            ret = []
+            for l in self.get_partioned_links(oref)["future"]:
+                l["future"] = build_future_tree(Ref(l.ref))
+                ret += [l]
+            return ret
+
+        def build_past_tree(oref):
+            ret = []
+            for l in self.get_partioned_links(oref)["past"]:
+                l["future"] = self.get_partioned_links(Ref(l.ref))["future"]
+                l["past"] = build_past_tree(Ref(l.ref))
+                ret += [l]
+            return ret
+
+        self.future = build_future_tree(self.base_oref)
+        self.past = build_past_tree(self.base_oref)
+        self.concurrent = self.get_partioned_links(self.base_oref)["concurrent"]
+
+    def get_partioned_links(self, oref):
+        tref = oref.normal()
+        if tref not in self._partionedLinks:
+            year = self.get_date(oref.index)
+            links = self.refine_links(get_links(tref))
+            self._partionedLinks[tref] = self.partition_links(links, year)
+        return self._partionedLinks[tref]
+
+    def refine_links(self, links):
+        return [self.expand_linkref(l) for l in links if l["category"] != "Reference"]
+
+    def partition_links(self, links, year):
+        past = []
+        future = []
+        concurrent = []
+        for l in links:
+            try:
+                lyear = self.get_date(l)
+            except AttributeError:
+                return {"past": [], "future": [], "concurrent": []}
+            bucket = future if lyear > year else past if lyear < year else concurrent
+            bucket += [l]
+        return {"past": past, "future": future, "concurrent": concurrent}
+
+    @staticmethod
+    def get_date(l):
+        # handle missing compdate
+        return l["compDate"] - l["errorMargin"]
+
+    @staticmethod
+    def expand_linkref(l):
+        p = Passage().load({"ref_list": Ref(l["ref"]).normal})
+        l["ref"] = p.full_ref if p else l["ref"]
+        return l
+
+    @staticmethod
+    def expand_passage(oref):
+        p = Passage().load({"ref_list": oref.normal()})
+        return Ref(p.full_ref) if p else oref
+
+
+

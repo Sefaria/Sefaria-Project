@@ -217,6 +217,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                     self._delete_link(exLink)
                 break
 
+
 class BaseStructureAutoLinker(AbstractStructureAutoLinker):
     """
     This linker will only allow a text to be linked to it's specified base text (currently assumes one base text)
@@ -284,7 +285,6 @@ class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
     """
     class_key = 'many_to_one'
     _generated_by_string = 'add_commentary_links'
-
 
 
 class MatchBaseTextDepthAutoLinker(BaseStructureAutoLinker):
