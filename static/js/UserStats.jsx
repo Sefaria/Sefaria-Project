@@ -17,8 +17,8 @@ const UserStats = () => {
     const [uid, setUid] = useState(null);
     const [user_data, setUserData] = useState({});
     const [site_data, setSiteData] = useState({});
+    const [active_mode, setMode] = useState("Year to Date");
 
-    const [activeMode, setMode] = useState("Year to Date");
     const modes = ["Year to Date", "All Time"];
     const modekeys = {
         "Year to Date": "this_hebrew_year",
@@ -39,11 +39,15 @@ const UserStats = () => {
             .then(d => setUserData(d));
     }, [debouncedUID]);
 
-    const all_ready = user_data.uid && site_data.alltime;
 
-    let user_active = (user_data.textsRead > 2)
-        || (user_data.sheetsRead > 2)
-        || (user_data.sheetsThisPeriod > 1);
+    const all_ready = !!(user_data.uid && site_data.alltime);
+    let mode_user_data;
+    let user_active;
+    if (all_ready) {
+        mode_user_data = user_data[modekeys[active_mode]];
+        user_active = (mode_user_data.textsRead > 2) || (mode_user_data.sheetsRead > 2) || (mode_user_data.sheetsThisPeriod > 1);
+    }
+    // let user_active = true;
     return (
     <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
@@ -52,9 +56,9 @@ const UserStats = () => {
                   {all_ready? user_data.name : <div className="lds-ring"><div></div><div></div><div></div><div></div></div>}
               </h1>
               {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
-              <UserStatModeChooser modes={modes} activeMode={activeMode} setMode={setMode}/>
-              {all_ready && user_active &&  <UserDataBlock user_data={user_data[modekeys[activeMode]]} site_data={site_data[modekeys[activeMode]]}/>}
-              {all_ready && (!user_active) && <SiteDataBlock site_data={site_data[modekeys[activeMode]]}/>}
+              <UserStatModeChooser modes={modes} activeMode={active_mode} setMode={setMode}/>
+              {all_ready && user_active &&  <UserDataBlock user_data={mode_user_data} site_data={site_data[modekeys[active_mode]]}/>}
+              {all_ready && (!user_active) && <SiteDataBlock site_data={site_data[modekeys[active_mode]]}/>}
           </div>
       </div>
     </div>
