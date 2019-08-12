@@ -38,39 +38,7 @@ const getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undef
 const linkKey = l => l.source.data.ref + "-" + l.target.data.ref;
 const nodeKey = n => n.data.ref;
 
-/*
-const _partitionedLinks = {}; // cache.  ref: {past, future, concurrent}
 
-async function getPartitionedLinks(ref, year) {
-    // ref: String (required)
-    // year: Integer (optional.  derived from ref if not provided.)
-    // Returns obj w/ three arrays: {past, future, concurrent}
-
-    if (ref in _partitionedLinks) return _partitionedLinks[ref];
-
-    let refYear = (year != null) ? year : await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index).then(getDate);
-    if ((!refYear) && (refYear !== 0)) throw "No date for " + ref; 
-
-    let links = await Sefaria.getLinks(ref).then(refineLinks);
-
-    let partionedLinks = partitionLinks(links, refYear);
-    _partitionedLinks[ref] = partionedLinks;
-    return partionedLinks;
-}
-
-async function refineLinks(alllinks) {
-    // Remove items that we never want to show
-    const mainlinks = alllinks.filter(l => l.category !== "Reference");
-
-    // Expand links to include full passages
-    const refs = mainlinks.filter(l => l.category === "Talmud").map(l => l.ref);
-    if (refs.length > 0) {
-        const passageRefs = await Sefaria.getPassages(refs);
-        mainlinks.forEach(l => l.ref = passageRefs[l.ref] || l.ref);    // Most of these will stay the same.
-    }
-    return mainlinks
-}
-*/
 function sortLinks(a1,b1) {
     const a = a1.data;
     const b = b1.data;
@@ -86,233 +54,7 @@ function sortLinks(a1,b1) {
         return a.sourceRef > b.sourceRef ? 1 : -1;
     }
 }
-/*
-function partitionLinks(links, year) {
-  // Split array of links into three arrays, based on year
-  // Returns obj w/ three arrays: {past, future, concurrent}
 
-  let past = [], future = [], concurrent=[];
-  links.forEach(l => {
-      if (!l.compDate) return;
-      let lyear = getDate(l);
-      ((lyear > year) ? future : (lyear < year) ? past : concurrent).push(l);
-  });
-  return {past, future, concurrent};
-}
-
-async function getPastLinks(ref, year) {
-    try {
-        const {past} = await getPartitionedLinks(ref, year);
-        return past;
-    } catch(err) {
-        console.log("Error in retrieving past links for " + ref);
-        console.log(err);
-        return [];
-    }
-}
-
-async function getFutureLinks(ref, year) {
-    try {
-        const {future} = await getPartitionedLinks(ref, year);
-        return future;
-    } catch(err) {
-        console.log("Error in retrieving future links for " + ref);
-        console.log(err);
-        return [];
-    }
-}
-
-async function getConcurrentLinks(ref, year) {
-    try {
-        const {concurrent} = await getPartitionedLinks(ref, year);
-        return concurrent;
-    } catch(err) {
-        console.log("Error in retrieving concurrent links for " + ref);
-        console.log(err);
-        return [];
-    }
-}
-
-// Tree Builders
-// These assume any given object has a ref attribute
-// And are called initially with {ref: ref}
-
-async function buildFutureTree(obj) {
-    obj.future = await getFutureLinks(obj.ref, getDate(obj));
-
-    // Set up all the recursive calls first, then await them, so they execute in parallel.
-    let promises = obj.future.map(buildFutureTree);
-    await Promise.all(promises);
-    // Remove dangling commentary branches
-    // If an link has category "Commentary" and no future oriented links leave it off the chart.
-    // (we don't know how it contributes to anything downstream)
-    // obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
-    return obj;
-}
-
-async function buildPastTree(obj) {
-    obj.past = await getPastLinks(obj.ref, getDate(obj));
-
-    let futureLinks;
-    if (!obj.future) {  // root obj will already have future.
-        futureLinks = getFutureLinks(obj.ref, getDate(obj));           // For secondary links
-    }
-
-    let promises = obj.past.map(buildPastTree);
-    await Promise.all(promises);
-
-    if (!obj.future) {
-        obj.future = await futureLinks;
-    }
-
-    // obj.future = obj.future.filter(l => (l.future && l.future.length) || (l.category !== "Commentary"));
-    return obj;
-}
-
-async function buildConcurrentTree(obj) {
-    obj.concurrent = await getConcurrentLinks(obj.ref, getDate(obj));
-
-    // This one falls into loops, of course.
-    // for (link of obj.concurrent) {
-    //    await buildConcurrentTree(link);
-    //}
-    return obj;
-}
-
-async function buildRawTrees(ref) {
-    // Returns an object:
-    // {
-    //    ref: ref,
-    //    past: [],
-    //    future: [],
-    //    concurrent: []
-    // }
-    // With each list being a list of ref objects.
-    // "past" refs may have a "past" attributes with a list of refs, and recursing
-    // "future" refs may have a "future" attribute with a list of refs, and recursing
-
-    const i = await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index);
-    const obj = {
-        ref: ref,
-        compDate: i.compDate,
-        errorMargin: i.errorMargin,
-        category: i.category,
-        index_title: i.title
-    };
-
-    let a = buildFutureTree(obj);
-    let b = buildPastTree(obj);
-    let c = buildConcurrentTree(obj);
-    await a;
-    await b;
-    await c;
-
-    return obj;
-}
-
-async function getPassage(ref) {
-    let res = await Sefaria.getPassages([ref]);
-    return res[ref];
-}
-
-function buildNetwork(treesObj) {
-    // Do we end up with a pile of future data on the past tree, and vice versa?
-
-    treesObj.additionalLinks = [];  // List of pairs: [early ref, later ref]
-    treesObj.refLookup = {};
-    treesObj.refLookup[treesObj.ref] = treesObj;
-    treesObj.indexes = {};
-    treesObj.indexes[treesObj.index_title] = {refs: [treesObj], past:{}, future:{}};
-
-    // Walk the past tree
-    //   Build up a dict of nodes in the space
-    //   Remove any duplicate nodes, and add that connection to additionalLinks
-    function trimPast(node) {
-        if (!node.past) return;
-        node.past.forEach((e,i,a) => {
-            if (e.ref in treesObj.refLookup) {
-                treesObj.additionalLinks.push([e.ref, node.ref]);
-                delete a[i];
-            } else {
-                treesObj.refLookup[e.ref] = e;
-            }
-
-            if (e.index_title in treesObj.indexes) {
-                treesObj.indexes[e.index_title].refs.push(e);
-            } else {
-                treesObj.indexes[e.index_title] = {refs: [e], past:{}, future:{}};
-            }
-
-            if (e.index_title in treesObj.indexes[node.index_title].past) {
-                treesObj.indexes[node.index_title].past[e.index_title].weight += 1;
-            } else {
-                treesObj.indexes[node.index_title].past[e.index_title] = {weight: 1};
-            }
-
-        });
-        node.past = node.past.filter(a => a);
-        node.past.forEach(trimPast);
-    }
-    // As above, with future tree
-    function trimFuture(node) {
-        if (!node.future) return;
-        node.future.forEach((e,i,a) => {
-            if (e.ref in treesObj.refLookup) {
-                treesObj.additionalLinks.push([node.ref, e.ref]);
-                delete a[i];
-            } else {
-                treesObj.refLookup[e.ref] = e;
-            }
-
-            if (e.index_title in treesObj.indexes) {
-                treesObj.indexes[e.index_title].refs.push(e);
-            } else {
-                treesObj.indexes[e.index_title] = {refs: [e], past:{}, future:{}};
-            }
-
-            if (e.index_title in treesObj.indexes[node.index_title].future) {
-                treesObj.indexes[node.index_title].future[e.index_title].weight += 1;
-            } else {
-                treesObj.indexes[node.index_title].future[e.index_title] = {weight: 1};
-            }
-
-        });
-        node.future = node.future.filter(a => a);
-        node.future.forEach(trimFuture);
-    }
-
-    // Walk the past tree, looking at future pointing links.
-    //   Add any connection to additionalLinks
-    //   (Shouldn't need to do this in both directions)
-    function addAdditionalLinks(node)  {
-        if (!node.past) return;
-        node.past.forEach((e,i,a) => {
-            if (!e.future) return;
-            e.future.forEach(f => {
-                if (f.ref in treesObj.refLookup) {
-                    treesObj.additionalLinks.push([e.ref, f.ref]);
-                }
-
-                if (f.index_title in treesObj.indexes[e.index_title].future) {
-                    treesObj.indexes[e.index_title].future[f.index_title].weight += 1;
-                } else {
-                    treesObj.indexes[e.index_title].future[f.index_title] = {weight: 1};
-                }
-            });
-        });
-        node.past.forEach(addAdditionalLinks);
-    }
-
-    trimPast(treesObj);
-    trimFuture(treesObj);
-    addAdditionalLinks(treesObj);
-
-    treesObj.pastHierarchy = d3.hierarchy(treesObj, d => d["past"]).sort(sortLinks);
-    treesObj.futureHierarchy = d3.hierarchy(treesObj, d => d["future"]).sort(sortLinks);
-
-    return treesObj;
-}
-*/
 
 async function fetchNetwork(ref) {
     let response = await fetch('/api/linknetwork/' + Sefaria.humanRef(ref));
@@ -604,12 +346,12 @@ window.addEventListener('popstate', handleStateChange);
 function handleStateChange(event) {
     var poppedLang = event.state.lang;
 
-    if(poppedLang != lang) {  //Language change - no book change
+    if(poppedLang !== lang) {  //Language change - no book change
         lang = poppedLang;
-        if(lang == "he") {
+        if(lang === "he") {
             switchToHebrew();
         }
-        else if(lang == "en" ) {
+        else if(lang === "en" ) {
             switchToEnglish();
         }
         rebuildScreen();
