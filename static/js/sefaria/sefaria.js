@@ -2154,6 +2154,9 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירת",
       "Remove": "הסרת",
+
+      //user stats
+      "Torah Tracker" : "",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
