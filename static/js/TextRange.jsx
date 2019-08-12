@@ -290,11 +290,11 @@ class TextRange extends Component {
     if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
       strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
-    let textSegments  = segments.map((segment, i) => {
-      var highlight     = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
+    let textSegments = segments.map((segment, i) => {
+      var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
                             this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
-      const textHighlights = highlight && !!this.props.textHighlights ? this.props.textHighlights : null;
+      const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is hightlights
       let parashahHeader = null;
         if (this.props.showParashahHeaders) {
         const parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
@@ -418,7 +418,6 @@ class TextRange extends Component {
     );
   }
 }
-
 TextRange.propTypes = {
   sref:                   PropTypes.string.isRequired,
   currVersions:           PropTypes.object.isRequired,

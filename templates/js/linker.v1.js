@@ -277,7 +277,7 @@
                     }
                 }
                 if (ns.matches.length == 0) {
-                    console.log("No references found to link to Sefaria.");
+                    // console.log("No references found to link to Sefaria.");
                     return;
                 }
                 atomic.get(base_url + "api/bulktext/" + ns.matches.join("|"))
@@ -316,6 +316,9 @@
     };
 
     ns._trackPage = function() {
+        var robots = document.head.querySelector("meta[name~=robots]");
+        if (robots && robots.content.includes("noindex")) { return; }
+
         var canonical = document.head.querySelector("link[rel~=canonical]");
         var url = canonical ? canonical.href : window.location.href;
         var meta = document.head.querySelector("meta[name~=description]")
@@ -331,7 +334,8 @@
             "description": description,
             "refs": ns.matches,
         };
-        //console.log(data);
+        // console.log("TRACK");
+        // console.log(data);
         var json = JSON.stringify(data);
         var postData = encodeURIComponent("json") + '=' + encodeURIComponent(json);
         atomic.post(base_url + "api/linker-track", postData)
