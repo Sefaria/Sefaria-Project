@@ -189,7 +189,7 @@ class Search {
         });
     }
     isDictaQuery(args) {
-        return RegExp(/^[א-ת\s]+$/).test(args.query); // only query dicta on fully Hebrew queries
+        return RegExp(/^[^a-zA-Z]*$/).test(args.query); // If English appears in query, search in Sefaria only
     }
     getPivot(queue, minValue, sortType) {
 
