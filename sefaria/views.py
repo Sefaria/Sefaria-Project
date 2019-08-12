@@ -289,6 +289,12 @@ def linker_tracking_api(request):
     return jsonResponse({"status": "ok"})
 
 
+def link_network_api(request, ref):
+    from sefaria.client.wrapper import LinkNetwork
+    c = LinkNetwork(ref)
+    return jsonResponse(c.contents())
+
+
 def passages_api(request, refs):
     """
     Returns a dictionary, mapping the refs in the request to the sugya that they're a part of.

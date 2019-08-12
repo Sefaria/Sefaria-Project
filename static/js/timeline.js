@@ -38,6 +38,7 @@ const getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undef
 const linkKey = l => l.source.data.ref + "-" + l.target.data.ref;
 const nodeKey = n => n.data.ref;
 
+/*
 const _partitionedLinks = {}; // cache.  ref: {past, future, concurrent}
 
 async function getPartitionedLinks(ref, year) {
@@ -69,7 +70,7 @@ async function refineLinks(alllinks) {
     }
     return mainlinks
 }
-
+*/
 function sortLinks(a1,b1) {
     const a = a1.data;
     const b = b1.data;
@@ -85,7 +86,7 @@ function sortLinks(a1,b1) {
         return a.sourceRef > b.sourceRef ? 1 : -1;
     }
 }
-
+/*
 function partitionLinks(links, year) {
   // Split array of links into three arrays, based on year
   // Returns obj w/ three arrays: {past, future, concurrent}
@@ -311,8 +312,20 @@ function buildNetwork(treesObj) {
 
     return treesObj;
 }
+*/
+
+async function fetchNetwork(ref) {
+    let response = await fetch('/api/linknetwork/' + Sefaria.humanRef(ref));
+    return await response.json();
+}
 
 function layoutTrees(treesObj) {
+
+    treesObj.refLookup = {};
+    treesObj.refLookup[treesObj.ref] = treesObj;
+
+    treesObj.pastHierarchy = d3.hierarchy(treesObj, d => d["past"]).sort(sortLinks);
+    treesObj.futureHierarchy = d3.hierarchy(treesObj, d => d["future"]).sort(sortLinks);
 
     let pt = d3.tree().size([w/2, graphBox_height])(treesObj.pastHierarchy);
     let ft = d3.tree().size([w/2, graphBox_height])(treesObj.futureHierarchy);
@@ -337,16 +350,7 @@ function layoutTrees(treesObj) {
 
     return treesObj;
 }
-function buildIndexNetwork(treesObj) {
-    // Walk past, future, additional
-    // Aggregate links under Indexes
-    // Build up edges, with weights for Index to Index
 
-    const indexes = {};
-
-
-    return treesObj;
-}
 function cleanObject(treesObj) {
     delete treesObj.past;
     delete treesObj.future;
@@ -537,9 +541,7 @@ function buildScreen() {
 }
 
 function curryAndRenderData() {
-    getPassage(currentRef)
-        .then(buildRawTrees)
-        .then(buildNetwork)
+    fetchNetwork(currentRef)
         .then(layoutTrees)
         .then(cleanObject)
         .then(renderTrees)
@@ -549,9 +551,7 @@ function curryAndRenderData() {
 function update(node) {
     // We can do a better job of sharing cache between treeObjs
     currentRef = node.data.ref;
-    getPassage(currentRef)
-        .then(buildRawTrees)
-        .then(buildNetwork)
+    fetchNetwork(currentRef)
         .then(layoutTrees)
         .then(cleanObject)
         .then(updateTrees)

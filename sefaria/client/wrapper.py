@@ -4,6 +4,8 @@ import re
 import logging
 logger = logging.getLogger(__name__)
 
+import json
+
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
@@ -311,9 +313,11 @@ class LinkNetwork(object):
         self.future = []
         self.past = []
         self.concurrent = []
-        self.base_oref = Ref(self.expand_passage(base_tref))
+        self.base_oref = self.expand_passage(Ref(base_tref))
         self.index = self.base_oref.index
-        self.category = self.index.category
+        self.category = self.index.categories[0]
+        self.refCoverage = {}
+        self.additionalLinks = []
 
         try:
             self.compDate = getattr(self.index, "compDate")
@@ -324,19 +328,58 @@ class LinkNetwork(object):
         except AttributeError:
             raise InputError("Can not build network around text with unknown date.")
 
+        self.build_trees()
+        self.build_network()
+
+    # Below two for parity of root node and kids.  yuch.
+    def __getitem__(self, key):
+        if key == "past":
+            return self.past
+        elif key == "future":
+            return self.future
+        elif key == "concurrent":
+            return self.concurrent
+        elif key == "ref":
+            return self.base_oref.normal()
+        else:
+            raise Exception
+
+    def __setitem__(self, key, value):
+        if key == "past":
+            self.past = value
+        elif key == "future":
+            self.future = value
+        elif key == "concurrent":
+            self.concurrent = value
+        else:
+            raise Exception
+
+    def contents(self):
+        return {
+            "compDate": self.compDate,
+            "errorMargin": self.errorMargin,
+            "category": self.category,
+            "ref": self.base_oref.normal(),
+            "past": self.past,
+            "future": self.future,
+            "concurrent": self.concurrent,
+            "additionalLinks": self.additionalLinks,
+            #"refs": self.refCoverage
+        }
+
     def build_trees(self):
         def build_future_tree(oref):
             ret = []
             for l in self.get_partioned_links(oref)["future"]:
-                l["future"] = build_future_tree(Ref(l.ref))
+                l["future"] = build_future_tree(Ref(l["ref"]))
                 ret += [l]
             return ret
 
         def build_past_tree(oref):
             ret = []
             for l in self.get_partioned_links(oref)["past"]:
-                l["future"] = self.get_partioned_links(Ref(l.ref))["future"]
-                l["past"] = build_past_tree(Ref(l.ref))
+                l["future"] = [x for x in self.get_partioned_links(Ref(l["ref"]))["future"] if Ref(x["ref"]) != oref]
+                l["past"] = build_past_tree(Ref(l["ref"]))
                 ret += [l]
             return ret
 
@@ -344,12 +387,45 @@ class LinkNetwork(object):
         self.past = build_past_tree(self.base_oref)
         self.concurrent = self.get_partioned_links(self.base_oref)["concurrent"]
 
+    def build_network(self):
+        def trim_past(node):
+            self.additionalLinks += [(n["ref"], node["ref"]) for n in node["past"] if n["ref"] in self.refCoverage]
+            node["past"] = [n for n in node["past"] if n["ref"] not in self.refCoverage]
+            self.refCoverage.update({n["ref"]: 1 for n in node["past"]})
+            for n in node["past"]:
+                trim_past(n)
+
+        def trim_future(node):
+            self.additionalLinks += [(node["ref"], n["ref"]) for n in node["future"] if n["ref"] in self.refCoverage]
+            node["future"] = [n for n in node["future"] if n["ref"] not in self.refCoverage]
+            self.refCoverage.update({n["ref"]: 1 for n in node["future"]})
+            for n in node["future"]:
+                trim_future(n)
+
+        def add_additional(node):
+            """
+                Walk the past tree, looking at future pointing links.
+                   Add any connection to additionalLinks
+            """
+            for p in node["past"]:
+                self.additionalLinks += [(p["ref"], f["ref"]) for f in p["future"] if f["ref"] in self.refCoverage]
+                p["future"] = []
+            for n in node["past"]:
+                add_additional(n)
+
+        trim_past(self)
+        trim_future(self)
+        add_additional(self)
+
     def get_partioned_links(self, oref):
         tref = oref.normal()
         if tref not in self._partionedLinks:
-            year = self.get_date(oref.index)
-            links = self.refine_links(get_links(tref))
-            self._partionedLinks[tref] = self.partition_links(links, year)
+            try:
+                year = self.get_date(oref.index)  # Why does this throw?
+                links = self.refine_links(get_links(tref, with_text=False))
+                self._partionedLinks[tref] = self.partition_links(links, year)
+            except InputError:
+                self._partionedLinks[tref] = {"past": [], "future": [], "concurrent": []}
         return self._partionedLinks[tref]
 
     def refine_links(self, links):
@@ -362,8 +438,8 @@ class LinkNetwork(object):
         for l in links:
             try:
                 lyear = self.get_date(l)
-            except AttributeError:
-                return {"past": [], "future": [], "concurrent": []}
+            except InputError:
+                continue
             bucket = future if lyear > year else past if lyear < year else concurrent
             bucket += [l]
         return {"past": past, "future": future, "concurrent": concurrent}
@@ -371,11 +447,20 @@ class LinkNetwork(object):
     @staticmethod
     def get_date(l):
         # handle missing compdate
-        return l["compDate"] - l["errorMargin"]
+        try:
+            return l["compDate"] - l["errorMargin"]
+        except TypeError:
+            try:
+                return int(l.compDate) - int(l.errorMargin)
+            except AttributeError:
+                raise InputError()
+        except KeyError:
+            raise InputError()
+
 
     @staticmethod
     def expand_linkref(l):
-        p = Passage().load({"ref_list": Ref(l["ref"]).normal})
+        p = Passage().load({"ref_list": Ref(l["ref"]).normal()})
         l["ref"] = p.full_ref if p else l["ref"]
         return l
 

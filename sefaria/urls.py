@@ -341,6 +341,7 @@ urlpatterns += [
 
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
+    url(r'^api/linknetwork/(?P<ref>.+)$', sefaria_views.link_network_api),
 ]
 
 # File Uploads
