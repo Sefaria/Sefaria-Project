@@ -190,18 +190,18 @@ $(function() {
 
 	}
 
-		// Adding Google Image Share capacity
-		else if ((mediaURL).match(/.*?images\.app\.goo\.gl.*?/i) != null){
+		// Adding Google Image Share capacity - cors issue
+		// else if ((mediaURL).match(/.*?images\.app\.goo\.gl.*?/i) != null){
 
-			fetch(mediaURL, {mode: 'no-cors'})
+		// 	fetch(mediaURL, {mode: 'no-cors'})
 
-						.then(response => {
+		// 				.then(response => {
 
-							console.log(response.url);
+		//					console.log(response.url);
 
-						});
+		//				});
 
-		}
+		// }
 		else embedHTML = false;
 
 	}
