@@ -432,7 +432,22 @@ class LinkNetwork(object):
         return self._partionedLinks[tref]
 
     def refine_links(self, links):
-        return [self.expand_linkref(l) for l in links if l["category"] != "Reference"]
+        from sefaria.recommendation_engine import RecommendationEngine
+
+        elinks = [self.expand_linkref(l) for l in links if l["category"] != "Reference"]
+        clusters = RecommendationEngine.cluster_close_refs([Ref(l["ref"]) for l in elinks], elinks, 2)
+        results = []
+        for cluster in clusters:
+            if len(cluster) == 1:
+                results += [cluster[0]["data"]]
+            else:
+                newref = cluster[0]["ref"].to(cluster[-1]["ref"])
+                data = cluster[0]["data"]
+                data["ref"] = newref.normal()
+                # data["sourceHeRef"]
+                # data["sourceRef"]
+                results += [data]
+        return results
 
     def partition_links(self, links, year):
         past = []
