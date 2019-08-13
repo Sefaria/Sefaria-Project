@@ -232,8 +232,8 @@ class ReaderNavigationMenu extends Component {
                   { topUserData }
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
-                  { this.props.compare ? null : (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) }
-                    <ReaderNavigationMenuSection title="Support Sefaria" heTitle="תמכו בספריא" content={donation} />
+                  { !this.props.compare ? (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) : null }
+                  { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Support Sefaria" heTitle="תמכו בספריא" content={donation} /> : null }
                   { this.props.multiPanel ? null : siteLinks }
                 </div>
                 {footer}
