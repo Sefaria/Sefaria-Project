@@ -84,7 +84,8 @@ class Search {
                 from: ('start' in standardArgs) ? lastSeen + 1 : 0,
                 size: standardArgs.size,
                 limitedToBooks: filters,
-                sort: (standardArgs.sort_type === "relevance") ? 'pagerank' : 'corpus_order_path'
+                sort: (standardArgs.sort_type === "relevance") ? 'pagerank' : 'corpus_order_path',
+                smallUnitsOnly: true
             };
         }
         return new Promise((resolve, reject) => {
@@ -159,7 +160,7 @@ class Search {
                         type: 'POST',
                         dataType: 'json',
                         contentType: "application/json;charset=UTF-8",
-                        data: JSON.stringify({query: args.query}),
+                        data: JSON.stringify({query: args.query, smallUnitsOnly: true}),
                         timeout: 3000,
                         success: data => resolve(data),
                         error: reject
