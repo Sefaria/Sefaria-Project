@@ -4145,7 +4145,6 @@ class Ref(object):
 
     def distance(self, ref, max_dist=None):
         """
-
         :param ref: ref which you want to compare distance with
         :param max_dist: maximum distance beyond which the function will return -1. it's suggested you set this param b/c alternative is very slow
         :return: int: num refs between self and ref. -1 if self and ref aren't in the same index
@@ -4153,19 +4152,29 @@ class Ref(object):
         if self.index_node != ref.index_node:
             return -1
 
-        # convert to base 0
-        sec1 = self.sections[:]
-        sec2 = ref.sections[:]
-        for i in xrange(len(sec1)):
-            sec1[i] -= 1
-        for i in xrange(len(sec2)):
-            sec2[i] -= 1
+        if len(self.sections) == 0:
+            return 0
 
-        distance = self.get_state_ja().distance(sec1,sec2)
-        if max_dist and distance > max_dist:
-            return -1
-        else:
-            return distance
+        if self.index_node.depth == len(self.sections):
+            # If they're the same section, math is simple subtraction
+            if self.sections[:-1] == ref.sections[:-1]:
+                return abs(self.sections[-1] - ref.sections[-1])
+
+        # They're different sections, see if it's def. too far
+            if max_dist:
+                if self.precedes(ref):
+                    if ref.sections[-1] > max_dist:
+                        return -1
+                else:
+                    if self.sections[-1] > max_dist:
+                        return -1
+
+        # Couldn't short circuit, proceed with full computation
+        # convert to base 0
+        sec1 = [i - 1 for i in self.sections]
+        sec2 = [i - 1 for i in ref.sections]
+
+        return self.get_state_ja().distance(sec1, sec2, depth=self.index_node.depth)
 
 
 class Library(object):

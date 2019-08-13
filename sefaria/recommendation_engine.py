@@ -270,21 +270,18 @@ class RecommendationEngine:
         :return: List of lists where each internal list is a cluster
         '''
 
-        clusters = []
         item_list = sorted(zip(ref_list, data_list), key=lambda x: x[0].order_id())
-        for temp_oref, temp_data in item_list:
-            added_to_cluster = False
+        if len(item_list) == 0:
+            return []
+        last_oref = item_list[0][0]
+        clusters = [[{"ref": last_oref, "data": item_list[0][1]}]]
+        for temp_oref, temp_data in item_list[1:]:
             new_cluster_item = {"ref": temp_oref, "data": temp_data}
-            for temp_cluster in clusters:
-                for temp_cluster_item in temp_cluster:
-                    if -1 < temp_cluster_item["ref"].distance(temp_oref) <= dist_threshold:
-                        temp_cluster.append(new_cluster_item)
-                        added_to_cluster = True
-                        break
-                if added_to_cluster:
-                    break
-            if not added_to_cluster:
+            if -1 < last_oref.distance(temp_oref, max_dist=dist_threshold) <= dist_threshold:
+                clusters[-1].append(new_cluster_item)
+            else:
                 clusters += [[new_cluster_item]]
+            last_oref = temp_oref
         return clusters
 
     @staticmethod

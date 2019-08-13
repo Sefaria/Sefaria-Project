@@ -29,16 +29,17 @@ class JaggedArray(object):
     def array(self):
         return self._store
 
-    def is_first(self, indexes1, indexes2):
+    def is_first(self, indexes1, indexes2, depth=None):
         """
 
         :param indexes1: list of 0 based indexes for digging len(indexes) levels into the array
         :param indexes2: ditto
+        :param depth: integer.  Depth of array.  Determining depth from first principals is expensive.  This value is used, if passed.
         :return: True if indexes1 is before indexes2. If equal, False
         """
 
         #pad with 0s so their len == _depth
-        N = self.get_depth()
+        N = depth or self.get_depth()
         if len(indexes1) <= N:
             indexes1 += [0] * (N - len(indexes1))
         else:
@@ -57,10 +58,11 @@ class JaggedArray(object):
 
         return indexes1[first_diff_index] < indexes2[first_diff_index]
 
-    def distance(self, indexes1, indexes2):
+    def distance(self, indexes1, indexes2, depth=None):
         """
         :param indexes1: list of 0 based indexes for digging len(indexes) levels into the array
         :param indexes2: ditto
+        :param depth: integer.  Depth of array.  Determining depth from first principals is expensive.  This value is used, if passed.
         :return: the distance, measured in array elements, between indexes1 and indexes2
         """
 
@@ -68,11 +70,11 @@ class JaggedArray(object):
             return 0
 
         # make sure indexes1 represents earliest index
-        if self.is_first(indexes2,indexes1):
+        if self.is_first(indexes2, indexes1, depth=depth):
             indexes1, indexes2 = (indexes2, indexes1)
 
         # pad with 0s so their len == _depth
-        N = self.get_depth()
+        N = depth or self.get_depth()
         if len(indexes1) <= N:
             indexes1 += [0] * (N - len(indexes1))
         else:
@@ -88,7 +90,6 @@ class JaggedArray(object):
             if indexes1[i] != indexes2[i]:
                 first_diff_index = i
                 break
-
 
         if first_diff_index == N-1:
             #base case
@@ -121,7 +122,7 @@ class JaggedArray(object):
                         temp_subarray_indexes += [temp_end_index[j]]
 
                 if not is_zero_len_section:
-                    distance += self.distance(temp_start_index,temp_end_index) + 1  # + 1 to include the current seg
+                    distance += self.distance(temp_start_index,temp_end_index,depth=depth) + 1  # + 1 to include the current seg
                 temp_start_index[first_diff_index] = i + 1
                 # set all indexes greater than first_diff_index to zero because you've moved on to the next section
                 for j in xrange(first_diff_index+1,N):
@@ -366,7 +367,7 @@ class JaggedArray(object):
             end_indexes = start_indexes
 
         assert len(start_indexes) == len(end_indexes)
-        assert len(start_indexes) <= self.depth
+        assert len(start_indexes) <= self.get_depth()
         range_index = len(start_indexes)
 
         for i in range(0, len(start_indexes)):

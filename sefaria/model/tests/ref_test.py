@@ -481,13 +481,24 @@ class Test_Ref(object):
         assert Ref("Malbim Beur Hamilot on Ezekiel")
 
     def test_distance(self):
+        r1 = Ref("Genesis 1:5")
+        r2 = Ref("Genesis 1:8")
+        assert r1.distance(r2) == 3
+        assert r2.distance(r1) == 3
+
         r1 = Ref("Genesis 1:3")
         r2 = Ref("Genesis 3:4")
         assert r1.distance(r2) == 57
+        assert r2.distance(r1) == 57
 
         r1 = Ref("Shir HaShirim Rabbah 2:12:1")
         r2 = Ref("Shir HaShirim Rabbah 2:9:5")
         assert r1.distance(r2) == 2
+        assert r2.distance(r1) == 2
+
+        r = Ref('Mishneh Torah, Murderer and the Preservation of Life')
+        assert r.distance(r) == 0
+
 
     def test_is_segment_level(self):
         assert Ref("Leviticus 15:3").is_segment_level()
