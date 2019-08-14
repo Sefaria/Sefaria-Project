@@ -310,6 +310,8 @@ def prepare_text_for_export(text):
     except Exception as e:
         print "Skipping %s - %s" % (text["title"], e.message)
         return
+    if any([n.is_virtual for n in index.nodes.get_leaf_nodes()]):  #skip virtual nodes
+        return
 
     text["heTitle"] = index.nodes.primary_title("he")
     text["categories"] = index.categories
