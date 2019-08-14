@@ -281,7 +281,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             logger.warning(u"Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
 
-    # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
+    # Hard-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
     # E.g., when requesting "Steinsaltz on X" also include links to "X" as though they were connected directly to Steinsaltz.
     bound_texts = ("Steinsaltz on ",)
     for prefix in bound_texts:
@@ -321,6 +321,9 @@ class LinkNetwork(object):
         self.category = self.index.categories[0]
         self.refCoverage = {}
         self.additionalLinks = []
+        self.indexes = {}
+        self.indexnet = {}
+        self.indexAdditionalLinks = {}
 
         try:
             self.compDate = getattr(self.index, "compDate")
@@ -333,6 +336,7 @@ class LinkNetwork(object):
 
         self.build_trees()
         self.build_network()
+        self.build_index_network()
 
     # Below two for parity of root node and kids.  yuch.
     def __getitem__(self, key):
@@ -367,6 +371,8 @@ class LinkNetwork(object):
             "future": self.future,
             "concurrent": self.concurrent,
             "additionalLinks": self.additionalLinks,
+            "indexAdditionalLinks": [(a,b,y) for (a,b),y in self.indexAdditionalLinks.iteritems()],
+            "indexnet": self.indexnet
             #"refs": self.refCoverage
         }
 
@@ -419,6 +425,100 @@ class LinkNetwork(object):
         trim_past(self)
         trim_future(self)
         add_additional(self)
+
+    def build_index_network(self):
+
+        self.indexnet = {
+            "title": self.index.title,
+            "heTitle": self.index.get_title("he"),
+            "compDate": self.compDate,
+            "errorMargin": self.errorMargin,
+            "category": self.category,
+            "refs": [self.base_oref.normal()],
+            "past": {},
+            "future": {}
+        }
+
+        self.indexes[self.index.title] = self.indexnet
+
+        def walk_past(node, indexnode):
+            current_index = Ref(node["ref"]).index.title
+            for n in node["past"]:
+                ref = Ref(n["ref"])
+                ititle = ref.index.title
+                if ititle in indexnode["past"]:
+                    indexnode["past"][ititle]["refs"] += [n["ref"]]
+                    indexnode["past"][ititle]["weight"] += 1
+                if ititle not in self.indexes:
+                    newindex = {
+                        "title": ref.index.title,
+                        "heTitle": ref.index.get_title("he"),
+                        "compDate": n["compDate"],
+                        "errorMargin": n["errorMargin"],
+                        "category": n["category"],
+                        "refs": [n["ref"]],
+                        "past": {},
+                        "future": {},
+                        "weight": 1   # only refers to this edge - this spot in the tree
+                    }
+                    self.indexes[ititle] = newindex
+                    indexnode["past"][ititle] = newindex
+                elif ititle not in indexnode["past"]:
+                    # this index exists, but not in this spot in the tree
+                    # add refs to that index
+                    if n["ref"] not in self.indexes[ititle]["refs"]:
+                        self.indexes[ititle]["refs"] += [n["ref"]]  # todo: set?
+
+                    # add an edge to additional
+                    key = (current_index, ititle)
+                    if key not in self.indexAdditionalLinks:
+                        self.indexAdditionalLinks[key] = {"weight": 1}
+                    else:
+                        self.indexAdditionalLinks[key]["weight"] += 1
+
+            for n in node["past"]:
+                walk_past(n, self.indexes[Ref(n["ref"]).index.title])
+
+        def walk_future(node, indexnode):
+            current_index = Ref(node["ref"]).index.title
+            for n in node["future"]:
+                ref = Ref(n["ref"])
+                ititle = ref.index.title
+                if ititle in indexnode["future"]:
+                    indexnode["future"][ititle]["refs"] += [n["ref"]]
+                    indexnode["future"][ititle]["weight"] += 1
+                if ititle not in self.indexes:
+                    newindex = {
+                        "title": ref.index.title,
+                        "heTitle": ref.index.get_title("he"),
+                        "compDate": n["compDate"],
+                        "errorMargin": n["errorMargin"],
+                        "category": n["category"],
+                        "refs": [n["ref"]],
+                        "past": {},
+                        "future": {},
+                        "weight": 1   # only refers to this edge - this spot in the tree
+                    }
+                    self.indexes[ititle] = newindex
+                    indexnode["future"][ititle] = newindex
+                elif ititle not in indexnode["future"]:
+                    # this index exists, but not in this spot in the tree
+                    # add refs to that index
+                    if n["ref"] not in self.indexes[ititle]["refs"]:
+                        self.indexes[ititle]["refs"] += [n["ref"]]  # todo: set?
+
+                    # add an edge to additional
+                    key = (current_index, ititle)
+                    if key not in self.indexAdditionalLinks:
+                        self.indexAdditionalLinks[key] = {"weight": 1}
+                    else:
+                        self.indexAdditionalLinks[key]["weight"] += 1
+
+            for n in node["future"]:
+                walk_future(n, self.indexes[Ref(n["ref"]).index.title])
+
+        walk_past(self, self.indexnet)
+        walk_future(self, self.indexnet)
 
     def get_partioned_links(self, oref):
         tref = oref.normal()

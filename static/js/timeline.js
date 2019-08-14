@@ -37,7 +37,8 @@ const switchToHebrew = () => lang = "he";
 const getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
 const linkKey = l => l.source.data.ref + "-" + l.target.data.ref;
 const nodeKey = n => n.data.ref;
-
+const indexLinkKey = l => l.source.data.title + "-" + l.target.data.title;
+const indexNodeKey = n => n.data.title;
 
 function sortLinks(a1,b1) {
     const a = a1.data;
@@ -46,8 +47,8 @@ function sortLinks(a1,b1) {
         return a.commentaryNum - b.commentaryNum;
     }
     if (isHebrew()) {
-        var indexA = Sefaria.index(a.index_title);
-        var indexB = Sefaria.index(b.index_title);
+        const indexA = Sefaria.index(a.index_title);
+        const indexB = Sefaria.index(b.index_title);
         return indexA.heTitle > indexB.heTitle ? 1 : -1;
     }
     else {
@@ -55,10 +56,44 @@ function sortLinks(a1,b1) {
     }
 }
 
-
 async function fetchNetwork(ref) {
     let response = await fetch('/api/linknetwork/' + Sefaria.humanRef(ref));
     return await response.json();
+}
+
+function layoutIndexTrees(treesObj) {
+    const inet = treesObj.indexnet;
+    treesObj.indexLookup = {};
+    treesObj.indexLookup[inet.title] = inet;
+
+    treesObj.indexPastHierarchy = d3.hierarchy(inet, d => Object.values(d["past"]));
+    treesObj.indexFutureHierarchy = d3.hierarchy(inet, d => Object.values(d["future"]));
+
+    // Strictly, w/2 isn't right - but rather split on
+    let ipt = d3.tree().size([graphBox_height, s(inet)])(treesObj.indexPastHierarchy);
+    let ift = d3.tree().size([graphBox_height, w - s(inet)])(treesObj.indexFutureHierarchy);
+
+        debugger;
+    // Reset x according to date
+    // Reset root y to center;
+    [ipt, ift].forEach(t => {
+        t.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); treesObj.indexLookup[n.data.title] = n; });
+        t.y = s(t.data);
+        t.x = graphBox_height/2;
+        t.color = Sefaria.palette.categoryColor(t.data.category);
+    });
+
+    treesObj.indexLookup[ipt.data.title] = ipt;
+
+    treesObj.indexPastTree = ipt;
+    treesObj.indexFutureTree = ift;
+    treesObj.indexPlacedLinks = treesObj.indexAdditionalLinks.map(ls => ({
+            source: treesObj.indexLookup[ls[0]],
+            target: treesObj.indexLookup[ls[1]]
+        }));
+
+    return treesObj;
+
 }
 
 function layoutTrees(treesObj) {
@@ -69,8 +104,8 @@ function layoutTrees(treesObj) {
     treesObj.pastHierarchy = d3.hierarchy(treesObj, d => d["past"]).sort(sortLinks);
     treesObj.futureHierarchy = d3.hierarchy(treesObj, d => d["future"]).sort(sortLinks);
 
-    let pt = d3.tree().size([w/2, graphBox_height])(treesObj.pastHierarchy);
-    let ft = d3.tree().size([w/2, graphBox_height])(treesObj.futureHierarchy);
+    let pt = d3.tree().size([graphBox_height, s(treesObj)])(treesObj.pastHierarchy);
+    let ft = d3.tree().size([graphBox_height, w - s(treesObj)])(treesObj.futureHierarchy);
 
     // Reset x according to date
     // Reset root y to center;
@@ -81,7 +116,7 @@ function layoutTrees(treesObj) {
         t.color = Sefaria.palette.categoryColor(t.data.category);
     });
 
-    treesObj.refLookup[pt.ref] = pt;
+    treesObj.refLookup[pt.data.ref] = pt;
 
     treesObj.pastTree = pt;
     treesObj.futureTree = ft;
@@ -99,6 +134,8 @@ function cleanObject(treesObj) {
     delete treesObj.concurrent;
     delete treesObj.pastHierarchy;
     delete treesObj.futureHierarchy;
+    delete treesObj.indexPastHierarchy;
+    delete treesObj.indexFutureHierarchy;
 
     return treesObj;
 }
@@ -120,6 +157,8 @@ function updateTrees(treesObj) {
             coloring: "target"
         }
     };
+  const lkey = linkKey;
+  const nkey = nodeKey;
 
   let t0 = d3.transition("0")
       .delay(200).duration(750);
@@ -131,7 +170,7 @@ function updateTrees(treesObj) {
 
   for (let klass in components) {
       let selection = graphBox.selectAll("path." + klass)
-          .data(components[klass].links, linkKey);
+          .data(components[klass].links, lkey);
 
       selection.exit()
           .transition(t0)
@@ -158,7 +197,7 @@ function updateTrees(treesObj) {
 
   ["future","past"].forEach(klass => {
       const nodes = graphBox.selectAll("g." + klass)
-          .data(components[klass].nodes, nodeKey);
+          .data(components[klass].nodes, nkey);
 
       nodes.exit()
         .transition(t0)
@@ -201,7 +240,67 @@ function updateTrees(treesObj) {
 }
 
 
+function renderIndexTrees(treesObj) {
+    const components = {
+        past: {
+            links: treesObj.indexPastTree.links(),
+            nodes: treesObj.indexPastTree.descendants().reverse(),
+            coloring: "target"
+        },
+        future: {
+            links: treesObj.indexFutureTree.links(),
+            nodes: treesObj.indexFutureTree.descendants().reverse(),
+            coloring: "target"
+        },
+        additional: {
+            links: treesObj.indexPlacedLinks,
+            coloring: "target"
+        }
+    };
+    const lkey = indexLinkKey;
+    const nkey = indexNodeKey;
 
+
+    for (let klass in components) {
+        graphBox.selectAll("path." + klass)
+          .data(components[klass].links, lkey)
+          .enter().append("path")
+            .attr("class", klass)
+            .attr("stroke", d => d[components[klass].coloring].color)
+            .style("fill-opacity", 1)
+            .attr("d", d3.linkHorizontal()
+              .x(d => d.y)
+              .y(d => d.x));
+    }
+    ["future","past"].forEach(klass => {
+      const nodes = graphBox.selectAll("g." + klass)
+        .data(components[klass].nodes, nkey)
+        .enter().append("g")
+          .attr("class", klass)
+          .attr("transform", d => `translate(${d.y},${d.x})`)
+          //.on("click", update)
+          //.on("mouseover", renderText)
+      ;
+
+        nodes.append("circle")
+          .attr("stroke-width", 3)
+          .attr("stroke-linejoin", "round")
+          .attr("fill", d => d.children ? "#555" : "#999")
+          .attr("r", 2.5);
+
+        nodes.append("text")
+          .attr("dy", "0.31em")
+          .attr("x", d => d.children ? -6 : 6)
+          .attr("text-anchor", d => d.children ? "end" : "start")
+          .text(d => d.data.title)
+          .attr("stroke-width", 1)
+          .attr("stroke", "black")
+        .clone(true).lower()
+          .attr("stroke", "white");
+    });
+
+  return treesObj;
+}
 function renderTrees(treesObj) {
     const components = {
         past: {
@@ -219,12 +318,12 @@ function renderTrees(treesObj) {
             coloring: "target"
         }
     };
-
-    // debugger;
+    const lkey = linkKey;
+    const nkey = nodeKey;
 
     for (let klass in components) {
         graphBox.selectAll("path." + klass)
-          .data(components[klass].links, linkKey)
+          .data(components[klass].links, lkey)
           .enter().append("path")
             .attr("class", klass)
             .attr("stroke", d => d[components[klass].coloring].color)
@@ -235,7 +334,7 @@ function renderTrees(treesObj) {
     }
     ["future","past"].forEach(klass => {
       const nodes = graphBox.selectAll("g." + klass)
-        .data(components[klass].nodes, nodeKey)
+        .data(components[klass].nodes, nkey)
         .enter().append("g")
           .attr("class", klass)
           .attr("transform", d => `translate(${d.y},${d.x})`)
@@ -284,9 +383,9 @@ function buildScreen() {
 
 function curryAndRenderData() {
     fetchNetwork(currentRef)
-        .then(layoutTrees)
+        .then(layoutIndexTrees)
         .then(cleanObject)
-        .then(renderTrees)
+        .then(renderIndexTrees)
         .then(console.log);
 }
 
