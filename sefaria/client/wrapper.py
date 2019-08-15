@@ -321,9 +321,15 @@ class LinkNetwork(object):
         self.category = self.index.categories[0]
         self.refCoverage = {}
         self.additionalLinks = []
+
+        # For heirarchical
         self.indexes = {}
         self.indexnet = {}
         self.indexAdditionalLinks = {}
+
+        # For simple network
+        self.indexNodes = {}
+        self.indexLinks = {}
 
         try:
             self.compDate = getattr(self.index, "compDate")
@@ -337,6 +343,7 @@ class LinkNetwork(object):
         self.build_trees()
         self.build_network()
         self.build_index_network()
+        self.new_build_index_network()
 
     # Below two for parity of root node and kids.  yuch.
     def __getitem__(self, key):
@@ -372,7 +379,9 @@ class LinkNetwork(object):
             "concurrent": self.concurrent,
             "additionalLinks": self.additionalLinks,
             "indexAdditionalLinks": [(a,b,y) for (a,b),y in self.indexAdditionalLinks.iteritems()],
-            "indexnet": self.indexnet
+            "indexnet": self.indexnet,
+            "indexNodes": self.indexNodes,
+            "indexLinks": self.indexLinks.keys(),
             #"refs": self.refCoverage
         }
 
@@ -425,6 +434,64 @@ class LinkNetwork(object):
         trim_past(self)
         trim_future(self)
         add_additional(self)
+
+    def new_build_index_network(self):
+
+        def nodekey(node):
+            return Ref(node["ref"]).index.title
+
+        def linkkey(source, target):
+            return nodekey(source), nodekey(target)
+
+        def linkkey_from_trefs(source_tref, target_tref):
+            return Ref(source_tref).index.title, Ref(target_tref).index.title
+
+        def node2index(node):
+            ref = Ref(node["ref"])
+
+            return {
+                "title": ref.index.title,
+                "heTitle": ref.index.get_title("he"),
+                "compDate": node["compDate"],
+                "errorMargin": node["errorMargin"],
+                "category": node["category"],
+                "refs": [node["ref"]],
+            }
+
+        def walk(node, direction):
+            """
+            :param node:
+            :param direction: "past" or "future"
+            :return:
+            """
+
+            for n in node[direction]:
+                child_key = nodekey(n)
+                if child_key in self.indexNodes:
+                    self.indexNodes[child_key]["refs"] += [n["ref"]]
+                else:
+                    self.indexNodes[child_key] = node2index(n)
+
+                # add an edge
+                self.indexLinks[linkkey(node, n)] = 1
+
+                # recurse
+                walk(n, direction)
+
+        self.indexNodes[nodekey(self)] = {
+            "root": True,
+            "title": self.index.title,
+            "heTitle": self.index.get_title("he"),
+            "compDate": self.compDate,
+            "errorMargin": self.errorMargin,
+            "category": self.category,
+            "refs": [self.base_oref.normal()]
+        }
+
+        walk(self, "past")
+        walk(self, "future")
+        self.indexLinks.update({linkkey_from_trefs(p, f): 1 for p, f in self.additionalLinks})
+
 
     def build_index_network(self):
 
@@ -570,7 +637,7 @@ class LinkNetwork(object):
         except TypeError:
             try:
                 return int(l.compDate) - int(l.errorMargin)
-            except AttributeError:
+            except (AttributeError, ValueError):
                 raise InputError()
         except KeyError:
             raise InputError()
