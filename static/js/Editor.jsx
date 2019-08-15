@@ -11,6 +11,7 @@ const {
     ProfilePic,
 } = require('./Misc');
 
+const classNames             = require('classnames');
 
 // Add a dictionary of mark tags.
 const MARK_TAGS = {
@@ -40,7 +41,37 @@ const sheet_item_els = {
     media: 'SheetMedia',
 }
 
+const HoverMenu = React.forwardRef(({editor}, ref) => {
+    const root = window.document.getElementById('s2')
+    return ReactDOM.createPortal(
+        <div ref={ref} className="hoverMenu">
+            <MarkButton editor={editor} type="bold" />
+            <MarkButton editor={editor} type="italic" />
+            <MarkButton editor={editor} type="underline" />
+        </div>,
+        root
+    )
+});
 
+
+const MarkButton = ({editor, type}) => {
+  const { value } = editor
+  const isActive = value.activeMarks.some(mark => mark.type === type)
+
+  const iconName = "fa-" + type;
+  const classes = {fa: 1, active: isActive};
+  classes[iconName] = 1;
+  return (
+    <span className="markButton"
+      onMouseDown={event => {
+        event.preventDefault()
+        editor.toggleMark(type)
+      }}
+    >
+      <i className={classNames(classes)} />
+    </span>
+  )
+}
 
 
 
@@ -112,7 +143,9 @@ export const rules = [
 
 const html = new Html({rules})
 
+
 function SefariaEditor(props) {
+    const menuRef = React.createRef()
 
     function renderSheetItem(source) {
 
@@ -352,9 +385,7 @@ function SefariaEditor(props) {
     }
 
 
-    const initialValue = Value.fromJSON(transformSheetJsonToDraft(props.data));
-
-    const [value, setValue] = useState(initialValue);
+    const [value, setValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
 
     const schema = {
         document: {
@@ -758,49 +789,57 @@ function SefariaEditor(props) {
         }
     }
 
-    function onChange({value}) {
-        setValue(value)
+    useEffect(() => {
 
-        const menu = hoverMenu.current
+        //style menu
+        const menu = menuRef.current
+        const {fragment, selection} = value
+
+        if (selection.isBlurred || selection.isCollapsed || fragment.text === '') {
+            menu.removeAttribute('style')
+            return
+        }
 
         const native = window.getSelection()
         const range = native.getRangeAt(0)
         const rect = range.getBoundingClientRect()
-
-        const container = $('.sheetsInPanel');
-        const containerYOffset = container.scrollTop() - container.offset().top;
-        const containerXOffset = parseInt($(".sheetContent").css("marginLeft"));
-
         menu.style.opacity = 1
-        menu.style.top = `${rect.top + containerYOffset - (2 * menu.offsetHeight)}px`
+        menu.style.top = `${rect.top + window.pageYOffset - menu.offsetHeight}px`
 
         menu.style.left = `${rect.left +
-          window.pageXOffset -
-          containerXOffset -
-          menu.offsetWidth / 2 +
-          rect.width / 2}px`
+        window.pageXOffset -
+        menu.offsetWidth / 2 +
+        rect.width / 2}px`
 
 
+    });
+
+    function onChange({value}) {
+        setValue(value);
     }
 
-    const hoverMenu = React.createRef();
+  function renderEditor(props, editor, next) {
+    const children = next()
     return (
-        <div>
-            <div ref={hoverMenu} className="hoverMenu">
-                <button>Bold</button>
-                <button>Italic</button>
-                <button>Underline</button>
-            </div>
+      <React.Fragment>
+        {children}
+        <HoverMenu ref={menuRef} editor={editor} />
+      </React.Fragment>
+    )
+  }
+
+
+    return (
         <Editor
             onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
-            defaultValue={initialValue}
+            value={value}
             renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
             renderMark={(props, editor, next) => renderMark(props, editor, next)}
             renderInline={(props, editor, next) => renderInline(props, editor, next)}
             schema={schema}
-            onChange={ () => onChange({value}) }
+            renderEditor={(props, editor, next) => renderEditor(props, editor, next)}
+            onChange={ ({value}) => onChange({value}) }
         />
-        </div>
     )
 
 
