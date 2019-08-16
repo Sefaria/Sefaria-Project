@@ -283,7 +283,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
         groups.append("text")
             .attr("font-family", (Sefaria.interfaceLang === "english" ? '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif' : '"Heebo", sans-serif'))
             .attr("text-anchor", "start")
-            .attr("x", d => Sefaria.interfaceLang === "hebrew" ? width-margin.right : x(d.site) > 250 ? x(d.site) - 20 : x(d.site) + 20)
+            .attr("x", d => Sefaria.interfaceLang === "hebrew" ? width - margin.right : null)
             .attr("letter-spacing", Sefaria.interfaceLang === "english" ? 1.5 : null)
             .attr("font-size", 16)
             .text(d => Sefaria._(d.cat).toUpperCase());
@@ -292,7 +292,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .data(d => keys.map(key => ({key, cat:d.cat, value: d[key]})))
             .join("rect")
             .attr("class", d => d.key)
-            .attr("x", d => width - margin.right - x(d.value))
+            .attr("x", d => Sefaria.interfaceLang === "english" ? 0 : width - margin.right - x(d.value))
             .attr("y", d => d.key === "user" ? below_text_padding : below_text_padding + userbar + inter_bar_padding)
             .attr("width", d => x(d.value))
             .attr("height", d => d.key === "user" ? userbar : sitebar)
