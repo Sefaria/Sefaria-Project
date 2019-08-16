@@ -3946,6 +3946,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .texts .textRange .title {
   color: #999;
 }
+.textList .texts .segment .queryTextHighlight {
+  padding: 0;
+  background-color: inherit;
+  font-weight: bold;
+}
 .dark .textList .texts .textRange .title {
   color: #ddd;
 }
