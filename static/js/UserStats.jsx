@@ -267,8 +267,12 @@ const CategoryBars = ({user_cats, site_cats}) => {
         const sitebar = 34;
 
         const x = d3.scaleLinear()
-            .domain([0, d3.max(data.map(d => [d.site, d.user]).flat()) + .10]).nice()
-            .rangeRound([0,width - margin.right]);
+            .domain([0, d3.max(data.map(d => [d.site, d.user]).flat()) + .10]).nice();
+        if (Sefaria.interfaceLang === "english") {
+            x.rangeRound([0,width - margin.right]);
+        } else {
+            x.rangeRound([0,width - margin.right]);
+        }
 
         const groups = svg.append("g")
             .selectAll("g")
@@ -277,9 +281,10 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("transform", d => `translate(${margin.left}, ${y(d.cat)})`);
 
         groups.append("text")
-            .attr("font-family", (Sefaria.interfaceLang == "english" ? '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif' : '"Heebo", sans-serif'))
+            .attr("font-family", (Sefaria.interfaceLang === "english" ? '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif' : '"Heebo", sans-serif'))
             .attr("text-anchor", "start")
-            .attr("letter-spacing", 1.5)
+            .attr("x", d => Sefaria.interfaceLang === "hebrew" ? width-margin.right : x(d.site) > 250 ? x(d.site) - 20 : x(d.site) + 20)
+            .attr("letter-spacing", Sefaria.interfaceLang === "english" ? 1.5 : null)
             .attr("font-size", 16)
             .text(d => Sefaria._(d.cat).toUpperCase());
 
@@ -287,7 +292,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .data(d => keys.map(key => ({key, cat:d.cat, value: d[key]})))
             .join("rect")
             .attr("class", d => d.key)
-            .attr("x", 0)
+            .attr("x", d => width - margin.right - x(d.value))
             .attr("y", d => d.key === "user" ? below_text_padding : below_text_padding + userbar + inter_bar_padding)
             .attr("width", d => x(d.value))
             .attr("height", d => d.key === "user" ? userbar : sitebar)
