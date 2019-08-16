@@ -437,20 +437,29 @@ class LinkNetwork(object):
 
     def new_build_index_network(self):
 
+        def refKey(ref):
+            index = Ref(ref).index
+            key = getattr(index, "collective_title", index.title)
+            if "Mishneh Torah" in key:
+                return "Mishneh Torah"
+            if "Shulchan Arukh" in key:
+                return "Shulchan Arukh"
+            return key
+
         def nodekey(node):
-            return Ref(node["ref"]).index.title
+            return refKey(node["ref"])
 
         def linkkey(source, target):
             return nodekey(source), nodekey(target)
 
         def linkkey_from_trefs(source_tref, target_tref):
-            return Ref(source_tref).index.title, Ref(target_tref).index.title
+            return refKey(source_tref), refKey(target_tref)
 
         def node2index(node):
             ref = Ref(node["ref"])
 
             return {
-                "title": ref.index.title,
+                "title": refKey(node["ref"]),
                 "heTitle": ref.index.get_title("he"),
                 "compDate": node["compDate"],
                 "errorMargin": node["errorMargin"],
@@ -480,7 +489,7 @@ class LinkNetwork(object):
 
         self.indexNodes[nodekey(self)] = {
             "root": True,
-            "title": self.index.title,
+            "title": refKey(self.base_oref.normal()),
             "heTitle": self.index.get_title("he"),
             "compDate": self.compDate,
             "errorMargin": self.errorMargin,

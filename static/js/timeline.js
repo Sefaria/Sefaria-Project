@@ -50,6 +50,13 @@ function sortIndexes(a1,b1) {
     return a.category > b.category ? 1 : -1;
 }
 
+function sortIndexes2(a,b) {
+    if (a.category === b.category) {
+        return a.title > b.title ? 1 : -1;
+    }
+    return a.category > b.category ? 1 : -1;
+}
+
 function sortLinks(a1,b1) {
     const a = a1.data;
     const b = b1.data;
@@ -84,31 +91,37 @@ function renderIndexNetworkSimulation(treesObj) {
         return (
         c === "Tanakh"      ? h/2       :
         c === "Apocrypha"   ? h/4       :
+
         c === "Mishnah"     ? h/3       :
         c === "Tanaitic"    ? h/2       :
         c === "Midrash"     ? 2 * h/3   :
+
         c === "Talmud"      ? h/2       :
-        c === "Halakhah"    ? 3 * h/4   :
+
+        c === "Halakhah"    ? 4 * h/5   :
         c === "Kabbalah"    ? h/2       :
-        c === "Liturgy"     ? h/2       :
+        c === "Liturgy"     ? h/3       :
         c === "Philosophy"  ? h/4       :
-        c === "Chasidut"    ? h/4       :
-        c === "Musar"       ? h/2       :
-        c === "Responsa"    ? 3 * h/4   :
+
+        c === "Chasidut"    ? h/5       :
+        c === "Musar"       ? h/3       :
+        c === "Responsa"    ? 4 * h/5   :
+
         c === "Modern Works"? h/2       :
         h/2);
     };
 
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.title))
-      //.force("charge", d3.forceManyBody())
+      //.force("attract", d3.forceManyBody(30).distanceMax(40))
+      //.force("repel", d3.forceManyBody())
       //.force("timeline", d3.forceX().x(s).strength(0.01))
-      .force("category", d3.forceY().y(categoryY))
+      .force("category", d3.forceY().y(categoryY).strength(.5))
       .force("timeline", timeline_force)
       .force("box", box_force)
       .force("root", root_force)
-      .force("collide", d3.forceCollide(40));
-
+      .force("collide", d3.forceCollide(30))
+    ;
     const link = graphBox
         .selectAll("path.link")
         .data(links)
@@ -124,21 +137,27 @@ function renderIndexNetworkSimulation(treesObj) {
         .join("g")
           .attr("class", "node");
 
-    node.append("circle")
-      .attr("stroke-width", 3)
-      .attr("stroke-linejoin", "round")
-      .attr("fill", "#999")
-      .attr("r", 2.5);
+    node.append("rect")
+        .attr("x", -50)
+        .attr("y", -10)
+        .attr("width", 100)
+        .attr("height", 20)
+        .attr("stroke-width", 3)
+        .attr("stroke-linejoin", "round")
+        .attr("fill", "#fff")
+        .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
+        .attr("rx", 10);
 
     node.append("text")
-      .attr("dy", "0.31em")
-      .attr("x", -6)
-      .attr("text-anchor", "end")
-      .text(d => d.title)
-      .attr("stroke-width", 1)
-      .attr("stroke", "black")
-    .clone(true).lower()
-      .attr("stroke", "white");
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
+        .text(d => d.title)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black")
+      .clone(true).lower()
+        .attr("stroke", "white");
 
     simulation.on("tick", () => {
         link.attr("d", d3.linkHorizontal()
