@@ -611,6 +611,7 @@ class LinkNetwork(object):
         from sefaria.recommendation_engine import RecommendationEngine
 
         elinks = [self.expand_linkref(l) for l in links if l["category"] != "Reference"]
+        elinks = [self.switch_commentary_category(l) if l["category"] == "Commentary" else l for l in elinks]
         clusters = RecommendationEngine.cluster_close_refs([Ref(l["ref"]) for l in elinks], elinks, 2)
         results = []
         for cluster in clusters:
@@ -656,6 +657,11 @@ class LinkNetwork(object):
     def expand_linkref(l):
         p = Passage().load({"ref_list": Ref(l["ref"]).normal()})
         l["ref"] = p.full_ref if p else l["ref"]
+        return l
+
+    @staticmethod
+    def switch_commentary_category(l):
+        l["category"] = Ref(l["ref"]).index.categories[0]
         return l
 
     @staticmethod

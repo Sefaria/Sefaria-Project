@@ -114,7 +114,7 @@ function renderIndexNetworkSimulation(treesObj) {
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.title))
       //.force("attract", d3.forceManyBody(30).distanceMax(40))
-      //.force("repel", d3.forceManyBody())
+      .force("repel", d3.forceManyBody().strength(-60))
       //.force("timeline", d3.forceX().x(s).strength(0.01))
       .force("category", d3.forceY().y(categoryY).strength(.5))
       .force("timeline", timeline_force)
