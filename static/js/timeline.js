@@ -184,70 +184,69 @@ function renderIndexNetworkSimulation(treesObj) {
       //.force("timeline", d3.forceX().x(s).strength(0.01))
       .force("category", d3.forceY().y(categoryY).strength(.5))
       .force("box", box_force)
-      .force("collide", d3.forceCollide(30))
+      .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
       .tick(200)
     ;
 
 
 
-    function update() {
-        const link = graphBox
-            .selectAll("path.link")
-            .data(links)
-            .join("path")
-              .attr("class", "link")
-              .attr("stroke", d => Sefaria.palette.categoryColor(d.target.category))
-              .style("fill-opacity", 1);
+    const link = graphBox
+        .selectAll("path.link")
+        .data(links, d => d.source.title + "-" + d.target.title )
+        .join("path")
+          .attr("class", "link")
+          .attr("stroke", d => Sefaria.palette.categoryColor(d.target.category))
+          .style("fill-opacity", 1);
 
-        const node = graphBox
-            .selectAll("g.node")
-            .data(nodes)
-            .join("g")
-              .attr("class", "node");
+    const node = graphBox
+        .selectAll("g.node")
+        .data(nodes, d => d.title)
+        .join("g")
+          .attr("class", "node");
 
-        node.append("rect")
-            .attr("x", -50)
-            .attr("y", -10)
-            .attr("width", 100)
-            .attr("height", 20)
-            .attr("stroke-width", d => d.highlighted ? 3 : 1)
-            .attr("stroke-linejoin", "round")
-            .attr("fill", "#fff")
-            .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
-            .attr("rx", 10);
+    node.append("rect")
+        .attr("x", -50)
+        .attr("y", -10)
+        .attr("width", 100)
+        .attr("height", 20)
+        .attr("stroke-width", d => d.highlighted ? 3 : 1)
+        .attr("stroke-linejoin", "round")
+        .attr("fill", "#fff")
+        .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
+        .attr("rx", 10);
 
-        node.append("text")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "central")
-            .text(d => d.title)
-            .attr("stroke-width", 1)
-            .attr("stroke", "black")
-          .clone(true).lower()
-            .attr("stroke", "white");
+    node.append("text")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
+        .text(d => d.title)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black")
+      .clone(true).lower()
+        .attr("stroke", "white");
 
-        simulation.on("tick", () => {
-            link.attr("d", d3.linkHorizontal()
-                  .x(d => d.x)
-                  .y(d => d.y));
+    simulation.on("tick", () => {
+        link.attr("d", d3.linkHorizontal()
+              .x(d => d.x)
+              .y(d => d.y));
 
-            node.attr("transform", d => `translate(${d.x},${d.y})`)
-        });
+        node.attr("transform", d => `translate(${d.x},${d.y})`)
+    });
 
-        node.on("click", d => {
-            const {ns, ls} = getLinkPath(d);
-            nodes.forEach(n => {n.highlighted = false});
-            ns.forEach(n => {n.highlighted = true});
-            links.forEach(n => {n.highlighted = false});
-            ls.forEach(n => {n.highlighted = true});
-            d.highlighted = true;
-            update();
-        });
+    node.on("click", d => {
+        const {ns, ls} = getLinkPath(d);
+        nodes.forEach(n => {n.highlighted = false});
+        ns.forEach(n => {n.highlighted = true});
+        links.forEach(n => {n.highlighted = false});
+        ls.forEach(n => {n.highlighted = true});
+        d.highlighted = true;
 
-    }
-    update();
+        node.selectAll("rect")
+            .attr("stroke-width", d => d.highlighted ? 3 : 1);
+    });
     //node.on("dblclick", )
+
 }
 
 function layoutIndexTrees(treesObj) {
