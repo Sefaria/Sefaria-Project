@@ -78,28 +78,20 @@ async function fetchNetwork(ref) {
     return await response.json();
 }
 
-function renderIndexNetworkSimulation(treesObj) {
-    const nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.create(d));
-    const links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
-    const buffer = 20;
-
-    const box_force = () => nodes.forEach(n => {n.y = Math.max(buffer, Math.min(h - buffer, n.y))});
-    const timeline_force = () => nodes.forEach(n => {n.fx = s(n)});
-    const root_force = () => nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
-    const categoryY = n => {
+const categoryY = n => {
         const c = n.category;
         return (
-        c === "Tanakh"      ? h/2       :
-        c === "Apocrypha"   ? h/4       :
+        c === "Tanakh"      ? h/3       :
+        c === "Apocrypha"   ? h/5       :
 
         c === "Mishnah"     ? h/3       :
-        c === "Tanaitic"    ? h/2       :
-        c === "Midrash"     ? 2 * h/3   :
+        c === "Tanaitic"    ? 2 * h/3   :
+        c === "Midrash"     ? 5 * h/6   :
 
-        c === "Talmud"      ? h/2       :
+        c === "Talmud"      ? 2 * h/3   :
 
         c === "Halakhah"    ? 4 * h/5   :
-        c === "Kabbalah"    ? h/2       :
+        c === "Kabbalah"    ? h/4       :
         c === "Liturgy"     ? h/3       :
         c === "Philosophy"  ? h/4       :
 
@@ -111,61 +103,151 @@ function renderIndexNetworkSimulation(treesObj) {
         h/2);
     };
 
+function centroid(nodes) {
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  for (const d of nodes) {
+    let k = d.r ** 2;
+    x += d.x * k;
+    y += d.y * k;
+    z += k;
+  }
+  return {x: x / z, y: y / z};
+}
+
+
+function renderIndexNetworkSimulation(treesObj) {
+    const nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.create(d));
+    nodes.forEach(n => {n.fx = s(n)});
+    nodes.forEach(n => {n.y = categoryY(n) + Math.random()});
+    nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
+
+    const links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
+    const buffer = 20;
+
+    function getLinkPath(n) {
+        // Follow along links, in both directions, collecting nodes and links along the way.  Short circuit at root.
+
+        function s2t(n) {
+            let ls = links.filter(l => l.source === n);
+            let ns = ls.map(l => l.target);
+            return ns.map(n.root ? _ => null : s2t)
+                .filter(_ => _)
+                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
+        }
+
+        function t2s(n) {
+            let ls = links.filter(l => l.target === n);
+            let ns = ls.map(l => l.source);
+            return ns.map(n.root ? _ => null : t2s)
+                .filter(_ => _)
+                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
+        }
+
+        const a = s2t(n);
+        const b = t2s(n);
+        return {
+            ns: a.ns.concat(b.ns),
+            ls: a.ls.concat(b.ls),
+        }
+    }
+
+    const box_force = () => nodes.forEach(n => {n.y = Math.max(buffer, Math.min(h - buffer, n.y))});
+    function forceCluster() {
+    //https://observablehq.com/@mbostock/clustered-bubbles-2
+
+      const strength = 0.2;
+      let nodes;
+
+      function force(alpha) {
+        const centroids = d3.rollup(nodes, centroid, d => d.category);
+        const l = alpha * strength;
+        for (const d of nodes) {
+          const {x: cx, y: cy} = centroids.get(d.category);
+          d.vx -= (d.x - cx) * l;
+          d.vy -= (d.y - cy) * l;
+        }
+      }
+
+      force.initialize = _ => nodes = _;
+
+      return force;
+    }
+
+
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.title))
       //.force("attract", d3.forceManyBody(30).distanceMax(40))
-      .force("repel", d3.forceManyBody().strength(-60))
+      //.force("repel", d3.forceManyBody().strength(-60))
+      .force("cluster", forceCluster)
       //.force("timeline", d3.forceX().x(s).strength(0.01))
       .force("category", d3.forceY().y(categoryY).strength(.5))
-      .force("timeline", timeline_force)
       .force("box", box_force)
-      .force("root", root_force)
       .force("collide", d3.forceCollide(30))
+      .tick(200)
     ;
-    const link = graphBox
-        .selectAll("path.link")
-        .data(links)
-        .join("path")
-          .attr("class", "link")
-          .attr("stroke", d => Sefaria.palette.categoryColor(d.target.category))
-          .style("fill-opacity", 1);
 
 
-    const node = graphBox
-        .selectAll("g.node")
-        .data(nodes)
-        .join("g")
-          .attr("class", "node");
 
-    node.append("rect")
-        .attr("x", -50)
-        .attr("y", -10)
-        .attr("width", 100)
-        .attr("height", 20)
-        .attr("stroke-width", 3)
-        .attr("stroke-linejoin", "round")
-        .attr("fill", "#fff")
-        .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
-        .attr("rx", 10);
+    function update() {
+        const link = graphBox
+            .selectAll("path.link")
+            .data(links)
+            .join("path")
+              .attr("class", "link")
+              .attr("stroke", d => Sefaria.palette.categoryColor(d.target.category))
+              .style("fill-opacity", 1);
 
-    node.append("text")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("text-anchor", "middle")
-        .attr("dominant-baseline", "central")
-        .text(d => d.title)
-        .attr("stroke-width", 1)
-        .attr("stroke", "black")
-      .clone(true).lower()
-        .attr("stroke", "white");
+        const node = graphBox
+            .selectAll("g.node")
+            .data(nodes)
+            .join("g")
+              .attr("class", "node");
 
-    simulation.on("tick", () => {
-        link.attr("d", d3.linkHorizontal()
-              .x(d => d.x)
-              .y(d => d.y));
+        node.append("rect")
+            .attr("x", -50)
+            .attr("y", -10)
+            .attr("width", 100)
+            .attr("height", 20)
+            .attr("stroke-width", d => d.highlighted ? 3 : 1)
+            .attr("stroke-linejoin", "round")
+            .attr("fill", "#fff")
+            .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
+            .attr("rx", 10);
 
-        node.attr("transform", d => `translate(${d.x},${d.y})`)
-    });
+        node.append("text")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "central")
+            .text(d => d.title)
+            .attr("stroke-width", 1)
+            .attr("stroke", "black")
+          .clone(true).lower()
+            .attr("stroke", "white");
+
+        simulation.on("tick", () => {
+            link.attr("d", d3.linkHorizontal()
+                  .x(d => d.x)
+                  .y(d => d.y));
+
+            node.attr("transform", d => `translate(${d.x},${d.y})`)
+        });
+
+        node.on("click", d => {
+            const {ns, ls} = getLinkPath(d);
+            nodes.forEach(n => {n.highlighted = false});
+            ns.forEach(n => {n.highlighted = true});
+            links.forEach(n => {n.highlighted = false});
+            ls.forEach(n => {n.highlighted = true});
+            d.highlighted = true;
+            update();
+        });
+
+    }
+    update();
+    //node.on("dblclick", )
 }
 
 function layoutIndexTrees(treesObj) {
