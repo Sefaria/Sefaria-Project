@@ -148,14 +148,6 @@ function renderText(ref) {
     });
 }
 
-function updateIndexNetworkSimulation() {
-    link.data(links, linkKey);
-    node.data(nodes, nodeKey);
-    simulation.nodes(nodes);
-    prepSimulation();
-    simulation.alpha(1).restart();
-}
-
 function prepSimulation() {
     simulation
           .force("link", d3.forceLink(links).id(d => d.title))
@@ -165,6 +157,7 @@ function prepSimulation() {
           .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30));
     return simulation;
 }
+
 function prepLinksAndNodes(treesObj) {
     links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
     nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.assign(d));
@@ -176,10 +169,7 @@ function prepLinksAndNodes(treesObj) {
     nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
 }
 
-function renderIndexNetworkSimulation() {
-    simulation = d3.forceSimulation(nodes);
-    prepSimulation().tick(200);
-
+function renderNetwork() {
     link = graphBox
         .selectAll("path.link")
         .data(links, linkKey)
@@ -270,6 +260,18 @@ function renderIndexNetworkSimulation() {
     });
 }
 
+function renderIndexNetworkSimulation() {
+    simulation = d3.forceSimulation(nodes);
+    prepSimulation().tick(200);
+    renderNetwork();
+}
+
+function updateIndexNetworkSimulation() {
+    simulation.nodes(nodes);
+    prepSimulation();
+    simulation.alpha(1).restart();
+    renderNetwork();
+}
 /*****         Draw Tree                                *****/
 
 buildScreen();
