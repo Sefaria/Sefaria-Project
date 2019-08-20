@@ -118,7 +118,7 @@ function centroid(nodes) {
 
 
 function renderIndexNetworkSimulation(treesObj) {
-    const nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.create(d));
+    const nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.assign(d));
     nodes.forEach(n => {n.fx = s(n)});
     nodes.forEach(n => {n.y = categoryY(n) + Math.random()});
     nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
@@ -196,6 +196,7 @@ function renderIndexNetworkSimulation(treesObj) {
         .join("path")
           .attr("class", "link")
           .attr("stroke", d => Sefaria.palette.categoryColor(d.target.category))
+          .attr("stroke-width", d => d.highlighted ? 3 : 1)
           .style("fill-opacity", 1);
 
     const node = graphBox
@@ -220,7 +221,7 @@ function renderIndexNetworkSimulation(treesObj) {
         .attr("y", 0)
         .attr("text-anchor", "middle")
         .attr("dominant-baseline", "central")
-        .text(d => d.title)
+        .text(d => d.title.slice(0,20))
         .attr("stroke-width", 1)
         .attr("stroke", "black")
       .clone(true).lower()
@@ -244,43 +245,45 @@ function renderIndexNetworkSimulation(treesObj) {
 
         node.selectAll("rect")
             .attr("stroke-width", d => d.highlighted ? 3 : 1);
+        link.attr("stroke-width", d => d.highlighted ? 3 : 1);
     });
-    //node.on("dblclick", )
 
+    node.on("dblclick", function(d) {
+        const ref_regex = new RegExp(d.title +",?\\s*", 'g');
+
+        d.expanded = true;
+
+        const g = d3.select(this);
+
+        const rect = g.select("rect");
+        rect.attr("height", 20 + 15 * d.refs.length);
+
+        const refs =  g.selectAll("text.ref")
+            .data(d.refs)
+            .join("text");
+
+        refs.attr("class", "ref")
+            .text(r => r.replace(ref_regex, ""))
+            .attr("x", -45)
+            .attr("y", (r,i) => 15 + i * 15)
+            .attr("text-anchor", "start")
+            //.attr("dominant-baseline", "central")
+            .attr("stroke-width", 1)
+            .attr("stroke", "black")
+            .on("click", renderText);
+
+        simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
+            .alpha(.1)
+            .restart();
+
+    });
 }
 
-function layoutIndexTrees(treesObj) {
-    const inet = treesObj.indexnet;
-    treesObj.indexLookup = {};
-    treesObj.indexLookup[inet.title] = inet;
-
-    treesObj.indexPastHierarchy = d3.hierarchy(inet, d => Object.values(d["past"])).sort(sortIndexes);
-    treesObj.indexFutureHierarchy = d3.hierarchy(inet, d => Object.values(d["future"])).sort(sortIndexes);
-
-    // Strictly, w/2 isn't right - but rather split on
-    let ipt = d3.tree().size([graphBox_height, s(inet)])(treesObj.indexPastHierarchy);
-    let ift = d3.tree().size([graphBox_height, w - s(inet)])(treesObj.indexFutureHierarchy);
-
-    // Reset x according to date
-    // Reset root y to center;
-    [ipt, ift].forEach(t => {
-        t.each(n => {n.y = s(n.data); n.color = Sefaria.palette.categoryColor(n.data.category); treesObj.indexLookup[n.data.title] = n; });
-        t.y = s(t.data);
-        t.x = graphBox_height/2;
-        t.color = Sefaria.palette.categoryColor(t.data.category);
+function renderText(ref) {
+    Sefaria.getText(ref).then(text => {
+        d3.select("#textTitle").html(text.ref);
+        d3.select("#textInner").html(text.he);
     });
-
-    treesObj.indexLookup[ipt.data.title] = ipt;
-
-    treesObj.indexPastTree = ipt;
-    treesObj.indexFutureTree = ift;
-    treesObj.indexPlacedLinks = treesObj.indexAdditionalLinks.map(ls => ({
-            source: treesObj.indexLookup[ls[0]],
-            target: treesObj.indexLookup[ls[1]]
-        }));
-
-    return treesObj;
-
 }
 
 function layoutTrees(treesObj) {
@@ -547,13 +550,7 @@ function renderTrees(treesObj) {
   return treesObj;
 }
 
-function renderText(node) {
-    Sefaria.getText(node.data.ref).then(text => {
-        d3.select("#textTitle").html(text.ref);
-        d3.select("#textInner").html(text.he);
-    });
 
-}
 
 
 /*****         Draw Tree                                *****/
