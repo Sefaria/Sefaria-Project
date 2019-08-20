@@ -311,7 +311,6 @@ def get_links(tref, with_text=True, with_sheet_links=False):
 
 class LinkNetwork(object):
     def __init__(self, base_tref):
-        self._initialBaseTref = base_tref  # needed?
         self._partionedLinks = {}
         self.future = []
         self.past = []
@@ -321,13 +320,6 @@ class LinkNetwork(object):
         self.category = self.index.categories[0]
         self.refCoverage = {}
         self.additionalLinks = []
-
-        # For heirarchical
-        self.indexes = {}
-        self.indexnet = {}
-        self.indexAdditionalLinks = {}
-
-        # For simple network
         self.indexNodes = {}
         self.indexLinks = {}
 
@@ -343,7 +335,6 @@ class LinkNetwork(object):
         self.build_trees()
         self.build_network()
         self.build_index_network()
-        self.new_build_index_network()
 
     # Below two for parity of root node and kids.  yuch.
     def __getitem__(self, key):
@@ -378,11 +369,8 @@ class LinkNetwork(object):
             "future": self.future,
             "concurrent": self.concurrent,
             "additionalLinks": self.additionalLinks,
-            "indexAdditionalLinks": [(a,b,y) for (a,b),y in self.indexAdditionalLinks.iteritems()],
-            "indexnet": self.indexnet,
             "indexNodes": self.indexNodes,
             "indexLinks": self.indexLinks.keys(),
-            #"refs": self.refCoverage
         }
 
     def build_trees(self):
@@ -435,7 +423,7 @@ class LinkNetwork(object):
         trim_future(self)
         add_additional(self)
 
-    def new_build_index_network(self):
+    def build_index_network(self):
 
         def refKey(ref):
             index = Ref(ref).index
@@ -501,117 +489,15 @@ class LinkNetwork(object):
         walk(self, "future")
         self.indexLinks.update({linkkey_from_trefs(p, f): 1 for p, f in self.additionalLinks})
 
-
-    def build_index_network(self):
-
-        self.indexnet = {
-            "title": self.index.title,
-            "heTitle": self.index.get_title("he"),
-            "compDate": self.compDate,
-            "errorMargin": self.errorMargin,
-            "category": self.category,
-            "refs": [self.base_oref.normal()],
-            "past": {},
-            "future": {}
-        }
-
-        self.indexes[self.index.title] = self.indexnet
-
-        def walk_past(node, indexnode):
-            current_index = Ref(node["ref"]).index.title
-            for n in node["past"]:
-                ref = Ref(n["ref"])
-                ititle = ref.index.title
-                if ititle in indexnode["past"]:
-                    indexnode["past"][ititle]["refs"] += [n["ref"]]
-                    indexnode["past"][ititle]["weight"] += 1
-                if ititle not in self.indexes:
-                    newindex = {
-                        "title": ref.index.title,
-                        "heTitle": ref.index.get_title("he"),
-                        "compDate": n["compDate"],
-                        "errorMargin": n["errorMargin"],
-                        "category": n["category"],
-                        "refs": [n["ref"]],
-                        "past": {},
-                        "future": {},
-                        "weight": 1   # only refers to this edge - this spot in the tree
-                    }
-                    self.indexes[ititle] = newindex
-                    indexnode["past"][ititle] = newindex
-                elif ititle not in indexnode["past"]:
-                    # this index exists, but not in this spot in the tree
-                    # add refs to that index
-                    if n["ref"] not in self.indexes[ititle]["refs"]:
-                        self.indexes[ititle]["refs"] += [n["ref"]]  # todo: set?
-
-                    # add an edge to additional
-                    key = (current_index, ititle)
-                    if key not in self.indexAdditionalLinks:
-                        self.indexAdditionalLinks[key] = {"weight": 1}
-                    else:
-                        self.indexAdditionalLinks[key]["weight"] += 1
-
-            for n in node["past"]:
-                walk_past(n, self.indexes[Ref(n["ref"]).index.title])
-
-        def walk_future(node, indexnode):
-            current_index = Ref(node["ref"]).index.title
-            for n in node["future"]:
-                ref = Ref(n["ref"])
-                ititle = ref.index.title
-                if ititle in indexnode["future"]:
-                    indexnode["future"][ititle]["refs"] += [n["ref"]]
-                    indexnode["future"][ititle]["weight"] += 1
-                if ititle not in self.indexes:
-                    newindex = {
-                        "title": ref.index.title,
-                        "heTitle": ref.index.get_title("he"),
-                        "compDate": n["compDate"],
-                        "errorMargin": n["errorMargin"],
-                        "category": n["category"],
-                        "refs": [n["ref"]],
-                        "past": {},
-                        "future": {},
-                        "weight": 1   # only refers to this edge - this spot in the tree
-                    }
-                    self.indexes[ititle] = newindex
-                    indexnode["future"][ititle] = newindex
-                elif ititle not in indexnode["future"]:
-                    # this index exists, but not in this spot in the tree
-                    # add refs to that index
-                    if n["ref"] not in self.indexes[ititle]["refs"]:
-                        self.indexes[ititle]["refs"] += [n["ref"]]  # todo: set?
-
-                    # add an edge to additional
-                    key = (current_index, ititle)
-                    if key not in self.indexAdditionalLinks:
-                        self.indexAdditionalLinks[key] = {"weight": 1}
-                    else:
-                        self.indexAdditionalLinks[key]["weight"] += 1
-
-            for n in node["future"]:
-                walk_future(n, self.indexes[Ref(n["ref"]).index.title])
-
-        walk_past(self, self.indexnet)
-        walk_future(self, self.indexnet)
-
-    def get_partioned_links(self, oref):
-        tref = oref.normal()
-        if tref not in self._partionedLinks:
-            try:
-                year = self.get_date(oref.index)  # Why does this throw?
-                links = self.refine_links(get_links(tref, with_text=False))
-                self._partionedLinks[tref] = self.partition_links(links, year)
-            except InputError:
-                self._partionedLinks[tref] = {"past": [], "future": [], "concurrent": []}
-        return self._partionedLinks[tref]
-
     def refine_links(self, links):
-        from sefaria.recommendation_engine import RecommendationEngine
-
         elinks = [self.expand_linkref(l) for l in links if l["category"] != "Reference"]
         elinks = [self.switch_commentary_category(l) if l["category"] == "Commentary" else l for l in elinks]
+        return elinks
+
+        '''
+        # Too Dang Slow
+        from sefaria.recommendation_engine import RecommendationEngine
+
         clusters = RecommendationEngine.cluster_close_refs([Ref(l["ref"]) for l in elinks], elinks, 2)
         results = []
         for cluster in clusters:
@@ -625,6 +511,18 @@ class LinkNetwork(object):
                 # data["sourceRef"]
                 results += [data]
         return results
+        '''
+
+    def get_partioned_links(self, oref):
+        tref = oref.normal()
+        if tref not in self._partionedLinks:
+            try:
+                year = self.get_date(oref.index)  # Why does this throw?
+                links = self.refine_links(get_links(tref, with_text=False))
+                self._partionedLinks[tref] = self.partition_links(links, year)
+            except InputError:
+                self._partionedLinks[tref] = {"past": [], "future": [], "concurrent": []}
+        return self._partionedLinks[tref]
 
     def partition_links(self, links, year):
         past = []
@@ -643,10 +541,10 @@ class LinkNetwork(object):
     def get_date(l):
         # handle missing compdate
         try:
-            return l["compDate"] - l["errorMargin"]
+            return l["compDate"] - l.get("errorMargin",0)
         except TypeError:
             try:
-                return int(l.compDate) - int(l.errorMargin)
+                return int(l.compDate) - int(getattr(l,"errorMargin",0))
             except (AttributeError, ValueError):
                 raise InputError()
         except KeyError:

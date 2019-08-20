@@ -155,6 +155,15 @@ function prepSimulation() {
           .force("category", d3.forceY().y(categoryY).strength(.5))
           .force("box", forceBox)
           .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30));
+
+    simulation.on("tick", () => {
+        link.attr("d", d3.linkHorizontal()
+              .x(d => d.x)
+              .y(d => d.y));
+
+        node.attr("transform", d => `translate(${d.x},${d.y})`)
+    });
+
     return simulation;
 }
 
@@ -207,14 +216,6 @@ function renderNetwork() {
       .clone(true).lower()
         .attr("stroke", "white");
 
-    simulation.on("tick", () => {
-        link.attr("d", d3.linkHorizontal()
-              .x(d => d.x)
-              .y(d => d.y));
-
-        node.attr("transform", d => `translate(${d.x},${d.y})`)
-    });
-
     node.on("click", d => {
         const {ns, ls} = getLinkPath(d);
         nodes.forEach(n => {n.highlighted = false});
@@ -229,9 +230,10 @@ function renderNetwork() {
     });
 
     node.on("dblclick", function(d) {
-        const ref_regex = new RegExp(d.title +",?\\s*", 'g');
-
+        if (d.expanded) return;
         d.expanded = true;
+
+        const ref_regex = new RegExp(d.title +",?\\s*", 'g');
 
         const g = d3.select(this);
 
