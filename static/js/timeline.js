@@ -11,6 +11,7 @@ let textBox_height = 150;
 let graphBox_height = h - textBox_height;
 
 let svg, timeScale, s, textBox, graphBox;
+let links, nodes, link, node, simulation;
 
 const urlParams = new URLSearchParams(window.location.search);
 const startingRef = urlParams.get('ref');
@@ -113,21 +114,7 @@ function forceCluster() {
   return force;
 }
 
-function renderText(ref) {
-    Sefaria.getText(ref).then(text => {
-        d3.select("#textTitle").html(text.ref);
-        d3.select("#textInner").html(text.he);
-    });
-}
-
-function renderIndexNetworkSimulation(treesObj) {
-    const links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
-    const nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.assign(d));
-    nodes.forEach(n => {n.fx = s(n)});
-    nodes.forEach(n => {n.y = categoryY(n) + Math.random()});
-    nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
-
-    function getLinkPath(n) {
+function getLinkPath(n) {
         // Follow along links, in both directions, collecting nodes and links along the way.  Short circuit at root.
 
         function s2t(n) {
@@ -154,15 +141,46 @@ function renderIndexNetworkSimulation(treesObj) {
         }
     }
 
-    const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.title))
-      .force("cluster", forceCluster)
-      .force("category", d3.forceY().y(categoryY).strength(.5))
-      .force("box", forceBox)
-      .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
-      .tick(200);
+function renderText(ref) {
+    Sefaria.getText(ref).then(text => {
+        d3.select("#textTitle").html(text.ref);
+        d3.select("#textInner").html(text.he);
+    });
+}
 
-    const link = graphBox
+function updateIndexNetworkSimulation() {
+    link.data(links, linkKey);
+    node.data(nodes, nodeKey);
+    simulation.nodes(nodes);
+    prepSimulation();
+    simulation.alpha(1).restart();
+}
+
+function prepSimulation() {
+    simulation
+          .force("link", d3.forceLink(links).id(d => d.title))
+          .force("cluster", forceCluster)
+          .force("category", d3.forceY().y(categoryY).strength(.5))
+          .force("box", forceBox)
+          .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30));
+    return simulation;
+}
+function prepLinksAndNodes(treesObj) {
+    links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
+    nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.assign(d));
+    nodes.forEach(n => {
+        n.fx = s(n);
+        n.y = categoryY(n) + Math.random();
+        n.expanded = false;
+    });
+    nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
+}
+
+function renderIndexNetworkSimulation() {
+    simulation = d3.forceSimulation(nodes);
+    prepSimulation().tick(200);
+
+    link = graphBox
         .selectAll("path.link")
         .data(links, linkKey)
         .join("path")
@@ -171,7 +189,7 @@ function renderIndexNetworkSimulation(treesObj) {
           .attr("stroke-width", d => d.highlighted ? 3 : 1)
           .style("fill-opacity", 1);
 
-    const node = graphBox
+    node = graphBox
         .selectAll("g.node")
         .data(nodes, nodeKey)
         .join("g")
@@ -261,15 +279,15 @@ buildScreen();
 function buildScreen() {
     buildFrame();
     fetchNetwork(currentRef)
+        .then(prepLinksAndNodes)
         .then(renderIndexNetworkSimulation);
 }
 
 
 function refocusNetwork(ref) {
-    currentRef = ref;
-    fetchNetwork(currentRef)
-        .then(updateIndexNetworkSimultation)
-
+    fetchNetwork(ref)
+        .then(prepLinksAndNodes)
+        .then(updateIndexNetworkSimulation)
 }
 
 /*
