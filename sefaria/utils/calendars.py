@@ -109,6 +109,8 @@ def daily_rambam_three(datetime_obj):
     rambam_items = []
     datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
     database_obj = db.daily_rambam_three.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
     for rf in database_obj["refs"]:
         rf = model.Ref(rf)
         display_en = rf.normal().replace("Mishneh Torah, ", "")

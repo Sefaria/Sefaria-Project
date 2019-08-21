@@ -1286,7 +1286,7 @@ ReaderControls.propTypes = {
 
 class ReaderDisplayOptionsMenu extends Component {
   renderAliyotToggle() {
-    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
+    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Onkelos Genesis", "Onkelos Exodus", "Onkelos Leviticus", "Onkelos Numbers", "Onkelos Deuteronomy"];
     return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
   }
   vowelToggleAvailability(){
