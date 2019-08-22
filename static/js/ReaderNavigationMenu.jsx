@@ -287,7 +287,6 @@ const Dedication = () => {
         const response = await $.getJSON($url).then(function (data) {
             return {data}
         });
-        console.log('run async');
         const dedicationData = response["data"]["feed"]["entry"];
         const enDedication = dedicationData[1]["content"]["$t"];
         const heDedication = dedicationData[2]["content"]["$t"];
@@ -310,7 +309,6 @@ const Dedication = () => {
         const dedication = Sefaria._tableOfContentsDedications[date];
 
         if (dedication) {
-            console.log('from mem');
             setDedicationData(dedication);
         }
 
