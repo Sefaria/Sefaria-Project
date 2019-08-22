@@ -291,7 +291,7 @@ class LexiconLookupAggregator(object):
         return gram_list
 
     @classmethod
-    def _single_lookup(cls, input_word, lookup_key='form', **kwargs):
+    def get_word_form_objects(cls, input_word, lookup_key='form', **kwargs):
         from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
         from sefaria.model import Ref
 
@@ -309,6 +309,12 @@ class LexiconLookupAggregator(object):
         if lookup_ref and len(forms) == 0:
             del query_obj["refs"]
             forms = WordFormSet(query_obj)
+        return forms
+
+
+    @classmethod
+    def _single_lookup(cls, input_word, lookup_key='form', **kwargs):
+        forms = cls.get_word_form_objects(input_word, lookup_key=lookup_key, **kwargs)
         if len(forms) > 0:
             headword_query = []
             for form in forms:
