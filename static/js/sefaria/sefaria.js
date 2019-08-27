@@ -551,7 +551,7 @@ Sefaria = extend(Sefaria, {
   },
   _index: {}, // Cache for text index records
   _translateTerms: {},
-  index: function(text, index) {
+   index: function(text, index) {
     if (!index) {
       return this._index[text];
     } else if (text in this._index){
@@ -1672,6 +1672,7 @@ Sefaria = extend(Sefaria, {
       }
     return this._topicList;
   },
+  _tableOfContentsDedications: {},
   _topics: {},
   topic: function(topic, callback) {
     if (topic in this._topics) {

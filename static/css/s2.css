@@ -1280,10 +1280,6 @@ a.readerNavCategory {
   box-sizing: border-box;
   padding: 14px 8px;
 }
-.resourcesLink.donationLink {
-  width: 50%;
-  margin: 0 25%;
-}
 .blockLink:hover {
   color: #333;
 }
@@ -1506,14 +1502,16 @@ a.readerNavCategory {
   font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .categoryAttribution,
-.readerTextTableOfContents .dedication {
+.readerTextTableOfContents .dedication,
+.readerNavMenu .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
   margin: 28px 0;
 }
 .readerTextTableOfContents .categoryAttribution .he,
-.readerTextTableOfContents .dedication .he {
+.readerTextTableOfContents .dedication .he,
+.readerNavMenu .dedication .he {
   font-style: normal;
 }
 .readerTextTableOfContents .tocTop {
