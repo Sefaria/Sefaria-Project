@@ -188,7 +188,7 @@ const YourFavoriteTextsBlock = ({user_data}) => (
                 <span className="int-he">טקסטים מועדפים</span>
             </h2>
             <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
-                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book}/>)}/>
+                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>
         </div>
     : null
 );
