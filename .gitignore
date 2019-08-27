@@ -54,6 +54,7 @@ node_modules
 # pystest cache #
 #####################
 /.pytest_cache
+/sefaria/tests/.pytest_cache
 
 
 # Sefaria Local Settings files #

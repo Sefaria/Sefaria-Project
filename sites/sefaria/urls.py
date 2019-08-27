@@ -40,6 +40,7 @@ static_pages = [
     "shavuot-map-2018",
     "testimonials",
     "torah-tab",
+    "dicta-thanks",
 ]
 
 
