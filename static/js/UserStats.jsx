@@ -17,8 +17,8 @@ const UserStats = () => {
     const [uid, setUid] = useState(null);
     const [user_data, setUserData] = useState({});
     const [site_data, setSiteData] = useState({});
+    const [active_mode, setMode] = useState("Year to Date");
 
-    const [activeMode, setMode] = useState("Year to Date");
     const modes = ["Year to Date", "All Time"];
     const modekeys = {
         "Year to Date": "this_hebrew_year",
@@ -39,8 +39,15 @@ const UserStats = () => {
             .then(d => setUserData(d));
     }, [debouncedUID]);
 
-    const all_ready = user_data.uid && site_data.alltime;
-    const user_active = true; // !!
+
+    const all_ready = !!(user_data.uid && site_data.alltime);
+    let mode_user_data;
+    let user_active;
+    if (all_ready) {
+        mode_user_data = user_data[modekeys[active_mode]];
+        user_active = (mode_user_data.textsRead > 2) || (mode_user_data.sheetsRead > 2) || (mode_user_data.sheetsThisPeriod > 1);
+    }
+    // let user_active = true;
     return (
     <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
@@ -49,9 +56,9 @@ const UserStats = () => {
                   {all_ready? user_data.name : <div className="lds-ring"><div></div><div></div><div></div><div></div></div>}
               </h1>
               {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
-              <UserStatModeChooser modes={modes} activeMode={activeMode} setMode={setMode}/>
-              {all_ready && user_active &&  <UserDataBlock user_data={user_data[modekeys[activeMode]]} site_data={site_data[modekeys[activeMode]]}/>}
-              {all_ready && (!user_active) && <SiteDataBlock site_data={site_data[modekeys[activeMode]]}/>}
+              <UserStatModeChooser modes={modes} activeMode={active_mode} setMode={setMode}/>
+              {all_ready && user_active &&  <UserDataBlock user_data={mode_user_data} site_data={site_data[modekeys[active_mode]]}/>}
+              {all_ready && (!user_active) && <SiteDataBlock site_data={site_data[modekeys[active_mode]]}/>}
           </div>
       </div>
     </div>
@@ -73,7 +80,9 @@ const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
 
 const UserChooser = ({setter}) => (
     <div style={{textAlign: "center"}}>
-      <label>User ID:
+      <label>
+        <span className="int-en"> User ID: </span>
+        <span className="int-he"> מספר משתמש: </span>
         <input type="text" onChange={e => setter(parseInt(e.target.value))}/>
       </label>
     </div>
@@ -81,26 +90,34 @@ const UserChooser = ({setter}) => (
 
 const SiteDataBlock = ({site_data}) => (
     <div>
-        <div>
-            <span className="int-he">
-                לא ראינו אותך מזמן!
-                <br/>
-                גלה מה אנשים אחרים עושים בספריא
-            </span>
-            <span classname="int-en">
-                Looks like we haven’t seen you in a while!<br/>
-                Discover what other people are doing on Sefaria...
-            </span>
+        <div className="chartRow centered">
+            <div className="systemText statHeader">
+                <span className="int-he">
+                    מזמן לא התראינו!
+                    <br/>
+                    בואו ונראה מה משתמשים אחרים בספריא לומדים
+                </span>
+                <span className="int-en">
+                    Looks like we haven’t seen you in a while!<br/>
+                    Discover what other people are doing on Sefaria...
+                </span>
+            </div>
         </div>
 
         <div>
-            <h2>What People are Reading</h2>
-            <div className="chartRow">
-                <CategoriesDonut title="Average Sefaria User" heTitle="..." cats={site_data.categoriesRead}/>
+            <h2>
+                <span className="int-en">What People are Reading</span>
+                <span className="int-he">מה אנשים קוראים</span>
+            </h2>
+            <div className="chartRow centered">
+                <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
             </div>
         </div>
         <div>
-            <h2>Top Categories</h2>
+            <h2>
+                <span className="int-en">Top Categories</span>
+                <span className="int-he">קטגוריות פופולריות</span>
+            </h2>
             <div className="chartRow">
                 <CategoryBars user_cats={site_data.categoriesRead} site_cats={site_data.categoriesRead}/>
             </div>
@@ -120,7 +137,10 @@ const UserDataBlock = ({user_data, site_data}) => (
 
 const OverallActivityBlock = ({user_data}) => (
         <div>
-            <h2>Your Overall Activity</h2>
+            <h2>
+                <span className="int-en">Your Overall Activity</span>
+                <span className="int-he">הפעילות שלך במבט</span>
+            </h2>
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
                 <StatCard icon_file="file-icon-black.svg" number={user_data.sheetsRead} name="Sheets Read"/>
@@ -133,22 +153,28 @@ const StatCard = ({icon_file, name, number}) => (
     <div className="statcard">
         <img src={"static/img/" + icon_file}/>
         <div className="statcardValue">{number}</div>
-        <div className="statcardLabel">{name}</div>
+        <div className="statcardLabel">{Sefaria._(name)}</div>
     </div>
 );
 
 const UserDonutsBlock = ({user_data, site_data}) => (
         <div>
-            <h2>Your Reading by Category</h2>
+            <h2>
+                <span className="int-en">Your Reading by Category</span>
+                <span className="int-he">לימוד לפי סוגה</span>
+            </h2>
             <div className="chartRow">
-                <CategoriesDonut title="Your Reading" heTitle="..." cats={user_data.categoriesRead}/>
-                <CategoriesDonut title="Average Sefaria User" heTitle="..." cats={site_data.categoriesRead}/>
+                <CategoriesDonut title="Your Reading" heTitle="הלימוד שלך" cats={user_data.categoriesRead}/>
+                <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
             </div>
         </div>
 );
 const UserCategoryBarchartBlock = ({user_data, site_data}) => (
         <div>
-            <h2>Your Top Categories</h2>
+            <h2>
+                <span className="int-en">Your Top Categories</span>
+                <span className="int-he">מצעד סוגות הלימוד</span>
+            </h2>
             <div className="chartRow">
                 <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
             </div>
@@ -157,16 +183,22 @@ const UserCategoryBarchartBlock = ({user_data, site_data}) => (
 const YourFavoriteTextsBlock = ({user_data}) => (
     user_data.mostViewedRefs.length ?
         <div className="yourFavoriteTextsBlock">
-            <h2>Your Favorite Texts</h2>
+            <h2>
+                <span className="int-en">Your Favorite Texts</span>
+                <span className="int-he">טקסטים מועדפים</span>
+            </h2>
             <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
-                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book}/>)}/>
+                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>
         </div>
     : null
 );
 const YourFavoriteSheetsBlock = ({user_data}) => (
     user_data.mostViewedSheets.length ?
         <div className="yourFavoriteSheetsBlock">
-            <h2>Your Favorite Sheets</h2>
+            <h2>
+                <span className="int-en">Your Favorite Sheets</span>
+                <span className="int-he">דפי מקורות מועדפים</span>
+            </h2>
             <div className="story">
                 <StorySheetList sheets={user_data.mostViewedSheets} compact={true} smallfonts={true}/>
             </div>
@@ -176,7 +208,10 @@ const YourFavoriteSheetsBlock = ({user_data}) => (
 const MostPopularSheetsBlock = ({user_data}) => (
     user_data.popularSheets.length ?
         <div className="yourPopularSheetsBlock">
-            <h2>Your Most Popular Sheets</h2>
+            <h2>
+                <span className="int-en">Your Most Popular Sheets</span>
+                <span className="int-he">דפי מקורות פופולריים שלך</span>
+            </h2>
             {user_data.popularSheets.map((sheet, i) => <div key={i}>
                     <SimpleLinkedBlock classes="chapterText lowercase sheetLink" en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
                     <SimpleInterfaceBlock classes="sheetViews smallText" en={sheet.views +" Views"} he={sheet.views + " צפיות"}/>
@@ -232,8 +267,12 @@ const CategoryBars = ({user_cats, site_cats}) => {
         const sitebar = 34;
 
         const x = d3.scaleLinear()
-            .domain([0, d3.max(data.map(d => [d.site, d.user]).flat()) + .10]).nice()
-            .rangeRound([0,width - margin.right]);
+            .domain([0, d3.max(data.map(d => [d.site, d.user]).flat()) + .10]).nice();
+        if (Sefaria.interfaceLang === "english") {
+            x.rangeRound([0,width - margin.right]);
+        } else {
+            x.rangeRound([0,width - margin.right]);
+        }
 
         const groups = svg.append("g")
             .selectAll("g")
@@ -242,17 +281,18 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("transform", d => `translate(${margin.left}, ${y(d.cat)})`);
 
         groups.append("text")
-            .attr("font-family", '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif')
+            .attr("font-family", (Sefaria.interfaceLang === "english" ? '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif' : '"Heebo", sans-serif'))
             .attr("text-anchor", "start")
-            .attr("letter-spacing", 1.5)
+            .attr("x", d => Sefaria.interfaceLang === "hebrew" ? width - margin.right : null)
+            .attr("letter-spacing", Sefaria.interfaceLang === "english" ? 1.5 : null)
             .attr("font-size", 16)
-            .text(d => d.cat.toUpperCase());
+            .text(d => Sefaria._(d.cat).toUpperCase());
 
         groups.selectAll("rect")
             .data(d => keys.map(key => ({key, cat:d.cat, value: d[key]})))
             .join("rect")
             .attr("class", d => d.key)
-            .attr("x", 0)
+            .attr("x", d => Sefaria.interfaceLang === "english" ? 0 : width - margin.right - x(d.value))
             .attr("y", d => d.key === "user" ? below_text_padding : below_text_padding + userbar + inter_bar_padding)
             .attr("width", d => x(d.value))
             .attr("height", d => d.key === "user" ? userbar : sitebar)
@@ -265,7 +305,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("font-size", 16)
             .attr("fill", "#999")
             .attr("text-anchor", d => x(d.site) > 250 ? "end" : "start")
-            .text("Average Sefaria User");
+            .text(Sefaria._("Average Sefaria User"));
 
         return () => {svg.selectAll("*").remove();}
     }, [user_cats, site_cats]);
@@ -323,7 +363,7 @@ const CategoriesDonut = ({cats, title, heTitle}) => {
       text.append("tspan")
           .attr("x", 0)
           .attr("y", "-0.7em")
-          .text(d => d.data.name);
+          .text(d => Sefaria._(d.data.name));
 
       text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
           .attr("x", 0)

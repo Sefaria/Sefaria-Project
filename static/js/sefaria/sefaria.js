@@ -2155,6 +2155,17 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירת",
       "Remove": "הסרת",
+
+      //user stats
+      "Torah Tracker" : "לימוד במספרים",
+      "Year to Date": "בשנה הנוכחית",
+      "All Time": "כל הזמן",
+      "Texts Read" : "ספרים שנקראו",
+      "Sheets Read" : "דפי מקורות שנקראו",
+      "Sheets Created" : "דפי מקורות שנוצרו",
+      "Average Sefaria User" : "משתמש ממוצע בספריא",
+      "Etc": "שאר"
+
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){

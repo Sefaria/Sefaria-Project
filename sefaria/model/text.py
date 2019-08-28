@@ -399,6 +399,22 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
+    def get_alt_struct_nodes(self):
+
+        def alt_struct_nodes_helper(node, nodes):
+            if node.is_leaf():
+                nodes.append(node)
+            else:
+                for child in node.children:
+                    alt_struct_nodes_helper(child, nodes)
+
+        nodes = []
+        for tree in self.get_alt_structures().values():
+            for node in tree.children:
+                alt_struct_nodes_helper(node, nodes)
+        return nodes
+
+
     def composition_place(self):
         from . import place
         if getattr(self, "compPlace", None) is None:
@@ -599,6 +615,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         for attr in deprecated_attrs:
             if getattr(self, attr, None):
                 delattr(self, attr)
+        try:
+            error_margin_value = getattr(self, "errorMargin", 0)
+            int(error_margin_value)
+        except ValueError:
+            logger.warning(u"Index record '{}' has invalid 'errorMargin': {} field, removing".format(self.title, error_margin_value))
+            delattr(self, "errorMargin")
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -645,6 +667,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
             raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
+
+        try:
+            int(getattr(self, "errorMargin", 0))
+        except (ValueError):
+            raise InputError("composition date error margin must be an integer")
 
         #complex style records- all records should now conform to this
         if self.nodes:

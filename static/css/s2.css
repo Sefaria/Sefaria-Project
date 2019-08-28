@@ -7097,6 +7097,18 @@ body .homeFeedWrapper.userStats {
   display: flex;
   justify-content: space-between;
 }
+.userStats .chartRow.centered {
+  justify-content: space-around;
+}
+.userStats .statHeader {
+  padding-top: 40px;
+  text-align: center;
+}
+.userStats .statHeader span {
+  color: #666;
+  letter-spacing: 0.7px;
+  line-height: 23px;
+}
 
 .userStats .chartRow .chartWrapper {
   font: 11px sans-serif;
