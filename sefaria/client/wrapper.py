@@ -9,6 +9,7 @@ import json
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
+from sefaria.system.database import db
 from sefaria.model.text import library
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.sheets import get_sheets_for_ref
@@ -308,6 +309,130 @@ def get_links(tref, with_text=True, with_sheet_links=False):
 
     return links
 
+'''
+        "early_orig_ref": early["orig_ref"].normal(),
+        "early_index": early["orig_ref"].index.title,
+        "early_refs": early["refs"],
+        "early_year": early["year"],
+        "early_category": early["orig_ref"].index.categories[0],
+        "late_orig_ref": late["orig_ref"].normal(),
+        "late_index": late["orig_ref"].index.title,
+        "late_refs": late["refs"],
+        "late_year": late["year"],
+        "late_category": late["orig_ref"].index.categories[0],
+'''
+
+class LinkNetwork2(object):
+    def __init__(self, base_tref):
+        self.base_oref = expand_passage(Ref(base_tref))
+        self.base_trefs = [r.normal() for r in self.base_oref.all_segment_refs()]
+        self.indexNodes = {}
+        self.indexLinks = {}
+        self.coveredRefs = {r: 1 for r in self.base_trefs}
+
+        # record root node
+        rootkey = self.indexKey(self.base_oref)
+        self.indexNodes[rootkey] = self.make_index_record(
+            self.base_oref,
+            rootkey,
+            int(self.base_oref.index.compDate) - int(self.base_oref.index.errorMargin),
+            self.base_oref.index.categories[0]
+        )
+
+        future_links = db.linknet.aggregate([
+            {"$match": {"early_refs": {"$in": self.base_trefs}}},
+            {"$graphLookup": {
+                "from": "linknet",
+                "startWith": "$late_refs",
+                "connectFromField": "late_refs",
+                "connectToField": "early_refs",
+                "as": "future",
+                "depthField": "depth"
+            }}
+        ])
+        past_links = db.linknet.aggregate([
+            {"$match": {"late_refs": {"$in": self.base_trefs}}},
+            {"$graphLookup": {
+                "from": "linknet",
+                "startWith": "$early_refs",
+                "connectFromField": "early_refs",
+                "connectToField": "late_refs",
+                "as": "past",
+                "depthField": "depth"
+            }}
+        ])
+
+        # Assemble all covered refs and indexes
+        for g1 in future_links:
+            self.record_ref(g1, "late")
+            for g2 in g1["future"]:
+                self.record_ref(g2, "late")
+
+        for g1 in past_links:
+            self.record_ref(g1, "early")
+            for g2 in g1["past"]:
+                self.record_ref(g2, "early")
+
+        for k, n in self.indexNodes.iteritems():
+            n["refs"] = list(n["refs"])
+
+        # Search for any connections between covered refs
+        # This will include the original tree
+        covered_refs = self.coveredRefs.keys()
+        all_connections = db.linknet.find({
+            "early_refs": {"$in": covered_refs},
+            "late_refs": {"$in": covered_refs}
+        })
+
+        # Turn each link into an Index-Index edge
+        for connection in all_connections:
+            self.record_link(connection)
+
+    def contents(self):
+        return {
+            "compDate": self.base_oref.index.compDate,
+            "errorMargin": self.base_oref.index.errorMargin,
+            "category": self.base_oref.index.categories[0],
+            "ref": self.base_oref.normal(),
+            "indexNodes": self.indexNodes,
+            "indexLinks": self.indexLinks.keys(),
+        }
+
+    def indexKey(self, oref):
+        index = oref.index
+        key = getattr(index, "collective_title", index.title)
+        if "Mishneh Torah" in key:
+            return "Mishneh Torah"
+        if "Shulchan Arukh" in key:
+            return "Shulchan Arukh"
+        return key
+
+    def record_link(self, node):
+        linkkey = self.indexKey(Ref(node["early_orig_ref"])), self.indexKey(Ref(node["late_orig_ref"]))
+        self.indexLinks[linkkey] = 1
+
+    def record_ref(self, node, side):
+        tref, year, cat, trefs = (node["late_orig_ref"], node["late_year"],node["late_category"], node["late_refs"]) if side == "late" else (node["early_orig_ref"],node["early_year"],node["early_category"],node["early_refs"])
+        oref = Ref(tref)
+        key = self.indexKey(oref)
+        self.coveredRefs.update({r: 1 for r in trefs})
+
+        if key in self.indexNodes:
+            self.indexNodes[key]["refs"].add(oref.normal())
+        else:
+            self.indexNodes[key] = self.make_index_record(oref, key, year, cat)
+
+    def make_index_record(self, oref, key, year, cat):
+        return {
+                "title": key,
+                "heTitle": hebrew_term(key),
+                "compDate": year,  # get rid of
+                "errorMargin": 0,  # this
+                "year": year,
+                "category": cat,
+                "refs": {oref.normal()},
+            }
+
 
 class LinkNetwork(object):
     def __init__(self, base_tref):
@@ -315,7 +440,7 @@ class LinkNetwork(object):
         self.future = []
         self.past = []
         self.concurrent = []
-        self.base_oref = self.expand_passage(Ref(base_tref))
+        self.base_oref = expand_passage(Ref(base_tref))
         self.index = self.base_oref.index
         self.category = self.index.categories[0]
         self.refCoverage = {}
@@ -562,8 +687,8 @@ class LinkNetwork(object):
         l["category"] = Ref(l["ref"]).index.categories[0]
         return l
 
-    @staticmethod
-    def expand_passage(oref):
+
+def expand_passage(oref):
         p = Passage().load({"ref_list": oref.normal()})
         return Ref(p.full_ref) if p else oref
 

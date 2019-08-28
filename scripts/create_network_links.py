@@ -12,6 +12,11 @@ def expand_passages(refs):
     return [oref.normal() for p in ps for oref in Ref(p.full_ref).all_segment_refs()] if len(ps) else refs
 
 
+def expand_passage(tref):
+    p = Passage().load({"ref_list": tref})
+    return p.full_ref if p else tref
+
+
 db.linknet.drop()
 records = []
 
@@ -51,16 +56,14 @@ for link in ls:
 
     try:
         obj0 = {
-            "orig_ref": r0.normal(),
+            "orig_ref": r0,
             "refs" : expand_passages(link.expandedRefs0) if r0.index.categories[0] == "Talmud" else link.expandedRefs0,
             "year": y0,
-            "cat": r0.index.categories[0]
         }
         obj1 = {
-            "orig_ref": r1.normal(),
+            "orig_ref": r1,
             "refs": expand_passages(link.expandedRefs1) if r1.index.categories[0] == "Talmud" else link.expandedRefs1,
             "year": y1,
-            "cat": r1.index.categories[0]
         }
 
         if y0 == y1:
@@ -69,14 +72,16 @@ for link in ls:
         early, late = (obj0, obj1) if y0 < y1 else (obj1, obj0)
 
         records += [{
-            "early_orig_ref": early["orig_ref"],
+            "early_orig_ref": early["orig_ref"].normal(),
+            "early_index": early["orig_ref"].index.title,
             "early_refs": early["refs"],
             "early_year": early["year"],
-            "early_category": early["cat"],
-            "late_orig_ref": late["orig_ref"],
+            "early_category": early["orig_ref"].index.categories[0],
+            "late_orig_ref": late["orig_ref"].normal(),
+            "late_index": late["orig_ref"].index.title,
             "late_refs": late["refs"],
             "late_year": late["year"],
-            "late_category": late["cat"]
+            "late_category": late["orig_ref"].index.categories[0],
         }]
 
         successful += 1
