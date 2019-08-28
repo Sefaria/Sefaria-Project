@@ -36,7 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
-from sefaria.forms import NewUserForm, NewUserFormAPI
+from sefaria.forms import SefariaNewUserForm, NewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.group import GroupSet
@@ -121,9 +121,10 @@ def register(request):
                 return HttpResponseRedirect(next)
     else:
         if request.GET.get('educator', ''):
-            form = NewUserForm(initial={'subscribe_educator': True})
+            form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
-            form = NewUserForm()
+            form = SefariaNewUserForm()
+
     return render(request, "registration/register.html", {'form': form, 'next': next})
 
 
