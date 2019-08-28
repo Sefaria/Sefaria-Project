@@ -1,8 +1,4 @@
 const {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  LanguageToggleButton,
   LoadingMessage,
   TabView,
   FilterableList,
@@ -13,14 +9,11 @@ const {
 }               = require('./Misc');
 const React      = require('react');
 const PropTypes = require('prop-types');
-const classNames = require('classnames');
 const Sefaria   = require('./sefaria/sefaria');
-const TextRange  = require('./TextRange');
 const { GroupListing } = require('./MyGroupsPanel');
 const NoteListing = require('./NoteListing');
 import Component from 'react-class';
 const Footer    = require('./Footer');
-
 
 class UserProfile extends Component {
   constructor(props) {
@@ -40,6 +33,8 @@ class UserProfile extends Component {
       { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
       { text: Sefaria._("Followers"), invisible: true },
       { text: Sefaria._("Following"), invisible: true },
+      // Hidden for the moment
+      // { text: Sefaria._("Torah Tracker"), icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true}
     ];
     if (showNotes) {
       tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
@@ -287,6 +282,16 @@ class UserProfile extends Component {
   }
   renderTab(tab) {
     if (tab.invisible) { return null; }
+    if (tab.applink) {
+      return (
+          <div className="tab">
+            <a href={tab.href} onClick={this.props.handleInAppLinkClick}>
+              <img src={tab.icon} alt={`${tab.text} icon`}/>
+              {tab.text}
+            </a>
+          </div>
+      );
+    }
     return (
       <div className="tab">
         <img src={tab.icon} alt={`${tab.text} icon`} />
@@ -390,7 +395,7 @@ class UserProfile extends Component {
                     </div> : null
                   }
                 </TabView>
-              </div>
+            </div>
             }
             <MessageModal uid={this.props.profile.id} name={this.props.profile.full_name} ref={this._getMessageModalRef} />
           </div>
@@ -404,7 +409,7 @@ UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
   openProfile: PropTypes.func.isRequired,
   handleInAppLinkClick: PropTypes.func.isRequired,
-}
+};
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
@@ -497,7 +502,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
       </div>
     </div>
   );
-}
+};
 ProfileSummary.propTypes = {
   profile:       PropTypes.object.isRequired,
   message:       PropTypes.func.isRequired,
@@ -505,7 +510,7 @@ ProfileSummary.propTypes = {
   openFollowers: PropTypes.func.isRequired,
   openFollowing: PropTypes.func.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
-}
+};
 
 
 class MessageModal extends Component {

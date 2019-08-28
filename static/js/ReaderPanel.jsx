@@ -960,13 +960,9 @@ class ReaderPanel extends Component {
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
       />);
+
     } else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats/>);
-
-    /* todo: do we need this here?
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")} />);
-                    */
 
     } else if (this.state.menuOpen === "modtools") {
       menu = (<ModeratorToolsPanel
@@ -1286,7 +1282,7 @@ ReaderControls.propTypes = {
 
 class ReaderDisplayOptionsMenu extends Component {
   renderAliyotToggle() {
-    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
+    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Onkelos Genesis", "Onkelos Exodus", "Onkelos Leviticus", "Onkelos Numbers", "Onkelos Deuteronomy"];
     return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
   }
   vowelToggleAvailability(){

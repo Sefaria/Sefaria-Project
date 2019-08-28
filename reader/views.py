@@ -38,10 +38,11 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data, site_stats_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
+from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
 # noinspection PyUnresolvedReferences
@@ -920,7 +921,7 @@ def story_editor(request):
     return menu_page(request, props, "story_editor", title)
 
 
-@staff_member_required
+@login_required
 def user_stats(request):
     props = base_props(request)
     title = _("User Stats")
@@ -2552,17 +2553,19 @@ def addDynamicStories(stories, user, page):
     return stories
 
 
-@staff_member_required
+@login_required
 def user_stats_api(request, uid):
+
     assert request.method == "GET", "Unsupported Method"
+    u = request.user
+    assert (u.is_active and u.is_staff) or (uid == u.id)
     quick = bool(request.GET.get("quick", False))
     if quick:
         return jsonResponse(public_user_data(uid))
-    # Todo: or now, we're hard-coding Rosh Hashannah 2018.
-    return jsonResponse(user_stats_data(uid, start=datetime(2018, 9, 9)))
+    return jsonResponse(user_stats_data(uid))
 
 
-@staff_member_required
+@login_required
 def site_stats_api(request):
     assert request.method == "GET", "Unsupported Method"
     return jsonResponse(site_stats_data())

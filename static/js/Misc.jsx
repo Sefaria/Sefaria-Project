@@ -186,7 +186,7 @@ class TabView extends Component {
   }
   renderTab(tab, index) {
     return (
-      <div className={classNames({active: this.state.openTabIndex === index})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: this.state.openTabIndex === index, applink: tab.applink})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -195,7 +195,7 @@ class TabView extends Component {
     return (
       <div className="tab-view">
         <div className="tab-list">
-          { this.props.tabs.map(this.renderTab)}
+          {this.props.tabs.map(this.renderTab)}
         </div>
         { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
       </div>
@@ -357,12 +357,15 @@ class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     title    = title   || (showSections ? sref : book);
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
+    const hlang = intlang ? "int-he": "he";
+    const elang = intlang ? "int-en": "en";
+
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -371,8 +374,8 @@ class TextBlockLink extends Component {
     }
     const subtitle = displayValue ? (
         <span className="blockLinkSubtitle">
-            <span className="en">{displayValue}</span>
-            <span className="he">{heDisplayValue}</span>
+            <span className={elang}>{displayValue}</span>
+            <span className={hlang}>{heDisplayValue}</span>
         </span>
     ) : null;
 
@@ -397,8 +400,8 @@ class TextBlockLink extends Component {
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
-              <span className="en" data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
-              <span className="he" data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
+              <span className={elang} data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
+              <span className={hlang} data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
             </div>
           </div>
           <div className="sideColorRight">
@@ -414,8 +417,8 @@ class TextBlockLink extends Component {
       );
     }
     return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
-              <span className="en">{title}</span>
-              <span className="he">{heTitle}</span>
+              <span className={elang}>{title}</span>
+              <span className={hlang}>{heTitle}</span>
                 {subtitle}
              </a>);
   }
@@ -846,7 +849,7 @@ FollowButton.propTypes = {
   uid: PropTypes.number.isRequired,
   following: PropTypes.bool,  // is this person followed already?
   large: PropTypes.bool,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func,
 };
 
 const SinglePanelNavHeader = (props) =>
@@ -883,7 +886,7 @@ class ProfileListing extends Component {
     }
   }
   render() {
-    const { url, image, name, uid, is_followed, toggleSignUpModal, organization } = this.props;
+    const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
@@ -898,7 +901,7 @@ class ProfileListing extends Component {
         <div className="authorByLineText">
           <SimpleLinkedBlock
             classes="authorName"
-            aclasses="systemText"
+            aclasses={smallfonts?"smallText":"systemText"}
             url={url}
             en={name}
             he={name}
@@ -908,7 +911,7 @@ class ProfileListing extends Component {
           </SimpleLinkedBlock>
           {
             !!organization ? <SimpleInterfaceBlock
-              classes="systemText authorOrganization"
+              classes={"authorOrganization" + (smallfonts?"smallText":"systemText")}
               en={organization}
               he={organization}
             />:null
@@ -924,7 +927,7 @@ ProfileListing.propTypes = {
   image:       PropTypes.string.isRequired,
   name:        PropTypes.string.isRequired,
   is_followed: PropTypes.bool,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func,
 
 };
 

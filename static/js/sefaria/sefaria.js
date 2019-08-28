@@ -551,7 +551,7 @@ Sefaria = extend(Sefaria, {
   },
   _index: {}, // Cache for text index records
   _translateTerms: {},
-  index: function(text, index) {
+   index: function(text, index) {
     if (!index) {
       return this._index[text];
     } else if (text in this._index){
@@ -1672,6 +1672,7 @@ Sefaria = extend(Sefaria, {
       }
     return this._topicList;
   },
+  _tableOfContentsDedications: {},
   _topics: {},
   topic: function(topic, callback) {
     if (topic in this._topics) {
@@ -2154,6 +2155,17 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירת",
       "Remove": "הסרת",
+
+      //user stats
+      "Torah Tracker" : "לימוד במספרים",
+      "Year to Date": "בשנה הנוכחית",
+      "All Time": "כל הזמן",
+      "Texts Read" : "ספרים שנקראו",
+      "Sheets Read" : "דפי מקורות שנקראו",
+      "Sheets Created" : "דפי מקורות שנוצרו",
+      "Average Sefaria User" : "משתמש ממוצע בספריא",
+      "Etc": "שאר"
+
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
