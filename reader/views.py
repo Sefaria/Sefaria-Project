@@ -2558,7 +2558,7 @@ def user_stats_api(request, uid):
 
     assert request.method == "GET", "Unsupported Method"
     u = request.user
-    assert (u.is_active and u.is_staff) or (uid == u.id)
+    assert (u.is_active and u.is_staff) or (int(uid) == u.id)
     quick = bool(request.GET.get("quick", False))
     if quick:
         return jsonResponse(public_user_data(uid))
