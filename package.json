@@ -12,7 +12,7 @@
     "test": "./run reader/browsertest/run_local.py",
     "test-one": "./run reader/browsertest/run_one_local.py",
     "build": "webpack --config ./node/webpack.config.js",
-    "build-prod": "webpack --config ./node/webpack.config.js -p",
+    "build-prod": "webpack --config ./node/webpack.config.js --mode='production'",
     "build-client": "webpack --config ./node/webpack.client.js",
     "build-server": "webpack --config ./node/webpack.server.js",
     "build-diffPage": "webpack --config ./node/webpack.diffPage.js",
@@ -65,14 +65,14 @@
     "source-list-map": "^2.0.0",
     "striptags": "^2.1.1",
     "sync-exec": "^0.6.2",
-    "webpack-node-externals": "^1.6.0",
-    "webpack-sources": "^1.0.1"
+    "webpack-node-externals": "^1.7.2",
+    "webpack-sources": "^1.3.0"
   },
   "devDependencies": {
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-cli": "^6.0.0",
     "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.0",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-plugin-transform-es2015-destructuring": "^6.23.0",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-plugin-transform-remove-console": "^6.8.0",
@@ -82,8 +82,9 @@
     "nodemon": "^1.9.2",
     "on-build-webpack": "^0.1.0",
     "source-map-support": "^0.4.15",
-    "webpack": "^3.0.0",
-    "webpack-bundle-tracker": "^0.2.0"
+    "webpack": "^4.35.2",
+    "webpack-bundle-tracker": "^0.2.1",
+    "webpack-cli": "^3.3.5"
   },
   "babel": {
     "presets": [

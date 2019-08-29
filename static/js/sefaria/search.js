@@ -3,17 +3,308 @@ const extend            = require('extend');
 const FilterNode = require('./FilterNode');
 const SearchState = require('./searchState');
 
+
+class HackyQueryAborter{
+    /*Used to abort multiple ajax queries. Stand-in until AbortController is no longer experimental. At that point
+    * we'll want to replace our ajax queries with fetch*/
+    constructor() {
+        this._queryList = [];
+    }
+    addQuery(ajaxQuery) {
+        this._queryList.push(ajaxQuery);
+    }
+    abort() {
+        this._queryList.map(ajaxQuery => ajaxQuery.abort());
+    }
+}
+
+
 class Search {
     constructor(searchIndexText, searchIndexSheet) {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
-      this._cache = {}
+      this._cache = {};
+      this.sefariaQueryQueue = {hits: {hits:[], total: 0, max_score: 0.0}, lastSeen: -1};
+      this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits:[]}};
+      this.queryDictaFlag = true;
+      this.dictaCounts = null;
+      this.sefariaSheetsResult = null;
+      this.buckets = [];
+      this.queryAborter = new HackyQueryAborter();
+      // this.dictaSearchUrl = 'http://34.206.201.228';
+      this.dictaSearchUrl = 'https://sefaria.loadbalancer.dicta.org.il';
     }
     cache(key, result) {
         if (result !== undefined) {
            this._cache[key] = result;
         }
         return this._cache[key];
+    }
+    sefariaQuery(args, isQueryStart, wrapper) {
+        return new Promise((resolve, reject) => {
+            let req = JSON.stringify(this.get_query_object(args));
+            wrapper.addQuery($.ajax({
+                url: `${Sefaria.apiHost}/api/search-wrapper`,
+                type: 'POST',
+                data: req,
+                contentType: "application/json; charset=utf-8",
+                crossDomain: true,
+                processData: false,
+                dataType: 'json',
+                success: data => resolve(data),
+                error: reject
+            }));
+        }).then(x => {
+            if (args.type === "sheet") {
+                this.sefariaSheetsResult = x;
+                return null;
+            }
+            for (let i=0; i < x.hits.hits.length; i++) {
+                x.hits.hits[i]['comp_date'] = x.hits.hits[i]._source.comp_date;
+                x.hits.hits[i]['cameFrom'] = 'Sefaria';
+                x.hits.hits[i]['score'] =  x.hits.hits[i]['_score'] * -1;
+            }
+
+            let mergedHits = this.sefariaQueryQueue.hits.hits.concat(x.hits.hits);
+            let lastSeen = this.sefariaQueryQueue.lastSeen + x.hits.hits.length;
+            this.sefariaQueryQueue = x;
+            this.sefariaQueryQueue.hits.hits = mergedHits;
+            this.sefariaQueryQueue.lastSeen = lastSeen;
+        });
+
+    }
+    dictaQuery(args, isQueryStart, wrapper) {
+        function ammendArgsForDicta(standardArgs, lastSeen) {
+            let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
+                book = book.replace(/\//g, '.');
+                return book.replace(/ /g, '_');
+            }) : false;
+            return {
+                query: standardArgs.query,
+                from: ('start' in standardArgs) ? lastSeen + 1 : 0,
+                size: standardArgs.size,
+                limitedToBooks: filters,
+                sort: (standardArgs.sort_type === "relevance") ? 'pagerank' : 'corpus_order_path',
+                smallUnitsOnly: true
+            };
+        }
+        return new Promise((resolve, reject) => {
+            
+            if (this.queryDictaFlag && args.type === "text") {
+                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && ('start' in args && args['start'] > 0)) {
+                    /* don't make new queries if results are exhausted.
+                     * 'start' is omitted on first query (defaults to 0). On a first query, we'll always want to query.
+                     */
+                    resolve({total: this.dictaQueryQueue.hits.total, hits: []});
+                }
+                else {
+                    wrapper.addQuery($.ajax({
+                        url: `${this.dictaSearchUrl}/search`,
+                        type: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json; charset=UTF-8',
+                        data: JSON.stringify(ammendArgsForDicta(args, this.dictaQueryQueue.lastSeen)),
+                        success: data => resolve(data),
+                        error: reject
+                    }));
+                }
+
+            }
+            else {
+                resolve({total: 0, hits: []});
+            }
+        }).then(x => {
+            let adaptedHits = [];
+            x.hits.forEach(hit => {
+                const bookData = hit.xmlId.split(".");
+                const categories = bookData.slice(0, 2);
+                const bookTitle = bookData[2].replace(/_/g, ' ');
+                const bookLoc = bookData.slice(3, 5).join(':');
+                const version = "Tanach with Ta'amei Hamikra";
+                adaptedHits.push({
+                    _source: {
+                        type: 'text',
+                        lang: "he",
+                        version: version,
+                        path: categories,
+                        ref: `${bookTitle} ${bookLoc}`,
+                        heRef: hit.hebrewPath,
+                        pagesheetrank: (hit.pagerank) ? hit.pagerank : 0,
+                    },
+                    highlight: {naive_lemmatizer: [hit.highlight[0].text]},
+                    score: (hit.pagerank) ? hit.pagerank * -1 : 0,
+                    comp_date: -10000 + adaptedHits.length,
+                    _id: `${bookTitle} ${bookLoc} (${version} [he])`,
+                    cameFrom: 'dicta'
+
+                });
+            });
+            this.dictaQueryQueue = {
+                hits: {
+                    total: x.total,
+                    hits: adaptedHits
+                },
+                lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length
+
+            }
+        }).catch(x => {
+            console.log(x)
+        });
+    }
+    dictaBooksQuery(args, wrapper) {
+        return new Promise((resolve, reject) => {
+            if (this.dictaCounts === null && args.type === "text") {
+                if (this.queryDictaFlag) {
+                    wrapper.addQuery($.ajax({
+                        url: `${this.dictaSearchUrl}/books`,
+                        type: 'POST',
+                        dataType: 'json',
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify({query: args.query, smallUnitsOnly: true}),
+                        timeout: 3000,
+                        success: data => resolve(data),
+                        error: reject
+                    }));
+                }
+                else {
+                    resolve([]);
+                }
+            }
+            else {
+                resolve(null);
+            }
+        }).then(x => {
+            if(x === null)
+                return;
+            let buckets = [];
+            x.forEach(bucket => {
+               buckets.push({
+                   key: bucket['englishBookName'].map(i => i.replace(/_/g, " ")).join('/'),
+                   doc_count: bucket['count']
+               });
+            });
+            this.dictaCounts = buckets;
+        }, x => {
+            this.queryDictaFlag = false;
+            console.log(x);
+        });
+    }
+    isDictaQuery(args) {
+        return RegExp(/^[^a-zA-Z]*$/).test(args.query); // If English appears in query, search in Sefaria only
+    }
+    getPivot(queue, minValue, sortType) {
+
+        // if this is the last query, this will be the last chance to return results
+        if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total &&
+            this.sefariaQueryQueue.lastSeen + 1 >= this.sefariaQueryQueue.hits.total)
+            return queue.length;
+
+        // return whole queue if the last item in queue is equal to minValue
+
+        if (Math.abs(queue[queue.length - 1][sortType] - minValue) <= 0.001 ) // float comparison
+            return queue.length;
+
+        const pivot = queue.findIndex(x => x[sortType] > minValue);
+        return (pivot >= 0) ? pivot : 0;
+    }
+    mergeQueries(addAggregations, sortType, filters) {
+        // function getPivot(queue, minValue, lastSeen, total) {
+        //     if (lastSeen + 1 >= total)
+        //         return queue.length;
+        //     let pivot = queue.findIndex(x => x[sortType] > minValue);
+        //     return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
+        // }
+        let result = {hits: {}};
+        if(addAggregations) {
+
+            let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
+                x => !(RegExp(/^Tanakh\//).test(x.key)));
+            newBuckets = newBuckets.concat(this.dictaCounts);
+            result.aggregations = {path: {buckets: newBuckets}};
+            this.buckets = newBuckets;
+        }
+        if (!!filters.length) {
+            const expression = new RegExp(`^(${filters.join('|')})(\/.*|$)`);
+            result.hits.total = this.buckets.reduce((total, currentBook) => {
+                if (expression.test(currentBook.key)) {
+                    total += currentBook.doc_count;
+                }
+                return total
+            }, 0);
+        }
+        else {
+            result.hits.total = this.sefariaQueryQueue.hits.total + this.dictaQueryQueue.hits.total;
+        }
+
+        let sefariaHits = (this.queryDictaFlag)
+            ? this.sefariaQueryQueue.hits.hits.filter(i => !(i._source.categories.includes("Tanakh")))
+            : this.sefariaQueryQueue.hits.hits;
+        let dictaHits = this.dictaQueryQueue.hits.hits;
+
+        let finalHits;
+        if (!(dictaHits.length) || !(sefariaHits.length)) /* either or both queues are empty */ {
+            finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
+            this.sefariaQueryQueue.hits.hits = [];
+            this.dictaQueryQueue.hits.hits = [];
+        }
+        else {
+            // when sorting by relevance adjust Dicta score's mean and standard deviation to match Sefaria's
+            if (sortType === "score"){
+                let sefariaMeanScore = sefariaHits.reduce(
+                    (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
+                );
+                let dictaMeanScore = dictaHits.reduce(
+                    (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
+                );
+
+                let sefariaStd = Math.sqrt(sefariaHits.reduce(
+                    (total, nextValue) => total + Math.pow(nextValue.score - sefariaMeanScore, 2), 0
+                ));
+                let dictaStd = Math.sqrt(dictaHits.reduce(
+                    (total, nextValue) => total + Math.pow(nextValue.score - dictaMeanScore, 2), 0
+                ));
+
+                let factor = (dictaStd !== 0) ?sefariaStd/dictaStd : 1;
+                for (let i=0; i<dictaHits.length; i++) {
+                    dictaHits[i].score = dictaHits[i].score * factor;
+                }
+
+                dictaMeanScore = dictaHits.reduce(
+                    (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
+                );
+                let delta = sefariaMeanScore - dictaMeanScore;
+                for (let i=0; i < dictaHits.length; i++) {
+                    dictaHits[i].score = dictaHits[i].score + delta;
+                }
+            }
+
+            const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
+            //const sefariaPivot = getPivot(sefariaHits, lastScore, this.sefariaQueryQueue.lastSeen, this.sefariaQueryQueue.hits.total);
+            //const dictaPivot = getPivot(dictaHits, lastScore, this.dictaQueryQueue.lastSeen, this.dictaQueryQueue.hits.total);
+            const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
+            const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
+
+            this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
+            sefariaHits = sefariaHits.slice(0, sefariaPivot);
+            this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
+            dictaHits = dictaHits.slice(0, dictaPivot);
+            finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
+        }
+        // if (sortType !== "score")
+        //     finalHits.reverse();
+        result.hits.hits = finalHits;
+        return result;
+
+        // if(this.queryDictaFlag) {
+        //     this.sefariaQueryQueue.hits.total += this.dictaQueryQueue.hits.total;
+        //
+        //     let sefariaHits = this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories));
+        // else {
+        //         sefariaHits = this.sefariaQueryQueue.hits.hits;
+        //      }
+        //     // newHits = this.dictaQueryQueue.hits.hits.concat(newHits);
+        //     // this.sefariaQueryQueue.hits.hits = newHits;
+        // }
     }
     execute_query(args) {
         // To replace sjs.search.post in search.js
@@ -34,12 +325,28 @@ class Search {
         if (!args.query) {
             return;
         }
-        var req = JSON.stringify(this.get_query_object(args));
-        var cache_result = this.cache(req);
+
+        let isQueryStart = !(args.start);
+        if (isQueryStart) // don't touch these parameters if not a text search
+        {
+            if (args.type === 'text') {
+                this.dictaCounts = null;
+                this.queryDictaFlag = this.isDictaQuery(args);
+                this.sefariaQueryQueue = {hits: {hits: [], total: 0, max_score: 0.0}, lastSeen: -1};
+                this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits: []}};
+                this.queryAborter.abort();
+            }
+        }
+
+        let req = JSON.stringify(this.get_query_object(args));
+        let cache_result = this.cache(req);
         if (cache_result) {
             args.success(cache_result);
             return null;
         }
+        let queryAborter = new HackyQueryAborter();
+        this.queryAborter = queryAborter;
+        /*
         return $.ajax({
             url: `${Sefaria.apiHost}/api/search-wrapper`,
             type: 'POST',
@@ -54,6 +361,36 @@ class Search {
             }.bind(this),
             error: args.error
         });
+         */
+        // const sortType = (args.)
+        const updateAggreagations = (args.aggregationsToUpdate.length > 0);
+        if (this.queryDictaFlag) {
+            Promise.all([
+            this.sefariaQuery(args, updateAggreagations, queryAborter),
+            this.dictaQuery(args, updateAggreagations, queryAborter),
+            this.dictaBooksQuery(args, queryAborter)
+        ]).then(() => {
+            if (args.type === "sheet") {
+                args.success(this.sefariaSheetsResult);
+            }
+            else {
+                const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
+                args.success(this.mergeQueries(updateAggreagations, sortType, args.applied_filters));
+            }
+        }).catch(x => console.log(x));
+        // }).catch(args.error);
+        }
+        else {
+            this.sefariaQuery(args, updateAggreagations, queryAborter)
+                .then(() => {
+                    if (args.type === "sheet")
+                        args.success(this.sefariaSheetsResult);
+                    else
+                        args.success(this.sefariaQueryQueue);
+                    })
+        }
+
+        return queryAborter;
     }
     get_query_object({
       query,
@@ -97,7 +434,7 @@ class Search {
           newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
           newHits[newHitsIndex].insertInOrder(hits[i], (a, b) => a._source.version_priority - b._source.version_priority);
         } else {
-          newHits.push([hits[i]])
+          newHits.push([hits[i]]);
           newHitsObj[currRef] = newHits.length - 1;
         }
       }

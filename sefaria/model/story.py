@@ -31,6 +31,8 @@ class Story(abst.AbstractMongoRecord):
     def _sheet_metadata(sheet_id, return_id=False):
         from sefaria.sheets import get_sheet_metadata
         metadata = get_sheet_metadata(sheet_id)
+        if not metadata:
+            return None
 
         d = {
             "sheet_title": strip_tags(metadata["title"]),

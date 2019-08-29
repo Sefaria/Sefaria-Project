@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Dicta Thanks" %}{% endblock %}
+
+{% block description %}{% trans "Sefaria thanks Dicta for all of their help." %}{% endblock %}
+
+{% block css %}
+    #top #languageToggle {
+        display: inline;
+    }
+    #top #languageToggle #bilingual {
+        display: none;
+    }
+    #aboutPage a {
+        text-decoration: underline;
+    }
+{% endblock %}
+
+{% block content %}
+<div id="aboutPage" class="biReady container static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">Sefaria and Dicta</span>
+            <span class="int-he">ספריא ודיקטה</span>
+        </h1>
+        <div class="about section">
+
+            <p class="first">
+                <span class="int-en">Sefaria includes algorithms and services provided by Dicta.</span>
+            </p>
+            <p>
+                <span class="int-en">Dicta applies cutting edge machine learning and natural language processing tools to the analysis of Hebrew texts. Their objective is to remove the drudgery from the study of classical and modern Hebrew texts, in order to allow researchers to focus on the deeper questions.</span>
+            </p>
+            <p>
+                <span class="int-en">Dicta is a non-profit organization that provides its products at no charge for the benefit of the public.</span>
+            </p>
+            <p>
+                <span class="int-en">On Sefaria:
+                    <ul>
+                        <li>Tanakh results for Hebrew searches come courtesy of Dicta.</li>
+                        <li>Links to parallel texts, and matching of headwords to base texts rely on Dicta algorithms.</li>
+                        <li>Much else besides benefits from our ongoing conversations with the Dicta team.</li>
+                    </ul>
+                </span>
+            </p>
+            <p>
+                <span class="int-en">See many other tools for analysis of Hebrew texts on the <a href="http://dicta.org.il/">Dicta Website</a>.</span>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

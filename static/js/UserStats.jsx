@@ -1,19 +1,29 @@
 import React, { useState, useEffect, useContext, useRef} from 'react';
-const $          = require('./sefaria/sefariaJquery');
-const d3 = require('./lib/d3.v5.min');
-const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const Story      = require('./Story');
-const {SimpleLinkedBlock}    = require('./Misc');
-const { useDebounce } = require('./Hooks');
-import Component from 'react-class';
+const $                 = require('./sefaria/sefariaJquery');
+const d3                = require('./lib/d3.v5.min');
+const Sefaria           = require('./sefaria/sefaria');
+const {StorySheetList}  = require('./Story');
+const { useDebounce }   = require('./Hooks');
+const {
+    SimpleLinkedBlock,
+    SimpleInterfaceBlock,
+    TextBlockLink,
+    ThreeBox
+    }                   = require('./Misc');
 
 
 const UserStats = () => {
 
-    const [uid, setUid] = useState(1);
+    const [uid, setUid] = useState(null);
     const [user_data, setUserData] = useState({});
     const [site_data, setSiteData] = useState({});
+    const [active_mode, setMode] = useState("Year to Date");
+
+    const modes = ["Year to Date", "All Time"];
+    const modekeys = {
+        "Year to Date": "this_hebrew_year",
+        "All Time": "alltime"
+    };
 
     const debouncedUID = useDebounce(uid, 500);
 
@@ -21,89 +31,195 @@ const UserStats = () => {
         $.getJSON("/api/site_stats")
             .then(d => setSiteData(d));
     }, []);
+
     useEffect(() => {
+        const uid = debouncedUID || Sefaria._uid;
         setUserData({});
-        $.getJSON("/api/user_stats/" + debouncedUID)
+        $.getJSON("/api/user_stats/" + uid)
             .then(d => setUserData(d));
     }, [debouncedUID]);
 
-    const all_ready = user_data.uid && site_data.categoriesRead;
 
+    const all_ready = !!(user_data.uid && site_data.alltime);
+    let mode_user_data;
+    let user_active;
+    if (all_ready) {
+        mode_user_data = user_data[modekeys[active_mode]];
+        user_active = (mode_user_data.textsRead > 2) || (mode_user_data.sheetsRead > 2) || (mode_user_data.sheetsThisPeriod > 1);
+    }
+    // let user_active = true;
     return (
-    <div className="homeFeedWrapper">
+    <div className="homeFeedWrapper userStats">
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
-        <h1 style={{textAlign: "center"}}>
-          <span className="int-en">User Stats</span>
-          <span className="int-he">סטטיסטיקות משתמש</span>
-        </h1>
-        <UserChooser setter={setUid}/>
-        {all_ready?<UserProfileBlock user_data={user_data}/>:"Loading"}
-        {all_ready && <UserDataBlock user_data={user_data} site_data={site_data}/>}
+          <div className="contentInner">
+              <h1 style={{textAlign: "center"}}>
+                  {all_ready? user_data.name : <div className="lds-ring"><div></div><div></div><div></div><div></div></div>}
+              </h1>
+              {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
+              <UserStatModeChooser modes={modes} activeMode={active_mode} setMode={setMode}/>
+              {all_ready && user_active &&  <UserDataBlock user_data={mode_user_data} site_data={site_data[modekeys[active_mode]]}/>}
+              {all_ready && (!user_active) && <SiteDataBlock site_data={site_data[modekeys[active_mode]]}/>}
+          </div>
       </div>
     </div>
     );
 };
 
+const UserStatModeChooser = ({modes, activeMode, setMode}) => (
+  <div className="userStatModeChooser">
+      {modes.map(m => <UserStatModeButton key={m} thisMode={m} activeMode={activeMode} setMode={setMode}/>)}
+  </div>
+);
+
+const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
+    <div className={"userStatModeButton" + (thisMode === activeMode?" active":"")}
+         onClick  ={()=>setMode(thisMode)}>
+        <span>{Sefaria._(thisMode)}</span>
+    </div>
+);
+
 const UserChooser = ({setter}) => (
     <div style={{textAlign: "center"}}>
-      <label>User ID:
+      <label>
+        <span className="int-en"> User ID: </span>
+        <span className="int-he"> מספר משתמש: </span>
         <input type="text" onChange={e => setter(parseInt(e.target.value))}/>
       </label>
     </div>
 );
 
-const UserProfileBlock = ({user_data}) => (
-        <div style={{display: "flex", justifyContent:"center"}}>
-            <div style={{padding: "0 10px"}}>
-                <img src={user_data.imageUrl} width="80" height="80"/>
-            </div>
-            <div style={{padding: "0 10px"}}>
-                <h3><a href={user_data.profileUrl}>{user_data.name}</a></h3>
-                <div>{user_data.position?(user_data.position + " at " + user_data.organization):user_data.organization}</div>
-            </div>
-        </div>
-);
-const UserDataBlock = ({user_data, site_data}) => (
+const SiteDataBlock = ({site_data}) => (
     <div>
-        <div style={{display: "flex", justifyContent:"center"}}>
-            <div style={{padding: "0 10px"}}>
-                <h3>Reading</h3>
-                <div>{user_data.sheetsRead} Sheets Read</div>
-                <div>{user_data.textsRead} Texts Read</div>
-                <h3>Writing</h3>
-                <div>{user_data.totalSheets} Sheets Created</div>
-                <div>{user_data.publicSheets} Public Sheets</div>
-                <div>{user_data.sheetsThisPeriod} Sheets Created This Year</div>
-                <h3>My Most Read Sheets</h3>
-                {user_data.popularSheets.map((sheet, i) =>
-                    <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
-                )}
-            </div>
-            <div style={{padding: "0 10px"}}>
-                <h3>Texts I returned to</h3>
-                {user_data.mostViewedRefs.map((r,i) => <div key={i}><RefLink tref={r}/></div>)}
-            </div>
-            <div style={{padding: "0 10px"}}>
-                <h3>Sheets I returned to</h3>
-                {user_data.mostViewedSheets.map((sheet,i) =>
-                    <SimpleLinkedBlock key={i} en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
-                )}
+        <div className="chartRow centered">
+            <div className="systemText statHeader">
+                <span className="int-he">
+                    מזמן לא התראינו!
+                    <br/>
+                    בואו ונראה מה משתמשים אחרים בספריא לומדים
+                </span>
+                <span className="int-en">
+                    Looks like we haven’t seen you in a while!<br/>
+                    Discover what other people are doing on Sefaria...
+                </span>
             </div>
         </div>
 
-        <div style={{display: "flex", justifyContent:"space-around"}}>
-          <CategoriesPie title="User" cats={user_data.categoriesRead}/>
-          <CategoriesPie title="Site" cats={site_data.categoriesRead}/>
+        <div>
+            <h2>
+                <span className="int-en">What People are Reading</span>
+                <span className="int-he">מה אנשים קוראים</span>
+            </h2>
+            <div className="chartRow centered">
+                <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
+            </div>
         </div>
-        <div style={{display: "flex", justifyContent:"space-around"}}>
-          <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
+        <div>
+            <h2>
+                <span className="int-en">Top Categories</span>
+                <span className="int-he">קטגוריות פופולריות</span>
+            </h2>
+            <div className="chartRow">
+                <CategoryBars user_cats={site_data.categoriesRead} site_cats={site_data.categoriesRead}/>
+            </div>
         </div>
     </div>
 );
+const UserDataBlock = ({user_data, site_data}) => (
+    <div>
+        <OverallActivityBlock user_data={user_data}/>
+        <UserDonutsBlock user_data={user_data} site_data={site_data}/>
+        <UserCategoryBarchartBlock user_data={user_data} site_data={site_data}/>
+        <YourFavoriteTextsBlock user_data={user_data} />
+        <YourFavoriteSheetsBlock user_data={user_data} />
+        <MostPopularSheetsBlock user_data={user_data} />
+    </div>
+);
 
-const RefLink = ({tref}) => {
-    return <a href={"/" + Sefaria.normRef(tref)}>{tref}</a>;
-};
+const OverallActivityBlock = ({user_data}) => (
+        <div>
+            <h2>
+                <span className="int-en">Your Overall Activity</span>
+                <span className="int-he">הפעילות שלך במבט</span>
+            </h2>
+            <div className="statcardRow">
+                <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
+                <StatCard icon_file="file-icon-black.svg" number={user_data.sheetsRead} name="Sheets Read"/>
+                <StatCard icon_file="plus-icon-black.svg" number={user_data.sheetsThisPeriod} name="Sheets Created"/>
+            </div>
+        </div>
+);
+
+const StatCard = ({icon_file, name, number}) => (
+    <div className="statcard">
+        <img src={"static/img/" + icon_file}/>
+        <div className="statcardValue">{number}</div>
+        <div className="statcardLabel">{Sefaria._(name)}</div>
+    </div>
+);
+
+const UserDonutsBlock = ({user_data, site_data}) => (
+        <div>
+            <h2>
+                <span className="int-en">Your Reading by Category</span>
+                <span className="int-he">לימוד לפי סוגה</span>
+            </h2>
+            <div className="chartRow">
+                <CategoriesDonut title="Your Reading" heTitle="הלימוד שלך" cats={user_data.categoriesRead}/>
+                <CategoriesDonut title="Average Sefaria User" heTitle="משתמש ממוצע בספריא" cats={site_data.categoriesRead}/>
+            </div>
+        </div>
+);
+const UserCategoryBarchartBlock = ({user_data, site_data}) => (
+        <div>
+            <h2>
+                <span className="int-en">Your Top Categories</span>
+                <span className="int-he">מצעד סוגות הלימוד</span>
+            </h2>
+            <div className="chartRow">
+                <CategoryBars user_cats={user_data.categoriesRead} site_cats={site_data.categoriesRead}/>
+            </div>
+        </div>
+);
+const YourFavoriteTextsBlock = ({user_data}) => (
+    user_data.mostViewedRefs.length ?
+        <div className="yourFavoriteTextsBlock">
+            <h2>
+                <span className="int-en">Your Favorite Texts</span>
+                <span className="int-he">טקסטים מועדפים</span>
+            </h2>
+            <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
+                <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>
+        </div>
+    : null
+);
+const YourFavoriteSheetsBlock = ({user_data}) => (
+    user_data.mostViewedSheets.length ?
+        <div className="yourFavoriteSheetsBlock">
+            <h2>
+                <span className="int-en">Your Favorite Sheets</span>
+                <span className="int-he">דפי מקורות מועדפים</span>
+            </h2>
+            <div className="story">
+                <StorySheetList sheets={user_data.mostViewedSheets} compact={true} smallfonts={true}/>
+            </div>
+        </div>
+    : null
+);
+const MostPopularSheetsBlock = ({user_data}) => (
+    user_data.popularSheets.length ?
+        <div className="yourPopularSheetsBlock">
+            <h2>
+                <span className="int-en">Your Most Popular Sheets</span>
+                <span className="int-he">דפי מקורות פופולריים שלך</span>
+            </h2>
+            {user_data.popularSheets.map((sheet, i) => <div key={i}>
+                    <SimpleLinkedBlock classes="chapterText lowercase sheetLink" en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
+                    <SimpleInterfaceBlock classes="sheetViews smallText" en={sheet.views +" Views"} he={sheet.views + " צפיות"}/>
+                </div>
+            )}
+        </div>
+    : null
+);
 
 const mapToPercentage = data => {
     const newData = {};
@@ -121,99 +237,91 @@ const makeOtherCategory = data => {
     return result;
 };
 
-/* const color = d3.scaleOrdinal()
-    .domain(data.map(d => d.name))
-    .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
-*/
-const categoryColor = Sefaria.palette.categoryColor;
-const brighterCategoryColor = (cat) => d3.color(Sefaria.palette.categoryColor(cat)).brighter().hex();
-
 const CategoryBars = ({user_cats, site_cats}) => {
     const svg_ref = useRef();
 
-    const height = 420;
-    const width = 1000;
-    const margin = {top: 10, right: 10, bottom: 20, left: 40};
+    const height = 400;
+    const width = 660;
+    const margin = {top: 10, right: 0, bottom: 0, left: 0};
 
     const keys = ["user", "site"];
 
 
     useEffect(()=> {
         const svg = d3.select(svg_ref.current);
-        if (!svg) {
-            return;
-        }
-        const orderedCats = Object.entries(site_cats).sort((a, b) => b[1] - a[1]).map(d => d[0]);
+        if (!svg) {return;}
 
-        const up = mapToPercentage(user_cats);
-        const sp = mapToPercentage(site_cats);
-        const data = orderedCats.map(cat => ({cat: cat, site: sp[cat], user: up[cat]}));
+        const user_percents = mapToPercentage(user_cats);
+        const site_percents = mapToPercentage(site_cats);
+        const orderedCats = Object.entries(user_cats).sort((a, b) => b[1] - a[1]).map(d => d[0]);
+        const data = orderedCats.slice(0,5).map(cat => ({cat: cat, site: site_percents[cat], user: user_percents[cat]}));
 
-        const x0 = d3.scaleBand()
-            .domain(orderedCats)
-            .rangeRound([margin.left, width - margin.right])
+        const y = d3.scaleBand()
+            .domain(data.map(d => d.cat))
+            .rangeRound([margin.top + 10, height - margin.bottom])
             .paddingInner(0.1);
 
-        const x1 = d3.scaleBand()
-            .domain(keys)
-            .rangeRound([0, x0.bandwidth()])
-            .padding(0.05);
+        const inter_bar_padding = 0.05;
+        const below_text_padding = 10;
+        const userbar = 5;
+        const sitebar = 34;
 
-        const y = d3.scaleLinear()
-            .domain([0, .5]).nice()
-            .rangeRound([height - margin.bottom, margin.top]);
+        const x = d3.scaleLinear()
+            .domain([0, d3.max(data.map(d => [d.site, d.user]).flat()) + .10]).nice();
+        if (Sefaria.interfaceLang === "english") {
+            x.rangeRound([0,width - margin.right]);
+        } else {
+            x.rangeRound([0,width - margin.right]);
+        }
 
-        const xAxis = g => g
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x0).tickSizeOuter(0))
-            .call(g => g.select(".domain").remove());
-
-        const yAxis = g => g
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).ticks(5, "%"))
-            .call(g => g.select(".domain").remove())
-            .call(g => g.select(".tick:last-of-type text").clone()
-                .attr("x", 3)
-                .attr("text-anchor", "start")
-                .attr("font-weight", "bold")
-                .text("Percent"));
-
-        svg.append("g")
+        const groups = svg.append("g")
             .selectAll("g")
             .data(data)
             .join("g")
-            .attr("transform", d => `translate(${x0(d.cat)},0)`)
-            .selectAll("rect")
+            .attr("transform", d => `translate(${margin.left}, ${y(d.cat)})`);
+
+        groups.append("text")
+            .attr("font-family", (Sefaria.interfaceLang === "english" ? '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif' : '"Heebo", sans-serif'))
+            .attr("text-anchor", "start")
+            .attr("x", d => Sefaria.interfaceLang === "hebrew" ? width - margin.right : null)
+            .attr("letter-spacing", Sefaria.interfaceLang === "english" ? 1.5 : null)
+            .attr("font-size", 16)
+            .text(d => Sefaria._(d.cat).toUpperCase());
+
+        groups.selectAll("rect")
             .data(d => keys.map(key => ({key, cat:d.cat, value: d[key]})))
             .join("rect")
-            .attr("x", d => x1(d.key))
-            .attr("y", d => y(d.value))
-            .attr("width", x1.bandwidth())
-            .attr("height", d => y(0) - y(d.value))
-            .attr("fill", d => d.key === "site" ? categoryColor(d.cat) : "#aaa");
+            .attr("class", d => d.key)
+            .attr("x", d => Sefaria.interfaceLang === "english" ? 0 : width - margin.right - x(d.value))
+            .attr("y", d => d.key === "user" ? below_text_padding : below_text_padding + userbar + inter_bar_padding)
+            .attr("width", d => x(d.value))
+            .attr("height", d => d.key === "user" ? userbar : sitebar)
+            .attr("fill", d => d.key === "user" ? Sefaria.palette.categoryColor(d.cat) : "#ededec");
 
-        svg.append("g")
-            .call(xAxis);
-
-        svg.append("g")
-            .call(yAxis);
+        d3.select("svg g g:first-child")
+            .append("text")
+            .attr("y", below_text_padding + userbar + inter_bar_padding + sitebar - 11)
+            .attr("x", d => x(d.site) > 250 ? x(d.site) - 20 : x(d.site) + 20)
+            .attr("font-size", 16)
+            .attr("fill", "#999")
+            .attr("text-anchor", d => x(d.site) > 250 ? "end" : "start")
+            .text(Sefaria._("Average Sefaria User"));
 
         return () => {svg.selectAll("*").remove();}
     }, [user_cats, site_cats]);
 
     return (
-        <div style={{font: "12px sans-serif"}}>
-            <h3>Comparison to Sitewide</h3>
+        <div className="chartWrapper">
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
         </div>
     );
 };
 
-const CategoriesPie = ({cats, title}) => {
+const CategoriesDonut = ({cats, title, heTitle}) => {
     const svg_ref = useRef();
 
-    const width = 420;
-    const height = 420;
+    const width = 280;
+    const height = 280;
     const raw_data = Object.entries(cats).map(e => ({name: e[0], value: e[1]}));
     const data = (raw_data.length > 2)?makeOtherCategory(raw_data):raw_data;
     const total = data.map(e => e.value).reduce((a, b) => a + b, 0);
@@ -225,7 +333,7 @@ const CategoriesPie = ({cats, title}) => {
         .sort(compare)
         .value(d => d.value);
     const arcs = pie(data);
-    const radius = Math.min(width, height) / 2 * 0.8;
+    const radius = Math.min(width, height) / 2 * 0.75;
     const arcLabel = d3.arc().innerRadius(radius).outerRadius(radius);
     const arc = d3.arc()
         .innerRadius(Math.min(width, height) / 2 - 10)
@@ -240,7 +348,7 @@ const CategoriesPie = ({cats, title}) => {
         g.selectAll("path")
           .data(arcs)
           .enter().append("path")
-            .attr("fill", d => categoryColor(d.data.name))
+            .attr("fill", d => Sefaria.palette.categoryColor(d.data.name))
             .attr("stroke", "white")
             .attr("d", arc)
           .append("title")
@@ -255,24 +363,22 @@ const CategoriesPie = ({cats, title}) => {
       text.append("tspan")
           .attr("x", 0)
           .attr("y", "-0.7em")
-          .style("font-weight", "bold")
-          .text(d => d.data.name);
+          .text(d => Sefaria._(d.data.name));
 
       text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
           .attr("x", 0)
           .attr("y", "0.7em")
-          .attr("fill-opacity", 0.7)
-          .text(d => d.data.value + " (" + (d.data.value/total).toLocaleString(undefined,{style: 'percent'}) +")");
+          .attr("fill", "#999")
+          .text(d => (d.data.value/total).toLocaleString(undefined,{style: 'percent'}) );
 
         return () => {svg.selectAll("*").remove();}
     }, [cats]);
 
-    // if (!raw_data.length) {return <div></div>}
 
     return (
-        <div style={{font: "12px sans-serif", padding: "0 10px"}}>
-            <h3>{title}</h3>
+        <div className="chartWrapper">
             <svg ref={svg_ref} width={width} height={height} textAnchor="middle" />
+            <SimpleInterfaceBlock classes="chartLabel smallText" en={title} he={heTitle}/>
         </div>
     );
 };

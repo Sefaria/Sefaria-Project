@@ -77,7 +77,7 @@ def add(user, klass, attrs, **kwargs):
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = obj.contents(**kwargs)
-        obj.load_from_dict(attrs).save()
+        obj.load_from_dict(attrs).save() if klass != model.Index else obj.update_from_dict(attrs).save()
         model.log_update(user, klass, old_dict, obj.contents(**kwargs), **kwargs)
         return obj
     obj = klass(attrs).save()

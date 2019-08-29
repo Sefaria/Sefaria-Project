@@ -55,6 +55,9 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   letter-spacing: 0.05em;
   color: #333;
 }
+.chapterText.lowercase .int-en {
+  text-transform: none;
+}
 .sectionTitleText .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
@@ -1121,7 +1124,7 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: center;
   font-size: 15px;
-  font-weight: 200;
+  font-weight: 300;
   color: #666;
   margin-bottom: 20px;
   letter-spacing: 2px;
@@ -6242,6 +6245,15 @@ span.purim-emoji img{
 .interface-hebrew .tab-view .tab-list .tab img {
   margin: 0 0 0 10px;
 }
+.tab-view .tab-list .applink {
+  margin: 0 0 0 auto;
+}
+.tab-view .tab-list .applink a {
+    color: #666;
+}
+.interface-hebrew .tab-view .tab-list .applink {
+  margin: 0 auto 0 0;
+}
 .tab-list :not(.active) .tab {
     color: #666;
 }
@@ -6931,31 +6943,31 @@ img.smallProfileImage {
 .interface-hebrew .storyFeed .story .mediumProfileImage {
   float: left;
 }
-.storyFeed .story .storyBody {
+.story .storyBody {
   clear: both;
   margin: 10px 0;
   text-align: justify;
 }
-.storyFeed .story .storySheetList {
+.story .storySheetList {
   clear: both;
 }
-.storyFeed .story .storySheetListItem {
+.story .storySheetListItem {
   padding-bottom: 20px;
 }
-.storyFeed .story .storySheetListItem:last-child {
+.story .storySheetListItem:last-child {
   padding-bottom: 0;
 }
-.storyFeed .story .storySheetList .sheetTitle {
+.story .storySheetList .sheetTitle {
   padding-bottom: 10px;
 }
-.storyFeed .story .storySheetList .pageTitle span {
+.story .storySheetList .pageTitle span {
   font-size: 20px;
 }
-.storyFeed .story .saveLine {
+.story .saveLine {
   display: flex;
   clear: both;
 }
-.storyFeed .story .saveLine .beforeSave {
+.story .saveLine .beforeSave {
   width: 100%;
 }
 .interface-hebrew .story .saveLine .beforeSave {
@@ -6964,11 +6976,14 @@ img.smallProfileImage {
 .interface-english .story .saveLine .beforeSave {
   padding-right: 10px;
 }
-.storyFeed .story .citationLine.contentText .int-en,
-.storyFeed .story .citationLine.contentText .int-he {
+.story .saveLine .saveButton {
+  align-self: center;
+}
+.story .citationLine.contentText .int-en,
+.story .citationLine.contentText .int-he {
   color: #999;
 }
-.storyFeed .story .authorText {
+.story .authorText {
   display: inline-block;
   padding: 0 10px;
   line-height: 22px;
@@ -6998,7 +7013,7 @@ img.smallProfileImage {
 .storyFeed a {
   color: #000;
 }
-.storyFeed .storyBody a {
+.storyBody a {
   text-decoration: underline;
 }
 .storyEditBar {
@@ -7023,6 +7038,132 @@ img.smallProfileImage {
   background-color: #D2DCFF;
   padding-left: 2px;
   padding-right: 2px;
+}
+
+body .homeFeedWrapper.userStats {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  background-color: #faf9f9;
+}
+
+.userStats h1 {
+  text-align: center;
+  font-weight: normal;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+.userStats h2 {
+  text-transform: none;
+  padding-top: 40px;
+  font-size: 21px;
+  color: #888;
+}
+
+.userStats .statcardRow {
+  display: flex;
+  justify-content: space-around;
+}
+
+.userStats .statcardRow .statcard {
+  background-color: #fff;
+  height: 190px;
+  width: 32%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.userStats .statcardRow .statcard img {
+  opacity: 0.3;
+  height: 60px;
+  width: 60px;
+  margin: 0 auto 20px;
+}
+
+.userStats .statcardRow .statcard .statcardValue {
+  font-size: 24px;
+  text-align: center;
+}
+
+.userStats .statcardRow .statcard .statcardLabel {
+  font-size: 21px;
+  padding-top: 5px;
+  text-align: center;
+  color: #aaa;
+}
+
+.userStats .chartRow {
+  display: flex;
+  justify-content: space-between;
+}
+.userStats .chartRow.centered {
+  justify-content: space-around;
+}
+.userStats .statHeader {
+  padding-top: 40px;
+  text-align: center;
+}
+.userStats .statHeader span {
+  color: #666;
+  letter-spacing: 0.7px;
+  line-height: 23px;
+}
+
+.userStats .chartRow .chartWrapper {
+  font: 11px sans-serif;
+  padding: 0 10px;
+}
+
+.bilingual .userStats .blockLink .he,
+.english .userStats .blockLink .he {
+  display: none;
+}
+.hebrew .userStats .blockLink .en {
+  display: none;
+}
+.bilingual .userStats .blockLink .en,
+.english .userStats .blockLink .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.hebrew .userStats .blockLink .he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+
+.userStatModeChooser {
+  padding: 10px 0 0 0;
+  display:  flex;
+  justify-content: center;
+}
+.userStatModeButton {
+  background-color: #fff;
+  border-radius: 5px;
+  height: 40px;
+  width: 120px;
+  text-align: center;
+  vertical-align: center;
+  cursor: pointer;
+}
+.userStatModeButton.active {
+  background-color: #19365d;
+  color: #fff;
+}
+
+.userStatModeButton span {
+  display: block;
+  margin: 12px 0;
+}
+
+.userStats .blockLink {
+}
+
+.userStats .yourPopularSheetsBlock > div {
+  padding: 10px 0;
+}
+
+.userStats .chartLabel {
+  text-align: center;
+  padding-top: 8px;
 }
 
 .editorToolbar {
