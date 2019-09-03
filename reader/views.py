@@ -936,7 +936,7 @@ def modtools(request):
     return menu_page(request, props, "modtools", title)
 
 
-""" Is this used? 
+""" Is this used?
 
 def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
@@ -3162,9 +3162,10 @@ def profile_sync_api(request):
             if field == "settings":
                 if field_data["time_stamp"] > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
+                    settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
                     profile.update({
                         field: field_data,
-                        "attr_time_stamps": profile.attr_time_stamps.update({field: field_data["time_stamp"]})
+                        "attr_time_stamps": profile.attr_time_stamps.update({field: settings_time_stamp})
                     })
                     profile_updated = True
             elif field == "user_history":
