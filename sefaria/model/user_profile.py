@@ -321,24 +321,11 @@ class UserProfile(object):
             self.save()
         return profile
 
-    def update_attr_time_stamps(self, obj):
-        if "settings" in obj:
-            settings_changed = False
-            for k, v in obj["settings"].items():
-                if k not in self.settings:
-                    settings_changed = True
-                elif v != self.settings[k]:
-                    settings_changed = True
-            if settings_changed:
-                obj["attr_time_stamps"] = obj.get("attr_time_stamps", {})
-                obj["attr_time_stamps"]["settings"] = epoch_time()
-
     def update(self, obj):
         """
         Update this object with the fields in dictionry 'obj'
         """
         self._set_flags_on_update(obj)
-        self.update_attr_time_stamps(obj)
         self.__dict__.update(obj)
 
         return self
@@ -529,7 +516,7 @@ class UserProfile(object):
     def to_api_dict(self, basic=False):
         """
         Return a json serializble dictionary this profile which includes fields used in profile API methods
-        If basic is True, only return enough data to display a profile listing 
+        If basic is True, only return enough data to display a profile listing
         """
         if basic:
             return {
@@ -726,4 +713,3 @@ def process_index_title_change_in_user_history(indx, **kwargs):
             o.save()
         except InputError:
             logger.warning(u"Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
-

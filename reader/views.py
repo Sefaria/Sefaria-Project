@@ -3163,9 +3163,10 @@ def profile_sync_api(request):
                 if field_data["time_stamp"] > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                    profile.attr_time_stamps.update({field: settings_time_stamp})
                     profile.update({
                         field: field_data,
-                        "attr_time_stamps": profile.attr_time_stamps.update({field: settings_time_stamp})
+                        "attr_time_stamps": profile.attr_time_stamps
                     })
                     profile_updated = True
             elif field == "user_history":
@@ -3820,7 +3821,7 @@ def random_by_topic_api(request):
     if term is not None and getattr(term, "sensitive", False):
         # term is sensitive, try again
         return random_by_topic_api(request)
-        
+
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
