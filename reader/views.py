@@ -3183,6 +3183,7 @@ def profile_sync_api(request):
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
             ret["settings"] = profile.settings
+            ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":
                 # request was made from web. update last_sync on profile
                 profile.update({"last_sync_web": now})
