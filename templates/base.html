@@ -158,7 +158,7 @@
         static_url: {{ STATIC_PREFIX }}
       };
       document.addEventListener('copy', function(e) {
-          const selection = document.getSelection()
+          const selection = document.getSelection();
           const text_only = selection.toString();
 
           if (selection.rangeCount) {

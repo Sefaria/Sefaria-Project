@@ -348,7 +348,8 @@ class LinkNetwork2(object):
                 "connectToField": "early_refs",
                 "as": "future",
                 "depthField": "depth"
-            }}
+            }},
+            {"$project": {"early_index":0, "early_category":0, "late_index":0, "late_category":0}}
         ])
         past_links = db.linknet.aggregate([
             {"$match": {"late_refs": {"$in": self.base_trefs}}},
@@ -359,7 +360,8 @@ class LinkNetwork2(object):
                 "connectToField": "late_refs",
                 "as": "past",
                 "depthField": "depth"
-            }}
+            }},
+            {"$project": {"early_index": 0, "early_category": 0, "late_index": 0, "late_category": 0}}
         ])
 
         # Assemble all covered refs and indexes
@@ -412,8 +414,9 @@ class LinkNetwork2(object):
         self.indexLinks[linkkey] = 1
 
     def record_ref(self, node, side):
-        tref, year, cat, trefs = (node["late_orig_ref"], node["late_year"],node["late_category"], node["late_refs"]) if side == "late" else (node["early_orig_ref"],node["early_year"],node["early_category"],node["early_refs"])
+        tref, year, trefs = (node["late_orig_ref"], node["late_year"], node["late_refs"]) if side == "late" else (node["early_orig_ref"],node["early_year"],node["early_refs"])
         oref = Ref(tref)
+        cat = oref.index.categories[0]
         key = self.indexKey(oref)
         self.coveredRefs.update({r: 1 for r in trefs})
 
