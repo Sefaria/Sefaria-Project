@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 16:53+0300\n"
+"POT-Creation-Date: 2019-08-29 14:56+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -169,6 +169,7 @@ msgid ""
 msgstr "הודעות לגבי טקסטים, תרגומים וקישורים חדשים שנוספו לאחרונה לספריא"
 
 #: reader/views.py:913
+#, fuzzy
 #| msgid "Sefaria Metrics"
 msgid "Sefaria Stories"
 msgstr "סטטיסטיקות בספריא"
@@ -232,25 +233,6 @@ msgstr "אני מחנך"
 #: sefaria/forms.py:64
 msgid "A user with that email already exists."
 msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
-
-#: sefaria/forms.py:112
-#| msgid "Password"
-msgid "New password"
-msgstr "סיסמא חדשה"
-
-#: sefaria/forms.py:113
-#| msgid "Choose a new Password"
-msgid "Enter New Password"
-msgstr "בחרו סיסמא חדשה"
-
-#: sefaria/forms.py:118
-msgid "New password confirmation"
-msgstr "אימות סיסמא חדשה"
-
-#: sefaria/forms.py:120
-#| msgid "Choose a new Password"
-msgid "Repeat New Password"
-msgstr "הקלידו שוב סיסמא חדשה"
 
 #: sefaria/model/group.py:73
 msgid ""
@@ -974,11 +956,11 @@ msgstr ""
 
 #: templates/static/dicta-thanks.html:4
 msgid "Dicta Thanks"
-msgstr "תודות לארגון דיקטה"
+msgstr "תודות לדיקטה"
 
 #: templates/static/dicta-thanks.html:6
 msgid "Sefaria thanks Dicta for all of their help."
-msgstr "ספריא מודה לארגון דיקטה על כל עזרתם."
+msgstr "ספריא מודה לארגון דיקטה על כל עזרתם"
 
 #: templates/static/digitized-by-sefaria.html:4
 msgid "Texts Digitized by Sefaria"
@@ -1048,6 +1030,7 @@ msgid "Sefaria Mobile Apps"
 msgstr "ספריא בנייד"
 
 #: templates/static/mobile.html:6
+#, fuzzy
 #| msgid "Downland the free Sefaria Apps for iOS and Android."
 msgid "Download the free Sefaria Apps for iOS and Android."
 msgstr "הורידו את האפליקציות החינמיות של ספריא לאייפון ולאנדרואיד"
@@ -1182,15 +1165,15 @@ msgstr "קשרי מורה-תלמיד בתלמוד"
 
 #: templates/timeline.html:4
 msgid "Timeline"
-msgstr "קו זמן"
+msgstr ""
 
 #: templates/unique_words_viz.html:7
 msgid "Unique Words used by Biblical Commentators"
-msgstr "מילים יחידאיות בשימוש מפרשי מקרא"
+msgstr ""
 
 #: templates/unique_words_viz.html:9
 msgid "Explore how unique and verbose biblical commentators were."
-msgstr "צפו בייחוד הלשוני של מפרשי המקרא"
+msgstr ""
 
 #: templates/visual_library.html:4
 msgid "Visualizing the Sefaria Library"
