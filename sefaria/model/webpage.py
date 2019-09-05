@@ -15,7 +15,7 @@ class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
 
     required_attrs = [
-        "url",       # Only supports https
+        "url",
         "title",
         "refs",
         "lastUpdated",
@@ -27,29 +27,30 @@ class WebPage(abst.AbstractMongoRecord):
     ]
 
     def load(self, url_or_query):
-        query = {"url": url_or_query} if isinstance(url_or_query, basestring) else url_or_query
+        query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, basestring) else url_or_query
         return super(WebPage, self).load(query)
         
     def _set_derived_attributes(self):
-        self.domain     = WebPage.domain_for_url(self.url)
-        self.favicon    = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
-        self._site_data = WebPage.site_data_for_domain(self.domain)
-        self.site_name  = self._site_data["name"] if self._site_data else self.domain
+        if getattr(self, "url", None):
+            self.domain     = WebPage.domain_for_url(self.url)
+            self.favicon    = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
+            self._site_data = WebPage.site_data_for_domain(self.domain)
+            self.site_name  = self._site_data["name"] if self._site_data else self.domain
 
     def _init_defaults(self):
         self.linkerHits = 0
 
     def _normalize(self):
         super(WebPage, self)._normalize()
+        self.url = WebPage.normalize_url(self.url)
         self.refs = [text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref)]
         self.refs = list(set(self.refs))
 
     def _validate(self):
         super(WebPage, self)._validate()
 
-
-    @classmethod
-    def normalize_url(cls, url):
+    @staticmethod
+    def normalize_url(url):
         rewrite_rules = {
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
@@ -66,12 +67,12 @@ class WebPage(abst.AbstractMongoRecord):
 
         return url
 
-    @classmethod
-    def domain_for_url(cls, url):
+    @staticmethod
+    def domain_for_url(url):
         return urlparse(url).netloc
 
-    @classmethod
-    def site_data_for_domain(cls, domain):
+    @staticmethod
+    def site_data_for_domain(domain):
         for site in sites_data:
             for site_domain in site["domains"]:
                 if domain.endswith(site_domain):
@@ -83,6 +84,11 @@ class WebPage(abst.AbstractMongoRecord):
         self.linkerHits += 1
         self.lastUpdated = datetime.now()
         self.save()
+
+    @staticmethod
+    def add_or_update_from_linker(data):
+        webpage = WebPage().load(data["url"]) or WebPage(data)
+        webpage.update_from_linker(data)
 
     def client_contents(self):
         d = self.contents()
@@ -125,25 +131,12 @@ class WebPage(abst.AbstractMongoRecord):
                 return None
         description = description.replace("&amp;", "&")
         description = description.replace("&nbsp;", " ")
-
-
         return description
-
-def test_normalization():
-    pages = WebPageSet()
-    count = 0
-    for page in pages:
-        norm = WebPage.normalize_url(page.url)
-        if page.url != norm:
-            print page.url.encode("utf-8")
-            print norm.encode("utf-8")
-            print "\n"
-            count += 1
-    print "{} pages normalized".format(count)
 
 
 class WebPageSet(abst.AbstractMongoSet):
     recordClass = WebPage
+
 
 def get_webpages_for_ref(tref):
     oref = text.Ref(tref)
@@ -236,7 +229,58 @@ def webpages_stats():
         print "{}: {}%".format(cat, round(covered*100.0/total, 2))
 
 
+def test_normalization():
+    pages = WebPageSet()
+    count = 0
+    for page in pages:
+        norm = WebPage.normalize_url(page.url)
+        if page.url != norm:
+            print page.url.encode("utf-8")
+            print norm.encode("utf-8")
+            print "\n"
+            count += 1
+    print "{} pages normalized".format(count)
+
+
+def deduplicate_webpages(test=True):
+    norm_count = 0
+    dedupe_count = 0
+    webpages = WebPageSet()
+    for webpage in webpages:
+        norm = WebPage.normalize_url(webpage.url)
+        if webpage.url != norm:
+            normpage = WebPage().load(norm)
+            if normpage:
+                dedupe_count += 1
+                if test:
+                    print "DEDUPE"
+                    print webpage.url.encode("utf-8")
+                    print norm.encode("utf-8")
+                    print "\n"
+                else:
+                    normpage.linkerHits += webpage.linkerHits
+                    if normpage.lastUpdated < webpage.lastUpdated:
+                        normpage.lastUpdated = webpage.lastUpdated
+                        normpage.refs = webpage.refs
+                    normpage.save()
+                    webpage.delete()
+
+            else:
+                norm_count += 1
+                if test:
+                    print "NORM"
+                    print webpage.url.encode("utf-8")
+                    print norm.encode("utf-8")
+                    print "\n"        
+                else:
+                    webpage.save()
+    print "{} pages removed as duplicates".format(dedupe_count)
+    print "{} pages normalized".format(norm_count)
+
+
 def clean_webpages(delete=False):
+    """ Delete webpages matching patterns deemed not worth including"""
+
     bad_urls = [
         "rabbisacks\.org\/.+\/\?s=",                # Rabbi Sacks search results
         "halachipedia\.com\/index\.php\?search=",   # Halachipedia search results
