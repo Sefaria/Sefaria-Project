@@ -206,6 +206,10 @@ SIMPLE_JWT = {
     'SIGNING_KEY': 'a signing key: at least 256 bits',
 }
 
+# Key which identifies the Sefaria app as opposed to a user
+# using our API outside of the app. Mainly for registration
+MOBILE_APP_KEY = "MOBILE_APP_KEY"
+
 """ to use logging, in any module:
 # import the logging library
 import logging
@@ -308,4 +312,3 @@ LOGGING = {
         },
     }
 }
-
