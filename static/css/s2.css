@@ -7049,11 +7049,14 @@ body .homeFeedWrapper.userStats {
   text-align: center;
   font-weight: normal;
   font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  padding: 60px 0 30px;
+  margin: 0;
 }
 
 .userStats h2 {
   text-transform: none;
-  padding-top: 40px;
+  padding: 40px 0 30px;
   font-size: 21px;
   color: #888;
 }
@@ -7112,7 +7115,7 @@ body .homeFeedWrapper.userStats {
 
 .userStats .chartRow .chartWrapper {
   font: 11px sans-serif;
-  padding: 0 10px;
+  padding: 0;
 }
 
 .bilingual .userStats .blockLink .he,
@@ -7131,19 +7134,27 @@ body .homeFeedWrapper.userStats {
 }
 
 .userStatModeChooser {
-  padding: 10px 0 0 0;
+  padding: 0;
   display:  flex;
   justify-content: center;
+  width: 240px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .userStatModeButton {
   background-color: #fff;
+  color: #666;
   border-radius: 5px;
-  height: 40px;
+  height: 50px;
   width: 120px;
   text-align: center;
   vertical-align: center;
   cursor: pointer;
+  font-size: 16px;
 }
+
 .userStatModeButton.active {
   background-color: #19365d;
   color: #fff;
@@ -7151,7 +7162,7 @@ body .homeFeedWrapper.userStats {
 
 .userStatModeButton span {
   display: block;
-  margin: 12px 0;
+  margin: 15px 0;
 }
 
 .userStats .blockLink {
