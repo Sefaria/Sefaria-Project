@@ -506,41 +506,7 @@ $(function() {
 		if (sjs.can_edit) {
 			autoSave(); // Don't bother sending options changes from adders
 		}
-	});
-
-	// Group Options
-	$(".groupOption").unbind("click").click(function() {
-		$(".groupOption .fa-check").addClass("hidden");
-		$(".fa-check", $(this)).removeClass("hidden");
-		var group = $(this).attr("data-group");
-		if (group != "None") {
-			Sefaria.track.sheets("Share with Group", group);
-			var groupUrl = group.replace(/ /g, "-");
-			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
-				.closest("a").attr("href", "/groups/" + groupUrl );
-			$("#sheetHeader").show();
-			
-			$(".groupSharing").show();
-			$(".groupName").text(group);
-			$(".individualSharing").hide();
-
-
-
-			
-		} else {
-			Sefaria.track.sheets("Unshare Sheet with Group", group);
-			$("#sheetHeader").hide();
-
-			$(".groupSharing").hide();
-			$(".individualSharing").show();
-
-		}
-		autoSave(); 
-	});
-;
-	
-
-	
+	});	
 	
 	// Divine Names substitution Options
 	$(".divineNamesOption").unbind("click").click(function() {
@@ -555,9 +521,7 @@ $(function() {
 
 	});
 
-
 	// Reset Text
-
 	$("#resetText").click(function() {
 			options = {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
@@ -572,7 +536,6 @@ $(function() {
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);
 			sjs.openRequests += 1;
-
 		};
 		sjs.alert.options(options, resetSource);
 
@@ -1723,10 +1686,10 @@ $(function() {
 		if ($(this).val()!="None") {
 			var $el = $("#sourceSheetGroupSelect option:selected");
 			var groupUrl = $(this).val().replace(/ /g, "-");
-			$("#groupLogo").attr("src", $el.attr("data-image")).show()
+			var groupLogo = $el.attr("data-image");
+			$("#groupLogo").attr("src", groupLogo)
 				.closest("a").attr("href", "/groups/" + groupUrl);
-			$("#sheetHeader").show();
-			$(".groupName").text($(this).val());
+			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 			if (parseInt($el.attr("data-can-publish"))) {
 				$("#sourceSheetsAccessOptions").show();
 			} else {
@@ -1735,7 +1698,6 @@ $(function() {
 		}
 		else {
 			$("#sheetHeader").hide();
-			$(".groupName").text("your group");
 			$("#sourceSheetsAccessOptions").show();
 		}
 	});
@@ -2828,25 +2790,18 @@ function buildSheet(data){
 
 	// Set Sheet Group
 	if (data.group) {
-		$(".groupOption .fa-check").addClass("hidden");	
-		$(".groupOption[data-group='"+ data.group + "'] .fa-check").removeClass("hidden");
-		$(".groupSharing").show();
-		$(".groupName").text(data.group);
-		$(".individualSharing").hide();
 		$("#sourceSheetGroupSelect").val(data.group);
 		var $el = $("#sourceSheetGroupSelect option:selected");
 		var groupImage = $el.attr("data-image"); 
-
-		$("#groupLogo").attr("src", groupImage).show();
+		$("#groupLogo").attr("src", groupImage);
+		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
 			$("#sourceSheetsAccessOptions").show();
 		} else {
 			$("#sourceSheetsAccessOptions").hide();
 		}
 	} else {
-		$(".groupSharing").hide();
 		$("#sourceSheetsAccessOptions").show();
-		$(".individualSharing").show();
 	}
 
 	if (sjs.is_owner) {
