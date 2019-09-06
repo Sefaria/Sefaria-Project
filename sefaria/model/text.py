@@ -22,11 +22,12 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
+    NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
@@ -2435,7 +2436,7 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
-                # The line below will raise InputError (or DictionaryEntryNotFound) if no match
+                # The line below will raise InputError (or DictionaryEntryNotFoundError) if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
                 self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()

@@ -41,10 +41,11 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
-from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
+from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, \
+    DuplicateRecordError, DictionaryEntryNotFoundError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
@@ -2297,7 +2298,7 @@ def get_name_completions(name, limit, ref_only):
             for res in additional_results:
                 if res not in current:
                     completions += [res]
-    except DictionaryEntryNotFound as e:
+    except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
