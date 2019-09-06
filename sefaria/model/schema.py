@@ -15,7 +15,7 @@ import regex
 from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
-from sefaria.system.exceptions import InputError, IndexSchemaError
+from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 
 """
@@ -1435,14 +1435,6 @@ class VirtualNode(TitledTreeNode):
         pass
 
 
-class DictionaryEntryNotFound(InputError):
-    def __init__(self, message, lexicon_name=None, base_title=None, word=None):
-        super(DictionaryEntryNotFound, self).__init__(message)
-        self.lexicon_name = lexicon_name
-        self.base_title = base_title
-        self.word = word
-
-
 class DictionaryEntryNode(TitledTreeNode):
     is_virtual = True
     supported_languages = ["en"]
@@ -1495,7 +1487,7 @@ class DictionaryEntryNode(TitledTreeNode):
             self.has_word_match = bool(self.lexicon_entry)
 
         if not self.word or not self.has_word_match:
-            raise DictionaryEntryNotFound("Word not found in {}".format(self.parent.full_title()), self.parent.lexiconName, self.parent.full_title(), self.word)
+            raise DictionaryEntryNotFoundError("Word not found in {}".format(self.parent.full_title()), self.parent.lexiconName, self.parent.full_title(), self.word)
 
     def __eq__(self, other):
         return self.address() == other.address()
@@ -1606,13 +1598,13 @@ class DictionaryNode(VirtualNode):
     def first_child(self):
         try:
             return self.entry_class(self, word=self.firstWord)
-        except DictionaryEntryNotFound:
+        except DictionaryEntryNotFoundError:
             return None
 
     def last_child(self):
         try:
             return self.entry_class(self, word=self.lastWord)
-        except DictionaryEntryNotFound:
+        except DictionaryEntryNotFoundError:
             return None
 
     def all_children(self):
@@ -1679,7 +1671,7 @@ class SheetNode(NumberedTitledTreeNode):
 
         self.sheet_object = db.sheets.find_one({"id": int(self.sheetId)})
         if not self.sheet_object:
-            raise InputError
+            raise SheetNotFoundError
 
     def has_numeric_continuation(self):
         return False  # What about section level?
