@@ -8,7 +8,7 @@ import csv
 from datetime import datetime
 from random import randint
 
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, SheetNotFoundError
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
@@ -109,6 +109,11 @@ class UserHistory(abst.AbstractMongoRecord):
             if not self.secondary and not self.is_sheet and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
                 # logically, this would be on frontend, but easier here.
                 self.language = "hebrew"
+        except SheetNotFoundError:
+            self.context_refs   = [self.ref]
+            self.categories     = ["_unlisted"]
+            self.authors        = []
+            self.is_sheet       = True
         except InputError:   # Ref failed to resolve
             self.context_refs   = [self.ref]
             self.categories     = []
