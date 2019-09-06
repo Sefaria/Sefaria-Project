@@ -26,6 +26,7 @@ static_pages = [
     "linker",
     "ios",
     "mobile",
+    "app",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
