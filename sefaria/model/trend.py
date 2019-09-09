@@ -368,6 +368,7 @@ def user_stats_data(uid):
             {"$match": daterange.update_match({
                 "is_sheet": True,
                 "sheet_id": {"$in": usheet_ids},
+                "uid": {"$ne": uid}
                 })},
             {"$group": {
                 "_id": "$sheet_id",
