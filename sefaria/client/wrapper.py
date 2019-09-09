@@ -322,6 +322,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         "late_category": late["orig_ref"].index.categories[0],
 '''
 
+
 class LinkNetwork2(object):
     def __init__(self, base_tref):
         self.base_oref = expand_passage(Ref(base_tref))
@@ -376,7 +377,7 @@ class LinkNetwork2(object):
                 self.record_ref(g2, "early")
 
         for k, n in self.indexNodes.iteritems():
-            n["refs"] = list(n["refs"])
+            n["refs"] = sorted(list(n["refs"]))
 
         # Search for any connections between covered refs
         # This will include the original tree

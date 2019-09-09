@@ -148,6 +148,7 @@ function renderText(ref) {
     });
 }
 
+/*
 function prepSimulation() {
     simulation
           .force("link", d3.forceLink(links).id(d => d.title))
@@ -166,6 +167,7 @@ function prepSimulation() {
 
     return simulation;
 }
+*/
 
 function prepLinksAndNodes(treesObj) {
     links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
@@ -264,14 +266,31 @@ function renderNetwork() {
 
 function renderIndexNetworkSimulation() {
     simulation = d3.forceSimulation(nodes);
-    prepSimulation().tick(200);
+    simulation
+        .force("link", d3.forceLink(links).id(d => d.title))
+        .force("cluster", forceCluster)
+        .force("category", d3.forceY().y(categoryY).strength(.5))
+        .force("box", forceBox)
+        .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
+        .on("tick", () => {
+            link.attr("d", d3.linkHorizontal()
+              .x(d => d.x)
+              .y(d => d.y));
+            node.attr("transform", d => `translate(${d.x},${d.y})`)
+            })
+        .tick(200);
+
     renderNetwork();
 }
 
 function updateIndexNetworkSimulation() {
-    simulation.nodes(nodes);
-    prepSimulation();
-    simulation.alpha(1).restart();
+    simulation
+        .nodes(nodes)
+        .force("link", d3.forceLink(links).id(d => d.title))
+        .alpha(1)
+        .restart();
+
+    // prepSimulation();
     renderNetwork();
 }
 /*****         Draw Tree                                *****/

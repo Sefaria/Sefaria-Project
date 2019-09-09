@@ -288,10 +288,12 @@ def linker_tracking_api(request):
 
     return jsonResponse({"status": "ok"})
 
+
 def link_network_api(request, ref):
     from sefaria.client.wrapper import LinkNetwork2
     c = LinkNetwork2(ref)
     return jsonResponse(c.contents())
+
 
 '''
 def link_network_api(request, ref):
