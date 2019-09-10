@@ -172,10 +172,12 @@ function prepSimulation() {
 function prepLinksAndNodes(treesObj) {
     links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
     nodes = Object.entries(treesObj.indexNodes).map(([k,d]) => Object.assign(d));
+    links.forEach(l => {l.highlighted = false});
     nodes.forEach(n => {
         n.fx = s(n);
         n.y = categoryY(n) + Math.random();
-        n.expanded = false;
+        // n.expanded = false;
+        n.highlighted = false;
     });
     nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
 }
@@ -193,19 +195,52 @@ function renderNetwork() {
     node = graphBox
         .selectAll("g.node")
         .data(nodes, nodeKey)
-        .join("g")
-          .attr("class", "node");
+        .join(
+            enter => {
+                node = enter.append("g").attr("class", "node");
+                node.append("rect")
+                    .attr("x", -50)
+                    .attr("y", -10)
+                    .attr("width", 100)
+                    .attr("height", 20)
+                    .attr("stroke-width", d => d.highlighted ? 3 : 1)
+                    .attr("stroke-linejoin", "round")
+                    .attr("fill", d => d.root ? "#add8e6" :"#fff")
+                    .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
+                    .attr("rx", 10);
+                node.append("text")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("text-anchor", "middle")
+                    .attr("dominant-baseline", "central")
+                    .text(d => d.title.slice(0,20))
+                    .attr("stroke-width", 1)
+                    .attr("stroke", "black")
+                  .clone(true).lower()
+                    .attr("stroke", "white");
+                return node;
+            },
+            update => {
+                update.select("rect")
+                    .attr("stroke-width", d => d.highlighted ? 3 : 1)
+                    .attr("fill", d => d.root ? "#add8e6" :"#fff");
+                return update;
+            },
+            exit => exit.remove()
+
+        );
+/*
 
     node.append("rect")
-        .attr("x", -50)
-        .attr("y", -10)
-        .attr("width", 100)
-        .attr("height", 20)
-        .attr("stroke-width", d => d.highlighted ? 3 : 1)
-        .attr("stroke-linejoin", "round")
-        .attr("fill", "#fff")
-        .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
-        .attr("rx", 10);
+            .attr("x", -50)
+            .attr("y", -10)
+            .attr("width", 100)
+            .attr("height", 20)
+            .attr("stroke-width", d => d.highlighted ? 3 : 1)
+            .attr("stroke-linejoin", "round")
+            .attr("fill", "#fff")
+            .attr("stroke", d => Sefaria.palette.categoryColor(d.category))
+            .attr("rx", 10);
 
     node.append("text")
         .attr("x", 0)
@@ -217,7 +252,7 @@ function renderNetwork() {
         .attr("stroke", "black")
       .clone(true).lower()
         .attr("stroke", "white");
-
+*/
     node.on("click", d => {
         const {ns, ls} = getLinkPath(d);
         nodes.forEach(n => {n.highlighted = false});

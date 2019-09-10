@@ -339,6 +339,7 @@ class LinkNetwork2(object):
             int(self.base_oref.index.compDate) - int(self.base_oref.index.errorMargin),
             self.base_oref.index.categories[0]
         )
+        self.indexNodes[rootkey]["root"] = True
 
         future_links = db.linknet.aggregate([
             {"$match": {"early_refs": {"$in": self.base_trefs}}},
