@@ -129,6 +129,9 @@ class UserHistory(abst.AbstractMongoRecord):
                 'time_stamp': 0,
                 'saved': False,
                 'delete_saved': False,
+                'is_sheet': False,
+                'sheet_id': -1,
+                'sheet_owner': '',
             }
             d = {
                 key: d.get(key, default) for key, default in keys.items()
