@@ -90,12 +90,12 @@ def process_register_form(request, auth_method='session'):
             token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
     return {
         k: v[0] if len(v) > 0 else unicode(v) for k, v in form.errors.items()
-    }, token_dict
+    }, token_dict, form
 
 
 @api_view(["POST"])
 def register_api(request):
-    errors, token_dict = process_register_form(request, auth_method='jwt')
+    errors, token_dict, _ = process_register_form(request, auth_method='jwt')
     if len(errors) == 0:
         return jsonResponse(token_dict)
 
@@ -109,7 +109,7 @@ def register(request):
     next = request.GET.get('next', '')
 
     if request.method == 'POST':
-        errors, _ = process_register_form(request)
+        errors, _, form = process_register_form(request)
         if len(errors) == 0:
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
