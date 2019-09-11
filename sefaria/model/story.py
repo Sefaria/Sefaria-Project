@@ -31,6 +31,8 @@ class Story(abst.AbstractMongoRecord):
     def _sheet_metadata(sheet_id, return_id=False):
         from sefaria.sheets import get_sheet_metadata
         metadata = get_sheet_metadata(sheet_id)
+        if not metadata:
+            return None
 
         d = {
             "sheet_title": strip_tags(metadata["title"]),
@@ -487,7 +489,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             "ref": oref.normal(),
             "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()})
         }
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
 
         if kwargs.get("versions"):
@@ -824,7 +826,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
             "title": kwargs.get("title",{"en": g.name, "he": g.name}),
             "cozy": kwargs.get("cozy", False)
         }
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
         return d
 
@@ -871,7 +873,6 @@ class GroupSheetListFactory(AbstractStoryFactory):
         create_israel_and_diaspora_stories(_create_nechama_sheet_story, **kwargs)
 
 
-
 class SheetListFactory(AbstractStoryFactory):
     """
         "title" : {
@@ -907,7 +908,7 @@ class SheetListFactory(AbstractStoryFactory):
             "title": title,
         }
 
-        if kwargs.get("lead"):
+        if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
 
         return d
@@ -918,7 +919,7 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def _get_featured_ids(cls, k):
-        shts = db.sheets.find({"is_featured": True}, {"id":1})
+        shts = db.sheets.find({"is_featured": True}, {"id": 1})
         ids = [s["id"] for s in shts]
         return random.sample(ids, k)
 
@@ -1012,9 +1013,9 @@ class TopicListStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def create_trending_story(cls, **kwargs):
-        days = kwargs.get("days", 14)
+        days = kwargs.get("days", 7)
         from sefaria import sheets
-        topics = [t["tag"] for t in sheets.recent_public_tags(days=days, ntags=6)]
+        topics = [t["tag"] for t in sheets.trending_tags(days=days, ntags=6)]
         cls.create_shared_story(topics=topics)
 
     @classmethod
@@ -1098,7 +1099,7 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     def generate_random_shared_story(cls, **kwargs):
         from . import topic
 
-        topics_filtered = filter(lambda x: x['count'] > 15, topic.get_topics().list())
+        topics_filtered = filter(lambda x: x['good_to_promote'], topic.get_topics().list())
         random_topic = random.choice(topics_filtered)['tag']
 
         return cls._generate_shared_story(topic=random_topic, **kwargs)
@@ -1159,7 +1160,7 @@ def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
     il = this_weeks_parasha(now, diaspora=False)
     da = this_weeks_parasha(now, diaspora=True)
 
-    if il == da:
+    if da["ref"] == il["ref"]:
         create_story_fn(il, **kwargs)
     else:
         create_story_fn(il, ["inIsrael"], **kwargs)

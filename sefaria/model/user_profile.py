@@ -8,7 +8,7 @@ import csv
 from datetime import datetime
 from random import randint
 
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, SheetNotFoundError
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
@@ -110,6 +110,11 @@ class UserHistory(abst.AbstractMongoRecord):
             if not self.secondary and not self.is_sheet and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
                 # logically, this would be on frontend, but easier here.
                 self.language = "hebrew"
+        except SheetNotFoundError:
+            self.context_refs   = [self.ref]
+            self.categories     = ["_unlisted"]
+            self.authors        = []
+            self.is_sheet       = True
         except InputError:   # Ref failed to resolve
             self.context_refs   = [self.ref]
             self.categories     = []
@@ -164,6 +169,25 @@ class UserHistory(abst.AbstractMongoRecord):
         return uh
 
     @staticmethod
+    def timeclause(start=None, end=None):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if start is None and end is None:
+            return {}
+
+        timerange = {}
+        if start:
+            timerange["$gte"] = start
+        if end:
+            timerange["$lte"] = end
+        return {"datetime": timerange}
+
+
+    @staticmethod
     def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
         query = {}
         if uid is not None:
@@ -187,6 +211,9 @@ class UserHistory(abst.AbstractMongoRecord):
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
+
+    def hits(self):
+        return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
 
 
 class UserProfile(object):
@@ -659,7 +686,7 @@ def is_user_staff(uid):
     """
     Returns True if the user with uid is staff.
     """
-    data = public_user_data(uid)
+    data = public_user_data(uid)  #needed?
     try:
         uid  = int(uid)
         user = User.objects.get(id=uid)

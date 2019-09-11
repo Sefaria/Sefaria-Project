@@ -55,6 +55,9 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   letter-spacing: 0.05em;
   color: #333;
 }
+.chapterText.lowercase .int-en {
+  text-transform: none;
+}
 .sectionTitleText .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
@@ -919,12 +922,10 @@ input.noselect {
 .interface-hebrew.multiPanel .homeFeedWrapper .content {
   padding-right: 40px;
 }
-.multiPanel .readerNavMenu .content,
-.multiPanel .homeFeedWrapper .content {
+.multiPanel .readerNavMenu .content {
   padding: 30px 30px 70px 30px;
 }
-.multiPanel .readerNavMenu .content.hasFooter,
-.multiPanel .homeFeedWrapper .content.hasFooter {
+.multiPanel .readerNavMenu .content.hasFooter {
   padding: 30px 0 0 0;
 }
 .multiPanel .readerNavMenu.noHeader .content,
@@ -1123,7 +1124,7 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: center;
   font-size: 15px;
-  font-weight: 200;
+  font-weight: 300;
   color: #666;
   margin-bottom: 20px;
   letter-spacing: 2px;
@@ -1223,15 +1224,17 @@ a.resourcesLink {
   font-family: "adobe-garamond-pro", Georgia, serif;
   text-align: center;
   font-size: 18px;
-  padding: 0 10px;
+  padding: 16px 10px 17px;
   margin: 0;
   cursor: pointer;
   border-top: 4px solid transparent;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   letter-spacing: 1px;
-  height: 56px;
-  line-height: 56px;
-  display: block;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;;
+  line-height: 1.3;
 }
 a.readerNavCategory {
   color: #000;
@@ -1276,10 +1279,6 @@ a.readerNavCategory {
   margin: 0;
   box-sizing: border-box;
   padding: 14px 8px;
-}
-.resourcesLink.donationLink {
-  width: 50%;
-  margin: 0 25%;
 }
 .blockLink:hover {
   color: #333;
@@ -1503,15 +1502,20 @@ a.readerNavCategory {
   font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .categoryAttribution,
-.readerTextTableOfContents .dedication {
+.readerTextTableOfContents .dedication,
+.readerNavMenu .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
   margin: 28px 0;
 }
 .readerTextTableOfContents .categoryAttribution .he,
-.readerTextTableOfContents .dedication .he {
+.readerTextTableOfContents .dedication .he,
+.readerNavMenu .dedication .he {
   font-style: normal;
+}
+.hebrew .readerNavMenu .dedication {
+  direction: rtl;
 }
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;
@@ -1938,7 +1942,6 @@ a.readerNavCategory {
   cursor: pointer;
 }
 .versionBlock .versionTitle {
-  display: block;
   font-size: 18px;
   color: #000;
   unicode-bidi: plaintext;
@@ -1966,6 +1969,10 @@ a.readerNavCategory {
   padding-top: 10px;
   color: #666;
   font-size: 18px;
+}
+.versionBlock .versionEditIcon {
+  margin: 0 7px;
+  vertical-align: 1px;
 }
 .modTools {
   width: 50%;
@@ -2142,7 +2149,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchTopMatter .search-dropdown-button {
   font-size: 18px;
   color: #999;
-  font-family: "proxima-nova", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
   padding: 15px;
@@ -2837,6 +2844,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 20px;
   width: 20px;
   opacity: 0.5;
+  margin-top: 2px;
+}
+.rightButtons .saveButton.tooltip-toggle::before {
+  top: 47px;
+  left: -50px;
+}
+.interface-hebrew .rightButtons .saveButton.tooltip-toggle::before {
+  left: auto;
+  right: -50px;
 }
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
@@ -3931,6 +3947,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .texts .textRange .title {
   color: #999;
 }
+.textList .texts .segment .queryTextHighlight {
+  padding: 0;
+  background-color: inherit;
+  font-weight: bold;
+}
 .dark .textList .texts .textRange .title {
   color: #ddd;
 }
@@ -4272,7 +4293,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 40px;
 }
 .connectionsPanel textarea.noteText,
-.connectionsPanel textarea.feedbackText {
+.connectionsPanel textarea.feedbackText,
+.homeFeedSidebar textarea.feedbackText {
   width: 100%;
   min-height: 100px;
   border: none;
@@ -4453,24 +4475,37 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0 5px;
 }
 .globalUpdateForm {
-  padding: 15px;
+  padding: 20px;
   background-color: #ddd;
+  border-radius: 15px;
+  font-size: 18px;
+}
+.globalUpdateForm .storyTypeSelector {
+  padding-bottom: 15px;
+}
+.globalUpdateForm  select {
+  margin: 0 0 0 15px;
 }
 .globalUpdateForm .error {
   color: red;
   font-size: 90%;
-  display: inline-block;
-  padding: 0 10px;
 }
 .globalUpdateForm input[type="text"] {
   padding: 5px;
-  margin: 8px 0;
+  margin: 0 0 0 15px;
 }
 .globalUpdateForm input[type="radio"] {
   padding: 5px;
   margin: 8px;
 }
-
+.globalUpdateForm label {
+  padding-top: 10px;
+  display: block;
+}
+.globalUpdateForm .previewButton {
+  margin-left: 85%;
+  font-size: 20px;
+}
 .story-action-button {
   display: inline-block;
   background: #CB6158;
@@ -5614,11 +5649,11 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .header.connect {
   text-transform: uppercase;
 }
-#newsletterFooterBox {
+.newsletterSignUpBox {
   position: relative;
   margin-bottom: 4px;
 }
-#newsletterInput {
+.newsletterInput {
   border-radius: 6px;
   padding: 8px 32px 11px 16px;
   width: 150px;
@@ -5627,12 +5662,12 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 6px;
   color: #333;
 }
-#newsletterInput ::-webkit-input-placeholder,
-#newsletterInput ::-moz-placeholder,
-#newsletterInput :-ms-input-placeholder {
+.newsletterInput ::-webkit-input-placeholder,
+.newsletterInput ::-moz-placeholder,
+.newsletterInput :-ms-input-placeholder {
   color: #AAA;
 }
-#newsletterFooterBox img {
+.newsletterSignUpBox img {
   height: 18px;
   width: 18px;
   opacity: 0.2;
@@ -5640,17 +5675,19 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   top: 10px;
   right: 12px;
 }
-.interface-hebrew #footer #newsletterInput {
+.interface-hebrew .newsletterInput {
   padding: 8px 16px 11px 32px;
 }
-.interface-hebrew #footer #newsletterFooterBox img {
+.interface-hebrew .newsletterSignUpBox img {
   right: auto;
   left: 12px;
   transform: scale(-1, 1);
 }
-#subscribeMessage {
+.subscribeMessage {
   margin-bottom: 14px;
   color: #333;
+  font-size: 14px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: italic;
   text-align: center;
 }
@@ -5985,7 +6022,6 @@ span.purim-emoji img{
   font-size: 13px;
   margin-bottom: 0;
   padding-bottom: 8px;
-
 }
 .sheetMetaDataBox {
   margin: 40px auto 0 auto;
@@ -6155,34 +6191,29 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
 }
-
 .feedbackBox .button {
   margin: auto;
   width: 100%;
 }
-
 .feedbackBox input {
   padding: 16px 22px;
   margin-bottom: 20px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 18px;
   border-radius: 4px;
   box-shadow: none;
   border: 1px solid #E9E9E9;
   width: 100%;
   box-sizing: border-box;
 }
-
 .connectionsPanel textarea.feedbackText {
   border-radius: 7px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-
 .img-circle {
   border-radius: 50%;
 }
@@ -6216,6 +6247,15 @@ span.purim-emoji img{
 }
 .interface-hebrew .tab-view .tab-list .tab img {
   margin: 0 0 0 10px;
+}
+.tab-view .tab-list .applink {
+  margin: 0 0 0 auto;
+}
+.tab-view .tab-list .applink a {
+    color: #666;
+}
+.interface-hebrew .tab-view .tab-list .applink {
+  margin: 0 auto 0 0;
 }
 .tab-list :not(.active) .tab {
     color: #666;
@@ -6359,6 +6399,9 @@ span.purim-emoji img{
   font-size: 18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
   background-color: transparent;
+}
+.filterable-list .loadingMessage {
+  margin-top: 30px;
 }
 .profile-page .filterable-list .filter-content {
   padding-top: 25px;
@@ -6548,8 +6591,8 @@ span.purim-emoji img{
   pointer-events: none;
   text-align: center;
   position: absolute;
-  top: 47px;
-  left: -30px;
+  top: 30px;
+  left: -70px;
   padding: 10px;
   background-color: #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,.2);
@@ -6557,7 +6600,8 @@ span.purim-emoji img{
   content: attr(aria-label);
   text-transform: none;
   transition: all 0.5s ease;
-  width: 100px;
+  width: 140px;
+  z-index: 1;
 }
 /*Tooltip arrow
 .tooltip-toggle::after {
@@ -6578,7 +6622,6 @@ span.purim-emoji img{
   opacity: 1;
   transition: all 0.75s ease;
 }
-
 .largeFollowButton {
   display: inline-block;
   padding: 7px;
@@ -6602,7 +6645,6 @@ span.purim-emoji img{
 .largeFollowButton.following span {
   color: #666;
 }
-
 .smallFollowButton {
   height: 18px;
   line-height: 18px;
@@ -6616,23 +6658,209 @@ span.purim-emoji img{
   display: none;
   letter-spacing: normal;
 }
-
 .smallFollowButton.smallText span {
   color: #666;
 }
-
+body .homeFeedWrapper {
+  background-color: white;
+}
+body .homeFeedWrapper .content {
+  padding: 0;
+}
+.homeFeedWrapper #homeCover {
+  height: 240px;
+  padding: 50px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  left: -20px;
+  width: calc(100% + 20px);
+}
+.interface-hebrew .homeFeedWrapper #homeCover {
+  left: auto;
+  right: -20px;
+}
+.homeFeedWrapper #homeVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  width: 100%;
+  min-width: 1200px;
+  z-index: 0;
+}
+.homeFeedWrapper #homeCover h1.featureTitle {
+  color: white;
+  margin-bottom: 20px;
+  position: relative;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-en,
+.homeFeedWrapper #homeCover h1.featureTitle .int-he {
+  color: white;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-en {
+  font-size: 36px;
+}
+.homeFeedWrapper #homeCover h1.featureTitle .int-he {
+  font-size: 44px;
+}
+.homeFeedWrapper #homeCover .sub {
+  color: white;
+  font-size: 16px;
+  margin: 0;
+  position: relative;
+}
+.homeFeedWrapper #homeCover .sub a {
+  font-size: 18px;
+}
+.homeFeedWrapper #homeCover .sub .int-en {
+}
+.homeFeedWrapper #homeCover a {
+  color: white;
+  font-style: normal;
+  position: relative;
+}
+.homeFeedColumns {
+  display: flex;
+  flex-direction: row;
+}
+.homeFeedSidebar {
+  flex: 0 0 320px;
+  max-width: 40%;
+  background-color: #FBFBFA;
+  padding: 60px 50px;
+}
+.homeFeedSidebar .section {
+  margin-bottom: 70px;
+}
+.homeFeedSidebar .section h2 {
+  text-transform: none;
+  font-size: 24px;
+  letter-spacing: normal;
+  text-align: inherit;
+  margin: 0 0 30px 0;
+}
+.homeFeedSidebar .section h2 .int-en {
+  text-align: left;
+}
+.homeFeedSidebar .section h2 .int-he {
+  text-align: right;
+}
+.homeFeedSidebar .section .description {
+  margin-bottom: 25px;
+}
+.homeFeedSidebar .button img {
+  width: 16px;
+  height: 16px;
+  margin: 0 5px;
+  position: relative;
+  top: 2px;
+  filter: invert(1);
+}
+.homeFeedSidebar .button.white img {
+  filter: none;
+  opacity: .4;
+}
+.homeFeedSidebar .button .fa {
+  opacity: .4;
+  margin: 0 5px;
+}
+.homeFeedSidebar .inlineButtonBox {
+  display: flex;
+  justify-content: space-between;
+}
+.homeFeedSidebar .inlineButtonBox a {
+  flex: 1;
+}
+.homeFeedSidebar .inlineButtonBox a .button {
+  width: 100%;
+}
+.homeFeedSidebar #homeLearn .refLink {
+  display: block;
+  height: 56px;
+  line-height: 56px;
+  border-top: 4px solid;
+  color: #000;
+  font-size: 20px;
+}
+.homeFeedSidebar #homeLearn .refLink .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.homeFeedSidebar .newsletterInput {
+  width: 100%;
+  box-sizing: border-box;
+}
+.homeFeedSidebar #homeSocialButtons {
+  margin-top: 15px;
+}
+.homeFeedSidebar #homeSocialButtons .fa {
+  font-size: 18px;
+  color: white;
+  background-color: #aaa;
+  display: inline-block;
+  height: 30px;
+  width: 30px;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 15px;
+  margin-right: 5px;
+}
+.interface-hebrew .homeFeedSidebar #homeSocialButtons .fa {
+  margin: 0 0 0 5px;
+}
+.homeFeedSidebar #homeSocialButtons .fa:hover {
+  text-decoration: none;
+  background-color: #999;
+}
+.homeFeedSidebar #homeFeedback {
+  background-color: #EDEDED;
+  margin: 0 -50px;
+  padding: 30px 50px;  
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+}
+.homeFeedSidebar #homeFeedback .button {
+  margin-bottom: 10px;
+}
+.homeFeedSidebar .feedbackBoxOverlay.open {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FBFBFA;
+}
+.homeFeedSidebar .feedbackBoxOverlay.open .feedbackBox {
+  width: 470px;
+}
+.storyFeed {
+  flex: 1;
+  background-color: white;
+  margin: 0 45px 0 30px;
+}
+.interface-hebrew .storyFeed {
+  margin: 0 30px 0 45px;
+}
+.storyFeedInner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding-top: 60px;
+}
 .storyByLine:hover .smallFollowButton,
 .authorName:hover .smallFollowButton {
   display: inline-block;
 }
-
-
 .bilingual .homeFeedWrapper span.he {
   display: block;
   padding-bottom: 10px;
 }
 .storyFeed .story {
-  padding: 30px 0;
+  padding: 0 0 60px 0;
 }
 .storyFeed .story .storyTitleBlock {
   clear: both;
@@ -6643,7 +6871,6 @@ span.purim-emoji img{
 .interface-hebrew .storyFeed .story .storyTitleBlock {
   float: right;
 }
-
 .colorBarBox {
   clear: both;
 }
@@ -6663,25 +6890,24 @@ span.purim-emoji img{
 .interface-hebrew .learnMoreLink {
   padding-right: 34px;
 }
-
 .storyTextListItem {
   padding-bottom: 18px;
 }
 .storyTextListItem:last-child {
   padding-bottom: 0;
 }
-
-.publishSheetStory .saveButton  {
-  float: right;
-  padding-top: 20px;
+.storyFeed .saveButton {
+  align-self: flex-start;
 }
-
-
+.storyFeed .saveLine.storyTitleWrapper .saveButton,
+.storyFeed .story.publishSheetStory .saveLine .saveButton  {
+  margin-top: 13px;
+}
+.storyFeed .story.publishSheetStory .storyTitle {
+  padding-bottom: 10px;
+}
 .storyFeed .story .storyTitle {
-  padding: 10px 0 30px;
-}
-.storyTitleWrapper .saveButton {
-    padding-bottom: 20px;
+  padding: 5px 0 15px;
 }
 .storyFeed .story .storySubTitle {
   padding-bottom: 10px;
@@ -6691,30 +6917,27 @@ span.purim-emoji img{
   color: #666;
 }
 img.smallProfileImage {
-    height: 40px;
-    width: 40px;
-    margin: 0;
-    border-radius: 20px;
+  height: 40px;
+  width: 40px;
+  margin: 0;
+  border-radius: 20px;
 }
 .storyFeed .story img.mediumProfileImage {
-    height: 64px;
-    width: 64px;
-    margin: 0;
-    border-radius: 32px;
+  height: 64px;
+  width: 64px;
+  margin: 0;
+  border-radius: 32px;
 }
 .interface-english .storyFeed .story .storyTypeBlock {
   float: left;
-  padding: 10px 0;
 }
 .interface-hebrew .storyFeed .story .storyTypeBlock {
   float: right;
 }
 .interface-english .storyFeed .story .topTailBlock {
-  padding: 10px 0;
   float: right;
 }
 .interface-hebrew .storyFeed .story .topTailBlock {
-  padding: 10px 0;
   float: left;
 }
 .interface-english .storyFeed .story .mediumProfileImage {
@@ -6723,37 +6946,31 @@ img.smallProfileImage {
 .interface-hebrew .storyFeed .story .mediumProfileImage {
   float: left;
 }
-
-
-
-.storyFeed .story .storyBody {
+.story .storyBody {
   clear: both;
   margin: 10px 0;
   text-align: justify;
 }
-.storyFeed .story .storySheetList {
+.story .storySheetList {
   clear: both;
 }
-.storyFeed .story .storySheetListItem {
+.story .storySheetListItem {
   padding-bottom: 20px;
 }
-.storyFeed .story .storySheetListItem:last-child {
+.story .storySheetListItem:last-child {
   padding-bottom: 0;
 }
-
-.storyFeed .story .storySheetList .sheetTitle {
+.story .storySheetList .sheetTitle {
   padding-bottom: 10px;
 }
-.storyFeed .story .storySheetList .pageTitle span {
+.story .storySheetList .pageTitle span {
   font-size: 20px;
 }
-
-
-.storyFeed .story .saveLine {
+.story .saveLine {
   display: flex;
   clear: both;
 }
-.storyFeed .story .saveLine .beforeSave {
+.story .saveLine .beforeSave {
   width: 100%;
 }
 .interface-hebrew .story .saveLine .beforeSave {
@@ -6762,33 +6979,30 @@ img.smallProfileImage {
 .interface-english .story .saveLine .beforeSave {
   padding-right: 10px;
 }
-.storyFeed .story .saveLine .saveButton {
+.story .saveLine .saveButton {
   align-self: center;
 }
-
-.storyFeed .story .citationLine.contentText .int-en,
-.storyFeed .story .citationLine.contentText .int-he {
+.story .citationLine.contentText .int-en,
+.story .citationLine.contentText .int-he {
   color: #999;
 }
-.storyFeed .story .authorText {
+.story .authorText {
   display: inline-block;
   padding: 0 10px;
   line-height: 22px;
   width: 100%;
   letter-spacing: 2px;
 }
-
 .authorByLine {
   display: flex;
 }
-
 .authorByLine .authorByLineText {
   letter-spacing: 2px;
   padding: 0 10px;
   line-height: 22px;
+  margin-top: -1px;
 }
-
-.authorByLine .authorPosition,
+.authorByLine .authorOrganization,
 .authorByLine .authorName {
   display: block;
 }
@@ -6796,38 +7010,172 @@ img.smallProfileImage {
   position: relative;
   bottom: 12px;
 }
-
-.systemText.authorPosition span {
+.systemText.authorOrganization span {
   color: #999;
 }
-
 .storyFeed a {
   color: #000;
 }
-.storyFeed .storyBody a {
+.storyBody a {
   text-decoration: underline;
 }
 .storyEditBar {
-    padding-bottom: 30px;
+  padding-bottom: 30px;
 }
 .storyEditorTag {
-    display: inline-block;
-    float: right;
+  display: inline-block;
+  float: right;
 }
 .storyEditorTag.mustHave {
-    color: #66aa66;
-    padding: 0 10px;
+  color: #66aa66;
+  padding: 0 10px;
 }
 .storyEditorTag.cantHave {
-    color: #aa6666;
+  color: #aa6666;
 }
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;
 }
-
 .segment .queryTextHighlight {
   background-color: #D2DCFF;
   padding-left: 2px;
   padding-right: 2px;
+}
+
+body .homeFeedWrapper.userStats {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  background-color: #faf9f9;
+}
+
+.userStats h1 {
+  text-align: center;
+  font-weight: normal;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  padding: 60px 0 30px;
+  margin: 0;
+}
+
+.userStats h2 {
+  text-transform: none;
+  padding: 40px 0 30px;
+  font-size: 21px;
+  color: #888;
+}
+
+.userStats .statcardRow {
+  display: flex;
+  justify-content: space-around;
+}
+
+.userStats .statcardRow .statcard {
+  background-color: #fff;
+  height: 190px;
+  width: 32%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.userStats .statcardRow .statcard img {
+  opacity: 0.3;
+  height: 60px;
+  width: 60px;
+  margin: 0 auto 20px;
+}
+
+.userStats .statcardRow .statcard .statcardValue {
+  font-size: 24px;
+  text-align: center;
+}
+
+.userStats .statcardRow .statcard .statcardLabel {
+  font-size: 21px;
+  padding-top: 5px;
+  text-align: center;
+  color: #aaa;
+}
+
+.userStats .chartRow {
+  display: flex;
+  justify-content: space-between;
+}
+.userStats .chartRow.centered {
+  justify-content: space-around;
+}
+.userStats .statHeader {
+  padding-top: 40px;
+  text-align: center;
+}
+.userStats .statHeader span {
+  color: #666;
+  letter-spacing: 0.7px;
+  line-height: 23px;
+}
+
+.userStats .chartRow .chartWrapper {
+  font: 11px sans-serif;
+  padding: 0;
+}
+
+.bilingual .userStats .blockLink .he,
+.english .userStats .blockLink .he {
+  display: none;
+}
+.hebrew .userStats .blockLink .en {
+  display: none;
+}
+.bilingual .userStats .blockLink .en,
+.english .userStats .blockLink .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.hebrew .userStats .blockLink .he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+
+.userStatModeChooser {
+  padding: 0;
+  display:  flex;
+  justify-content: center;
+  width: 240px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.userStatModeButton {
+  background-color: #fff;
+  color: #666;
+  border-radius: 5px;
+  height: 50px;
+  width: 120px;
+  text-align: center;
+  vertical-align: center;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.userStatModeButton.active {
+  background-color: #19365d;
+  color: #fff;
+}
+
+.userStatModeButton span {
+  display: block;
+  margin: 15px 0;
+}
+
+.userStats .blockLink {
+}
+
+.userStats .yourPopularSheetsBlock > div {
+  padding: 10px 0;
+}
+
+.userStats .chartLabel {
+  text-align: center;
+  padding-top: 8px;
 }

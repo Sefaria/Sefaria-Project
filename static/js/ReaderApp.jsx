@@ -554,7 +554,7 @@ class ReaderApp extends Component {
             hist.mode  = "account";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`
+            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
             hist.url   = `profile/${state.profile.slug}`;
             hist.mode = "profile";
             break;
@@ -593,6 +593,11 @@ class ReaderApp extends Component {
             hist.url = "story_editor";
             hist.mode = "story_editor";
             break;
+          case "user_stats":
+            hist.title = Sefaria._("Torah Tracker");
+            hist.url = "torahtracker";
+            hist.mode = "user_stats";
+            break;
           case "saved":
             hist.title = Sefaria._("My Saved Content");
             hist.url = "texts/saved";
@@ -605,7 +610,7 @@ class ReaderApp extends Component {
             break;
           case "homefeed":
             hist.title = Sefaria._("Sefaria Stories");
-            hist.url = "";
+            hist.url = "new-home";
             hist.mode = "homefeed";
             break;
         }
@@ -988,6 +993,8 @@ class ReaderApp extends Component {
       this.showMyGroups();
     } else if (path == "my/notes") {
       this.showMyNotes();
+    } else if (path == "torahtracker") {
+      this.showUserStats();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1296,7 +1303,7 @@ class ReaderApp extends Component {
     // options can contain {
     //  'textHighlights': array of strings to highlight in focused segment. used when clicking on search query result
     // }
-    this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
+    this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
   async openPanelAt(n, ref, currVersions, options) {
@@ -1314,7 +1321,7 @@ class ReaderApp extends Component {
       const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
       panel = this.makePanelState({mode: 'Sheet', sheet});
     } else {  // Text
-      if (ref.constructor == Array) {
+      if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array
         var refs = ref;
         var currentlyVisibleRef = Sefaria.normRef(ref);
@@ -1548,20 +1555,19 @@ class ReaderApp extends Component {
     }
   }
   showSheets() {
-    var updates = {menuOpen: "sheets"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets"});
+  }
+  showUserStats() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
   }
   showMySheets() {
-    var updates = {menuOpen: "sheets", navigationSheetTag: "My Sheets"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "My Sheets"});
   }
   showMyGroups() {
-    var updates = {menuOpen: "myGroups"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "myGroups"});
   }
   showMyNotes() {
-    var updates = {menuOpen: "myNotes"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "myNotes"});
   }
   setStateInHeaderOrSinglePanel(state, cb) {
     // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel

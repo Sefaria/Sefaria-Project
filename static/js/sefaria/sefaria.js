@@ -551,7 +551,7 @@ Sefaria = extend(Sefaria, {
   },
   _index: {}, // Cache for text index records
   _translateTerms: {},
-  index: function(text, index) {
+   index: function(text, index) {
     if (!index) {
       return this._index[text];
     } else if (text in this._index){
@@ -1672,6 +1672,7 @@ Sefaria = extend(Sefaria, {
       }
     return this._topicList;
   },
+  _tableOfContentsDedications: {},
   _topics: {},
   topic: function(topic, callback) {
     if (topic in this._topics) {
@@ -1948,6 +1949,10 @@ Sefaria = extend(Sefaria, {
     const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
     return Sefaria._promiseAPI(url);
   },
+  calendarRef: function(calendarTitle) {
+    const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
+    return cal.length ? cal[0].ref : null;
+  },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
     var categories = {
@@ -1984,7 +1989,7 @@ Sefaria = extend(Sefaria, {
       "Sefaria Search": "חיפוש בספריא",
       "Sefaria Account": "חשבון בספריא",
       "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
-      "My Notes on Sefaria": "הרשומות שלי בספריא",
+      "My Notes on Sefaria": "ההערות שלי בספריא",
       "Moderator Tools": "כלי מנהלים",
       " with " : " עם ",
       "Connections" : "קשרים",
@@ -2015,7 +2020,7 @@ Sefaria = extend(Sefaria, {
       "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
       "Are you sure you want to delete this note?": "האם אתם בטוחים שברצונכם למחוק?",
       "Something went wrong (that's all I know).":"משהו השתבש. סליחה",
-      "Write a note...":"כתוב הערות כאן...",
+      "Write a note...":"כתבו הערות כאן...",
       "Aa": "א",
       "Decrease font size": "הקטן גופן",
       "Increase font size": "הגדל גופן",
@@ -2023,7 +2028,7 @@ Sefaria = extend(Sefaria, {
       "this source":"מקור זה",
       "was added to": "נוסף ל-",
       "View sheet": "מעבר ל-דף המקורות",
-      "Please select a source sheet.": "אנא בחר דף מקורות.",
+      "Please select a source sheet.": "אנא בחרו דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
       "Source Sheet by" : "דף מקורות מאת",
       "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
@@ -2136,6 +2141,7 @@ Sefaria = extend(Sefaria, {
       "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
       "Please select a feedback type": "אנא בחרו סוג משוב",
       "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
+      "Tell us what you think..." : "ספרו לנו מה אתם חושבים...",
       "Select Type" : "סוג משוב",
       "Added by" : "נוסף בידי",
       "Join Sefaria.": "הצטרפו לספריא",
@@ -2149,6 +2155,17 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירת",
       "Remove": "הסרת",
+
+      //user stats
+      "Torah Tracker" : "לימוד במספרים",
+      "Year to Date": "בשנה הנוכחית",
+      "All Time": "כל הזמן",
+      "Texts Read" : "ספרים שנקראו",
+      "Sheets Read" : "דפי מקורות שנקראו",
+      "Sheets Created" : "דפי מקורות שנוצרו",
+      "Average Sefaria User" : "משתמש ממוצע בספריא",
+      "Etc": "שאר"
+
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){

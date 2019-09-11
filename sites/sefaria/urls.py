@@ -26,6 +26,7 @@ static_pages = [
     "linker",
     "ios",
     "mobile",
+    "app",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
@@ -40,6 +41,7 @@ static_pages = [
     "shavuot-map-2018",
     "testimonials",
     "torah-tab",
+    "dicta-thanks",
 ]
 
 

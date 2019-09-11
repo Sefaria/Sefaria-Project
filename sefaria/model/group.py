@@ -113,6 +113,7 @@ class Group(abst.AbstractMongoRecord):
         contents = {
             "name": self.name,
             "imageUrl": getattr(self, "imageUrl", None),
+            "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),
             "sheetCount": self.sheet_count(),
         }

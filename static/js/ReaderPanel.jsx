@@ -26,6 +26,7 @@ const UserProfile               = require('./UserProfile');
 const UpdatesPanel              = require('./UpdatesPanel');
 const HomeFeed                  = require('./HomeFeed');
 const StoryEditor               = require('./StoryEditor');
+const UserStats                 = require('./UserStats');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
 const {
   MyGroupsPanel,
@@ -956,13 +957,12 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "story_editor") {
       menu = (<StoryEditor
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
       />);
 
-    /* todo: do we need this here?
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")} />);
-                    */
+    } else if (this.state.menuOpen === "user_stats") {
+      menu = (<UserStats/>);
 
     } else if (this.state.menuOpen === "modtools") {
       menu = (<ModeratorToolsPanel
@@ -987,6 +987,7 @@ class ReaderPanel extends Component {
           profile={this.state.profile}
           handleInAppLinkClick={this.props.handleInAppLinkClick}
           openProfile={this.props.openProfile}
+          toggleSignUpModal={this.props.toggleSignUpModal}
         />
       );
     }
@@ -1281,7 +1282,7 @@ ReaderControls.propTypes = {
 
 class ReaderDisplayOptionsMenu extends Component {
   renderAliyotToggle() {
-    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"];
+    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Onkelos Genesis", "Onkelos Exodus", "Onkelos Leviticus", "Onkelos Numbers", "Onkelos Deuteronomy"];
     return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
   }
   vowelToggleAvailability(){

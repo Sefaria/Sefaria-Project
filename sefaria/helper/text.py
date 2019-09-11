@@ -382,7 +382,6 @@ def get_core_link_stats():
 
 
 def get_library_stats():
-    #//todo: mark for commentary refactor?
     def aggregate_stats(toc_node, path):
         simple_nodes = []
         for x in toc_node:

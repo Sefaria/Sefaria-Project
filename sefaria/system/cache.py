@@ -67,10 +67,10 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, 
 
             if action in ["reset", "set"]:
                 do_actual_func = True
-                try:
+                """try:
                     delete_cache_elem(_cache_key, cache_type=cache_type)
                 except:
-                    pass
+                    pass"""
                 result = None
             else:
                 #logger.debug(['_cach_key.......',_cache_key])

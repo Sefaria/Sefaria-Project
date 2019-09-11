@@ -1,4 +1,5 @@
-const React      = require('react');
+//const React      = require('react');
+import React, { useState, useEffect } from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
@@ -185,7 +186,7 @@ class TabView extends Component {
   }
   renderTab(tab, index) {
     return (
-      <div className={classNames({active: this.state.openTabIndex === index})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: this.state.openTabIndex === index, applink: tab.applink})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -194,7 +195,7 @@ class TabView extends Component {
     return (
       <div className="tab-view">
         <div className="tab-list">
-          { this.props.tabs.map(this.renderTab)}
+          {this.props.tabs.map(this.renderTab)}
         </div>
         { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
       </div>
@@ -240,6 +241,8 @@ DropdownOptionList.propTypes = {
   currOptionSelected: PropTypes.string.isRequired,
   handleClick: PropTypes.func.isRequired,
 };
+
+
 class DropdownButton extends Component {
   render() {
     const { isOpen, toggle, enText, heText } = this.props;
@@ -354,12 +357,15 @@ class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
     title    = title   || (showSections ? sref : book);
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
+    const hlang = intlang ? "int-he": "he";
+    const elang = intlang ? "int-en": "en";
+
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -368,8 +374,8 @@ class TextBlockLink extends Component {
     }
     const subtitle = displayValue ? (
         <span className="blockLinkSubtitle">
-            <span className="en">{displayValue}</span>
-            <span className="he">{heDisplayValue}</span>
+            <span className={elang}>{displayValue}</span>
+            <span className={hlang}>{heDisplayValue}</span>
         </span>
     ) : null;
 
@@ -394,8 +400,8 @@ class TextBlockLink extends Component {
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
-              <span className="en" data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
-              <span className="he" data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
+              <span className={elang} data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
+              <span className={hlang} data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
             </div>
           </div>
           <div className="sideColorRight">
@@ -411,8 +417,8 @@ class TextBlockLink extends Component {
       );
     }
     return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
-              <span className="en">{title}</span>
-              <span className="he">{heTitle}</span>
+              <span className={elang}>{title}</span>
+              <span className={hlang}>{heTitle}</span>
                 {subtitle}
              </a>);
   }
@@ -459,7 +465,6 @@ LanguageToggleButton.propTypes = {
   toggleLanguage: PropTypes.func.isRequired,
   url:            PropTypes.string,
 };
-
 
 
 const DangerousInterfaceBlock = ({en, he, classes}) => (
@@ -515,6 +520,7 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
+
 
 class BlockLink extends Component {
   render() {
@@ -727,71 +733,43 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   placeholder: PropTypes.bool,
 };
 
+// const [mounted, setMounted] = React.useState(true);
+// useEffect(() => {return () => {setMounted(false)}}, []);
+function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+  const isSelected = () => !!Sefaria.getSavedItem(historyObject);
+  const [selected, setSelected] = useState(placeholder || isSelected());
+  useEffect(() => {
+    if (placeholder) { return; }
+    setSelected(isSelected())
+  }, [historyObject && historyObject.ref]);
 
-class SaveButton extends Component {
-  constructor(props) {
-    super(props);
-    this._posting = false;
-    this.state = {
-      selected: props.placeholder || !!Sefaria.getSavedItem(props.historyObject),
-    }
-  }
-  componentDidMount() {
-    this._isMounted = true;
-  }
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-  setSelected(props) {
-    if (this._isMounted) {
-      this.setState({ selected: !!Sefaria.getSavedItem(props.historyObject) });
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.props.placeholder) { return; }
-    if (this.props.historyObject.ref !== nextProps.historyObject.ref) {
-      this.setSelected(nextProps);
-    }
-  }
-  onClick(e) {
-    if (this._posting) { return; }
-    this._posting = true;
-    const { historyObject } = this.props;
+  const [isPosting, setPosting] = useState(false);
+
+  const style = placeholder ? {visibility: 'hidden'} : {};
+  const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
+  const altText = placeholder ? '' :
+      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
+
+  function onClick() {
+    if (isPosting) { return; }
+    setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
-    Sefaria.toggleSavedItem(historyObject).then(() => {
-      // since request is async, check if it's selected from data
-      this._posting = false;
-      this.setSelected(this.props);
-    }).catch(e => {
-      if (e == 'notSignedIn') {
-        this.props.toggleSignUpModal();
-      }
-      this._posting = false;
-    })
+    Sefaria.toggleSavedItem(historyObject)
+        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
+        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(); }})
+        .finally(() => { setPosting(false); });
   }
-  render() {
-    const { placeholder, historyObject, tooltip } = this.props;
-    const style = placeholder ? {visibility: 'hidden'} : {};
-    const altText = placeholder ? '' :
-      `${Sefaria._(this.state.selected ? "Remove" : "Save")} '${historyObject.sheet_title ?
-          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}'`;
 
-    const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
-    return (
-      <div
-        aria-label={altText} tabIndex="0"
-        className={classes}
-        role="button"
-        style={style}
-        onClick={this.onClick}
-        onKeyPress={e => {e.charCode == 13 ? this.onClick(e):null}}
-      >
-        { this.state.selected ?
-          <img src="/static/img/filled-star.png" alt={altText}/> :
+  return (
+      <div aria-label={altText} tabIndex="0"
+        className={classes} role="button"
+        style={style} onClick={onClick}
+        onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+        { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
           <img src="/static/img/star.png" alt={altText}/> }
       </div>
     );
-  }
 }
 SaveButton.propTypes = {
   historyObject: PropTypes.shape({
@@ -802,6 +780,7 @@ SaveButton.propTypes = {
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
 
 class FollowButton extends Component {
   constructor(props) {
@@ -867,28 +846,21 @@ FollowButton.propTypes = {
   uid: PropTypes.number.isRequired,
   following: PropTypes.bool,  // is this person followed already?
   large: PropTypes.bool,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func,
 };
 
-class SinglePanelNavHeader extends Component {
-  render() {
-    var enTitle = this.props.enTitle;
-    var heTitle = this.props.heTitle || Sefaria.hebrewTerm(enTitle);
-    var colorCat = this.props.colorLineCategory || "Other";
-    return (
+const SinglePanelNavHeader = (props) =>
       <div className="readerNavTop searchOnly">
-          <CategoryColorLine category={colorCat} />
-          <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
+          <CategoryColorLine category={props.colorLineCategory || "Other"} />
+          <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <span className="int-en">{enTitle}</span>
-            <span className="int-he">{heTitle}</span>
+            <span className="int-en">{props.enTitle}</span>
+            <span className="int-he">{props.heTitle || Sefaria.hebrewTerm(props.enTitle)}</span>
           </h2>
-          {this.props.showDisplaySettings ?
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+          {props.showDisplaySettings ?
+            <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
             : <div className="readerOptions"></div> }
-      </div>);
-  }
-}
+      </div>;
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
   enTitle:             PropTypes.string,
@@ -899,21 +871,19 @@ SinglePanelNavHeader.propTypes = {
 };
 
 
-class CategoryColorLine extends Component {
-  render() {
-    var style = {backgroundColor: Sefaria.palette.categoryColor(this.props.category)};
-    return (<div className="categoryColorLine" style={style}></div>);
-  }
-}
+const CategoryColorLine = ({category}) =>
+  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
 
 
 class ProfileListing extends Component {
   openProfile(e) {
-    e.preventDefault();
-    this.props.openProfile(this.props.slug, this.props.name);
+    if (this.props.openProfile) {
+      e.preventDefault();
+      this.props.openProfile(this.props.slug, this.props.name);
+    }
   }
   render() {
-    const { url, image, name, uid, is_followed, position } = this.props;
+    const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
@@ -928,19 +898,19 @@ class ProfileListing extends Component {
         <div className="authorByLineText">
           <SimpleLinkedBlock
             classes="authorName"
-            aclasses="systemText"
+            aclasses={smallfonts?"smallText":"systemText"}
             url={url}
             en={name}
             he={name}
             onClick={this.openProfile}
           >
-            <FollowButton large={false} uid={uid} following={is_followed}/>
+            <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
           </SimpleLinkedBlock>
           {
-            !!position ? <SimpleInterfaceBlock
-              classes="systemText authorPosition"
-              en={position}
-              he={position}
+            !!organization ? <SimpleInterfaceBlock
+              classes={"authorOrganization" + (smallfonts?"smallText":"systemText")}
+              en={organization}
+              he={organization}
             />:null
           }
         </div>
@@ -954,7 +924,7 @@ ProfileListing.propTypes = {
   image:       PropTypes.string.isRequired,
   name:        PropTypes.string.isRequired,
   is_followed: PropTypes.bool,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  toggleSignUpModal: PropTypes.func,
 
 };
 
@@ -1118,6 +1088,61 @@ Note.propTypes = {
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
 };
+
+
+function NewsletterSignUpForm(props) {
+  const {contextName} = props;
+  const [input, setInput] = useState('');
+  const [subscribeMessage, setSubscribeMessage] = useState(null);
+
+  function handleSubscribeKeyUp(e) {
+    if (e.keyCode === 13) {
+      handleSubscribe();
+    }
+  }
+
+  function handleSubscribe() {
+    var email = input;
+    if (Sefaria.util.isValidEmailAddress(email)) {
+      setSubscribeMessage("Subscribing...");
+      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+      $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
+        if ("error" in data) {
+          setSubscribeMessage(data.error);
+        } else {
+          setSubscribeMessage("Subscribed! Welcome to our list.");
+          Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
+        }
+      }).error(data => setSubscribeMessage("Sorry, there was an error."));
+    } else {
+      setSubscribeMessage("Please enter a valid email address.");
+    }
+  }
+
+  return (
+    <div className="newsletterSignUpBox">
+      <span className="int-en">
+        <input 
+          className="newsletterInput" 
+          placeholder="Sign up for Newsletter" 
+          value={input} 
+          onChange={e => setInput(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      <span className="int-he">
+        <input 
+          className="newsletterInput"
+          placeholder="הצטרפו לרשימת התפוצה" 
+          value={input} 
+          onChange={e => setInput(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
+      { subscribeMessage ? 
+        <div className="subscribeMessage">{subscribeMessage}</div>
+        : null }
+    </div>);
+}
 
 
 class LoginPrompt extends Component {
@@ -1514,11 +1539,9 @@ class FeedbackBox extends Component {
       type: null,
       alertmsg: null,
       feedbackSent: false,
-
     };
   }
   sendFeedback() {
-
     if (!this.state.type) {
       this.setState({alertmsg: Sefaria._("Please select a feedback type")});
       return
@@ -1539,7 +1562,7 @@ class FeedbackBox extends Component {
         uid: Sefaria._uid || null
     };
     var postData = {json: JSON.stringify(feedback)};
-      var url = "/api/send_feedback";
+    var url = "/api/send_feedback";
 
     this.setState({feedbackSent: true});
 
@@ -1552,8 +1575,8 @@ class FeedbackBox extends Component {
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
         alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+        this.setState({feedbackSent: true});
     });
-
   }
   validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -1562,10 +1585,7 @@ class FeedbackBox extends Component {
   setType(type) {
     this.setState({type: type});
   }
-
-
   render() {
-
     if (this.state.feedbackSent) {
         return (
             <div className="feedbackBox">
@@ -1586,7 +1606,6 @@ class FeedbackBox extends Component {
                 </div>
                 : null
             }
-
 
             <Dropdown
               options={[
@@ -1701,6 +1720,7 @@ module.exports.LanguageToggleButton                      = LanguageToggleButton;
 module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
 module.exports.LoginPrompt                               = LoginPrompt;
+module.exports.NewsletterSignUpForm                      = NewsletterSignUpForm;
 module.exports.Note                                      = Note;
 module.exports.ProfileListing                            = ProfileListing;
 module.exports.ProfilePic                                = ProfilePic;

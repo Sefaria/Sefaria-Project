@@ -49,7 +49,10 @@ urlpatterns = [
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
+    url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
+    url(r'^torahtracker/?$', reader_views.user_stats),
+
 ]
 
 # People Pages
@@ -163,6 +166,8 @@ urlpatterns += [
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     url(r'^api/stories/?(?P<gid>.+)?$', reader_views.stories_api),
     url(r'^api/story_reflector/?$', reader_views.story_reflector),
+    url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
+    url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
 ]
 

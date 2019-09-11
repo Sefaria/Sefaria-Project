@@ -42,15 +42,17 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
-from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
+from sefaria.model.schema import SheetLibraryNode
+from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, \
+    DuplicateRecordError, DictionaryEntryNotFoundError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -632,7 +634,7 @@ def sheets(request):
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
         "tagList": public_tag_list(sort_by="count"),
-        "trendingTags": recent_public_tags(days=14, ntags=18)
+        "trendingTags": trending_tags(ntags=18)
     })
 
     title = _("Sefaria Source Sheets")
@@ -814,7 +816,7 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
         "topicList": topics.list(sort_by="count"),
-        "trendingTags": recent_public_tags(days=14, ntags=12),
+        "trendingTags": trending_tags(ntags=12),
     })
 
     propsJSON = json.dumps(props)
@@ -907,12 +909,25 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
-@login_required
+
+def new_home(request):
+    props = base_props(request)
+    title = _("Sefaria Stories")
+    return menu_page(request, props, "homefeed", title)
+
+
+@staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
 
+
+@login_required
+def user_stats(request):
+    props = base_props(request)
+    title = _("User Stats")
+    return menu_page(request, props, "user_stats", title)
 
 @login_required
 def account(request):
@@ -2285,7 +2300,7 @@ def get_name_completions(name, limit, ref_only):
             for res in additional_results:
                 if res not in current:
                     completions += [res]
-    except DictionaryEntryNotFound as e:
+    except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
@@ -2470,8 +2485,8 @@ def stories_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                SharedStory(payload).save()
-                return jsonResponse({"status": "ok"})
+                s = SharedStory(payload).save()
+                return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
 
@@ -2480,8 +2495,8 @@ def stories_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    SharedStory(payload).save()
-                    return jsonResponse({"status": "ok"})
+                    s = SharedStory(payload).save()
+                    return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
 
@@ -2539,6 +2554,24 @@ def addDynamicStories(stories, user, page):
             stories = [stry.contents()] + stories
 
     return stories
+
+
+@login_required
+def user_stats_api(request, uid):
+
+    assert request.method == "GET", "Unsupported Method"
+    u = request.user
+    assert (u.is_active and u.is_staff) or (int(uid) == u.id)
+    quick = bool(request.GET.get("quick", False))
+    if quick:
+        return jsonResponse(public_user_data(uid))
+    return jsonResponse(user_stats_data(uid))
+
+
+@login_required
+def site_stats_api(request):
+    assert request.method == "GET", "Unsupported Method"
+    return jsonResponse(site_stats_data())
 
 
 @staff_member_required
@@ -3296,11 +3329,13 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
+
 @login_required
 def enable_home_feed(request):
     resp = home(request, True)
     resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
     return resp
+
 
 @login_required
 def disable_home_feed(request):
@@ -3318,19 +3353,7 @@ def home(request, show_feed=None):
         show_feed = request.COOKIES.get("home_feed", None)
 
     if show_feed:
-        props = base_props(request)
-
-        props.update({
-            "initialMenu": "homefeed"
-        })
-        propsJSON = json.dumps(props)
-        html = render_react_component("ReaderApp", propsJSON)
-        return render(request, 'base.html', {
-            "propsJSON": propsJSON,
-            "html": html,
-            "title": "Sefaria Stories",
-            "desc": "",
-        })
+        return redirect("/new-home")
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
@@ -3812,17 +3835,13 @@ def random_by_topic_api(request):
     Returns Texts API data for a random text taken from popular topic tags
     """
     cb = request.GET.get("callback", None)
-    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    topics_filtered = filter(lambda x: x['good_to_promote'], get_topics().list())
     if len(topics_filtered) == 0:
         resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
         resp['Content-Type'] = "application/json; charset=utf-8"
         return resp
     random_topic = choice(topics_filtered)['tag']
     term = Term().load_by_title(random_topic)
-    if term is not None and getattr(term, "sensitive", False):
-        # term is sensitive, try again
-        return random_by_topic_api(request)
-
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
