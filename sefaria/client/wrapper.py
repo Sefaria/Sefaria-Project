@@ -337,9 +337,9 @@ class LinkNetwork2(object):
             self.base_oref,
             rootkey,
             int(self.base_oref.index.compDate) - int(self.base_oref.index.errorMargin),
-            self.base_oref.index.categories[0]
+            self.base_oref.index.categories[0],
+            root = True
         )
-        self.indexNodes[rootkey]["root"] = True
 
         future_links = db.linknet.aggregate([
             {"$match": {"early_refs": {"$in": self.base_trefs}}},
@@ -427,8 +427,8 @@ class LinkNetwork2(object):
         else:
             self.indexNodes[key] = self.make_index_record(oref, key, year, cat)
 
-    def make_index_record(self, oref, key, year, cat):
-        return {
+    def make_index_record(self, oref, key, year, cat, root=False):
+        d = {
                 "title": key,
                 "heTitle": hebrew_term(key),
                 "compDate": year,  # get rid of
@@ -437,6 +437,10 @@ class LinkNetwork2(object):
                 "category": cat,
                 "refs": {oref.normal()},
             }
+        if root:
+            d["root"] = True
+        return d
+
 
 
 class LinkNetwork(object):
