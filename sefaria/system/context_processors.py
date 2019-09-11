@@ -44,7 +44,7 @@ def user_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        exclude = ('/data.js', '/linker.js', '/apple-app-site-association')
+        exclude = ('/data.js', '/linker.js')
         if request.path in exclude or request.path.startswith("/api/"):
             return {}
         else:

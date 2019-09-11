@@ -55,6 +55,7 @@ site_urlpatterns = [
     url(r'^oldhome/?$', lambda x: HttpResponseRedirect('/')),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
+    url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
 ]
 
