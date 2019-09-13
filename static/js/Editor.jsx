@@ -169,14 +169,9 @@ function SefariaEditor(props) {
                                             "type": "TextRef",
                                             "data": {
                                                 "ref": source.ref,
-                                                "lang": "en"
+                                                "refText": source.heRef,
+                                                "lang": "he",
                                             },
-                                            "nodes": [
-                                                {
-                                                    "object": "text",
-                                                    "text": source.ref
-                                                }
-                                            ]
                                         },
                                 {
                                     "object": "block",
@@ -189,14 +184,9 @@ function SefariaEditor(props) {
                                             "type": "TextRef",
                                             "data": {
                                                 "ref": source.ref,
-                                                "lang": "he"
+                                                "refText": source.ref,
+                                                "lang": "en",
                                             },
-                                            "nodes": [
-                                                {
-                                                    "object": "text",
-                                                    "text": source.heRef
-                                                }
-                                            ]
                                         },
                                 {
                                     "object": "block",
@@ -622,13 +612,11 @@ function SefariaEditor(props) {
                 },
             },
             TextRef: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                ],
+                isVoid: true,
                 data: {
                     ref: v => v,
+                    refText: v => v,
+                    lang: v => v,
                 },
             },
 
@@ -752,7 +740,7 @@ function SefariaEditor(props) {
                 const lang = data.get('lang')
                 return (
                     <div className={lang}>
-                        <div className="ref"><a href={"/"+ref}>{children}</a></div>
+                        <div className="ref"><a href={"/"+ref}>{data.get("refText")}</a></div>
                     </div>
                 )
             default:
