@@ -239,7 +239,7 @@ const makeOtherCategory = data => {
 
 const CategoryBars = ({user_cats, site_cats}) => {
     const svg_ref = useRef();
-    
+
     const margin = {top: 20, right: 0, bottom: 0, left: 0};
     const perBarHeight = 75;
     const max_cats = 5;

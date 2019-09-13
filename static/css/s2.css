@@ -7175,6 +7175,10 @@ body .homeFeedWrapper.userStats {
 }
 
 .userStats .blockLink {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .userStats .yourPopularSheetsBlock > div {
