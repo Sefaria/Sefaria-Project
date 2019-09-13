@@ -239,10 +239,12 @@ const makeOtherCategory = data => {
 
 const CategoryBars = ({user_cats, site_cats}) => {
     const svg_ref = useRef();
-
-    const height = 400;
+    
+    const margin = {top: 20, right: 0, bottom: 0, left: 0};
+    const perBarHeight = 75;
+    const max_cats = 5;
+    const height = margin.top + margin.bottom + (perBarHeight * Math.min(Object.keys(user_cats).length, max_cats));
     const width = 660;
-    const margin = {top: 10, right: 0, bottom: 0, left: 0};
 
     const keys = ["user", "site"];
 
@@ -254,11 +256,11 @@ const CategoryBars = ({user_cats, site_cats}) => {
         const user_percents = mapToPercentage(user_cats);
         const site_percents = mapToPercentage(site_cats);
         const orderedCats = Object.entries(user_cats).sort((a, b) => b[1] - a[1]).map(d => d[0]);
-        const data = orderedCats.slice(0,5).map(cat => ({cat: cat, site: site_percents[cat], user: user_percents[cat]}));
+        const data = orderedCats.slice(0,max_cats).map(cat => ({cat: cat, site: site_percents[cat], user: user_percents[cat]}));
 
         const y = d3.scaleBand()
             .domain(data.map(d => d.cat))
-            .rangeRound([margin.top + 10, height - margin.bottom])
+            .rangeRound([margin.top, height - margin.bottom])
             .paddingInner(0.1);
 
         const inter_bar_padding = 0.05;
