@@ -99,7 +99,7 @@
     </script>
 </head>
 
-<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
+<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"

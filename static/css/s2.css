@@ -176,6 +176,12 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   width: 100%;
   height: 100%;
 }
+
+.nochrome #s2,
+.nochrome #footerContainer {
+  display: none;
+}
+
 #bannerMessage {
   color: white;
   background-color: #4871bf;
