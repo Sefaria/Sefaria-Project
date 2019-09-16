@@ -32,10 +32,11 @@ class WebPage(abst.AbstractMongoRecord):
         
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
-            self.domain     = WebPage.domain_for_url(self.url)
-            self.favicon    = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
-            self._site_data = WebPage.site_data_for_domain(self.domain)
-            self.site_name  = self._site_data["name"] if self._site_data else self.domain
+            self.domain      = WebPage.domain_for_url(self.url)
+            self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
+            self._site_data  = WebPage.site_data_for_domain(self.domain)
+            self.site_name   = self._site_data["name"] if self._site_data else self.domain
+            self.whitelisted = bool(self._site_data)
 
     def _init_defaults(self):
         self.linkerHits = 0
@@ -147,11 +148,11 @@ def get_webpages_for_ref(tref):
     client_results = []
     ref_re = "("+'|'.join(regex_list)+")"
     for webpage in results:
+        if not webpage.whitelisted:
+            continue
         matched_refs = [r for r in webpage.refs if re.match(ref_re, r)]
         for ref in matched_refs:
             webpage_contents = webpage.client_contents()
-            if webpage_contents["domain"] in sites_blacklist:
-                continue
             webpage_contents["anchorRef"] = ref
             client_results.append(webpage_contents)
     
