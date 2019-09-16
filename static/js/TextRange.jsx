@@ -242,7 +242,7 @@ class TextRange extends Component {
     // returns null otherwise.
     //var data = this.getText();
     if (!data) { return null; }
-    if ("alts" in data && data.alts.length && data.categories[1] == "Torah" && !data["isDependant"]) {
+    if ("alts" in data && data.alts.length && ((data.categories[1] == "Torah" && !data["isDependant"]) || data.categories[2] == "Onkelos")) {
       var curRef = segment.ref;
       if ("alt" in segment && segment.alt != null){
         if(includeAliyout || "whole" in segment.alt){

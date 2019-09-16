@@ -22,11 +22,12 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
+    NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
@@ -399,6 +400,22 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
+    def get_alt_struct_nodes(self):
+
+        def alt_struct_nodes_helper(node, nodes):
+            if node.is_leaf():
+                nodes.append(node)
+            else:
+                for child in node.children:
+                    alt_struct_nodes_helper(child, nodes)
+
+        nodes = []
+        for tree in self.get_alt_structures().values():
+            for node in tree.children:
+                alt_struct_nodes_helper(node, nodes)
+        return nodes
+
+
     def composition_place(self):
         from . import place
         if getattr(self, "compPlace", None) is None:
@@ -599,6 +616,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         for attr in deprecated_attrs:
             if getattr(self, attr, None):
                 delattr(self, attr)
+        try:
+            error_margin_value = getattr(self, "errorMargin", 0)
+            int(error_margin_value)
+        except ValueError:
+            logger.warning(u"Index record '{}' has invalid 'errorMargin': {} field, removing".format(self.title, error_margin_value))
+            delattr(self, "errorMargin")
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -645,6 +668,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
             raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
+
+        try:
+            int(getattr(self, "errorMargin", 0))
+        except (ValueError):
+            raise InputError("composition date error margin must be an integer")
 
         #complex style records- all records should now conform to this
         if self.nodes:
@@ -2408,7 +2436,7 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
-                # The line below will raise InputError (or DictionaryEntryNotFound) if no match
+                # The line below will raise InputError (or DictionaryEntryNotFoundError) if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
                 self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
@@ -2509,7 +2537,7 @@ class Ref(object):
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
                 # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split(u"[., ]+", parts[1])
+                range_parts = re.split(u"[., :]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:

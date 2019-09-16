@@ -31,6 +31,8 @@ class Story(abst.AbstractMongoRecord):
     def _sheet_metadata(sheet_id, return_id=False):
         from sefaria.sheets import get_sheet_metadata
         metadata = get_sheet_metadata(sheet_id)
+        if not metadata:
+            return None
 
         d = {
             "sheet_title": strip_tags(metadata["title"]),
@@ -1158,7 +1160,7 @@ def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
     il = this_weeks_parasha(now, diaspora=False)
     da = this_weeks_parasha(now, diaspora=True)
 
-    if il == da:
+    if da["ref"] == il["ref"]:
         create_story_fn(il, **kwargs)
     else:
         create_story_fn(il, ["inIsrael"], **kwargs)

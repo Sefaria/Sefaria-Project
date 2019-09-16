@@ -10,7 +10,8 @@ const {
   TwoBox,
   LanguageToggleButton,
 }                                  = require('./Misc');
-const React                        = require('react');
+//const React                        = require('react');
+import React, { useState, useEffect } from 'react';
 const ReactDOM                     = require('react-dom');
 const PropTypes                    = require('prop-types');
 const classNames                   = require('classnames');
@@ -211,8 +212,13 @@ class ReaderNavigationMenu extends Component {
       ];
       topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={this.width} /></div>);
 
-      const donation  = <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink"
-                           img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>;
+      let donation  = [
+          <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
+          <TocLink en="Sponsor a day" he="תרום יום לימוד" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
+      ];
+
+      donation = (<div className="readerTocResources"><TwoBox content={donation} width={this.width} /></div>);
+
 
       const title = (<h1>
                     { this.props.multiPanel && this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -229,6 +235,7 @@ class ReaderNavigationMenu extends Component {
               <div className={contentClasses}>
                 <div className="contentInner">
                   { this.props.compare ? null : title }
+                  { this.props.compare ? null : <Dedication /> }
                   { topUserData }
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
@@ -269,5 +276,58 @@ const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, 
         <span className="int-en">{en}</span>
         <span className="int-he">{he}</span>
     </a>;
+
+const Dedication = () => {
+
+    const [dedicationDate, setDedicationData] = useState([]);
+
+    const $url = 'https://spreadsheets.google.com/feeds/cells/1DWVfyX8H9biliNYEy-EfAd9F-8OotGnZG9jmOVNwojs/2/public/full?alt=json';
+
+    async function fetchDedicationData(date) {
+        const response = await $.getJSON($url).then(function (data) {
+            return {data}
+        });
+        const dedicationData = response["data"]["feed"]["entry"];
+        const enDedication = dedicationData[1]["content"]["$t"];
+        const heDedication = dedicationData[2]["content"]["$t"];
+        const enDedicationTomorrow = dedicationData[4]["content"]["$t"];
+        const heDedicationTomorrow = dedicationData[5]["content"]["$t"];
+        Sefaria._tableOfContentsDedications[dedicationData[0]["content"]["$t"]] = {"en": enDedication, "he": heDedication};
+        Sefaria._tableOfContentsDedications[dedicationData[3]["content"]["$t"]] = {"en": enDedicationTomorrow, "he": heDedicationTomorrow};
+        setDedicationData(Sefaria._tableOfContentsDedications[date]);
+    }
+
+
+    useEffect( () => {
+
+        //Get the local date 6 hours from now (so that dedication changes at 6pm local time
+        let dedDate = new Date();
+        dedDate.setHours(dedDate .getHours() + 6);
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        const date=new Date(dedDate - tzoffset).toISOString().substring(0, 10);
+
+        const dedication = Sefaria._tableOfContentsDedications[date];
+
+        if (dedication) {
+            setDedicationData(dedication);
+        }
+
+        else {
+            fetchDedicationData(date);
+        }
+
+        }, []);
+
+
+    return (
+        dedicationDate.en == "" ? null :
+        <div className="dedication">
+          <span>
+              <span className="en">{dedicationDate.en}</span>
+              <span className="he">{dedicationDate.he}</span>
+          </span>
+        </div>
+    )
+};
 
 module.exports = ReaderNavigationMenu;

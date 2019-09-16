@@ -86,7 +86,7 @@
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -94,12 +94,12 @@
         });
         WebFont.load({
           google: {
-            families: ['Roboto:400,700', 'Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
+            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
           }});
     </script>
 </head>
 
-<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
+<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
@@ -157,6 +157,34 @@
         inReaderApp: {% if html %}true{% else %}false{% endif %},
         static_url: {{ STATIC_PREFIX }}
       };
+      document.addEventListener('copy', function(e) {
+          const selection = document.getSelection()
+          const text_only = selection.toString();
+
+          if (selection.rangeCount) {
+              var container = document.createElement("div");
+              for (var i = 0, len = selection.rangeCount; i < len; ++i) {
+                  container.appendChild(selection.getRangeAt(i).cloneContents());
+              }
+
+            //remove line numbers
+              var lineNumbers = container.getElementsByClassName('segmentNumber');
+              while(lineNumbers.length > 0){
+                  lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
+              }
+
+              html = container.innerHTML;
+          }
+          else {
+              html = text_only;
+          }
+
+          const clipdata = e.clipboardData || window.clipboardData;
+
+          clipdata.setData('text/plain', text_only);
+          clipdata.setData('text/html', html);
+          e.preventDefault();
+      });
       {% endautoescape %}
     </script>
 

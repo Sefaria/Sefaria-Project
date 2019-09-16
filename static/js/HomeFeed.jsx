@@ -3,7 +3,7 @@ import Component from 'react-class';
 const $                        = require('./sefaria/sefariaJquery');
 const Sefaria                  = require('./sefaria/sefaria');
 const PropTypes                = require('prop-types');
-const Story                    = require('./Story');
+const {Story}                    = require('./Story');
 const Footer                   = require('./Footer');
 const { usePaginatedScroll }   = require('./Hooks');
 const { 

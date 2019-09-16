@@ -13,7 +13,6 @@ const {
     ProfileListing,
 }                = require('./Misc');
 
-import Component from 'react-class';
 
 const sheetPropType = PropTypes.shape({
             publisher_id: PropTypes.number,
@@ -484,33 +483,34 @@ const StoryTextListItem = ({text, toggleSignUpModal}) => (
 StoryTextListItem.propTypes = {text: textPropType.isRequired};
 
 
-const StorySheetList = ({sheets, toggleSignUpModal, cozy}) => (
+const StorySheetList = ({sheets, toggleSignUpModal, compact, cozy, smallfonts}) => (
     <div className="storySheetList">
-        {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} cozy={cozy} toggleSignUpModal={toggleSignUpModal}/>)}
+        {sheets.map((sheet, i) => <SheetBlock sheet={sheet} key={i} smallfonts={smallfonts} compact={compact} cozy={cozy} toggleSignUpModal={toggleSignUpModal}/>)}
     </div>
 );
 StorySheetList.propTypes = {
     sheets: PropTypes.arrayOf(sheetPropType).isRequired,
-    toggleSignUpModal: PropTypes.func.isRequired
+    toggleSignUpModal: PropTypes.func
 };
 
 
-const SheetBlock = ({sheet, cozy, isTitle, toggleSignUpModal}) => {
+const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModal}) => {
       const historyObject = {ref: "Sheet " + sheet.sheet_id,
                   sheet_title: sheet.sheet_title,
                   versions: {}};
 
       return (<div className="storySheetListItem">
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
-            <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle pageTitle" + (isTitle ? " storyTitle" : "")}/>
+            <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle" + (smallfonts?" chapterText lowercase":" pageTitle") + (isTitle ? " storyTitle" : "")}/>
         </SaveLine>
-        {(sheet.sheet_summary && !cozy)?<SimpleInterfaceBlock classes="storyBody contentText" en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
+        {(sheet.sheet_summary && !(compact || cozy))?<SimpleInterfaceBlock classes={"storyBody" + (smallfonts?" smallText":" contentText")} en={sheet.sheet_summary} he={sheet.sheet_summary}/>:null}
         {cozy?"":<ProfileListing
           uid={sheet.publisher_id}
           url={sheet.publisher_url}
           image={sheet.publisher_image}
           name={sheet.publisher_name}
           is_followed={sheet.publisher_followed}
+          smallfonts={smallfonts}
           position={sheet.publisher_position}
           organization={sheet.publisher_organization}
           toggleSignUpModal={toggleSignUpModal}
@@ -542,4 +542,6 @@ SaveLine.propTypes = {
 
 const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
 
-module.exports = Story;
+module.exports.Story = Story;
+module.exports.SheetBlock = SheetBlock;
+module.exports.StorySheetList = StorySheetList;

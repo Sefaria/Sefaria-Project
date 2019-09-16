@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef} from 'react';
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 const PropTypes  = require('prop-types');
-const Story      = require('./Story');
+const { Story }      = require('./Story');
 const { usePaginatedScroll } = require('./Hooks');
 import Component from 'react-class';
 

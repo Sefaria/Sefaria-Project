@@ -20,6 +20,7 @@ import socket
 import bleach
 from collections import OrderedDict
 
+from rest_framework.decorators import api_view
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
@@ -38,13 +39,15 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data, user_stats_data, site_stats_data
+from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.webpage import get_webpages_for_ref
-from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
+from sefaria.model.schema import SheetLibraryNode
+from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, \
+    DuplicateRecordError, DictionaryEntryNotFoundError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
@@ -921,7 +924,7 @@ def story_editor(request):
     return menu_page(request, props, "story_editor", title)
 
 
-@staff_member_required
+@login_required
 def user_stats(request):
     props = base_props(request)
     title = _("User Stats")
@@ -949,7 +952,7 @@ def modtools(request):
     return menu_page(request, props, "modtools", title)
 
 
-""" Is this used? 
+""" Is this used?
 
 def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
@@ -1892,6 +1895,7 @@ def notes_api(request, note_id_or_ref):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@api_view(["GET"])
 @catch_error_as_json
 def all_notes_api(request):
 
@@ -2298,7 +2302,7 @@ def get_name_completions(name, limit, ref_only):
             for res in additional_results:
                 if res not in current:
                     completions += [res]
-    except DictionaryEntryNotFound as e:
+    except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
@@ -2554,17 +2558,19 @@ def addDynamicStories(stories, user, page):
     return stories
 
 
-@staff_member_required
+@login_required
 def user_stats_api(request, uid):
+
     assert request.method == "GET", "Unsupported Method"
+    u = request.user
+    assert (u.is_active and u.is_staff) or (int(uid) == u.id)
     quick = bool(request.GET.get("quick", False))
     if quick:
         return jsonResponse(public_user_data(uid))
-    # Todo: or now, we're hard-coding Rosh Hashannah 2018.
-    return jsonResponse(user_stats_data(uid, start=datetime(2018, 9, 9)))
+    return jsonResponse(user_stats_data(uid))
 
 
-@staff_member_required
+@login_required
 def site_stats_api(request):
     assert request.method == "GET", "Unsupported Method"
     return jsonResponse(site_stats_data())
@@ -3158,6 +3164,7 @@ def profile_follow_api(request, ftype, slug):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@api_view(["POST"])
 @catch_error_as_json
 def profile_sync_api(request):
     """
@@ -3175,22 +3182,13 @@ def profile_sync_api(request):
     # fields in the POST req which can be synced
     syncable_fields = ["settings", "user_history"]
     if request.method == "POST":
+        profile_updated = False
         post = request.POST
         from sefaria.utils.util import epoch_time
         now = epoch_time()
         no_return = request.GET.get("no_return", False)
         profile = UserProfile(id=request.user.id)
-        if not no_return:
-            # send back items after `last_sync`
-            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
-            ret = {"last_sync": now, "user_history": [uh.contents() for uh in uhs.array()]}
-            if "last_sync" not in post:
-                # request was made from web. update last_sync on profile
-                profile.update({"last_sync_web": now})
-                profile.save()
-        else:
-            ret = {}
+        ret = {"created": []}
         # sync items from request
         for field in syncable_fields:
             if field not in post:
@@ -3199,15 +3197,34 @@ def profile_sync_api(request):
             if field == "settings":
                 if field_data["time_stamp"] > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
+                    settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                    profile.attr_time_stamps.update({field: settings_time_stamp})
                     profile.update({
                         field: field_data,
-                        "attr_time_stamps": profile.attr_time_stamps.update({field: field_data["time_stamp"]})
+                        "attr_time_stamps": profile.attr_time_stamps
                     })
-                    ret["settings"] = profile.settings
+                    profile_updated = True
             elif field == "user_history":
-                for hist in field_data:
+                # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
+                for hist in reversed(field_data):
                     uh = UserHistory.save_history_item(request.user.id, hist, now)
-                    ret["created"] = uh.contents(for_api=True)
+                    ret["created"] += [uh.contents(for_api=True)]
+
+        if not no_return:
+            # determine return value after new history saved to include new saved and deleted saves
+            # send back items after `last_sync`
+            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            ret["last_sync"] = now
+            ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
+            ret["settings"] = profile.settings
+            ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
+            if post.get("client", "") == "web":
+                # request was made from web. update last_sync on profile
+                profile.update({"last_sync_web": now})
+                profile_updated = True
+        if profile_updated:
+            profile.save()
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
