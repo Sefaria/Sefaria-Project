@@ -75,6 +75,11 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 43
         assert len(r.sections) == 1
 
+        r = m.Ref(u"בבא מציעא נח:")
+        assert r.book == 'Bava Metzia'
+        assert r.sections[0] == 116
+        assert len(r.sections) == 1
+
         r = m.Ref(u"פסחים ד' נח:")
         assert r.book == 'Pesachim'
         assert r.sections[0] == 116
@@ -274,11 +279,9 @@ class Test_parse_he_ref_range(object):
         assert m.Ref(u'במדבר, כ"ז, טו - כג') == m.Ref("Numbers 27:15-23")
         assert m.Ref(u'במדבר, כ"ז, טו -כ״ט כג') == m.Ref("Numbers 27:15-29:23")
 
-    @pytest.mark.failing
     def test_hebrew_range_with_colons(self):
-        assert m.Ref(u'רות יט:יח-כ:יח') == m.Ref("Ruth 19:18-20:18")
+        assert m.Ref(u'רות ג:יח-ד:א') == m.Ref("Ruth 3:18-4:1")
 
-    @pytest.mark.failing
     def test_hebrew_range_commentary(self):
         assert m.Ref(u'רש"י על ויקרא ט״ו:ג׳-י״ז:י״ב') == m.Ref("Rashi on Leviticus 15:3-17:12")
         assert m.Ref(u'רש"י על שמות ג׳:א׳:א׳-ג׳') == m.Ref("Rashi on Exodus 3:1:1-3")
