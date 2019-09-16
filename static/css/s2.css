@@ -6737,6 +6737,11 @@ body .homeFeedWrapper .content {
   background-color: #FBFBFA;
   padding: 60px 50px;
 }
+@media (max-width: 540px) {
+  .homeFeedSidebar {
+    display: none;
+  }
+}
 .homeFeedSidebar .section {
   margin-bottom: 70px;
 }
