@@ -2,6 +2,7 @@ const {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
   TestMessage,
+  ProfilePic,
 }                = require('./Misc');
 const React      = require('react');
 const PropTypes  = require('prop-types');
@@ -42,35 +43,34 @@ class Header extends Component {
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
       _renderItem: function( ul, item) {
         var override = item.label.match(this._searchOverrideRegex());
-		return $( "<li></li>" )
-			.data( "item.autocomplete", item )
-            .toggleClass("search-override", !!override)
-			.append( $( "<a role='option'></a>" ).text( item.label ) )
-			.appendTo( ul );
-	  }.bind(this)
+        return $( "<li></li>" )
+          .addClass('ui-menu-item')
+          .data( "item.autocomplete", item )
+          .toggleClass("search-override", !!override)
+          .append( $( "<a role='option' data-value='" + item.value + "'></a>" ).text( item.label ) )
+          .appendTo( ul );
+      }.bind(this)
     });
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
-      position: {my: "left-12 top+14", at: "left bottom"},
+      position: {my: "left-12 top+17", at: "left bottom"},
       minLength: 3,
-      select: function( event, ui ) {
+      select: ( event, ui ) => {
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
         this.submitSearch(ui.item.value);
         return false;
-      }.bind(this),
-
-      source: function(request, response) {
-        Sefaria.lookup(
-            request.term,
-            d => {
-              if (d["completions"].length > 0) {
-                response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
-              } else {
-                response([])
-              }
-            },
-            e => response([])
-        );
-      }.bind(this)
+      },
+      focus: function( event, ui ) {
+        $(".ui-state-focus").removeClass("ui-state-focus");
+        $(".ui-menu-item a[data-value='" + ui.item.value + "']").addClass("ui-state-focus");
+      },
+      source: (request, response) => Sefaria.getName(request.term)
+        .then(d => {
+          if (d["completions"].length > 0) {
+            response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+          } else {
+            response([])
+          }
+        }, e => response([]))
     });
   }
   showVirtualKeyboardIcon(show){
@@ -106,13 +106,15 @@ class Header extends Component {
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
-  showAccount(e) {
+  openMyProfile(e) {
     e.preventDefault();
     if (typeof sjs !== "undefined") {
-      window.location = "/account";
+      window.location = "/my/profile";
       return;
     }
-    this.props.setCentralState({menuOpen: "account"});
+    if (!this.state.profile || Sefaria._uid !== this.state.profile.id) {
+      this.props.openProfile(Sefaria.slug, Sefaria.full_name);
+    }
     this.clearSearchBox();
   }
   showNotifications(e) {
@@ -148,7 +150,8 @@ class Header extends Component {
       return;
     }
 
-    Sefaria.lookup(query, function(d) {
+    Sefaria.getName(query)
+        .then(d => {
       // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
       if (Sefaria.isACaseVariant(query, d)) {
         this.submitSearch(Sefaria.repairCaseVariant(query, d));
@@ -160,15 +163,15 @@ class Header extends Component {
         Sefaria.track.event("Search", action, query);
         this.clearSearchBox();
         this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-      } else if (d["type"] == "Person") {
+      } else if (d["type"] === "Person") {
         Sefaria.track.event("Search", "Search Box Navigation - Person", query);
         this.closeSearchAutocomplete();
         this.showPerson(d["key"]);
-      } else if (d["type"] == "Group") {
+      } else if (d["type"] === "Group") {
         Sefaria.track.event("Search", "Search Box Navigation - Group", query);
         this.closeSearchAutocomplete();
         this.showGroup(d["key"]);
-      } else if (d["type"] == "TocCategory") {
+      } else if (d["type"] === "TocCategory") {
         Sefaria.track.event("Search", "Search Box Navigation - Category", query);
         this.closeSearchAutocomplete();
         this.showLibrary(d["key"]);  // "key" holds the category path
@@ -177,7 +180,7 @@ class Header extends Component {
         this.closeSearchAutocomplete();
         this.showSearch(query);
       }
-    }.bind(this));
+    });
   }
   closeSearchAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
@@ -229,6 +232,8 @@ class Header extends Component {
     var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
+    } else {
+      $(ReactDOM.findDOMNode(this)).find(".search").focus();
     }
   }
   handleFirstTab(e) {
@@ -254,13 +259,16 @@ class Header extends Component {
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}
                           registerAvailableFilters={this.props.registerAvailableFilters}
+                          searchInGroup={this.props.searchInGroup}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
-                          toggleSignUpModal={this.props.toggleSignUpModal}/>) : null;
+                          toggleSignUpModal={this.props.toggleSignUpModal}
+                          openProfile={this.props.openProfile}
+                        />) : null;
 
 
     var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});
@@ -269,8 +277,8 @@ class Header extends Component {
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/account" className="account" onClick={this.showAccount}><img src="/static/img/user-64.png" alt="My Account"/></a>
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
+                            <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.gravatar_url} name={Sefaria.full_name} /></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login signupLink" href={"/register" + nextParam}>
@@ -337,6 +345,7 @@ Header.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
+  searchInGroup:               PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   handleInAppLinkClick:        PropTypes.func,
   headerMesssage:              PropTypes.string,
@@ -344,6 +353,7 @@ Header.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   toggleSignUpModal:           PropTypes.func.isRequired,
+  openProfile:                 PropTypes.func.isRequired,
 };
 
 

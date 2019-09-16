@@ -78,6 +78,7 @@ class ReaderApp extends Component {
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
+          profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
@@ -118,6 +119,7 @@ class ReaderApp extends Component {
           }),
           navigationCategories: props.initialNavigationCategories,
           navigationTopic: props.initialTopic,
+          profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
           navigationGroupTag: props.initialGroupTag,
@@ -153,6 +155,7 @@ class ReaderApp extends Component {
         }),
         navigationCategories: props.initialNavigationCategories,
         navigationTopic: props.initialTopic,
+        profile: props.initialProfile,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
         navigationGroupTag: props.initialGroupTag,
@@ -460,7 +463,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "home":
             hist.title = Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
-            hist.url   = "oldhome";
+            hist.url   = "";
             hist.mode  = "home";
             break;
           case "navigation":
@@ -550,6 +553,11 @@ class ReaderApp extends Component {
             hist.url   = "account";
             hist.mode  = "account";
             break;
+          case "profile":
+            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
+            hist.url   = `profile/${state.profile.slug}`;
+            hist.mode = "profile";
+            break;
           case "notifications":
             hist.title = Sefaria._(siteName + " Notifcations");
             hist.url   = "notifications";
@@ -585,6 +593,11 @@ class ReaderApp extends Component {
             hist.url = "story_editor";
             hist.mode = "story_editor";
             break;
+          case "user_stats":
+            hist.title = Sefaria._("Torah Tracker");
+            hist.url = "torahtracker";
+            hist.mode = "user_stats";
+            break;
           case "saved":
             hist.title = Sefaria._("My Saved Content");
             hist.url = "texts/saved";
@@ -597,7 +610,7 @@ class ReaderApp extends Component {
             break;
           case "homefeed":
             hist.title = Sefaria._("Sefaria Stories");
-            hist.url = "";
+            hist.url = "new-home";
             hist.mode = "homefeed";
             break;
         }
@@ -847,6 +860,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
       textHighlights:          state.textHighlights          || null,
+      profile:                 state.profile                 || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -979,6 +993,8 @@ class ReaderApp extends Component {
       this.showMyGroups();
     } else if (path == "my/notes") {
       this.showMyNotes();
+    } else if (path == "torahtracker") {
+      this.showUserStats();
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
@@ -1272,9 +1288,9 @@ class ReaderApp extends Component {
     this.state.defaultVersions[indexTitle] = this.state.defaultVersions[indexTitle] || {};
     this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   }
-  setHeaderState(state, replaceHistory) {
+  setHeaderState(state, replaceHistory, cb) {
     this.state.header = extend(this.state.header, state);
-    this.setState({header: this.state.header});
+    this.setState({header: this.state.header}, cb);
   }
   setDefaultOption(option, value) {
     if (value !== this.state.defaultPanelSettings[option]) {
@@ -1287,7 +1303,7 @@ class ReaderApp extends Component {
     // options can contain {
     //  'textHighlights': array of strings to highlight in focused segment. used when clicking on search query result
     // }
-    this.state.panels = [] // temporarily clear panels directly in state, set properly with setState in openPanelAt
+    this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
   async openPanelAt(n, ref, currVersions, options) {
@@ -1305,7 +1321,7 @@ class ReaderApp extends Component {
       const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
       panel = this.makePanelState({mode: 'Sheet', sheet});
     } else {  // Text
-      if (ref.constructor == Array) {
+      if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array
         var refs = ref;
         var currentlyVisibleRef = Sefaria.normRef(ref);
@@ -1525,31 +1541,51 @@ class ReaderApp extends Component {
       this.setState({panels: [panel]});
     }
   }
+  searchInGroup(searchQuery, group) {
+    let panel;
+    const textSearchState =  new SearchState({ type: 'text' });
+    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [group], appliedFilterAggTypes: ['group']});
+
+    if (this.props.multiPanel) {
+      panel = this.makePanelState({mode: "Header", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
+      this.setState({header: panel, panels: []});
+    } else {
+      panel = this.makePanelState({menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
+      this.setState({panels: [panel]});
+    }
+  }
   showSheets() {
-    var updates = {menuOpen: "sheets"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets"});
+  }
+  showUserStats() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
   }
   showMySheets() {
-    var updates = {menuOpen: "sheets", navigationSheetTag: "My Sheets"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "My Sheets"});
   }
   showMyGroups() {
-    var updates = {menuOpen: "myGroups"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "myGroups"});
   }
   showMyNotes() {
-    var updates = {menuOpen: "myNotes"};
-    this.setStateInHeaderOrSinglePanel(updates);
+    this.setStateInHeaderOrSinglePanel({menuOpen: "myNotes"});
   }
-  setStateInHeaderOrSinglePanel(state) {
+  setStateInHeaderOrSinglePanel(state, cb) {
     // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
     // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
     if (this.props.multiPanel) {
-      this.setHeaderState(state);
+      this.setHeaderState(state, false, cb);
     } else {
       state = this.makePanelState(state);
-      this.setState({panels: [state]});
+      this.setState({panels: [state]}, cb);
     }
+  }
+  openProfile(slug, full_name) {
+    // requires slug and full_name to properly set window title and url in history
+    this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile: { slug, full_name } }, () => {
+      Sefaria.profileAPI(slug).then(profile => {
+        this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
+      });
+    });
   }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
@@ -1643,6 +1679,7 @@ class ReaderApp extends Component {
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
+                    searchInGroup={this.searchInGroup}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchTab={this.updateSearchTabInHeader}
                     updateSearchFilter={this.updateSearchFilterInHeader}
@@ -1656,6 +1693,7 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
                     translateISOLanguageCode={this.translateISOLanguageCode}
+                    openProfile={this.openProfile}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
 
     var panels = [];
@@ -1728,6 +1766,7 @@ class ReaderApp extends Component {
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}
                       registerAvailableFilters={updateAvailableFilters}
+                      searchInGroup={this.searchInGroup}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
@@ -1742,6 +1781,7 @@ class ReaderApp extends Component {
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
+                      openProfile={this.openProfile}
                     />
                   </div>);
     }
@@ -1797,6 +1837,7 @@ ReaderApp.propTypes = {
   initialSheetSearchSortType:  PropTypes.string,
   initialSheetsTag:            PropTypes.string,
   initialTopic:                PropTypes.string,
+  initialProfile:              PropTypes.object,
   initialNavigationCategories: PropTypes.array,
   initialSettings:             PropTypes.object,
   initialPanels:               PropTypes.array,
@@ -1815,6 +1856,7 @@ ReaderApp.defaultProps = {
   initialQuery:                null,
   initialSheetsTag:            null,
   initialTopic:                null,
+  initialProfile:              null,
   initialNavigationCategories: [],
   initialPanels:               [],
   initialDefaultVersions:      {},

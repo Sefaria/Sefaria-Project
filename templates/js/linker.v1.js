@@ -18,7 +18,7 @@
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
 
-    var base_url = 'https://www.sefaria.org/';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -277,7 +277,7 @@
                     }
                 }
                 if (ns.matches.length == 0) {
-                    console.log("No references found to link to Sefaria.");
+                    // console.log("No references found to link to Sefaria.");
                     return;
                 }
                 atomic.get(base_url + "api/bulktext/" + ns.matches.join("|"))
@@ -309,9 +309,41 @@
                         });
                     })
                     .error(function (data, xhr) { });  // api/bulktext
+
+                ns._trackPage();
             })
             .error(function (data, xhr) { });  // api/regexs
     };
+
+    ns._trackPage = function() {
+        var robots = document.head.querySelector("meta[name~=robots]");
+        if (robots && robots.content.includes("noindex")) { return; }
+
+        var canonical = document.head.querySelector("link[rel~=canonical]");
+        var url = canonical ? canonical.href : window.location.href;
+        var meta = document.head.querySelector("meta[name~=description]")
+                   || document.head.querySelector("meta[property~=description]")
+                   || document.head.querySelector("meta[name~='og:description']")
+                   || document.head.querySelector("meta[property~='og:description']")
+                   || document.head.querySelector("meta[name~='twitter:description']")
+                   || document.head.querySelector("meta[property~='twitter:description']");
+        var description = meta ? meta.content : "";
+        var data = {
+            "url": url,
+            "title": document.title,
+            "description": description,
+            "refs": ns.matches,
+        };
+        // console.log("TRACK");
+        // console.log(data);
+        var json = JSON.stringify(data);
+        var postData = encodeURIComponent("json") + '=' + encodeURIComponent(json);
+        atomic.post(base_url + "api/linker-track", postData)
+            .success(function (data, xhr) {
+                //console.log(data);
+            });
+    }
+
 
 }(this.sefaria = this.sefaria || {}));
 

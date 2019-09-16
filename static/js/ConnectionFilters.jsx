@@ -68,7 +68,7 @@ CategoryFilter.propTypes = {
   heCategory:             PropTypes.string.isRequired,
   showBooks:              PropTypes.bool.isRequired,
   count:                  PropTypes.number.isRequired,
-  hasEnglish:             PropTypes.bool.isRequired,
+  hasEnglish:             PropTypes.bool,
   books:                  PropTypes.array.isRequired,
   filter:                 PropTypes.array.isRequired,
   updateRecent:           PropTypes.bool.isRequired,

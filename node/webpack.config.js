@@ -28,7 +28,7 @@ var baseConfig = {
         new webpack.optimize.ModuleConcatenationPlugin() // puts all module code in one scope which is supposed to speed up run-time
     ],
     module: {
-        loaders: [
+        rules: [
             //a regexp that tells webpack use the following loaders on all
             //.js and .jsx files
             {
@@ -74,6 +74,7 @@ function config(overrides) {
 var clientConfig = config({
     context: path.resolve('./static/js'),
     entry: './client',
+    mode: 'development',  // can be overriden via cli
     //externals: [/^express$/, /^request$/, /^source-map-support$/],
     output: {
         path: path.resolve(buildDir + 'client'),
@@ -111,6 +112,7 @@ var serverConfig = config({
     context: path.resolve('./node'),
     entry: './server',
     target: 'node',
+    mode: 'development',  // can be overriden via cli
     externals: [nodeExternals()],
     output: {
         path: path.resolve(buildDir + 'server'),
@@ -130,6 +132,7 @@ var serverConfig = config({
 var diffConfig = config({
     context: path.resolve('./static/js'),
     entry: './diff_page',
+    mode: 'development',  // can be overriden via cli
     output: {
         path: path.resolve(buildDir + 'diffPage'),
         filename: 'diffPage.js'
@@ -140,6 +143,7 @@ var diffConfig = config({
 var exploreConfig = config({
     context: path.resolve('./static/js'),
     entry: './explore',
+    mode: 'development',  // can be overriden via cli
     externals: {
         d3: 'd3',
         sefaria: 'Sefaria',
@@ -154,6 +158,7 @@ var exploreConfig = config({
 var sefariajsConfig = config({
     context: path.resolve('./static/js'),
     entry: './sefaria/sefaria',
+    mode: 'development',  // can be overriden via cli
     output: {
         path: path.resolve(buildDir + 'sefaria'),
         filename: 'sefaria.js'
@@ -167,6 +172,7 @@ var sefariajsConfig = config({
 var jsonEditorConfig = config({
     context: path.resolve('./static/js'),
     entry: './jsonEditor',
+    mode: 'development',  // can be overriden via cli
     output: {
         path: path.resolve(buildDir + 'jsonEditor'),
         filename: 'jsonEditor.js'
@@ -179,6 +185,7 @@ var jsonEditorConfig = config({
 var timelineConfig = config({
     context: path.resolve('./static/js'),
     entry: './timeline',
+    mode: 'development',  // can be overriden via cli
     externals: {
         d3: 'd3',
         sefaria: 'Sefaria',

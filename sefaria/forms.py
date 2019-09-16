@@ -2,7 +2,7 @@
 """
 Override of Django forms for new users and password reset.
 
-Includes logic for subscribing to mailing list on register and for 
+Includes logic for subscribing to mailing list on register and for
 "User Seeds" -- pre-creating accounts that may already be in a Group.
 """
 from django import forms
@@ -17,6 +17,7 @@ from captcha.widgets import ReCaptchaV2Checkbox
 
 from sefaria.client.util import subscribe_to_list
 from sefaria.local_settings import DEBUG
+from sefaria.settings import MOBILE_APP_KEY
 from django.utils.translation import get_language
 
 
@@ -33,7 +34,7 @@ class NewUserForm(EmailUserCreationForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
+    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False, required=False)
 
     captcha_lang = "iw" if get_language() == 'he' else "en"
     captcha = ReCaptchaField(
@@ -45,11 +46,11 @@ class NewUserForm(EmailUserCreationForm):
             #api_params={'hl': captcha_lang}
         )
     )
-    
+
     class Meta:
         model = User
         fields = ("email",)
- 
+
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
@@ -67,17 +68,17 @@ class NewUserForm(EmailUserCreationForm):
     def save(self, commit=True):
         email = self.cleaned_data["email"]
         if user_exists(email):
-            # A 'User Seed' existing for this email address. 
+            # A 'User Seed' existing for this email address.
             user = get_user(email)
             user.set_password(self.cleaned_data["password1"])
             seed_group = Group.objects.get(name=SEED_GROUP)
             user.groups.remove(seed_group)
         else:
             user = super(NewUserForm, self).save(commit=False)
-        
+
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
-               
+
         if commit:
             user.save()
 
@@ -99,6 +100,21 @@ class NewUserForm(EmailUserCreationForm):
                 pass
 
         return user
+
+class NewUserFormAPI(NewUserForm):
+
+    mobile_app_key = forms.CharField(widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        super(NewUserForm, self).__init__(*args, **kwargs)
+        # don't require captcha on API form
+        # instead, require that the correct app_key is sent
+        self.fields.pop('captcha')
+
+    def clean_mobile_app_key(self):
+        mobile_app_key = self.cleaned_data["mobile_app_key"]
+        if mobile_app_key != MOBILE_APP_KEY:
+            raise forms.ValidationError(_("Incorrect mobile_app_key provided"))
 
 # TODO: Check back on me
 # This class doesn't seem to be getting called at all -- it's referenced in urls.py,

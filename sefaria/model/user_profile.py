@@ -8,7 +8,7 @@ import csv
 from datetime import datetime
 from random import randint
 
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, SheetNotFoundError
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
@@ -25,6 +25,9 @@ from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
 from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -53,7 +56,8 @@ class UserHistory(abst.AbstractMongoRecord):
         "num_times_read",     # int: legacy for migrating old recent views
         "sheet_title",        # str: for sheet history
         "sheet_owner",        # str: ditto
-        "sheet_id"            # int: ditto
+        "sheet_id",           # int: ditto
+        "delete_saved",       # bool: True if this item was saved and but then was deleted
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
@@ -103,28 +107,41 @@ class UserHistory(abst.AbstractMongoRecord):
             self.is_sheet       = r.index.title == "Sheet"
             if self.is_sheet:
                 self.sheet_id = r.sections[0]
-
+            if not self.secondary and not self.is_sheet and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
+                # logically, this would be on frontend, but easier here.
+                self.language = "hebrew"
+        except SheetNotFoundError:
+            self.context_refs   = [self.ref]
+            self.categories     = ["_unlisted"]
+            self.authors        = []
+            self.is_sheet       = True
         except InputError:   # Ref failed to resolve
             self.context_refs   = [self.ref]
             self.categories     = []
             self.authors        = []
             self.is_sheet       = False
+        except KeyError:     # is_text_translated() stumbled on a bad version state
+            pass
 
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
-            try:
-                del d["uid"]
-            except KeyError:
-                pass
-            try:
-                del d["server_time_stamp"]
-            except KeyError:
-                pass
-            try:
-                d["datetime"] = str(d["datetime"])
-            except KeyError:
-                pass
+            keys = {
+                'ref': u'',
+                'he_ref': u'',
+                'book': u'',
+                'versions': {},
+                'time_stamp': 0,
+                'saved': False,
+                'delete_saved': False,
+                'is_sheet': False,
+                'sheet_id': -1,
+                'sheet_owner': '',
+                'sheet_title': '',
+            }
+            d = {
+                key: d.get(key, default) for key, default in keys.items()
+            }
         return d
 
     def _sanitize(self):
@@ -146,10 +163,30 @@ class UserHistory(abst.AbstractMongoRecord):
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
         uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
             "saved": saved,
-            "server_time_stamp": hist["server_time_stamp"]
+            "server_time_stamp": hist["server_time_stamp"],
+            "delete_saved": action == "delete_saved"
         })
         uh.save()
         return uh
+
+    @staticmethod
+    def timeclause(start=None, end=None):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if start is None and end is None:
+            return {}
+
+        timerange = {}
+        if start:
+            timerange["$gte"] = start
+        if end:
+            timerange["$lte"] = end
+        return {"datetime": timerange}
+
 
     @staticmethod
     def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
@@ -175,6 +212,9 @@ class UserHistory(abst.AbstractMongoRecord):
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
+
+    def hits(self):
+        return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
 
 
 class UserProfile(object):
@@ -236,13 +276,6 @@ class UserProfile(object):
 
         self._name_updated      = False
 
-
-        # Update with saved profile doc in MongoDB
-        profile = db.profiles.find_one({"id": id})
-        profile = self.migrateFromOldRecents(profile)
-        if profile:
-            self.update(profile)
-
         # Followers
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
@@ -252,6 +285,13 @@ class UserProfile(object):
         gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
         self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
         self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+
+        # Update with saved profile doc in MongoDB
+        profile = db.profiles.find_one({"id": id})
+        profile = self.migrateFromOldRecents(profile)
+        if profile:
+            self.update(profile)
+
 
     @property
     def full_name(self):
@@ -312,24 +352,11 @@ class UserProfile(object):
             self.save()
         return profile
 
-    def update_attr_time_stamps(self, obj):
-        if "settings" in obj:
-            settings_changed = False
-            for k, v in obj["settings"].items():
-                if k not in self.settings:
-                    settings_changed = True
-                elif v != self.settings[k]:
-                    settings_changed = True
-            if settings_changed:
-                obj["attr_time_stamps"] = obj.get("attr_time_stamps", {})
-                obj["attr_time_stamps"]["settings"] = epoch_time()
-
     def update(self, obj):
         """
         Update this object with the fields in dictionry 'obj'
         """
         self._set_flags_on_update(obj)
-        self.update_attr_time_stamps(obj)
         self.__dict__.update(obj)
 
         return self
@@ -348,7 +375,7 @@ class UserProfile(object):
         # Sanitize & Linkify fields that allow HTML
         self.bio = bleach.linkify(self.bio)
 
-        d = self.to_DICT()
+        d = self.to_mongo_dict()
         if self._id:
             d["_id"] = self._id
         db.profiles.save(d)
@@ -488,10 +515,11 @@ class UserProfile(object):
 
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
-
-    def to_DICT(self):
-        """Return a json serializble dictionary this profile"""
-        dictionary = {
+    def to_mongo_dict(self):
+        """
+        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
+        """
+        return {
             "id":                    self.id,
             "slug":                  self.slug,
             "position":              self.position,
@@ -514,10 +542,38 @@ class UserProfile(object):
             "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
         }
+
+
+    def to_api_dict(self, basic=False):
+        """
+        Return a json serializble dictionary this profile which includes fields used in profile API methods
+        If basic is True, only return enough data to display a profile listing
+        """
+        if basic:
+            return {
+                "id": self.id,
+                "slug": self.slug,
+                "gravatar_url": self.gravatar_url,
+                "full_name": self.full_name,
+                "position": self.position,
+                "organization": self.organization
+            }
+        dictionary = self.to_mongo_dict()
+        other_info = {
+            "full_name":             self.full_name,
+            "followers":             self.followers.uids,
+            "followees":             self.followees.uids,
+            "gravatar_url":          self.gravatar_url
+        }
+        dictionary.update(other_info)
         return dictionary
 
-    def to_JSON(self):
-        return json.dumps(self.to_DICT)
+
+    def to_mongo_json(self):
+        """
+        Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
+        """
+        return json.dumps(self.to_mongo_dict())
 
 
 def email_unread_notifications(timeframe):
@@ -600,6 +656,7 @@ def public_user_data(uid):
         "profileUrl": "/profile/" + profile.slug,
         "imageUrl": profile.gravatar_url_small,
         "position": profile.position,
+        "organization": profile.organization,
         "isStaff": is_staff,
         "uid": uid
     }
@@ -630,7 +687,7 @@ def is_user_staff(uid):
     """
     Returns True if the user with uid is staff.
     """
-    data = public_user_data(uid)
+    data = public_user_data(uid)  #needed?
     try:
         uid  = int(uid)
         user = User.objects.get(id=uid)
@@ -670,3 +727,20 @@ def annotate_user_list(uids):
         annotated_list.append(annotated)
 
     return annotated_list
+
+
+def process_index_title_change_in_user_history(indx, **kwargs):
+    print "Cascading User History from {} to {}".format(kwargs['old'], kwargs['new'])
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    objs = UserHistorySet({"$or": queries})
+    for o in objs:
+        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        try:
+            o.save()
+        except InputError:
+            logger.warning(u"Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))

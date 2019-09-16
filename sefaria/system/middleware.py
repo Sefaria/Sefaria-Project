@@ -34,7 +34,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/interface/", STATIC_URL)
+        excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             return # Save looking up a UserProfile, or redirecting when not needed
 
@@ -127,6 +127,15 @@ def current_domain_lang(request):
         if full_domain in DOMAIN_LANGUAGES:
             domain_lang = DOMAIN_LANGUAGES[full_domain]
     return domain_lang
+
+
+class CORSDebugMiddleware(MiddlewareMixin):
+    def process_response(self, request, response):
+        if DEBUG:
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET"
+            response["Access-Control-Allow-Headers"] = "*"
+        return response
 
 
 class ProfileMiddleware(MiddlewareMixin):

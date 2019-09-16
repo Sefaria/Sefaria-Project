@@ -125,6 +125,10 @@ def user_and_notifications(request):
         "interrupting_message_json": interrupting_message_json,
         "partner_group": profile.partner_group,
         "partner_role": profile.partner_role,
+        "slug": profile.slug,
+        "full_name": profile.full_name,
+        "gravatar_url": profile.gravatar_url,
+        "following": json.dumps(profile.followees.uids)
     }
 
 

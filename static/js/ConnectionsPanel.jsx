@@ -19,7 +19,7 @@ const $                      = require('./sefaria/sefariaJquery');
 const TextRange              = require('./TextRange');
 const TextList               = require('./TextList');
 const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
-const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
+const { AddToSourceSheetBox }= require('./AddToSourceSheet');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
 const VersionsBox            = require('./VersionsBox');
@@ -235,7 +235,6 @@ class ConnectionsPanel extends Component {
           });
       });
   }
-
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
     if (typeof(srefs) == "object" && srefs.length == 1) {
@@ -351,6 +350,7 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
+                    openProfile={this.props.openProfile}
                   /> : null }
 
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
@@ -359,6 +359,7 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
+                    openProfile={this.props.openProfile}
                   /> : null }
 
                 </div>);
@@ -533,6 +534,7 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
+  openProfile:             PropTypes.func.isRequired,
 };
 
 
@@ -545,7 +547,7 @@ class ResourcesList extends Component {
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
@@ -589,45 +591,45 @@ class ConnectionsSummary extends Component {
   // If `category` is present, shows a single category, otherwise all categories.
   // If `showBooks`, show specific text counts beneath each category.
   render() {
-    var refs          = this.props.srefs;
-    var excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
-    var summary       = Sefaria.linkSummary(refs, excludedSheet);
-    var oref          = Sefaria.ref(refs[0]);
-    var isTopLevel    = !this.props.category;
-    var baseCat       = oref ? oref["categories"][0] : null;
+    const refs          = this.props.srefs;
+    const excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
+    const oref          = Sefaria.ref(refs[0]);
+    const isTopLevel    = !this.props.category;
+    const baseCat       = oref ? oref["categories"][0] : null;
+    let summary       = Sefaria.linkSummary(refs, excludedSheet);
 
     if (!summary) { return (<div className="connectionsSummaryLoading"><LoadingMessage /></div>); }
 
-    if (this.props.category == "Commentary" ) {
+    if (this.props.category === "Commentary" ) {
       // Show Quoting Commentary & Modern Commentary together with Commentary
-      summary = summary.filter(cat => (cat.category.indexOf("Commentary") != -1));
+      summary = summary.filter(cat => (cat.category.indexOf("Commentary") !== -1));
+      const order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
       summary.sort((a, b) => {
-        var order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
-        var ia = order.indexOf(a.category)
-        var ib = order.indexOf(b.category)
+        const ia = order.indexOf(a.category);
+        const ib = order.indexOf(b.category);
         return ia - ib;
       });
 
     } else if (this.props.category) {
       // Single Category Summary
-      summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));
-      if (summary.length == 0) {
+      summary = summary.filter(function(cat) { return cat.category === this.props.category; }.bind(this));
+      if (summary.length === 0) {
         summary = [{category: this.props.category, books: [], count: 0, hasEnglish: false}];
       }
 
     } else if (isTopLevel) {
       
       // Hide Quoting or Modern Commentary from the top level view
-      var topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
+      let topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
       // But include Quoting and Modern Commentary counts and english mark in top level Commentary section
-      var subCommentaryCats = summary.filter(cat => (cat.category.indexOf("Commentary") > 1));
+      let subCommentaryCats = summary.filter(cat => (cat.category.indexOf("Commentary") > 1));
       if (subCommentaryCats.length && summary[0].category !== "Commentary") {
         // handle case of having Modern/Quoting Commentary, but no Commentary
-        var topSummary = [{category: "Commentary", count: 0, books: [], hasEnglish: false}].concat(topSummary);
+         topSummary = [{category: "Commentary", count: 0, books: [], hasEnglish: false}].concat(topSummary);
       } else if (subCommentaryCats.length && summary[0].category === "Commentary") {
         // If Commentary object is present and we have sub commentary counts to add, replace the object
         // so we can add to the count without changing the underlying object.
-        var topSummary = [{category: "Commentary", count: summary[0].count, books: [], hasEnglish: summary[0].hasEnglish}].concat(topSummary.slice(1))
+         topSummary = [{category: "Commentary", count: summary[0].count, books: [], hasEnglish: summary[0].hasEnglish}].concat(topSummary.slice(1))
       }
       subCommentaryCats.map(cat => {
         topSummary[0].count += cat.count;
@@ -637,9 +639,9 @@ class ConnectionsSummary extends Component {
       summary = topSummary;
     }
 
-    var connectionsSummary = summary.map(function(cat, i) {
+    const connectionsSummary = summary.map(function(cat, i) {
 
-      var books = this.props.contentLang == "hebrew"
+      const books = this.props.contentLang === "hebrew"
                     ? cat.books.concat().sort(Sefaria.linkSummaryBookSortHebrew.bind(null, baseCat))
                     : cat.books;
       return (
@@ -685,7 +687,7 @@ class MySheetsList extends Component {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -704,7 +706,7 @@ class PublicSheetsList extends Component {
       // My sheets are shown already in MySheetList
       return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -902,20 +904,9 @@ class AddNoteBox extends Component {
     this.setState({isPrivate: false});
   }
   deleteNote() {
+          alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
-    var url = "/api/notes/" + this.props.noteId;
-    $.ajax({
-      type: "delete",
-      url: url,
-      success: function() {
-        Sefaria.clearPrivateNotes();
-        Sefaria.track.event("Tools", "Delete Note", this.props.noteId);
-        this.props.onDelete();
-      }.bind(this),
-      error: function() {
-        alert(Sefaria._("Something went wrong (that's all I know)."));
-      }
-    });
+    Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
   render() {
     if (!Sefaria._uid) {
@@ -928,7 +919,7 @@ class AddNoteBox extends Component {
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
-          <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
+          <span className="int-he">{this.props.noteId ? "שמירה": "הוספת הערה"}</span>
         </div>
         {this.props.noteId ?
           <div className="button white fillWidth" onClick={this.props.onCancel}>
@@ -938,7 +929,7 @@ class AddNoteBox extends Component {
         {this.props.noteId ?
           (<div className="deleteNote" onClick={this.deleteNote}>
             <span className="int-en">Delete Note</span>
-            <span className="int-he">מחק רשומה</span>
+            <span className="int-he">מחיקת הערה</span>
            </div>): null }
       </div>);
 

@@ -1,6 +1,7 @@
 const {
   LoadingMessage,
   ReaderMessage,
+  ProfilePic,
 } = require('./Misc');
 
 const React = require('react');
@@ -45,8 +46,7 @@ class Sheet extends Component {
       if ("ref" in data.sources[i]) {
         Sefaria.getRef(data.sources[i].ref)
             .then(ref => ref.sectionRef)
-            .then(Sefaria.getLinks)
-            .then(() => this.forceUpdate());
+            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
       }
     }
   }
@@ -94,6 +94,7 @@ class Sheet extends Component {
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
             sheetID = {sheet.id}
+            openProfile={this.props.openProfile}
           />
       )
     }
@@ -199,6 +200,13 @@ class SheetContent extends Component {
     this.props.onRefClick(ref);
   }
 
+  openProfile(e) {
+    e.preventDefault();
+    const slugMatch = this.props.authorUrl.match(/profile\/(.+)$/);
+    const slug = !!slugMatch ? slugMatch[1] : '';
+    this.props.openProfile(slug, this.props.authorStatement);
+  }
+
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -295,11 +303,15 @@ class SheetContent extends Component {
 
             <div className="authorStatement">
                 <div className="groupListingImageBox imageBox">
-                    <a href={this.props.authorUrl}>
-                        <img className="groupListingImage img-circle" src={this.props.authorImage} alt="Author Avatar" />
+                    <a href={this.props.authorUrl} onClick={this.openProfile}>
+                      <ProfilePic
+                        url={this.props.authorImage}
+                        len={30}
+                        name={this.props.authorStatement}
+                      />
                     </a>
                 </div>
-                <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
+                <span>by <a href={this.props.authorUrl} onClick={this.openProfile}>{this.props.authorStatement}</a></span>
             </div>
 
             {this.props.group && this.props.group != "" ?
@@ -589,26 +601,29 @@ class SheetMedia extends Component {
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
-
-
     else {
-        this.props.onSegmentClick(this.props.source);
+      this.props.onSegmentClick(this.props.source);
     }
   }
 
-  makeMediaEmbedLink(mediaURL) {
+  makeMediaEmbedContent() {
     var mediaLink;
+    var mediaCaption = "";
+    var mediaClass = "media fullWidth";
+    var mediaURL = this.props.source.media;
+    var caption  = this.props.source.caption;
 
     if (mediaURL.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
+      mediaClass = "media"
     }
 
     else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
-      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>'
+      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 
     else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
-      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>'
+      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }
 
     else if (mediaURL.match(/\.(mp3)$/i) != null) {
@@ -619,7 +634,15 @@ class SheetMedia extends Component {
       mediaLink = 'Error loading media...';
     }
 
-    return mediaLink
+    if (caption && (caption.en || caption.he) ) {
+      var cls = caption.en && caption.he ? "" : caption.en ? "enOnly" : "heOnly";
+      var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
+                "<div class='en'>" + (caption.en || "") + "</div>" + 
+                "<div class='he'>" + (caption.he || "") + "</div>" + 
+                 "</div></div>";
+    }
+
+    return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
   }
 
   render() {
@@ -636,7 +659,7 @@ class SheetMedia extends Component {
                 className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
             </div>
 
-        <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
+        <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
         <div className="clearFix"></div>
         {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>

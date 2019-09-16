@@ -306,7 +306,7 @@ def process_index_title_change_in_gardens(indx, **kwargs):
         try:
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract
-            logger.warning("Deleting link that failed to save: {} {}".format(l.refs[0], l.refs[1]))
+            logger.warning(u"Deleting link that failed to save: {} {}".format(l.refs[0], l.refs[1]))
             l.delete()
 
 

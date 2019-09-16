@@ -1,12 +1,14 @@
 ## New Interfaces for Jewish Texts
 
-Sefaria is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning. Our website is up at www.sefaria.org.
+[Sefaria](https://www.sefaria.org) is creating interfaces, apps (like a source sheet builder) and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning.
 
 You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
 
 Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
-For general discussion about the project, please post to the [Sefaria Forum](https://groups.google.com/forum/?fromgroups#!forum/sefaria).
+For general discussion questions about the project, please email [hello@sefaria.org](mailto:hello@sefaria.org).
+
+If you find textual problems in our library please email [corrections@sefaria.org](mailto:corrections@sefaria.org).
 
 You can post bugs or request/discuss features on [GitHub Issues](https://github.com/blockspeiser/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
 
@@ -108,6 +110,12 @@ This will create (or overwrite) a mongo database called `sefaria`.
 If you have used `dump_small.tar.gz`, use the mongo client shell, or a GUI you have installed to create an empty collection inside the `sefaria` database called `history`.
 
 #### Set up Django's local server
+
+Sefaria is using Google's reCAPTCHA to verify the user is not a bot. For a deployment you should register and use your own reCAPTCHA keys (https://pypi.org/project/django-recaptcha/#installation).
+For local development the default test keys would suffice. The warning can be suprassed by adding the following to the settings file:
+
+    SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 `manage.py` is used to run and to manage the local server.  It is located in the root directory of the `Sefaria-Project` code base. 
 
 Django auth features run on a separate database. To init this database and set up Django's auth system, switch to the root directory of the `Sefaria-Project` code base, and run (from the project root):

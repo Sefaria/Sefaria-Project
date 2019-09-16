@@ -172,7 +172,7 @@ class SearchResultList extends Component {
           this.state.hits[type] = nextHits;
 
           this.setState({hits: this.state.hits});
-          this._loadRemainder(type, last + this.backgroundQuerySize, total, nextHits);
+          this._loadRemainder(type, last + nextHits.length, total, nextHits);
         }
       };
 
@@ -239,7 +239,7 @@ class SearchResultList extends Component {
                 this.props.registerAvailableFilters(type, availableFilters, registry, orphans, aggregationsToUpdate);
               }
               if(isCompletionStep) {
-                this._loadRemainder(type, this.initialQuerySize, data.hits.total, hitArray);
+                  this._loadRemainder(type, hitArray.length, data.hits.total, hitArray);
               }
           },
           error: this._handle_error
@@ -304,6 +304,7 @@ class SearchResultList extends Component {
               <SearchSheetResult
                     data={result}
                     query={this.props.query}
+                    openProfile={this.props.openProfile}
                     key={result._id} />);
         }
 
@@ -354,7 +355,8 @@ SearchResultList.propTypes = {
   updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
-  registerAvailableFilters: PropTypes.func
+  registerAvailableFilters: PropTypes.func,
+  openProfile:              PropTypes.func.isRequired,
 };
 
 

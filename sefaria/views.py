@@ -24,16 +24,19 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
+from rest_framework.decorators import api_view
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
-from sefaria.forms import NewUserForm
+from sefaria.forms import NewUserForm, NewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.group import GroupSet
@@ -59,6 +62,46 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def process_register_form(request, auth_method='session'):
+    form = NewUserForm(request.POST) if auth_method == 'session' else NewUserFormAPI(request.POST)
+    token_dict = None
+    if form.is_valid():
+        try:
+            with transaction.atomic():
+                new_user = form.save()
+                user = authenticate(email=form.cleaned_data['email'],
+                                    password=form.cleaned_data['password1'])
+                p = UserProfile(id=user.id)
+                p.assign_slug()
+                p.join_invited_groups()
+                if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
+                    p.add_partner_group_by_email()
+                if hasattr(request, "interfaceLang"):
+                    p.settings["interface_language"] = request.interfaceLang
+
+                p.save()
+        except Exception:
+            return {
+                "error": "something went wrong"
+            }
+        if auth_method == 'session':
+            auth_login(request, user)
+        elif auth_method == 'jwt':
+            token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
+    return {
+        k: v[0] if len(v) > 0 else unicode(v) for k, v in form.errors.items()
+    }, token_dict, form
+
+
+@api_view(["POST"])
+def register_api(request):
+    errors, token_dict, _ = process_register_form(request, auth_method='jwt')
+    if len(errors) == 0:
+        return jsonResponse(token_dict)
+
+    return jsonResponse(errors)
+
+
 def register(request):
     if request.user.is_authenticated:
         return redirect("login")
@@ -66,19 +109,8 @@ def register(request):
     next = request.GET.get('next', '')
 
     if request.method == 'POST':
-        form = NewUserForm(request.POST)
-        if form.is_valid():
-            new_user = form.save()
-            user = authenticate(email=form.cleaned_data['email'],
-                                password=form.cleaned_data['password1'])
-            auth_login(request, user)
-            p = UserProfile(id=user.id)
-            p.assign_slug()
-            p.join_invited_groups()
-            if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
-                p.add_partner_group_by_email()
-            p.settings["interface_language"] = request.interfaceLang
-            p.save()
+        errors, _, form = process_register_form(request)
+        if len(errors) == 0:
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
             elif "new?assignment=" in request.POST.get("next",""):
@@ -96,7 +128,6 @@ def register(request):
             form = NewUserForm(initial={'subscribe_educator': True})
         else:
             form = NewUserForm()
-
     return render(request, "registration/register.html", {'form': form, 'next': next})
 
 
@@ -188,24 +219,16 @@ def linker_js(request, linker_version=None):
     """
     Javascript of Linker plugin.
     """
+    CURRENT_LINKER_VERSION = "2"
+    linker_version = linker_version or CURRENT_LINKER_VERSION
+    linker_link = "js/linker.v" + linker_version + ".js"
+
     attrs = {
         "book_titles": json.dumps(model.library.citing_title_list("en")
                       + model.library.citing_title_list("he"))
     }
-    linker_link = "js/linker.js" if linker_version is None else "js/linker.v"+linker_version+".js"
 
-    return render(request,linker_link, attrs, content_type= "text/javascript")
-
-
-def old_linker_js(request):
-    """
-    Javascript of Linker plugin.
-    """
-    attrs = {
-        "book_titles": json.dumps(model.library.citing_title_list("en")
-                      + model.library.citing_title_list("he"))
-    }
-    return render(request,"js/linker.v1.js", attrs, content_type= "text/javascript")
+    return render(request, linker_link, attrs, content_type= "text/javascript")
 
 
 def title_regex_api(request, titles):
@@ -276,6 +299,25 @@ def bulktext_api(request, refs):
                 res[tref] = {"error": 1}
         resp = jsonResponse(res, cb)
         return resp
+
+
+@csrf_exempt
+def linker_tracking_api(request):
+    """
+    API tracking hits on the linker and storing webpages from them.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Method not implemented."})
+
+    j = request.POST.get("json")
+    if not j:
+        return jsonResponse({"error": "Missing 'json' parameter in post data."})
+    data = json.loads(j)
+
+    webpage = WebPage().load(data["url"]) or WebPage(data)
+    webpage.update_from_linker(data)
+
+    return jsonResponse({"status": "ok"})
 
 
 def passages_api(request, refs):
@@ -394,10 +436,10 @@ def reset_cached_api(request, apiurl):
             raise Http404("API not in cache")
 
     except Resolver404 as re:
-        logger.warn("Attempted to reset invalid url")
+        logger.warn(u"Attempted to reset invalid url")
         raise Http404()
     except Exception as e:
-        logger.warn("Unable to reset cache for {}".format(apiurl))
+        logger.warn(u"Unable to reset cache for {}".format(apiurl))
         raise Http404()
 
 
@@ -581,7 +623,7 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
-    logger.error("This is a simple error")
+    logger.error(u"This is a simple error")
     try:
         erorr = excepting
     except Exception as e:

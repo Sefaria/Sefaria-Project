@@ -109,6 +109,8 @@ def daily_rambam_three(datetime_obj):
     rambam_items = []
     datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
     database_obj = db.daily_rambam_three.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
     for rf in database_obj["refs"]:
         rf = model.Ref(rf)
         display_en = rf.normal().replace("Mishneh Torah, ", "")
@@ -232,6 +234,10 @@ def make_parashah_response_from_calendar_entry(db_parasha):
     return [parasha]
 
 
+def aliyah_ref(parasha_db, aliyah):
+    assert 1 <= aliyah <= 7
+    return model.Ref(parasha_db["aliyot"][aliyah - 1])
+
 def this_weeks_parasha(datetime_obj, diaspora=True):
     """
     Returns the upcoming Parasha for datetime.
@@ -269,6 +275,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)
+
 
 def get_keyed_calendar_items(diaspora=True, custom=None):
     cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)

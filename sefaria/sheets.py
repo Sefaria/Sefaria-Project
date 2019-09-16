@@ -107,8 +107,10 @@ def get_sheet_for_panel(id=None):
 			sheet["groupLogo"] = None
 	return sheet
 
-def user_sheets(user_id, sort_by="date", limit=0, skip=0):
+def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	query = {"owner": int(user_id)}
+	if not private:
+		query["status"] = "public"
 	if sort_by == "date":
 		sort = [["dateModified", -1]]
 	elif sort_by == "views":
@@ -152,6 +154,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		"owner": 1,
 		"views": 1,
 		"dateModified": 1,
+		"dateCreated": 1,
 		"tags": 1,
 		"group": 1,
 	}
@@ -187,7 +190,9 @@ def sheet_to_dict(sheet):
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
 		"views": sheet["views"],
+		"group": sheet.get("group", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
+		"created": sheet.get("dateCreated", None),
 		"tags": sheet["tags"] if "tags" in sheet else [],
 		"options": sheet["options"] if "options" in sheet else [],
 	}
@@ -205,14 +210,12 @@ def user_tags(uid):
 
 def sheet_tag_counts(query, sort_by="count"):
 	"""
-	Returns tags ordered by count for sheets matching query.
+	Returns tags ordered by count for sheets matching `query`.
 	"""
 	if sort_by == "count":
 		sort_query = SON([("count", -1), ("_id", -1)])
 	elif sort_by == "alpha":
 		sort_query = SON([("_id", 1)])
-	elif sort_by == "trending":
-		return recent_public_tags(days=14)
 	else:
 		return []
 
@@ -248,27 +251,43 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 
-def recent_public_tags(days=14, ntags=14):
+def trending_tags(days=7, ntags=14):
 	"""
-	Returns list of tag/counts on public sheets modified in the last 'days'.
+	Returns a list of trending tags plus sheet count and author count modified in the last `days`.
 	"""
-	cutoff            = datetime.now() - timedelta(days=days)
-	query             = {"status": "public", "dateModified": { "$gt": cutoff.isoformat() } }
-	unnormalized_tags = sheet_tag_counts(query)[:ntags]
+	cutoff = datetime.now() - timedelta(days=days)
+	query  = {
+		"status": "public",
+		"dateModified": { "$gt": cutoff.isoformat() },
+		"viaOwner": {"$exists": 0}, 
+		"assignment_id": {"$exists": 0}
+	}
 
-	tags = defaultdict(int)
+	tags = db.sheets.aggregate([
+			{"$match": query },
+			{"$unwind": "$tags"},
+			{"$group": {"_id": "$tags", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
+			{"$project": { "_id": 0, "tag": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
+
+	unnormalized_tags = list(tags)
+	tags = defaultdict(lambda: {"sheet_count": 0, "authors": set()})
 	results = []
 
 	for tag in unnormalized_tags:
-		tags[model.Term.normalize(tag["tag"])] += tag["count"]
+		norm_term = model.Term.normalize(tag["tag"])
+		tags[norm_term]["sheet_count"] += tag["sheet_count"]
+		tags[norm_term]["authors"].update(set(tag["authors"]))
 
 	for tag in tags.items():
-		if len(tag[0]):
-			results.append({"tag": tag[0], "count": tag[1]})
+		if len(tag[0]) and len(tag[1]["authors"]) > 1:  # A trend needs to include at least 2 people
+			results.append({"tag": tag[0], 
+							"count": tag[1]["sheet_count"],
+							"author_count": len(tag[1]["authors"]),
+							"he_tag": model.Term.normalize(tag[0], "he")})
 
-	results = sorted(results, key=lambda x: -x["count"])
+	results = sorted(results, key=lambda x: -x["author_count"])
 
-	return results
+	return results[:ntags]
 
 
 def rebuild_sheet_nodes(sheet):
@@ -405,7 +424,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			index_name = search.get_new_and_current_index_names("sheet")['current']
 			search.index_sheet(index_name, sheet["id"])
 		except:
-			logger.error("Failed index on " + str(sheet["id"]))
+			logger.error(u"Failed index on " + str(sheet["id"]))
 
 	'''
 	global last_updated
@@ -547,7 +566,7 @@ def refine_ref_by_text(ref, text):
 
 def update_included_refs(query=None, hours=None, refine_refs=False):
 	"""
-	Rebuild included_refs index on sheets matching `query` or sheets 
+	Rebuild included_refs index on sheets matching `query` or sheets
 	that have been modified in the last `hours`.
 	"""
 	if hours:
@@ -580,7 +599,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
-	If `in_group` (list) is present, only return sheets in one of the listed groups. 
+	If `in_group` (list) is present, only return sheets in one of the listed groups.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -734,7 +753,7 @@ def public_tag_list(sort_by="alpha"):
 	return results
 
 
-def get_sheets_by_tag(tag, public=True, uid=None, group=None):
+def get_sheets_by_tag(tag, public=True, uid=None, group=None, proj=None, limit=0, page=0):
 	"""
 	Returns all sheets tagged with 'tag'
 	"""
@@ -749,7 +768,7 @@ def get_sheets_by_tag(tag, public=True, uid=None, group=None):
 	elif public:
 		query["status"] = "public"
 
-	sheets = db.sheets.find(query).sort([["views", -1]])
+	sheets = db.sheets.find(query, proj).sort([["views", -1]]).limit(limit).skip(page * limit)
 	return sheets
 
 

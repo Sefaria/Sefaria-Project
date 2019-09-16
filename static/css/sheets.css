@@ -432,7 +432,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background: white;
 	border: 1px solid #ddd;
 	border-radius: 3px;
-	z-index: 101;
+	z-index: 19;
 	width: 600px;
 	display: none;
 }
@@ -1371,36 +1371,29 @@ a:active {
 	#controls, #fileControls {
 		display: none;
 	}
-
 	#sheet .sheetItem .media {
 		position: relative;
 		padding-bottom: 56.25%; /* 16:9 */
 	}
-
 	#sheet .sheetItem .media iframe {
-
 		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
 		height: 100%;
 	}
-
 	.indented-1 {
 		padding-left: 40px !important;
 		padding-right: 40px !important;
 	}
-
 	.indented-2 {
 		padding-left: 60px !important;
 		padding-right: 60px !important;
 	}
-
 	.indented-3 {
 		padding-left: 60px !important;
 		padding-right: 60px !important;
 	}
-
 }
 
 body.embeded #controls, body.embeded .header, body.embeded #footer, body.embeded #fileControls, body.embeded .sheetsEditNavTop, body.embeded #interruptingMessage {
@@ -1671,9 +1664,40 @@ line-height: normal;
 }
 
 .media {
-	text-align:center;
+	margin: 0 auto;
+	display: table;
+	table-layout: fixed;
 }
-
+.media.fullWidth {
+	width: 100%;
+}
+.media .mediaCaption {
+	display: table-caption;
+	caption-side: bottom;
+	margin-top: 8px;
+}
+.media .mediaCaptionInner {
+	display: flex;
+	justify-content: space-between;
+}
+.media .mediaCaption .en {
+	font-size: 16px;
+	flex: 1;
+}
+#sheet .media .mediaCaption .he {
+	font-size: 15px;
+	margin-top: -5px;
+	flex: 1;
+	font-family: "Heebo", sans-serif;
+}
+#sheet .media .mediaCaption.heOnly .he,
+#sheet .media .mediaCaption.enOnly .en {
+	display: block;
+}
+#sheet .media .mediaCaption.heOnly .en,
+#sheet .media .mediaCaption.enOnly .he {
+	display: none;
+}
 #addMediaInput {
 	margin-top:10px;
 	width: 300px;
@@ -1681,7 +1705,6 @@ line-height: normal;
 .optionItem a, .optionLink a, .languageToggleOption div a, .layoutToggleOption div a, .sideBySideToggleOption div a {
  color: inherit;
 }
-
 
 .sheetsEditNavTop {
     position: fixed;
@@ -1702,10 +1725,6 @@ body.hasBannerMessage .sheetsEditNavTop {
 
 .sheetsMenuBar, .sheetsEditorControls{
 	padding: 7px 30px 6px 30px;
-}
-
-.sheetsMenuBar{
-
 }
 
 .sheetsEditorControls{
@@ -2290,13 +2309,7 @@ label[for="sourceSheetShareSelect"] {
 	display: inline-block;
 }
 
-.ui-widget-content {
-	border: 1px solid #d3d3d3;
-    background: #e6e6e6;
-    font-weight: normal;
-}
-
-.ui-icon-close {
+.tagit.ui-icon-close {
     background-position: -80px -128px;
 }
 
@@ -2310,19 +2323,13 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
-.ui-icon {
+.tagit .ui-icon {
     width: 16px;
     height: 16px;
-}
-.ui-icon {
     display: block;
     text-indent: -99999px;
     overflow: hidden;
     background-repeat: no-repeat;
-}
-
-.ui-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #fff;
 }
 
 ul.tagit li.tagit-choice {

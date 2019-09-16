@@ -35,3 +35,10 @@ def daf_to_section(daf):
     if amud == "a": section -= 1
     return section
 
+
+def amud_ref_to_daf_ref(ref):
+    """ Take an amud "a" reference and converts it to a daf reference """
+    next = ref.next_section_ref()
+    if next is None:
+        return ref
+    return ref.to(next)

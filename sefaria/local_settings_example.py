@@ -1,6 +1,7 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 import os.path
+from datetime import timedelta
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
@@ -197,6 +198,18 @@ GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
 PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = None
 
+# Simple JWT
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+    'ROTATE_REFRESH_TOKENS': True,
+    'SIGNING_KEY': 'a signing key: at least 256 bits',
+}
+
+# Key which identifies the Sefaria app as opposed to a user
+# using our API outside of the app. Mainly for registration
+MOBILE_APP_KEY = "MOBILE_APP_KEY"
+
 """ to use logging, in any module:
 # import the logging library
 import logging
@@ -299,4 +312,3 @@ LOGGING = {
         },
     }
 }
-

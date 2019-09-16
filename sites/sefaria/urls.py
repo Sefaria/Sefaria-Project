@@ -26,6 +26,7 @@ static_pages = [
     "linker",
     "ios",
     "mobile",
+    "app",
     "sefaria-edition",
     "sefaria-community-translation",
     "contributed-to-sefaria",
@@ -40,6 +41,7 @@ static_pages = [
     "shavuot-map-2018",
     "testimonials",
     "torah-tab",
+    "dicta-thanks",
 ]
 
 
@@ -50,6 +52,7 @@ site_urlpatterns = [
     url(r'^disable_feed/?$', reader_views.disable_home_feed),
     # url(r'^$', reader_views.home_feed),
     # url(r'^oldhome/?$', reader_views.old_home),
+    url(r'^oldhome/?$', lambda x: HttpResponseRedirect('/')),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
@@ -57,9 +60,8 @@ site_urlpatterns = [
 ]
 
 
-# Redirects to Forum, Wiki, etc
+# Redirects to Wikis etc
 site_urlpatterns += [
-    url(r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),

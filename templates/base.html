@@ -6,8 +6,8 @@
 <html>
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
-    <meta charset="utf-8">
-    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}">
+    <meta charset="utf-8"/>
+    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
 
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
     <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
@@ -86,7 +86,7 @@
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -94,12 +94,12 @@
         });
         WebFont.load({
           google: {
-            families: ['Roboto:400,700', 'Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
+            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
           }});
     </script>
 </head>
 
-<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
+<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
@@ -142,21 +142,49 @@
 
     <script>
       {% autoescape off %}
-      /*if (!window.jQuery) {
+      if (!window.jQuery) {
         console.log('loading jquery locally');
         document.write('<script src="/static/js/lib/jquery.js"><\/script><script src="/static/js/lib/jquery-ui.js"><\/script>');
       }
-      if (!window.react) {
+      if (!window.React) {
           console.log('loading react locally');
-          document.write('<script src="/static/js/lib/react.js"><\/script><script src="/static/js/lib/react-dom.js"><\/script>');
-      }*/
-      const DJANGO_VARS = {
+          document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
+      }
+      var DJANGO_VARS = {
         props: {{ propsJSON|default:"null" }},
         contentLang: "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp: {% if html %}true{% else %}false{% endif %},
         static_url: {{ STATIC_PREFIX }}
       };
+      document.addEventListener('copy', function(e) {
+          const selection = document.getSelection()
+          const text_only = selection.toString();
+
+          if (selection.rangeCount) {
+              var container = document.createElement("div");
+              for (var i = 0, len = selection.rangeCount; i < len; ++i) {
+                  container.appendChild(selection.getRangeAt(i).cloneContents());
+              }
+
+            //remove line numbers
+              var lineNumbers = container.getElementsByClassName('segmentNumber');
+              while(lineNumbers.length > 0){
+                  lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
+              }
+
+              html = container.innerHTML;
+          }
+          else {
+              html = text_only;
+          }
+
+          const clipdata = e.clipboardData || window.clipboardData;
+
+          clipdata.setData('text/plain', text_only);
+          clipdata.setData('text/html', html);
+          e.preventDefault();
+      });
       {% endautoescape %}
     </script>
 

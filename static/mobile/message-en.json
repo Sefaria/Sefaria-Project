@@ -1,1 +1,12 @@
-null
+{
+	"title": "",
+	"text": [
+    "Thank you for sitting down to learn with us. We hope Sefaria will be a helpful resource to you during Elul and into the new year.",
+    "Please consider making a gift of $18 -- or whatever you can donate -- to sustain Sefaria.",
+    "Chag sameach, Team Sefaria"
+  ],
+	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=App&utm_medium=Modal&utm_campaign=Elul%202019",
+	"buttonText": "Donate",
+	"name": "elul-2019-2",
+	"schemaVersion": 1
+}

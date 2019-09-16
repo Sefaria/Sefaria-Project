@@ -74,7 +74,7 @@ def invalidate_counts(indx):
     elif isinstance(indx, basestring):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
-        logger.warn("Could not parse index '{}' to purge counts from Varnish.".format(indx))
+        logger.warn(u"Could not parse index '{}' to purge counts from Varnish.".format(indx))
         return
 
     purge_url("{}/api/preview/{}".format(FRONT_END_URL, url))
@@ -93,12 +93,12 @@ def invalidate_index(indx):
             oref = Ref(indx.title)
             url = oref.url()
         except InputError as e:
-            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            logger.warn(u"In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
             return
     elif isinstance(indx, basestring):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
-        logger.warn("Could not parse index '{}' to purge from Varnish.".format(indx))
+        logger.warn(u"Could not parse index '{}' to purge from Varnish.".format(indx))
         return
 
     purge_url("{}/api/index/{}".format(FRONT_END_URL, url))

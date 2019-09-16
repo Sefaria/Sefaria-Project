@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python2.6
+import django
+django.setup()
+
 from sefaria.model import library
 from sefaria.model import Ref
 
 from sefaria.model.text import TextChunk
-from sefaria.model.text import TextChunk
+from sefaria.search import TextIndexer
+from sefaria.system.exceptions import InputError
 from pprint import pprint
 import json
 from collections import defaultdict
@@ -20,36 +24,22 @@ import math
 import binascii
 import struct
 
-
 LANGS = ('en', 'he')
-#LANGS = ('en',)
 
-
-"""
-. venv/bin/act
-sudo mongod
-
-# in new window
-
-cd Sefaria-Project
-. ../venv/bin/act
-./run scripts/mobi...
-  
-"""
 def main():
     print ("yoyoy")
     global DESCRIPTION
 
     # how many Texts (Books) do we want to parse?
     # end = ALL for all books.
-    ALL = 10000
+    ALL = 100000  # very large number (more than number of indexes)
     start = 0
     end = 300
-    test_word = 'fourfold'
+    test_word = 'water'
     DESCRIPTION = '{}-{}'.format(start, end)
 
     ####### parse lib words #########
-    #parse_lib_to_json(start, end)
+    OfflineTextIndexer.parse_lib_to_json(start, end)
 
     ####### get ref_strs from json files ########
     #get_from_json(test_word)
@@ -58,7 +48,7 @@ def main():
     #jsons_to_db()
 
     ####### get ref_strs from DB >>>>>>>>>>>
-    get_from_db(test_word)
+    #get_from_db(test_word)
 
 WORDS_2_REF_NUMS = 'words_2_ref_nums'
 REF_NUM_MIN_N_TITLE = 'ref_num_min_N_title'
@@ -66,9 +56,8 @@ REF_NUM_2_PART = 'ref_num_2_part'
 _ONLY_WORDS_LIST = 'only_words_list'
 METADATA_CHUNKS_PACKETSIZE = '__METADATA_ChunkSize_PacketSize__'
 
-
 def save_read_filename(name, ext='json'):
-    return '../ios_search/dumps/{}.{}.{}.{}'.format(DESCRIPTION, name, '_'.join(LANGS), ext)
+    return '../mobile_offline_search/dumps/{}.{}.{}.{}'.format(DESCRIPTION, name, '_'.join(LANGS), ext)
 
 def save(name, data):
     with open(save_read_filename(name), 'w') as f:
@@ -78,94 +67,110 @@ def read(name):
     with open(save_read_filename(name), 'r') as f:
         return json.load(f)
 
-def parse_lib_to_json(start, end):
-    print('parse_lib', start, end)
-    ref_num_min_N_title = [] # min ref_num of each book.title [[min_ref_num, book_title], ...]
-    ref_num = 0 # absolute index num for all refs
+class OfflineTextIndexer(object):
+    @staticmethod
+    def get_section_ref(segment_ref):
+        return re.sub(ur":[^:]+$", u'', segment_ref)
 
-    # only used for debuging (
-    ref_num_2_full_name = []
+    @classmethod
+    def index_section(cls, title, section_ref, section_text):
+        if not section_ref:
+            return
+        ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref)
+        cls.ref_num_2_full_name.append(section_ref)
+        cls.ref_num_2_part.append(ref_part)
+        add_words(section_text,cls.words_2_ref_nums, cls.ref_num)
+        cls.ref_num += 1
 
-    # index of list is ref_num (implicitly) ["intro to bookA", 1, 2, 3, "Intro to bookB", ...]
-    ref_num_2_part = []
+    @classmethod
+    def index_segment(cls, text, ref, heRef, version):
+        title = version.title
+        section_ref = OfflineTextIndexer.get_section_ref(ref)
+        if title != cls.curr_title:
+            # new book
+            cls.curr_title = title
+            cls.ref_num_min_N_title.append((cls.ref_num, title,))
+        if section_ref != cls.curr_section:
+            cls.index_section(cls.curr_title, cls.section_ref, cls.curr_section_text)
+            cls.curr_section = section_ref
+            cls.curr_section_text = u""
+        cls.curr_section_text += text
 
-    # dict of words: list of all ref_nums which that words appears in
-    words_2_ref_nums = defaultdict(set)
+    @classmethod
+    def parse_lib_to_json(cls, start, end):
+        print('parse_lib', start, end)
+        cls.ref_num_min_N_title = [] # min ref_num of each book.title [[min_ref_num, book_title], ...]
+        cls.ref_num = 0 # absolute index num for all refs
+        cls.curr_title = None
+        cls.curr_section = None
+        cls.curr_section_text = u""
+        # only used for debuging (
+        cls.ref_num_2_full_name = []
 
-    indexes  = library.all_index_records()
-    indexes = indexes[start:end]
-    print(len(indexes))
-    last_time = time.time()
-    for i, index in enumerate(indexes):
-        title = index.title
-        print(i, str(dt.now().time()), index.title, time.time() - last_time)
+        # index of list is ref_num (implicitly) ["intro to bookA", 1, 2, 3, "Intro to bookB", ...]
+        cls.ref_num_2_part = []
+
+        # dict of words: list of all ref_nums which that words appears in
+        cls.words_2_ref_nums = defaultdict(set)
+
+        TextIndexer.index_all("", True, for_es=False, action=OfflineTextIndexer.index_segment)
+        # after it's done there's likely an extra section that hasn't been indexed
+        cls.index_section(cls.curr_title, cls.section_ref, cls.curr_section_text)
+        """
+        indexes = library.all_index_records()
+        indexes = indexes[start:end]
+        print("Running on {} indexes".format(len(indexes)))
         last_time = time.time()
-        sys.stdout.flush()
-
-        ref_num_min_N_title.append((ref_num, title,))
-
-        section_refs = index.all_section_refs()
-        for section_ref in section_refs:
+        for i, index in enumerate(indexes):
+            title = index.title
+            print(i, str(dt.now().time()), index.title, time.time() - last_time)
+            last_time = time.time()
+            sys.stdout.flush()
+            ref_num_min_N_title.append((ref_num, title,))
             try:
-                #ref_part = section_ref.normal_last_section()
-
-                # remove the title from the section_ref
-                # TODO: need std way of doing this
-                ref_part = re.sub(r'^{},?\s+'.format(title), '', section_ref.normal())
-                ref_num_2_full_name.append(section_ref.normal())
-                try:
-                    # convert ref_part to int if it is simply just a number
-                    ref_part = int(ref_part)
-                except ValueError as e:
-                    pass # we'll just use the str for ref_part
-                ref_num_2_part.append(ref_part)
-
-                #print(title, ref_name, section_ref.normal())
-                r = section_ref
-                add_words(r, words_2_ref_nums, ref_num)
-                ref_num += 1
-            except Exception as e:
+                section_refs = index.all_section_refs()
+                for section_ref in section_refs:
+                        # remove the title from the section_ref
+                        ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref.normal())
+                        ref_num_2_full_name.append(section_ref.normal())
+                        ref_num_2_part.append(ref_part)
+                        add_words(section_ref, words_2_ref_nums, ref_num)
+                        ref_num += 1
+            except InputError as e:
                 print('ERROR', e)
+        print('saving to json...')
+        save(REF_NUM_MIN_N_TITLE, ref_num_min_N_title)
+        save(REF_NUM_2_PART, ref_num_2_part)
+        """
 
-            #print(section_ref.all_subrefs()[:3])
-            #print(section_ref, dir(section_ref))
-            #print(section_ref.all_subrefs()) #subrefs are prob too small
-        #print(section_ref.text("he").text)
-
-
-    print('saving to json...')
-    save(REF_NUM_MIN_N_TITLE, ref_num_min_N_title)
-    save(REF_NUM_2_PART, ref_num_2_part)
-
-    # convert sets to lists for json
-    words_2_ref_nums = {key: sorted(list(value)) for key, value in words_2_ref_nums.iteritems()}
-    save(WORDS_2_REF_NUMS, words_2_ref_nums)
-    save(_ONLY_WORDS_LIST, words_2_ref_nums.keys())
+        # convert sets to lists for json
+        words_2_ref_nums = {key: sorted(list(value)) for key, value in words_2_ref_nums.iteritems()}
+        save(WORDS_2_REF_NUMS, words_2_ref_nums)
+        save(_ONLY_WORDS_LIST, words_2_ref_nums.keys())
 
 
 def add_words(ref, words_2_ref_nums, index_num):
     for lang in LANGS:
-        text = ref.text(lang).text
-        text_str = ' '.join(text)
-        words = get_words(text_str)
+        text = ref.text(lang).ja().flatten_to_string()
+        words = get_words(text)
         for word in words:
             words_2_ref_nums[word].add(index_num)
 
 def get_words(text):
     #print(text)
     #TODO: more work can prob be done here in this func
-    text = TextChunk.remove_html(text)
-    text = re.sub(ur'[\u05be\s+\\.\\-]', ' ', text) # convert dashs/dots/etc to space
+    text = re.sub(ur'<[^>]+>', u' ', text)
+    text = re.sub(ur'[\u05be\s+\\.\\-]', u' ', text) # convert dashs/dots/etc to space
     #text = re.sub(ur'[\u0591-\u05C7\u05f3\u05f4]', '', text)
     #text = re.sub(ur'[\u0591-\u05c7]', '', text)
 
-    text = re.sub(ur'([^\u05d0-\u05eaA-Za-z\s])', '', text) # remove non-regular chars
+    text = re.sub(ur'([^\u05d0-\u05eaA-Za-z\s])', u'', text) # remove non-regular chars
     text = text.lower()
     # bf_text = text
-    text = text.replace(u' \u05d5', ' ')
+    text = text.replace(u' \u05d5', u' ')
 
-    words = text.split(' ')
-    words = set(words) - set([''])
+    words = text.split()
+    words = set(words) - set([u''])
     # print('diff')
     # print(' '.join(words - set(bf_text.split(' '))))
     # print(' '.join(set(bf_text.split(' ')) - words))
@@ -261,7 +266,7 @@ def convert_to_josh_packets(words_2_ref_nums):
         #print(packets)
         #print(bitstring)
 
-    words_2_packets['__METADATA_ChunkSize_PacketSize__'] = [chunk_size, PACKET_SIZE] # STORE METADATA into the table itself
+    words_2_packets[METADATA_CHUNKS_PACKETSIZE] = [chunk_size, PACKET_SIZE] # STORE METADATA into the table itself
 
 
     return words_2_packets
@@ -281,7 +286,7 @@ def store(conn, data, table_name, two_cols=None, value_type_text=None, split_tup
             a = array.array('I', ref_nums)
             b = buffer(a.tostring())
             #print('ab', a.tostring())
-            
+
             values.append(
                 (_id, b)
                 # (_id, '')
@@ -324,8 +329,8 @@ def get_from_word_2_ref(word, words_2_ref_nums, ref_num_min_N_title, ref_num_2_p
             if ref_num_min > ref_num:
                 break
             title = temp_title
-        full_ref_str = '{}, {}'.format(title, ref_num_2_part[ref_num])
-        print('full_ref_str', ref_num, full_ref_str)
+        full_ref_str = u'{}{}'.format(title, ref_num_2_part[ref_num])
+        print(u'full_ref_str', ref_num, full_ref_str)
 
 
         ref_strs.append(full_ref_str); continue
@@ -363,6 +368,16 @@ def make_little_endian(blob):
     print('new_hex', new_hex)
     return new_hex
 
+def search_in_ref(ref, query):
+    snippet_size = 300
+    text = ref.text('en').ja().flatten_to_string()
+    try:
+        i = text.index(query)
+        start = i - snippet_size if i > snippet_size else 0
+        end = i + snippet_size
+        return text[start:end]
+    except ValueError:
+        return False
 
 def get_from_db(word):
     ref_results = []
@@ -414,17 +429,18 @@ def get_from_db(word):
                     rows = cur.fetchall()
                     title_id, title = rows[0]
 
-                ref_str = '{}, {}'.format(title, part)
-                r = Ref(ref_str)
-                text = str(r.text('en').text)
-                if word_id in text: # the word_id should appear as is, in at least one of the texts within the chunk
-
-                    print('found word in', r)
-                    ref_results.append(r)
+                ref_str = u'{}{}'.format(title, part)
+                try:
+                    r = Ref(ref_str)
+                    result = search_in_ref(r, word)
+                    if result:
+                        ref_results.append(r)
+                        # print result
+                except InputError as e:
+                    print('ERROR parsing ref', e)
+    print('Found {} results for {}'.format(len(ref_results), word))
     return ref_results
 
 
 if __name__ == '__main__':
     main()
-
-

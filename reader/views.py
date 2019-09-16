@@ -20,6 +20,7 @@ import socket
 import bleach
 from collections import OrderedDict
 
+from rest_framework.decorators import api_view
 from django.views.decorators.cache import cache_page
 from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
@@ -41,15 +42,17 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
-from sefaria.model.schema import DictionaryEntryNotFound, SheetLibraryNode
+from sefaria.model.schema import SheetLibraryNode
+from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DuplicateRecordError
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, \
+    DuplicateRecordError, DictionaryEntryNotFoundError
 # noinspection PyUnresolvedReferences
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, recent_public_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import list_depth, text_preview
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
 from sefaria.utils.talmud import section_to_daf, daf_to_section
@@ -72,7 +75,7 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn("Initializing library objects.")
+logger.warn(u"Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
@@ -631,7 +634,7 @@ def sheets(request):
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
         "tagList": public_tag_list(sort_by="count"),
-        "trendingTags": recent_public_tags(days=14, ntags=18)
+        "trendingTags": trending_tags(ntags=18)
     })
 
     title = _("Sefaria Source Sheets")
@@ -813,7 +816,7 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
         "topicList": topics.list(sort_by="count"),
-        "trendingTags": recent_public_tags(days=14, ntags=12),
+        "trendingTags": trending_tags(ntags=12),
     })
 
     propsJSON = json.dumps(props)
@@ -906,12 +909,25 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, props, "updates", title, desc)
 
-@login_required
+
+def new_home(request):
+    props = base_props(request)
+    title = _("Sefaria Stories")
+    return menu_page(request, props, "homefeed", title)
+
+
+@staff_member_required
 def story_editor(request):
     props = base_props(request)
     title = _("Story Editor")
     return menu_page(request, props, "story_editor", title)
 
+
+@login_required
+def user_stats(request):
+    props = base_props(request)
+    title = _("User Stats")
+    return menu_page(request, props, "user_stats", title)
 
 @login_required
 def account(request):
@@ -935,7 +951,7 @@ def modtools(request):
     return menu_page(request, props, "modtools", title)
 
 
-""" Is this used? 
+""" Is this used?
 
 def s2_extended_notes(request, tref, lang, version_title):
     if not Ref.is_ref(tref):
@@ -1099,8 +1115,9 @@ def edit_text_info(request, title=None, new_title=None):
         # Add New
         new_title = new_title.replace("_", " ")
         try: # Redirect to edit path if this title already exists
+            library.get_index(new_title)
             return redirect("/edit/textinfo/%s" % new_title)
-        except:
+        except BookNameError:
             pass
         indexJSON = json.dumps({"title": new_title})
         text_exists = False
@@ -1877,6 +1894,7 @@ def notes_api(request, note_id_or_ref):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@api_view(["GET"])
 @catch_error_as_json
 def all_notes_api(request):
 
@@ -2089,6 +2107,23 @@ def flag_text_api(request, title, lang, version):
 
 @catch_error_as_json
 @csrf_exempt
+def tag_category_api(request, path=None):
+    if request.method == "GET":
+        if not path or path == "index":
+            categories = TermSet({"scheme": "Tag Category"})
+
+        else:
+            categories = TermSet({"category": path})
+
+
+        category_names = [{"tag": category.get_primary_title(), "heTag": category.get_primary_title("he"), } for category in categories]
+        return jsonResponse(category_names)
+
+
+
+
+@catch_error_as_json
+@csrf_exempt
 def category_api(request, path=None):
     """
     API for looking up categories and adding Categories to the Category collection.
@@ -2265,7 +2300,7 @@ def get_name_completions(name, limit, ref_only):
             for res in additional_results:
                 if res not in current:
                     completions += [res]
-    except DictionaryEntryNotFound as e:
+    except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
@@ -2405,19 +2440,27 @@ def stories_api(request, gid=None):
 
         page      = int(request.GET.get("page", 0))
         page_size = int(request.GET.get("page_size", 10))
-        only_global = bool(request.GET.get("only_global", False))
+        shared_only = bool(request.GET.get("shared_only", False))
+        admin_feed = bool(request.GET.get("admin_feed", False))
 
         if not request.user.is_authenticated:
-            only_global = True
+            shared_only = True
             user = None
+            traits = get_session_traits(request)
         else:
             user = UserProfile(id=request.user.id)
+            traits = get_session_traits(request, request.user.id)
 
-        if only_global or not user:
-            stories = SharedStorySet(limit=page_size, page=page).contents()
+        if admin_feed:
+            if not request.user.is_staff:
+                return {"error": "Permission Denied"}
+            stories = SharedStorySet({}, limit=page_size, page=page).contents()
+            count = len(stories)
+        elif shared_only or not user:
+            stories = SharedStorySet.for_traits(traits, limit=page_size, page=page).contents()
             count = len(stories)
         else:
-            stories = UserStorySet.recent_for_user(request.user.id, limit=page_size, page=page).contents()
+            stories = UserStorySet.recent_for_user(request.user.id, traits, limit=page_size, page=page).contents()
             count = len(stories)
             stories = addDynamicStories(stories, user, page)
 
@@ -2442,8 +2485,8 @@ def stories_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                SharedStory(payload).save()
-                return jsonResponse({"status": "ok"})
+                s = SharedStory(payload).save()
+                return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
                 return jsonResponse({"error": e.message})
 
@@ -2452,8 +2495,8 @@ def stories_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    SharedStory(payload).save()
-                    return jsonResponse({"status": "ok"})
+                    s = SharedStory(payload).save()
+                    return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
                     return jsonResponse({"error": e.message})
 
@@ -2484,10 +2527,20 @@ def addDynamicStories(stories, user, page):
     :return: Array of Story.contents() dicts.
     """
     if page == 0:
+        # Disable most recent story
+        return stories
+
         # Keep Reading Most recent
         most_recent = user.get_user_history(last_place=True, secondary=False, limit=1)[0]
         if most_recent:
-            stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
+            if getattr(most_recent, "is_sheet", None):
+                stry = SheetListFactory().generate_story(
+                    sheet_ids=[most_recent.sheet_id],
+                    title={"en": "Keep Reading", "he": u"המשך לקרוא"},
+                    lead={"en": "Sheets", "he": u"דפים"}
+                )
+            else:
+                stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
                     lead={"en": "Keep Reading", "he": u"המשך לקרוא"})
             stories = [stry.contents()] + stories
 
@@ -2501,6 +2554,24 @@ def addDynamicStories(stories, user, page):
             stories = [stry.contents()] + stories
 
     return stories
+
+
+@login_required
+def user_stats_api(request, uid):
+
+    assert request.method == "GET", "Unsupported Method"
+    u = request.user
+    assert (u.is_active and u.is_staff) or (int(uid) == u.id)
+    quick = bool(request.GET.get("quick", False))
+    if quick:
+        return jsonResponse(public_user_data(uid))
+    return jsonResponse(user_stats_data(uid))
+
+
+@login_required
+def site_stats_api(request):
+    assert request.method == "GET", "Unsupported Method"
+    return jsonResponse(site_stats_data())
 
 
 @staff_member_required
@@ -3012,60 +3083,38 @@ def leaderboard(request):
 
 @ensure_csrf_cookie
 @sanitize_get_params
-def user_profile(request, username, page=1):
+def user_profile(request, username):
     """
     User's profile page.
     """
     try:
-        profile    = UserProfile(slug=username)
+        profile = UserProfile(slug=username)
     except Exception, e:
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this
-        user       = get_object_or_404(User, username=username)
-        profile    = UserProfile(id=user.id)
+        user = get_object_or_404(User, username=username)
+        profile = UserProfile(id=user.id)
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
 
+    props = base_props(request)
+    profileJSON = profile.to_api_dict()
+    props.update({
+        "initialMenu":  "profile",
+        "initialProfile": profileJSON,
+    })
+    title = u"%(full_name)s on Sefaria" % {"full_name": profile.full_name}
+    desc = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
 
-    following      = profile.followed_by(request.user.id) if request.user.is_authenticated else False
-
-    page_size      = 20
-    page           = int(page) if page else 1
-    if page > 40:
-        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render(request,'static/generic.html', generic_response)
-
-    query          = {"user": profile.id}
-    filter_type    = request.GET["type"] if "type" in request.GET else None
-    activity, apage= get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type=filter_type)
-    notes, npage   = get_maximal_collapsed_activity(query=query, page_size=page_size, page=page, filter_type="add_note")
-
-    contributed    = activity[0]["date"] if activity else None
-    scores         = db.leaders_alltime.find_one({"_id": profile.id})
-    score          = int(scores["count"]) if scores else 0
-    user_texts     = scores.get("texts", None) if scores else None
-    sheets         = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
-
-    next_page      = apage + 1 if apage else None
-    next_page      = "/profile/%s/%d" % (username, next_page) if next_page else None
-
-    return render(request,"profile.html",
-                             {
-                                'profile': profile,
-                                'following': following,
-                                'activity': activity,
-                                'sheets': sheets,
-                                'notes': notes,
-                                'joined': profile.date_joined,
-                                'contributed': contributed,
-                                'score': score,
-                                'scores': scores,
-                                'user_texts': user_texts,
-                                'filter_type': filter_type,
-                                'next_page': next_page,
-                                "single": False,
-                              })
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request,'base.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    })
 
 
 @catch_error_as_json
@@ -3091,10 +3140,29 @@ def profile_api(request):
             return jsonResponse({"error": error})
         else:
             profile.save()
-            return jsonResponse(profile.to_DICT())
+            return jsonResponse(profile.to_mongo_dict())
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@catch_error_as_json
+def profile_get_api(request, slug):
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        return jsonResponse(profile.to_api_dict())
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def profile_follow_api(request, ftype, slug):
+    if request.method == "GET":
+        profile = UserProfile(slug=slug)
+        follow_set = FollowersSet(profile.id) if ftype == "followers" else FolloweesSet(profile.id)
+        response = [UserProfile(id=uid).to_api_dict(basic=True) for uid in follow_set.uids]
+        return jsonResponse(response)
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@api_view(["POST"])
 @catch_error_as_json
 def profile_sync_api(request):
     """
@@ -3112,22 +3180,13 @@ def profile_sync_api(request):
     # fields in the POST req which can be synced
     syncable_fields = ["settings", "user_history"]
     if request.method == "POST":
+        profile_updated = False
         post = request.POST
         from sefaria.utils.util import epoch_time
         now = epoch_time()
         no_return = request.GET.get("no_return", False)
         profile = UserProfile(id=request.user.id)
-        if not no_return:
-            # send back items after `last_sync`
-            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
-            ret = {"last_sync": now, "user_history": [uh.contents() for uh in uhs.array()]}
-            if "last_sync" not in post:
-                # request was made from web. update last_sync on profile
-                profile.update({"last_sync_web": now})
-                profile.save()
-        else:
-            ret = {}
+        ret = {"created": []}
         # sync items from request
         for field in syncable_fields:
             if field not in post:
@@ -3136,15 +3195,34 @@ def profile_sync_api(request):
             if field == "settings":
                 if field_data["time_stamp"] > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
+                    settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                    profile.attr_time_stamps.update({field: settings_time_stamp})
                     profile.update({
                         field: field_data,
-                        "attr_time_stamps": profile.attr_time_stamps.update({field: field_data["time_stamp"]})
+                        "attr_time_stamps": profile.attr_time_stamps
                     })
-                    ret["settings"] = profile.settings
+                    profile_updated = True
             elif field == "user_history":
-                for hist in field_data:
+                # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
+                for hist in reversed(field_data):
                     uh = UserHistory.save_history_item(request.user.id, hist, now)
-                    ret["created"] = uh.contents(for_api=True)
+                    ret["created"] += [uh.contents(for_api=True)]
+
+        if not no_return:
+            # determine return value after new history saved to include new saved and deleted saves
+            # send back items after `last_sync`
+            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            ret["last_sync"] = now
+            ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
+            ret["settings"] = profile.settings
+            ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
+            if post.get("client", "") == "web":
+                # request was made from web. update last_sync on profile
+                profile.update({"last_sync_web": now})
+                profile_updated = True
+        if profile_updated:
+            profile.save()
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -3251,11 +3329,13 @@ def account_settings(request):
                                 'profile': profile,
                               })
 
+
 @login_required
 def enable_home_feed(request):
     resp = home(request, True)
     resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
     return resp
+
 
 @login_required
 def disable_home_feed(request):
@@ -3273,19 +3353,7 @@ def home(request, show_feed=None):
         show_feed = request.COOKIES.get("home_feed", None)
 
     if show_feed:
-        props = base_props(request)
-
-        props.update({
-            "initialMenu": "homefeed"
-        })
-        propsJSON = json.dumps(props)
-        html = render_react_component("ReaderApp", propsJSON)
-        return render(request, 'base.html', {
-            "propsJSON": propsJSON,
-            "html": html,
-            "title": "Sefaria Stories",
-            "desc": "",
-        })
+        return redirect("/new-home")
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
@@ -3767,17 +3835,13 @@ def random_by_topic_api(request):
     Returns Texts API data for a random text taken from popular topic tags
     """
     cb = request.GET.get("callback", None)
-    topics_filtered = filter(lambda x: x['count'] > 15, get_topics().list())
+    topics_filtered = filter(lambda x: x['good_to_promote'], get_topics().list())
     if len(topics_filtered) == 0:
         resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
         resp['Content-Type'] = "application/json; charset=utf-8"
         return resp
     random_topic = choice(topics_filtered)['tag']
     term = Term().load_by_title(random_topic)
-    if term is not None and getattr(term, "sensitive", False):
-        # term is sensitive, try again
-        return random_by_topic_api(request)
-        
     random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
     try:
         oref = Ref(random_source)
