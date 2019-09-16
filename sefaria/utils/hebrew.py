@@ -104,7 +104,7 @@ def heb_string_to_int(n):
 	764
 	'''
 
-	n = re.sub(u'[\u05F4"]', '', n)  # remove gershayim
+	n = re.sub(u'[\u05F4"]', u'', n)  # remove gershayim
 	return sum(map(heb_to_int, n))
 
 @memoized
