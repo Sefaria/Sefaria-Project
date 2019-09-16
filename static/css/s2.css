@@ -1514,6 +1514,9 @@ a.readerNavCategory {
 .readerNavMenu .dedication .he {
   font-style: normal;
 }
+.hebrew .readerNavMenu .dedication {
+  direction: rtl;
+}
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;
 }

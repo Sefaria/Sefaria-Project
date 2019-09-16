@@ -1568,13 +1568,13 @@ Sefaria = extend(Sefaria, {
       const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
-          { user_history: JSON.stringify([savedItem]) }
+          { user_history: JSON.stringify([savedItem]), client: 'web' }
         ).done(response => {
           if (!!response['error']) {
             reject(response['error'])
           } else {
-            if (action === "add_saved" && !!response.created) {
-              Sefaria.saved.unshift(response.created);
+            if (action === "add_saved" && !!response.created && response.created.length > 0) {
+              Sefaria.saved = response.created.concat(Sefaria.saved);
             } else {
               // delete
               Sefaria.removeSavedItem({ ref, versions });
