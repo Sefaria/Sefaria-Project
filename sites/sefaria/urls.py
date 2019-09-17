@@ -35,6 +35,7 @@ static_pages = [
     "even-haezer-guidelines",
     "random-walk-through-torah",
     "educators",
+    "educator-course",
     "the-sefaria-story",
     "aramaic-translation-contest",
     "newsletter",

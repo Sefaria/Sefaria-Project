@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Sefaria Educator Course" %}{% endblock %}
+
+{% block description %}{% trans "Learn how to use Sefaria in the classroom to teach Jewish texts." %}{% endblock %}
+
+{% block head %}
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="https://www.sefaria.org/educators"/>
+{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+{% block content %}
+
+    <div id="edPage" class="static">
+        <div id="edCover">
+            <h1 class="featureTitle">
+                <span class="int-en">Become a Certified Sefaria Educator</span>
+                <span class="int-he"></span>
+            </h1>
+            <div class="sub">
+                <span class="int-en">Make 3,000 years of Jewish texts accessible to your students.</span>
+                <span class="int-he">הפכו מגוון כתבים יהודים בני 3,000 שנה זמינים לתלמידיך</span>
+                
+            </div>
+        </div>
+
+        <div id="edLearn" class="section textLeft">
+            <div class="sectionInner">
+
+                    <h2>
+                        <span class="int-en">Sefaria Educator Course</span>
+                        <span class="int-he"></span>
+                    </h2>
+                    <div class="description systemText">
+                        <span class="int-en">Work with our team to improve pedagogy for teaching Jewish texts, and to foster a more innovative spirit within the community of Jewish educators.</span>
+                        <span class="int-he">עזרו לצוות שלנו לשפר את כלי ההוראה בעולם ההטקסטים היהודים, ולטפח רוח יצירתית בקרב אנשי חינוך יהודיים.</span>
+                    </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js  %}
+    <script>
+    $(function() {
+        // General Email List sign up at end of page
+        $("#subscribe").click(function() {
+            var email = $("#mailingListEmail").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.track.event("Educators", "Subscribe from Education Homepage", "");
+                $("#subscribeMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
+                    if ("error" in data) {
+                        $("#subscribeMsg").text(data.error).show();
+                    } else {
+                        $("#subscribeMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                    }
+                }).error(function(data) {
+                    $("#subscribeMsg").text('{% trans "Sorry, there was an error." %}').show();
+                })
+            } else {
+                $("#subscribeMsg").text('{% trans "Please enter a valid email address." %}').show();
+            }
+        });
+
+        // "Get the Newsletter" button at top of page for logged in users  
+        $("#educatorSubscribeButton").click(function() {
+            var email = Sefaria._email;
+            var lists = Sefaria.interfaceLang == "hebrew" ? 
+                        "Announcements_General_Hebrew|Announcements_Edu_Hebrew" 
+                        : "Announcements_General|Announcements_Edu"
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                $("#subscribeEdMsg").html('{% trans "<i>Subscribing...</i>" %}').show();
+                $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
+                    if ("error" in data) {
+                        $("#subscribeEdMsg").text(data.error).show();
+                    } else {
+                        $("#subscribeEdMsg").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                    }
+                }).error(function(data) {
+                    $("#subscribeEdMsg").text('{% trans "Sorry, there was an error." %}').show();
+                });
+            }
+        });
+
+        $("#educatorSubscribeButton").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#educatorSubscribeButton").trigger("click");
+            }
+        });
+
+        $("#mailingListEmail").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");
+            }
+        });
+    });
+    </script>
+{% endblock %}
