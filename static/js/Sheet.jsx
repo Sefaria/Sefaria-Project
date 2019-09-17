@@ -24,7 +24,6 @@ class Sheet extends Component {
 
     this.state = {
         scrollDir: "down",
-        editor: true
     }
   }
 
@@ -111,7 +110,7 @@ class Sheet extends Component {
              this.setState({scrollDir: "down"});
            }
         }}>
-            {this.state.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={sheet} /></div> : content}
+            {this.props.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={sheet} /></div> : content}
 
 
 

@@ -86,6 +86,7 @@ class ReaderPanel extends Component {
       sheetsGroup:          props.initialGroup || null,
       sheet:                props.sheet || null,
       sheetID:              null,
+      editSheet:            false,
       searchQuery:          props.initialQuery || null,
       searchTab:            props.initialSearchTab || "text",
       textSearchState: new SearchState({
@@ -338,6 +339,20 @@ class ReaderPanel extends Component {
       connectionsMode: "Resources",
       settings: this.state.settings
     });
+  }
+
+  toggleSheetEditMode(buttonstate) {
+    console.log(buttonstate)
+      if (buttonstate == true) {
+          this.conditionalSetState({
+              editSheet: false
+          })
+      } else {
+          this.conditionalSetState({
+              editSheet: true
+          })
+      }
+
   }
   updateTextColumn(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
@@ -619,6 +634,7 @@ class ReaderPanel extends Component {
       items.push(<Sheet
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
+          editor={this.state.editSheet}
           key={"sheet-"+this.state.sheet.id}
           highlightedNodes={this.state.highlightedNodes}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
@@ -1016,6 +1032,8 @@ class ReaderPanel extends Component {
         (<ReaderControls
           showBaseText={this.showBaseText}
           sheet={this.state.sheet}
+          toggleSheetEditMode={this.toggleSheetEditMode}
+          editSheet={this.state.editSheet}
           currentRef={this.state.currentlyVisibleRef}
           highlightedRef={(!!this.state.highlightedRefs && this.state.highlightedRefs.length) ? Sefaria.normRef(this.state.highlightedRefs) : null}
           currentMode={this.currentMode.bind(this)}
@@ -1228,6 +1246,7 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
+          <button onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>{this.props.editSheet == true ? "View" : "Edit"}</button>
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
