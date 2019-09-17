@@ -1520,6 +1520,9 @@ a.readerNavCategory {
 .readerNavMenu .dedication .he {
   font-style: normal;
 }
+.readerNavMenu .dedication {
+  margin: -10px 0 58px 0;
+}
 .hebrew .readerNavMenu .dedication {
   direction: rtl;
 }
