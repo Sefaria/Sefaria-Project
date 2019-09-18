@@ -22,6 +22,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
+from rest_framework.decorators import api_view
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
@@ -654,6 +655,7 @@ def save_sheet_api(request):
 		return jsonResponse(responseSheet)
 
 
+@api_view(["GET"])
 def user_sheet_list_api(request, user_id):
 	"""
 	API for listing the sheets that belong to user_id.
@@ -663,6 +665,7 @@ def user_sheet_list_api(request, user_id):
 	return jsonResponse(user_sheets(user_id, private=private), callback=request.GET.get("callback", None))
 
 
+@api_view(["GET"])
 def user_sheet_list_api_with_sort(request, user_id, sort_by="date", limiter=0, offset=0):
 	limiter  = int(limiter)
 	offset   = int(offset)
