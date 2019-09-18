@@ -54,6 +54,37 @@ const HoverMenu = React.forwardRef(({editor}, ref) => {
 });
 
 
+function showStyleMenu() {
+
+    return {
+
+        onChange(editor, next) {
+            let menu = $(".hoverMenu");
+            
+            const native = window.getSelection();
+
+            if (native.isCollapsed) {
+                menu.removeAttr("style")
+                return
+            }
+
+
+            console.log(native)
+
+            const range = native.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            let top = `${rect.top + window.pageYOffset - menu.outerHeight()}px`;
+            let left = `${rect.left + window.pageXOffset - menu.outerWidth() / 2 + rect.width / 2}px`;
+            menu.css({
+                "opacity": 1,
+                "top": top,
+                "left": left
+            })
+        }
+    }
+
+}
+
 const MarkButton = ({editor, type}) => {
   const { value } = editor
   const isActive = value.activeMarks.some(mark => mark.type === type)
@@ -73,6 +104,7 @@ const MarkButton = ({editor, type}) => {
   )
 }
 
+const plugins = [showStyleMenu()]
 
 
 export const rules = [
@@ -143,11 +175,7 @@ export const rules = [
 
 const html = new Html({rules})
 
-
-function SefariaEditor(props) {
-    const menuRef = React.createRef()
-
-    function renderSheetItem(source) {
+function renderSheetItem(source) {
 
         const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0]
 
@@ -210,6 +238,8 @@ function SefariaEditor(props) {
                 return content
             }
             case 'outsideText': {
+                //console.log((source.outsideText));
+                //console.log(html.deserialize(source.outsideText).toJSON()["document"]["nodes"]);
                 const content = (
                         {
                             "object": "block",
@@ -283,7 +313,7 @@ function SefariaEditor(props) {
         }
     }
 
-    function transformSheetJsonToDraft(sheet) {
+function transformSheetJsonToDraft(sheet) {
         const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
 
         const sourceNodes = sheet.sources.map(source => (
@@ -374,10 +404,7 @@ function SefariaEditor(props) {
         return sheetJSON;
     }
 
-
-    const [value, setValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
-
-    const schema = {
+        const schema = {
         document: {
             nodes: [
                 {match: {type: 'SheetMetaDataBox'}, min: 1, max: 1},
@@ -625,6 +652,15 @@ function SefariaEditor(props) {
 
     }
 
+
+function SefariaEditor(props) {
+    const menuRef = React.createRef()
+
+
+
+    const [value, setValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
+
+
     function onKeyDown(event, editor, next) {
         return next()
     }
@@ -777,31 +813,6 @@ function SefariaEditor(props) {
         }
     }
 
-    useEffect(() => {
-
-        //style menu
-        const menu = menuRef.current
-        const {fragment, selection} = value
-
-        if (selection.isBlurred || selection.isCollapsed || fragment.text === '') {
-            menu.removeAttribute('style')
-            return
-        }
-
-        const native = window.getSelection()
-        const range = native.getRangeAt(0)
-        const rect = range.getBoundingClientRect()
-        menu.style.opacity = 1
-        menu.style.top = `${rect.top + window.pageYOffset - menu.offsetHeight}px`
-
-        menu.style.left = `${rect.left +
-        window.pageXOffset -
-        menu.offsetWidth / 2 +
-        rect.width / 2}px`
-
-
-    });
-
     function onChange({value}) {
         setValue(value);
     }
@@ -825,6 +836,7 @@ function SefariaEditor(props) {
             renderMark={(props, editor, next) => renderMark(props, editor, next)}
             renderInline={(props, editor, next) => renderInline(props, editor, next)}
             schema={schema}
+            plugins={plugins}
             renderEditor={(props, editor, next) => renderEditor(props, editor, next)}
             onChange={ ({value}) => onChange({value}) }
         />

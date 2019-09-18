@@ -342,7 +342,6 @@ class ReaderPanel extends Component {
   }
 
   toggleSheetEditMode(buttonstate) {
-    console.log(buttonstate)
       if (buttonstate == true) {
           this.conditionalSetState({
               editSheet: false
