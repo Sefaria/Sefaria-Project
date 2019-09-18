@@ -913,8 +913,9 @@ def updates(request):
 
 def new_home(request):
     props = base_props(request)
-    title = _("Sefaria Stories")
-    return menu_page(request, props, "homefeed", title)
+    title = _("Sefaria: a Living Library of Jewish Texts Online")
+    desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    return menu_page(request, props, "homefeed", title, desc)
 
 
 @staff_member_required

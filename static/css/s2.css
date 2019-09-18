@@ -1520,6 +1520,9 @@ a.readerNavCategory {
 .readerNavMenu .dedication .he {
   font-style: normal;
 }
+.readerNavMenu .dedication {
+  margin: -10px 0 58px 0;
+}
 .hebrew .readerNavMenu .dedication {
   direction: rtl;
 }
@@ -6766,6 +6769,11 @@ body .homeFeedWrapper .content {
   max-width: 40%;
   background-color: #FBFBFA;
   padding: 60px 50px;
+}
+@media (max-width: 540px) {
+  .homeFeedSidebar {
+    display: none;
+  }
 }
 .homeFeedSidebar .section {
   margin-bottom: 70px;
