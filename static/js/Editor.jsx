@@ -60,7 +60,7 @@ function showStyleMenu() {
 
         onChange(editor, next) {
             let menu = $(".hoverMenu");
-            
+
             const native = window.getSelection();
 
             if (native.isCollapsed) {
@@ -175,6 +175,15 @@ export const rules = [
 
 const html = new Html({rules})
 
+function parseSheetItemHTML(rawhtml) {
+    return (
+        html.deserialize(
+            rawhtml.replace(/[\n\r\t]/gm, "")
+                   .replace(/<p>&nbsp;<\/p>/gm, "")
+        ).toJSON()["document"]["nodes"]
+    )
+}
+
 function renderSheetItem(source) {
 
         const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0]
@@ -205,7 +214,7 @@ function renderSheetItem(source) {
                                     "object": "block",
                                     "type": "he",
                                     "data": {"heRef": source.heRef},
-                                    "nodes": html.deserialize(source.text.he).toJSON()["document"]["nodes"]
+                                    "nodes": parseSheetItemHTML(source.text.he)
                                 },
                                 {
                                             "object": "block",
@@ -220,7 +229,7 @@ function renderSheetItem(source) {
                                     "object": "block",
                                     "type": "en",
                                     "data": {"ref": source.ref},
-                                    "nodes": html.deserialize(source.text.en).toJSON()["document"]["nodes"]
+                                    "nodes": parseSheetItemHTML(source.text.en)
                                 }
                             ]
                         }
@@ -232,19 +241,17 @@ function renderSheetItem(source) {
                         {
                             "object": "block",
                             "type": sheet_item_els[sheetItemType],
-                            "nodes": html.deserialize(source.comment).toJSON()["document"]["nodes"]
+                            "nodes": parseSheetItemHTML(source.comment)
                         }
                 )
                 return content
             }
             case 'outsideText': {
-                //console.log((source.outsideText));
-                //console.log(html.deserialize(source.outsideText).toJSON()["document"]["nodes"]);
                 const content = (
                         {
                             "object": "block",
                             "type": sheet_item_els[sheetItemType],
-                            "nodes": html.deserialize(source.outsideText).toJSON()["document"]["nodes"]
+                            "nodes": parseSheetItemHTML(source.outsideText)
                         }
                 )
                 return content
@@ -258,12 +265,12 @@ function renderSheetItem(source) {
                                 {
                                     "object": "block",
                                     "type": "he",
-                                    "nodes": html.deserialize(source.outsideBiText.he).toJSON()["document"]["nodes"]
+                                    "nodes": parseSheetItemHTML(source.outsideBiText.he)
                                 },
                                 {
                                     "object": "block",
                                     "type": "en",
-                                    "nodes": html.deserialize(source.outsideBiText.en).toJSON()["document"]["nodes"]
+                                    "nodes": parseSheetItemHTML(source.outsideBiText.en)
                                 }
                             ]
                         }
@@ -306,7 +313,7 @@ function renderSheetItem(source) {
             default: {
                 return {
                     "object": "text",
-                    "text": ""
+                    "text": "null"
                 }
 
             }
@@ -400,7 +407,6 @@ function transformSheetJsonToDraft(sheet) {
                 }
             }
         )
-
         return sheetJSON;
     }
 
@@ -779,6 +785,19 @@ function SefariaEditor(props) {
                         <div className="ref"><a href={"/"+ref}>{data.get("refText")}</a></div>
                     </div>
                 )
+            case 'paragraph':
+                return (
+                    <p>{children}</p>
+                );
+            case 'bulleted-list':
+                return (
+                    <ul>{children}</ul>
+                );
+            case 'list-item':
+                return (
+                    <li>{children}</li>
+                );
+
             default:
                 return next()
         }
