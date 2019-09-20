@@ -13,6 +13,22 @@ let svg, timeScale, s, graphBox;
 let links, nodes, link, node, simulation;
 let popUpElem, heBox, enBox, textBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
 
+const urlParams = new URLSearchParams(window.location.search);
+const startingRef = urlParams.get('ref');
+let currentRef = startingRef || "Shabbat 32a:4";
+console.log(currentRef);
+
+/*****          Hebrew / English Handling              *****/
+let lang;
+const isHebrew = () => lang === "he";
+const isEnglish = () => lang === "en";
+const switchToEnglish = () => lang = "en";
+const switchToHebrew = () => lang = "he";
+(GLOBALS.interfaceLang === "hebrew") ? switchToHebrew() : switchToEnglish();
+
+
+/*****                   Popup                        *****/
+
 const setupPopup = function(options) {
     popUpElem = document.createElement("div");
     popUpElem.id = "sefaria-popup";
@@ -165,8 +181,6 @@ const setupPopup = function(options) {
 
     popUpElem = document.body.appendChild(popUpElem);
 
-    //var draggie = new Draggabilly(popUpElem, {handle: "#sefaria-linker-header"});
-
     heBox = popUpElem.querySelector(".sefaria-text.he");
     enBox = popUpElem.querySelector(".sefaria-text.en");
     linkerHeader = popUpElem.querySelector("#sefaria-linker-header");
@@ -279,23 +293,6 @@ const hidePopup = function() {
 setupPopup({interfaceLang: "english", contentLang: "bilingual"});
 
 
-const urlParams = new URLSearchParams(window.location.search);
-const startingRef = urlParams.get('ref');
-let currentRef = startingRef || "Shabbat 32a:4";
-console.log(currentRef);
-
-/*****          Hebrew / English Handling              *****/
-let lang;
-const isHebrew = () => lang === "he";
-const isEnglish = () => lang === "en";
-const switchToEnglish = () => lang = "en";
-const switchToHebrew = () => lang = "he";
-
-
-/*****          Initial screen construction            *****/
-/*  GLOBALS Defined in template */
-
-(GLOBALS.interfaceLang === "hebrew") ? switchToHebrew() : switchToEnglish();
 
 /*****                   Currying Data                  *****/
 
@@ -304,78 +301,8 @@ const linkKey = l => l.source.title + "-" + l.target.title;
 const nodeKey = d => d.title;
 
 async function fetchNetwork(ref) {
-    let response = await fetch('/api/linknetwork/' + Sefaria.humanRef(ref));
+    let response = await fetch('/api/linknetwork/' + Sefaria.normRef(ref));
     return await response.json();
-}
-
-const categoryY = n => {
-        const c = n.category;
-        return (
-        c === "Tanakh"      ? h/3       :
-        c === "Apocrypha"   ? h/5       :
-
-        c === "Mishnah"     ? h/3       :
-        c === "Tanaitic"    ? 2 * h/3   :
-        c === "Midrash"     ? 5 * h/6   :
-
-        c === "Talmud"      ? 2 * h/3   :
-
-        c === "Halakhah"    ? 4 * h/5   :
-        c === "Kabbalah"    ? h/4       :
-        c === "Liturgy"     ? h/3       :
-        c === "Philosophy"  ? h/4       :
-
-        c === "Chasidut"    ? h/5       :
-        c === "Musar"       ? h/3       :
-        c === "Responsa"    ? 4 * h/5   :
-
-        c === "Modern Works"? h/2       :
-        h/2);
-    };
-
-function centroid(nodes) {
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  for (const d of nodes) {
-    let k = d.r ** 2;
-    x += d.x * k;
-    y += d.y * k;
-    z += k;
-  }
-  return {x: x / z, y: y / z};
-}
-
-function forceBox() {
-    let nodes;
-    const buffer = 20;
-
-    function force() {
-        nodes.forEach(n => {n.y = Math.max(buffer, Math.min(h - buffer, n.y))});
-    }
-    force.initialize = _ => nodes = _;
-    return force;
-}
-
-function forceCluster() {
-//https://observablehq.com/@mbostock/clustered-bubbles-2
-
-  const strength = 0.2;
-  let nodes;
-
-  function force(alpha) {
-    const centroids = d3.rollup(nodes, centroid, d => d.category);
-    const l = alpha * strength;
-    for (const d of nodes) {
-      const {x: cx, y: cy} = centroids.get(d.category);
-      d.vx -= (d.x - cx) * l;
-      d.vy -= (d.y - cy) * l;
-    }
-  }
-
-  force.initialize = _ => nodes = _;
-
-  return force;
 }
 
 function getLinkPath(n) {
@@ -513,6 +440,8 @@ function renderNetwork() {
     });
 }
 
+/*****         Force Simulation      *****/
+
 function renderIndexNetworkSimulation() {
     simulation = d3.forceSimulation(nodes);
     simulation
@@ -541,11 +470,80 @@ function updateIndexNetworkSimulation() {
 
     renderNetwork();
 }
-/*****         Draw Tree                                *****/
+
+const categoryY = n => {
+        const c = n.category;
+        return (
+        c === "Tanakh"      ? h/3       :
+        c === "Apocrypha"   ? h/5       :
+
+        c === "Mishnah"     ? h/3       :
+        c === "Tanaitic"    ? 2 * h/3   :
+        c === "Midrash"     ? 5 * h/6   :
+
+        c === "Talmud"      ? 2 * h/3   :
+
+        c === "Halakhah"    ? 4 * h/5   :
+        c === "Kabbalah"    ? h/4       :
+        c === "Liturgy"     ? h/3       :
+        c === "Philosophy"  ? h/4       :
+
+        c === "Chasidut"    ? h/5       :
+        c === "Musar"       ? h/3       :
+        c === "Responsa"    ? 4 * h/5   :
+
+        c === "Modern Works"? h/2       :
+        h/2);
+    };
+
+function centroid(nodes) {
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  for (const d of nodes) {
+    let k = d.r ** 2;
+    x += d.x * k;
+    y += d.y * k;
+    z += k;
+  }
+  return {x: x / z, y: y / z};
+}
+
+function forceBox() {
+    let nodes;
+    const buffer = 20;
+
+    function force() {
+        nodes.forEach(n => {n.y = Math.max(buffer, Math.min(h - buffer, n.y))});
+    }
+    force.initialize = _ => nodes = _;
+    return force;
+}
+
+function forceCluster() {
+//https://observablehq.com/@mbostock/clustered-bubbles-2
+
+  const strength = 0.2;
+  let nodes;
+
+  function force(alpha) {
+    const centroids = d3.rollup(nodes, centroid, d => d.category);
+    const l = alpha * strength;
+    for (const d of nodes) {
+      const {x: cx, y: cy} = centroids.get(d.category);
+      d.vx -= (d.x - cx) * l;
+      d.vy -= (d.y - cy) * l;
+    }
+  }
+
+  force.initialize = _ => nodes = _;
+
+  return force;
+}
+
+/*****         Screen construction      *****/
 
 buildScreen();
-
-/*****         Methods used in screen construction      *****/
 
 function buildScreen() {
     buildFrame();
