@@ -499,7 +499,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
-        breadcrumb = "/sheets/"+str(sheet["id"])
+        breadcrumb = sheet_crumbs(request, sheet)
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
 
 
@@ -992,6 +992,20 @@ def _crumb(pos, id, name):
             "@id": id,
             "name": name
         }}
+
+
+def sheet_crumbs(request, sheet=None):
+    if sheet is None:
+        return u""
+
+    # todo: write up topic breadcrumbs
+    breadcrumbJsonList = [_crumb(1, "/sheets", _("Sheets"))]
+
+    return json.dumps({
+        "@context": "http://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbJsonList
+    })
 
 
 def ld_cat_crumbs(request, cats=None, title=None, oref=None):
