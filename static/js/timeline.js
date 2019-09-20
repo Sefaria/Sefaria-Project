@@ -7,12 +7,11 @@ let $ = require("./sefaria/sefariaJquery");
 let margin = [60, 40, 20, 40];
 let w = 920; // real value determined in buildScreen()
 let h = 730 - margin[0] - margin[2];
-//let textBox_height = 150;
 let graphBox_height = h;
 
-let svg, timeScale, s, textBox, graphBox;
+let svg, timeScale, s, graphBox;
 let links, nodes, link, node, simulation;
-let popUpElem, heBox, enBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
+let popUpElem, heBox, enBox, textBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
 
 const setupPopup = function(options) {
     popUpElem = document.createElement("div");
@@ -621,7 +620,6 @@ function handleStateChange(event) {
 //Rebuild screen geometry, without state change
 function rebuildScreen() {
     d3.selectAll("svg").remove();
-    d3.selectAll("#textBox").remove();
     buildScreen();
 }
 
