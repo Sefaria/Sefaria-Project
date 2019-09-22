@@ -1,18 +1,18 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuSearchButton,
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuDisplaySettingsButton,
   LoadingMessage,
-}                      = require('./Misc');
-const React            = require('react');
-const ReactDOM         = require('react-dom');
-const $                = require('./sefaria/sefariaJquery');
-const Sefaria          = require('./sefaria/sefaria');
-const classNames       = require('classnames');
-const PropTypes        = require('prop-types');
-const Footer           = require('./Footer');
-const SearchResultList = require('./SearchResultList');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Footer  from './Footer';
+import SearchResultList  from './SearchResultList';
 import Component from 'react-class';
 
 
@@ -131,4 +131,4 @@ SearchBar.propTypes = {
 };
 
 
-module.exports = SearchPage;
+export default SearchPage;

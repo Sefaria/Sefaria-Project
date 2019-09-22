@@ -1,5 +1,5 @@
-const Util = require('./util');
-const FilterNode = require('./FilterNode');
+import Util from './util';
+import FilterNode from './FilterNode';
 
 class SearchState {
   constructor({
@@ -203,4 +203,4 @@ SearchState.metadataByType = {
   },
 };
 
-module.exports = SearchState;
+export default SearchState;

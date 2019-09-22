@@ -1,10 +1,10 @@
-const React                  = require('react');
-const PropTypes              = require('prop-types');
-const Sefaria                = require('./sefaria/sefaria');
-const VersionBlock           = require('./VersionBlock');
-const TextRange              = require('./TextRange');
-const { LoadingMessage }     = require('./Misc');
-const { RecentFilterSet } = require('./ConnectionFilters');
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import VersionBlock  from './VersionBlock';
+import TextRange  from './TextRange';
+import { LoadingMessage } from './Misc';
+import { RecentFilterSet } from './ConnectionFilters';
 import Component             from 'react-class';
 
 class VersionsBox extends Component {
@@ -204,4 +204,4 @@ VersionsTextList.propTypes = {
   onCitationClick: PropTypes.func.isRequired,
 };
 
-module.exports = VersionsBox;
+export default VersionsBox;

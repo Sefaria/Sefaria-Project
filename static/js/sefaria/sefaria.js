@@ -1,12 +1,12 @@
 var extend     = require('extend'),
-    param      = require('querystring').stringify,
-    Search     = require('./search'),
-    palette    = require('./palette'),
-    Track      = require('./track'),
-    Hebrew     = require('./hebrew'),
-    Util       = require('./util'),
-    $          = require('./sefariaJquery');
-                 require('babel-polyfill');
+    param      = require('querystring').stringify;
+import Search from './search';
+import palette from './palette';
+import Track from './track';
+import Hebrew from './hebrew';
+import Util from './util';
+import $ from './sefariaJquery';
+require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -288,7 +288,7 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
-    
+
     return settings;
   },
   getTextFromCache: function(ref, settings) {
@@ -478,7 +478,7 @@ Sefaria = extend(Sefaria, {
     let prev = Array(length);
     let next = Array(length);
     if (isSuperSection) {
-      // For supersections, correctly set next and prev on each section to skip empty content    
+      // For supersections, correctly set next and prev on each section to skip empty content
       let hasContent = Array(length);
       for (let i = 0; i < length; i++) {
         hasContent[i] = (!!en[i].length || !!he[i].length);
@@ -495,7 +495,7 @@ Sefaria = extend(Sefaria, {
     for (let i = 0; i < length; i++) {
       const ref          = data.ref + delim + (i+start);
       const segment_data = Sefaria.util.clone(data);
-      const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef 
+      const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef
       extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
@@ -2375,4 +2375,4 @@ Sefaria.setup = function(data) {
 };
 Sefaria.setup();
 
-module.exports = Sefaria;
+export default Sefaria;

@@ -1,8 +1,8 @@
-const $            = require('./sefaria/sefariaJquery'),
-      React        = require('react'),
-      ReactDOM     = require('react-dom'),
-      DjangoCSRF   = require('./lib/django-csrf'),
-      SefariaReact = require('./ReaderApp');
+import $ from './sefaria/sefariaJquery';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import DjangoCSRF from './lib/django-csrf';
+const SefariaReact = require('./ReaderApp');
 
 
 $(function() {
@@ -20,7 +20,7 @@ $(function() {
     Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
     renderFunc(component, container);
-  
+
   } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
     // Rendering just a specifc component to a container
     container = document.getElementById(DJANGO_VARS.containerId);
@@ -30,7 +30,7 @@ $(function() {
       renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
     }
 
-  
+
   } else {
     // Rendering the Header & Footer only on top of a static page
     var settings = {

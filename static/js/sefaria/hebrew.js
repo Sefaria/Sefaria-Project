@@ -203,4 +203,4 @@ Hebrew.hebrewNumerals = {
   1200: "\u05EA\u05EA\u05EA"
 };
 
-module.exports = Hebrew;
+export default Hebrew;

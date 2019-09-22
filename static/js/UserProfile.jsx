@@ -1,4 +1,4 @@
-const {
+import {
   LoadingMessage,
   TabView,
   FilterableList,
@@ -6,14 +6,14 @@ const {
   ProfileListing,
   ProfilePic,
   FollowButton,
-}               = require('./Misc');
-const React      = require('react');
-const PropTypes = require('prop-types');
-const Sefaria   = require('./sefaria/sefaria');
-const { GroupListing } = require('./MyGroupsPanel');
-const NoteListing = require('./NoteListing');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import { GroupListing } from './MyGroupsPanel';
+import NoteListing  from './NoteListing';
 import Component from 'react-class';
-const Footer    = require('./Footer');
+import Footer  from './Footer';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -144,7 +144,7 @@ class UserProfile extends Component {
         // add urls to sheets for rendering with SheetListing
         sheets.forEach(s => {
           s.options.language = "en";
-          s.sheetUrl = `/Sheet.${s.id}`; 
+          s.sheetUrl = `/Sheet.${s.id}`;
         });
         resolve(sheets);
       }, undefined, 0, 0, ignoreCache);
@@ -551,4 +551,4 @@ MessageModal.propTypes = {
   name: PropTypes.string.isRequired,
   uid:  PropTypes.number.isRequired,
 };
-module.exports = UserProfile;
+export default UserProfile;
