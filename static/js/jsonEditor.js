@@ -1,7 +1,7 @@
 import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from 'jquery';
-import Form from 'react-jsonschema-form',
+import Form from 'react-jsonschema-form';
 import DjangoCSRF  from './lib/django-csrf';
 
 DjangoCSRF.init();
