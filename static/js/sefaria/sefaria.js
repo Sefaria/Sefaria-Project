@@ -1261,13 +1261,14 @@ Sefaria = extend(Sefaria, {
       if (this._webpages[r]) { webpages = webpages.concat(this._webpages[r]); }
     }, this);
 
+    webpages.map(page => page.isHebrew = Sefaria.hebrew.isHebrew(page.title));
+
     return webpages.filter((obj, pos, arr) => {
       // Remove duplicates by url field
       return arr.map(mapObj => mapObj["url"]).indexOf(obj["url"]) === pos;
     }).sort((a, b) => {
-      var aIsHe, bIsHe;
-      [aIsHe, bIsHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
-      if (aIsHe !== bIsHe) { return bIsHe ? -1 : 1; }
+      // Sort first by page language matching interface language
+      if (a.isHebrew !== b.isHebrew) { return (b.isHebrew ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
@@ -2119,6 +2120,7 @@ Sefaria = extend(Sefaria, {
       "Version Open": "גרסה פתוחה",
       "About": "אודות",
       "Current": "נוכחית",
+      "Web Pages": "דפי אינטרנט",
       "Select": "החלפת גרסה",
       "Members": "חברים",
       "Send": "שלח",

@@ -730,7 +730,8 @@ class WebPagesList extends Component {
   }
   render() {
     let webpages = Sefaria.webPagesByRef(this.props.srefs)
-
+    let content = [];
+    
     if (!this.props.filter) {
       let sites = {};
       webpages.map(page => {
@@ -741,32 +742,44 @@ class WebPagesList extends Component {
         }
       });
       sites = Object.values(sites).sort((a, b) => b.count - a.count);
-      const content = sites.map(site => {
+      content = sites.map(site => {
         return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />
           <span className="siteName toolsButtonText">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);
       });
-      return content && content.length ? (<div className="websiteList">{content}</div>) : null;
     } else {
       webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
-      const content = webpages.length ? webpages.map(webpage => {
-        return (<div className="webpage" key={webpage.url}>
+      content = webpages.map(webpage => {
+        return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
           <img className="icon" src={webpage.faviconUrl} />
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
           <div className="domain">{webpage.domain}</div>
           {webpage.description ? <div className="description">{webpage.description}</div> : null}
-          <div className="stats">[Hits: {webpage.linkerHits}, Citing: {webpage.anchorRef}]</div>
+          <div className="stats">
+            <span className="int-en">Citing: {webpage.anchorRef}</span>
+            <span className="int-he">מצטט: {Sefaria._r(webpage.anchorRef)}</span>
+          </div>
         </div>)
-      }, this) : null;
-      return content && content.length ? (<div className="webpageList">{content}</div>) : null;
+      });
     }
+
+    if (!content.length) {
+      const filterName = this.props.filter !== "all" ? this.props.filter : null;
+      const en = "No web pages known" + (filterName ? " from " + filterName : "") + " here.";
+      const he = "אין דפי אינטרנט ידועים" + (filterName ? " מ" + filterName : "") + ".";
+      return <div className="webpageList empty">
+                  <LoadingMessage message={en} heMessage={he} />
+                </div>;
+    }
+
+    return (<div className="webpageList">{content}</div>);
+
   }
 }
 WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
-
 
 
 class ToolsList extends Component {

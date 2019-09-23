@@ -243,6 +243,7 @@ class Util {
 
         String.prototype.splitCamelCase = function() {
               return this.replace(/([A-Z])/g, ' $1')
+                          .trim()
                           .replace(/^./, str => str.toUpperCase())
         };
 

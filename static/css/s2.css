@@ -4109,7 +4109,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
-.websiteList .website .icon {
+.webpageList .website .icon {
   height: 16px;
   width: 16px;
   margin-top: 2px;
@@ -4117,9 +4117,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .webpageList .webpage {
   margin-bottom: 30px;
   text-align: left;
+  direction: ltr;
+}
+.webpageList .webpage.hebrew {
+  text-align: right;
+  direction: rtl;
 }
 .webpageList .webpage .icon {
   margin-right: 10px;
+}
+.webpage.hebrew .icon {
+  margin: 0 0 0 10px;
 }
 .webpageList .webpage .title {
   font-size: 22px;
@@ -4139,6 +4147,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .webpageList .webpage .description {
   font-size: 18px;
   color: #999;
+}
+.webpageList .webpage .stats {
+  font-size: 13px;
+  color: #999;
+  margin-top: 5px;
+}
+.webpageList.empty .loadingMessage {
+  margin-top: 0px;
+}
+.textList.marginless .webpageList.empty .loadingMessage {
+  margin: 50px 40px;
 }
 .textRange .numberLabel {
   position: absolute;

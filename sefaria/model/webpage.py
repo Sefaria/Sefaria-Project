@@ -108,7 +108,7 @@ class WebPage(abst.AbstractMongoRecord):
     def clean_title(self):
         if not self._site_data:
             return self.title
-        title = self.title
+        title = unicode(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
         separators = [u"-", u"|", u"—", u"»"]
@@ -358,7 +358,7 @@ sites_data = [
         "title_branding": ["CBJ"]
     },
     {
-        "name":    "Amen V’Amen",
+        "name":    "Amen V'Amen",
         "domains": ["amenvamen.com"],
     },
     {
