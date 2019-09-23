@@ -12,6 +12,7 @@
     "test": "./run reader/browsertest/run_local.py",
     "test-one": "./run reader/browsertest/run_one_local.py",
     "jest": "jest --watchAll --notify",
+    "jest-travis": "jest",
     "build": "webpack --config ./node/webpack.config.js",
     "build-prod": "webpack --config ./node/webpack.config.js --mode='production'",
     "build-client": "webpack --config ./node/webpack.client.js",

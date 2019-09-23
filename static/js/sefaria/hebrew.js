@@ -8,7 +8,7 @@ class Hebrew {
     }
 
     var n = 0;
-    for (c in h) {
+    for (let c in h) {
       n += values[h[c]];
     }
 
