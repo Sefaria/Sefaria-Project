@@ -177,7 +177,8 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   height: 100%;
 }
 
-.nochrome #s2,
+.nochrome #s2 .headerNavSection,
+.nochrome #s2 .headerLinksSection,
 .nochrome #footerContainer {
   display: none;
 }
