@@ -4171,31 +4171,42 @@ class Ref(object):
         else:
             return None
 
-    def distance(self, ref, max_dist=None):
+    def distance(self, ref, max_dist=None, fast=False):
         """
         :param ref: ref which you want to compare distance with
         :param max_dist: maximum distance beyond which the function will return -1. it's suggested you set this param b/c alternative is very slow
+        :param fast: Use heuristics to return distance quickly.  May return max_dist wrongly, in edge cases.
         :return: int: num refs between self and ref. -1 if self and ref aren't in the same index
         """
+        # todo: what if the refs have different depth?
+        section_len = len(self.sections)
+
         if self.index_node != ref.index_node:
             return -1
 
-        if len(self.sections) == 0:
+        if section_len == 0:
             return 0
 
-        if self.index_node.depth == len(self.sections):
+        if self.index_node.depth == section_len:
             # If they're the same section, math is simple subtraction
             if self.sections[:-1] == ref.sections[:-1]:
                 return abs(self.sections[-1] - ref.sections[-1])
 
         # They're different sections, see if it's def. too far
             if max_dist:
+                # Are they far?
+                if fast and self.index_node.depth > 1 and abs(self.sections[-2] - ref.sections[-2]) > max_dist:
+                    return -1
+
                 if self.precedes(ref):
                     if ref.sections[-1] > max_dist:
                         return -1
                 else:
                     if self.sections[-1] > max_dist:
                         return -1
+
+        if fast and self.index_node.depth == section_len + 1 and abs(self.sections[-1] - ref.sections[-1]) > max_dist:
+            return -1
 
         # Couldn't short circuit, proceed with full computation
         # convert to base 0

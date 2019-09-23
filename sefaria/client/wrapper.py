@@ -392,6 +392,8 @@ class LinkNetwork2(object):
         for connection in all_connections:
             self.record_link(connection)
 
+        # cluster_refs()
+
     def contents(self):
         return {
             "compDate": self.base_oref.index.compDate,
@@ -426,6 +428,19 @@ class LinkNetwork2(object):
             self.indexNodes[key]["refs"].add(oref.normal())
         else:
             self.indexNodes[key] = self.make_index_record(oref, key, year, cat)
+
+    def cluster_refs(self):
+        from sefaria.recommendation_engine import RecommendationEngine
+
+        for k, v in self.indexNodes.iteritems():
+            clusters = RecommendationEngine.cluster_close_refs([Ref(r) for r in v["refs"]], v["refs"], 1, fast=True)
+            results = []
+            for cluster in clusters:
+                if len(cluster) == 1:
+                    results += [cluster[0]["data"]]
+                else:
+                    results += [cluster[0]["ref"].to(cluster[-1]["ref"]).normal()]
+            v["refs"] = results
 
     def make_index_record(self, oref, key, year, cat, root=False):
         d = {
@@ -627,25 +642,6 @@ class LinkNetwork(object):
         elinks = [self.expand_linkref(l) for l in links if l["category"] != "Reference"]
         elinks = [self.switch_commentary_category(l) if l["category"] == "Commentary" else l for l in elinks]
         return elinks
-
-        '''
-        # Too Dang Slow
-        from sefaria.recommendation_engine import RecommendationEngine
-
-        clusters = RecommendationEngine.cluster_close_refs([Ref(l["ref"]) for l in elinks], elinks, 2)
-        results = []
-        for cluster in clusters:
-            if len(cluster) == 1:
-                results += [cluster[0]["data"]]
-            else:
-                newref = cluster[0]["ref"].to(cluster[-1]["ref"])
-                data = cluster[0]["data"]
-                data["ref"] = newref.normal()
-                # data["sourceHeRef"]
-                # data["sourceRef"]
-                results += [data]
-        return results
-        '''
 
     def get_partioned_links(self, oref):
         tref = oref.normal()
