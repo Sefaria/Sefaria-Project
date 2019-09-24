@@ -73,6 +73,27 @@ class WebPage(abst.AbstractMongoRecord):
     def domain_for_url(url):
         return urlparse(url).netloc
 
+    def should_be_excluded(self):
+        url_regex = WebPage.excluded_pages_url_regex()
+        title_regex = WebPage().excluded_pages_title_regex()
+        return bool(re.match(url_regex, self.url) or re.match(title_regex, self.title))
+
+    @staticmethod
+    def excluded_pages_url_regex():
+        bad_urls = [
+            "rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
+            "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
+            "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
+        ]
+        return "|".join(bad_urls)
+
+    @staticmethod
+    def excluded_pages_title_regex():
+        bad_titles = [
+            "Page \d+ of \d+",  # Rabbi Sacks paged archives
+        ]
+        return "|".join(bad_titles)
+
     @staticmethod
     def site_data_for_domain(domain):
         for site in sites_data:
@@ -90,6 +111,8 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def add_or_update_from_linker(data):
         webpage = WebPage().load(data["url"]) or WebPage(data)
+        if webpage.should_be_excluded():
+            return
         webpage.update_from_linker(data)
 
     def client_contents(self):
@@ -158,77 +181,6 @@ def get_webpages_for_ref(tref):
             client_results.append(webpage_contents)
     
     return client_results
-
-
-def webpages_stats():
-    webpages = WebPageSet()
-    total_pages  = webpages.count()
-    total_links  = 0
-    sites        = defaultdict(int)
-    books        = defaultdict(int)
-    categories   = defaultdict(int)
-    covered_refs = defaultdict(set)
-
-    for webpage in webpages:
-        sites[webpage.domain()] += 1
-        for ref in webpage.refs:
-            total_links += 1
-            oref = text.Ref(ref)
-            books[oref.index.title] += 1
-            category = oref.index.get_primary_category()
-            category = oref.index.categories[0] + " Commentary" if category == "Commentary" else category
-            categories[category] += 1
-            [covered_refs[oref.index.title].add(ref.normal()) for ref in oref.all_segment_refs()]
-
-    # Totals
-    print "{} total pages.\n".format(total_pages)
-    print "{} total connections.\n".format(total_links)
-
-
-    # Count by Site
-    print "\nSITES"
-    sites = sorted(sites.iteritems(), key=lambda x: -x[1])
-    for site in sites:
-        print "{}: {}".format(site[0], site[1])
-
-
-    # Count / Percentage by Category
-    print "\nCATEGORIES"
-    categories = sorted(categories.iteritems(), key=lambda x: -x[1])
-    for category in categories:
-        print "{}: {} ({}%)".format(category[0], category[1], round(category[1]*100.0/total_links, 2))
-
-
-    # Count / Percentage by Book
-    print "\nBOOKS"
-    books = sorted(books.iteritems(), key=lambda x: -x[1])
-    for book in books:
-        print "{}: {} ({}%)".format(book[0], book[1], round(book[1]*100.0/total_links, 2))
-
-
-    # Coverage Percentage / Average pages per ref for Torah, Tanakh, Mishnah, Talmud
-    print "\nCOVERAGE"
-    coverage_cats = ["Torah", "Tanakh", "Bavli", "Mishnah"]
-    for cat in coverage_cats:
-        cat_books = text.library.get_indexes_in_category(cat)
-        covered = 0
-        total   = 0
-        for book in cat_books:
-            covered_in_book = covered_refs[book]
-            try:
-                total_in_book = set([ref.normal() for ref in text.Ref(book).all_segment_refs()])
-            except:
-                continue # Bad data in Mishnah Sukkah
-            
-            # print "{} in covered, not in total:".format(book)
-            # print list(covered_in_book - total_in_book)
-            # Ignore refs that we don't have in the library
-            covered_in_book = covered_in_book.intersection(total_in_book)
-
-            covered += len(covered_in_book)
-            total += len(total_in_book)
-
-        print "{}: {}%".format(cat, round(covered*100.0/total, 2))
 
 
 def test_normalization():
@@ -334,19 +286,9 @@ def dedupe_identical_urls(test=True):
 
 def clean_webpages(delete=False):
     """ Delete webpages matching patterns deemed not worth including"""
-
-    bad_urls = [
-        "rabbisacks\.org\/.+\/\?s=",                # Rabbi Sacks search results
-        "halachipedia\.com\/index\.php\?search=",   # Halachipedia search results
-    ]
-
-    bad_titles = [
-        "Page \d+ of \d+",  # Rabbi Sacks paged archives
-    ]
-
     pages = WebPageSet({"$or": [
-            {"url": {"$regex": ("|").join(bad_urls)}}, 
-            {"title": {"$regex": ("|").join(bad_titles)}}
+            {"url": {"$regex": WebPage.excluded_pages_url_regex()}}, 
+            {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
         ]})
 
     if delete:
@@ -356,6 +298,77 @@ def clean_webpages(delete=False):
         for page in pages:
             print page.url
         print "\n {} pages would be deleted".format(pages.count())
+
+
+def webpages_stats():
+    webpages = WebPageSet()
+    total_pages  = webpages.count()
+    total_links  = 0
+    sites        = defaultdict(int)
+    books        = defaultdict(int)
+    categories   = defaultdict(int)
+    covered_refs = defaultdict(set)
+
+    for webpage in webpages:
+        sites[webpage.domain()] += 1
+        for ref in webpage.refs:
+            total_links += 1
+            oref = text.Ref(ref)
+            books[oref.index.title] += 1
+            category = oref.index.get_primary_category()
+            category = oref.index.categories[0] + " Commentary" if category == "Commentary" else category
+            categories[category] += 1
+            [covered_refs[oref.index.title].add(ref.normal()) for ref in oref.all_segment_refs()]
+
+    # Totals
+    print "{} total pages.\n".format(total_pages)
+    print "{} total connections.\n".format(total_links)
+
+
+    # Count by Site
+    print "\nSITES"
+    sites = sorted(sites.iteritems(), key=lambda x: -x[1])
+    for site in sites:
+        print "{}: {}".format(site[0], site[1])
+
+
+    # Count / Percentage by Category
+    print "\nCATEGORIES"
+    categories = sorted(categories.iteritems(), key=lambda x: -x[1])
+    for category in categories:
+        print "{}: {} ({}%)".format(category[0], category[1], round(category[1]*100.0/total_links, 2))
+
+
+    # Count / Percentage by Book
+    print "\nBOOKS"
+    books = sorted(books.iteritems(), key=lambda x: -x[1])
+    for book in books:
+        print "{}: {} ({}%)".format(book[0], book[1], round(book[1]*100.0/total_links, 2))
+
+
+    # Coverage Percentage / Average pages per ref for Torah, Tanakh, Mishnah, Talmud
+    print "\nCOVERAGE"
+    coverage_cats = ["Torah", "Tanakh", "Bavli", "Mishnah"]
+    for cat in coverage_cats:
+        cat_books = text.library.get_indexes_in_category(cat)
+        covered = 0
+        total   = 0
+        for book in cat_books:
+            covered_in_book = covered_refs[book]
+            try:
+                total_in_book = set([ref.normal() for ref in text.Ref(book).all_segment_refs()])
+            except:
+                continue # Bad data in Mishnah Sukkah
+            
+            # print "{} in covered, not in total:".format(book)
+            # print list(covered_in_book - total_in_book)
+            # Ignore refs that we don't have in the library
+            covered_in_book = covered_in_book.intersection(total_in_book)
+
+            covered += len(covered_in_book)
+            total += len(total_in_book)
+
+        print "{}: {}%".format(cat, round(covered*100.0/total, 2))
 
 
 sites_data = [
@@ -376,7 +389,7 @@ sites_data = [
     {
         "name":           "Halachipedia",
         "domains":        ["halachipedia.com"],
-        "normalization_rules": ["remove www", "remove mediawiki params"]
+        "normalization_rules": ["use https", "remove www", "remove mediawiki params"]
     },
     {
         "name":           "Torah In Motion",
