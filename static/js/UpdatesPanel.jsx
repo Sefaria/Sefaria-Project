@@ -1,13 +1,13 @@
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-const Footer     = require('./Footer');
-const {
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Footer  from './Footer';
+import {
   SinglePanelNavHeader,
-}                = require('./Misc');
+} from './Misc';
 import Component from 'react-class';
 
 
@@ -99,7 +99,7 @@ class UpdatesPanel extends Component {
         }
         <div className="content hasFooter">
           <div className="contentInner">
-            {this.props.multiPanel ? 
+            {this.props.multiPanel ?
             <h1>
               <span className="int-en">Updates</span>
               <span className="int-he">עדכונים</span>
@@ -285,4 +285,4 @@ SingleUpdate.propTypes = {
 };
 
 
-module.exports = UpdatesPanel;
+export default UpdatesPanel;

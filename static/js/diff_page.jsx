@@ -1,11 +1,11 @@
-var $              = require('jquery'),
-    React          = require('react'),
-    ReactDOM       = require('react-dom'),
-    Sefaria        = require('./sefaria/sefaria'),
-    extend         = require('extend'),
-    PropTypes      = require('prop-types'),
-    DjangoCSRF   = require('./lib/django-csrf'),
-    DiffMatchPatch = require('diff-match-patch');
+import $  from 'jquery';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import Sefaria  from './sefaria/sefaria';
+import extend  from 'extend';
+import PropTypes  from 'prop-types';
+import DjangoCSRF  from './lib/django-csrf';
+import DiffMatchPatch  from 'diff-match-patch';
     import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
 
 function changePath(newPath) {

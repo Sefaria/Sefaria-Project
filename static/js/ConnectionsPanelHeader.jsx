@@ -5,12 +5,12 @@ const {
 const {
   RecentFilterSet
 }                = require('./ConnectionFilters');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
 
@@ -82,7 +82,7 @@ class ConnectionsPanelHeader extends Component {
       return (<div className="connectionsPanelHeader">
                 {title}
                 <div className="rightButtons">
-                  {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+                  {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                     <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={langUrl} />
                     : null }
                   <ReaderNavigationMenuCloseButton icon="circledX" onClick={this.props.closePanel} url={closeUrl} />
@@ -130,4 +130,4 @@ ConnectionsPanelHeader.propTypes = {
 };
 
 
-module.exports = ConnectionsPanelHeader;
+export default ConnectionsPanelHeader;

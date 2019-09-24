@@ -1,7 +1,7 @@
-const React                  = require('react');
-const PropTypes              = require('prop-types');
-const Sefaria                = require('./sefaria/sefaria');
-const VersionBlock         = require('./VersionBlock');
+import React from 'react';
+import PropTypes from 'prop-types';
+import Sefaria from './sefaria/sefaria';
+import VersionBlock from './VersionBlock';
 import Component             from 'react-class';
 
 
@@ -203,4 +203,4 @@ AboutBox.propTypes = {
 
 
 
-module.exports = AboutBox;
+export default AboutBox;

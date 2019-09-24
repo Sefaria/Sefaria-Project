@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext, useRef} from 'react';
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const { Story }      = require('./Story');
-const { usePaginatedScroll } = require('./Hooks');
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes  from 'prop-types';
+import { Story } from './Story';
+import { usePaginatedScroll } from './Hooks';
 import Component from 'react-class';
 
 // These are duplicated in trend.py needs to be more graceful
@@ -626,4 +626,4 @@ class StoryFormSheetfield extends  Component {
 
 }
 
-module.exports = StoryEditor;
+export default StoryEditor;

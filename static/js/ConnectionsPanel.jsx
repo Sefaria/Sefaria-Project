@@ -1,4 +1,4 @@
-const {
+import {
   Dropdown,
   LoadingMessage,
   LoginPrompt,
@@ -7,24 +7,24 @@ const {
   SheetListing,
   Note,
   FeedbackBox,
-}                            = require('./Misc');
-const {
+} from './Misc';
+import {
   CategoryFilter,
-}                            = require('./ConnectionFilters');
-const React                  = require('react');
-const PropTypes              = require('prop-types');
-const ReactDOM               = require('react-dom');
-const Sefaria                = require('./sefaria/sefaria');
-const $                      = require('./sefaria/sefariaJquery');
-const TextRange              = require('./TextRange');
-const TextList               = require('./TextList');
-const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
-const { AddToSourceSheetBox }= require('./AddToSourceSheet');
-const LexiconBox             = require('./LexiconBox');
-const AboutBox               = require('./AboutBox');
-const VersionsBox            = require('./VersionsBox');
-const ExtendedNotes          = require('./ExtendedNotes');
-const classNames             = require('classnames');
+} from './ConnectionFilters';
+import React from 'react';
+import PropTypes from 'prop-types';
+import ReactDOM from 'react-dom';
+import Sefaria from './sefaria/sefaria';
+import $ from './sefaria/sefariaJquery';
+import TextRange from './TextRange'
+import TextList from './TextList'
+import ConnectionsPanelHeader from './ConnectionsPanelHeader';
+import { AddToSourceSheetBox } from './AddToSourceSheet';
+import LexiconBox from './LexiconBox';
+import AboutBox from './AboutBox';
+import VersionsBox from './VersionsBox';
+import ExtendedNotes from './ExtendedNotes';
+import classNames from 'classnames';
 import Component             from 'react-class';
 
 
@@ -618,7 +618,7 @@ class ConnectionsSummary extends Component {
       }
 
     } else if (isTopLevel) {
-      
+
       // Hide Quoting or Modern Commentary from the top level view
       let topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
       // But include Quoting and Modern Commentary counts and english mark in top level Commentary section
@@ -683,7 +683,7 @@ class MySheetsList extends Component {
   // List of my sheets for a ref in the Sidebar
   render() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.filter(sheet => { 
+    var content = sheets.length ? sheets.filter(sheet => {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
@@ -1148,6 +1148,7 @@ AddConnectionBox.propTypes = {
   onCancel: PropTypes.func.isRequired
 };
 
-
-module.exports.ConnectionsPanel = ConnectionsPanel;
-module.exports.ConnectionsPanelHeader = ConnectionsPanelHeader;
+export {
+  ConnectionsPanel,
+  ConnectionsPanelHeader,
+};

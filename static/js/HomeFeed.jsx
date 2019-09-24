@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Component from 'react-class';
-const $                        = require('./sefaria/sefariaJquery');
-const Sefaria                  = require('./sefaria/sefaria');
-const PropTypes                = require('prop-types');
-const {Story}                    = require('./Story');
-const Footer                   = require('./Footer');
-const { usePaginatedScroll }   = require('./Hooks');
-const { 
-    NewsletterSignUpForm, 
-    LoadingMessage 
-}                              = require('./Misc');
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes  from 'prop-types';
+import {Story} from './Story';
+import Footer  from './Footer';
+import { usePaginatedScroll } from './Hooks';
+import {
+    NewsletterSignUpForm,
+    LoadingMessage
+} from './Misc';
 
 
 function HomeFeed(props) {
@@ -26,7 +26,7 @@ function HomeFeed(props) {
   return (
     <div className="homeFeedWrapper">
       <div className="content hasFooter" ref={scrollable_element}>
-        
+
         <div id="homeCover">
             <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
                 <source src="/static/img/home-video-narrow.webm" type="video/webm" />
@@ -207,7 +207,7 @@ function HomeFeed(props) {
                         <a target="_blank" href="https://www.twitter.com/SefariaProject" className="fa fa-twitter"></a>
                         <a target="_blank" href="https://www.instagram.com/SefariaProject" className="fa fa-instagram"></a>
                         <a target="_blank" href="https://www.youtube.com/user/SefariaProject" className="fa fa-youtube-play"></a>
-                    </div>            
+                    </div>
                 </div>
             </div>
 
@@ -286,11 +286,11 @@ class NewHomeFeedbackBox extends Component {
     return (
         <div className={"feedbackBoxOverlay" + (this.state.goodbyePrompt ? " open" : "")}>
         <div className="feedbackBox">
-            
-            {this.state.goodbyePrompt ? 
+
+            {this.state.goodbyePrompt ?
             <div><p className="int-en">Before you go, would you tell why you're going back?</p>
             <p className="int-he">עוזבים? ספרו לנו מדוע אתם חוזרים למצב הישן</p></div>
-            : 
+            :
             <div><p className="int-en">Thanks for trying out the new homepage!</p>
             <p className="int-he">תודה שניסיתם את דף הבית החדש!</p></div>}
 
@@ -317,7 +317,7 @@ class NewHomeFeedbackBox extends Component {
              <div className="button white" role="button" onClick={this.toggleGoodbyePrompt}>
                  <span className="int-en">Stay on new homepage</span>
                  <span className="int-he">המשך שימוש בדף הבית החדש</span>
-             </div></div>           
+             </div></div>
              :
              <div><div className="button" role="button" onClick={this.sendFeedback}>
                  <span className="int-en">Submit Feedback</span>
@@ -342,4 +342,4 @@ class NewHomeFeedbackBox extends Component {
 }
 
 
-module.exports = HomeFeed;
+export default HomeFeed;

@@ -1,7 +1,7 @@
-const $              = require('./sefariaJquery');
-const extend         = require('extend');
-const striptags      = require('striptags');
-const humanizeDuration = require('humanize-duration');
+import $ from './sefariaJquery';
+import extend from 'extend';
+import striptags from 'striptags';
+import humanizeDuration from 'humanize-duration';
 
 var INBROWSER = (typeof document !== 'undefined');
 
@@ -810,4 +810,4 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
   },
 });
 
-module.exports = Util;
+export default Util;

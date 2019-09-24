@@ -1,16 +1,16 @@
-const {
+import {
   LoadingMessage,
   ReaderMessage,
   ProfilePic,
-} = require('./Misc');
+} from './Misc';
 
-const React = require('react');
-const ReactDOM = require('react-dom');
-const PropTypes = require('prop-types');
-const classNames = require('classnames');
-const $ = require('./sefaria/sefariaJquery');
-const Sefaria = require('./sefaria/sefaria');
-const sanitizeHtml = require('sanitize-html');
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class'
 
 
@@ -213,7 +213,7 @@ class SheetContent extends Component {
       if ("ref" in source) {
         const highlighted = this.props.highlightedNodes ?
             this.props.highlightedNodes == source.node :
-              highlightedRef ? 
+              highlightedRef ?
               Sefaria.refContains(source.ref, highlightedRef) :
                 false;
         return (
@@ -637,8 +637,8 @@ class SheetMedia extends Component {
     if (caption && (caption.en || caption.he) ) {
       var cls = caption.en && caption.he ? "" : caption.en ? "enOnly" : "heOnly";
       var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
-                "<div class='en'>" + (caption.en || "") + "</div>" + 
-                "<div class='he'>" + (caption.he || "") + "</div>" + 
+                "<div class='en'>" + (caption.en || "") + "</div>" +
+                "<div class='he'>" + (caption.he || "") + "</div>" +
                  "</div></div>";
     }
 
@@ -673,4 +673,4 @@ class SheetMedia extends Component {
 }
 
 
-module.exports = Sheet;
+export default Sheet;

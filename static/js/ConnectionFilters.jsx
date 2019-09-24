@@ -1,7 +1,7 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+import React from 'react';
+import Sefaria from './sefaria/sefaria';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import Component      from 'react-class';
 
 
@@ -208,6 +208,7 @@ RecentFilterSet.propTypes = {
   setFilter:     PropTypes.func.isRequired,
 };
 
-
-module.exports.CategoryFilter  = CategoryFilter;
-module.exports.RecentFilterSet = RecentFilterSet;
+export {
+  CategoryFilter,
+  RecentFilterSet,
+};

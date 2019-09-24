@@ -1,7 +1,7 @@
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 
 
@@ -225,11 +225,11 @@ class EditGroupPage extends Component {
               <span className="int-en">List on Sefaria</span>
               <span className="int-he">הצג לכלל משתמשי ספריא</span>
           </label>
-          {this.state.moderationStatus !== "nolist" ? 
+          {this.state.moderationStatus !== "nolist" ?
           <div className="onoffswitch">
-            <input type="checkbox" 
-              name="onoffswitch" 
-              className="onoffswitch-checkbox" 
+            <input type="checkbox"
+              name="onoffswitch"
+              className="onoffswitch-checkbox"
               id="groupPublicToggle"
               checked={!!this.state.listed}
               onChange={this.handleListingChange} />
@@ -282,4 +282,4 @@ class FileInput extends Component {
 }
 
 
-module.exports = EditGroupPage;
+export default EditGroupPage;

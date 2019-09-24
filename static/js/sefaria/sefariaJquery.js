@@ -15,4 +15,4 @@ if (typeof document !== 'undefined' ) {
       $.getJSON = emptyPromise; // ditto
 }
 
-module.exports = $;
+export default $;

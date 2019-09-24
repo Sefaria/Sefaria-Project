@@ -75,7 +75,7 @@ before_script:
   - python manage.py createsuperuser --email $SEFARIA_SUPERUSER  --username  $SEFARIA_SUPERUSER --noinput
 
   # Rebuild TOC - TEMP to pass tests involving TOC changes
-  - ./run rebuild_toc.py 
+  - ./run rebuild_toc.py
 
   # run the django server, redirecting output to log files
   - python manage.py runserver --insecure  2> server.error.log > server.log &
@@ -92,6 +92,7 @@ before_script:
 
 script:
  - 'py.test -m "not deep and not failing"'
+ - 'npm run jest-travis'
  - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then cd reader/browsertest && python run_tests_on_travis.py "Build - ${TRAVIS_BUILD_NUMBER}" 2> selenium.error.log; else true; fi;'
 
 after_script:

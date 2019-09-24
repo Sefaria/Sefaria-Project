@@ -1,9 +1,9 @@
-const React                  = require('react');
-const PropTypes              = require('prop-types');
-const classNames             = require('classnames');
-const Sefaria                = require('./sefaria/sefaria');
-const $                      = require('./sefaria/sefariaJquery');
-import Component             from 'react-class';
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import Sefaria from './sefaria/sefaria';
+import $ from './sefaria/sefariaJquery';
+import Component from 'react-class';
 
 
 class VersionBlock extends Component {
@@ -298,4 +298,4 @@ VersionBlock.defaultProps = {
   showNotes: true
 };
 
-module.exports = VersionBlock;
+export default VersionBlock;

@@ -1,7 +1,7 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const {
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes  from 'prop-types';
+import {
     TwoBox,
     BlockLink,
     SaveButton,
@@ -11,7 +11,7 @@ const {
     FollowButton,
     SimpleLinkedBlock,
     ProfileListing,
-}                = require('./Misc');
+} from './Misc';
 
 
 const sheetPropType = PropTypes.shape({
@@ -542,6 +542,8 @@ SaveLine.propTypes = {
 
 const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
 
-module.exports.Story = Story;
-module.exports.SheetBlock = SheetBlock;
-module.exports.StorySheetList = StorySheetList;
+export {
+  Story,
+  SheetBlock,
+  StorySheetList,
+};

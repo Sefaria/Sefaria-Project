@@ -1,21 +1,20 @@
-const React         = require('react');
-const classNames    = require('classnames');
-const extend        = require('extend');
-const PropTypes     = require('prop-types');
-const Sefaria       = require('./sefaria/sefaria');
-const Header        = require('./Header');
-const ReaderPanel   = require('./ReaderPanel');
-const $             = require('./sefaria/sefariaJquery');
-const EditGroupPage = require('./EditGroupPage');
-const Footer        = require('./Footer');
-const SearchState   = require('./sefaria/searchState');
-const {
+import React from 'react';
+import classNames from 'classnames';
+import extend from 'extend';
+import PropTypes from 'prop-types';
+import Sefaria from './sefaria/sefaria';
+import Header from './Header';
+import ReaderPanel from './ReaderPanel';
+import $ from './sefaria/sefariaJquery';
+import EditGroupPage from './EditGroupPage';
+import Footer from './Footer';
+import SearchState from './sefaria/searchState';
+import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-}                   = require('./Misc');
+} from './Misc';
 import Component from 'react-class';
-
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -1864,9 +1863,12 @@ ReaderApp.defaultProps = {
   initialPath:                 "/"
 };
 
-
-module.exports.ReaderApp           = ReaderApp;
-module.exports.Footer              = Footer;
-module.exports.sefariaSetup        = Sefaria.setup;
-module.exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
-module.exports.EditGroupPage       = EditGroupPage;
+const sefariaSetup = Sefaria.setup;
+const { unpackDataFromProps } = Sefaria;
+export {
+  ReaderApp,
+  Footer,
+  sefariaSetup,
+  unpackDataFromProps,
+  EditGroupPage,
+};
