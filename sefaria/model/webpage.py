@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from . import abstract as abst
 from . import text
+from sefaria.system.database import db
 
 import logging
 logger = logging.getLogger(__name__)
@@ -243,7 +244,7 @@ def test_normalization():
     print "{} pages normalized".format(count)
 
 
-def deduplicate_webpages(test=True):
+def dedupe_webpages(test=True):
     norm_count = 0
     dedupe_count = 0
     webpages = WebPageSet()
@@ -277,6 +278,58 @@ def deduplicate_webpages(test=True):
                     webpage.save()
     print "{} pages removed as duplicates".format(dedupe_count)
     print "{} pages normalized".format(norm_count)
+
+    dedupe_identical_urls(test=test)
+
+
+def dedupe_identical_urls(test=True):
+    dupes = db.webpages.aggregate([
+        {"$group": {
+            "_id": "$url",
+            "uniqueIds": {"$addToSet": "$_id"},
+            "count": {"$sum": 1}
+            }
+        },
+        {"$match": { 
+            "count": {"$gt": 1}
+            }
+        },
+        {"$sort": {
+            "count": -1
+            }
+        }
+    ]);
+
+    url_count = 0
+    removed_count = 0
+    for dupe in dupes:
+        url_count += 1
+        pages = WebPageSet({"_id": {"$in": dupe["uniqueIds"]}})
+        merged_page_data = {
+            "url": dupe["_id"], "linkerHits": 0, "lastUpdated": datetime.min
+        }
+        if test:
+            print "\nReplacing: "
+        for page in pages:
+            if test:
+                print page.contents()
+            merged_page_data["linkerHits"] += page.linkerHits
+            if merged_page_data["lastUpdated"] < page.lastUpdated:
+                merged_page_data["refs"]  = page.refs
+                merged_page_data["title"] = page.title
+                merged_page_data["description"]  = page.description
+        
+        removed_count += (pages.count() - 1)
+
+        merged_page = WebPage(merged_page_data)
+        if test:
+            print "with"
+            print merged_page.contents()           
+        else:
+            pages.delete()
+            merged_page.save()
+
+    print "\n{} pages with identical urls removed from {} url groups.".format(removed_count, url_count)
 
 
 def clean_webpages(delete=False):
