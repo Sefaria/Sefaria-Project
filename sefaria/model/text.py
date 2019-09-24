@@ -4179,20 +4179,26 @@ class Ref(object):
         :return: int: num refs between self and ref. -1 if self and ref aren't in the same index
         """
         # todo: what if the refs have different depth?
-        section_len = len(self.sections)
+        # todo: ranged refs haven't really been considered
+        self_section_len = len(self.sections)
+        ref_section_len = len(ref.sections)
 
         if self.index_node != ref.index_node:
             return -1
 
-        if section_len == 0:
+        if fast and self_section_len != ref_section_len:
+            return -1 # we can do better than that.
+
+        if self_section_len == 0 or ref_section_len == 0:
             return 0
 
-        if self.index_node.depth == section_len:
+
+        if self.index_node.depth == self_section_len:
             # If they're the same section, math is simple subtraction
             if self.sections[:-1] == ref.sections[:-1]:
                 return abs(self.sections[-1] - ref.sections[-1])
 
-        # They're different sections, see if it's def. too far
+            # They're different sections, see if it's def. too far
             if max_dist:
                 # Are they far?
                 if fast and self.index_node.depth > 1 and abs(self.sections[-2] - ref.sections[-2]) > max_dist:
@@ -4205,7 +4211,7 @@ class Ref(object):
                     if self.sections[-1] > max_dist:
                         return -1
 
-        if fast and self.index_node.depth == section_len + 1 and abs(self.sections[-1] - ref.sections[-1]) > max_dist:
+        if fast and self.index_node.depth == self_section_len + 1 and abs(self.sections[-1] - ref.sections[-1]) > max_dist:
             return -1
 
         # Couldn't short circuit, proceed with full computation
