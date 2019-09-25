@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Editor} from 'slate-react'
 import {Block, Value, Data, Inline} from 'slate'
 import Html from 'slate-html-serializer'
+const Sefaria = require('./sefaria/sefaria');
 
 const {
     SheetMetaDataBox,
@@ -178,8 +179,7 @@ const html = new Html({rules})
 function parseSheetItemHTML(rawhtml) {
     return (
         html.deserialize(
-            rawhtml.replace(/[\n\r\t]/gm, "")
-                   .replace(/<p>&nbsp;<\/p>/gm, "")
+            Sefaria.util.cleanHTML(rawhtml.replace(/[\n\r\t]/gm, ""))
         ).toJSON()["document"]["nodes"]
     )
 }
