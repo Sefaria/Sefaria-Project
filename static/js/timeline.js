@@ -9,27 +9,74 @@ let w = 920; // real value determined in buildScreen()
 let h = 730 - margin[0] - margin[2];
 let graphBox_height = h;
 
-let svg, timeScale, s, graphBox;
+let svg, timeScale, s, graphBox, lang;
 let links, nodes, link, node, simulation;
 let popUpElem, heBox, enBox, textBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
 
 const urlParams = new URLSearchParams(window.location.search);
 const startingRef = urlParams.get('ref');
 let currentRef = startingRef || "Shabbat 32a:4";
-console.log(currentRef);
 
-/*****          Hebrew / English Handling              *****/
-let lang;
-const isHebrew = () => lang === "he";
-const isEnglish = () => lang === "en";
-const switchToEnglish = () => lang = "en";
-const switchToHebrew = () => lang = "he";
+
+/****           Initialization and First Render              *****/
+
 (GLOBALS.interfaceLang === "hebrew") ? switchToHebrew() : switchToEnglish();
+setupPopup({interfaceLang: "english", contentLang: "bilingual"});
+buildScreen();
+window.addEventListener('resize', rebuildScreen);
+window.addEventListener('popstate', handleStateChange);
+
+
+/*****         Screen construction      *****/
+
+function buildScreen() {
+    buildFrame();
+    fetchNetwork(currentRef)
+        .then(prepLinksAndNodes)
+        .then(createIndexNetworkSimulation);
+}
+
+function refocusNetwork(ref) {
+    fetchNetwork(ref)
+        .then(prepLinksAndNodes)
+        .then(updateIndexNetworkSimulation)
+}
+
+function buildFrame() {
+    //Build objects that are present for any starting state
+
+    w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
+
+    svg = d3.select("#content").append("svg")
+        .attr("width", w + margin[1] + margin[3] - 16)
+        .attr("height", graphBox_height + 150);  // todo: 150 is slop because I'm too lazy to sit and do arithmetic
+    svg.append("svg:desc").text("This SVG displays visually ...");
+    graphBox = svg.append("g")
+        //.attr("height", graphBox_height)
+        .attr("transform", "translate(" + margin[3] + ", 10)")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .attr("fill", "none")
+        .attr("stroke-opacity", 0.4)
+        .attr("stroke-width", 1.5);
+
+    timeScale = d3.scaleLinear()
+        .domain([-1500, 400, 2050])
+        .range([0, w/5, w]);
+    s = n => timeScale(getDate(n));
+
+    let axis = d3.axisTop(timeScale)
+        .tickValues([-1500,400,1100,1800]);
+
+    graphBox.append("g")
+        .attr("transform", "translate(0,10)")
+        .call(axis);
+}
 
 
 /*****                   Popup                        *****/
 
-const setupPopup = function(options) {
+function setupPopup(options) {
     popUpElem = document.createElement("div");
     popUpElem.id = "sefaria-popup";
     popUpElem.classList.add("interface-" + options.interfaceLang);
@@ -203,11 +250,9 @@ const setupPopup = function(options) {
     });
 };
 
-const fetchAndShow = function(ref) {
-    Sefaria.getText(ref).then(showPopup.bind(this));
-};
+async function showPopup(ref) {
+    const source = await Sefaria.getText(ref);
 
-const showPopup = function(source) {
     while (textBox.firstChild) {
         textBox.removeChild(textBox.firstChild);
     }
@@ -290,9 +335,6 @@ const hidePopup = function() {
     popUpElem.style.display = "none";
 };
 
-setupPopup({interfaceLang: "english", contentLang: "bilingual"});
-
-
 
 /*****                   Currying Data                  *****/
 
@@ -304,33 +346,6 @@ async function fetchNetwork(ref) {
     let response = await fetch('/api/linknetwork/' + Sefaria.normRef(ref));
     return await response.json();
 }
-
-function getLinkPath(n) {
-        // Follow along links, in both directions, collecting nodes and links along the way.  Short circuit at root.
-
-        function s2t(n) {
-            let ls = links.filter(l => l.source === n);
-            let ns = ls.map(l => l.target);
-            return ns.map(n.root ? _ => null : s2t)
-                .filter(_ => _)
-                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
-        }
-
-        function t2s(n) {
-            let ls = links.filter(l => l.target === n);
-            let ns = ls.map(l => l.source);
-            return ns.map(n.root ? _ => null : t2s)
-                .filter(_ => _)
-                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
-        }
-
-        const a = s2t(n);
-        const b = t2s(n);
-        return {
-            ns: a.ns.concat(b.ns),
-            ls: a.ls.concat(b.ls),
-        }
-    }
 
 function prepLinksAndNodes(treesObj) {
     links = treesObj.indexLinks.map(([source,target]) => ({source, target}));
@@ -344,6 +359,9 @@ function prepLinksAndNodes(treesObj) {
     });
     nodes.filter(d => d.root).forEach(n => {n.fy = h/2});
 }
+
+
+/******                 Rendering                   *****/
 
 function renderNetwork() {
     link = graphBox
@@ -390,7 +408,6 @@ function renderNetwork() {
                 return update;
             },
             exit => exit.remove()
-
         );
 
     node.on("click", d => {
@@ -430,7 +447,7 @@ function renderNetwork() {
             .attr("stroke-width", 1)
             .attr("stroke", "black")
             //.on("click", renderText)
-            .on("click", fetchAndShow)
+            .on("click", showPopup)
             .on("dblclick", refocusNetwork);
 
         simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
@@ -440,9 +457,37 @@ function renderNetwork() {
     });
 }
 
+function getLinkPath(n) {
+        // Follow along links, in both directions, collecting nodes and links along the way.  Short circuit at root.
+
+        function s2t(n) {
+            let ls = links.filter(l => l.source === n);
+            let ns = ls.map(l => l.target);
+            return ns.map(n.root ? _ => null : s2t)
+                .filter(_ => _)
+                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
+        }
+
+        function t2s(n) {
+            let ls = links.filter(l => l.target === n);
+            let ns = ls.map(l => l.source);
+            return ns.map(n.root ? _ => null : t2s)
+                .filter(_ => _)
+                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
+        }
+
+        const a = s2t(n);
+        const b = t2s(n);
+        return {
+            ns: a.ns.concat(b.ns),
+            ls: a.ls.concat(b.ls),
+        }
+    }
+
+
 /*****         Force Simulation      *****/
 
-function renderIndexNetworkSimulation() {
+function createIndexNetworkSimulation() {
     simulation = d3.forceSimulation(nodes);
     simulation
         .force("link", d3.forceLink(links).id(d => d.title))
@@ -541,60 +586,16 @@ function forceCluster() {
   return force;
 }
 
-/*****         Screen construction      *****/
 
-buildScreen();
+/*****          Hebrew / English Handling              *****/
 
-function buildScreen() {
-    buildFrame();
-    fetchNetwork(currentRef)
-        .then(prepLinksAndNodes)
-        .then(renderIndexNetworkSimulation);
-}
+function isHebrew() { return lang === "he"; }
+function isEnglish() { return lang === "en"; }
+function switchToEnglish() { lang = "en"; }
+function switchToHebrew() { lang = "he"; }
 
-
-function refocusNetwork(ref) {
-    fetchNetwork(ref)
-        .then(prepLinksAndNodes)
-        .then(updateIndexNetworkSimulation)
-}
-
-
-
-//Build objects that are present for any starting state
-function buildFrame() {
-    w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
-
-    svg = d3.select("#content").append("svg")
-        .attr("width", w + margin[1] + margin[3] - 16)
-        .attr("height", graphBox_height + 150);  // todo: 150 is slop because I'm too lazy to sit and do arithmetic
-    svg.append("svg:desc").text("This SVG displays visually ...");
-    graphBox = svg.append("g")
-        //.attr("height", graphBox_height)
-        .attr("transform", "translate(" + margin[3] + ", 10)")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-        .attr("fill", "none")
-        .attr("stroke-opacity", 0.4)
-        .attr("stroke-width", 1.5);
-
-    timeScale = d3.scaleLinear()
-        .domain([-1500, 400, 2050])
-        .range([0, w/5, w]);
-    s = n => timeScale(getDate(n));
-
-    let axis = d3.axisTop(timeScale)
-        .tickValues([-1500,400,1100,1800]);
-
-    graphBox.append("g")
-        .attr("transform", "translate(0,10)")
-        .call(axis);
-}
 
 /*****     Listeners to handle popstate and to rebuild on screen resize     *****/
-
-window.addEventListener('resize', rebuildScreen);
-window.addEventListener('popstate', handleStateChange);
 
 function handleStateChange(event) {
     var poppedLang = event.state.lang;
@@ -615,11 +616,12 @@ function handleStateChange(event) {
     changePageTitle(event.state.title);
 }
 
-//Rebuild screen geometry, without state change
 function rebuildScreen() {
+    //Rebuild screen geometry, without state change
     d3.selectAll("svg").remove();
     buildScreen();
 }
+
 
 /*****        History                *****/
 
