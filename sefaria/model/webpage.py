@@ -310,7 +310,7 @@ def webpages_stats():
     covered_refs = defaultdict(set)
 
     for webpage in webpages:
-        sites[webpage.domain()] += 1
+        sites[webpage.domain] += 1
         for ref in webpage.refs:
             total_links += 1
             oref = text.Ref(ref)

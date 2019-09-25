@@ -4157,6 +4157,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .webpageList.empty .loadingMessage {
   margin-top: 0px;
 }
+.webpageList .webpagesLinkerMessage {
+  padding: 20px 0px;
+  color: #999;
+  border-top: 1px solid #E5E5E5;
+  font-size: 13px;
+}
+.marginless .webpageList .webpagesLinkerMessage {
+  padding: 20px 34px;
+}
+.webpageList .webpagesLinkerMessage a {
+  color: #999;
+  text-decoration: underline;
+}
 .textList.marginless .webpageList.empty .loadingMessage {
   margin: 50px 40px;
 }

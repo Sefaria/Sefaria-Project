@@ -1,60 +1,90 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Linker Plugin" %} | {% trans "Sefaria" %}{% endblock %}
 
 {% block description %}{% trans "Automatically turn citations on your website into links or dynamic popups with the full text from Sefaria." %}{% endblock %}
 
-{% block content %}{% autoescape off %}
+{% block content %}
 <div id="linkerPage" class="container static">
     <div class="inner">
         <h1>
-            <span class="int-en">The Linker</span>
+            <span class="int-en">The Sefaria Linker</span>
             <span class="int-he">סורק אזכורים אוטומטי</span>
         </h1>
+
         <div class="linker section">
 
-            <div>
-                <p>
-                    Find the Torah references on any page, and link them to Sefaria!
-                    Drag one of these buttons to your browser bar, then click it whenever you want to find the references on a page that you're viewing.
-                </p>
-            </div>
-            <div class="linkerOption">
-                <p>This one will find references, and turn them into links to Sefaria:</p>
-                <div class="single-button"><a class="button big blue" href="javascript: (function () {
-                var linkerScript = document.createElement('script');
-                linkerScript.setAttribute('charset','utf-8');
-                linkerScript.setAttribute('src', 'https://www.sefaria.org/linker.js');
-                linkerScript.onload = function() { sefaria.link({mode: 'link'}); };
-                document.body.appendChild(linkerScript);  }());">Sefariate!</a></div>
-            </div>
-            <div class="linkerOption">
-                <p>This one will make references into links and also let you click a ref to popup content:</p>
-                <div class="single-button"><a class="button big blue" href="javascript: (function () {
+            <span class="int-en"></span>
+            <span class="int-he"></span>
+
+        <h2>
+            <span class="int-en">How it Works</span>
+            <span class="int-he">How it Works</span>
+        </h2>
+        <p>
+            <span class="int-en">The Sefaria Linker is a free JavaScript plugin for websites that include citations to Torah texts. It automatically connects your website to Sefaria and Sefaria to your website.</span>
+            <span class="int-he">The Sefaria Linker is a free JavaScript plugin for websites that include citations to Torah texts. It automatically connects your website to Sefaria and Sefaria to your website.</span>
+        </p>
+
+        <h2>
+            <span class="int-en">Link Your Site to Sefaria</span>
+            <span class="int-he">Link Your Site to Sefaria</span>
+        </h2>
+
+        <p>
+            <span class="int-en">Any textual citations on your website automatically become links which open a popup with the text in Hebrew and English. A "Read More" button lets your users find the text on Sefaria to explore connections and context.</span>
+            <span class="int-he">Any textual citations on your website automatically become links which open a popup with the text in Hebrew and English. A "Read More" button lets your users find the text on Sefaria to explore connections and context.</span>
+        </p>
+
+        <img src="{% static 'img/linker-popup.png' %}" alt="Image of Sefaria Linker popup">
+
+        <h2>
+            <span class="int-en">Link Sefaria to Your Site</span>
+            <span class="int-he">Link Sefaria to Your Site</span>
+        </h2>
+
+        <p>
+            <span class="int-en">Using the Linker automatically tells Sefaria that you have pages relevant to specific texts in our library. After you install the linker, your pages may show up for Sefaria users in the sidebar connected to the the texts they cite.</span>
+            <span class="int-he">Using the Linker automatically tells Sefaria that you have pages relevant to specific texts in our library. After you install the linker, your pages may show up for Sefaria users in the sidebar connected to the the texts they cite.</span>
+        </p>
+
+        <img src="{% static 'img/webpages-in-sidebar.png' %}" alt="Image of Sefaria Linker popup">
+
+        <h2>
+            <span class="int-en">Install the Linker</span>
+            <span class="int-he">Install the Linker</span>
+        </h2>
+
+        <p>
+            <span class="int-en">You can install the Sefaria Linker by copying just a few lines of code to your website.</span>
+            <span class="int-he">You can install the Sefaria Linker by copying just a few lines of code to your website.</span>
+        </p>
+
+        <div class="buttonBox">
+        <a class="button" href="https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-Auto-Linker">
+            <span class="int-en">Read the details on GitHub</span>
+            <span class="int-he">Read the details on GitHub</span>
+        </a>
+        </div>
+
+        <p>
+            <span class="int-en">As a individual you can also run the Linker as a bookmarklet. Just drag the link below to your bookmarks bar, and click on any page your want to add links to.</span>
+            <span class="int-he">As a individual you can also run the Linker as a bookmarklet. Just drag the link below to your bookmarks bar, and click on any page your want to add links to.</span>
+            {% autoescape off %}
+            <a href="javascript: (function () {
                 var linkerScript = document.createElement('script');
                 linkerScript.setAttribute('charset','utf-8');
                 linkerScript.setAttribute('src', 'https://www.sefaria.org/linker.js');
                 linkerScript.onload = function() { sefaria.link({mode: 'popup-click'}); };
-                document.body.appendChild(linkerScript);  }());">Sefariate!</a></div>
-            </div>
-            <div class="linkerOption">
-                <p>And this one will make references into links, and popup content when you hover over a reference:</p>
-                <div class="single-button"><a class="button big blue" href="javascript: (function () {
-                var linkerScript = document.createElement('script');
-                linkerScript.setAttribute('charset','utf-8');
-                linkerScript.setAttribute('src', 'https://www.sefaria.org/linker.js');
-                linkerScript.onload = function() { sefaria.link(); };
-                document.body.appendChild(linkerScript);  }());">Sefariate!</a></div>
-            </div>
-        </div>
-
-        <div id="info" class="section">
-            <p>Want to link the references on your own website to Sefaria?</p>
-            See our <a href="https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-Auto-Linker">Instructions</a> to learn how.
-
-        </div>
+                document.body.appendChild(linkerScript);  }());"
+                onClick="javascript: alert('To install the bookmarklet drag this link to your bookmark bar, then click it on pages with citations.')">
+                <span class="int-en">Sefaria Linker Bookmarklet.</span>
+                <span class="int-he">Sefaria Linker Bookmarklet</span>
+            </a>
+            {% endautoescape %}
+        </p>
 
     </div>
 </div>
-{% endautoescape %}{% endblock %}
+{% endblock %}
