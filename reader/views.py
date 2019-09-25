@@ -80,6 +80,7 @@ library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
 library.build_lexicon_auto_completers()
+library.build_cross_lexicon_auto_completer()
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
@@ -499,7 +500,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
-        breadcrumb = "/sheets/"+str(sheet["id"])
+        breadcrumb = sheet_crumbs(request, sheet)
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
 
 
@@ -912,8 +913,9 @@ def updates(request):
 
 def new_home(request):
     props = base_props(request)
-    title = _("Sefaria Stories")
-    return menu_page(request, props, "homefeed", title)
+    title = _("Sefaria: a Living Library of Jewish Texts Online")
+    desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    return menu_page(request, props, "homefeed", title, desc)
 
 
 @staff_member_required
@@ -991,6 +993,20 @@ def _crumb(pos, id, name):
             "@id": id,
             "name": name
         }}
+
+
+def sheet_crumbs(request, sheet=None):
+    if sheet is None:
+        return u""
+
+    # todo: write up topic breadcrumbs
+    breadcrumbJsonList = [_crumb(1, "/sheets", _("Sheets"))]
+
+    return json.dumps({
+        "@context": "http://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbJsonList
+    })
 
 
 def ld_cat_crumbs(request, cats=None, title=None, oref=None):

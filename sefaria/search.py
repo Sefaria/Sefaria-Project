@@ -17,8 +17,8 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 import logging
 import json
 import math
-import collections
 from logging import NullHandler
+from collections import defaultdict
 import time as pytime
 logger = logging.getLogger(__name__)
 
@@ -425,10 +425,7 @@ class TextIndexer(object):
                     print u"Failed to parse ref, {}".format(title)
                     return
                 vlist = cls.get_ref_version_list(r)
-                vpriorities = {
-                    u"en": 0,
-                    u"he": 0
-                }
+                vpriorities = defaultdict(lambda: 0)
                 for i, v in enumerate(vlist):
                     lang = v["language"]
                     cls.version_priority_map[(title, v["versionTitle"], lang)] = (vpriorities[lang], mini_toc["categories"])

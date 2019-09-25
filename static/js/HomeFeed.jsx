@@ -71,7 +71,7 @@ function HomeFeed(props) {
                             <span className="int-he">פרשת השבוע</span>
                         </a>
                         <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Daf Yomi"))} style={{borderColor: "rgb(204, 180, 121)"}}>
-                            <span className="int-en">Daily Talmud</span>
+                            <span className="int-en">Daf Yomi</span>
                             <span className="int-he">דף יומי</span>
                         </a>
                         <a className="refLink" href="/texts/Liturgy/Haggadah" style={{borderColor: "rgb(171, 78, 102)"}}>
