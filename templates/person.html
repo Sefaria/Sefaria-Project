@@ -47,7 +47,7 @@
             "position": 2,
             "item": {
               "@id": "/person/{{ key }}",
-              "name": '{% if request.interfaceLang == "english" %} {{ primary_name.en }} {% else %}{{ primary_name.he }} {% endif %}'
+              "name": "{% if request.interfaceLang == "english" %}{{ primary_name.en|escapejs }}{% else %}{{ primary_name.he|escapejs }}{% endif %}"
             }
           }]
         }
