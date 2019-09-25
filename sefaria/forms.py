@@ -29,7 +29,7 @@ class SefariaLoginForm(EmailAuthenticationForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
 
 
-class NewUserForm(EmailUserCreationForm):
+class SefariaNewUserForm(EmailUserCreationForm):
     email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
@@ -74,7 +74,7 @@ class NewUserForm(EmailUserCreationForm):
             seed_group = Group.objects.get(name=SEED_GROUP)
             user.groups.remove(seed_group)
         else:
-            user = super(NewUserForm, self).save(commit=False)
+            user = super(SefariaNewUserForm, self).save(commit=False)
 
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
@@ -101,7 +101,7 @@ class NewUserForm(EmailUserCreationForm):
 
         return user
 
-class NewUserFormAPI(NewUserForm):
+class SefariaNewUserFormAPI(SefariaNewUserForm):
 
     mobile_app_key = forms.CharField(widget=forms.HiddenInput())
 
@@ -120,39 +120,18 @@ class NewUserFormAPI(NewUserForm):
 # This class doesn't seem to be getting called at all -- it's referenced in urls.py,
 # but I'm not 100% convinced anything coded here actually sends the email template outside of the django defaults (rmn)
 #
-class HTMLPasswordResetForm(PasswordResetForm):
+class SefariaPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
 
-    def save(self, domain_override=None, subject_template_name='registration/pass_reset_subject.txt',
-             email_template_name='registration/password_reset_email.html',
-             use_https=False, token_generator=default_token_generator, from_email=None, request=None,
-             html_email_template_name=None,
-             extra_email_context=None
-             ):
-        """
-        Generates a one-use only link for resetting password and sends to the user
-        """
-        from django.core.mail import EmailMessage
-        for user in self.users_cache:
-            if not domain_override:
-                current_site = get_current_site(request)
-                site_name = current_site.name
-                domain = current_site.domain
-            else:
-                site_name = domain = domain_override
-            c = {
-                'email': user.email,
-                'domain': domain,
-                'site_name': site_name,
-                'uid': int_to_base36(user.id),
-                'user': user,
-                'token': token_generator.make_token(user),
-                'protocol': use_https and 'https' or 'http',
-            }
-            subject = loader.render_to_string(subject_template_name, c)
-            # Email subject *must not* contain newlines
-            subject = ''.join(subject.splitlines())
-            email = loader.render_to_string(email_template_name, c)
-            msg = EmailMessage(subject, email, from_email, [user.email])
-            msg.content_subtype = "html"
-            msg.send()
+class SefariaSetPasswordForm(SetPasswordForm):
+    new_password1 = forms.CharField(
+        label=_("New password"),
+        widget=forms.PasswordInput(attrs={'placeholder': _("Enter New Password")}),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label=_("New password confirmation"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={'placeholder': _("Repeat New Password")}),
+    )

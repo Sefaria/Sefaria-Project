@@ -1,4 +1,4 @@
-const {
+import {
   LoadingMessage,
   ReaderMessage,
   SheetMetaDataBox,
@@ -6,16 +6,18 @@ const {
   SheetTitle,
   GroupStatement,
   ProfilePic,
-} = require('./Misc');
+} from './Misc';
 
-const React = require('react');
-const ReactDOM = require('react-dom');
-const PropTypes = require('prop-types');
-const classNames = require('classnames');
-const SefariaEditor = require('./Editor');
-const $ = require('./sefaria/sefariaJquery');
-const Sefaria = require('./sefaria/sefaria');
-import Component from 'react-class';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import SefariaEditor from './Editor';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import sanitizeHtml  from 'sanitize-html';
+import Component from 'react-class'
+
 
 class Sheet extends Component {
   constructor(props) {
@@ -644,4 +646,4 @@ class SheetMedia extends Component {
 }
 
 
-module.exports = Sheet;
+export default Sheet;

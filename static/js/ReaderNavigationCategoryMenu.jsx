@@ -1,16 +1,16 @@
-const {
+import {
   CategoryColorLine,
   CategoryAttribution,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
   TwoOrThreeBox,
   LanguageToggleButton,
-}                = require('./Misc');
-const React      = require('react');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-const Sefaria    = require('./sefaria/sefaria');
-const Footer     = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -282,4 +282,4 @@ ReaderNavigationCategoryMenuContents.defaultProps = {
   contents: []
 };
 
-module.exports = ReaderNavigationCategoryMenu;
+export default ReaderNavigationCategoryMenu;

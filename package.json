@@ -11,6 +11,8 @@
     "daemon": "forever start -a -p ./ -l log/forever/forever.log -o log/forever/out.log -e log/forever/err.log -w --watchDirectory log/forever/timeout static/bundles/server/server-bundle.js ",
     "test": "./run reader/browsertest/run_local.py",
     "test-one": "./run reader/browsertest/run_one_local.py",
+    "jest": "jest --watchAll --notify",
+    "jest-travis": "jest",
     "build": "webpack --config ./node/webpack.config.js",
     "build-prod": "webpack --config ./node/webpack.config.js --mode='production'",
     "build-client": "webpack --config ./node/webpack.client.js",
@@ -69,27 +71,28 @@
     "webpack-sources": "^1.3.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.0.0",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "babel-plugin-transform-es2015-destructuring": "^6.23.0",
-    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "@babel/cli": "^7.6.0",
+    "@babel/core": "^7.6.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
+    "@babel/plugin-transform-async-to-generator": "^7.5.0",
+    "@babel/plugin-transform-destructuring": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.6",
     "babel-plugin-transform-remove-console": "^6.8.0",
-    "babel-preset-es2015": "^6.0.0",
-    "babel-preset-react": "^6.0.0",
     "babel-watch": "^2.0.0",
+    "jest": "^24.9.0",
     "nodemon": "^1.9.2",
     "on-build-webpack": "^0.1.0",
     "source-map-support": "^0.4.15",
-    "webpack": "^4.35.2",
+    "webpack": "^4.40.2",
     "webpack-bundle-tracker": "^0.2.1",
-    "webpack-cli": "^3.3.5"
+    "webpack-cli": "^3.3.9"
   },
   "babel": {
     "presets": [
-      "es2015",
-      "react"
+      "@babel/env",
+      "@babel/react"
     ],
     "compact": false,
     "plugins": []

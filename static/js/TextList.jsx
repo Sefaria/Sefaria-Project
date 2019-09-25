@@ -1,15 +1,15 @@
-const {
+import {
   SheetListing,
   LoadingMessage,
-}                = require('./Misc');
-const {
+} from './Misc';
+import {
   RecentFilterSet,
-}                = require('./ConnectionFilters');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const TextRange  = require('./TextRange');
+} from './ConnectionFilters';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes  from 'prop-types';
+import TextRange  from './TextRange';
 import Component      from 'react-class';
 
 
@@ -41,7 +41,7 @@ class TextList extends Component {
     const didRender = prevState.linksLoaded && (!prevState.waitForText || prevState.textLoaded);
     const willRender = this.state.linksLoaded && (!this.state.waitForText || this.state.textLoaded);
     if (!didRender && willRender) {
-      // links text just loaded 
+      // links text just loaded
       this.props.checkVisibleSegments();
     }
   }
@@ -205,8 +205,8 @@ class TextList extends Component {
                     links.map(function(link, i) {
                         if (link.isSheet) {
                           var hideAuthor = link.index_title == this.props.filter[0];
-                          return (<SheetListing 
-                                    sheet={link} 
+                          return (<SheetListing
+                                    sheet={link}
                                     handleSheetClick={this.props.handleSheetClick}
                                     connectedRefs={this.props.srefs}
                                     hideAuthor={hideAuthor}
@@ -320,4 +320,4 @@ EditorLinkOptions.propTypes = {
 };
 
 
-module.exports = TextList;
+export default TextList;

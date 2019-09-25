@@ -1,16 +1,16 @@
-const {
+import {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
   TestMessage,
   ProfilePic,
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const ReactDOM   = require('react-dom');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const ReaderPanel= require('./ReaderPanel');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
 
@@ -312,14 +312,14 @@ class Header extends Component {
                     </div>
                 </div>
                 <div className="headerHomeSection">
-                    {Sefaria._siteSettings.TORAH_SPECIFIC ? 
+                    {Sefaria._siteSettings.TORAH_SPECIFIC ?
                       <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> :
                       null }
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
-                </div> 
+                </div>
               </div>
               { viewContent ?
                 (<div className="headerNavContent">
@@ -357,4 +357,4 @@ Header.propTypes = {
 };
 
 
-module.exports = Header;
+export default Header;

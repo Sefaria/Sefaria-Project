@@ -1,13 +1,13 @@
-const {
+import {
   LoadingMessage,
   LoginPrompt,
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+} from './Misc';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import Component from 'react-class';
 
 
@@ -239,6 +239,7 @@ AddToSourceSheetWindow.propTypes = {
   note:         PropTypes.string,
 };
 
-
-module.exports.AddToSourceSheetBox = AddToSourceSheetBox;
-module.exports.AddToSourceSheetWindow = AddToSourceSheetWindow;
+export {
+  AddToSourceSheetBox,
+  AddToSourceSheetWindow,
+};

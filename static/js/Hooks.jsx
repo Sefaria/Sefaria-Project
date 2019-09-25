@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-const $          = require('./sefaria/sefariaJquery');
+import $  from './sefaria/sefariaJquery';
 
 
 //From https://usehooks.com/useDebounce/
@@ -60,5 +60,7 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
   }, [page]);
 }
 
-module.exports.usePaginatedScroll               = usePaginatedScroll;
-module.exports.useDebounce                      = useDebounce;
+export {
+  usePaginatedScroll,
+  useDebounce,
+};

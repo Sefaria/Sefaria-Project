@@ -1,11 +1,11 @@
 //const React      = require('react');
 import React, { useState, useEffect } from 'react';
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-import Component      from 'react-class';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Component from 'react-class';
 
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
@@ -1122,23 +1122,23 @@ function NewsletterSignUpForm(props) {
   return (
     <div className="newsletterSignUpBox">
       <span className="int-en">
-        <input 
-          className="newsletterInput" 
-          placeholder="Sign up for Newsletter" 
-          value={input} 
+        <input
+          className="newsletterInput"
+          placeholder="Sign up for Newsletter"
+          value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <span className="int-he">
-        <input 
+        <input
           className="newsletterInput"
-          placeholder="הצטרפו לרשימת התפוצה" 
-          value={input} 
+          placeholder="הצטרפו לרשימת התפוצה"
+          value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
-      { subscribeMessage ? 
+      { subscribeMessage ?
         <div className="subscribeMessage">{subscribeMessage}</div>
         : null }
     </div>);
@@ -1274,7 +1274,7 @@ class InterruptingMessage extends Component {
     if (!this.state.timesUp) { return null; }
 
     if (this.props.style === "banner") {
-      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>        
+      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
                 <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
                 <div id="bannerMessageClose" onClick={this.close}>×</div>
               </div>;
@@ -1758,51 +1758,53 @@ SheetMetaDataBox.propTypes = {
 
 
 
-module.exports.SimpleInterfaceBlock                      = SimpleInterfaceBlock;
-module.exports.DangerousInterfaceBlock                   = DangerousInterfaceBlock;
-module.exports.SimpleContentBlock                        = SimpleContentBlock;
-module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
-module.exports.BlockLink                                 = BlockLink;
-module.exports.CategoryColorLine                         = CategoryColorLine;
-module.exports.CategoryAttribution                       = CategoryAttribution;
-module.exports.CookiesNotification                       = CookiesNotification;
-module.exports.Dropdown                                  = Dropdown;
-module.exports.DropdownButton                            = DropdownButton;
-module.exports.DropdownModal                             = DropdownModal;
-module.exports.DropdownOptionList                        = DropdownOptionList;
-module.exports.FeedbackBox                               = FeedbackBox;
-module.exports.FilterableList                            = FilterableList;
-module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
-module.exports.InterruptingMessage                       = InterruptingMessage;
-module.exports.LanguageToggleButton                      = LanguageToggleButton;
-module.exports.Link                                      = Link;
-module.exports.LoadingMessage                            = LoadingMessage;
-module.exports.LoginPrompt                               = LoginPrompt;
-module.exports.NewsletterSignUpForm                      = NewsletterSignUpForm;
-module.exports.Note                                      = Note;
-module.exports.ProfileListing                            = ProfileListing;
-module.exports.ProfilePic                                = ProfilePic;
-module.exports.ReaderMessage                             = ReaderMessage;
-module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
-module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
-module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
-module.exports.SaveButton                                = SaveButton;
-module.exports.FollowButton                              = FollowButton;
-module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
-module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
-module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
-module.exports.SignUpModal                               = SignUpModal;
-module.exports.SheetListing                              = SheetListing;
-module.exports.SheetAccessIcon                           = SheetAccessIcon;
-module.exports.SheetTagLink                              = SheetTagLink;
-module.exports.TabView                                   = TabView;
-module.exports.TextBlockLink                             = TextBlockLink;
-module.exports.TestMessage                               = TestMessage;
-module.exports.ThreeBox                                  = ThreeBox;
-module.exports.ToggleSet                                 = ToggleSet;
-module.exports.TwoBox                                    = TwoBox;
-module.exports.TwoOrThreeBox                             = TwoOrThreeBox;
-module.exports.SheetMetaDataBox                          = SheetMetaDataBox;
-module.exports.SheetAuthorStatement                      = SheetAuthorStatement;
-module.exports.SheetTitle                                = SheetTitle;
-module.exports.GroupStatement                            = GroupStatement;
+export {
+  SimpleInterfaceBlock,
+  DangerousInterfaceBlock,
+  SimpleContentBlock,
+  SimpleLinkedBlock,
+  BlockLink,
+  CategoryColorLine,
+  CategoryAttribution,
+  CookiesNotification,
+  Dropdown,
+  DropdownButton,
+  DropdownModal,
+  DropdownOptionList,
+  FeedbackBox,
+  FilterableList,
+  GlobalWarningMessage,
+  InterruptingMessage,
+  LanguageToggleButton,
+  Link,
+  LoadingMessage,
+  LoginPrompt,
+  NewsletterSignUpForm,
+  Note,
+  ProfileListing,
+  ProfilePic,
+  ReaderMessage,
+  ReaderNavigationMenuCloseButton,
+  ReaderNavigationMenuDisplaySettingsButton,
+  ReaderNavigationMenuMenuButton,
+  SaveButton,
+  FollowButton,
+  ReaderNavigationMenuSection,
+  ReaderNavigationMenuSearchButton,
+  SinglePanelNavHeader,
+  SignUpModal,
+  SheetListing,
+  SheetAccessIcon,
+  SheetTagLink,
+  TabView,
+  TextBlockLink,
+  TestMessage,
+  ThreeBox,
+  ToggleSet,
+  TwoBox,
+  TwoOrThreeBox,
+  SheetMetaDataBox,
+  SheetAuthorStatement,
+  SheetTitle,
+  GroupStatement,
+};

@@ -1,7 +1,7 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
 import Component      from 'react-class';
 
 
@@ -123,4 +123,4 @@ SearchTextResult.propTypes = {
 };
 
 
-module.exports = SearchTextResult;
+export default SearchTextResult;

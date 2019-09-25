@@ -1,12 +1,12 @@
-const {
+import {
   LoadingMessage,
   SinglePanelNavHeader,
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const Footer     = require('./Footer');
-const Sefaria    = require('./sefaria/sefaria');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Footer  from './Footer';
+import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 
 class MyGroupsPanel extends Component {
@@ -157,6 +157,8 @@ GroupListing.propTypes = {
   showMembership: PropTypes.bool,
 };
 
-module.exports.GroupListing = GroupListing;
-module.exports.MyGroupsPanel = MyGroupsPanel;
-module.exports.PublicGroupsPanel = PublicGroupsPanel;
+export {
+  GroupListing,
+  MyGroupsPanel,
+  PublicGroupsPanel,
+};

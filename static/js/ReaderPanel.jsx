@@ -1,38 +1,38 @@
-const React      = require('react');
-const classNames = require('classnames');
-const ReactDOM   = require('react-dom');
-const PropTypes  = require('prop-types');
-const extend     = require('extend');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
-const TextColumn = require('./TextColumn');
-const ReaderNavigationMenu      = require('./ReaderNavigationMenu');
-const {
+import React  from 'react';
+import classNames  from 'classnames';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import extend  from 'extend';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import TextColumn  from './TextColumn';
+import ReaderNavigationMenu  from './ReaderNavigationMenu';
+import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
-}                               = require('./ConnectionsPanel');
-const ReaderTextTableOfContents = require('./ReaderTextTableOfContents');
-const SearchPage                = require('./SearchPage');
-const SheetsNav                 = require('./SheetsNav');
-const Sheet                     = require('./Sheet');
-const SheetMetadata             = require('./SheetMetadata');
-const TopicsPanel               = require('./TopicsPanel');
-const TopicPage                 = require('./TopicPage');
-const AccountPanel              = require('./AccountPanel');
-const NotificationsPanel        = require('./NotificationsPanel');
-const MyNotesPanel              = require('./MyNotesPanel');
-const UserHistoryPanel          = require('./UserHistoryPanel');
-const UserProfile               = require('./UserProfile');
-const UpdatesPanel              = require('./UpdatesPanel');
-const HomeFeed                  = require('./HomeFeed');
-const StoryEditor               = require('./StoryEditor');
-const UserStats                 = require('./UserStats');
-const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
-const {
+} from './ConnectionsPanel';
+import ReaderTextTableOfContents  from './ReaderTextTableOfContents';
+import SearchPage  from './SearchPage';
+import SheetsNav  from './SheetsNav';
+import Sheet  from './Sheet';
+import SheetMetadata  from './SheetMetadata';
+import TopicsPanel  from './TopicsPanel';
+import TopicPage  from './TopicPage';
+import AccountPanel  from './AccountPanel';
+import NotificationsPanel  from './NotificationsPanel';
+import MyNotesPanel  from './MyNotesPanel';
+import UserHistoryPanel  from './UserHistoryPanel';
+import UserProfile  from './UserProfile';
+import UpdatesPanel  from './UpdatesPanel';
+import HomeFeed  from './HomeFeed';
+import StoryEditor  from './StoryEditor';
+import UserStats  from './UserStats';
+import ModeratorToolsPanel  from './ModeratorToolsPanel';
+import {
   MyGroupsPanel,
   PublicGroupsPanel
-}                               = require('./MyGroupsPanel');
-const {
+} from './MyGroupsPanel';
+import {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
@@ -40,7 +40,7 @@ const {
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet,
-}                                = require('./Misc');
+} from './Misc';
 import Component from 'react-class';
 
 
@@ -1489,4 +1489,4 @@ ReaderDisplayOptionsMenu.propTypes = {
 };
 
 
-module.exports = ReaderPanel;
+export default ReaderPanel;

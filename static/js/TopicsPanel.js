@@ -1,4 +1,4 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
@@ -6,15 +6,15 @@ const {
   LoadingMessage,
   TwoOrThreeBox,
   Link,
-}                         = require('./Misc');
-const React               = require('react');
-const PropTypes           = require('prop-types');
-const ReactDOM            = require('react-dom');
-const classNames          = require('classnames');
-const Sefaria             = require('./sefaria/sefaria');
-const $                   = require('./sefaria/sefariaJquery');
-const TextRange           = require('./TextRange');
-const Footer              = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import TextRange  from './TextRange';
+import Footer  from './Footer';
 import Component          from 'react-class';
 
 
@@ -52,7 +52,7 @@ class TopicsPanel extends Component {
     var trending = Sefaria.sheets.trendingTags();
     var makeTopicButton = function(item, i) {
       var classes = classNames({navButton: 1, sheetButton: 1 });
-      return (<Link 
+      return (<Link
                 className={classes}
                 href={"/topics/" + item.tag}
                 onClick={this.props.setTopic.bind(null, item.tag)}
@@ -99,11 +99,11 @@ class TopicsPanel extends Component {
             <div className="topicFilterBox">
               <i className="topicFilterIcon fa fa-search"></i>
               <input className="topicFilterInput" placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש נושאים" : "Search Topics"} onChange={this.handleFilterChange} />
-              { this.state.filter.length ? 
+              { this.state.filter.length ?
               <div className="topicsFilterReset" onClick={this.resetFilter}>
                 <span className="int-en">Reset</span>
                 <span className="int-he">לאתחל</span>
-                <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />       
+                <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />
               </div>
               : null }
             </div>
@@ -125,8 +125,8 @@ class TopicsPanel extends Component {
                             <span className="int-en">Most Used</span>
                             <span className="int-he">הכי בשימוש</span>
                           </h3>
-                        }                      
-                        <TwoOrThreeBox content={topicList} width={this.props.width} /> 
+                        }
+                        <TwoOrThreeBox content={topicList} width={this.props.width} />
                       </div>
                     : <LoadingMessage message="There are no topics here." heMessage="" />)
                   : <LoadingMessage />
@@ -153,4 +153,4 @@ TopicsPanel.defaultProps = {
 };
 
 
-module.exports = TopicsPanel;
+export default TopicsPanel;

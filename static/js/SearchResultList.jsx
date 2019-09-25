@@ -1,17 +1,17 @@
-const {
+import {
   LoadingMessage,
-}                       = require('./Misc');
-const React             = require('react');
-const ReactDOM          = require('react-dom');
-const extend            = require('extend');
-const $                 = require('./sefaria/sefariaJquery');
-const Sefaria           = require('./sefaria/sefaria');
-const { FilterNode }    = require('./sefaria/search');
-const SearchTextResult  = require('./SearchTextResult');
-const SearchSheetResult = require('./SearchSheetResult');
-const SearchFilters     = require('./SearchFilters');
-const SearchState       = require('./sefaria/searchState');
-const PropTypes         = require('prop-types');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import extend  from 'extend';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import { FilterNode } from './sefaria/search';
+import SearchTextResult  from './SearchTextResult';
+import SearchSheetResult  from './SearchSheetResult';
+import SearchFilters  from './SearchFilters';
+import SearchState  from './sefaria/searchState';
+import PropTypes  from 'prop-types';
 import Component        from 'react-class';
 
 
@@ -360,4 +360,4 @@ SearchResultList.propTypes = {
 };
 
 
-module.exports = SearchResultList;
+export default SearchResultList;

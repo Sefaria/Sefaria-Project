@@ -1,13 +1,13 @@
-const {
+import {
   LoadingMessage
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-const TextRange  = require('./TextRange');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import TextRange  from './TextRange';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 
 
@@ -370,4 +370,4 @@ TextColumn.propTypes = {
 };
 
 
-module.exports = TextColumn;
+export default TextColumn;

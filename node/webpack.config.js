@@ -40,8 +40,8 @@ var baseConfig = {
                 loader: 'babel-loader',
                 query: {
                     //specify that we will be dealing with React code
-                    presets: ['react', 'es2015'],
-                    plugins: ['transform-es2015-destructuring', 'transform-object-rest-spread', 'transform-async-to-generator']
+                    presets: ['@babel/react', '@babel/preset-env'],
+                    plugins: ['@babel/plugin-transform-destructuring', '@babel/plugin-proposal-object-rest-spread', '@babel/plugin-transform-async-to-generator']
                 }
             }
         ]

@@ -1,4 +1,4 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuCloseButton,
@@ -9,16 +9,16 @@ const {
   TwoOrThreeBox,
   TwoBox,
   LanguageToggleButton,
-}                                  = require('./Misc');
+} from './Misc';
 //const React                        = require('react');
 import React, { useState, useEffect } from 'react';
-const ReactDOM                     = require('react-dom');
-const PropTypes                    = require('prop-types');
-const classNames                   = require('classnames');
-const Sefaria                      = require('./sefaria/sefaria');
-const $                            = require('./sefaria/sefariaJquery');
-const ReaderNavigationCategoryMenu = require('./ReaderNavigationCategoryMenu');
-const Footer                       = require('./Footer');
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -321,4 +321,4 @@ const Dedication = () => {
 };
 
 
-module.exports = ReaderNavigationMenu;
+export default ReaderNavigationMenu;

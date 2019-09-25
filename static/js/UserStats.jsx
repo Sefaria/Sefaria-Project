@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useContext, useRef} from 'react';
-const $                 = require('./sefaria/sefariaJquery');
-const d3                = require('./lib/d3.v5.min');
-const Sefaria           = require('./sefaria/sefaria');
-const {StorySheetList}  = require('./Story');
-const { useDebounce }   = require('./Hooks');
-const {
+import $  from './sefaria/sefariaJquery';
+import d3  from './lib/d3.v5.min';
+import Sefaria  from './sefaria/sefaria';
+import {StorySheetList} from './Story';
+import { useDebounce } from './Hooks';
+import {
     SimpleLinkedBlock,
     SimpleInterfaceBlock,
     TextBlockLink,
     ThreeBox
-    }                   = require('./Misc');
+} from './Misc';
 
 
 const UserStats = () => {
@@ -386,4 +386,4 @@ const CategoriesDonut = ({cats, title, heTitle}) => {
 };
 
 
-module.exports = UserStats;
+export default UserStats;

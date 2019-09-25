@@ -1,7 +1,7 @@
-const $ = require('./sefariaJquery');
-const extend            = require('extend');
-const FilterNode = require('./FilterNode');
-const SearchState = require('./searchState');
+import $ from './sefariaJquery';
+import extend from 'extend';
+import FilterNode from './FilterNode';
+import SearchState from './searchState';
 
 
 class HackyQueryAborter{
@@ -89,7 +89,7 @@ class Search {
             };
         }
         return new Promise((resolve, reject) => {
-            
+
             if (this.queryDictaFlag && args.type === "text") {
                 if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && ('start' in args && args['start'] > 0)) {
                     /* don't make new queries if results are exhausted.
@@ -648,4 +648,4 @@ class Search {
     }
 }
 
-module.exports = Search;
+export default Search;

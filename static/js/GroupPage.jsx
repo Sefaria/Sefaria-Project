@@ -1,17 +1,17 @@
-const {
+import {
   LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
   SheetTagLink,
   SheetAccessIcon,
   ProfilePic,
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const Footer     = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -218,7 +218,7 @@ class GroupPage extends Component {
 
                 <div className="groupInfo">
                   <h1>
-                    {group.toc ? 
+                    {group.toc ?
                     <span>
                       { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                       <span className="en">{group.toc.title}</span>
@@ -233,7 +233,7 @@ class GroupPage extends Component {
 
                   {group.description || group.toc ?
                     <div className="groupDescription">
-                      {group.toc ? 
+                      {group.toc ?
                       <span>
                         <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
                         <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
@@ -368,7 +368,7 @@ class GroupSheetListing extends Component {
 
     return (<div className="sheet userSheet">
                 <div className="groupSheetInner">
-                  <div className="groupSheetInnerContent"> 
+                  <div className="groupSheetInnerContent">
                     <span><a className="sheetTitle" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
                     <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{tagString}</span></div>
                   </div>
@@ -659,4 +659,4 @@ GroupMemberListingActions.propTypes = {
 };
 
 
-module.exports = GroupPage;
+export default GroupPage;
