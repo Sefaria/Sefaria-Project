@@ -279,7 +279,13 @@ const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, 
 
 const Dedication = () => {
 
-    const [dedicationDate, setDedicationData] = useState([]);
+    //Get the local date 6 hours from now (so that dedication changes at 6pm local time
+    let dedDate = new Date();
+    dedDate.setHours(dedDate .getHours() + 6);
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+    const date = new Date(dedDate - tzoffset).toISOString().substring(0, 10);
+
+    const [dedicationData, setDedicationData] = useState(Sefaria._tableOfContentsDedications[date]);
 
     const $url = 'https://spreadsheets.google.com/feeds/cells/1DWVfyX8H9biliNYEy-EfAd9F-8OotGnZG9jmOVNwojs/2/public/full?alt=json';
 
@@ -297,37 +303,22 @@ const Dedication = () => {
         setDedicationData(Sefaria._tableOfContentsDedications[date]);
     }
 
-
     useEffect( () => {
-
-        //Get the local date 6 hours from now (so that dedication changes at 6pm local time
-        let dedDate = new Date();
-        dedDate.setHours(dedDate .getHours() + 6);
-        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
-        const date=new Date(dedDate - tzoffset).toISOString().substring(0, 10);
-
-        const dedication = Sefaria._tableOfContentsDedications[date];
-
-        if (dedication) {
-            setDedicationData(dedication);
-        }
-
-        else {
+        if (!dedicationData) {
             fetchDedicationData(date);
         }
-
-        }, []);
-
+    }, []);
 
     return (
-        dedicationDate.en == "" ? null :
+        !dedicationData ? null :
         <div className="dedication">
           <span>
-              <span className="en">{dedicationDate.en}</span>
-              <span className="he">{dedicationDate.he}</span>
+              <span className="en">{dedicationData.en}</span>
+              <span className="he">{dedicationData.he}</span>
           </span>
         </div>
-    )
+    );
 };
+
 
 module.exports = ReaderNavigationMenu;

@@ -177,7 +177,8 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   height: 100%;
 }
 
-.nochrome #s2,
+.nochrome #s2 .headerNavSection,
+.nochrome #s2 .headerLinksSection,
 .nochrome #footerContainer {
   display: none;
 }
@@ -1519,6 +1520,9 @@ a.readerNavCategory {
 .readerTextTableOfContents .dedication .he,
 .readerNavMenu .dedication .he {
   font-style: normal;
+}
+.readerNavMenu .dedication {
+  margin: -10px 0 58px 0;
 }
 .hebrew .readerNavMenu .dedication {
   direction: rtl;
@@ -6736,6 +6740,11 @@ body .homeFeedWrapper .content {
   max-width: 40%;
   background-color: #FBFBFA;
   padding: 60px 50px;
+}
+@media (max-width: 540px) {
+  .homeFeedSidebar {
+    display: none;
+  }
 }
 .homeFeedSidebar .section {
   margin-bottom: 70px;

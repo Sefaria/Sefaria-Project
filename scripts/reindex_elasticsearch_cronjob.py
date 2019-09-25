@@ -1,6 +1,8 @@
 from datetime import datetime
 import requests
 import os
+import sys
+import traceback
 import django
 django.setup()
 from sefaria.model import *
@@ -16,12 +18,30 @@ value will need to be set to the time at which the last mongo dump was created (
 up-to-date mongo dump).
 """
 # last_sheet_timestamp = datetime.fromtimestamp(os.path.getmtime("/var/data/sefaria_public/dump/sefaria")).isoformat()
-last_sheet_timestamp = datetime.now().isoformat()
-update_pagesheetrank()
-index_all(merged=False)
-index_all(merged=True)
-r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
-if "error" in r.text:
-    raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
-else:
-    print "SUCCESS!", r.text
+try:
+    last_sheet_timestamp = datetime.now().isoformat()
+    update_pagesheetrank()
+    index_all(merged=False)
+    index_all(merged=True)
+    r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+    if "error" in r.text:
+        raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
+    else:
+        print "SUCCESS!", r.text
+except Exception as e:
+    t, v, tb = sys.exc_info()
+    post_object = {
+        "icon_emoji": ":facepalm:",
+        "username": "Reindex ElasticSearch",
+        "channel": "#engineering-discuss",
+    	"attachments": [
+        {
+            "fallback": message,
+            "color": "#a30200",
+            "pretext": "Cronjob Error",
+            "text": traceback.print_exc()
+        }
+        ]
+    }
+    requests.post(os.environ['SLACK_URL'], json=post_object)
+    raise t, v, tb
