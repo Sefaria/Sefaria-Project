@@ -173,14 +173,14 @@ def setUserSheetTraits():
 def setCategoryTraits():
     from sefaria.model.category import TOP_CATEGORIES
 
-    TrendSet({"name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
-
     # User Traits
     for daterange in active_dateranges:
         site_data = {cat: 0 for cat in TOP_CATEGORIES}
 
         all_users = getAllUsersCategories(daterange)
         for uid, data in all_users.iteritems():
+            TrendSet({"uid": uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
+
             for cat, val in data["categories"].items():
                 if cat not in TOP_CATEGORIES:
                     continue
@@ -196,6 +196,8 @@ def setCategoryTraits():
                 site_data[cat] += val
 
         # Site Traits
+        TrendSet({"scope": "site", "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
+
         for cat, val in site_data.iteritems():
             Trend({
                 "name": read_in_category_key(cat),
