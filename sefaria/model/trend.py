@@ -179,7 +179,7 @@ def setCategoryTraits():
 
         all_users = getAllUsersCategories(daterange)
         for uid, data in all_users.iteritems():
-            TrendSet({"uid": uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
+            TrendSet({"period": daterange.key, "uid": uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
 
             for cat, val in data["categories"].items():
                 if cat not in TOP_CATEGORIES:
@@ -196,7 +196,7 @@ def setCategoryTraits():
                 site_data[cat] += val
 
         # Site Traits
-        TrendSet({"scope": "site", "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
+        TrendSet({"period": daterange.key, "scope": "site", "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
 
         for cat, val in site_data.iteritems():
             Trend({
