@@ -2,17 +2,18 @@ import React, {useState, useEffect} from 'react';
 import {Editor} from 'slate-react'
 import {Block, Value, Data, Inline} from 'slate'
 import Html from 'slate-html-serializer'
-const Sefaria = require('./sefaria/sefaria');
+import Sheet from "./Sheet";
+import Sefaria from './sefaria/sefaria';
 
-const {
+import {
     SheetMetaDataBox,
     SheetAuthorStatement,
     SheetTitle,
     GroupStatement,
     ProfilePic,
-} = require('./Misc');
+} from './Misc';
 
-const classNames             = require('classnames');
+import classNames from 'classnames';
 
 // Add a dictionary of mark tags.
 const MARK_TAGS = {
@@ -46,9 +47,9 @@ const HoverMenu = React.forwardRef(({editor}, ref) => {
     const root = window.document.getElementById('s2')
     return ReactDOM.createPortal(
         <div ref={ref} className="hoverMenu">
-            <MarkButton editor={editor} type="bold" />
-            <MarkButton editor={editor} type="italic" />
-            <MarkButton editor={editor} type="underline" />
+            <MarkButton editor={editor} type="bold"/>
+            <MarkButton editor={editor} type="italic"/>
+            <MarkButton editor={editor} type="underline"/>
         </div>,
         root
     )
@@ -87,22 +88,22 @@ function showStyleMenu() {
 }
 
 const MarkButton = ({editor, type}) => {
-  const { value } = editor
-  const isActive = value.activeMarks.some(mark => mark.type === type)
+    const {value} = editor
+    const isActive = value.activeMarks.some(mark => mark.type === type)
 
-  const iconName = "fa-" + type;
-  const classes = {fa: 1, active: isActive};
-  classes[iconName] = 1;
-  return (
-    <span className="markButton"
-      onMouseDown={event => {
-        event.preventDefault()
-        editor.toggleMark(type)
-      }}
-    >
-      <i className={classNames(classes)} />
+    const iconName = "fa-" + type;
+    const classes = {fa: 1, active: isActive};
+    classes[iconName] = 1;
+    return (
+        <span className="markButton"
+              onMouseDown={event => {
+                  event.preventDefault()
+                  editor.toggleMark(type)
+              }}
+        >
+      <i className={classNames(classes)}/>
     </span>
-  )
+    )
 }
 
 const plugins = [showStyleMenu()]
@@ -186,482 +187,480 @@ function parseSheetItemHTML(rawhtml) {
 
 function renderSheetItem(source) {
 
-        const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0]
+    const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0]
 
-        switch (sheetItemType) {
-            case 'ref': {
-                const content = (
-                        {
-                            "object": "block",
-                            "type": sheet_item_els[sheetItemType],
-                            "data": {
-                                "ref": source.ref,
-                                "heRef": source.heRef,
-                                "title": source.title || null,
-                                "node": source.node
-                            },
-                            "nodes": [
-                                        {
-                                            "object": "block",
-                                            "type": "TextRef",
-                                            "data": {
-                                                "ref": source.ref,
-                                                "refText": source.heRef,
-                                                "lang": "he",
-                                            },
-                                        },
-                                {
-                                    "object": "block",
-                                    "type": "he",
-                                    "data": {"heRef": source.heRef},
-                                    "nodes": parseSheetItemHTML(source.text.he)
-                                },
-                                {
-                                            "object": "block",
-                                            "type": "TextRef",
-                                            "data": {
-                                                "ref": source.ref,
-                                                "refText": source.ref,
-                                                "lang": "en",
-                                            },
-                                        },
-                                {
-                                    "object": "block",
-                                    "type": "en",
-                                    "data": {"ref": source.ref},
-                                    "nodes": parseSheetItemHTML(source.text.en)
-                                }
-                            ]
-                        }
-                )
-                return content
-            }
-            case 'comment': {
-                const content = (
-                        {
-                            "object": "block",
-                            "type": sheet_item_els[sheetItemType],
-                            "nodes": parseSheetItemHTML(source.comment)
-                        }
-                )
-                return content
-            }
-            case 'outsideText': {
-                const content = (
-                        {
-                            "object": "block",
-                            "type": sheet_item_els[sheetItemType],
-                            "nodes": parseSheetItemHTML(source.outsideText)
-                        }
-                )
-                return content
-            }
-            case 'outsideBiText': {
-                const content = (
-                        {
-                            "object": "block",
-                            "type": sheet_item_els[sheetItemType],
-                            "nodes": [
-                                {
-                                    "object": "block",
-                                    "type": "he",
-                                    "nodes": parseSheetItemHTML(source.outsideBiText.he)
-                                },
-                                {
-                                    "object": "block",
-                                    "type": "en",
-                                    "nodes": parseSheetItemHTML(source.outsideBiText.en)
-                                }
-                            ]
-                        }
-                )
-                return content
-            }
-            case 'media': {
-                const content = (
-                        {
-                            "object": "block",
-                            "type": sheet_item_els[sheetItemType],
-                            "data": {
-                                "mediaUrl": source.media
-                            },
-                            "nodes": [
-                                {
-                                    "object": "text",
-                                    "text": source.media
-                                }
-                            ]
-                        }
-                )
-                return content
-            }
-            case 'comment': {
-                const content = (
-                        {
-                            "object": "block",
-                            "type": sheet_item_els[sheetItemType],
-                            "nodes": [
-                                {
-                                    "object": "text",
-                                    "text": sheet_item_els[sheetItemType]
-                                }
-                            ]
-                        }
-                )
-                return content
-            }
-            default: {
-                return {
-                    "object": "text",
-                    "text": "null"
-                }
-
-            }
-        }
-    }
-
-function transformSheetJsonToDraft(sheet) {
-        const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
-
-        const sourceNodes = sheet.sources.map(source => (
+    switch (sheetItemType) {
+        case 'ref': {
+            const content = (
                 {
                     "object": "block",
-                    "type": "SheetItem",
-                    "nodes": [renderSheetItem(source)]
-                }
-            )
-        );
-
-        let sheetJSON = (
-            {
-                "object": "value",
-                "document": {
-                    "object": "document",
+                    "type": sheet_item_els[sheetItemType],
+                    "data": {
+                        "ref": source.ref,
+                        "heRef": source.heRef,
+                        "title": source.title || null,
+                        "node": source.node
+                    },
                     "nodes": [
                         {
                             "object": "block",
-                            "type": "SheetMetaDataBox",
-                            "nodes": [
-                                {
-                                    "object": "block",
-                                    "type": "SheetTitle",
-                                    "data": {
-                                        "title": sheetTitle
-                                    },
-                                    "nodes": [
-                                        {
-                                            "object": "text",
-                                            "text": sheetTitle,
-                                        }
-                                    ]
-                                },
-                                {
-                                    "object": "block",
-                                    "type": "SheetAuthorStatement",
-                                    "data": {
-                                        "authorUrl": sheet.ownerProfileUrl,
-                                        "authorStatement": sheet.ownerName,
-                                    },
-
-                                    "nodes": [
-                                        {
-                                            "object": "block",
-                                            "type": "ProfilePic",
-                                            "data": {
-                                                "authorImage": sheet.ownerImageUrl,
-                                                "authorStatement": sheet.ownerName,
-                                            }
-                                        },
-                                        {
-                                            "object": "text",
-                                            "text": sheet.ownerName,
-                                        }
-                                    ]
-                                },
-                               {
-                                    "object": "block",
-                                    "type": "GroupStatement",
-                                    "data": {
-                                        "group": sheet.group,
-                                        "groupLogo": sheet.groupLogo,
-                                    },
-
-                                    "nodes": [
-                                        {
-                                            "object": "text",
-                                            "text": sheet.ownerName,
-                                        }
-                                    ]
-                                }
-
-                            ]
+                            "type": "TextRef",
+                            "data": {
+                                "ref": source.ref,
+                                "refText": source.heRef,
+                                "lang": "he",
+                            },
                         },
                         {
                             "object": "block",
-                            "type": "SheetContent",
-                            "nodes": sourceNodes
+                            "type": "he",
+                            "data": {"heRef": source.heRef},
+                            "nodes": parseSheetItemHTML(source.text.he)
                         },
-
-
+                        {
+                            "object": "block",
+                            "type": "TextRef",
+                            "data": {
+                                "ref": source.ref,
+                                "refText": source.ref,
+                                "lang": "en",
+                            },
+                        },
+                        {
+                            "object": "block",
+                            "type": "en",
+                            "data": {"ref": source.ref},
+                            "nodes": parseSheetItemHTML(source.text.en)
+                        }
                     ]
                 }
+            )
+            return content
+        }
+        case 'comment': {
+            const content = (
+                {
+                    "object": "block",
+                    "type": sheet_item_els[sheetItemType],
+                    "nodes": parseSheetItemHTML(source.comment)
+                }
+            )
+            return content
+        }
+        case 'outsideText': {
+            const content = (
+                {
+                    "object": "block",
+                    "type": sheet_item_els[sheetItemType],
+                    "nodes": parseSheetItemHTML(source.outsideText)
+                }
+            )
+            return content
+        }
+        case 'outsideBiText': {
+            const content = (
+                {
+                    "object": "block",
+                    "type": sheet_item_els[sheetItemType],
+                    "nodes": [
+                        {
+                            "object": "block",
+                            "type": "he",
+                            "nodes": parseSheetItemHTML(source.outsideBiText.he)
+                        },
+                        {
+                            "object": "block",
+                            "type": "en",
+                            "nodes": parseSheetItemHTML(source.outsideBiText.en)
+                        }
+                    ]
+                }
+            )
+            return content
+        }
+        case 'media': {
+            const content = (
+                {
+                    "object": "block",
+                    "type": sheet_item_els[sheetItemType],
+                    "data": {
+                        "mediaUrl": source.media
+                    },
+                    "nodes": [
+                        {
+                            "object": "text",
+                            "text": source.media
+                        }
+                    ]
+                }
+            )
+            return content
+        }
+        case 'comment': {
+            const content = (
+                {
+                    "object": "block",
+                    "type": sheet_item_els[sheetItemType],
+                    "nodes": [
+                        {
+                            "object": "text",
+                            "text": sheet_item_els[sheetItemType]
+                        }
+                    ]
+                }
+            )
+            return content
+        }
+        default: {
+            return {
+                "object": "text",
+                "text": "null"
+            }
+
+        }
+    }
+}
+
+function transformSheetJsonToDraft(sheet) {
+    const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
+
+    const sourceNodes = sheet.sources.map(source => (
+            {
+                "object": "block",
+                "type": "SheetItem",
+                "nodes": [renderSheetItem(source)]
             }
         )
-        return sheetJSON;
-    }
+    );
 
-        const schema = {
-        document: {
-            nodes: [
-                {match: {type: 'SheetMetaDataBox'}, min: 1, max: 1},
-                {match: {type: 'SheetContent'}, min: 1},
-            ],
-            normalize: (editor, {code, node, child, index}) => {
-                switch (code) {
-                    case 'child_type_invalid': {
-                        const type = index === 0 ? 'SheetMetaDataBox' : 'SheetContent';
-                        return editor.setNodeByKey(child.key, type)
-                    }
-                    case 'child_min_invalid': {
-                        const block = Block.create(index === 0 ? 'SheetMetaDataBox' : 'SheetContent');
-                        return editor.insertNodeByKey(node.key, index, block)
-                    }
-                }
-            },
-        },
-        inlines: {
-        },
-        blocks: {
-            SheetMetaDataBox: {
-                nodes: [
+    let sheetJSON = (
+        {
+            "object": "value",
+            "document": {
+                "object": "document",
+                "nodes": [
                     {
-                        match: {type: 'SheetTitle'}, min: 1, max: 1
-                    },
-                    {
-                        match: {type: 'SheetAuthorStatement'}, min: 1, max: 1
-                    },
-                    {
-                        match: {type: 'GroupStatement'}, max: 1
-                    },
-                ],
-                normalize: (editor, {code, node, child, index}) => {
-                    console.log(code, index);
-                    switch (code) {
-                        case 'child_type_invalid': {
-                            switch (index) {
-                                case 0: { //SheetTitle
-                                    return editor.setNodeByKey(child.key, {
-                                        type: "SheetTitle",
-                                        data: {title: "Untitled Source Sheet"},
-                                        nodes: [
-                                            {
-                                                "object": "text",
-                                                "text": "Untitled Source Sheet",
-                                            }
-                                        ]
-                                    })
-                                }
-                                case 1: { //SheetAuthorStatement
-                                    return editor.setNodeByKey(child.key, {
-                                        type: "SheetAuthorStatement",
-                                        data: {title: "Untitled Source Sheet"},
-                                        nodes: [
-
-                                            {
-                                                "object": "block",
-                                                "type": "ProfilePic",
-                                                "data": {
-                                                    "authorImage": props.data.ownerImageUrl,
-                                                    "authorStatement": props.data.ownerName,
-                                                }
-                                            },
-                                            {
-                                                "object": "text",
-                                                "text": props.data.ownerName,
-                                            }
-                                        ]
-                                    })
-                                }
-                                default: {
-                                    return null
-                                }
-
-                            }
-                        }
-                        case 'child_min_invalid': {
-                            const titleBlock = Block.create({
-                                type: 'SheetTitle',
-                                data: {title: "Untitled Source Sheet"},
-                                nodes: [
+                        "object": "block",
+                        "type": "SheetMetaDataBox",
+                        "nodes": [
+                            {
+                                "object": "block",
+                                "type": "SheetTitle",
+                                "data": {
+                                    "title": sheetTitle
+                                },
+                                "nodes": [
                                     {
                                         "object": "text",
-                                        "text": "Untitled Source Sheet",
+                                        "text": sheetTitle,
                                     }
                                 ]
-                            });
-
-                            const authorBlock = Block.create({
-                                type: 'SheetAuthorStatement',
-                                data: {
-                                    authorImage: props.data.ownerImageUrl,
-                                    authorUrl: props.data.ownerProfileUrl,
-                                    authorStatement: props.data.ownerName,
+                            },
+                            {
+                                "object": "block",
+                                "type": "SheetAuthorStatement",
+                                "data": {
+                                    "authorUrl": sheet.ownerProfileUrl,
+                                    "authorStatement": sheet.ownerName,
                                 },
 
-                                nodes: [
-
+                                "nodes": [
                                     {
                                         "object": "block",
                                         "type": "ProfilePic",
                                         "data": {
-                                            "authorImage": props.data.ownerImageUrl,
-                                            "authorStatement": props.data.ownerName,
+                                            "authorImage": sheet.ownerImageUrl,
+                                            "authorStatement": sheet.ownerName,
                                         }
                                     },
                                     {
                                         "object": "text",
-                                        "text": props.data.ownerName,
+                                        "text": sheet.ownerName,
                                     }
                                 ]
-                            });
+                            },
+                            {
+                                "object": "block",
+                                "type": "GroupStatement",
+                                "data": {
+                                    "group": sheet.group,
+                                    "groupLogo": sheet.groupLogo,
+                                },
 
-                            return editor.insertNodeByKey(node.key, 0, titleBlock).insertNodeByKey(node.key, 1, authorBlock)
+                                "nodes": [
+                                    {
+                                        "object": "text",
+                                        "text": sheet.ownerName,
+                                    }
+                                ]
+                            }
+
+                        ]
+                    },
+                    {
+                        "object": "block",
+                        "type": "SheetContent",
+                        "nodes": sourceNodes
+                    },
+
+
+                ]
+            }
+        }
+    )
+    return sheetJSON;
+}
+
+const schema = {
+    document: {
+        nodes: [
+            {match: {type: 'SheetMetaDataBox'}, min: 1, max: 1},
+            {match: {type: 'SheetContent'}, min: 1},
+        ],
+        normalize: (editor, {code, node, child, index}) => {
+            switch (code) {
+                case 'child_type_invalid': {
+                    const type = index === 0 ? 'SheetMetaDataBox' : 'SheetContent';
+                    return editor.setNodeByKey(child.key, type)
+                }
+                case 'child_min_invalid': {
+                    const block = Block.create(index === 0 ? 'SheetMetaDataBox' : 'SheetContent');
+                    return editor.insertNodeByKey(node.key, index, block)
+                }
+            }
+        },
+    },
+    inlines: {},
+    blocks: {
+        SheetMetaDataBox: {
+            nodes: [
+                {
+                    match: {type: 'SheetTitle'}, min: 1, max: 1
+                },
+                {
+                    match: {type: 'SheetAuthorStatement'}, min: 1, max: 1
+                },
+                {
+                    match: {type: 'GroupStatement'}, max: 1
+                },
+            ],
+            normalize: (editor, {code, node, child, index}) => {
+                console.log(code, index);
+                switch (code) {
+                    case 'child_type_invalid': {
+                        switch (index) {
+                            case 0: { //SheetTitle
+                                return editor.setNodeByKey(child.key, {
+                                    type: "SheetTitle",
+                                    data: {title: "Untitled Source Sheet"},
+                                    nodes: [
+                                        {
+                                            "object": "text",
+                                            "text": "Untitled Source Sheet",
+                                        }
+                                    ]
+                                })
+                            }
+                            case 1: { //SheetAuthorStatement
+                                return editor.setNodeByKey(child.key, {
+                                    type: "SheetAuthorStatement",
+                                    data: {title: "Untitled Source Sheet"},
+                                    nodes: [
+
+                                        {
+                                            "object": "block",
+                                            "type": "ProfilePic",
+                                            "data": {
+                                                "authorImage": props.data.ownerImageUrl,
+                                                "authorStatement": props.data.ownerName,
+                                            }
+                                        },
+                                        {
+                                            "object": "text",
+                                            "text": props.data.ownerName,
+                                        }
+                                    ]
+                                })
+                            }
+                            default: {
+                                return null
+                            }
+
                         }
                     }
+                    case 'child_min_invalid': {
+                        const titleBlock = Block.create({
+                            type: 'SheetTitle',
+                            data: {title: "Untitled Source Sheet"},
+                            nodes: [
+                                {
+                                    "object": "text",
+                                    "text": "Untitled Source Sheet",
+                                }
+                            ]
+                        });
+
+                        const authorBlock = Block.create({
+                            type: 'SheetAuthorStatement',
+                            data: {
+                                authorImage: props.data.ownerImageUrl,
+                                authorUrl: props.data.ownerProfileUrl,
+                                authorStatement: props.data.ownerName,
+                            },
+
+                            nodes: [
+
+                                {
+                                    "object": "block",
+                                    "type": "ProfilePic",
+                                    "data": {
+                                        "authorImage": props.data.ownerImageUrl,
+                                        "authorStatement": props.data.ownerName,
+                                    }
+                                },
+                                {
+                                    "object": "text",
+                                    "text": props.data.ownerName,
+                                }
+                            ]
+                        });
+
+                        return editor.insertNodeByKey(node.key, 0, titleBlock).insertNodeByKey(node.key, 1, authorBlock)
+                    }
                 }
-
-            },
-            SheetContent: {
-                nodes: [
-                    {
-                        match: {type: 'SheetItem'},
-                    },
-                ],
-            },
-            SheetItem: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {type: 'SheetSource'},
-                    },
-                    {
-                        match: {type: 'SheetComment'},
-                    },
-                    {
-                        match: {type: 'SheetOutsideText'},
-                    },
-                    {
-                        match: {type: 'SheetOutsideBiText'},
-                    },
-                    {
-                        match: {type: 'SheetMedia'},
-                    },
-                ]
-            },
-
-            SheetSource: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {object: 'block'},
-                    },
-                    {
-                        match: {type: 'TextRef'},
-                    },
-                ]
-            },
-            he: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {object: 'block'},
-                    },
-                ]
-            },
-            en: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {object: 'block'},
-                    },
-                ]
-            },
-            SheetComment: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {object: 'block'},
-                    },
-               ]
-            },
-            SheetOutsideText: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {object: 'block'},
-                    },
-               ]
-            },
-            SheetOutsideBiText: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {object: 'block'},
-                    },
-               ]
-            },
-            SheetMedia: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                    {
-                        match: {object: 'block'},
-                    },
-                ]
-            },
-            SheetTitle: {
-                nodes: [
-                    {
-                        match: {object: 'text'},
-                    },
-                ],
-                data: {
-                    title: v => v,
-                },
-            },
-            TextRef: {
-                isVoid: true,
-                data: {
-                    ref: v => v,
-                    refText: v => v,
-                    lang: v => v,
-                },
-            },
+            }
 
         },
+        SheetContent: {
+            nodes: [
+                {
+                    match: {type: 'SheetItem'},
+                },
+            ],
+        },
+        SheetItem: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {type: 'SheetSource'},
+                },
+                {
+                    match: {type: 'SheetComment'},
+                },
+                {
+                    match: {type: 'SheetOutsideText'},
+                },
+                {
+                    match: {type: 'SheetOutsideBiText'},
+                },
+                {
+                    match: {type: 'SheetMedia'},
+                },
+            ]
+        },
+
+        SheetSource: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {object: 'block'},
+                },
+                {
+                    match: {type: 'TextRef'},
+                },
+            ]
+        },
+        he: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {object: 'block'},
+                },
+            ]
+        },
+        en: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {object: 'block'},
+                },
+            ]
+        },
+        SheetComment: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {object: 'block'},
+                },
+            ]
+        },
+        SheetOutsideText: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {object: 'block'},
+                },
+            ]
+        },
+        SheetOutsideBiText: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {object: 'block'},
+                },
+            ]
+        },
+        SheetMedia: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+                {
+                    match: {object: 'block'},
+                },
+            ]
+        },
+        SheetTitle: {
+            nodes: [
+                {
+                    match: {object: 'text'},
+                },
+            ],
+            data: {
+                title: v => v,
+            },
+        },
+        TextRef: {
+            isVoid: true,
+            data: {
+                ref: v => v,
+                refText: v => v,
+                lang: v => v,
+            },
+        },
+
+    },
 
 
-    }
+}
 
 
 function SefariaEditor(props) {
     const menuRef = React.createRef()
-
 
 
     const [value, setValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
@@ -672,7 +671,7 @@ function SefariaEditor(props) {
     }
 
     function renderBlock(props, editor, next) {
-        const { attributes, children, node } = props;
+        const {attributes, children, node} = props;
         const {data} = node;
 
         const heRef = data.get('heRef');
@@ -782,7 +781,7 @@ function SefariaEditor(props) {
                 const lang = data.get('lang')
                 return (
                     <div className={lang}>
-                        <div className="ref"><a href={"/"+ref}>{data.get("refText")}</a></div>
+                        <div className="ref"><a href={"/" + ref}>{data.get("refText")}</a></div>
                     </div>
                 )
             case 'paragraph':
@@ -833,18 +832,19 @@ function SefariaEditor(props) {
     }
 
     function onChange({value}) {
+        console.log(html.serialize(value))
         setValue(value);
     }
 
-  function renderEditor(props, editor, next) {
-    const children = next()
-    return (
-      <React.Fragment>
-        {children}
-        <HoverMenu ref={menuRef} editor={editor} />
-      </React.Fragment>
-    )
-  }
+    function renderEditor(props, editor, next) {
+        const children = next()
+        return (
+            <React.Fragment>
+                {children}
+                <HoverMenu ref={menuRef} editor={editor}/>
+            </React.Fragment>
+        )
+    }
 
 
     return (
@@ -857,12 +857,11 @@ function SefariaEditor(props) {
             schema={schema}
             plugins={plugins}
             renderEditor={(props, editor, next) => renderEditor(props, editor, next)}
-            onChange={ ({value}) => onChange({value}) }
+            onChange={({value}) => onChange({value})}
         />
     )
 
 
 }
 
-
-module.exports = SefariaEditor;
+export default SefariaEditor;
