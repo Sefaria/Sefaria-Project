@@ -1060,7 +1060,11 @@ input.noselect {
   letter-spacing: 1px;
   margin: 0 0 10px 0;
 }
+.topicPanel.readerNavMenu h1 {
+  text-align: unset;
+}
 h1 .languageToggle {
+  text-align: center;
   position: absolute;
   right: 0;
   color: #ccc;

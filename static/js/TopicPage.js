@@ -17,7 +17,7 @@ const TextRange           = require('./TextRange');
 const Footer              = require('./Footer');
 import Component          from 'react-class';
 
-const TopicPage = ({topic, setTopic, openTopics, interfaceLang, mutliPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, openDisplaySettings}) => {
+const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState({});
     Sefaria.getTopic(topic).then(setTopicData);
 
@@ -26,27 +26,35 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, mutliPanel, hide
     return topicData ? (
       <div className={classStr}>
         <div className="content hasFooter noOverflowX">
-          <div className="contentInner">
-            <div className="title pageTitle">
-              <span className="int-en">{topic}</span>
-              <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
+            <div className="homeFeedColumns">
+               <div className="storyFeed">
+                    <div className="title pageTitle">
+                      <h1>
+                        { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+                        <span className="int-en">{topic}</span>
+                        <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
+                      </h1>
+                    </div>
+                    <div className="title sectionTitleText">
+                      <span className="int-en">{topicData.category}</span>
+                      <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
+                    </div>
+                    <div className="title systemText">
+                      <span className="int-en">{topicData.description && topicData.description.en}</span>
+                      <span className="int-he">{topicData.description && topicData.description.he}</span>
+                    </div>
+                        <TabView
+                          tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
+                          renderTab={(t,i) => <div key={i} className="tab">{t}</div>} >
+                            <div>Sheets</div>
+                            <div>Sources</div>
+                        </TabView>
+               </div>
+                <div className="homeFeedSidebar">
+                    Foo
+                </div>
             </div>
-            <div className="title pageTitle">
-              <span className="int-en">{topicData.category}</span>
-              <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
-            </div>
-            <div className="title pageTitle">
-              <span className="int-en">{topicData.description && topicData.description.en}</span>
-              <span className="int-he">{topicData.description && topicData.description.he}</span>
-            </div>
-                <TabView
-                  tabs={[ { text: Sefaria._("Sheets") }, { text: Sefaria._("Sources") } ]}
-                  renderTab={t => <div className="tab">{t.text}</div>} >
-                    <div>Sheets</div>
-                    <div>Sources</div>
-                </TabView>
           </div>
-        </div>
       </div>): <LoadingMessage/>;
 };
 
@@ -139,7 +147,7 @@ TopicPage.propTypes = {
   setTopic:            PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
   interfaceLang:       PropTypes.string,
-  mutliPanel:          PropTypes.bool,
+  multiPanel:          PropTypes.bool,
   hideNavHeader:       PropTypes.bool,
   showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
