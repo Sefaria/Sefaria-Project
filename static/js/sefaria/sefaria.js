@@ -1688,6 +1688,13 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   },
+  getTopic: function(topic) {
+      return Sefaria._cachedPromiseAPI(
+          Sefaria.apiHost + "/api/topics/" + topic,
+          topic,
+          this._topics
+      );
+  },
   sheets: {
     _loadSheetByID: {},
     loadSheetByID: function(id, callback) {
@@ -2241,6 +2248,17 @@ Sefaria = extend(Sefaria, {
     }
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
+  },
+  _cachedPromiseAPI: function(url, key, store) {
+      // Checks store[key].  Resolves to this value, if present.
+      // Otherwise, calls Promise(url), caches, and returns
+      return (key in store) ?
+          Promise.resolve(store[key]) :
+          Sefaria._promiseAPI(url)
+              .then(data => {
+                  store[key] = data;
+                  return data;
+              })
   },
   //  https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
   makeCancelable: (promise) => {

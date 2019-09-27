@@ -207,6 +207,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             self.title_group = self.title_group.copy()
             return 1
 
+
 class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     A Term is a shared title node.  It can be referenced and used by many different Index nodes.

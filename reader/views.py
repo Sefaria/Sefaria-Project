@@ -806,61 +806,6 @@ def groups_admin_page(request):
 
 
 @sanitize_get_params
-def topics_page(request):
-    """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
-    """
-    topics = get_topics()
-    props = base_props(request)
-    props.update({
-        "initialMenu":  "topics",
-        "initialTopic": None,
-        "topicList": topics.list(sort_by="count"),
-        "trendingTags": trending_tags(ntags=12),
-    })
-
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":      propsJSON,
-        "title":          _("Topics") + " | " + _("Sefaria"),
-        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
-        "html":           html,
-    })
-
-
-@sanitize_get_params
-def topic_page(request, topic):
-    """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
-    """
-    if topic != Term.normalize(topic):
-        return redirect("/topics/%s" % Term.normalize(topic))
-
-    topics = get_topics()
-    props = base_props(request)
-    props.update({
-        "initialMenu":  "topics",
-        "initialTopic": topic,
-        "topicData": topics.get(topic).contents(),
-    })
-
-    title = u"%(topic)s | Sefaria" % {"topic": topic}
-    desc  = u'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
-
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request,'base.html', {
-        "propsJSON":      propsJSON,
-        "title":          title,
-        "desc":           desc,
-        "html":           html,
-    })
-
-
-@sanitize_get_params
 def menu_page(request, props, page, title="", desc=""):
     """
     View for any App page that can described with the `menuOpen` param in React
@@ -2906,6 +2851,61 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+
+
+@sanitize_get_params
+def topics_page(request):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    topics = get_topics()
+    props = base_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": None,
+        "topicList": topics.list(sort_by="count"),
+        "trendingTags": trending_tags(ntags=12),
+    })
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request, 'base.html', {
+        "propsJSON":      propsJSON,
+        "title":          _("Topics") + " | " + _("Sefaria"),
+        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
+        "html":           html,
+    })
+
+
+@sanitize_get_params
+def topic_page(request, topic):
+    """
+    Page of sheets by tag.
+    Currently used to for "My Sheets" and  "All Sheets" as well.
+    """
+    if topic != Term.normalize(topic):
+        return redirect("/topics/%s" % Term.normalize(topic))
+
+    props = base_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": topic,
+        "topicData": _topic_data(topic),
+    })
+
+    title = u"%(topic)s | Sefaria" % {"topic": topic}
+    desc  = u'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request,'base.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    })
+
 @catch_error_as_json
 def topics_list_api(request):
     """
@@ -2923,11 +2923,20 @@ def topics_api(request, topic):
     """
     API to get data for a particular topic.
     """
+    response = _topic_data(topic)
+    response = jsonResponse(response, callback=request.GET.get("callback", None))
+    response["Cache-Control"] = "max-age=3600"
+    return response
+
+
+def _topic_data(topic):
     topics = get_topics()
     topic = Term.normalize(titlecase(topic))
     response = topics.get(topic).contents()
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    term = library.get_term(topic)
+    if term:
+        response["category"] = getattr(term, "category", "")
+    response["description"] = {"en": "To be continued...", "he": u"וכו..."}
     return response
 
 

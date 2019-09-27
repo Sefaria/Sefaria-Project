@@ -3,10 +3,11 @@ const {
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
   LanguageToggleButton,
+  TabView,
   LoadingMessage,
   Link,
 }                         = require('./Misc');
-const React               = require('react');
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 const PropTypes           = require('prop-types');
 const ReactDOM            = require('react-dom');
 const classNames          = require('classnames');
@@ -16,44 +17,42 @@ const TextRange           = require('./TextRange');
 const Footer              = require('./Footer');
 import Component          from 'react-class';
 
+const TopicPage = ({topic, setTopic, openTopics, interfaceLang, mutliPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, openDisplaySettings}) => {
+    const [topicData, setTopicData] = useState({});
+    Sefaria.getTopic(topic).then(setTopicData);
 
+    const classStr = classNames({topicPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
+
+    return topicData ? (
+      <div className={classStr}>
+        <div className="content hasFooter noOverflowX">
+          <div className="contentInner">
+            <div className="title pageTitle">
+              <span className="int-en">{topic}</span>
+              <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
+            </div>
+            <div className="title pageTitle">
+              <span className="int-en">{topicData.category}</span>
+              <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
+            </div>
+            <div className="title pageTitle">
+              <span className="int-en">{topicData.description && topicData.description.en}</span>
+              <span className="int-he">{topicData.description && topicData.description.he}</span>
+            </div>
+                <TabView
+                  tabs={[ { text: Sefaria._("Sheets") }, { text: Sefaria._("Sources") } ]}
+                  renderTab={t => <div className="tab">{t.text}</div>} >
+                    <div>Sheets</div>
+                    <div>Sources</div>
+                </TabView>
+          </div>
+        </div>
+      </div>): <LoadingMessage/>;
+};
+
+/*
 class TopicPage extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { numberToRender: 3 };
-  }
-  componentDidMount() {
-    this.loadData();
-  }
-  componentDidUpdate(nextProps) {
-    if (nextProps.topic != this.props.topic) {
-      this.loadData();
-    }
-  }
-  getData() {
-    return Sefaria.topic(this.props.topic);
-  }
-  loadData() {
-    if (!this.getData()) {
-      Sefaria.topic(this.props.topic, this.rerender);
-    }
-  }
-  rerender() {
-    this.forceUpdate();
-  }
-  onScroll() {
-    // Poor man's scrollview
-    var data = this.getData();
-    if (!data || this.state.numberToRender > data.sources.length) { return; }
-    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 500;
-    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $("#footer").position().top) {
-      this.incrementNumberToRender();
-    }
-  }
-  incrementNumberToRender() {
-    this.setState({numberToRender: this.state.numberToRender+3});
-  }
+
   render() {
     var topicData = Sefaria.topic(this.props.topic);
     var classStr = classNames({topicPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
@@ -174,5 +173,5 @@ TopicSource.propTypes = {
   showBaseText: PropTypes.func.isRequired,
 }
 
-
+*/
 module.exports = TopicPage;
