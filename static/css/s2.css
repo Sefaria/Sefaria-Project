@@ -4308,7 +4308,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .connectionsPanel textarea.noteText,
 .connectionsPanel textarea.feedbackText,
-.homeFeedSidebar textarea.feedbackText {
+.sideColumn textarea.feedbackText {
   width: 100%;
   min-height: 100px;
   border: none;
@@ -6735,41 +6735,41 @@ body .homeFeedWrapper .content {
   font-style: normal;
   position: relative;
 }
-.homeFeedColumns {
+.columnLayout {
   display: flex;
   flex-direction: row;
 }
-.homeFeedSidebar {
+.sideColumn {
   flex: 0 0 320px;
   max-width: 40%;
   background-color: #FBFBFA;
   padding: 60px 50px;
 }
 @media (max-width: 540px) {
-  .homeFeedSidebar {
+  .sideColumn {
     display: none;
   }
 }
-.homeFeedSidebar .section {
+.sideColumn .section {
   margin-bottom: 70px;
 }
-.homeFeedSidebar .section h2 {
+.sideColumn .section h2 {
   text-transform: none;
   font-size: 24px;
   letter-spacing: normal;
   text-align: inherit;
   margin: 0 0 30px 0;
 }
-.homeFeedSidebar .section h2 .int-en {
+.sideColumn .section h2 .int-en {
   text-align: left;
 }
-.homeFeedSidebar .section h2 .int-he {
+.sideColumn .section h2 .int-he {
   text-align: right;
 }
-.homeFeedSidebar .section .description {
+.sideColumn .section .description {
   margin-bottom: 25px;
 }
-.homeFeedSidebar .button img {
+.sideColumn .button img {
   width: 16px;
   height: 16px;
   margin: 0 5px;
@@ -6777,25 +6777,25 @@ body .homeFeedWrapper .content {
   top: 2px;
   filter: invert(1);
 }
-.homeFeedSidebar .button.white img {
+.sideColumn .button.white img {
   filter: none;
   opacity: .4;
 }
-.homeFeedSidebar .button .fa {
+.sideColumn .button .fa {
   opacity: .4;
   margin: 0 5px;
 }
-.homeFeedSidebar .inlineButtonBox {
+.sideColumn .inlineButtonBox {
   display: flex;
   justify-content: space-between;
 }
-.homeFeedSidebar .inlineButtonBox a {
+.sideColumn .inlineButtonBox a {
   flex: 1;
 }
-.homeFeedSidebar .inlineButtonBox a .button {
+.sideColumn .inlineButtonBox a .button {
   width: 100%;
 }
-.homeFeedSidebar #homeLearn .refLink {
+.sideColumn #homeLearn .refLink {
   display: block;
   height: 56px;
   line-height: 56px;
@@ -6803,17 +6803,17 @@ body .homeFeedWrapper .content {
   color: #000;
   font-size: 20px;
 }
-.homeFeedSidebar #homeLearn .refLink .int-en {
+.sideColumn #homeLearn .refLink .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
-.homeFeedSidebar .newsletterInput {
+.sideColumn .newsletterInput {
   width: 100%;
   box-sizing: border-box;
 }
-.homeFeedSidebar #homeSocialButtons {
+.sideColumn #homeSocialButtons {
   margin-top: 15px;
 }
-.homeFeedSidebar #homeSocialButtons .fa {
+.sideColumn #homeSocialButtons .fa {
   font-size: 18px;
   color: white;
   background-color: #aaa;
@@ -6825,14 +6825,14 @@ body .homeFeedWrapper .content {
   border-radius: 15px;
   margin-right: 5px;
 }
-.interface-hebrew .homeFeedSidebar #homeSocialButtons .fa {
+.interface-hebrew .sideColumn #homeSocialButtons .fa {
   margin: 0 0 0 5px;
 }
-.homeFeedSidebar #homeSocialButtons .fa:hover {
+.sideColumn #homeSocialButtons .fa:hover {
   text-decoration: none;
   background-color: #999;
 }
-.homeFeedSidebar #homeFeedback {
+.sideColumn #homeFeedback {
   background-color: #EDEDED;
   margin: 0 -50px;
   padding: 30px 50px;  
@@ -6840,10 +6840,10 @@ body .homeFeedWrapper .content {
   position: sticky;
   top: 0;
 }
-.homeFeedSidebar #homeFeedback .button {
+.sideColumn #homeFeedback .button {
   margin-bottom: 10px;
 }
-.homeFeedSidebar .feedbackBoxOverlay.open {
+.sideColumn .feedbackBoxOverlay.open {
   position: fixed;
   width: 100%;
   height: 100%;
@@ -6854,15 +6854,17 @@ body .homeFeedWrapper .content {
   justify-content: center;
   background-color: #FBFBFA;
 }
-.homeFeedSidebar .feedbackBoxOverlay.open .feedbackBox {
+.sideColumn .feedbackBoxOverlay.open .feedbackBox {
   width: 470px;
 }
-.storyFeed {
+.mainColumn {
   flex: 1;
-  background-color: white;
   margin: 0 45px 0 30px;
 }
-.interface-hebrew .storyFeed {
+.homeFeedWrapper .mainColumn {
+  background-color: white;
+}
+.interface-hebrew .mainColumn {
   margin: 0 30px 0 45px;
 }
 .storyFeedInner {
@@ -6878,16 +6880,16 @@ body .homeFeedWrapper .content {
   display: block;
   padding-bottom: 10px;
 }
-.storyFeed .story {
+.mainColumn .story {
   padding: 0 0 60px 0;
 }
-.storyFeed .story .storyTitleBlock {
+.mainColumn .story .storyTitleBlock {
   clear: both;
 }
-.interface-english .storyFeed .story .storyTitleBlock {
+.interface-english .mainColumn .story .storyTitleBlock {
   float: left;
 }
-.interface-hebrew .storyFeed .story .storyTitleBlock {
+.interface-hebrew .mainColumn .story .storyTitleBlock {
   float: right;
 }
 .colorBarBox {
@@ -6915,24 +6917,24 @@ body .homeFeedWrapper .content {
 .storyTextListItem:last-child {
   padding-bottom: 0;
 }
-.storyFeed .saveButton {
+.mainColumn .saveButton {
   align-self: flex-start;
 }
-.storyFeed .saveLine.storyTitleWrapper .saveButton,
-.storyFeed .story.publishSheetStory .saveLine .saveButton  {
+.mainColumn .saveLine.storyTitleWrapper .saveButton,
+.mainColumn .story.publishSheetStory .saveLine .saveButton  {
   margin-top: 13px;
 }
-.storyFeed .story.publishSheetStory .storyTitle {
+.mainColumn .story.publishSheetStory .storyTitle {
   padding-bottom: 10px;
 }
-.storyFeed .story .storyTitle {
+.mainColumn .story .storyTitle {
   padding: 5px 0 15px;
 }
-.storyFeed .story .storySubTitle {
+.mainColumn .story .storySubTitle {
   padding-bottom: 10px;
 }
-.storyFeed .story .storySubTitle .int-en,
-.storyFeed .story .storySubTitle .int-he {
+.mainColumn .story .storySubTitle .int-en,
+.mainColumn .story .storySubTitle .int-he {
   color: #666;
 }
 img.smallProfileImage {
@@ -6941,28 +6943,28 @@ img.smallProfileImage {
   margin: 0;
   border-radius: 20px;
 }
-.storyFeed .story img.mediumProfileImage {
+.mainColumn .story img.mediumProfileImage {
   height: 64px;
   width: 64px;
   margin: 0;
   border-radius: 32px;
 }
-.interface-english .storyFeed .story .storyTypeBlock {
+.interface-english .mainColumn .story .storyTypeBlock {
   float: left;
 }
-.interface-hebrew .storyFeed .story .storyTypeBlock {
+.interface-hebrew .mainColumn .story .storyTypeBlock {
   float: right;
 }
-.interface-english .storyFeed .story .topTailBlock {
+.interface-english .mainColumn .story .topTailBlock {
   float: right;
 }
-.interface-hebrew .storyFeed .story .topTailBlock {
+.interface-hebrew .mainColumn .story .topTailBlock {
   float: left;
 }
-.interface-english .storyFeed .story .mediumProfileImage {
+.interface-english .mainColumn .story .mediumProfileImage {
   float: right;
 }
-.interface-hebrew .storyFeed .story .mediumProfileImage {
+.interface-hebrew .mainColumn .story .mediumProfileImage {
   float: left;
 }
 .story .storyBody {
@@ -7032,7 +7034,7 @@ img.smallProfileImage {
 .systemText.authorOrganization span {
   color: #999;
 }
-.storyFeed a {
+.mainColumn a {
   color: #000;
 }
 .storyBody a {

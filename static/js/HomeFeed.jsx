@@ -43,15 +43,15 @@ function HomeFeed(props) {
             </div>
         </div>
 
-        <div className="homeFeedColumns">
+        <div className="columnLayout">
 
-          <div className="storyFeed">
+          <div className="mainColumn">
             <div className="storyFeedInner">
             {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
             </div>
           </div>
 
-          <div className="homeFeedSidebar">
+          <div className="sideColumn">
 
             <div id="homeLearn" className="section">
                 <div className="sectionInner">

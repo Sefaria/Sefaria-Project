@@ -26,8 +26,8 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     return topicData ? (
       <div className={classStr}>
         <div className="content hasFooter noOverflowX">
-            <div className="homeFeedColumns">
-               <div className="storyFeed">
+            <div className="columnLayout">
+               <div className="mainColumn">
                     <div className="title pageTitle">
                       <h1>
                         { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
@@ -50,7 +50,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                             <div>Sources</div>
                         </TabView>
                </div>
-                <div className="homeFeedSidebar">
+                <div className="sideColumn">
                     Foo
                 </div>
             </div>
