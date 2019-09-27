@@ -21,25 +21,25 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const [topicData, setTopicData] = useState({});
     Sefaria.getTopic(topic).then(setTopicData);
 
-    const classStr = classNames({topicPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
+    const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
 
     return topicData ? (
       <div className={classStr}>
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
                <div className="mainColumn">
-                    <div className="title pageTitle">
+                    <div className="topicTitle pageTitle">
                       <h1>
                         { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
                         <span className="int-en">{topic}</span>
                         <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
                       </h1>
                     </div>
-                    <div className="title sectionTitleText">
+                    <div className="topicCategory sectionTitleText">
                       <span className="int-en">{topicData.category}</span>
                       <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
                     </div>
-                    <div className="title systemText">
+                    <div className="topicDescription systemText">
                       <span className="int-en">{topicData.description && topicData.description.en}</span>
                       <span className="int-he">{topicData.description && topicData.description.he}</span>
                     </div>

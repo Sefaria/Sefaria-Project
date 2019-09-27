@@ -1060,8 +1060,31 @@ input.noselect {
   letter-spacing: 1px;
   margin: 0 0 10px 0;
 }
+.topicPanel .mainColumn {
+  margin-left: 70px;
+}
 .topicPanel.readerNavMenu h1 {
   text-align: unset;
+  margin-bottom: 30px;
+  height: unset;
+}
+.topicPanel .topicCategory {
+  margin-bottom: 30px;
+}
+.topicPanel .topicDescription {
+  margin-bottom: 30px;
+}
+.topicPanel .topicDescription span {
+  font-size: 20px;
+}
+.topicPanel .tab-view .tab-list {
+  border-bottom: 1px solid #CCC;
+}
+.topicPanel .tab-view .tab-list .tab {
+  font-size: 30px;
+}
+.topicPanel .tab-view .tab-list .active .tab {
+  border-bottom: 6px solid #CCC;
 }
 h1 .languageToggle {
   text-align: center;
@@ -5247,16 +5270,7 @@ h2.splitHeader .he {
 .topicPanel .topicLabel a {
   color: #8E8E8E;
 }
-#s2 .topicPanel h1 {
-  margin-bottom: 50px;
-  font-size: 30px;
-}
-#s2 .topicPanel h1 .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-}
-#s2 .topicPanel h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
-}
+
 .topicPanel .relatedTopicsList {
   margin-bottom: 70px;
   text-align: center;
