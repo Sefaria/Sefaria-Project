@@ -15,11 +15,31 @@ const Sefaria             = require('./sefaria/sefaria');
 const $                   = require('./sefaria/sefariaJquery');
 const TextRange           = require('./TextRange');
 const Footer              = require('./Footer');
+const {
+    SheetBlock,
+    StorySheetList
+}                         = require('./Story');
+
 import Component          from 'react-class';
 
 const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState({});
-    Sefaria.getTopic(topic).then(setTopicData);
+    const [sheetData, setSheetData] = useState([]);
+    useEffect(() => Sefaria.getTopic(topic).then(setTopicData), [topic]);
+    useEffect(() =>  Sefaria.sheets.getSheetsByTag(topic)
+        .then(sts => sts.sheets.map(st => ({
+            publisher_id: st.author,
+            publisher_name: st.ownerName,
+            publisher_url: "",          //!
+            publisher_image: st.ownerImageUrl,
+            publisher_position: "",     //!
+            publisher_organization: "", //!
+            publisher_followed: false,  //!
+            sheet_id: st.id,
+            sheet_title: st.title,
+            sheet_summary: "",          //!
+        })))
+        .then(setSheetData) ,[topic]);
 
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
 
@@ -46,7 +66,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                         <TabView
                           tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
                           renderTab={(t,i) => <div key={i} className="tab">{t}</div>} >
-                            <div>Sheets</div>
+                            <div><StorySheetList sheets={sheetData} compact={true}/></div>
                             <div>Sources</div>
                         </TabView>
                </div>

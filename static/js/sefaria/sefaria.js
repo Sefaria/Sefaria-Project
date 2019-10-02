@@ -1689,11 +1689,11 @@ Sefaria = extend(Sefaria, {
     return data;
   },
   getTopic: function(topic) {
-      return Sefaria._cachedPromiseAPI(
-          Sefaria.apiHost + "/api/topics/" + topic,
-          topic,
-          this._topics
-      );
+      return this._cachedPromiseAPI({
+          url:   this.apiHost + "/api/topics/" + topic,
+          key:   topic,
+          store: this._topics
+    });
   },
   sheets: {
     _loadSheetByID: {},
@@ -1784,6 +1784,13 @@ Sefaria = extend(Sefaria, {
           }.bind(this));
         }
       return sheets;
+    },
+    getSheetsByTag: function(tag) {
+      return Sefaria._cachedPromiseAPI({
+          url:   Sefaria.apiHost + "/api/sheets/tag/" + tag.replace("#", "%23"),
+          store: this._sheetsByTag,
+          key:   tag,
+        });
     },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy, offset, numberToRetrieve, ignoreCache) {
@@ -2249,7 +2256,7 @@ Sefaria = extend(Sefaria, {
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
   },
-  _cachedPromiseAPI: function(url, key, store) {
+  _cachedPromiseAPI: function({url, key, store}) {
       // Checks store[key].  Resolves to this value, if present.
       // Otherwise, calls Promise(url), caches, and returns
       return (key in store) ?
