@@ -1100,13 +1100,16 @@ input.noselect {
 }
 .topicPanel .sideColumn .sideList {
   margin-bottom: 60px;
-  color: #888;
   font-size: 20px;
 }
-.topicPanel .sideColumn .sideList .int-en {
+.topicPanel .sideColumn .sideList a {
+  display: block;
+  color: #888;
+}
+.topicPanel .sideColumn .sideList a .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.topicPanel .sideColumn .sideList .int-he {
+.topicPanel .sideColumn .sideList a .int-he {
   font-family: "Heebo", sans-serif;
 }
 .topicPanel .sideColumn .topicCategory {
@@ -5313,23 +5316,10 @@ h2.splitHeader .he {
   color: #8E8E8E;
 }
 
-.topicPanel .relatedTopicsList {
-  margin-bottom: 70px;
-  text-align: center;
-}
 .topicPanel .relatedTopic {
-  margin: 0 7px;
-  color: #333;
-  font-size: 16px;
-  line-height: 1.4;
-  display: inline-block;
+
 }
-.topicPanel .content .relatedTopic .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
-}
-.topicPanel .content .relatedTopic .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
-}
+
 .topicPanel .sourceList {
   min-height: 500px;
 }

@@ -9,22 +9,25 @@ const {
 const {
   LanguageToggleButton,
   TabView,
-  LoadingMessage
+  LoadingMessage,
+  Link
 }                         = require('./Misc');
 
 const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, toggleSignUpModal, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState(false);
     const [sheetData, setSheetData] = useState([]);
     const [textData, setTextData] = useState({});
-    useEffect(() => Sefaria.getTopic(topic)
-        .then(d => { setTopicData(d); return d; })
-        .then(d => Sefaria.getBulkText(d.sources.map(s => s[0])))
-        .then(setTextData)
-        , [topic]);
-    useEffect(() =>  Sefaria.sheets.getSheetsByTag(topic, true)
-        .then(sts => sts.sheets)
-        .then(setSheetData)
-        , [topic]);
+    useEffect(() => {
+        Sefaria.getTopic(topic)
+            .then(d => { setTopicData(d); return d; })
+            .then(d => Sefaria.getBulkText(d.sources.map(s => s[0])))
+            .then(setTextData);
+    }, [topic]);
+    useEffect(() => {
+        Sefaria.sheets.getSheetsByTag(topic, true)
+            .then(sts => sts.sheets)
+            .then(setSheetData);
+    }, [topic]);
 
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
 
@@ -67,11 +70,11 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                             <span className="int-he">נושאים ...</span>
                         </h2>
                         <div className="sideList">
-                            {topicData.related_topics.slice(0,6).map((t,i) =>
-                                <div key={i}>
-                                    <span className="int-en">{t[0]}</span>
-                                    <span className="int-he">{Sefaria.hebrewTerm(t[0])}</span>
-                                </div>)
+                            {topicData.related_topics.slice(0,6).map(t =>
+                            <Link className="relatedTopic" href={"/topics/" + t[0]} onClick={setTopic.bind(null, t[0])} key={t[0]} title={t[1] + "co-occurrences"}>
+                              <span className="int-en">{t[0]}</span>
+                              <span className="int-he">{Sefaria.hebrewTerm(t[0])}</span>
+                            </Link>)
                             }
                         </div>
                     </div>
