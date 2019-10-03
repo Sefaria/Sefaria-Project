@@ -319,8 +319,7 @@ class LexiconLookupAggregator(object):
             headword_query = []
             for form in forms:
                 for lookup in form.lookups:
-                    headword_query.append({'headword': lookup['headword']})
-                    # TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lexicon' in word forms
+                    headword_query.append(lookup)
             return headword_query
         else:
             return []
