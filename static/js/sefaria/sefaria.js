@@ -310,6 +310,10 @@ Sefaria = extend(Sefaria, {
     return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
   },
+  getBulkText: function(refs) {
+    // todo: fish existing texts out of cache first
+    return this._promiseAPI(Sefaria.apiHost + "/api/bulktext/" + refs.join("|"))
+  },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
     if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }

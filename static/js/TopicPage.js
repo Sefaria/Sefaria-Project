@@ -1,31 +1,26 @@
-const {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  LanguageToggleButton,
-  TabView,
-  LoadingMessage,
-  Link,
-}                         = require('./Misc');
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 const PropTypes           = require('prop-types');
-const ReactDOM            = require('react-dom');
 const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
-const $                   = require('./sefaria/sefariaJquery');
-const TextRange           = require('./TextRange');
-const Footer              = require('./Footer');
 const {
-    SheetBlock,
-    StorySheetList
+    StorySheetList,
+    StoryTextListItem
 }                         = require('./Story');
+const {
+  LanguageToggleButton,
+  TabView,
+  LoadingMessage
+}                         = require('./Misc');
 
-import Component          from 'react-class';
-
-const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, openDisplaySettings}) => {
-    const [topicData, setTopicData] = useState({});
+const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, toggleSignUpModal, openDisplaySettings}) => {
+    const [topicData, setTopicData] = useState(false);
     const [sheetData, setSheetData] = useState([]);
-    useEffect(() => Sefaria.getTopic(topic).then(setTopicData), [topic]);
+    const [textData, setTextData] = useState({});
+    useEffect(() => Sefaria.getTopic(topic)
+        .then(d => { setTopicData(d); return d; })
+        .then(d => Sefaria.getBulkText(d.sources.map(s => s[0])))
+        .then(setTextData)
+        , [topic]);
     useEffect(() =>  Sefaria.sheets.getSheetsByTag(topic)
         .then(sts => sts.sheets.map(st => ({
             publisher_id: st.author,
@@ -39,7 +34,8 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
             sheet_title: st.title,
             sheet_summary: "",          //!
         })))
-        .then(setSheetData) ,[topic]);
+        .then(setSheetData)
+        ,[topic]);
 
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
 
@@ -63,19 +59,44 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                       <span className="int-en">{topicData.description && topicData.description.en}</span>
                       <span className="int-he">{topicData.description && topicData.description.he}</span>
                     </div>
-                        <TabView
-                          tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
-                          renderTab={(t,i) => <div key={i} className="tab">{t}</div>} >
-                            <div><StorySheetList sheets={sheetData} compact={true}/></div>
-                            <div>Sources</div>
-                        </TabView>
+                    <TabView
+                      tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
+                      renderTab={(t,i) => <div key={i} className="tab">{t}</div>} >
+                        <div><StorySheetList sheets={sheetData} compact={true}/></div>
+                        <div>
+                            {topicData.sources
+                            .map(s => textData[s[0]])
+                            .map((t,i) => <StoryTextListItem key={i} text={t} toggleSignUpModal={toggleSignUpModal}/>)}
+                        </div>
+                    </TabView>
                </div>
                 <div className="sideColumn">
-                    Foo
+                    <h2>Related Topics</h2>
+                    {topicData.related_topics.map((t,i) => <div key={i}>{t[0]}</div>)}
+                    {topicData.category ?
+                        <div>
+                            <h2>{topicData.category}</h2>
+                            {}
+                        </div>
+                        :""}
                 </div>
             </div>
           </div>
       </div>): <LoadingMessage/>;
+};
+
+TopicPage.propTypes = {
+  topic:               PropTypes.string.isRequired,
+  setTopic:            PropTypes.func.isRequired,
+  openTopics:          PropTypes.func.isRequired,
+  interfaceLang:       PropTypes.string,
+  multiPanel:          PropTypes.bool,
+  hideNavHeader:       PropTypes.bool,
+  showBaseText:        PropTypes.func,
+  navHome:             PropTypes.func,
+  toggleLanguage:      PropTypes.func,
+  openDisplaySettings: PropTypes.func,
+  toggleSignUpModal:   PropTypes.func,
 };
 
 /*
@@ -162,18 +183,7 @@ class TopicPage extends Component {
       </div>);
   }
 }
-TopicPage.propTypes = {
-  topic:               PropTypes.string.isRequired,
-  setTopic:            PropTypes.func.isRequired,
-  openTopics:          PropTypes.func.isRequired,
-  interfaceLang:       PropTypes.string,
-  multiPanel:          PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
-  showBaseText:        PropTypes.func,
-  navHome:             PropTypes.func,
-  toggleLanguage:      PropTypes.func,
-  openDisplaySettings: PropTypes.func,
-};
+
 
 
 class TopicSource extends Component {

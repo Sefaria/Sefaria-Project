@@ -545,3 +545,4 @@ const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallT
 module.exports.Story = Story;
 module.exports.SheetBlock = SheetBlock;
 module.exports.StorySheetList = StorySheetList;
+module.exports.StoryTextListItem = StoryTextListItem;

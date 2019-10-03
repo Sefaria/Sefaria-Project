@@ -895,6 +895,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
+                      toggleSignUpModal={this.props.toggleSignUpModal}
                       key={"TopicPage"} />);
       } else {
         menu = (<TopicsPanel
