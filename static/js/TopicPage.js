@@ -51,23 +51,41 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                     <TabView
                       tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
                       renderTab={(t,i) => <div key={i} className="tab">{t}</div>} >
-                        <div><StorySheetList sheets={sheetData} compact={true}/></div>
-                        <div>
-                            {topicData.sources
-                            .map(s => textData[s[0]])
-                            .map((t,i) => <StoryTextListItem key={i} text={t} toggleSignUpModal={toggleSignUpModal}/>)}
+                        <div className="story topicTabContents">
+                            <StorySheetList sheets={sheetData} compact={true}/>
+                        </div>
+                        <div className="story topicTabContents">
+                            {topicData.sources.map((s,i) =>
+                            <StoryTextListItem key={i} text={textData[s[0]]} toggleSignUpModal={toggleSignUpModal}/>)}
                         </div>
                     </TabView>
                </div>
                 <div className="sideColumn">
-                    <h2>Related Topics</h2>
-                    {topicData.related_topics.map((t,i) => <div key={i}>{t[0]}</div>)}
+                    <div>
+                        <h2>
+                            <span className="int-en">Related Topics</span>
+                            <span className="int-he">נושאים ...</span>
+                        </h2>
+                        <div className="sideList">
+                            {topicData.related_topics.slice(0,6).map((t,i) =>
+                                <div key={i}>
+                                    <span className="int-en">{t[0]}</span>
+                                    <span className="int-he">{Sefaria.hebrewTerm(t[0])}</span>
+                                </div>)
+                            }
+                        </div>
+                    </div>
                     {topicData.category ?
-                        <div>
-                            <h2>{topicData.category}</h2>
+                    <div>
+                        <h2>
+                            <span className="int-en">{topicData.category}</span>
+                            <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
+                        </h2>
+                        <div className="sideList">
                             {}
                         </div>
-                        :""}
+                    </div>
+                    :""}
                 </div>
             </div>
           </div>
