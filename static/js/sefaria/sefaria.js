@@ -1789,9 +1789,10 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
-    getSheetsByTag: function(tag) {
+    getSheetsByTag: function(tag, v2) {
+      const url =  Sefaria.apiHost + "/api" + (v2 ? "/v2" : "") + "/sheets/tag/" + tag.replace("#", "%23");
       return Sefaria._cachedPromiseAPI({
-          url:   Sefaria.apiHost + "/api/sheets/tag/" + tag.replace("#", "%23"),
+          url:  url,
           store: this._sheetsByTag,
           key:   tag,
         });

@@ -412,11 +412,11 @@ def user_stats_data(uid):
         ])
         most_viewed_sheets_ids = [s["_id"] for s in sorted(sheets_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and s["_id"] not in usheet_ids][:3]
 
-        most_viewed_sheets = [Story._sheet_metadata(i, return_id=True) for i in most_viewed_sheets_ids]
+        most_viewed_sheets = [Story.sheet_metadata(i, return_id=True) for i in most_viewed_sheets_ids]
         most_viewed_sheets = filter(lambda a: a, most_viewed_sheets)
 
         for sheet_dict in most_viewed_sheets:
-            sheet_dict.update(Story._publisher_metadata(sheet_dict["publisher_id"]))
+            sheet_dict.update(Story.publisher_metadata(sheet_dict["publisher_id"]))
 
         # Construct returned data
         user_stats_dict[daterange.key] = {

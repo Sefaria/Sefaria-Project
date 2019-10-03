@@ -21,21 +21,10 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
         .then(d => Sefaria.getBulkText(d.sources.map(s => s[0])))
         .then(setTextData)
         , [topic]);
-    useEffect(() =>  Sefaria.sheets.getSheetsByTag(topic)
-        .then(sts => sts.sheets.map(st => ({
-            publisher_id: st.author,
-            publisher_name: st.ownerName,
-            publisher_url: "",          //!
-            publisher_image: st.ownerImageUrl,
-            publisher_position: "",     //!
-            publisher_organization: "", //!
-            publisher_followed: false,  //!
-            sheet_id: st.id,
-            sheet_title: st.title,
-            sheet_summary: "",          //!
-        })))
+    useEffect(() =>  Sefaria.sheets.getSheetsByTag(topic, true)
+        .then(sts => sts.sheets)
         .then(setSheetData)
-        ,[topic]);
+        , [topic]);
 
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
 
