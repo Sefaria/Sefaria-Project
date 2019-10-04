@@ -4,7 +4,13 @@ const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
 const {
     StorySheetList,
-    StoryTextListItem
+    StoryTextListItem,
+    SaveLine,
+    StoryTitleBlock,
+    ColorBarBox,
+    StoryBodyBlock,
+    StoryFrame,
+    textPropType
 }                         = require('./Story');
 const {
   LanguageToggleButton,
@@ -12,6 +18,25 @@ const {
   LoadingMessage,
   Link
 }                         = require('./Misc');
+
+
+const TextPassage = ({text, toggleSignUpModal}) => {
+    const url = "/" + Sefaria.normRef(text.ref);
+
+    return <StoryFrame cls="textPassageStory">
+        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}>
+            <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
+        </SaveLine>
+        <ColorBarBox tref={text.ref}>
+            <StoryBodyBlock en={text.en} he={text.he}/>
+        </ColorBarBox>
+    </StoryFrame>;
+};
+
+TextPassage.propTypes = {
+  text: textPropType,
+  toggleSignUpModal:  PropTypes.func
+};
 
 const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, toggleSignUpModal, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState(false);
@@ -59,7 +84,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                         </div>
                         <div className="story topicTabContents">
                             {topicData.sources.map((s,i) =>
-                            <StoryTextListItem key={i} text={textData[s[0]]} toggleSignUpModal={toggleSignUpModal}/>)}
+                            <TextPassage key={i} text={textData[s[0]]} toggleSignUpModal={toggleSignUpModal}/>)}
                         </div>
                     </TabView>:""}
                </div>

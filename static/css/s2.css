@@ -1122,7 +1122,8 @@ input.noselect {
   font-size: 20px;
 }
 .topicPanel .tab-view .tab-list {
-  padding-bottom: 30px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #999;
 }
 .topicPanel .tab-view .tab-list .tab {
   font-size: 30px;
