@@ -4239,3 +4239,16 @@ def apple_app_site_association(request):
             ]
         }
     })
+
+def application_health_api(request):
+    """
+    Defines the /healthz API endpoint which responds with 
+        200 if the appliation is ready for requests, 
+        500 if the application is not ready for requests
+    """
+    if library.is_initialized():
+        # return 200
+        return True
+    else:
+        # return 500
+        return False
