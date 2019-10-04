@@ -17,6 +17,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const [topicData, setTopicData] = useState(false);
     const [sheetData, setSheetData] = useState([]);
     const [textData, setTextData] = useState({});
+    const clearAndSetTopic = (topic) => {setTopicData(false); setTopic(topic)};
     useEffect(() => {
         Sefaria.getTopic(topic)
             .then(d => { setTopicData(d); return d; })
@@ -28,30 +29,29 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
             .then(sts => sts.sheets)
             .then(setSheetData);
     }, [topic]);
-
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
 
-    return topicData ? (
-      <div className={classStr}>
+    return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
                <div className="mainColumn">
-                    <div className="topicTitle pageTitle">
+                   <div className="topicTitle pageTitle">
                       <h1>
                         { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
                         <span className="int-en">{topic}</span>
                         <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
                       </h1>
                     </div>
-                    <div className="topicCategory sectionTitleText">
+                   {!topicData?<LoadingMessage/>:""}
+                   {topicData.category?<div className="topicCategory sectionTitleText">
                       <span className="int-en">{topicData.category}</span>
                       <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
-                    </div>
-                    <div className="topicDescription systemText">
-                      <span className="int-en">{topicData.description && topicData.description.en}</span>
-                      <span className="int-he">{topicData.description && topicData.description.he}</span>
-                    </div>
-                    <TabView
+                    </div>:""}
+                   {topicData.description?<div className="topicDescription systemText">
+                      <span className="int-en">{topicData.description.en}</span>
+                      <span className="int-he">{topicData.description.he}</span>
+                    </div>:""}
+                   {topicData?<TabView
                       tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
                       renderTab={(t,i) => <div key={i} className="tab">{t}</div>} >
                         <div className="story topicTabContents">
@@ -61,23 +61,23 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                             {topicData.sources.map((s,i) =>
                             <StoryTextListItem key={i} text={textData[s[0]]} toggleSignUpModal={toggleSignUpModal}/>)}
                         </div>
-                    </TabView>
+                    </TabView>:""}
                </div>
                 <div className="sideColumn">
-                    <div>
+                    {topicData?<div>
                         <h2>
                             <span className="int-en">Related Topics</span>
                             <span className="int-he">נושאים ...</span>
                         </h2>
                         <div className="sideList">
                             {topicData.related_topics.slice(0,6).map(t =>
-                            <Link className="relatedTopic" href={"/topics/" + t[0]} onClick={setTopic.bind(null, t[0])} key={t[0]} title={t[1] + "co-occurrences"}>
+                            <Link className="relatedTopic" href={"/topics/" + t[0]} onClick={clearAndSetTopic.bind(null, t[0])} key={t[0]} title={t[1] + "co-occurrences"}>
                               <span className="int-en">{t[0]}</span>
                               <span className="int-he">{Sefaria.hebrewTerm(t[0])}</span>
                             </Link>)
                             }
                         </div>
-                    </div>
+                    </div>:""}
                     {topicData.category ?
                     <div>
                         <h2>
@@ -92,7 +92,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                 </div>
             </div>
           </div>
-      </div>): <LoadingMessage/>;
+      </div>;
 };
 
 TopicPage.propTypes = {
