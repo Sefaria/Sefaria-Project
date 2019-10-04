@@ -83,23 +83,18 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                                 <span className="int-he">נושאים ...</span>
                             </h2>
                             <div className="sideList">
-                                {topicData.related_topics.slice(0,6).map(t =>
-                                <Link className="relatedTopic" href={"/topics/" + t[0]} onClick={clearAndSetTopic.bind(null, t[0])} key={t[0]} title={t[1] + "co-occurrences"}>
-                                  <span className="int-en">{t[0]}</span>
-                                  <span className="int-he">{Sefaria.hebrewTerm(t[0])}</span>
-                                </Link>)
-                                }
+                                {topicData.related_topics.slice(0,6).map(t => TopicLink({topic:t[0], clearAndSetTopic, count:t[1]}))}
                             </div>
                         </div>
                     :""}
-                    {topicData.category ?
+                    {topicData.category && topicData.siblings ?
                         <div>
                             <h2>
                                 <span className="int-en">{topicData.category}</span>
                                 <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
                             </h2>
                             <div className="sideList">
-                                {}
+                                {topicData.siblings.slice(0,6).map(t => TopicLink({topic:t, clearAndSetTopic}))}
                             </div>
                         </div>
                     :""}
@@ -135,10 +130,22 @@ const TextPassage = ({text, toggleSignUpModal}) => {
         </ColorBarBox>
     </StoryFrame>;
 };
-
 TextPassage.propTypes = {
   text: textPropType,
   toggleSignUpModal:  PropTypes.func
 };
+
+const TopicLink = ({topic, clearAndSetTopic, count}) => (
+    <Link className="relatedTopic" href={"/topics/" + topic} onClick={clearAndSetTopic.bind(null, topic)} key={topic} title={count?count + " co-occurrences":topic}>
+      <span className="int-en">{topic}</span>
+      <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
+    </Link>
+);
+TopicLink.propTypes = {
+  topic: PropTypes.string.isRequired,
+  clearAndSetTopic: PropTypes.func.isRequired,
+  count: PropTypes.number
+};
+
 
 module.exports = TopicPage;

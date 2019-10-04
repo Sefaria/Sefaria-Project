@@ -1098,6 +1098,10 @@ input.noselect {
 .topicPanel h2 .int-he {
   font-family: "Heebo", sans-serif;
 }
+.topicPanel .mainColumn .story,
+.topicPanel .mainColumn .storySheetListItem {
+    padding: 0 0 40px 0;
+}
 .topicPanel .sideColumn .sideList {
   margin-bottom: 60px;
   font-size: 20px;

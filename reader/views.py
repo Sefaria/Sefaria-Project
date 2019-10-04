@@ -2935,7 +2935,10 @@ def _topic_data(topic):
     response = topics.get(topic).contents()
     term = library.get_term(topic)
     if term:
-        response["category"] = getattr(term, "category", "")
+        cat = getattr(term, "category", "")
+        response["category"] = cat
+        if cat:
+            response["siblings"] = [t.get_primary_title() for t in TermSet({"category": cat})]
     response["description"] = {"en": "To be continued...", "he": u"וכו..."}
     return response
 
