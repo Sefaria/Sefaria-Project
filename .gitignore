@@ -47,10 +47,6 @@ dump.rdb
 ################
 node_modules
 
-# Visual Code directory #
-#########################
-/.vscode
-
 # PyCharm directory #
 #####################
 /.idea
