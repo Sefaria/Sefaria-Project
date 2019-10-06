@@ -268,12 +268,23 @@ class LexiconEntrySubClassMapping(object):
 class LexiconEntrySet(abst.AbstractMongoSet):
     recordClass = LexiconEntry
 
+    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, primary_tuples=None):
+        super(LexiconEntrySet, self).__init__(query, page, limit, sort, proj, hint)
+        self._primary_tuples = primary_tuples
+
     def _read_records(self):
+        def is_primary(entry):
+            return (entry.headword, entry.parent_lexicon) in self._primary_tuples
+
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
                 self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
             self.max = len(self.records)
+            if self._primary_tuples:
+                self.records.sort(key=is_primary)
+
+
 
 
 class LexiconLookupAggregator(object):
@@ -346,6 +357,9 @@ class LexiconLookupAggregator(object):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results
         if len(results):
-            return LexiconEntrySet({"$or": results})
+            primary_tuples = set((r["headword"], r["parent_lexicon"]) for r in results if r["primary"])
+            for r in results:
+                del r["primary"]
+            return LexiconEntrySet({"$or": results}, primary_tuples=primary_tuples)
         else:
             return None
