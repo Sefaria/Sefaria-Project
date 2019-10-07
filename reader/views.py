@@ -4247,8 +4247,7 @@ def application_health_api(request):
         500 if the application is not ready for requests
     """
     if library.is_initialized():
-        # return 200
-        return True
+        return http.HttpResponse("Healthy", status="200")
     else:
-        # return 500
-        return False
+        return http.HttpResponse("Unhealthy", status="500")
+        
