@@ -274,7 +274,7 @@ class LexiconEntrySet(abst.AbstractMongoSet):
 
     def _read_records(self):
         def is_primary(entry):
-            return (entry.headword, entry.parent_lexicon) in self._primary_tuples
+            return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
 
         if self.records is None:
             self.records = []
@@ -357,9 +357,15 @@ class LexiconLookupAggregator(object):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results
         if len(results):
-            primary_tuples = set((r["headword"], r["parent_lexicon"]) for r in results if r["primary"])
+            primary_tuples = set()
+            query = set() #TODO: optimize number of word form lookups? there can be a lot of duplicates... is it needed?
             for r in results:
-                del r["primary"]
+                # extract the lookups with "primary" field so it can be used for sorting lookup in the LexicinEntrySet,
+                # but also delete it, because its not part of the query obj
+                if "primary" in r:
+                    if r["primary"] is True:
+                        primary_tuples.add((r["headword"], r["parent_lexicon"]))
+                    del r["primary"]
             return LexiconEntrySet({"$or": results}, primary_tuples=primary_tuples)
         else:
             return None
