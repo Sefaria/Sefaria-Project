@@ -21,7 +21,7 @@ class ProfilePic extends Component {
   }
   render() {
     const { url, name, len, outerStyle, hideOnDefault } = this.props;
-    const nameArray = !!name.trim() ? name.split(/\s/) : [];
+    const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
     const defaultViz = this.state.showDefault ? 'flex' : 'none';
     const profileViz = this.state.showDefault ? 'none' : 'block';
@@ -1122,23 +1122,23 @@ function NewsletterSignUpForm(props) {
   return (
     <div className="newsletterSignUpBox">
       <span className="int-en">
-        <input 
-          className="newsletterInput" 
-          placeholder="Sign up for Newsletter" 
-          value={input} 
+        <input
+          className="newsletterInput"
+          placeholder="Sign up for Newsletter"
+          value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <span className="int-he">
-        <input 
+        <input
           className="newsletterInput"
-          placeholder="הצטרפו לרשימת התפוצה" 
-          value={input} 
+          placeholder="הצטרפו לרשימת התפוצה"
+          value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
-      { subscribeMessage ? 
+      { subscribeMessage ?
         <div className="subscribeMessage">{subscribeMessage}</div>
         : null }
     </div>);
@@ -1274,7 +1274,7 @@ class InterruptingMessage extends Component {
     if (!this.state.timesUp) { return null; }
 
     if (this.props.style === "banner") {
-      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>        
+      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
                 <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
                 <div id="bannerMessageClose" onClick={this.close}>×</div>
               </div>;
