@@ -4439,6 +4439,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0;
   line-height: 26px;
 }
+.profile-pic {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.profile-page .profile-pic .resourcesLink.profile-pic-hover-button {
+  display: none;
+}
+.profile-page .profile-pic:hover .resourcesLink.profile-pic-hover-button {
+  display: flex;
+}
+.profile-page .profile-pic .resourcesLink {
+  position: absolute;
+}
 .readerNavMenu.profile-page .resourcesLink img {
   top: 0;
 }
@@ -6511,7 +6526,7 @@ span.purim-emoji img{
 }
 .profile-page .profile-summary .resourcesLink.blue {
   color: white;
-  background-color: #212e50;
+  background-color: #18345d;
 }
 .profile-page .authorByLine {
   margin: 20px 0;
@@ -6831,7 +6846,7 @@ body .homeFeedWrapper .content {
 .homeFeedSidebar #homeFeedback {
   background-color: #EDEDED;
   margin: 0 -50px;
-  padding: 30px 50px;  
+  padding: 30px 50px;
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 0;

@@ -143,7 +143,7 @@ class UserProfile extends Component {
         // add urls to sheets for rendering with SheetListing
         sheets.forEach(s => {
           s.options.language = "en";
-          s.sheetUrl = `/Sheet.${s.id}`; 
+          s.sheetUrl = `/Sheet.${s.id}`;
         });
         resolve(sheets);
       }, undefined, 0, 0, ignoreCache);
@@ -496,7 +496,8 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
           url={p.gravatar_url}
           name={p.full_name}
           len={175}
-          hideOnDefault={true}
+          hideOnDefault={Sefaria._uid !== p.id}
+          showButtons={Sefaria._uid === p.id}
         />
       </div>
     </div>

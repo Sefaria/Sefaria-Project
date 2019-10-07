@@ -9,47 +9,50 @@ import Component      from 'react-class';
 
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
-class ProfilePic extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      showDefault: true,
-    };
-  }
-  showNonDefaultPic() {
-    this.setState({ showDefault: false });
-  }
-  render() {
-    const { url, name, len, outerStyle, hideOnDefault } = this.props;
-    const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
-    const defaultViz = this.state.showDefault ? 'flex' : 'none';
-    const profileViz = this.state.showDefault ? 'none' : 'block';
-    const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
-    return (
-      <div style={outerStyle}>
-        <div
-          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
-        >
-          { `${initials}` }
-        </div>
-        <img
-          className="img-circle profile-img"
-          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-          src={imageSrc}
-          alt="User Profile Picture"
-          onLoad={this.showNonDefaultPic}
-        />
+const ProfilePic = ({
+  url,
+  name,
+  len,
+  outerStyle,
+  hideOnDefault,
+  showButtons,
+}) => {
+  const [showDefault, setShowDefault] = useState(true);
+  const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
+  const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
+  const defaultViz = showDefault ? 'flex' : 'none';
+  const profileViz = showDefault ? 'none' : 'block';
+  const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
+  return (
+    <div style={outerStyle} className="profile-pic">
+      <div
+        className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+        style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
+      >
+        { showButtons ? null : `${initials}` }
       </div>
-    );
-  }
+      <img
+        className="img-circle profile-img"
+        style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+        src={imageSrc}
+        alt="User Profile Picture"
+        onLoad={()=>{setShowDefault(false)}}
+      />
+      { showButtons ?
+        <a href="/settings/account" className={classNames({"profile-pic-hover-button": !showDefault, resourcesLink: 1, blue: showDefault})}>
+          <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
+          <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
+        </a> : null
+      }
+    </div>
+  );
 }
 ProfilePic.propTypes = {
   url:     PropTypes.string,
   initials:PropTypes.string,
   len:     PropTypes.number,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
+  showButtons: PropTypes.bool,  // show profile pic action buttons
 };
 
 
