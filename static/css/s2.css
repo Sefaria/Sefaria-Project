@@ -1154,7 +1154,8 @@ h1 .languageToggle .he {
   margin-bottom: 44px;
 }
 a.recentItem,
-a.resourcesLink {
+a.resourcesLink,
+input.resourcesLink {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4445,14 +4446,23 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
   flex-direction: column;
 }
-.profile-page .profile-pic .resourcesLink.profile-pic-hover-button {
+.profile-page .profile-pic .profile-pic-hover-button {
   display: none;
 }
-.profile-page .profile-pic:hover .resourcesLink.profile-pic-hover-button {
+.profile-page .profile-pic:hover .profile-pic-hover-button {
   display: flex;
 }
-.profile-page .profile-pic .resourcesLink {
+.profile-page .profile-pic .profile-pic-button {
   position: absolute;
+}
+.profile-pic .profile-pic-input-file {
+  /* make it essentially invisible so it stays in DOM and is accessible */
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
 }
 .readerNavMenu.profile-page .resourcesLink img {
   top: 0;

@@ -5,6 +5,8 @@ const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
 
 
@@ -38,15 +40,23 @@ const ProfilePic = ({
         alt="User Profile Picture"
         onLoad={()=>{setShowDefault(false)}}
       />
-      { showButtons ?
-        <a href="/settings/account" className={classNames({"profile-pic-hover-button": !showDefault, resourcesLink: 1, blue: showDefault})}>
-          <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-          <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
-        </a> : null
+
+      { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
+        <div className={classNames({"profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
+          <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={()=>{console.log("YO!")}}/>
+          <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
+            <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
+            <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
+          </label>
+        </div> : null
       }
     </div>
   );
 }
+/*
+
+
+*/
 ProfilePic.propTypes = {
   url:     PropTypes.string,
   initials:PropTypes.string,
