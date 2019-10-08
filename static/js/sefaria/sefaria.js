@@ -551,7 +551,7 @@ Sefaria = extend(Sefaria, {
   },
   _index: {}, // Cache for text index records
   _translateTerms: {},
-  index: function(text, index) {
+   index: function(text, index) {
     if (!index) {
       return this._index[text];
     } else if (text in this._index){
@@ -1568,13 +1568,13 @@ Sefaria = extend(Sefaria, {
       const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
-          { user_history: JSON.stringify([savedItem]) }
+          { user_history: JSON.stringify([savedItem]), client: 'web' }
         ).done(response => {
           if (!!response['error']) {
             reject(response['error'])
           } else {
-            if (action === "add_saved" && !!response.created) {
-              Sefaria.saved.unshift(response.created);
+            if (action === "add_saved" && !!response.created && response.created.length > 0) {
+              Sefaria.saved = response.created.concat(Sefaria.saved);
             } else {
               // delete
               Sefaria.removeSavedItem({ ref, versions });
@@ -1672,6 +1672,7 @@ Sefaria = extend(Sefaria, {
       }
     return this._topicList;
   },
+  _tableOfContentsDedications: {},
   _topics: {},
   topic: function(topic, callback) {
     if (topic in this._topics) {
@@ -2154,6 +2155,17 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירת",
       "Remove": "הסרת",
+
+      //user stats
+      "Torah Tracker" : "לימוד במספרים",
+      "Year to Date": "בשנה הנוכחית",
+      "All Time": "כל הזמן",
+      "Texts Read" : "ספרים שנקראו",
+      "Sheets Read" : "דפי מקורות שנקראו",
+      "Sheets Created" : "דפי מקורות שנוצרו",
+      "Average Sefaria User" : "משתמש ממוצע בספריא",
+      "Etc": "שאר"
+
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){

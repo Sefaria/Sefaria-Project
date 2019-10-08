@@ -22,11 +22,12 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
+    NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
@@ -2435,7 +2436,7 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
-                # The line below will raise InputError (or DictionaryEntryNotFound) if no match
+                # The line below will raise InputError (or DictionaryEntryNotFoundError) if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
                 self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
@@ -2536,7 +2537,7 @@ class Ref(object):
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
                 # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split(u"[., ]+", parts[1])
+                range_parts = re.split(u"[., :]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
@@ -4264,6 +4265,15 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
 
+        # Initialization Checks
+        # These values are set to True once their initialization is complete
+        self._toc_tree_is_ready = False
+        self._full_auto_completer_is_ready = False
+        self._ref_auto_completer_is_ready = False
+        self._lexicon_auto_completer_is_ready = False
+        self._cross_lexicon_auto_completer_is_ready = False
+
+
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self.build_term_mappings()
 
@@ -4354,6 +4364,7 @@ class Library(object):
         if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
             self._toc_tree = TocTree(self)
+        self._toc_tree_is_ready = True
         return self._toc_tree
 
     def get_groups_in_library(self):
@@ -4393,6 +4404,7 @@ class Library(object):
 
         for lang in self.langs:
             self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
+        self._full_auto_completer_is_ready = True
 
     def build_ref_auto_completer(self):
         from autospell import AutoCompleter
@@ -4402,16 +4414,19 @@ class Library(object):
 
         for lang in self.langs:
             self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
+        self._ref_auto_completer_is_ready = True
 
     def build_lexicon_auto_completers(self):
         from autospell import LexiconTrie
         self._lexicon_auto_completer = {
             lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
         }
+        self._lexicon_auto_completer_is_ready = True
 
     def build_cross_lexicon_auto_completer(self):
         from autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
+        self._cross_lexicon_auto_completer_is_ready = True
 
     def cross_lexicon_auto_completer(self):
         if self._cross_lexicon_auto_completer is None:
@@ -5147,8 +5162,22 @@ class Library(object):
         else:
             return simple_nodes
 
+    def is_initialized(self):
+        """
+        Returns True if the following fields are initialized
+            * self._toc_tree
+            * self._full_auto_completer
+            * self._ref_auto_completer
+            * self._lexicon_auto_completer
+            * self._cross_lexicon_auto_completer
+        """
 
+        # Given how the object is initialized and will always be non-null, 
+        # I will likely have to add fields to the object to be changed once 
 
+        # Avoid allocation here since it will be called very frequently
+        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+  
 library = Library()
 
 
