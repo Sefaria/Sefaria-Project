@@ -104,6 +104,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^topics$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
+    url(r'^topics/category/(?P<topics>.+)?$', reader_views.topics_toc_page),
 ]
 
 # Calendar Redirects

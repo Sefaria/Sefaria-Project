@@ -81,6 +81,7 @@ class ReaderPanel extends Component {
       },
       menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
       navigationCategories: props.initialNavigationCategories || [],
+      navigationTopics:     props.initialNavigationTopics || [],
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
@@ -142,6 +143,7 @@ class ReaderPanel extends Component {
     } else {
       this.setState({
         navigationCategories: nextProps.initialNavigationCategories || [],
+        navigationTopics: nextProps.initialNavigationTopics || [],
         navigationSheetTag:   nextProps.initialSheetsTag || null
       });
     }
@@ -369,6 +371,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
+      navigationTopics: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -386,6 +389,7 @@ class ReaderPanel extends Component {
       // If there's no content to show, return to home
       menuOpen: null,
       navigationCategories: null,
+      navigationTopics: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -399,6 +403,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
+      navigationTopics: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -415,6 +420,9 @@ class ReaderPanel extends Component {
   }
   setNavigationCategories(categories) {
     this.conditionalSetState({navigationCategories: categories});
+  }
+  setNavigationTopics(topics) {
+    this.conditionalSetState({navigationTopics: topics});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -735,14 +743,16 @@ class ReaderPanel extends Component {
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       menu = (<ReaderNavigationMenu
-                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : "navHome"}
+                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopics ? this.state.navigationTopics.join("-") : "navHome"}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
+                    topics={this.state.navigationTopics || []}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
+                    setTopics={this.setNavigationTopics}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}

@@ -77,6 +77,7 @@ class ReaderApp extends Component {
             sortType: props.initialSheetSearchSortType,
           }),
           navigationCategories: props.initialNavigationCategories,
+          navigationTopics: props.initialNavigationTopics,
           navigationTopic: props.initialTopic,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
@@ -118,6 +119,7 @@ class ReaderApp extends Component {
             sortType: props.initialSheetSearchSortType,
           }),
           navigationCategories: props.initialNavigationCategories,
+          navigationTopics: props.initialNavigationTopics,
           navigationTopic: props.initialTopic,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
@@ -154,6 +156,7 @@ class ReaderApp extends Component {
           sortType: props.initialSheetSearchSortType,
         }),
         navigationCategories: props.initialNavigationCategories,
+        navigationTopics: props.initialNavigationTopics,
         navigationTopic: props.initialTopic,
         profile: props.initialProfile,
         sheetsTag: props.initialSheetsTag,
@@ -425,6 +428,13 @@ class ReaderApp extends Component {
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
           return true; // both are set, compare arrays
         }
+      } else if (prev.navigationTopics !== next.navigationTopics) {
+        // Handle array comparison, !== could mean one is null or both are arrays
+        if (!prev.navigationTopics || !next.navigationTopics) {
+          return true; // They are not equal and one is null
+        } else if (!prev.navigationTopics.compare(next.navigationTopics)) {
+          return true; // both are set, compare arrays
+        }
       }
     }
     return false;
@@ -468,9 +478,9 @@ class ReaderApp extends Component {
             break;
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
-            hist.title = hist.title;
-            hist.url   = "texts" + (cats ? "/" + cats : "");
+            var topics   = state.navigationTopics ? state.navigationTopics.join("/") : "";
+            hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._(siteName) : topics ? Sefaria._va(state.navigationTopics).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
+            hist.url   = topics ? "topics/category/" + topics : "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
           case "text toc":
@@ -840,6 +850,7 @@ class ReaderApp extends Component {
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
+      navigationTopics:        state.navigationTopics   || [],
       navigationSheetTag:      state.sheetsTag               || null,
       navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,

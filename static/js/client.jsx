@@ -54,6 +54,7 @@ $(function() {
       initialQuery: null,
       initialSheetsTag: null,
       initialNavigationCategories: [],
+      initialNavigationTopics: [],
       initialSettings: settings,
       initialPanels: [],
       interfaceLang: DJANGO_VARS.interfaceLang

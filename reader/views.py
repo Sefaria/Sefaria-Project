@@ -464,6 +464,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialQuery":                None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
+        "initialNavigationTopics":     None,
     })
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -565,6 +566,27 @@ def texts_category_list(request, cats):
         "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     })
 
+@sanitize_get_params
+def topics_toc_page(request, topics):
+    """
+    List of texts in a category.
+    """
+    props = base_props(request)
+    topics  = topics.split("/")
+
+    props.update({
+        "initialMenu": "navigation",
+        "initialNavigationTopics": topics,
+    })
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request, 'base.html', {
+        "propsJSON":        propsJSON,
+        "html":             html,
+        "title":            "",
+        "desc":             "",
+        #"ldBreadcrumbs":    ld_cat_crumbs(request, cats)
+    })
 
 def get_param(param, i=None):
     return "{}{}".format(param, "" if i is None else i)

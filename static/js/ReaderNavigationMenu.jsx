@@ -21,7 +21,7 @@ const Footer                       = require('./Footer');
 import Component from 'react-class';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
-const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, onClose, openNav, openSearch,
+const ReaderNavigationMenu = ({categories, topics, settings, setCategories, setTopics, setOption, onClose, openNav, openSearch,
           toggleLanguage, openMenu, onTextClick, onRecentClick, handleClick, openDisplaySettings, toggleSignUpModal,
           hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
@@ -42,6 +42,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
   
   const navHome = () => {
     setCategories([]);
+    setTopics([]);
     openNav();
   };
   
@@ -211,14 +212,16 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
   donation = (<div className="readerTocResources"><TwoBox content={donation} width={width} /></div>);
 
 
-  let topicBlocks = Sefaria.topicTocPage().map((t,i) => (
-      <a href={"/topics/" + t.name} // wrong
-        className="blockLink"
-        key={i}>
-        <span className='en'>{t.en}</span>
-        <span className='he'>{t.he}</span>
+  let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
+      const openTopic = e => {e.preventDefault(); setTopics([t.name])};
+      return <a href={"/topics/category/" + t.name} 
+         onClick={openTopic}
+         className="blockLink"
+         key={i}>
+          <span className='en'>{t.en}</span>
+          <span className='he'>{t.he}</span>
       </a>
-  ));
+  });
   const moreTopics = (<a href="#" className="blockLink readerNavMore" onClick={enableShowMoreTopics}>
                   <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
                   <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
@@ -259,8 +262,10 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
 };
 ReaderNavigationMenu.propTypes = {
   categories:        PropTypes.array.isRequired,
+  topics:            PropTypes.array.isRequired,
   settings:          PropTypes.object.isRequired,
   setCategories:     PropTypes.func.isRequired,
+  setTopics:         PropTypes.func.isRequired,
   setOption:         PropTypes.func.isRequired,
   onClose:           PropTypes.func.isRequired,
   openNav:           PropTypes.func.isRequired,
