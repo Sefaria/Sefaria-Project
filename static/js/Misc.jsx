@@ -326,22 +326,15 @@ class GlobalWarningMessage extends Component {
 }
 
 
-class ReaderNavigationMenuSection extends Component {
-  render() {
-    if (!this.props.content) { return null; }
-    let idstr = this.props.enableAnchor ? "navigation-" + this.props.title.toLowerCase() : "";
-    return (
-      <div className="readerNavSection" id={idstr}>
-
-        {this.props.title ? (<h2>
-          <span className="int-en">{this.props.title}</span>
-          <span className="int-he">{this.props.heTitle}</span>
+const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (!content) ? null :
+      <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
+        {title ? (<h2>
+          <span className="int-en">{title}</span>
+          <span className="int-he">{heTitle}</span>
         </h2>) : null }
-        {this.props.content}
-      </div>
-      );
-  }
-}
+        {content}
+      </div>;
+
 ReaderNavigationMenuSection.propTypes = {
   title:   PropTypes.string,
   heTitle: PropTypes.string,
