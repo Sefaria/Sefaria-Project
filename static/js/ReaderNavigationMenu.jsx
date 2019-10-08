@@ -36,9 +36,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
     }
   }, []);
 
-  const deriveAndSetWidth = () => {
-    setWidth(ref.current ? ref.current.offsetWidth : 1000);
-  };
+  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : 1000);
   
   const navHome = () => {
     setCategories([]);
@@ -52,28 +50,22 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
   
   const handleSearchKeyUp = (event) => {
     if (event.keyCode === 13) {
-      var query = $(event.target).val();
+      const query = $(event.target).val();
       openSearch(query);
     }
   };
   
   const handleSearchButtonClick = (event) => {
-    var query = $(ReactDOM.findDOMNode(ref.current)).find(".readerSearch").val();
+    const query = $(ReactDOM.findDOMNode(ref.current)).find(".readerSearch").val();
     if (query) {
       openSearch(query);
     }
   };
 
-  const openSaved = () => {
-    if (Sefaria._uid) {
-      openMenu("saved");
-    } else {
-      toggleSignUpModal();
-    }
-  };
-    
-  if (categories.length) {
+  const openSaved = () => (Sefaria._uid) ? openMenu("saved") : toggleSignUpModal();
+
   // List of Texts in a Category
+  if (categories.length) {
     return (
         <div ref={ref} className="readerNavMenu" onClick={handleClick} >
             <ReaderNavigationCategoryMenu
@@ -178,7 +170,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
   resources = (<div className="readerTocResources"><TwoBox content={resources} width={width} /></div>);
 
 
-  let topContent = home ?
+  const topContent = hideNavHeader ? null : home ?
           (<div className="readerNavTop search">
             <CategoryColorLine category="Other" />
             <ReaderNavigationMenuSearchButton onClick={navHome} />
@@ -197,9 +189,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
               </div>
             </div>
             {interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} /> : null}
-
           </div>);
-  topContent = hideNavHeader ? null : topContent;
 
   let topUserData = [
       <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} onClick={openSaved} img="/static/img/star.png" alt="saved text icon"/>,
