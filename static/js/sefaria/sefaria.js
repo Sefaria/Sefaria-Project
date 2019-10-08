@@ -1701,12 +1701,12 @@ Sefaria = extend(Sefaria, {
   },
   _topicTocPages: {},
   _initTopicTocPages: function() {
-    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this.topicTocPageKey(c.name)] = c.children; return a;}, {});
-    this._topicTocPages[this.topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
+    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this._topicTocPageKey(c.name)] = c.children; return a;}, {});
+    this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
   },
-  topicTocPageKey: name => "_" + name,
+  _topicTocPageKey: name => "_" + name,
   topicTocPage: function(parent) {
-    const key = this.topicTocPageKey(parent);
+    const key = this._topicTocPageKey(parent);
     if (!this._topicTocPages[key]) {
         this._initTopicTocPages()
     }

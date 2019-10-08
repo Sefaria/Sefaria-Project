@@ -1329,10 +1329,13 @@ a.readerNavCategory {
     font-size: 13px;
   }
 }
+.readerNavMenu .readerNavMore span {
+  opacity: 0.43;
+  text-transform: none;
+}
 .readerNavMenu .readerNavMore img {
   height: 10px;
   width: 10px;
-  opacity: 0.43;
 }
 .bilingual .readerNavCategory .he {
   display: none;

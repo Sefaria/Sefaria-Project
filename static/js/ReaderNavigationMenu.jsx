@@ -27,6 +27,8 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
 
   const [width, setWidth] = useState(1000);
   const [showMore, setShowMore] = useState(Sefaria.toc.length < 9);
+  const [showMoreTopics, setShowMoreTopics] = useState(false);
+
   const ref = useRef(null);
   useEffect(() => {
     deriveAndSetWidth();
@@ -46,6 +48,10 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
   const enableShowMore = (event) => {
     event.preventDefault();
     setShowMore(true);
+  };
+  const enableShowMoreTopics = (event) => {
+    event.preventDefault();
+    setShowMoreTopics(true);
   };
   
   const handleSearchKeyUp = (event) => {
@@ -95,9 +101,9 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
               </a>
             );
   });
-  const more = (<a href="#" className="readerNavCategory readerNavMore" style={{"borderColor": Sefaria.palette.colors.darkblue}} onClick={enableShowMore}>
-                  <span className="en">More <img src="/static/img/arrow-right.png" alt="" /></span>
-                  <span className="he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+  const more = (<a href="#" className="readerNavCategory readerNavMore" onClick={enableShowMore}>
+                  <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
+                  <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
   const nCats  = width < 500 ? 9 : 8;
   categoriesBlock = showMore ? categoriesBlock : categoriesBlock.slice(0, nCats).concat(more);
@@ -205,6 +211,22 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
   donation = (<div className="readerTocResources"><TwoBox content={donation} width={width} /></div>);
 
 
+  let topicBlocks = Sefaria.topicTocPage().map((t,i) => (
+      <a href={"/topics/" + t.name} // wrong
+        className="blockLink"
+        key={i}>
+        <span className='en'>{t.en}</span>
+        <span className='he'>{t.he}</span>
+      </a>
+  ));
+  const moreTopics = (<a href="#" className="blockLink readerNavMore" onClick={enableShowMoreTopics}>
+                  <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
+                  <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+              </a>);
+  topicBlocks = showMoreTopics ? topicBlocks : topicBlocks.slice(0, nCats).concat(moreTopics);
+  const topicsBlock = (<div className="readerTocTopics"><TwoOrThreeBox content={topicBlocks} width={width} /></div>);
+
+
   const title = (<h1>
                 { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                  <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
@@ -225,6 +247,7 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, setOption, o
               { topUserData }
               <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categoriesBlock} />
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
+              <ReaderNavigationMenuSection title="Topics" heTitle="נושאים" content={topicsBlock} />
               { !compare ? (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) : null }
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Support Sefaria" heTitle="תמכו בספריא" content={donation} /> : null }
               { multiPanel ? null : siteLinks }
