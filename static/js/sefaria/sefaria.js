@@ -1699,6 +1699,20 @@ Sefaria = extend(Sefaria, {
           store: this._topics
     });
   },
+  _topicTocPages: {},
+  _initTopicTocPages: function() {
+    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this.topicTocPageKey(c.name)] = c.children; return a;}, {});
+    this._topicTocPages[this.topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
+  },
+  topicTocPageKey: name => "_" + name,
+  topicTocPage: function(parent) {
+    const key = this.topicTocPageKey(parent);
+    if (!this._topicTocPages[key]) {
+        this._initTopicTocPages()
+    }
+    return this._topicTocPages[key]
+
+  },
   sheets: {
     _loadSheetByID: {},
     loadSheetByID: function(id, callback) {
