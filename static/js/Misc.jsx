@@ -11,55 +11,160 @@ import Component      from 'react-class';
 
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
-const ProfilePic = ({
-  url,
-  name,
-  len,
-  outerStyle,
-  hideOnDefault,
-  showButtons,
-}) => {
-  const [showDefault, setShowDefault] = useState(true);
-  const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-  const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
-  const defaultViz = showDefault ? 'flex' : 'none';
-  const profileViz = showDefault ? 'none' : 'block';
-  const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
-  return (
-    <div style={outerStyle} className="profile-pic">
-      <div
-        className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-        style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
-      >
-        { showButtons ? null : `${initials}` }
-      </div>
-      <img
-        className="img-circle profile-img"
-        style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-        src={imageSrc}
-        alt="User Profile Picture"
-        onLoad={()=>{setShowDefault(false)}}
-      />
+class ProfilePic extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showDefault: true,
+      src: null,
+      crop: {unit: "px", width: 175, aspect: 1},
+      croppedImageUrl: null,
+    };
+  }
+  setShowNonDefault() {this.setState({showDefault: false});  }
+  onSelectFile(e) {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.addEventListener("load", () =>
+        this.setState({ src: reader.result })
+      );
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  }
+
+  // If you setState the crop in here you should return false.
+  onImageLoaded(image) {
+    this.imageRef = image;
+  }
+
+  onCropComplete(crop) {
+    this.makeClientCrop(crop);
+  }
+
+  onCropChange(crop, percentCrop) {
+    // You could also use percentCrop:
+    // this.setState({ crop: percentCrop });
+    this.setState({ crop });
+  }
+
+  async makeClientCrop(crop) {
+    if (this.imageRef && crop.width && crop.height) {
+      const croppedImageUrl = await this.getCroppedImg(
+        this.imageRef,
+        crop,
+        "newFile.jpeg"
+      );
+      console.log(croppedImageUrl);
+      this.setState({ croppedImageUrl });
+    }
+  }
+
+  getCroppedImg(image, crop, fileName) {
+    const canvas = document.createElement("canvas");
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width,
+      crop.height
+    );
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (!blob) {
+          //reject(new Error('Canvas is empty'));
+          console.error("Canvas is empty");
+          return;
+        }
+        blob.name = fileName;
+        window.URL.revokeObjectURL(this.fileUrl);
+        this.fileUrl = window.URL.createObjectURL(blob);
+        resolve(this.fileUrl);
+      }, "image/jpeg");
+    });
+  }
+  closePopup() {
+    window.URL.revokeObjectURL(this.fileUrl);
+    this.setState({
+      src: null,
+      crop: {unit: "px", width: 175, aspect: 1},
+      croppedImageUrl: null,
+    });
+  }
+
+  render() {
+    const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
+    const { showDefault, src, crop } = this.state;
+    const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
+    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
+    const defaultViz = showDefault ? 'flex' : 'none';
+    const profileViz = showDefault ? 'none' : 'block';
+    const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
+    return (
+      <div style={outerStyle} className="profile-pic">
+        <div
+          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
+        >
+          { showButtons ? null : `${initials}` }
+        </div>
+        <img
+          className="img-circle profile-img"
+          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          src={imageSrc}
+          alt="User Profile Picture"
+          onLoad={this.setShowNonDefault}
+        />
 
       { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
-        <div className={classNames({"profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
-          <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={()=>{console.log("YO!")}}/>
-          <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-            <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-            <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
-          </label>
-        </div> : null
-      }
-    </div>
-  );
+          (<div className={classNames({"profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
+            <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile}/>
+            <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
+              <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
+              <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
+            </label>
+          </div>) : null
+        }
+        { src && (
+          <div id="interruptingMessageBox" className="sefariaModalBox">
+            <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
+            <div id="interruptingMessage" className="profile-pic-cropper-modal">
+              <div id="interruptingMessageClose" className="profile-pic-close" onClick={this.closePopup}>×</div>
+              <div className="sefariaModalContent profile-pic-cropper-modal-inner">
+                <ReactCrop
+                  src={src}
+                  crop={crop}
+                  className="profile-pic-cropper"
+                  keepSelection
+                  onImageLoaded={this.onImageLoaded}
+                  onComplete={this.onCropComplete}
+                  onChange={this.onCropChange}
+                />
+            </div>
+            <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={()=>{console.log('yo')}}>
+              <span className="en">Select</span>
+              <span className="he">Select (He)</span>
+            </a>
+          </div>
+        </div>
+        )}
+      </div>
+    );
+  }
 }
-/*
-
-
-*/
 ProfilePic.propTypes = {
   url:     PropTypes.string,
-  initials:PropTypes.string,
+  name:    PropTypes.string,
   len:     PropTypes.number,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
   showButtons: PropTypes.bool,  // show profile pic action buttons

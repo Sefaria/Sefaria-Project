@@ -4455,6 +4455,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .profile-pic .profile-pic-button {
   position: absolute;
 }
+.profile-pic-cropper-modal {
+  max-width: unset !important;
+  max-height: unset !important;
+  padding: 18px 0 0 0 !important;
+}
+.profile-pic-cropper-modal-inner {
+  overflow: auto;
+  max-width: 50vw;
+  max-height: 50vh;
+  display: block;
+  margin-top: 30px;
+}
+.profile-pic-close {
+  right: 25px !important;
+}
+.profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
+  margin: 20px 0;
+  display: inline-flex;
+}
 .profile-pic .profile-pic-input-file {
   /* make it essentially invisible so it stays in DOM and is accessible */
   width: 0.1px;
