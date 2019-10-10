@@ -15,10 +15,68 @@ const {
   LanguageToggleButton,
   TabView,
   LoadingMessage,
-  Link
+  Link,
+  TwoOrThreeBox
 }                         = require('./Misc');
 
 
+const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, multiPanel, contentLang}) => {
+    const [topicData, setTopicData] = useState(false);   // For root topic
+    const [subtopics, setSubtopics] = useState([]);
+
+    useEffect(() => {
+        Sefaria.getTopic(topic).then(setTopicData);
+    }, [topic]);
+    useEffect(() => {
+        setSubtopics(Sefaria.topicTocPage(topic));
+    }, [topic]);
+
+
+    let topicBlocks = subtopics.map((t,i) => {
+      const openTopic = e => {e.preventDefault(); setTopic(t.name)};
+      return <a href={"/topics/" + t.name}
+         onClick={openTopic}
+         className="blockLink"
+         key={i}>
+          <span className='en'>{t.en}</span>
+          <span className='he'>{t.he}</span>
+      </a>
+    });
+
+    return (
+        <div>
+            <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
+            <div className="readerTocTopics">
+                <TwoOrThreeBox content={topicBlocks} width={width} />
+            </div>
+        </div>
+    );
+};
+
+const TopicHeader = ({topic, topicData, multiPanel, interfaceLang, toggleLanguage}) => (
+    <div>
+        <div className="topicTitle pageTitle">
+          <h1>
+            { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+            <span className="int-en">{topic}</span>
+            <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
+          </h1>
+        </div>
+       {!topicData?<LoadingMessage/>:""}
+       {topicData.category?
+           <div className="topicCategory sectionTitleText">
+              <span className="int-en">{topicData.category}</span>
+              <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
+            </div>
+       :""}
+       {topicData.description?
+           <div className="topicDescription systemText">
+              <span className="int-en">{topicData.description.en}</span>
+              <span className="int-he">{topicData.description.he}</span>
+            </div>
+       :""}
+    </div>
+);
 const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, toggleSignUpModal, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState(false);
     const [sheetData, setSheetData] = useState([]);
@@ -41,26 +99,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
                <div className="mainColumn">
-                   <div className="topicTitle pageTitle">
-                      <h1>
-                        { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-                        <span className="int-en">{topic}</span>
-                        <span className="int-he">{Sefaria.hebrewTerm(topic)}</span>
-                      </h1>
-                    </div>
-                   {!topicData?<LoadingMessage/>:""}
-                   {topicData.category?
-                       <div className="topicCategory sectionTitleText">
-                          <span className="int-en">{topicData.category}</span>
-                          <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
-                        </div>
-                   :""}
-                   {topicData.description?
-                       <div className="topicDescription systemText">
-                          <span className="int-en">{topicData.description.en}</span>
-                          <span className="int-he">{topicData.description.he}</span>
-                        </div>
-                   :""}
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
                    {topicData?
                        <TabView
                           tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
@@ -148,4 +187,5 @@ TopicLink.propTypes = {
 };
 
 
-module.exports = TopicPage;
+module.exports.TopicPage = TopicPage;
+module.exports.TopicCategory = TopicCategory;

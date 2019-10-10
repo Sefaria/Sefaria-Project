@@ -478,8 +478,8 @@ class ReaderApp extends Component {
             break;
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            var topics   = state.navigationTopics ? state.navigationTopics.join("/") : "";
-            hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._(siteName) : topics ? Sefaria._va(state.navigationTopics).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
+            var topics   = state.navigationTopics;
+            hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._(siteName) : topics ? Sefaria._va(state.navigationTopics) + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
             hist.url   = topics ? "topics/category/" + topics : "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -850,7 +850,7 @@ class ReaderApp extends Component {
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
-      navigationTopics:        state.navigationTopics   || [],
+      navigationTopics:        state.navigationTopics   || "",
       navigationSheetTag:      state.sheetsTag               || null,
       navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,

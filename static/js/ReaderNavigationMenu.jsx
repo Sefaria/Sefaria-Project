@@ -10,6 +10,7 @@ const {
   TwoBox,
   LanguageToggleButton,
 }                                  = require('./Misc');
+const {TopicCategory}              = require('./TopicPage');
 import React, { useState, useEffect, useRef } from 'react';
 const ReactDOM                     = require('react-dom');
 const PropTypes                    = require('prop-types');
@@ -21,7 +22,7 @@ const Footer                       = require('./Footer');
 import Component from 'react-class';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
-const ReaderNavigationMenu = ({categories, topics, settings, setCategories, setTopics, setOption, onClose, openNav, openSearch,
+const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNavTopic, setTopic, setOption, onClose, openNav, openSearch,
           toggleLanguage, openMenu, onTextClick, onRecentClick, handleClick, openDisplaySettings, toggleSignUpModal,
           hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
@@ -42,7 +43,7 @@ const ReaderNavigationMenu = ({categories, topics, settings, setCategories, setT
   
   const navHome = () => {
     setCategories([]);
-    setTopics([]);
+    setNavTopic("");
     openNav();
   };
   
@@ -92,6 +93,22 @@ const ReaderNavigationMenu = ({categories, topics, settings, setCategories, setT
     );
   }
 
+  // Topics List
+  if (topic.length) {
+    return (
+        <div ref={ref} className="readerNavMenu" onClick={handleClick} >
+            <TopicCategory
+              topic={topic}
+              setTopic={setTopic}
+              toggleLanguage={toggleLanguage}
+              contentLang={settings.language}
+              interfaceLang={interfaceLang}
+              width={width}
+              multiPanel={multiPanel}
+            />
+        </div>
+    )
+  }
   // Root Library Menu
   let categoriesBlock = Sefaria.toc.map(cat => {
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
@@ -213,8 +230,8 @@ const ReaderNavigationMenu = ({categories, topics, settings, setCategories, setT
 
 
   let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
-      const openTopic = e => {e.preventDefault(); setTopics([t.name])};
-      return <a href={"/topics/category/" + t.name} 
+      const openTopic = e => {e.preventDefault(); setNavTopic(t.name)};
+      return <a href={"/topics/category/" + t.name}
          onClick={openTopic}
          className="blockLink"
          key={i}>
@@ -262,10 +279,10 @@ const ReaderNavigationMenu = ({categories, topics, settings, setCategories, setT
 };
 ReaderNavigationMenu.propTypes = {
   categories:        PropTypes.array.isRequired,
-  topics:            PropTypes.array.isRequired,
+  topic:            PropTypes.string.isRequired,
   settings:          PropTypes.object.isRequired,
   setCategories:     PropTypes.func.isRequired,
-  setTopics:         PropTypes.func.isRequired,
+  setNavTopic:         PropTypes.func.isRequired,
   setOption:         PropTypes.func.isRequired,
   onClose:           PropTypes.func.isRequired,
   openNav:           PropTypes.func.isRequired,

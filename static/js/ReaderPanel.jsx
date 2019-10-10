@@ -17,7 +17,7 @@ const SheetsNav                 = require('./SheetsNav');
 const Sheet                     = require('./Sheet');
 const SheetMetadata             = require('./SheetMetadata');
 const TopicsPanel               = require('./TopicsPanel');
-const TopicPage                 = require('./TopicPage');
+const {TopicPage}               = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
@@ -81,7 +81,7 @@ class ReaderPanel extends Component {
       },
       menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
       navigationCategories: props.initialNavigationCategories || [],
-      navigationTopics:     props.initialNavigationTopics || [],
+      navigationTopics:     props.initialNavigationTopics || "",
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
@@ -143,7 +143,7 @@ class ReaderPanel extends Component {
     } else {
       this.setState({
         navigationCategories: nextProps.initialNavigationCategories || [],
-        navigationTopics: nextProps.initialNavigationTopics || [],
+        navigationTopics: nextProps.initialNavigationTopics || "",
         navigationSheetTag:   nextProps.initialSheetsTag || null
       });
     }
@@ -421,8 +421,8 @@ class ReaderPanel extends Component {
   setNavigationCategories(categories) {
     this.conditionalSetState({navigationCategories: categories});
   }
-  setNavigationTopics(topics) {
-    this.conditionalSetState({navigationTopics: topics});
+  setNavigationTopic(topic) {
+    this.conditionalSetState({navigationTopics: topic});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -743,16 +743,17 @@ class ReaderPanel extends Component {
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       menu = (<ReaderNavigationMenu
-                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopics ? this.state.navigationTopics.join("-") : "navHome"}
+                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopics ? this.state.navigationTopics: "navHome"}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
-                    topics={this.state.navigationTopics || []}
+                    topic={this.state.navigationTopics || ""}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
-                    setTopics={this.setNavigationTopics}
+                    setNavTopic={this.setNavigationTopic}
+                    setTopic={this.setTopic}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}
