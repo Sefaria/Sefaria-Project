@@ -112,9 +112,9 @@ class Header extends Component {
       window.location = "/my/profile";
       return;
     }
-    if (!this.state.profile || Sefaria._uid !== this.state.profile.id) {
+    //if (!this.state.profile || Sefaria._uid !== this.state.profile.id) {
       this.props.openProfile(Sefaria.slug, Sefaria.full_name);
-    }
+    //}
     this.clearSearchBox();
   }
   showNotifications(e) {
