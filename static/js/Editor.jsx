@@ -338,6 +338,19 @@ function transformSheetJsonToDraft(sheet) {
             "object": "value",
             "document": {
                 "object": "document",
+                "data": {
+                    "status": sheet.status,
+                    "group": sheet.group,
+                    "views": sheet.views,
+                    "tags": sheet.tags,
+                    "includedRefs": sheet.includedRefs,
+                    "owner": sheet.owner,
+                    "summary": sheet.summary,
+                    "id": sheet.id,
+                    "dateModified": sheet.dateModified,
+                    "datePublished": sheet.datePublished,
+                    "dateCreated": sheet.dateCreated,
+                },
                 "nodes": [
                     {
                         "object": "block",
@@ -445,7 +458,6 @@ const schema = {
                 },
             ],
             normalize: (editor, {code, node, child, index}) => {
-                console.log(code, index);
                 switch (code) {
                     case 'child_type_invalid': {
                         switch (index) {
@@ -658,6 +670,10 @@ const schema = {
 
 }
 
+function saveSheetContent(data) {
+    console.log(data)
+}
+
 
 function SefariaEditor(props) {
     const menuRef = React.createRef()
@@ -822,7 +838,6 @@ function SefariaEditor(props) {
         switch (node.type) {
             case 'TextRef':
                 const ref = data.get('ref')
-                console.log(ref)
                 return (
                     <div className="ref"><a href={"/" + ref}>{children}</a></div>
                 )
@@ -832,7 +847,8 @@ function SefariaEditor(props) {
     }
 
     function onChange({value}) {
-        console.log(html.serialize(value))
+        console.log(value.selection.toJSON())
+        saveSheetContent((value).toJSON());
         setValue(value);
     }
 
