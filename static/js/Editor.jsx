@@ -70,9 +70,6 @@ function showStyleMenu() {
                 return
             }
 
-
-            console.log(native)
-
             const range = native.getRangeAt(0);
             const rect = range.getBoundingClientRect();
             let top = `${rect.top + window.pageYOffset - menu.outerHeight()}px`;
@@ -671,7 +668,7 @@ const schema = {
 }
 
 function saveSheetContent(data) {
-    console.log(data)
+    console.log(data.document)
 }
 
 
@@ -680,6 +677,7 @@ function SefariaEditor(props) {
 
 
     const [value, setValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
+    const [prevValue, setPrevValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
 
 
     function onKeyDown(event, editor, next) {
@@ -847,9 +845,12 @@ function SefariaEditor(props) {
     }
 
     function onChange({value}) {
-        console.log(value.selection.toJSON())
-        saveSheetContent((value).toJSON());
+
+        if (prevValue.document != value.document) {
+            saveSheetContent((value).toJSON()) // don't save data on selection changes, only when content changes
+        }
         setValue(value);
+        setPrevValue(value);
     }
 
     function renderEditor(props, editor, next) {
