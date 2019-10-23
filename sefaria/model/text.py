@@ -542,7 +542,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                     if d["categories"][0] == "Talmud":
                         node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle"):
+                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
                             node.checkFirst = {
                                 "he": u"משנה" + " " + d.get("heTitle"),
                                 "en": "Mishnah " + d.get("title")
