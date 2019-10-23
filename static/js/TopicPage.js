@@ -18,9 +18,11 @@ const {
   Link,
   TwoOrThreeBox
 }                         = require('./Misc');
+const Footer     = require('./Footer');
 
 
-const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, multiPanel, contentLang}) => {
+
+const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
     const [subtopics, setSubtopics] = useState([]);
 
@@ -43,11 +45,16 @@ const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, m
       </a>
     });
 
+    const footer         = compare ? null : <Footer />;
+    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1});
+    const contentClasses = classNames({content: 1, readerTocTopics:1, hasFooter: footer != null});
     return (
-        <div>
-            <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
-            <div className="readerTocTopics">
-                <TwoOrThreeBox content={topicBlocks} width={width} />
+        <div className={navMenuClasses}>
+            <div className={contentClasses}>
+                <div className="contentInner">
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
+                    <TwoOrThreeBox content={topicBlocks} width={width} />
+                </div>
             </div>
         </div>
     );
@@ -77,6 +84,7 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang, toggleLanguag
        :""}
     </div>
 );
+
 const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, toggleSignUpModal, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState(false);
     const [sheetData, setSheetData] = useState([]);

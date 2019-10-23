@@ -105,6 +105,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
               interfaceLang={interfaceLang}
               width={width}
               multiPanel={multiPanel}
+              compare={compare}
+              hideNavHeader={hideNavHeader}
             />
         </div>
     )
@@ -275,7 +277,6 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             {footer}
           </div>
         </div>);
-
 };
 ReaderNavigationMenu.propTypes = {
   categories:        PropTypes.array.isRequired,
