@@ -460,7 +460,10 @@ class ReaderPanel extends Component {
     }
   }
   setTopic(topic) {
-    this.conditionalSetState({navigationTopic: topic});
+    this.conditionalSetState({
+        menuOpen: "topics",
+        navigationTopic: topic
+    });
   }
   toggleLanguage() {
     if (this.state.settings.language == "hebrew") {

@@ -29,13 +29,14 @@ const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, m
     useEffect(() => {
         Sefaria.getTopic(topic).then(setTopicData);
     }, [topic]);
+
     useEffect(() => {
         setSubtopics(Sefaria.topicTocPage(topic));
     }, [topic]);
 
 
     let topicBlocks = subtopics.map((t,i) => {
-      const openTopic = e => {e.preventDefault(); setTopic(t.name)};
+      const openTopic = e => { e.preventDefault(); setTopic(t.name) };
       return <a href={"/topics/" + t.name}
          onClick={openTopic}
          className="blockLink"
