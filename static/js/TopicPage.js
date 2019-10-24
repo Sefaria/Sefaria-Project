@@ -166,6 +166,7 @@ TopicPage.propTypes = {
 };
 
 const TextPassage = ({text, toggleSignUpModal}) => {
+    if (!text.ref) { return null; }
     const url = "/" + Sefaria.normRef(text.ref);
 
     return <StoryFrame cls="textPassageStory">
