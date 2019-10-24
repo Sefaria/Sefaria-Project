@@ -102,7 +102,7 @@ urlpatterns += [
 
 # Topics
 urlpatterns += [
-    url(r'^topics/category/(?P<topics>.+)?$', reader_views.topics_toc_page),
+    url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_toc_page),
     url(r'^topics$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]

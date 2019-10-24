@@ -81,7 +81,7 @@ class ReaderPanel extends Component {
       },
       menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
       navigationCategories: props.initialNavigationCategories || [],
-      navigationTopics:     props.initialNavigationTopics || "",
+      navigationTopicCategory:     props.initialNavigationTopicCategory || "",
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
@@ -143,7 +143,7 @@ class ReaderPanel extends Component {
     } else {
       this.setState({
         navigationCategories: nextProps.initialNavigationCategories || [],
-        navigationTopics: nextProps.initialNavigationTopics || "",
+        navigationTopicCategory: nextProps.initialNavigationTopicCategory || "",
         navigationSheetTag:   nextProps.initialSheetsTag || null
       });
     }
@@ -371,7 +371,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
-      navigationTopics: null,
+      navigationTopicCategory: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -389,7 +389,7 @@ class ReaderPanel extends Component {
       // If there's no content to show, return to home
       menuOpen: null,
       navigationCategories: null,
-      navigationTopics: null,
+      navigationTopicCategory: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -403,7 +403,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
-      navigationTopics: null,
+      navigationTopicCategory: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -422,7 +422,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({navigationCategories: categories});
   }
   setNavigationTopic(topic) {
-    this.conditionalSetState({navigationTopics: topic});
+    this.conditionalSetState({navigationTopicCategory: topic});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -743,13 +743,13 @@ class ReaderPanel extends Component {
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       menu = (<ReaderNavigationMenu
-                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopics ? this.state.navigationTopics: "navHome"}
+                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
-                    topic={this.state.navigationTopics || ""}
+                    topic={this.state.navigationTopicCategory || ""}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
                     setNavTopic={this.setNavigationTopic}

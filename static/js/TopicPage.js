@@ -110,8 +110,8 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
                    {topicData?
                        <TabView
-                          tabs={[ Sefaria._("Sheets"), Sefaria._("Sources") ]}
-                          renderTab={(t,i) => <div key={i} className="tab">{t}</div>} >
+                          tabs={[ {text: Sefaria._("Sheets")}, {text: Sefaria._("Sources")} ]}
+                          renderTab={t => <div className="tab">{t.text}</div>} >
                             <div className="story topicTabContents">
                                 <StorySheetList sheets={sheetData} compact={true}/>
                             </div>
