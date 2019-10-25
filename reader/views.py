@@ -2961,7 +2961,9 @@ def _topic_data(topic):
         response["category"] = cat
         if cat:
             response["siblings"] = [t.get_primary_title() for t in TermSet({"category": cat})]
-    response["description"] = {"en": "To be continued...", "he": u"וכו..."}
+        description = getattr(term, "description", None)
+        if description:
+            response["description"] = description
     return response
 
 

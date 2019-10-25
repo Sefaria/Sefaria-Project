@@ -1120,10 +1120,12 @@ input.noselect {
   margin-bottom: 30px;
 }
 .topicPanel .topicDescription {
-  margin-bottom: 30px;
+  margin: 30px 0;
 }
 .topicPanel .topicDescription span {
-  font-size: 20px;
+    font-size: 20px;
+    color: #333;
+    font-weight: 200;
 }
 .topicPanel .tab-view .tab-list {
     margin-bottom: 30px;
