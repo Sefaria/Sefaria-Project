@@ -7198,3 +7198,6 @@ body .homeFeedWrapper.userStats {
   text-align: center;
   padding-top: 8px;
 }
+#timelinePage {
+  padding-top:60px;
+}

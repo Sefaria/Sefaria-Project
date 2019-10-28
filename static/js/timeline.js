@@ -5,13 +5,8 @@ let $ = require("./sefaria/sefariaJquery");
 
 /*****          Layout              *****/
 let margin = [60, 40, 20, 40];
-let w = 920; // real value determined in buildScreen()
-let h = 730 - margin[0] - margin[2];
-let graphBox_height = h;
-
-let svg, timeScale, s, graphBox, lang;
-let links, nodes, link, node, simulation;
-let popUpElem, heBox, enBox, textBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
+let w, h, svg, timeScale, s, graphBox, lang, links, nodes, link, node, simulation,
+     popUpElem, heBox, enBox, textBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
 
 const urlParams = new URLSearchParams(window.location.search);
 const startingRef = urlParams.get('ref');
@@ -44,12 +39,13 @@ function refocusNetwork(ref) {
 
 function buildFrame() {
     //Build objects that are present for any starting state
+    debugger;
+    w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 900;
+    h = window.innerHeight ?  window.innerHeight - margin[0] - margin[2] : 800;
 
-    w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
-
-    svg = d3.select("#content").append("svg")
-        .attr("width", w + margin[1] + margin[3] - 16)
-        .attr("height", graphBox_height + 150);  // todo: 150 is slop because I'm too lazy to sit and do arithmetic
+    svg = d3.select("#timelinePage").append("svg")
+        .attr("width", w)
+        .attr("height", h);
     svg.append("svg:desc").text("This SVG displays visually ...");
     graphBox = svg.append("g")
         //.attr("height", graphBox_height)
