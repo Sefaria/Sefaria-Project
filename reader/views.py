@@ -44,6 +44,7 @@ from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
+from sefaria.model.manuscript_image import ManuscriptImage, ManuscriptImageSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, \
     DuplicateRecordError, DictionaryEntryNotFoundError
@@ -4212,6 +4213,15 @@ def visual_garden_page(request, g):
     }
 
     return render(request,'visual_garden.html', template_vars)
+
+
+def get_manuscript_image_for_ref_api(request, tref):
+    manuscripts = ManuscriptImageSet({'expanded_refs': tref})
+    return jsonResponse([m.contents for m in manuscripts.array()])
+
+
+def edit_ref_on_manuscript(request, manuscript_id, tref):
+    pass
 
 
 
