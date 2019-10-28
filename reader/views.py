@@ -2940,7 +2940,6 @@ def recommend_topics_api(request, ref_list=None):
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
     elif request.method == "POST":
-        topics = get_topics()
         postJSON = request.POST.get("json")
         if not postJSON:
             return jsonResponse({"error": "No post JSON."})

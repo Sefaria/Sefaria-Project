@@ -359,6 +359,7 @@ function prepLinksAndNodes(treesObj) {
 
 /******                 Rendering                   *****/
 
+
 function renderNetwork() {
     link = graphBox
         .selectAll("path.link")
@@ -406,79 +407,80 @@ function renderNetwork() {
             exit => exit.remove()
         );
 
-    node.on("click", d => {
-        const {ns, ls} = getLinkPath(d);
-        nodes.forEach(n => {n.highlighted = false});
-        ns.forEach(n => {n.highlighted = true});
-        links.forEach(n => {n.highlighted = false});
-        ls.forEach(n => {n.highlighted = true});
-        d.highlighted = true;
-
-        node.selectAll("rect")
-            .attr("stroke-width", d => d.highlighted ? 3 : 1);
-        link.attr("stroke-width", d => d.highlighted ? 3 : 1);
-    });
-
-    node.on("dblclick", function(d) {
-        if (d.expanded) return;
-        d.expanded = true;
-
-        const ref_regex = new RegExp(d.title +",?\\s*", 'g');
-
-        const g = d3.select(this);
-
-        const rect = g.select("rect");
-        rect.attr("height", 20 + 15 * d.refs.length);
-
-        const refs =  g.selectAll("text.ref")
-            .data(d.refs)
-            .join("text");
-
-        refs.attr("class", "ref")
-            .text(r => r.replace(ref_regex, ""))
-            .attr("x", -45)
-            .attr("y", (r,i) => 15 + i * 15)
-            .attr("text-anchor", "start")
-            //.attr("dominant-baseline", "central")
-            .attr("stroke-width", 1)
-            .attr("stroke", "black")
-            //.on("click", renderText)
-            .on("click", showPopup)
-            .on("dblclick", refocusNetwork);
-
-        simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
-            .alpha(.1)
-            .restart();
-
-    });
+    node.on("click", expandBook);
 }
 
+function expandBook(d) {
+    if (d.expanded) return;
+    d.expanded = true;
+    highlightPath(d);
+
+    const ref_regex = new RegExp(d.title +",?\\s*", 'g');
+
+    const g = d3.select(this);
+
+    const rect = g.select("rect");
+    rect.attr("height", 20 + 15 * d.refs.length);
+
+    const refs =  g.selectAll("text.ref")
+        .data(d.refs)
+        .join("text");
+
+    refs.attr("class", "ref")
+        .text(r => r.replace(ref_regex, ""))
+        .attr("x", -45)
+        .attr("y", (r,i) => 15 + i * 15)
+        .attr("text-anchor", "start")
+        .attr("stroke-width", 1)
+        .attr("stroke", "black")
+        .on("click", showPopup)
+        .on("dblclick", refocusNetwork);
+
+    simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
+        .alpha(.1)
+        .restart();
+}
+
+function highlightPath(d) {
+    const {ns, ls} = getLinkPath(d);
+    nodes.forEach(n => {n.highlighted = false});
+    ns.forEach(n => {n.highlighted = true});
+    links.forEach(n => {n.highlighted = false});
+    ls.forEach(n => {n.highlighted = true});
+    d.highlighted = true;
+
+    node.selectAll("rect")
+        .attr("stroke-width", d => d.highlighted ? 3 : 1);
+    link.attr("stroke-width", d => d.highlighted ? 3 : 1);
+}
+
+
 function getLinkPath(n) {
-        // Follow along links, in both directions, collecting nodes and links along the way.  Short circuit at root.
+    // Follow along links, in both directions, collecting nodes and links along the way.  Short circuit at root.
 
-        function s2t(n) {
-            let ls = links.filter(l => l.source === n);
-            let ns = ls.map(l => l.target);
-            return ns.map(n.root ? _ => null : s2t)
-                .filter(_ => _)
-                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
-        }
-
-        function t2s(n) {
-            let ls = links.filter(l => l.target === n);
-            let ns = ls.map(l => l.source);
-            return ns.map(n.root ? _ => null : t2s)
-                .filter(_ => _)
-                .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
-        }
-
-        const a = s2t(n);
-        const b = t2s(n);
-        return {
-            ns: a.ns.concat(b.ns),
-            ls: a.ls.concat(b.ls),
-        }
+    function s2t(n) {
+        let ls = links.filter(l => l.source === n);
+        let ns = ls.map(l => l.target);
+        return ns.map(n.root ? _ => null : s2t)
+            .filter(_ => _)
+            .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
     }
+
+    function t2s(n) {
+        let ls = links.filter(l => l.target === n);
+        let ns = ls.map(l => l.source);
+        return ns.map(n.root ? _ => null : t2s)
+            .filter(_ => _)
+            .reduce((a,c) => ({ns: a.ns.concat(c.ns), ls: a.ls.concat(c.ls)}), {ns, ls});
+    }
+
+    const a = s2t(n);
+    const b = t2s(n);
+    return {
+        ns: a.ns.concat(b.ns),
+        ls: a.ls.concat(b.ls),
+    }
+}
 
 
 /*****         Force Simulation      *****/
@@ -506,8 +508,10 @@ function updateIndexNetworkSimulation() {
     simulation
         .nodes(nodes)
         .force("link", d3.forceLink(links).id(d => d.title))
+        .force("box", forceBox)
         .alpha(1)
-        .restart();
+        .restart()
+        .tick(200);
 
     renderNetwork();
 }
