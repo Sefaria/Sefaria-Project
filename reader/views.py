@@ -3361,26 +3361,26 @@ def disable_home_feed(request):
 
 
 @ensure_csrf_cookie
-def home(request, show_feed=None):
+def home(request):
     """
     Homepage
     """
-    if show_feed is None:
-        show_feed = request.COOKIES.get("home_feed", None)
-
-    if show_feed:
-        return redirect("/new-home")
+    if request.user_agent.is_mobile:
+        return mobile_home(request)
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
+    
+    # show_feed = request.COOKIES.get("home_feed", None)
+    show_feed = request.user.is_authenticated
+
+    if show_feed:
+        return redirect("/new-home")
 
     recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
     if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
-
-    if request.user_agent.is_mobile:
-        return mobile_home(request)
 
     calendar_items = get_keyed_calendar_items(request.diaspora)
     daf_today = calendar_items["Daf Yomi"]
@@ -4239,3 +4239,15 @@ def apple_app_site_association(request):
             ]
         }
     })
+
+def application_health_api(request):
+    """
+    Defines the /healthz API endpoint which responds with 
+        200 if the appliation is ready for requests, 
+        500 if the application is not ready for requests
+    """
+    if library.is_initialized():
+        return http.HttpResponse("Healthy", status="200")
+    else:
+        return http.HttpResponse("Unhealthy", status="500")
+        

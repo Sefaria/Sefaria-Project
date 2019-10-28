@@ -1,12 +1,13 @@
 {
 	"title": "",
 	"text": [
-	"Even free apps cost money.",
-	"Sefaria is a nonprofit that depends on user contributions to keep the library open source, accessible and growing.",
-	"Please support Sefaria with a gift of $10 today."
+		"All of Israel are fit to live in one sukkah",
+		"—Sukkah, 27b",
+		"Sefaria is building a future home for Torah study that can fit all of Israel for generations to come.",
+		"Will you be a pillar holding up our sukkah?"
   	],
 	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=App&utm_medium=Modal&utm_campaign=Elul%202019",
 	"buttonText": "Donate",
-	"name": "elul-2019-3",
+	"name": "sukkot-2019",
 	"schemaVersion": 1
 }
