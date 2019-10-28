@@ -180,37 +180,39 @@ class Footer extends Component {
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
-              <a href={fbURL} target="_blank" className="outOfAppLink">
-                <span className="int-en">Facebook</span>
-                <span className="int-he">פייסבוק</span>
-              </a>
-              &bull;
-              <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
-                <span className="int-en">Twitter</span>
-                <span className="int-he">טוויטר</span>
+              <div className="social-links">
+                  <a href={fbURL} target="_blank" className="outOfAppLink">
+                    <span className="int-en">Facebook</span>
+                    <span className="int-he">פייסבוק</span>
+                  </a>
+                  &bull;
+                  <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
+                    <span className="int-en">Twitter</span>
+                    <span className="int-he">טוויטר</span>
 
-              </a>
-              <br />
-              <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
-                  <span className="int-en">YouTube</span>
-                  <span className="int-he">יוטיוב</span>
-              </a>
-              &bull;
-              <a href={blgURL} target="_blank" className="outOfAppLink">
-                  <span className="int-en">Blog</span>
-                  <span className="int-he">בלוג</span>
-              </a>
-              <br />
-              <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Instagram</span>
-                  <span className="int-he">אינסטגרם</span>
+                  </a>
+                  <br />
+                  <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
+                      <span className="int-en">YouTube</span>
+                      <span className="int-he">יוטיוב</span>
+                  </a>
+                  &bull;
+                  <a href={blgURL} target="_blank" className="outOfAppLink">
+                      <span className="int-en">Blog</span>
+                      <span className="int-he">בלוג</span>
+                  </a>
+                  <br />
+                  <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Instagram</span>
+                      <span className="int-he">אינסטגרם</span>
 
-              </a>
-              &bull;
-              <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Email</span>
-                  <span className="int-he">דוא&quot;ל</span>
-              </a>
+                  </a>
+                  &bull;
+                  <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Email</span>
+                      <span className="int-he">דוא&quot;ל</span>
+                  </a>
+              </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
                       <span className="int-en">Site Language</span>

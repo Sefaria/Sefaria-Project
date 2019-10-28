@@ -39,10 +39,10 @@
 .static .sans .int-he, .static.sans .int-he  {
   font-family: "Heebo", sans-serif;
 }
-.interface-english .static .int-he {
+.interface-english .static .int-he, .interface-english .static .he {
   display: none;
 }
-.interface-hebrew .static .int-en {
+.interface-hebrew .static .int-en, .interface-hebrew .static .en {
   display: none;
 }
 .static h2,
@@ -121,20 +121,25 @@
 .static input:focus {
   outline: none;
 }
-.static input::placeholder { /* eventual spec? */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+ input::placeholder { /* eventual spec? */
+  font-style: italic;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  color: #000;
 }
-.static input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+ input:-ms-input-placeholder { /* IE 10+ */
+  font-style: italic;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  color: #000;
 }
-.static input::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+ .interface-hebrew ::placeholder {
+  font-style: normal;
+  font-family: "Heebo", sans-serif;
+  color: #000;
 }
-.static input:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+.interface-hebrew :-ms-input-placeholder {
+  font-style: normal;
+  font-family: "Heebo", sans-serif;
+  color: #000;
 }
 
 
@@ -892,7 +897,7 @@ input#id_email{
 }
 #saveCancelButtons {
   position: absolute;
-  top: 127px;
+  top: 145px;
   right: 0px;
 }
 #saveCancelButtons .button {
@@ -1093,7 +1098,8 @@ input#id_email{
   text-decoration: none;
 }
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
-  color: #666;
+  color: #000;
+  font-size: 18px;
 }
 #peoplePage .author, #talmudicPeoplePage .author{
   margin-left: 0;
@@ -1115,6 +1121,10 @@ input#id_email{
 #peoplePage .authors-row:first-of-type {
   padding-top: 10px;
 }
+#peoplePage h3, #talmudicPeoplePage h3, #talmudicPeoplePage h4{
+  color: #666;
+  font-size: 16px;
+}
 #talmudicPeoplePage .talmudic-generation {
   width: 49%;
   display: inline-block;
@@ -1124,10 +1134,6 @@ input#id_email{
   #talmudicPeoplePage .talmudic-generation {
     width: 100%
   }
-}
-#talmudicPeoplePage h4{
-  color: #ccc;
-  padding-bottom: 10px;
 }
 #talmudicPeoplePage p.author{
   padding-bottom: 5px;
@@ -1533,7 +1539,7 @@ input#id_email{
   font-size: 14px;
 }
 #edConnect #mailingListEmail {
-  padding: 14px 24px;
+  padding: 16px 24px;
   margin: -4px 8px 0 0;
   width: 240px;
   font-size: 16px;

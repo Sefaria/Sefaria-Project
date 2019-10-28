@@ -152,7 +152,7 @@ def person_link(person):
 	"""
 	Return an <a> tag linking to a person page.
 	"""
-	link = u'<a href="/person/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(person.key, person.primary_name("en"), person.primary_name("he"))
+	link = u'<a href="/person/{}"><span class="en">{}</span><span class="he">{}</span></a>'.format(person.key, person.primary_name("en"), person.primary_name("he"))
 	return mark_safe(link)
 
 
