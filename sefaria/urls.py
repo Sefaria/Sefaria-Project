@@ -245,6 +245,11 @@ urlpatterns += [
     url(r'^api/translation-request/(?P<tref>.+)$', reader_views.translation_request_api),
 ]
 
+# Manuscript Image API
+urlpatterns += [
+    url(r'^api/manuscript_image/(?P<tref>.+)$', reader_views.get_manuscript_image_for_ref_api)
+]
+
 # Edit Locks API (temporary locks on segments during editing)
 urlpatterns += [
     url(r'^api/locks/set/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.set_lock_api),

@@ -4216,8 +4216,12 @@ def visual_garden_page(request, g):
 
 
 def get_manuscript_image_for_ref_api(request, tref):
-    manuscripts = ManuscriptImageSet({'expanded_refs': tref})
-    return jsonResponse([m.contents for m in manuscripts.array()])
+    if request.method == 'GET':
+        tref = re.sub(ur'_', u' ', tref)
+        manuscripts = ManuscriptImageSet({'expanded_refs': tref})
+        return jsonResponse([m.contents() for m in manuscripts.array()])
+    else:
+        return jsonResponse('Method Not Allowed', None, 405)
 
 
 def edit_ref_on_manuscript(request, manuscript_id, tref):
