@@ -100,3 +100,5 @@ def ensure_indices():
     db.trend.create_index("name")
     db.trend.create_index("uid")
     db.webpages.create_index("ref")
+    db.manuscript_image.create_index("expanded_refs")
+    db.manuscript_image.create_index("image_id")
