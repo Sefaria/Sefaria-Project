@@ -3,6 +3,7 @@
 from collections import OrderedDict
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
+from sefaria.model import *
 
 
 class ManuscriptImage(AbstractMongoRecord):
@@ -29,6 +30,16 @@ class ManuscriptImage(AbstractMongoRecord):
 
     def add_segment_ref(self, tref):
         self.expanded_refs.append(tref)
+
+    def add_normalized_refs(self, oref):
+        """
+        Splits refs into segments and normalizes them before adding. Does not save.
+        :param Ref oref: caller is responsible for creating the Ref object, as well as handling any Ref parsing errors
+        that arise
+        :return:
+        """
+        for seg_ref in oref.all_segment_refs():
+            self.add_segment_ref(seg_ref.normal())
 
     def remove_segment_ref(self, tref):
         try:
