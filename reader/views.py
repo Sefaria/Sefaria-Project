@@ -4219,9 +4219,15 @@ def visual_garden_page(request, g):
 
 def get_manuscript_image_for_ref_api(request, tref):
     if request.method == 'GET':
-        tref = re.sub(ur'_', u' ', tref)
-        manuscripts = ManuscriptImageSet({'expanded_refs': tref})
+        try:
+            oref = Ref(tref)
+        except InputError:
+            return jsonResponse([])
+
+        ref_clauses = [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
+        manuscripts = ManuscriptImageSet({'$or': ref_clauses})
         return jsonResponse([m.contents() for m in manuscripts.array()])
+    
     else:
         return jsonResponse('Method Not Allowed', None, 405)
 
