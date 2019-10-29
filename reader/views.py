@@ -1947,7 +1947,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
-            "manuscript_images": ManuscriptImageSet.load_manuscripts_for_ref(tref)
+            "manuscriptImages": ManuscriptImageSet.load_manuscripts_for_ref(tref)
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 

@@ -1278,9 +1278,18 @@ Sefaria = extend(Sefaria, {
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
   },
+  _manuscriptImages: {},
+  manuscriptImagesByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    let manuscripts = [];
+    refs.map(r => {
+        if (this._manuscriptImages[r]) { manuscripts = manuscripts.concat(this._manuscriptImages[r]) }
+    }, this);
+    return manuscripts
+  },
   _related: {},
   related: function(ref, callback) {
-    // Single API to bundle public links, sheets, and notes by ref.
+    // Single API to bundle public links, sheets, notes and images by ref.
     // `ref` may be either a string or an array of consecutive ref strings.
     ref = Sefaria.humanRef(ref);
     if (!callback) {
@@ -1306,14 +1315,15 @@ Sefaria = extend(Sefaria, {
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
+          manuscriptImages: this._saveItemsByRef(data.manuscriptImages, this._manuscriptImages)
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "manuscriptImages"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], manuscriptImages: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
