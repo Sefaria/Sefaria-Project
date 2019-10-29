@@ -14,6 +14,7 @@ import {
 } from './Misc';
 
 import classNames from 'classnames';
+import $ from "./sefaria/sefariaJquery";
 
 // Add a dictionary of mark tags.
 const MARK_TAGS = {
@@ -347,6 +348,9 @@ function transformSheetJsonToDraft(sheet) {
                     "dateModified": sheet.dateModified,
                     "datePublished": sheet.datePublished,
                     "dateCreated": sheet.dateCreated,
+                    "promptedToPublish": sheet.promptedToPublish,
+                    "options": sheet.options,
+                    "loadedSources": sheet.sources,
                 },
                 "nodes": [
                     {
@@ -667,8 +671,58 @@ const schema = {
 
 }
 
-function saveSheetContent(data) {
-    console.log(data.document)
+function convertBlockToHTML(block) {
+    const possibleMarks = {
+        italic: 'em',
+        bold: 'strong',
+        underline: 'u'
+    };
+
+
+    let blockHTML = "";
+
+    block.forEach(text => {
+        let prependTextTags = "";
+        let appendTextTags = "";
+
+        text.marks.forEach(mark => {
+            const type = possibleMarks[mark.type];
+            if (type) {
+                prependTextTags = prependTextTags + "<" + type + ">";
+                appendTextTags = "</" + type + ">" + appendTextTags;
+            }
+        });
+
+    blockHTML = blockHTML + prependTextTags + text.text + appendTextTags;
+    });
+
+    return blockHTML;
+}
+
+
+function saveSheetContent(data, lastModified) {
+
+    const sheetJSONData = data.toJSON().document.data;
+    //prepare sheetmeta:
+    const sheetTitle = (convertBlockToHTML(data.document.getBlocksByType("SheetTitle").get(0).getTexts()));
+
+    let sheet = {
+        status: sheetJSONData.status,
+        group: sheetJSONData.group,
+        id: sheetJSONData.id,
+        promptedToPublish: sheetJSONData.promptedToPublish,
+        lastModified: lastModified,
+        summary: sheetJSONData.summary,
+        options: sheetJSONData.options,
+        tags: sheetJSONData.tags,
+        title: sheetTitle,
+        sources: sheetJSONData.loadedSources,
+    };
+
+
+
+    return JSON.stringify(sheet);
+
 }
 
 
@@ -678,6 +732,7 @@ function SefariaEditor(props) {
 
     const [value, setValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
     const [prevValue, setPrevValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
+    const [lastModified, setlastModified] = useState(props.data.dateModified);
 
 
     function onKeyDown(event, editor, next) {
@@ -847,7 +902,13 @@ function SefariaEditor(props) {
     function onChange({value}) {
 
         if (prevValue.document != value.document) {
-            saveSheetContent((value).toJSON()) // don't save data on selection changes, only when content changes
+            //console.log(props.data)
+            // don't save data on selection changes, only when content changes
+            $.post("/api/sheets/", {"json": saveSheetContent(value, lastModified)}, res => {
+                setlastModified(res.dateModified)
+                console.log(res)
+            });
+
         }
         setValue(value);
         setPrevValue(value);
