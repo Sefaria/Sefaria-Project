@@ -97,6 +97,8 @@
                 'font-size: 16px;'+
                 'text-align: center;' +
                 'text-decoration: none;' +
+                'margin: 12px 0;' +
+                'padding: 0;' +
             '}' +
             '.en {' +
                 'font-family: "Crimson Text";' +
@@ -169,7 +171,7 @@
                 '    height: 48px;' +
                 '    line-height: 48px;' +
                 '    position: absolute;' +
-                '    top: -5px;' +
+                '    top: 0px;' +
                 '    left: 20px;' +
                 '    cursor: pointer;' +
                 '    color: #999;' +
