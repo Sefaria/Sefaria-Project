@@ -83,3 +83,17 @@ class ManuscriptImageSet(AbstractMongoSet):
         """
         ref_clauses = [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
         return ManuscriptImageSet({'$or': ref_clauses})
+
+    @classmethod
+    def load_manuscripts_for_ref(cls, tref):
+        """
+        helper method. Instantiates Ref objects and handles ref errors
+        :param tref:
+        :return: list of manuscript image dictionaries
+        """
+        try:
+            oref = Ref(tref)
+        except InputError:
+            return []
+
+        return [m.contents() for m in cls.load_by_ref(oref)]

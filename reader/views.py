@@ -22,6 +22,7 @@ from collections import OrderedDict
 
 from rest_framework.decorators import api_view
 from django.views.decorators.cache import cache_page
+from django.views.decorators.http import require_http_methods
 from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1946,6 +1947,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
+            "manuscript_images": ManuscriptImageSet.load_manuscripts_for_ref(tref)
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -4233,6 +4235,7 @@ def get_manuscript_image_for_ref_api(request, tref):
 
 @ensure_csrf_cookie
 @staff_member_required
+@require_http_methods(['POST', 'DELETE'])
 def edit_ref_on_manuscript(request, manuscript_id, tref):
     man = ManuscriptImage().load({'image_id': manuscript_id})
     if man is None:
@@ -4252,6 +4255,8 @@ def edit_ref_on_manuscript(request, manuscript_id, tref):
         man.save()
         return jsonResponse("Successfully removed {}".format(tref), status=201)
 
+    else:
+        return jsonResponse('Method Not Allowed', None, 405)
 
 
 @requires_csrf_token

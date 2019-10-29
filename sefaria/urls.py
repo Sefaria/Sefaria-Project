@@ -247,7 +247,8 @@ urlpatterns += [
 
 # Manuscript Image API
 urlpatterns += [
-    url(r'^api/manuscript_image/(?P<tref>.+)$', reader_views.get_manuscript_image_for_ref_api)
+    url(r'^api/manuscript_image/(?P<tref>.+)$', reader_views.get_manuscript_image_for_ref_api),
+    url(r'^api/manuscript_image/(?P<image_id>.+)/(?P<tref>.+)$', reader_views.edit_ref_on_manuscript)
 ]
 
 # Edit Locks API (temporary locks on segments during editing)
