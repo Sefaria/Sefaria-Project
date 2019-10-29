@@ -39,6 +39,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
@@ -3176,6 +3177,32 @@ def profile_follow_api(request, ftype, slug):
         response = [UserProfile(id=uid).to_api_dict(basic=True) for uid in follow_set.uids]
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+@catch_error_as_json
+def profile_upload_photo(request):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
+    if request.method == "POST":
+        from PIL import Image
+        from StringIO import StringIO
+        def get_resized_file(image, size):
+            resized_image = image.resize(size, resample=Image.LANCZOS)
+            resized_image_file = StringIO()
+            resized_image.save(resized_image_file, format="PNG")
+            resized_image_file.seek(0)
+            return resized_image_file
+        profile = UserProfile(id=request.user.id)
+        bucket_name = GoogleStorageManager.PROFILES_BUCKET
+        image = Image.open(request.FILES['file'])
+
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}.png".format(profile.slug), bucket_name)
+        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-small.png".format(profile.slug), bucket_name)
+
+        profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
+        profile.save()
+        return jsonResponse({"yo": [big_pic_url, small_pic_url]})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 
 @api_view(["POST"])

@@ -288,7 +288,7 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
-    
+
     return settings;
   },
   getTextFromCache: function(ref, settings) {
@@ -478,7 +478,7 @@ Sefaria = extend(Sefaria, {
     let prev = Array(length);
     let next = Array(length);
     if (isSuperSection) {
-      // For supersections, correctly set next and prev on each section to skip empty content    
+      // For supersections, correctly set next and prev on each section to skip empty content
       let hasContent = Array(length);
       for (let i = 0; i < length; i++) {
         hasContent[i] = (!!en[i].length || !!he[i].length);
@@ -495,7 +495,7 @@ Sefaria = extend(Sefaria, {
     for (let i = 0; i < length; i++) {
       const ref          = data.ref + delim + (i+start);
       const segment_data = Sefaria.util.clone(data);
-      const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef 
+      const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef
       extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
@@ -1653,6 +1653,26 @@ Sefaria = extend(Sefaria, {
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
+  },
+  uploadProfilePhoto: (formData) => {
+    return new Promise((resolve, reject) => {
+      if (Sefaria._uid) {
+        $.ajax({
+          url: Sefaria.apiHost + "/api/profile/upload-photo",
+          type: 'post',
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function(data) {
+            resolve(data);
+          },
+          error: function(e) {
+            console.log("photo upload ERROR", e);
+            reject(e);
+          }
+        });
+      }
+    })
   },
   lastPlaceForText: function(title) {
     // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.

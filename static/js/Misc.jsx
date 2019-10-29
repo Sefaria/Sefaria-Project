@@ -9,6 +9,9 @@ import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
 
+const LoadingRing = () => (
+  <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
+);
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
 class ProfilePic extends Component {
@@ -17,8 +20,8 @@ class ProfilePic extends Component {
     this.state = {
       showDefault: true,
       src: null,
-      crop: {unit: "px", width: 175, aspect: 1},
-      croppedImageUrl: null,
+      crop: {unit: "px", width: 250, aspect: 1},
+      croppedImageBlob: null,
     };
   }
   setShowNonDefault() {this.setState({showDefault: false});  }
@@ -49,13 +52,13 @@ class ProfilePic extends Component {
 
   async makeClientCrop(crop) {
     if (this.imageRef && crop.width && crop.height) {
-      const croppedImageUrl = await this.getCroppedImg(
+      const croppedImageBlob = await this.getCroppedImg(
         this.imageRef,
         crop,
         "newFile.jpeg"
       );
-      console.log(croppedImageUrl);
-      this.setState({ croppedImageUrl });
+      //console.log(croppedImageUrl);
+      this.setState({ croppedImageBlob });
     }
   }
 
@@ -82,24 +85,41 @@ class ProfilePic extends Component {
     return new Promise((resolve, reject) => {
       canvas.toBlob(blob => {
         if (!blob) {
-          //reject(new Error('Canvas is empty'));
           console.error("Canvas is empty");
           return;
         }
         blob.name = fileName;
-        window.URL.revokeObjectURL(this.fileUrl);
-        this.fileUrl = window.URL.createObjectURL(blob);
-        resolve(this.fileUrl);
+        resolve(blob);
       }, "image/jpeg");
     });
   }
-  closePopup() {
-    window.URL.revokeObjectURL(this.fileUrl);
+  closePopup(cb) {
     this.setState({
       src: null,
       crop: {unit: "px", width: 175, aspect: 1},
-      croppedImageUrl: null,
-    });
+      croppedImageBlob: null,
+    }, cb);
+  }
+  async upload() {
+    const formData = new FormData();
+    formData.append('file', this.state.croppedImageBlob);
+    this.setState({ uploading: true });
+    let errored = false;
+    try {
+      const response = await Sefaria.uploadProfilePhoto(formData);
+      if (response.error) {
+        throw new Error(response.error);
+      } else {
+        this.closePopup(() => {
+          this.props.openProfile(Sefaria.slug, Sefaria.full_name, true);  // reload
+          return;
+        });
+      }
+    } catch (e) {
+      errored = true;
+      console.log(e);
+    }
+    this.setState({ uploading: false, errored });
   }
 
   render() {
@@ -128,7 +148,7 @@ class ProfilePic extends Component {
 
       { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
           (<div className={classNames({"profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
-            <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile}/>
+            <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
             <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
               <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
               <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
@@ -151,10 +171,13 @@ class ProfilePic extends Component {
                   onChange={this.onCropChange}
                 />
             </div>
-            <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={()=>{console.log('yo')}}>
-              <span className="en">Select</span>
-              <span className="he">Select (He)</span>
-            </a>
+            { this.state.uploading ? (<LoadingRing />) : (
+                <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
+                  <span className="en">Select</span>
+                  <span className="he">Select (He)</span>
+                </a>
+              )
+            }
           </div>
         </div>
         )}
@@ -166,6 +189,7 @@ ProfilePic.propTypes = {
   url:     PropTypes.string,
   name:    PropTypes.string,
   len:     PropTypes.number,
+  openProfile: PropTypes.func,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
   showButtons: PropTypes.bool,  // show profile pic action buttons
 };
@@ -1837,6 +1861,7 @@ module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
 module.exports.Link                                      = Link;
 module.exports.LoadingMessage                            = LoadingMessage;
+module.exports.LoadingRing                               = LoadingRing;
 module.exports.LoginPrompt                               = LoginPrompt;
 module.exports.NewsletterSignUpForm                      = NewsletterSignUpForm;
 module.exports.Note                                      = Note;

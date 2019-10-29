@@ -255,7 +255,7 @@ class UserProfile extends Component {
         slug={item.slug}
         url={`/profile/${item.slug}`}
         name={item.full_name}
-        image={item.gravatar_url}
+        image={item.profile_pic_url}
         is_followed={Sefaria.following.indexOf(item.id) > -1}
         position={item.position}
         organization={item.organization}
@@ -325,6 +325,7 @@ class UserProfile extends Component {
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
+                  openProfile={this.props.openProfile}
                   toggleSignUpModal={this.props.toggleSignUpModal}
                 />
                 <TabView
@@ -410,7 +411,7 @@ UserProfile.propTypes = {
   handleInAppLinkClick: PropTypes.func.isRequired,
 };
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
+const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, openProfile, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
@@ -493,8 +494,9 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
       </div>
       <div className="summary-column end">
         <ProfilePic
-          url={p.gravatar_url}
+          url={p.profile_pic_url}
           name={p.full_name}
+          openProfile={openProfile}
           len={175}
           hideOnDefault={Sefaria._uid !== p.id}
           showButtons={Sefaria._uid === p.id}

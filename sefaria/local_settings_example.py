@@ -193,6 +193,8 @@ GOOGLE_OAUTH2_CLIENT_SECRET = ""
 # This is the field that is actually used
 GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
+GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
+
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 

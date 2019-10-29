@@ -1579,10 +1579,15 @@ class ReaderApp extends Component {
       this.setState({panels: [state]}, cb);
     }
   }
-  openProfile(slug, full_name) {
+  openProfile(slug, full_name, reload) {
     // requires slug and full_name to properly set window title and url in history
     this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile: { slug, full_name } }, () => {
       Sefaria.profileAPI(slug).then(profile => {
+        if (reload) {
+          // if deliberately reloading pic, add url param to force cache reload
+          profile.profile_pic_url += `?time=${Sefaria.util.epoch_time()}`;
+          Sefaria.profile_pic_url = profile.profile_pic_url;
+        }
         this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
       });
     });

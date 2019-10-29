@@ -259,7 +259,7 @@ def trending_tags(days=7, ntags=14):
 	query  = {
 		"status": "public",
 		"dateModified": { "$gt": cutoff.isoformat() },
-		"viaOwner": {"$exists": 0}, 
+		"viaOwner": {"$exists": 0},
 		"assignment_id": {"$exists": 0}
 	}
 
@@ -280,7 +280,7 @@ def trending_tags(days=7, ntags=14):
 
 	for tag in tags.items():
 		if len(tag[0]) and len(tag[1]["authors"]) > 1:  # A trend needs to include at least 2 people
-			results.append({"tag": tag[0], 
+			results.append({"tag": tag[0],
 							"count": tag[1]["sheet_count"],
 							"author_count": len(tag[1]["authors"]),
 							"he_tag": model.Term.normalize(tag[0], "he")})
@@ -634,12 +634,12 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				match = model.Ref(match)
 			except InputError:
 				continue
-			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None})
-
-			default_image = "https://www.sefaria.org/static/img/profile-default.png"
-			gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
-			gravatar_url_small = gravatar_base + urllib.urlencode({'d': default_image, 's': str(80)})
-
+			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
+			if len(ownerData['profile_pic_url_small']) == 0:
+				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
+				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
+				gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+				ownerData['profile_pic_url_small'] = gravatar_url_small
 			if "assigner_id" in sheet:
 				asignerData = public_user_data(sheet["assigner_id"])
 				sheet["assignerName"] = asignerData["name"]
