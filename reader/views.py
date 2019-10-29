@@ -4231,8 +4231,26 @@ def get_manuscript_image_for_ref_api(request, tref):
         return jsonResponse('Method Not Allowed', None, 405)
 
 
+@ensure_csrf_cookie
+@staff_member_required
 def edit_ref_on_manuscript(request, manuscript_id, tref):
-    pass
+    man = ManuscriptImage().load({'image_id': manuscript_id})
+    if man is None:
+        return jsonResponse("Manuscript not found")
+
+    if request.method == "POST":
+        man.add_segment_ref(tref)
+        man.save()
+        # status 201 indicates that data has been accepted by the server and written to the database
+        return jsonResponse("Successfully added {}".format(tref), status=201)
+
+    elif request.method == "DELETE":
+        try:
+            man.remove_segment_ref(tref)
+        except ValueError:
+            return jsonResponse("Unable to remove {} from image".format(tref))
+        man.save()
+        return jsonResponse("Successfully removed {}".format(tref), status=201)
 
 
 
