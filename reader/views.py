@@ -4224,10 +4224,9 @@ def get_manuscript_image_for_ref_api(request, tref):
         except InputError:
             return jsonResponse([])
 
-        ref_clauses = [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
-        manuscripts = ManuscriptImageSet({'$or': ref_clauses})
+        manuscripts = ManuscriptImageSet.load_by_ref(oref)
         return jsonResponse([m.contents() for m in manuscripts.array()])
-    
+
     else:
         return jsonResponse('Method Not Allowed', None, 405)
 

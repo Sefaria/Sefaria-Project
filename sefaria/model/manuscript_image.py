@@ -74,3 +74,12 @@ class ManuscriptImage(AbstractMongoRecord):
 
 class ManuscriptImageSet(AbstractMongoSet):
     recordClass = ManuscriptImage
+
+    @staticmethod
+    def load_by_ref(oref):
+        """
+        :param Ref oref:
+        :return:
+        """
+        ref_clauses = [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
+        return ManuscriptImageSet({'$or': ref_clauses})
