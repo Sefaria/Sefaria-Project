@@ -474,27 +474,6 @@ const schema = {
                                     ]
                                 })
                             }
-                            case 1: { //SheetAuthorStatement
-                                return editor.setNodeByKey(child.key, {
-                                    type: "SheetAuthorStatement",
-                                    data: {title: "Untitled Source Sheet"},
-                                    nodes: [
-
-                                        {
-                                            "object": "block",
-                                            "type": "ProfilePic",
-                                            "data": {
-                                                "authorImage": props.data.ownerImageUrl,
-                                                "authorStatement": props.data.ownerName,
-                                            }
-                                        },
-                                        {
-                                            "object": "text",
-                                            "text": props.data.ownerName,
-                                        }
-                                    ]
-                                })
-                            }
                             default: {
                                 return null
                             }
@@ -513,32 +492,7 @@ const schema = {
                             ]
                         });
 
-                        const authorBlock = Block.create({
-                            type: 'SheetAuthorStatement',
-                            data: {
-                                authorImage: props.data.ownerImageUrl,
-                                authorUrl: props.data.ownerProfileUrl,
-                                authorStatement: props.data.ownerName,
-                            },
-
-                            nodes: [
-
-                                {
-                                    "object": "block",
-                                    "type": "ProfilePic",
-                                    "data": {
-                                        "authorImage": props.data.ownerImageUrl,
-                                        "authorStatement": props.data.ownerName,
-                                    }
-                                },
-                                {
-                                    "object": "text",
-                                    "text": props.data.ownerName,
-                                }
-                            ]
-                        });
-
-                        return editor.insertNodeByKey(node.key, 0, titleBlock).insertNodeByKey(node.key, 1, authorBlock)
+                        return editor.insertNodeByKey(node.key, 0, titleBlock)
                     }
                 }
             }
@@ -701,25 +655,52 @@ function convertBlockToHTML(block) {
 
 
 function saveSheetContent(data, lastModified) {
+    console.log(data.toJSON().document);
 
-    const sheetJSONData = data.toJSON().document.data;
-    //prepare sheetmeta:
+    const sheetJSONData = data.document.data;
     const sheetTitle = (convertBlockToHTML(data.document.getBlocksByType("SheetTitle").get(0).getTexts()));
+    const sheetContent = data.document.filterDescendants(n => n.type === 'SheetItem');
+
+    let sources = [];
+
+    sheetContent.forEach(item => {
+        const sheetItem = item.nodes.get(0);
+
+        switch (sheetItem.get("type")) {
+
+            case 'SheetSource':
+                let source = {
+                    "ref": sheetItem.getIn(['data', 'ref']),
+                    "heRef": sheetItem.getIn(['data', 'heRef']),
+
+                };
+                console.log(convertBlockToHTML(sheetItem.findDescendant(n => n.type === "he").getTexts()));
+                sources.push(source);
+                return
+
+            default:
+                console.log(sheetItem.get("type"));
+                return
+        }
+
+    });
+
+    console.log(sources)
+
+
 
     let sheet = {
-        status: sheetJSONData.status,
-        group: sheetJSONData.group,
-        id: sheetJSONData.id,
-        promptedToPublish: sheetJSONData.promptedToPublish,
+        status: sheetJSONData.get("status"),
+        group: sheetJSONData.get("group"),
+        id: sheetJSONData.get("id"),
+        promptedToPublish: sheetJSONData.get("promptedToPublish"),
         lastModified: lastModified,
-        summary: sheetJSONData.summary,
-        options: sheetJSONData.options,
-        tags: sheetJSONData.tags,
+        summary: sheetJSONData.get("summary"),
+        options: sheetJSONData.get("options"),
+        tags: sheetJSONData.get("tags"),
         title: sheetTitle,
-        sources: sheetJSONData.loadedSources,
+        sources: sheetJSONData.get("loadedSources"),
     };
-
-
 
     return JSON.stringify(sheet);
 
