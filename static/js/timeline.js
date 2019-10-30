@@ -410,6 +410,12 @@ function renderNetwork() {
     node.on("click", expandBook);
 }
 
+function collapseBook(d) {
+    if (!d.expanded) return;
+    d.expanded = false;
+    clearPathHighlights();
+}
+
 function expandBook(d) {
     if (d.expanded) return;
     d.expanded = true;
@@ -438,7 +444,16 @@ function expandBook(d) {
 
     simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
         .alpha(.1)
-        .restart();
+        .restart()
+        .tick(50);
+}
+
+function clearPathHighlights() {
+    nodes.forEach(n => {n.highlighted = false});
+    links.forEach(n => {n.highlighted = false});
+    node.selectAll("rect")
+        .attr("stroke-width", d => d.highlighted ? 3 : 1);
+    link.attr("stroke-width", d => d.highlighted ? 3 : 1);
 }
 
 function highlightPath(d) {
