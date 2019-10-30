@@ -859,18 +859,18 @@ Sefaria = extend(Sefaria, {
   _saveLinksByRef: function(data) {
     return this._saveItemsByRef(data, this._links);
   },
-  _saveItemsByRef: function(data, store) {
+  _saveItemsByRef: function(data, store, anchorRefField='anchorRef', expandedRefField='anchorRefExpanded') {
     // For a set of items from the API, save each set split by the specific ref the items points to.
     // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
     var splitItems = {}; // Aggregate links by anchorRef
     for (var i = 0; i < data.length; i++) {
-      var ref = data[i].anchorRef;
-      if (!ref) {
+      var ref = data[i][anchorRefField];
+      if (!ref && !data[i][expandedRefField]) {
         console.log("_saveItemsByRef encountered an item without a ref field:");
         console.log(data[i]);
         continue;
       }
-      var refs = "anchorRefExpanded" in data[i] ? data[i].anchorRefExpanded : Sefaria.splitRangingRef(ref);
+      var refs = expandedRefField in data[i] ? data[i][expandedRefField] : Sefaria.splitRangingRef(ref);
       for (var j = 0; j < refs.length; j++) {
         ref = refs[j];
         if (ref in splitItems) {
@@ -1315,7 +1315,7 @@ Sefaria = extend(Sefaria, {
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
-          manuscriptImages: this._saveItemsByRef(data.manuscriptImages, this._manuscriptImages)
+          manuscriptImages: this._saveItemsByRef(data.manuscriptImages, this._manuscriptImages, null, 'expanded_refs')
       };
 
        // Build split related data from individual split data arrays
