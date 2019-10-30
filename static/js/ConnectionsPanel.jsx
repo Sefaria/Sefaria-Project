@@ -287,7 +287,8 @@ class ConnectionsPanel extends Component {
                     toggleSignUpModal = {this.props.toggleSignUpModal}
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
-                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length} />
+                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
+                    imagesCount={Sefaria.manuscriptImagesByRef(this.props.srefs).length}/>
                   </div>);
 
     } else if (this.props.mode === "ConnectionsList") {
@@ -399,6 +400,10 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang} 
                     key="WebPages"/>);
 
+    } else if (this.props.mode === "ManuscriptImage") {
+      content = (<ImageList
+                    srefs={this.props.srefs}
+                    key="Images"/>)
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
                     srefs={this.props.srefs}
@@ -557,6 +562,9 @@ class ResourcesList extends Component {
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
+              {this.props.imagesCount ?
+              <ToolsButton en="Images" he="תמונות" image="images.png" count={this.props.imagesCount} onClick={() => this.props.setConnectionsMode("ManuscriptImage")} />
+              : null}
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
@@ -787,6 +795,19 @@ class WebPagesList extends Component {
   }
 }
 WebPagesList.propTypes = {
+  srefs: PropTypes.array.isRequired,
+};
+
+
+class ImageList extends Component {
+    render() {
+        let images = Sefaria.manuscriptImagesByRef(this.props.srefs);
+        let content = images.map(x => <img className="image" src={x['thumbnail_url']} key={x["image_id"]}/>);
+        return <div className="ImageList">{content}</div>
+    }
+}
+
+ImageList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
