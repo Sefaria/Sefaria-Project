@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Component from 'react-class';
-const $                        = require('./sefaria/sefariaJquery');
-const Sefaria                  = require('./sefaria/sefaria');
-const PropTypes                = require('prop-types');
-const {Story}                  = require('./Story');
-const Footer                   = require('./Footer');
-const { usePaginatedScroll }   = require('./Hooks');
-const { 
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
+import PropTypes from 'prop-types';
+import {Story} from './Story';
+import Footer from'./Footer';
+import { usePaginatedScroll } from './Hooks';
+import {
     NewsletterSignUpForm, 
     LoadingMessage 
-}                              = require('./Misc');
+} from './Misc';
 
 
 function HomeFeed(props) {
