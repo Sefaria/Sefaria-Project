@@ -687,19 +687,29 @@ function saveSheetContent(data, lastModified) {
                       "en": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "en").nodes),
                       "he": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "he").nodes),
                     }
-
                 };
                 sources.push(source);
                 return
 
+            case 'SheetComment':
+                sources.push({"comment": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes)});
+                return
+
+            case 'SheetOutsideText':
+                sources.push({"outsideText": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes)});
+                return
+
+            case 'SheetMedia':
+                sources.push({"media": sheetItem.getIn(['data', 'mediaUrl'])});
+                return
+
             default:
-                //console.log(sheetItem.get("type"));
+                console.log(sheetItem.get("type"));
                 return
         }
 
     });
 
-    //console.log(sources)
 
 
 
@@ -713,7 +723,7 @@ function saveSheetContent(data, lastModified) {
         options: sheetJSONData.get("options"),
         tags: sheetJSONData.get("tags"),
         title: sheetTitle,
-        sources: sheetJSONData.get("loadedSources"),
+        sources: sources,
     };
 
     return JSON.stringify(sheet);
