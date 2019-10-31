@@ -910,8 +910,8 @@ function SefariaEditor(props) {
             //console.log(props.data)
             // don't save data on selection changes, only when content changes
             $.post("/api/sheets/", {"json": saveSheetContent(value, lastModified)}, res => {
-                setlastModified(res.dateModified)
-                //console.log(res)
+                setlastModified(res.dateModified);
+                console.log(res);
             });
 
         }
