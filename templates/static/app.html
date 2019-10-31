@@ -11,6 +11,8 @@
 
 {% block content %}
 <div id="mobilePage" class="static">
+    <img id="topHeaderAndroid" src="{% static "img/mobile-landing-page/Artboard 1.png" %}" alt="Sefaria app on Android">
+    <img id="topHeaderIOS" src="{% static "img/mobile-landing-page/Artboard 3 2.png" %}" alt="Sefaria app on IOS" />
     <div id="mobilePageHeader">
         <div class="sectionInner sectionRegular flexContainer flexReverse">
             <div id="mobilePageHeaderImage" class="sectionInner">
@@ -22,22 +24,24 @@
                     <span class="int-en">The Sefaria App</span>
                     <span class="int-he">The Sefaria App</span>
                 </h1>
-                <h2>
-                    <span class="int-en">The Jewish library-- </span>
-                    <span class="int-he">The Jewish library-- </span>
-                </h2>
-                <h2>
-                    <span class="int-en">Free, anywhere, anytime. </span>
-                    <span class="int-he">Free, anywhere, anytime. </span>
-                </h2>
+                <div id="mobilePageSubHeaderText">
+                    <h2>
+                        <span class="int-en">The Jewish library-- </span>
+                        <span class="int-he">The Jewish library-- </span>
+                    </h2>
+                    <h2>
+                        <span class="int-en">Free, anywhere, anytime. </span>
+                        <span class="int-he">Free, anywhere, anytime. </span>
+                    </h2>
+                </div>
                 <div id="mobilePageHeaderButtons">
-                    <a class="button flexContainer">
-                        <img class="button-icon ios" src="{% static "img/mobile-landing-page/apple.png" %}">
+                    <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContainer">
+                        <img class="button-icon ios" src="{% static "img/mobile-landing-page/apple.png" %}" alt="Sefaria on iOS">
                         <span class="int-en">Download for iOS</span>
                         <span class="int-he">Download for iOS</span>
                     </a>
-                    <a class="button flexContainer">
-                        <img class="button-icon android" src="{% static "img/mobile-landing-page/googleplay.png" %}">
+                    <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer">
+                        <img class="button-icon android" src="{% static "img/mobile-landing-page/googleplay.png" %}" alt="Sefaria on Android">
                         <span class="int-en">Download for Android</span>
                         <span class="int-he">Download for Android</span>
                     </a>
@@ -48,7 +52,7 @@
     </div>
 
     <div id="mobileDescription">
-        <div class="sectionInner">
+        <div class="sectionInner sectionRegular">
             <p>
                 <span class="int-en">
                     Explore Sefaria's entire free library of Jewish texts in Hebrew and English translation — Torah, Talmud, Mishnah, Kabbalah, Siddur and more.
@@ -68,76 +72,81 @@
 
     <div id="mobileTestimonials">
         <div class="sectionInner flexContainer">
-            <div id="mobileSiddur">
-                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/siddur.png" %}">
+            <div id="mobileSiddur" class="mobileTestimonial">
+                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/siddur.png" %}" alt="icon of siddur">
                 <h3 class="mobileTestimonialHeader">
                     <span class="int-en">Always have a siddur In your pocket</span>
                     <span class="int-he">Always have a siddur In your pocket</span>
                 </h3>
-                <div>
-                    <p class="mobileTestimonial">
+                <div class="mobileTestimonialContent">
+                    <p class="mobileTestimonialText">
                         “I can look up anything in an easy format.
                         You never know when you might need to find a prayer or a passage,
                         and it's all sitting there on my phone.”
                     </p>
-                    <span class="mobileTestimonialAtrtibution">-Jessica L, User</span>
+                    <span class="mobileTestimonialAttribution">Jessica L, User</span>
                 </div>
             </div>
-            <div id="mobileEducate">
-                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/educate.png" %}">
+            <div id="mobileEducate" class="mobileTestimonial">
+                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/educate.png" %}" alt="icon of pencil">
                 <h3 class="mobileTestimonialHeader">
                     <span class="int-en">Look up education resources on-the-go</span>
                     <span class="int-he">Look up education resources on-the-go</span>
                 </h3>
-                <div>
-                    <p class="mobileTestimonial">
+                <div class="mobileTestimonialContent">
+                    <p class="mobileTestimonialText">
                         “I use Sefaria all the time - prepping for class,
                         learning on the go, in the middle of a conversation and want to find a source.
                         It has been an amazing tool in my life.”
                     </p>
-                    <span class="mobileTestimonialAtrtibution">-Jaclyn S, Educator</span>
+                    <span class="mobileTestimonialAttribution">Jaclyn S, Educator</span>
                 </div>
             </div>
-            <div id="mobileCommute">
-                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/commute.png" %}">
+            <div id="mobileCommute" class="mobileTestimonial">
+                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/commute.png" %}" alt="icon of train">
                 <h3 class="mobileTestimonialHeader">
                     <span class="int-en">Learn on your commute</span>
                     <span class="int-he">Learn on your commute</span>
                 </h3>
-                <div>
-                    <p class="mobileTestimonial">
+                <div class="mobileTestimonialContent">
+                    <p class="mobileTestimonialText">
                         “I am constantly on the app during my NYC subway commute,
                         whether I'm reviewing texts for class, reading the day's 929 chapter,
                         or studying parshat hashavua.”
                     </p>
-                    <span class="mobileTestimonialAtrtibution">-Vanessa H, Rabbinical Student</span>
+                    <span class="mobileTestimonialAttribution">Vanessa H, Rabbinical Student</span>
                 </div>
             </div>
 
         </div>
     </div>
+
     <div id="mobileExamples">
-        <div class="sectionInner">
+        <div class="sectionInner sectionNarrow">
             <div id="mobileExampleCalendar" class="example flexContainer">
                 <div class="mobileExampleText">
-                    <h3 class="mobileExampleHeader">
-                        <span class="int-en">Calendar</span>
-                        <span class="int-he">Calendar</span>
-                    </h3>
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Calendar</span>
+                            <span class="int-he">Calendar</span>
+                        </h3>
+                    </div>
                     <p>
                         Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and more.
                     </p>
                 </div>
                 <div class="mobileExampleImage">
-                    <img class="button-icon" src="{% static "img/mobile-landing-page/calmock.png" %}">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/calmock.png" %}" alt="screenshot of calendar on app">
                 </div>
             </div>
-            <div id="mobileExampleCommentaries" class="example flexContainer">
+            <div id="mobileExampleCommentaries" class="example flexContainer flexReverse">
                                 <div class="mobileExampleText">
-                    <h3 class="mobileExampleHeader">
-                        <span class="int-en">Commentaries</span>
-                        <span class="int-he">Commentaries</span>
-                    </h3>
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Commentaries</span>
+                            <span class="int-he">Commentaries</span>
+                        </h3>
+                    </div>
                     <p>
                         Learn with a variety of commentaries and explore the interconnections between texts.
                         Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more.
@@ -145,15 +154,17 @@
                     </p>
                 </div>
                 <div class="mobileExampleImage">
-                    <img class="button-icon" src="{% static "img/mobile-landing-page/commmock.png" %}">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/commmock.png" %}" alt="screenshot of commentary panel on app">
                 </div>
             </div>
             <div id="mobileExampleSearch" class="example flexContainer">
                                 <div class="mobileExampleText">
-                    <h3 class="mobileExampleHeader">
-                        <span class="int-en">Search</span>
-                        <span class="int-he">Search</span>
-                    </h3>
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Search</span>
+                            <span class="int-he">Search</span>
+                        </h3>
+                    </div>
                     <p>
                         Use the search tool to find topics, words, and phrases in both Hebrew and English.
                         Filter your search by book, category, or relevance.
@@ -161,33 +172,36 @@
                     </p>
                 </div>
                 <div class="mobileExampleImage">
-                    <img class="button-icon" src="{% static "img/mobile-landing-page/searchmock.png" %}">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/searchmock.png" %}" alt="screenshot of search on app">
                 </div>
             </div>
-            <div id="mobileExampleSheets" class="example flexContainer">
-                                <div class="mobileExampleText">
-                    <h3 class="mobileExampleHeader">
-                        <span class="int-en">Source Sheets</span>
-                        <span class="int-he">Source Sheets</span>
-                    </h3>
+            <div id="mobileExampleSheets" class="example flexContainer flexReverse">
+                <div class="mobileExampleText">
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Source Sheets</span>
+                            <span class="int-he">Source Sheets</span>
+                        </h3>
+                    </div>
                     <p>
                         Explore thousands of user-created source sheets by topic or search directly for your favorite contributor.
                     </p>
                 </div>
                 <div class="mobileExampleImage">
-                    <img class="button-icon" src="{% static "img/mobile-landing-page/sheetsmock.png" %}">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/sheetsmock.png" %}" alt="screenshot of sheets on app">
                 </div>
             </div>
         </div>
     </div>
+
     <div id="mobileUpdate">
-        <div class="sectionInner flexContainer">
+        <div class="sectionInner flexContainer sectionRegular">
             <div class="mobileUpdateText">
                 <span class="mobileUpdateVersion">
                     <span>New in Version 5.4.0</span>
                 </span>
                 <h3 class="mobileUpdateTitle">
-                    <span>Introducing: account Login on the app</span>
+                    <span>Introducing:</span><span>account Login on the app</span>
                 </h3>
                 <p class="mobileUpdateDescription">
                     <span>
@@ -196,52 +210,55 @@
                 </p>
             </div>
             <div id="mobileUpdateImage">
-                <img class="button-icon" src="{% static "img/mobile-landing-page/history.png" %}">
+                <img class="button-icon" src="{% static "img/mobile-landing-page/historymock.png" %}" alt="screenshot of latest app update">
             </div>
 
         </div>
     </div>
+
     <div id="mobileDownloadLinks">
-        <div class="sectionInner">
-            <h3 class="mobileDownloadHeader">
-                <span>Download the app and start exploring today</span>
-            </h3>
+        <div class="sectionInner sectionNarrow">
+            <div class="mobileDownloadHeader">
+                <h3><span>Download the app and start exploring today</span></h3>
+            </div>
             <div class="mobileDownloadButtons flexContainer">
-                <a class="button flexContainer">
-                    <img class="button-icon" src="{% static "img/mobile-landing-page/apple.png" %}">
+                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContainer">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/apple.png" %}" alt="iOS icon">
                     <span class="int-en">Download for iOS</span>
                     <span class="int-he">Download for iOS</span>
                 </a>
-                <a class="button flexContainer">
-                    <img class="button-icon" src="{% static "img/mobile-landing-page/googleplay.png" %}">
+                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/googleplay.png" %}" alt="Android Google Play icon">
                     <span class="int-en">Download for Android</span>
                     <span class="int-he">Download for Android</span>
                 </a>
             </div>
         </div>
     </div>
+
     <div id="mobileNewsletterSocial">
-        <div class="sectionInner">
-            <h3 class="mobileNewsletterHeader">
-                <span>
-                    Sign up to receive the latest updates
-                </span>
-            </h3>
+        <div class="sectionInner sectionNarrow">
+            <div>
+                <h3 class="mobileNewsletterHeader">
+                    <span>Sign up to receive the latest updates</span>
+                </h3>
+            </div>
             <div class="newsletterSignUpBox">
                 <span class="int-en">
-                    <input class="newsletterInput" placeholder="Sign up for our Newsletter" value="">
+                    <input id="newsletterInput" class="newsletterInput" placeholder="Sign up for our Newsletter" value="">
                 </span>
                 <!---<span class="int-he">
                     <input class="newsletterInput" placeholder="הצטרפו לרשימת התפוצה" value="">
                 </span>--->
-                <img src="/static/img/circled-arrow-right.svg">
+                <img src="/static/img/circled-arrow-right.svg" id="subscribe">
+                <div id="newsletterInput-subscribeMessage"></div>
             </div>
             <div class="mobileSocialLinks flexContainer">
-                <a>Facebook</a>
+                <a href="https://www.facebook.com/sefaria.org" target="_blank">Facebook</a>
                 <span class="dot">•</span>
-                <a>Twitter</a>
+                <a href="https://twitter.com/SefariaProject" target="_blank">Twitter</a>
                 <span class="dot">•</span>
-                <a>Instagram</a>
+                <a href="https://www.instagram.com/sefariaproject/" target="_blank">Instagram</a>
             </div>
             <div id="mobilePageNonProfit">
                 <p>
@@ -254,4 +271,42 @@
 
 </div>
 
+{% endblock %}
+
+{% block js  %}
+    <script>
+    $(function() {
+        // General Email List sign up at end of page
+        $("#subscribe").click(function() {
+            const email = $("#newsletterInput").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.track.event("Educators", "Subscribe from Education Homepage", "");
+                $("#newsletterInput-subscribeMessage").html('{% trans "<i>Subscribing...</i>" %}').show();
+                let list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
+                    if ("error" in data) {
+                        $("#newsletterInput-subscribeMessage").text(data.error).show();
+                    } else {
+                        $("#newsletterInput-subscribeMessage").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                    }
+                }).error(function(data) {
+                    $("#newsletterInput-subscribeMessage").text('{% trans "Sorry, there was an error." %}').show();
+                })
+            } else {
+                $("#newsletterInput-subscribeMessage").text('{% trans "Please enter a valid email address." %}').show();
+            }
+        });
+
+        $("#newsletterInput").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");
+            }else{
+                const email = $("#newsletterInput").val();
+                if (email.length == 0){
+                    $("#newsletterInput-subscribeMessage").text("");
+                }
+            }
+        });
+    });
+    </script>
 {% endblock %}
