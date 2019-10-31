@@ -7260,3 +7260,47 @@ body .homeFeedWrapper.userStats {
   text-align: center;
   padding-top: 8px;
 }
+
+.manuscriptImage {
+  width: 256px;
+}
+
+.manuscriptCaption {
+  font-family: Adobe Garamond Pro;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.fullSizeImageLink {
+  /*position: absolute;*/
+  width: 292px;
+  height: 23px;
+  left: 830px;
+  top: 367px;
+
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+
+  color: #999999;
+
+}
+
+.manuscript {
+  border-bottom: 1px solid red;
+}
+
+.manuscript :last-child {
+  border-bottom: 0px solid #DDDDDD;
+}
+
+.manuscriptBorder {
+  border: 1px solid #DDDDDD;
+  position: absolute;
+  width: 292px;
+  height: 0px;
+  left: 830px;
+  top: 409px;
+}

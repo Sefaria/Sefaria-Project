@@ -802,7 +802,13 @@ WebPagesList.propTypes = {
 class ImageList extends Component {
     render() {
         let images = Sefaria.manuscriptImagesByRef(this.props.srefs);
-        let content = images.map(x => <img className="image" src={x['thumbnail_url']} key={x["image_id"]}/>);
+        let content = images.map((x,i) => {
+            return <div className="manuscript" key={x["image_id"]}>
+                <img className="manuscriptImage" src={x['thumbnail_url']}/>
+                <p className="manuscriptCaption">{x['manuscript_title']} pg. {x['page_num']}</p>
+                <a className="fullSizeImageLink" href={x['image_url']} target="_blank">Open Full Image</a>
+                {/*{(i < images.length-1) ? <line className="manuscriptBorder" stroke="black"></line> : ''}*/}
+            </div>});
         return <div className="ImageList">{content}</div>
     }
 }
