@@ -625,7 +625,17 @@ const schema = {
 
 }
 
-function convertBlockToHTML(block) {
+function convertBlockTextToHTMLWithParagraphs(block) {
+    let paragraphs = "";
+    block.forEach(subBlock => {
+        if (subBlock.get("type") == "paragraph") {
+          paragraphs += "<p>"+(convertBlockTextToHTML(subBlock.getTexts()))+"</p>";
+        }
+    });
+    return paragraphs;
+}
+
+function convertBlockTextToHTML(block) {
     const possibleMarks = {
         italic: 'em',
         bold: 'strong',
@@ -655,10 +665,10 @@ function convertBlockToHTML(block) {
 
 
 function saveSheetContent(data, lastModified) {
-    console.log(data.toJSON().document);
+    //console.log(data.toJSON().document);
 
     const sheetJSONData = data.document.data;
-    const sheetTitle = (convertBlockToHTML(data.document.getBlocksByType("SheetTitle").get(0).getTexts()));
+    const sheetTitle = (convertBlockTextToHTML(data.document.getBlocksByType("SheetTitle").get(0).getTexts()));
     const sheetContent = data.document.filterDescendants(n => n.type === 'SheetItem');
 
     let sources = [];
@@ -669,23 +679,27 @@ function saveSheetContent(data, lastModified) {
         switch (sheetItem.get("type")) {
 
             case 'SheetSource':
+
                 let source = {
                     "ref": sheetItem.getIn(['data', 'ref']),
                     "heRef": sheetItem.getIn(['data', 'heRef']),
+                    "text": {
+                      "en": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "en").nodes),
+                      "he": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "he").nodes),
+                    }
 
                 };
-                console.log(convertBlockToHTML(sheetItem.findDescendant(n => n.type === "he").getTexts()));
                 sources.push(source);
                 return
 
             default:
-                console.log(sheetItem.get("type"));
+                //console.log(sheetItem.get("type"));
                 return
         }
 
     });
 
-    console.log(sources)
+    //console.log(sources)
 
 
 
@@ -887,7 +901,7 @@ function SefariaEditor(props) {
             // don't save data on selection changes, only when content changes
             $.post("/api/sheets/", {"json": saveSheetContent(value, lastModified)}, res => {
                 setlastModified(res.dateModified)
-                console.log(res)
+                //console.log(res)
             });
 
         }
