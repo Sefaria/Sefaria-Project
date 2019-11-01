@@ -1,13 +1,11 @@
 {
 	"title": "",
 	"text": [
-		"Teachers of children should be established in each and every province and in each and every town.",
-		"— Bava Batra, 21a",
-		"Help spread Torah in each and every town with Sefaria.",
-		"Chag Sameach!"
+		"Be a part of Sefaria's future!",
+		"Please take our user survey to help us grow and improve. You will receive a special thank you for your participation.",
   	],
-	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=App&utm_medium=Modal&utm_campaign=Sukkot%202019",
-	"buttonText": "Donate",
-	"name": "sukkot-2019-2",
+	"buttonLink": "https://surveys2.netpop.com/survey/selfserve/dcc/ntp19009?list=2&co=us&wave=9&source=xxxx",
+	"buttonText": "Take the Survey",
+	"name": "survey",
 	"schemaVersion": 1
 }
