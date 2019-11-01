@@ -35,6 +35,13 @@ class Sheet extends Component {
 
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.editor == true && this.props.editor == false) {
+      Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad, true);
+      console.log('reloading')
+    }
+  }
+
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
   }

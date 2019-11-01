@@ -1690,7 +1690,10 @@ Sefaria = extend(Sefaria, {
   },
   sheets: {
     _loadSheetByID: {},
-    loadSheetByID: function(id, callback) {
+    loadSheetByID: function(id, callback, reset) {
+      if (reset) {
+        this._loadSheetByID[id] = null;
+      }
       var sheet = this._loadSheetByID[id];
       if (sheet) {
         if (callback) { callback(sheet); }
