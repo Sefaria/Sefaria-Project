@@ -20,6 +20,7 @@ class ProfilePic extends Component {
     this.state = {
       showDefault: true,
       src: null,
+      isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
       croppedImageBlob: null,
     };
@@ -47,7 +48,14 @@ class ProfilePic extends Component {
   onCropChange(crop, percentCrop) {
     // You could also use percentCrop:
     // this.setState({ crop: percentCrop });
-    this.setState({ crop });
+    if (this.state.isFirstCropChange) {
+      crop.x = (this.imageRef.width/2) - (250/2);
+      crop.y = (this.imageRef.height/2) - (250/2);
+      console.log("CROP", crop);
+      this.setState({ crop, isFirstCropChange: false });
+    } else {
+      this.setState({ crop });
+    }
   }
 
   async makeClientCrop(crop) {
@@ -93,10 +101,11 @@ class ProfilePic extends Component {
       }, "image/jpeg");
     });
   }
-  closePopup(cb) {
+  closePopup({ cb }) {
     this.setState({
       src: null,
-      crop: {unit: "px", width: 175, aspect: 1},
+      crop: {unit: "px", width: 250, aspect: 1},
+      isFirstCropChange: true,
       croppedImageBlob: null,
     }, cb);
   }
@@ -110,10 +119,10 @@ class ProfilePic extends Component {
       if (response.error) {
         throw new Error(response.error);
       } else {
-        this.closePopup(() => {
+        this.closePopup({ cb: () => {
           this.props.openProfile(Sefaria.slug, Sefaria.full_name, true);  // reload
           return;
-        });
+        }});
       }
     } catch (e) {
       errored = true;
@@ -159,7 +168,6 @@ class ProfilePic extends Component {
           <div id="interruptingMessageBox" className="sefariaModalBox">
             <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
             <div id="interruptingMessage" className="profile-pic-cropper-modal">
-              <div id="interruptingMessageClose" className="profile-pic-close" onClick={this.closePopup}>×</div>
               <div className="sefariaModalContent profile-pic-cropper-modal-inner">
                 <ReactCrop
                   src={src}
@@ -172,10 +180,22 @@ class ProfilePic extends Component {
                 />
             </div>
             { this.state.uploading ? (<LoadingRing />) : (
-                <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                  <span className="en">Select</span>
-                  <span className="he">Select (He)</span>
-                </a>
+              <div>
+                <div className="smallText profile-pic-cropper-desc">
+                  <span className="int-en">Drag to Crop Image</span>
+                  <span className="int-he">Drag to Crop Image (He)</span>
+                </div>
+                <div className="profile-pic-cropper-button-row">
+                  <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
+                    <span className="en">Cancel</span>
+                    <span className="he">Cancel (He)</span>
+                  </a>
+                  <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
+                    <span className="en">Select</span>
+                    <span className="he">Select (He)</span>
+                  </a>
+                </div>
+              </div>
               )
             }
           </div>

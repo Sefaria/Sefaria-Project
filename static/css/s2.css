@@ -4452,27 +4452,42 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .profile-pic:hover .profile-pic-hover-button {
   display: flex;
 }
+.profile-page .profile-pic .profile-pic-button-row {
+  display: flex;
+}
 .profile-page .profile-pic .profile-pic-button {
   position: absolute;
 }
+
 .profile-pic-cropper-modal {
   max-width: unset !important;
   max-height: unset !important;
-  padding: 18px 0 0 0 !important;
+  padding: 15px 15px 17px 15px !important;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.4);
+  background-color: #FFF !important;
+  border-radius: 6px;
 }
 .profile-pic-cropper-modal-inner {
   overflow: auto;
   max-width: 50vw;
   max-height: 50vh;
   display: block;
-  margin-top: 30px;
+  line-height: 0;
+  border-radius: 6px;
+}
+.profile-pic-cropper-modal .ReactCrop__crop-selection {
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
 }
 .profile-pic-close {
   right: 25px !important;
 }
 .profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
-  margin: 20px 0;
   display: inline-flex;
+}
+.profile-page .profile-pic .profile-pic-cropper-desc {
+  margin-top: 9px;
+  margin-bottom: 18px;
 }
 .profile-pic .profile-pic-input-file {
   /* make it essentially invisible so it stays in DOM and is accessible */
