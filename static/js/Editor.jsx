@@ -42,7 +42,7 @@ const sheet_item_els = {
     outsideText: 'SheetOutsideText',
     outsideBiText: 'SheetOutsideBiText',
     media: 'SheetMedia',
-}
+};
 
 const HoverMenu = React.forwardRef(({editor}, ref) => {
     const root = window.document.getElementById('s2')
@@ -659,12 +659,12 @@ function convertBlockTextToHTML(block) {
 }
 
 
-function saveSheetContent(data, lastModified) {
+function saveSheetContent(doc, lastModified) {
     //console.log(data.toJSON().document);
 
-    const sheetJSONData = data.document.data;
-    const sheetTitle = (convertBlockTextToHTML(data.document.getBlocksByType("SheetTitle").get(0).getTexts()));
-    const sheetContent = data.document.filterDescendants(n => n.type === 'SheetItem');
+    const sheetJSONData = doc.data;
+    const sheetTitle = (convertBlockTextToHTML(doc.getBlocksByType("SheetTitle").get(0).getTexts()));
+    const sheetContent = doc.filterDescendants(n => n.type === 'SheetItem');
 
     let sources = [];
 
@@ -686,7 +686,7 @@ function saveSheetContent(data, lastModified) {
 
                 };
                 sources.push(source);
-                return
+                return;
             case 'OutsideBiText':
                 let outsideBiText = {
                     "outsideBiText": {
@@ -697,32 +697,32 @@ function saveSheetContent(data, lastModified) {
 
                 };
                 sources.push(outsideBiText);
-                return
+                return;
 
             case 'SheetComment':
                 sources.push({
                     "comment": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes),
                     "node": sheetItem.getIn(['data', 'node']),
                 });
-                return
+                return;
 
             case 'SheetOutsideText':
                 sources.push({
                     "outsideText": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes),
                     "node": sheetItem.getIn(['data', 'node']),
                 });
-                return
+                return;
 
             case 'SheetMedia':
                 sources.push({
                     "media": sheetItem.getIn(['data', 'mediaUrl']),
                     "node": sheetItem.getIn(['data', 'node']),
                     });
-                return
+                return;
 
             default:
                 console.log(sheetItem.get("type"));
-                return
+                return;
         }
 
     });
@@ -749,13 +749,29 @@ function saveSheetContent(data, lastModified) {
 
 
 function SefariaEditor(props) {
-    const menuRef = React.createRef()
+    const menuRef = React.createRef();
 
-
-    const [value, setValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
-    const [prevValue, setPrevValue] = useState(Value.fromJSON(transformSheetJsonToDraft(props.data)));
+    const v = Value.fromJSON(transformSheetJsonToDraft(props.data));
+    const [value, setValue] = useState(v);
+    const [currentDocument, setCurrentDocument] = useState(v.document);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
 
+    useEffect(
+        () => {
+          // Update debounced value after delay
+          const handler = setTimeout(() => {
+            saveDocument(currentDocument);
+          }, 2000);
+
+          // Cancel the timeout if value changes (also on delay change or unmount)
+          // This is how we prevent debounced value from updating if value is changed ...
+          // .. within the delay period. Timeout gets cleared and restarted.
+          return () => {
+            clearTimeout(handler);
+          };
+        },
+        [currentDocument] // Only re-call effect if value or delay changes
+    );
 
     function onKeyDown(event, editor, next) {
         //console.log(event)
@@ -944,37 +960,36 @@ function SefariaEditor(props) {
     }
 
     function renderInline(props, editor, next) {
-        const {attributes, children, node} = props
-        const {data} = node
+        const {attributes, children, node} = props;
+        const {data} = node;
         switch (node.type) {
             case 'TextRef':
-                const ref = data.get('ref')
+                const ref = data.get('ref');
                 return (
                     <div className="ref"><a href={"/" + ref}>{children}</a></div>
-                )
+                );
             default:
                 return next()
         }
     }
 
+    function saveDocument(doc) {
+        console.log("Saving");
+        $.post("/api/sheets/", {"json": saveSheetContent(doc, lastModified)}, res => {
+            setlastModified(res.dateModified);
+            console.log(res);
+        });
+    }
 
-    function onChange({value}) {
-
-        if (prevValue.document != value.document) {
-            //console.log(props.data)
-            // don't save data on selection changes, only when content changes
-            $.post("/api/sheets/", {"json": saveSheetContent(value, lastModified)}, res => {
-                setlastModified(res.dateModified);
-                console.log(res);
-            });
-
+    function onChange({v}) {
+        if (currentDocument !== v.document) {
+            setCurrentDocument(v.document);
         }
-        setValue(value);
-        setPrevValue(value);
+        setValue(v);
     }
 
     function renderEditor(props, editor, next) {
-        const children = next()
+        const children = next();
         return (
             <React.Fragment>
                 {children}
@@ -994,7 +1009,7 @@ function SefariaEditor(props) {
             schema={schema}
             plugins={plugins}
             renderEditor={(props, editor, next) => renderEditor(props, editor, next)}
-            onChange={({value}) => onChange({value})}
+            onChange={({value:v}) => onChange({v})}
         />
     )
 
