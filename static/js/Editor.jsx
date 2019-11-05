@@ -345,7 +345,7 @@ function transformSheetJsonToDraft(sheet) {
                     "dateCreated": sheet.dateCreated,
                     "promptedToPublish": sheet.promptedToPublish,
                     "options": sheet.options,
-                    "loadedSources": sheet.sources,
+                    "nextNode": sheet.nextNode,
                 },
                 "nodes": [
                     {
@@ -659,7 +659,7 @@ function convertBlockTextToHTML(block) {
 }
 
 
-function saveSheetContent(doc, lastModified) {
+function saveSheetContent(doc, lastModified, nextSheetNode) {
     //console.log(data.toJSON().document);
 
     const sheetJSONData = doc.data;
@@ -741,6 +741,7 @@ function saveSheetContent(doc, lastModified) {
         tags: sheetJSONData.get("tags"),
         title: sheetTitle,
         sources: sources,
+        nextNode: nextSheetNode,
     };
 
     return JSON.stringify(sheet);
@@ -755,6 +756,7 @@ function SefariaEditor(props) {
     const [value, setValue] = useState(v);
     const [currentDocument, setCurrentDocument] = useState(v.document);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
+    const [nextSheetNode, setNextSheetMode] = useState(props.data.nextNode);
 
     useEffect(
         () => {
@@ -786,17 +788,23 @@ function SefariaEditor(props) {
                     "nodes": [{
                         "object": "block",
                         "type": "SheetOutsideText",
+                        "data": {
+                            "node": nextSheetNode
+                        },
                         "nodes": [{
                             "object": "block",
                             "type": "paragraph",
                             "nodes": [{
                                 "object": "text",
-                                "text": "BANANA"
+                                "text": "---THIS IS A NEW OUTSIDE TEXT---"
                             }]
-                        }]
+                        }],
+
                     }]
                 }
             );
+
+            setNextSheetMode(nextSheetNode + 1);
 
             const curSheetItem = editor.value.document.getClosest(editor.value.anchorBlock.key, n => n.type === 'SheetItem');
 
@@ -975,7 +983,7 @@ function SefariaEditor(props) {
 
     function saveDocument(doc) {
         console.log("Saving");
-        $.post("/api/sheets/", {"json": saveSheetContent(doc, lastModified)}, res => {
+        $.post("/api/sheets/", {"json": saveSheetContent(doc, lastModified, nextSheetNode)}, res => {
             setlastModified(res.dateModified);
             console.log(res);
         });
