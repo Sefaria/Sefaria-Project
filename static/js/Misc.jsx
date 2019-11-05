@@ -18,13 +18,14 @@ class ProfilePic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showDefault: true,
+      showDefault: null,  // can be `true`, `false` or `null`
       src: null,
       isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
       croppedImageBlob: null,
     };
   }
+  setShowDefault() {this.setState({showDefault: true});  }
   setShowNonDefault() {this.setState({showDefault: false});  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
@@ -49,9 +50,11 @@ class ProfilePic extends Component {
     // You could also use percentCrop:
     // this.setState({ crop: percentCrop });
     if (this.state.isFirstCropChange) {
-      crop.x = (this.imageRef.width/2) - (250/2);
-      crop.y = (this.imageRef.height/2) - (250/2);
-      console.log("CROP", crop);
+      const { width, height } = this.imageRef;
+      crop.width = Math.min(width, height);
+      crop.height = crop.width;
+      crop.x = (this.imageRef.width/2) - (crop.width/2);
+      crop.y = (this.imageRef.height/2) - (crop.width/2);
       this.setState({ crop, isFirstCropChange: false });
     } else {
       this.setState({ crop });
@@ -153,10 +156,11 @@ class ProfilePic extends Component {
           src={imageSrc}
           alt="User Profile Picture"
           onLoad={this.setShowNonDefault}
+          onError={this.setShowDefault}
         />
 
       { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
-          (<div className={classNames({"profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
+          (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
             <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
             <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
               <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
@@ -182,8 +186,8 @@ class ProfilePic extends Component {
             { this.state.uploading ? (<LoadingRing />) : (
               <div>
                 <div className="smallText profile-pic-cropper-desc">
-                  <span className="int-en">Drag to Crop Image</span>
-                  <span className="int-he">Drag to Crop Image (He)</span>
+                  <span className="int-en">Drag corners to crop image</span>
+                  <span className="int-he">Drag corners to crop image (He)</span>
                 </div>
                 <div className="profile-pic-cropper-button-row">
                   <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
@@ -191,8 +195,8 @@ class ProfilePic extends Component {
                     <span className="he">Cancel (He)</span>
                   </a>
                   <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                    <span className="en">Select</span>
-                    <span className="he">Select (He)</span>
+                    <span className="en">Save</span>
+                    <span className="he">Save (He)</span>
                   </a>
                 </div>
               </div>

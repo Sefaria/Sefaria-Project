@@ -4449,7 +4449,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .profile-pic .profile-pic-hover-button {
   display: none;
 }
-.profile-page .profile-pic:hover .profile-pic-hover-button {
+.profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
   display: flex;
 }
 .profile-page .profile-pic .profile-pic-button-row {
