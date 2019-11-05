@@ -1,13 +1,11 @@
 {
 	"title": "",
 	"text": [
-		"כל ישראל ראוים לישב בסוכה אחת",
-        "(סוכה כז ב׳)",
-		"ספריא בונה את התשתית העתידית ללימוד תורה, עבור כלל ישראל - לדורות הבאים",
-		"הצטרפו לקהילת עמודי התווך של ספריא"
+		"נשמח אם תהיו שותפים בעיצוב עתידה של ספריא!",
+        "אנא ענו על הסקר שלנו- כדי לסייע לנו להתקדם ולהשתפר."
   	],
-	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile?utm_source=App&utm_medium=Modal&utm_campaign=Elul%202019",
-	"buttonText": "תרומה",
-	"name": "sukkot-2019",
+	"buttonLink": "https://surveys2.netpop.com/survey/selfserve/dcc/ntp19009?list=2&co=ir&wave=9&source=xxxx",
+	"buttonText": "ענה על הסקר",
+	"name": "survey-2019",
 	"schemaVersion": 1
 }
