@@ -323,7 +323,7 @@ class LinkNetwork(object):
         self.indexNodes[rootkey] = self.make_index_record(
             self.base_oref,
             rootkey,
-            int(self.base_oref.index.compDate) - int(self.base_oref.index.errorMargin),
+            int(self.base_oref.index.compDate) - int(getattr(self.base_oref.index, "errorMargin", 0)),
             self.base_oref.index.categories[0],
             root = True
         )

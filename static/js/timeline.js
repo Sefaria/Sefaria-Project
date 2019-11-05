@@ -32,6 +32,7 @@ function buildScreen() {
 }
 
 function refocusNetwork(ref) {
+    collapseBooks();
     fetchNetwork(ref)
         .then(prepLinksAndNodes)
         .then(updateIndexNetworkSimulation)
@@ -39,7 +40,6 @@ function refocusNetwork(ref) {
 
 function buildFrame() {
     //Build objects that are present for any starting state
-    debugger;
     w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 900;
     h = window.innerHeight ?  window.innerHeight - margin[0] - margin[2] : 800;
 
@@ -410,9 +410,12 @@ function renderNetwork() {
     node.on("click", expandBook);
 }
 
-function collapseBook(d) {
-    if (!d.expanded) return;
-    d.expanded = false;
+function collapseBooks() {
+    nodes.forEach(n => {n.expanded = false});
+
+    graphBox.selectAll("g.node rect").attr("height", 20);
+    graphBox.selectAll("g.node text.ref").remove();
+
     clearPathHighlights();
 }
 
@@ -443,9 +446,10 @@ function expandBook(d) {
         .on("dblclick", refocusNetwork);
 
     simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
-        .alpha(.1)
+        //.alpha(.5)
         .restart()
-        .tick(50);
+        // .tick(200)
+    ;
 }
 
 function clearPathHighlights() {
@@ -506,7 +510,7 @@ function createIndexNetworkSimulation() {
         .force("link", d3.forceLink(links).id(d => d.title))
         .force("cluster", forceCluster)
         .force("category", d3.forceY().y(categoryY).strength(.5))
-        .force("box", forceBox)
+        .force("box", forceBox())
         .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
         .on("tick", () => {
             link.attr("d", d3.linkHorizontal()
@@ -524,7 +528,7 @@ function updateIndexNetworkSimulation() {
         .nodes(nodes)
         .force("link", d3.forceLink(links).id(d => d.title))
         .force("box", forceBox)
-        .alpha(1)
+        .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
         .restart()
         .tick(200);
 
@@ -572,9 +576,12 @@ function centroid(nodes) {
 function forceBox() {
     let nodes;
     const buffer = 20;
+    const top = margin[0] + buffer;
+    const bottom = h - margin[2] - buffer;
 
     function force() {
-        nodes.forEach(n => {n.y = Math.max(buffer, Math.min(h - buffer, n.y))});
+        debugger;
+        nodes.forEach(n =>  {n.y = Math.max(top, Math.min(bottom, n.y)); console.log(n.y);});
     }
     force.initialize = _ => nodes = _;
     return force;
