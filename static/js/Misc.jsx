@@ -1235,7 +1235,13 @@ class InterruptingMessage extends Component {
     }[this.props.style];
   }
   componentDidMount() {
-    this.delayedShow();
+    if (this.shouldShow()) { 
+      this.delayedShow(); 
+    }
+  }
+  shouldShow() {
+    const exlcudedPaths = ["/donate", "/mobile"];
+    return exlcudedPaths.indexOf(window.location.pathname) === -1;
   }
   delayedShow() {
     setTimeout(function() {
