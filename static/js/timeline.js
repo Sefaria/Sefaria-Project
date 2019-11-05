@@ -508,7 +508,7 @@ function createIndexNetworkSimulation() {
     simulation = d3.forceSimulation(nodes);
     simulation
         .force("link", d3.forceLink(links).id(d => d.title))
-        .force("cluster", forceCluster)
+        //.force("cluster", forceCluster())
         .force("category", d3.forceY().y(categoryY).strength(.5))
         .force("box", forceBox())
         .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
@@ -527,7 +527,7 @@ function updateIndexNetworkSimulation() {
     simulation
         .nodes(nodes)
         .force("link", d3.forceLink(links).id(d => d.title))
-        .force("box", forceBox)
+        .force("box", forceBox())
         .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
         .restart()
         .tick(200);
@@ -575,13 +575,12 @@ function centroid(nodes) {
 
 function forceBox() {
     let nodes;
-    const buffer = 20;
+    const buffer = 0;
     const top = margin[0] + buffer;
     const bottom = h - margin[2] - buffer;
 
     function force() {
-        debugger;
-        nodes.forEach(n =>  {n.y = Math.max(top, Math.min(bottom, n.y)); console.log(n.y);});
+        nodes.forEach(n =>  {n.y = Math.max(top, Math.min(bottom, n.y));});
     }
     force.initialize = _ => nodes = _;
     return force;
@@ -594,7 +593,7 @@ function forceCluster() {
   let nodes;
 
   function force(alpha) {
-    const centroids = d3.rollup(nodes, centroid, d => d.category);
+    const centroids = d3.rollup(nodes, centroid, d => d.category);   // !! d3.rollup isn't a method.
     const l = alpha * strength;
     for (const d of nodes) {
       const {x: cx, y: cy} = centroids.get(d.category);
