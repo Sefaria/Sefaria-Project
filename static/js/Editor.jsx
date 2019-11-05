@@ -240,7 +240,10 @@ function renderSheetItem(source) {
                 {
                     "object": "block",
                     "type": sheet_item_els[sheetItemType],
-                    "nodes": parseSheetItemHTML(source.comment)
+                    "nodes": parseSheetItemHTML(source.comment),
+                    "data": {
+                        "node": source.node
+                    },
                 }
             )
             return content
@@ -250,7 +253,10 @@ function renderSheetItem(source) {
                 {
                     "object": "block",
                     "type": sheet_item_els[sheetItemType],
-                    "nodes": parseSheetItemHTML(source.outsideText)
+                    "nodes": parseSheetItemHTML(source.outsideText),
+                    "data": {
+                        "node": source.node
+                    },
                 }
             )
             return content
@@ -271,7 +277,10 @@ function renderSheetItem(source) {
                             "type": "en",
                             "nodes": parseSheetItemHTML(source.outsideBiText.en)
                         }
-                    ]
+                    ],
+                    "data": {
+                        "node": source.node
+                    },
                 }
             )
             return content
@@ -282,27 +291,13 @@ function renderSheetItem(source) {
                     "object": "block",
                     "type": sheet_item_els[sheetItemType],
                     "data": {
-                        "mediaUrl": source.media
+                        "mediaUrl": source.media,
+                        "node": source.node,
                     },
                     "nodes": [
                         {
                             "object": "text",
                             "text": source.media
-                        }
-                    ]
-                }
-            )
-            return content
-        }
-        case 'comment': {
-            const content = (
-                {
-                    "object": "block",
-                    "type": sheet_item_els[sheetItemType],
-                    "nodes": [
-                        {
-                            "object": "text",
-                            "text": sheet_item_els[sheetItemType]
                         }
                     ]
                 }
@@ -686,21 +681,43 @@ function saveSheetContent(data, lastModified) {
                     "text": {
                       "en": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "en").nodes),
                       "he": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "he").nodes),
-                    }
+                    },
+                    "node": sheetItem.getIn(['data', 'node']),
+
                 };
                 sources.push(source);
                 return
+            case 'OutsideBiText':
+                let outsideBiText = {
+                    "outsideBiText": {
+                      "en": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "en").nodes),
+                      "he": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "he").nodes),
+                    },
+                    "node": sheetItem.getIn(['data', 'node']),
+
+                };
+                sources.push(outsideBiText);
+                return
 
             case 'SheetComment':
-                sources.push({"comment": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes)});
+                sources.push({
+                    "comment": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes),
+                    "node": sheetItem.getIn(['data', 'node']),
+                });
                 return
 
             case 'SheetOutsideText':
-                sources.push({"outsideText": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes)});
+                sources.push({
+                    "outsideText": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes),
+                    "node": sheetItem.getIn(['data', 'node']),
+                });
                 return
 
             case 'SheetMedia':
-                sources.push({"media": sheetItem.getIn(['data', 'mediaUrl'])});
+                sources.push({
+                    "media": sheetItem.getIn(['data', 'mediaUrl']),
+                    "node": sheetItem.getIn(['data', 'node']),
+                    });
                 return
 
             default:
@@ -741,7 +758,43 @@ function SefariaEditor(props) {
 
 
     function onKeyDown(event, editor, next) {
-        return next()
+        //console.log(event)
+        if (event.key !== 'Enter') return next();
+        if (editor.value.selection.focus.isAtEndOfNode(editor.value.anchorBlock)) {
+
+            const content = (
+                {
+
+                    "object": "block",
+                    "type": "SheetItem",
+                    "nodes": [{
+                        "object": "block",
+                        "type": "SheetOutsideText",
+                        "nodes": [{
+                            "object": "block",
+                            "type": "paragraph",
+                            "nodes": [{
+                                "object": "text",
+                                "text": "BANANA"
+                            }]
+                        }]
+                    }]
+                }
+            );
+
+            const curSheetItem = editor.value.document.getClosest(editor.value.anchorBlock.key, n => n.type === 'SheetItem');
+
+
+            //console.log(curSheetItem.toJSON())
+            //console.log(curSheetItem)
+            editor.moveToEndOfNode(curSheetItem);
+
+            return editor.insertBlock(content) //.insertNodeByList(List([1,curSheetItemIndex]), content)
+
+        }
+        else {
+            return next();
+        }
     }
 
     function renderBlock(props, editor, next) {
@@ -848,7 +901,7 @@ function SefariaEditor(props) {
             case 'SheetTitle':
                 const title = data.get('title');
                 return (
-                    <SheetTitle {...attributes} title={title}>{children}</SheetTitle>
+                    <SheetTitle title={title}>{children}</SheetTitle>
                 );
             case 'TextRef':
                 const ref = data.get('ref')
@@ -903,6 +956,7 @@ function SefariaEditor(props) {
                 return next()
         }
     }
+
 
     function onChange({value}) {
 
