@@ -116,7 +116,7 @@ class OfflineTextIndexer(object):
         TextIndexer.index_all("", True, for_es=False, action=OfflineTextIndexer.index_segment)
         # after it's done there's likely an extra section that hasn't been indexed
         cls.index_section(cls.curr_title, cls.section_ref, cls.curr_section_text)
-        """
+
         indexes = library.all_index_records()
         indexes = indexes[start:end]
         print("Running on {} indexes".format(len(indexes)))
@@ -130,18 +130,18 @@ class OfflineTextIndexer(object):
             try:
                 section_refs = index.all_section_refs()
                 for section_ref in section_refs:
-                        # remove the title from the section_ref
-                        ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref.normal())
-                        ref_num_2_full_name.append(section_ref.normal())
-                        ref_num_2_part.append(ref_part)
-                        add_words(section_ref, words_2_ref_nums, ref_num)
-                        ref_num += 1
+                    # remove the title from the section_ref
+                    ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref.normal())
+                    ref_num_2_full_name.append(section_ref.normal())
+                    ref_num_2_part.append(ref_part)
+                    add_words(section_ref, words_2_ref_nums, ref_num)
+                    ref_num += 1
             except InputError as e:
                 print('ERROR', e)
         print('saving to json...')
         save(REF_NUM_MIN_N_TITLE, ref_num_min_N_title)
         save(REF_NUM_2_PART, ref_num_2_part)
-        """
+
 
         # convert sets to lists for json
         words_2_ref_nums = {key: sorted(list(value)) for key, value in words_2_ref_nums.iteritems()}
@@ -160,11 +160,13 @@ def get_words(text):
     #print(text)
     #TODO: more work can prob be done here in this func
     text = re.sub(ur'<[^>]+>', u' ', text)
-    text = re.sub(ur'[\u05be\s+\\.\\-]', u' ', text) # convert dashs/dots/etc to space
+    text = re.sub(ur'\([^)]+\)', u' ', text)
+    text = re.sub(ur'\[[^\]]+\]', u' ', text)
+    text = re.sub(ur'[\u05be\s+\.\-;:,?!{}]', u' ', text) # convert dashs/dots/etc to space
     #text = re.sub(ur'[\u0591-\u05C7\u05f3\u05f4]', '', text)
     #text = re.sub(ur'[\u0591-\u05c7]', '', text)
 
-    text = re.sub(ur'([^\u05d0-\u05eaA-Za-z\s])', u'', text) # remove non-regular chars
+    text = re.sub(ur'([^\u05d0-\u05eaA-Za-z0-9\s])', u'', text) # remove non-regular chars
     text = text.lower()
     # bf_text = text
     text = text.replace(u' \u05d5', u' ')

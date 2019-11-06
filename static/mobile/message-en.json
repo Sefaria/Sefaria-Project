@@ -1,12 +1,11 @@
 {
 	"title": "",
 	"text": [
-	"Even free apps cost money.",
-	"Sefaria is a nonprofit that depends on user contributions to keep the library open source, accessible and growing.",
-	"Please support Sefaria with a gift of $10 today."
+		"Be a part of Sefaria's future!",
+		"Please take our user survey to help us grow and improve. You will receive a special thank you for your participation."
   	],
-	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=App&utm_medium=Modal&utm_campaign=Elul%202019",
-	"buttonText": "Donate",
-	"name": "elul-2019-3",
+	"buttonLink": "https://surveys2.netpop.com/survey/selfserve/dcc/ntp19009?list=2&co=us&wave=9&source=xxxx",
+	"buttonText": "Take the Survey",
+	"name": "survey-2019",
 	"schemaVersion": 1
 }
