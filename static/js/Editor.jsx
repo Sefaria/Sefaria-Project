@@ -618,7 +618,7 @@ const schema = {
     },
 
 
-}
+};
 
 function convertBlockTextToHTMLWithParagraphs(block) {
     let paragraphs = "";
@@ -757,9 +757,13 @@ function SefariaEditor(props) {
     const [currentDocument, setCurrentDocument] = useState(v.document);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [nextSheetNode, setNextSheetMode] = useState(props.data.nextNode);
+    const [endOfBlock, setEndOfBlock] = useState(false);
+    const [metaNote, setMetaNote] = useState("");
+    const [unsavedChanges, setUnsavedChanges] = useState(false);
 
     useEffect(
         () => {
+          setUnsavedChanges(true)
           // Update debounced value after delay
           const handler = setTimeout(() => {
             saveDocument(currentDocument);
@@ -775,48 +779,46 @@ function SefariaEditor(props) {
         [currentDocument] // Only re-call effect if value or delay changes
     );
 
+    const emptyBlockJSON = {
+        "object": "block",
+        "type": "SheetItem",
+        "nodes": [{
+            "object": "block",
+            "type": "SheetOutsideText",
+            "data": {
+                "node": nextSheetNode
+            },
+            "nodes": [{
+                "object": "block",
+                "type": "paragraph",
+                "nodes": [{
+                    "object": "text",
+                    "text": ""
+                }]
+            }],
+
+        }]
+    };
+
+
     function onKeyDown(event, editor, next) {
-        //console.log(event)
         if (event.key !== 'Enter') return next();
+        const sheetContentKey = editor.value.document.filterDescendants(n => n.type === 'SheetContent').get(0).key;
+
         if (editor.value.selection.focus.isAtEndOfNode(editor.value.anchorBlock)) {
-
-            const content = (
-                {
-
-                    "object": "block",
-                    "type": "SheetItem",
-                    "nodes": [{
-                        "object": "block",
-                        "type": "SheetOutsideText",
-                        "data": {
-                            "node": nextSheetNode
-                        },
-                        "nodes": [{
-                            "object": "block",
-                            "type": "paragraph",
-                            "nodes": [{
-                                "object": "text",
-                                "text": "---THIS IS A NEW OUTSIDE TEXT---"
-                            }]
-                        }],
-
-                    }]
-                }
-            );
+            const curSelectionPath = editor.value.selection.focus.path;
+            const curSheetItemPath = curSelectionPath.slice(0, 2);
+            const nextIndex = curSheetItemPath.get(1)+1;
 
             setNextSheetMode(nextSheetNode + 1);
+            event.preventDefault();
 
-            const curSheetItem = editor.value.document.getClosest(editor.value.anchorBlock.key, n => n.type === 'SheetItem');
+            let emptyBlock = Block.fromJSON(emptyBlockJSON);
 
-
-            //console.log(curSheetItem.toJSON())
-            //console.log(curSheetItem)
-            editor.moveToEndOfNode(curSheetItem);
-
-            return editor.insertBlock(content) //.insertNodeByList(List([1,curSheetItemIndex]), content)
-
+            return editor.insertNodeByKey(sheetContentKey, nextIndex, emptyBlock).moveToEndOfNode(editor.value.document.getNode(curSheetItemPath)).moveForward(1);
         }
         else {
+            console.log('next')
             return next();
         }
     }
@@ -985,11 +987,13 @@ function SefariaEditor(props) {
         console.log("Saving");
         $.post("/api/sheets/", {"json": saveSheetContent(doc, lastModified, nextSheetNode)}, res => {
             setlastModified(res.dateModified);
-            console.log(res);
+            console.log("saved at: "+ res.dateModified);
+            setUnsavedChanges(false)
         });
     }
 
     function onChange({v}) {
+        setEndOfBlock(v.selection.focus.isAtEndOfNode(v.anchorBlock));
         if (currentDocument !== v.document) {
             setCurrentDocument(v.document);
         }
@@ -1006,8 +1010,16 @@ function SefariaEditor(props) {
         )
     }
 
+    function getMetaMsg() {
+        return (
+            endOfBlock ? "Hitting Enter should add a new OutsideText" :
+            unsavedChanges ? "Saving..." : "All Changes Saved"
+        )
+    }
 
     return (
+        <div>
+            <div className="editorHoverBox">{getMetaMsg()}</div>
         <Editor
             onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
             value={value}
@@ -1019,6 +1031,7 @@ function SefariaEditor(props) {
             renderEditor={(props, editor, next) => renderEditor(props, editor, next)}
             onChange={({value:v}) => onChange({v})}
         />
+        </div>
     )
 
 

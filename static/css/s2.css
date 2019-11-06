@@ -7230,3 +7230,9 @@ body .homeFeedWrapper.userStats {
 .markButton i.active {
   color: #000;
 }
+.editorHoverBox {
+    position: fixed;
+    top: 120px;
+    background-color: #ccc;
+    padding: 3px;
+}
