@@ -32,6 +32,7 @@ function buildScreen() {
 }
 
 function refocusNetwork(ref) {
+    d3.event.preventDefault();
     collapseBooks();
     fetchNetwork(ref)
         .then(prepLinksAndNodes)
@@ -244,7 +245,7 @@ function setupPopup(options) {
           e.preventDefault(); // this traps user in the dialog via tab
         }
     });
-};
+}
 
 async function showPopup(ref) {
     const source = await Sefaria.getText(ref);
@@ -324,8 +325,8 @@ async function showPopup(ref) {
             nodes[i].style.marginRight = -scrollbarOffset+"px";
         }
     }
-
-};
+    d3.event.preventDefault();
+}
 
 const hidePopup = function() {
     popUpElem.style.display = "none";
@@ -412,11 +413,23 @@ function renderNetwork() {
 
 function collapseBooks() {
     nodes.forEach(n => {n.expanded = false});
-
     graphBox.selectAll("g.node rect").attr("height", 20);
     graphBox.selectAll("g.node text.ref").remove();
-
     clearPathHighlights();
+}
+
+function collapseBook(d) {
+    if (!d.expanded) return;
+    d.expanded = false;
+
+    const g = d3.select(this);
+    g.select("rect").attr("height", 20);
+    g.selectAll("text.ref").remove();
+
+    g.on("click", expandBook);
+
+    simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
+        .restart();
 }
 
 function expandBook(d) {
@@ -445,11 +458,10 @@ function expandBook(d) {
         .on("click", showPopup)
         .on("dblclick", refocusNetwork);
 
+    g.on("click", collapseBook);
+
     simulation.force("collide", d3.forceCollide(d => d.expanded ? 30 + 15 * d.refs.length : 30))
-        //.alpha(.5)
-        .restart()
-        // .tick(200)
-    ;
+        .restart();
 }
 
 function clearPathHighlights() {
@@ -508,7 +520,6 @@ function createIndexNetworkSimulation() {
     simulation = d3.forceSimulation(nodes);
     simulation
         .force("link", d3.forceLink(links).id(d => d.title))
-        //.force("cluster", forceCluster())
         .force("category", d3.forceY().y(categoryY).strength(.5))
         .force("box", forceBox())
         .force("collide", d3.forceCollide(d => d.expanded ? 120 : 30))
@@ -560,19 +571,6 @@ const categoryY = n => {
         h/2);
     };
 
-function centroid(nodes) {
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  for (const d of nodes) {
-    let k = d.r ** 2;
-    x += d.x * k;
-    y += d.y * k;
-    z += k;
-  }
-  return {x: x / z, y: y / z};
-}
-
 function forceBox() {
     let nodes;
     const buffer = 0;
@@ -585,28 +583,6 @@ function forceBox() {
     force.initialize = _ => nodes = _;
     return force;
 }
-
-function forceCluster() {
-//https://observablehq.com/@mbostock/clustered-bubbles-2
-
-  const strength = 0.2;
-  let nodes;
-
-  function force(alpha) {
-    const centroids = d3.rollup(nodes, centroid, d => d.category);   // !! d3.rollup isn't a method.
-    const l = alpha * strength;
-    for (const d of nodes) {
-      const {x: cx, y: cy} = centroids.get(d.category);
-      d.vx -= (d.x - cx) * l;
-      d.vy -= (d.y - cy) * l;
-    }
-  }
-
-  force.initialize = _ => nodes = _;
-
-  return force;
-}
-
 
 /*****          Hebrew / English Handling              *****/
 
