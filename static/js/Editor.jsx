@@ -757,8 +757,7 @@ function SefariaEditor(props) {
     const [currentDocument, setCurrentDocument] = useState(v.document);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [nextSheetNode, setNextSheetMode] = useState(props.data.nextNode);
-    const [endOfBlock, setEndOfBlock] = useState(false);
-    const [metaNote, setMetaNote] = useState("");
+    const [endOfBlock, setEndOfBlock] = useState("moo");
     const [unsavedChanges, setUnsavedChanges] = useState(false);
 
     useEffect(
@@ -801,11 +800,11 @@ function SefariaEditor(props) {
     };
 
 
-    function onKeyDown(event, editor, next) {
+    function onKeyDown(event, editor, next, eob) {
         if (event.key !== 'Enter') return next();
-        const sheetContentKey = editor.value.document.filterDescendants(n => n.type === 'SheetContent').get(0).key;
 
-        if (editor.value.selection.focus.isAtEndOfNode(editor.value.anchorBlock)) {
+        if (isEndOfSheetItemBlockContent(editor.value)) {
+            const sheetContentKey = editor.value.document.filterDescendants(n => n.type === 'SheetContent').get(0).key;
             const curSelectionPath = editor.value.selection.focus.path;
             const curSheetItemPath = curSelectionPath.slice(0, 2);
             const nextIndex = curSheetItemPath.get(1)+1;
@@ -992,8 +991,14 @@ function SefariaEditor(props) {
         });
     }
 
+    function isEndOfSheetItemBlockContent(v) {
+        //Usually the end of the node *is* the end of the sheetItem block, b/c of legacy sheets sometimes another
+        // paragraph follows it -- this ensures this value is set correctly in that case
+        return (v.selection.focus.isAtEndOfNode(v.anchorBlock) && v.document.getNextNode(v.anchorBlock.key).get("type") !== "paragraph")
+    }
+
     function onChange({v}) {
-        setEndOfBlock(v.selection.focus.isAtEndOfNode(v.anchorBlock));
+        setEndOfBlock(isEndOfSheetItemBlockContent(v));
         if (currentDocument !== v.document) {
             setCurrentDocument(v.document);
         }
@@ -1012,7 +1017,7 @@ function SefariaEditor(props) {
 
     function getMetaMsg() {
         return (
-            endOfBlock ? "Hitting Enter should add a new OutsideText" :
+            endOfBlock ? "Enter adds new OutsideText" :
             unsavedChanges ? "Saving..." : "All Changes Saved"
         )
     }
@@ -1020,17 +1025,17 @@ function SefariaEditor(props) {
     return (
         <div>
             <div className="editorHoverBox">{getMetaMsg()}</div>
-        <Editor
-            onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
-            value={value}
-            renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
-            renderMark={(props, editor, next) => renderMark(props, editor, next)}
-            renderInline={(props, editor, next) => renderInline(props, editor, next)}
-            schema={schema}
-            plugins={plugins}
-            renderEditor={(props, editor, next) => renderEditor(props, editor, next)}
-            onChange={({value:v}) => onChange({v})}
-        />
+            <Editor
+                onKeyDown={(event, editor, next, endOfBlock) => onKeyDown(event, editor, next, endOfBlock)}
+                value={value}
+                renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
+                renderMark={(props, editor, next) => renderMark(props, editor, next)}
+                renderInline={(props, editor, next) => renderInline(props, editor, next)}
+                schema={schema}
+                plugins={plugins}
+                renderEditor={(props, editor, next) => renderEditor(props, editor, next)}
+                onChange={({value:v}) => onChange({v})}
+            />
         </div>
     )
 
