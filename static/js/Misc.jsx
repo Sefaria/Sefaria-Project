@@ -49,8 +49,9 @@ class ProfilePic extends Component {
   onCropChange(crop, percentCrop) {
     // You could also use percentCrop:
     // this.setState({ crop: percentCrop });
+    console.log(this.imageRef.width, this.imageRef.height);
     if (this.state.isFirstCropChange) {
-      const { width, height } = this.imageRef;
+      const { clientWidth:width, clientHeight:height } = this.imageRef;
       crop.width = Math.min(width, height);
       crop.height = crop.width;
       crop.x = (this.imageRef.width/2) - (crop.width/2);
@@ -80,7 +81,9 @@ class ProfilePic extends Component {
     canvas.width = crop.width;
     canvas.height = crop.height;
     const ctx = canvas.getContext("2d");
-
+    for (var key in image) {
+    console.log(key);
+}
     ctx.drawImage(
       image,
       crop.x * scaleX,
