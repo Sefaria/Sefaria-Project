@@ -19,7 +19,6 @@ const Sefaria                      = require('./sefaria/sefaria');
 const $                            = require('./sefaria/sefariaJquery');
 const ReaderNavigationCategoryMenu = require('./ReaderNavigationCategoryMenu');
 const Footer                       = require('./Footer');
-import Component from 'react-class';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
 const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNavTopic, setTopic, setOption, onClose, openNav, openSearch,
@@ -177,16 +176,14 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
 
 
   let resources = [
-      <TocLink en="Source Sheets" he="דפי מקורות" href="/sheets" resourcesLink={true} onClick={openMenu.bind(null, "sheets")}
-            img="/static/img/sheet-icon.png"  alt="source sheets icon"/>,
-      <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true} outOfAppLink={true}
-            img="/static/img/visualizations-icon.png" alt="visualization icon" />,
+      <TocLink en="Create a Sheet" he="צור דף חדש" href="/sheets/new" resourcesLink={true} outOfAppLink={true}
+            img="/static/img/new-sheet.svg"  alt="new source sheet icon"/>,
       <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true} outOfAppLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
-      <TocLink en="Topics" he="נושאים" href="/topics" resourcesLink={true} onClick={openMenu.bind(null, "topics")}
-            img="/static/img/hashtag-icon.svg" alt="resources icon" />,
       <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true} outOfAppLink={true}
-            img="/static/img/group.svg" alt="Groups icon"/>
+            img="/static/img/group.svg" alt="Groups icon"/>,
+      <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true} outOfAppLink={true}
+            img="/static/img/visualizations-icon.png" alt="visualization icon" />,
   ];
 
   const torahSpecificResources = ["/visualizations", "/people"];
@@ -245,7 +242,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
                   <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
                   <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
-  topicBlocks = showMoreTopics ? topicBlocks : topicBlocks.slice(0, nCats).concat(moreTopics);
+  const azButton = <TocLink en="All Topics A-Z" he="כל הנושאים" href="/topics" resourcesLink={true} onClick={openMenu.bind(null, "topics")} />;
+  topicBlocks = showMoreTopics ? topicBlocks.concat(azButton) : topicBlocks.slice(0, nCats).concat(moreTopics);
   const topicsBlock = (<div className="readerTocTopics"><TwoOrThreeBox content={topicBlocks} width={width} /></div>);
 
 
@@ -305,7 +303,7 @@ ReaderNavigationMenu.propTypes = {
 
 const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, onClick}) =>
     <a className={(resourcesLink?"resourcesLink ":"") + (outOfAppLink?"outOfAppLink ":"") + classes} href={href} onClick={onClick}>
-        <img src={img} alt={alt} />
+        {img?<img src={img} alt={alt} />:""}
         <span className="int-en">{en}</span>
         <span className="int-he">{he}</span>
     </a>;
