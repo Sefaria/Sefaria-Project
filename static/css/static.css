@@ -2208,5 +2208,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: #000000;
 }
 
+@media screen and (max-width: 700px) {
+
+}
+
 
 
