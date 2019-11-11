@@ -52,10 +52,15 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url(u"{}/api/links/{}".format(FRONT_END_URL, oref.url()))
         purge_url(u"{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
         purge_url(u"{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/related/{}".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/related/{}?with_sheet_links=1".format(FRONT_END_URL, oref.url()))
+        purge_url(u"{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url()))
 
     # Ban anything underneath this section
     manager.run(u"ban", u'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
     manager.run(u"ban", u'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
+    manager.run(u"ban", u'obj.http.url ~ "/api/related/{}"'.format(url_regex(oref)), secret=secret)
+
 
 
 def invalidate_linked(oref):

@@ -34,13 +34,15 @@ class ProfilePic extends Component {
         >
           { `${initials}` }
         </div>
-        <img
-          className="img-circle profile-img"
-          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-          src={imageSrc}
-          alt="User Profile Picture"
-          onLoad={this.showNonDefaultPic}
-        />
+        { Sefaria._inBrowser ?
+          <img
+            className="img-circle profile-img"
+            style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+            src={imageSrc}
+            alt="User Profile Picture"
+            onLoad={this.showNonDefaultPic}
+          /> : null
+        }
       </div>
     );
   }
@@ -1115,23 +1117,23 @@ function NewsletterSignUpForm(props) {
   return (
     <div className="newsletterSignUpBox">
       <span className="int-en">
-        <input 
-          className="newsletterInput" 
-          placeholder="Sign up for Newsletter" 
-          value={input} 
+        <input
+          className="newsletterInput"
+          placeholder="Sign up for Newsletter"
+          value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <span className="int-he">
-        <input 
+        <input
           className="newsletterInput"
-          placeholder="הצטרפו לרשימת התפוצה" 
-          value={input} 
+          placeholder="הצטרפו לרשימת התפוצה"
+          value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
-      { subscribeMessage ? 
+      { subscribeMessage ?
         <div className="subscribeMessage">{subscribeMessage}</div>
         : null }
     </div>);
@@ -1228,7 +1230,13 @@ class InterruptingMessage extends Component {
     }[this.props.style];
   }
   componentDidMount() {
-    this.delayedShow();
+    if (this.shouldShow()) {
+      this.delayedShow();
+    }
+  }
+  shouldShow() {
+    const exlcudedPaths = ["/donate", "/mobile"];
+    return exlcudedPaths.indexOf(window.location.pathname) === -1;
   }
   delayedShow() {
     setTimeout(function() {
@@ -1267,7 +1275,7 @@ class InterruptingMessage extends Component {
     if (!this.state.timesUp) { return null; }
 
     if (this.props.style === "banner") {
-      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>        
+      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
                 <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
                 <div id="bannerMessageClose" onClick={this.close}>×</div>
               </div>;
