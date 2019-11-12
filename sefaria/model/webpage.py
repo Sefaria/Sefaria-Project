@@ -434,23 +434,14 @@ sites_data = [
     {
         "name":    "The Kosher Backpacker",
         "domains": ["thekosherbackpacker.com"]
+    },
+    {
+        "name": "WebYeshiva",
+        "domains": ["webyeshiva.org"]
+    },
+    {
+        "name": "Tradition Online",
+        "domains": ["traditiononline.org"]
     }
 
 ]
-sites_blacklist = ["dailympails.gq", "192.116.49.119", "webcache.googleusercontent.com", "www.google.com"]
-
-
-"""
-chinuch.org.uk: 3
-shamar.org: 2
-cncc.bingj.com: 1
-www.kveller.com: 1
-www.torahmusings.com: 1
-www.shamar.org: 1
-www.mechon-mamre.org: 1
-www.ou.org: 1
-www.chabad.org: 1
-he.wikisource.org: 1
-blogs.timesofisrael.com: 1
-www.meshivat-nefesh.org.il: 1
-"""

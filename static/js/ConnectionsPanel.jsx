@@ -776,7 +776,7 @@ class WebPagesList extends Component {
     const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ? 
               <div className="webpagesLinkerMessage sans">
                 <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
-                <span className="int-he">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
+                <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשת ההפניות</a>.</span>
               </div> : null; 
 
     return <div className="webpageList">
