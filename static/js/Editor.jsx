@@ -799,25 +799,36 @@ function SefariaEditor(props) {
         }]
     };
 
+    function addNewSheetItem(editor) {
+        const sheetContentKey = editor.value.document.filterDescendants(n => n.type === 'SheetContent').get(0).key;
+        const curSelectionPath = editor.value.selection.focus.path;
+        const curSheetItemPath = curSelectionPath.slice(0, 2);
+        const nextIndex = curSheetItemPath.get(1)+1;
+        setNextSheetMode(nextSheetNode + 1);
+        let emptyBlock = Block.fromJSON(emptyBlockJSON);
+        return editor.insertNodeByKey(sheetContentKey, nextIndex, emptyBlock).moveToEndOfNode(editor.value.document.getNode(curSheetItemPath)).moveForward(1);
+    }
 
-    function onKeyDown(event, editor, next, eob) {
-        if (event.key !== 'Enter') return next();
+    function onKeyDown(event, editor, next) {
+        if (event.key == 'Enter') {
 
-        if (isEndOfSheetItemBlockContent(editor.value)) {
-            const sheetContentKey = editor.value.document.filterDescendants(n => n.type === 'SheetContent').get(0).key;
-            const curSelectionPath = editor.value.selection.focus.path;
-            const curSheetItemPath = curSelectionPath.slice(0, 2);
-            const nextIndex = curSheetItemPath.get(1)+1;
+            if (isEndOfSheetItemBlockContent(editor.value)) {
+                event.preventDefault();
+                return addNewSheetItem(editor);
+            } else {
+                return next();
+            }
+        }
+        else if (event.key == " ") {
+            const textContent = editor.value.focusText.text;
+            const refRe = Sefaria.makeRefRe(Sefaria.titlesInText(textContent));
+            let foundRefs = textContent.match(refRe);
+            console.log(foundRefs);
 
-            setNextSheetMode(nextSheetNode + 1);
-            event.preventDefault();
 
-            let emptyBlock = Block.fromJSON(emptyBlockJSON);
-
-            return editor.insertNodeByKey(sheetContentKey, nextIndex, emptyBlock).moveToEndOfNode(editor.value.document.getNode(curSheetItemPath)).moveForward(1);
+            const lastWord = (editor.value.focusText.text.split(" ")).pop();
         }
         else {
-            console.log('next')
             return next();
         }
     }
@@ -1026,7 +1037,7 @@ function SefariaEditor(props) {
         <div>
             <div className="editorHoverBox">{getMetaMsg()}</div>
             <Editor
-                onKeyDown={(event, editor, next, endOfBlock) => onKeyDown(event, editor, next, endOfBlock)}
+                onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
                 value={value}
                 renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
                 renderMark={(props, editor, next) => renderMark(props, editor, next)}
