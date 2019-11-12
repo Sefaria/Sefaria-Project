@@ -11,6 +11,7 @@ jagged_array.py: a sparse array of arrays
 
 import re
 from functools import reduce
+from itertools import zip_longest
 
 
 class JaggedArray(object):
@@ -724,7 +725,7 @@ class JaggedIntArray(JaggedArray):
         # If both are lists, recur on each pair of values
         # map results in None value when element not present
         if isinstance(a, list) and isinstance(b, list):
-            return [JaggedIntArray._add(a2, b2) for a2, b2 in map(None, a, b)]
+            return [JaggedIntArray._add(a2, b2) for a2, b2 in zip_longest(a, b)]
 
         raise Exception("JaggedIntArray._add() reached a condition it shouldn't have reached")
 

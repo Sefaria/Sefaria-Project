@@ -6,6 +6,7 @@ from datetime import datetime
 from html.parser import HTMLParser
 import re
 from functools import wraps
+from itertools import zip_longest
 
 epoch = datetime.utcfromtimestamp(0)
 
@@ -172,7 +173,7 @@ def text_preview(en, he):
     if not any(isinstance(x, list) for x in en + he):
         return {'en': preview(en), 'he': preview(he)}
     else:
-        zipped = map(None, en, he)
+        zipped = zip_longest(en, he)
         return [text_preview(x[0], x[1]) for x in zipped]
 
 
