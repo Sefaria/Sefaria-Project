@@ -1176,7 +1176,7 @@ class SignUpModal extends Component {
   render() {
     const innerContent = [
       ["star-white.png", Sefaria._("Save texts")],
-      ["sheet-white.png", Sefaria._("Make sources sheets")],
+      ["sheet-white.png", Sefaria._("Make source sheets")],
       ["note-white.png", Sefaria._("Take notes")],
       ["email-white.png", Sefaria._("Stay in the know")],
     ].map(x => (
