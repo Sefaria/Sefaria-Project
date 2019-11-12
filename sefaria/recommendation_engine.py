@@ -1,4 +1,5 @@
 import django
+from functools import reduce
 django.setup()
 from collections import defaultdict
 from sefaria.model import *
@@ -25,13 +26,13 @@ class RecommendationSource:
         self.anchor_ref = anchor_ref
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
-        return u"RecommendationSource: {}, {}".format(self.source, self.anchor_ref.normal())
+        return "RecommendationSource: {}, {}".format(self.source, self.anchor_ref.normal())
 
     def __repr__(self):
-        return u"{}({}, {})".format(self.__class__.__name__, self.source, self.anchor_ref).encode('utf-8')
+        return "{}({}, {})".format(self.__class__.__name__, self.source, self.anchor_ref).encode('utf-8')
     
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
@@ -66,13 +67,13 @@ class Recommendation:
         return self
 
     def __unicode__(self):
-        return u"Recommendation: {}, {}, {}".format(self.ref.normal(), self.score, self.sources)
+        return "Recommendation: {}, {}, {}".format(self.ref.normal(), self.score, self.sources)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __repr__(self):
-        return u"{}({}, score={}, sources={})".format(self.__class__.__name__, self.ref, self.score, self.sources).encode('utf-8')
+        return "{}({}, score={}, sources={})".format(self.__class__.__name__, self.ref, self.score, self.sources).encode('utf-8')
 
     def to_dict(self):
         return {
@@ -91,7 +92,7 @@ class Recommendation:
 
     def sources_interesting(self):
         # make sure either source has more than 2 sheets or direct linkss
-        filt = filter(lambda x: (x.source.startswith("Sheet ") or x.source == "direct"), self.sources)
+        filt = [x for x in self.sources if (x.source.startswith("Sheet ") or x.source == "direct")]
         return len(filt) >= 2
 
 
@@ -137,7 +138,7 @@ class RecommendationEngine:
         for temp_rec in self.recommendations:
             d[temp_rec.ref.normal()] += temp_rec
             pass
-        self.recommendations = d.values()
+        self.recommendations = list(d.values())
         return self
 
     def filter_recs(self):
@@ -150,7 +151,7 @@ class RecommendationEngine:
             if not rec.sources_interesting():
                 return False
             return True
-        self.recommendations = filter(filterer, self.recommendations)
+        self.recommendations = list(filter(filterer, self.recommendations))
         return self
 
     def choose_top(self, top):
@@ -171,12 +172,12 @@ class RecommendationEngine:
                     ranged_ref = cluster[0]["data"].ref.to(cluster[-1]["data"].ref)
                     return Recommendation(ranged_ref, score=max(scores), sources=list(set(sources)))
                 else:
-                    argmax = max(range(len(scores)), key=lambda i: scores[i])  # see here for this semi-readable hack for argmax() https://towardsdatascience.com/there-is-no-argmax-function-for-python-list-cd0659b05e49
+                    argmax = max(list(range(len(scores))), key=lambda i: scores[i])  # see here for this semi-readable hack for argmax() https://towardsdatascience.com/there-is-no-argmax-function-for-python-list-cd0659b05e49
                     return cluster[argmax]["data"]
 
         ref_list = [rec.ref for rec in self.recommendations]
         clusters = self.cluster_close_refs(ref_list, self.recommendations, self.cluster_max_dist)
-        self.recommendations = map(combine_cluster, clusters)
+        self.recommendations = list(map(combine_cluster, clusters))
         return self
 
     @staticmethod
@@ -199,7 +200,7 @@ class RecommendationEngine:
             # set is used b/c sometimes there are duplicate links
             temp_direct_links = set()
             initial_links = get_links(section_ref.normal(), with_text=False)
-            filtered_links = filter(lambda l: len(range_set & {r.normal() for r in Ref(l['anchorRef']).range_list()}) > 0, initial_links)
+            filtered_links = [l for l in initial_links if len(range_set & {r.normal() for r in Ref(l['anchorRef']).range_list()}) > 0]
             direct_links |= {(l['ref'], l['category'] in ('Commentary', 'Modern Commentary'), Ref(l['anchorRef'])) for l in filtered_links}
         for link_tref, is_comment, anchor_ref in direct_links:
             # Steinsaltz is hard-coded to have same connections as Talmud which will double count Talmud connections
@@ -216,9 +217,9 @@ class RecommendationEngine:
         other_data = [(x[1], x[2]) for x in direct_links]
         direct_links, _, other_data, focus_ref_subref = RecommendationEngine.normalize_related_refs([x[0] for x in direct_links], None, DIRECT_LINK_SCORE, other_data=other_data)
         direct_ref_set = set(direct_links)
-        is_comment_list, anchor_ref_list = zip(*other_data)
+        is_comment_list, anchor_ref_list = list(zip(*other_data))
         final_rex = [Recommendation(Ref(x), relevance=DIRECT_LINK_SCORE, sources=[RecommendationSource('direct', anchor_ref)]) for x, anchor_ref in zip(direct_links, anchor_ref_list)] + commentary_links
-        commentary_ref_set = set(map(lambda x: x[0], filter(lambda x: x[1], zip(direct_links, is_comment_list))))
+        commentary_ref_set = set([x[0] for x in [x for x in zip(direct_links, is_comment_list) if x[1]]])
         return final_rex, commentary_ref_set, direct_ref_set
 
     @staticmethod
@@ -258,7 +259,7 @@ class RecommendationEngine:
                 if (k in included_ref_dict and included_ref_dict[k]["score"] < focus_range_factor) or k not in included_ref_dict:
                     included_ref_dict[k] = {"score": focus_range_factor, "source": "Sheet " + str(sheet["id"]), "anchor_ref": focus_ref_subref}
 
-        return [Recommendation(Ref(r), relevance=d["score"], sources=[RecommendationSource(d["source"], d["anchor_ref"])]) for (r, _), d in included_ref_dict.items()]
+        return [Recommendation(Ref(r), relevance=d["score"], sources=[RecommendationSource(d["source"], d["anchor_ref"])]) for (r, _), d in list(included_ref_dict.items())]
 
     @staticmethod
     def cluster_close_refs(ref_list, data_list, dist_threshold):
@@ -356,15 +357,15 @@ class RecommendationEngine:
                 final_other_data += [other_data_item]
         if count_steinsaltz:
             # transform mentions of steinsaltz to talmud
-            final_refs = map(lambda x: x.replace("Steinsaltz on ", ""), final_refs)
+            final_refs = [x.replace("Steinsaltz on ", "") for x in final_refs]
         else:
             # throw out steinsaltz
-            filter_result = filter(lambda x: "Steinsaltz on " not in x[0], zip(final_refs, final_other_data))
+            filter_result = [x for x in zip(final_refs, final_other_data) if "Steinsaltz on " not in x[0]]
             final_refs, final_other_data = reduce(lambda a, b: [a[0]+[b[0]], a[1]+[b[1]]], filter_result, [[], []])
 
         focus_ref_subref = None
         if focus_ref_subset is not None:
-            focus_ref_subref_list = sorted(map(lambda x: Ref(x), list(focus_ref_subset)), key=lambda x: x.order_id())
+            focus_ref_subref_list = sorted([Ref(x) for x in list(focus_ref_subset)], key=lambda x: x.order_id())
             focus_ref_subref = focus_ref_subref_list[0].to(focus_ref_subref_list[-1])
         if focus_ref_subset is not None or not check_has_ref:
             return final_refs, focus_range_factor, final_other_data, focus_ref_subref

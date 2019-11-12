@@ -22,12 +22,12 @@ from sefaria.model.story import UserStory, UserStorySet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import django_cache
-from history import record_sheet_publication, delete_sheet_publication
-from settings import SEARCH_INDEX_ON_SAVE
-import search
+from .history import record_sheet_publication, delete_sheet_publication
+from .settings import SEARCH_INDEX_ON_SAVE
+from . import search
 import sys
 import hashlib
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import logging
 logger = logging.getLogger(__name__)
 
@@ -278,7 +278,7 @@ def trending_tags(days=7, ntags=14):
 		tags[norm_term]["sheet_count"] += tag["sheet_count"]
 		tags[norm_term]["authors"].update(set(tag["authors"]))
 
-	for tag in tags.items():
+	for tag in list(tags.items()):
 		if len(tag[0]) and len(tag[1]["authors"]) > 1:  # A trend needs to include at least 2 people
 			results.append({"tag": tag[0], 
 							"count": tag[1]["sheet_count"],
@@ -302,25 +302,25 @@ def rebuild_sheet_nodes(sheet):
 
 	for source in sheet.get("sources", []):
 		if "node" not in source:
-			print "adding nodes to sheet {}".format(sheet_id)
+			print("adding nodes to sheet {}".format(sheet_id))
 			next_node = find_next_unused_node(next_node, nodes_used)
 			source["node"] = next_node
 
 		elif source["node"] is None:
-			print "found null node in sheet {}".format(sheet_id)
+			print("found null node in sheet {}".format(sheet_id))
 			next_node = find_next_unused_node(next_node, nodes_used)
 			source["node"] = next_node
 			nodes_used.add(next_node)
 
 		elif source["node"] in nodes_used:
-			print "found repeating node in sheet " + str(sheet["id"])
+			print("found repeating node in sheet " + str(sheet["id"]))
 			next_node = find_next_unused_node(next_node, nodes_used)
 			source["node"] = next_node
 
 		nodes_used.add(source["node"])
 
 		if "ref" in source and "text" not in source:
-			print "adding sources to sheet {}".format(sheet_id)
+			print("adding sources to sheet {}".format(sheet_id))
 			source["text"] = {}
 
 			try:
@@ -333,7 +333,7 @@ def rebuild_sheet_nodes(sheet):
 					source["text"]["he"] = tc_heb.ja().flatten_to_string()
 
 			except:
-				print "error on {} on sheet {}".format(source["ref"], sheet_id)
+				print("error on {} on sheet {}".format(source["ref"], sheet_id))
 				continue
 
 		checked_sources.append(source)
@@ -424,7 +424,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			index_name = search.get_new_and_current_index_names("sheet")['current']
 			search.index_sheet(index_name, sheet["id"])
 		except:
-			logger.error(u"Failed index on " + str(sheet["id"]))
+			logger.error("Failed index on " + str(sheet["id"]))
 
 	'''
 	global last_updated
@@ -539,7 +539,7 @@ def refine_ref_by_text(ref, text):
 
 	start, end = None, None
 	for n in range(len(hay)):
-		if not isinstance(hay[n], basestring):
+		if not isinstance(hay[n], str):
 			# TODO handle this case
 			# happens with spanning ref like "Shabbat 3a-3b"
 			return ref
@@ -574,7 +574,7 @@ def update_included_refs(query=None, hours=None, refine_refs=False):
 		query = { "dateModified": { "$gt": cutoff.isoformat() } }
 
 	if query is None:
-		print "Specify either a query or number of recent hours to update."
+		print("Specify either a query or number of recent hours to update.")
 		return
 
 	sheets = db.sheets.find(query)
@@ -634,11 +634,11 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				match = model.Ref(match)
 			except InputError:
 				continue
-			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None})
+			ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None})
 
 			default_image = "https://www.sefaria.org/static/img/profile-default.png"
 			gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
-			gravatar_url_small = gravatar_base + urllib.urlencode({'d': default_image, 's': str(80)})
+			gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d': default_image, 's': str(80)})
 
 			if "assigner_id" in sheet:
 				asignerData = public_user_data(sheet["assigner_id"])
@@ -739,14 +739,14 @@ def public_tag_list(sort_by="alpha"):
 	for tag in unnormalized_tags:
 		tags[model.Term.normalize(tag["tag"], lang)] += tag["count"]
 
-	for tag in tags.items():
+	for tag in list(tags.items()):
 		if len(tag[0]):
 			results.append({"tag": tag[0], "count": tag[1]})
 
 	sort_keys =  {
 		"alpha": lambda x: x["tag"],
 		"count": lambda x: -x["count"],
-		"alpha-hebrew": lambda x: x["tag"] if len(x["tag"]) and x["tag"][0] in u"אבגדהוזחטיכלמנסעפצקרשת0123456789" else u"ת" + x["tag"],
+		"alpha-hebrew": lambda x: x["tag"] if len(x["tag"]) and x["tag"][0] in "אבגדהוזחטיכלמנסעפצקרשת0123456789" else "ת" + x["tag"],
 	}
 	results = sorted(results, key=sort_keys[sort_by])
 
@@ -900,7 +900,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		import regex
 		title = strip_tags(self.title)
 		# Consider a sheet Hebrew if its title contains Hebrew character but no English characters
-		return is_hebrew(title) and not regex.search(u"[a-z|A-Z]", title)
+		return is_hebrew(title) and not regex.search("[a-z|A-Z]", title)
 
 
 class SheetSet(abstract.AbstractMongoSet):
@@ -911,7 +911,7 @@ def change_tag(old_tag, new_tag_or_list):
 	# new_tag_or_list can be either a string or a list of strings
 	# if a list of strings, then old_tag is replaced with all of the tags in the list
 
-	new_tag_list = [new_tag_or_list] if isinstance(new_tag_or_list, basestring) else new_tag_or_list
+	new_tag_list = [new_tag_or_list] if isinstance(new_tag_or_list, str) else new_tag_or_list
 
 	for sheet in SheetSet({"tags": old_tag}):
 		sheet.tags = [tag for tag in sheet.tags if tag != old_tag] + new_tag_list

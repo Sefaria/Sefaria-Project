@@ -1,5 +1,5 @@
 # coding=utf-8
-from urlparse import urlparse
+from urllib.parse import urlparse
 from datetime import datetime
 
 from . import abstract as abst
@@ -23,7 +23,7 @@ class WebPage(abst.AbstractMongoRecord):
         "body",
     ]
     def load(self, url_or_query):
-        query = {"url": url_or_query} if isinstance(url_or_query, basestring) else url_or_query
+        query = {"url": url_or_query} if isinstance(url_or_query, str) else url_or_query
         return super(WebPage, self).load(query)
         
     def _init_defaults(self):

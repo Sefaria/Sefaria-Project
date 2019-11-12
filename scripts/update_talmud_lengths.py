@@ -9,10 +9,10 @@ for ind in i:
     try:
         l = ind.nodes.lengths
         if ac != l:
-            print u"{} {}:{}".format(ind.title, ac, l)
+            print("{} {}:{}".format(ind.title, ac, l))
             ind.nodes.lengths = ac[:]
             ind.save()
     except Exception as e:
-        print u"{} {}".format(ind.title, e)
+        print("{} {}".format(ind.title, e))
         ind.nodes.lengths = ac[:]
         ind.save()

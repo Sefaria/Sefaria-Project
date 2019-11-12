@@ -22,9 +22,9 @@ class MessagingNode(object):
     def _pop_subscription_msg(self):
         m = self.pubsub.get_message()
         if not m:
-            logger.error(u"No subscribe message found")
+            logger.error("No subscribe message found")
         elif m["type"] != "subscribe":
-            logger.error(u"Expecting subscribe message, found: {}".format(m))
+            logger.error("Expecting subscribe message, found: {}".format(m))
 
     def _check_initialization(self):
         if not getattr(self, "redis_client", None) or not getattr(self, "pubsub", None):

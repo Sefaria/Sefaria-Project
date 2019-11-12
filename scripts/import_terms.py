@@ -5,7 +5,7 @@ from sefaria.model import Term, TermSet
 from sefaria.utils.util import titlecase
 from sefaria.sheets import change_tag
 from sefaria.system.database import db
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 h = HTMLParser()
 
 # Assumption: first term loaded can grab primary title
@@ -56,7 +56,7 @@ replacement_pairs += [("Mishneg Torah", "Mishneh Torah"),
 ("Love, Attraction, Magnetism, Magnetic Attraction","Love, Attraction, Magnetism, Magnetic Attraction".split(",")),
 ("Passover,","Passover"),
 ("Jew Curious,","Jew Curious"),
-(u"Be’ersheva, sheep, wells, oaths, art, collage","Be'ersheva, sheep, wells, oaths, art, collage".split(",")),
+("Be’ersheva, sheep, wells, oaths, art, collage","Be'ersheva, sheep, wells, oaths, art, collage".split(",")),
 ("Passover, Goat, Sacrifice, Egypt, Lotus","Passover, Goat, Sacrifice, Egypt, Lotus".split(",")),
 ("God's Ways; Mercy; Compassion; Hesed","God's Ways; Mercy; Compassion; Hesed".split(";")),
 ("Purim, Megillat Esther, Mishneh Torah","Purim, Megillat Esther, Mishneh Torah".split(","))]
@@ -109,7 +109,7 @@ with open(en_file, 'rb') as tfile:
         all_names = [he_name] + [en_primary] + en_names + he_synonyms.get(he_name, [])
         already_used = [name_to_term_map.get(x) for x in all_names if name_to_term_map.get(x)]
         if len(set(already_used)) >= 2:
-            print u"Bridged Terms: {} {}".format(en_primary, [t.get_primary_title("en") for t in already_used])
+            print("Bridged Terms: {} {}".format(en_primary, [t.get_primary_title("en") for t in already_used]))
 
         elif len(set(already_used)) == 1:
             existing_term = already_used[0]
@@ -151,7 +151,7 @@ with open(en_file, 'rb') as tfile:
 
 # Collapse Terms to list and print / save
 
-unique_terms = list(set([o for (k, o) in name_to_term_map.items()]))
+unique_terms = list(set([o for (k, o) in list(name_to_term_map.items())]))
 unique_terms.sort(key=lambda t: t.count, reverse=True)
 for term in unique_terms:
     if "-" in term.get_primary_title("en"):
@@ -163,12 +163,12 @@ for term in unique_terms:
         term.name = new_primary
 
     try:
-        print u"{} / {} / {}".format(term.count, term.get_primary_title("en"), term.get_primary_title("he"))
-        print
+        print("{} / {} / {}".format(term.count, term.get_primary_title("en"), term.get_primary_title("he")))
+        print()
         term.save()
     except Exception as e:
-        print "ERROR saving %s" % term.get_primary_title("en")
-        print getattr(e, "message").encode("utf-8")
+        print("ERROR saving %s" % term.get_primary_title("en"))
+        print(getattr(e, "message").encode("utf-8"))
 
 
 db.term.ensure_index("titles.text", unique=True)

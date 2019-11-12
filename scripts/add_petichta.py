@@ -13,5 +13,5 @@ if __name__ == "__main__":
         parent = i.nodes
         new_node = JaggedArrayNode()
         new_node.add_structure(["Paragraph"])
-        new_node.add_primary_titles("Petichta", u"פתיחתא")
+        new_node.add_primary_titles("Petichta", "פתיחתא")
         insert_first_child(new_node, parent)

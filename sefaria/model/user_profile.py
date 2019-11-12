@@ -1,5 +1,5 @@
 import hashlib
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import re
 import bleach
 import sys
@@ -9,6 +9,7 @@ from datetime import datetime
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
+from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
@@ -77,7 +78,7 @@ class UserHistory(abst.AbstractMongoRecord):
         if "last_place" not in attrs:
             attrs["last_place"] = False
         # remove empty versions
-        for k, v in attrs.get("versions", {}).items():
+        for k, v in list(attrs.get("versions", {}).items()):
             if v is None:
                 del attrs["versions"][k]
         if load_existing:
@@ -127,9 +128,9 @@ class UserHistory(abst.AbstractMongoRecord):
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
             keys = {
-                'ref': u'',
-                'he_ref': u'',
-                'book': u'',
+                'ref': '',
+                'he_ref': '',
+                'book': '',
                 'versions': {},
                 'time_stamp': 0,
                 'saved': False,
@@ -140,7 +141,7 @@ class UserHistory(abst.AbstractMongoRecord):
                 'sheet_title': '',
             }
             d = {
-                key: d.get(key, default) for key, default in keys.items()
+                key: d.get(key, default) for key, default in list(keys.items())
             }
         return d
 
@@ -283,8 +284,8 @@ class UserProfile(object):
         # Gravatar
         default_image           = "https://www.sefaria.org/static/img/profile-default.png"
         gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
-        self.gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
-        self.gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+        self.gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
+        self.gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
@@ -334,7 +335,7 @@ class UserProfile(object):
                 return None
             except AttributeError:
                 return None
-        return filter(None, [xformer(r) for r in recents])
+        return [_f for _f in [xformer(r) for r in recents] if _f]
 
     def migrateFromOldRecents(self, profile):
         """
@@ -363,7 +364,7 @@ class UserProfile(object):
 
     def update_empty(self, obj):
         self._set_flags_on_update(obj)
-        for k, v in obj.items():
+        for k, v in list(obj.items()):
             if v:
                 if k not in self.__dict__ or self.__dict__[k] == '' or self.__dict__[k] == []:
                     self.__dict__[k] = v
@@ -406,20 +407,20 @@ class UserProfile(object):
         url_val = URLValidator()
         try:
             if self.facebook: url_val(self.facebook)
-        except ValidationError, e:
+        except ValidationError as e:
             return "The Facebook URL you entered is not valid."
         try:
             if self.linkedin: url_val(self.linkedin)
-        except ValidationError, e:
+        except ValidationError as e:
             return "The LinkedIn URL you entered is not valid."
         try:
             if self.website: url_val(self.website)
-        except ValidationError, e:
+        except ValidationError as e:
             return "The Website URL you entered is not valid."
         email_val = EmailValidator()
         try:
             if self.email: email_val(self.email)
-        except ValidationError, e:
+        except ValidationError as e:
             return "The email address you entered is not valid."
 
         return None
@@ -625,7 +626,7 @@ def email_unread_notifications(timeframe):
             msg.send()
             notifications.mark_read(via="email")
         except AnymailRecipientsRefused:
-            print u'bad email address: {}'.format(to)
+            print('bad email address: {}'.format(to))
 
         if "interface_language" in profile.settings:
             translation.deactivate()
@@ -730,10 +731,10 @@ def annotate_user_list(uids):
 
 
 def process_index_title_change_in_user_history(indx, **kwargs):
-    print "Cascading User History from {} to {}".format(kwargs['old'], kwargs['new'])
+    print("Cascading User History from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from text import re as reg_reg
+    from .text import re as reg_reg
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in Ref(indx.title).regex(as_list=True)]
     queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
@@ -743,4 +744,4 @@ def process_index_title_change_in_user_history(indx, **kwargs):
         try:
             o.save()
         except InputError:
-            logger.warning(u"Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
+            logger.warning("Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))

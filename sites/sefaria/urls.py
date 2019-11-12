@@ -68,7 +68,7 @@ site_urlpatterns += [
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
-    url(r'^[nN]echama/?', lambda x: HttpResponseRedirect(u"/groups/גיליונות-נחמה")),
+    url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/groups/גיליונות-נחמה")),
 ]
 
 

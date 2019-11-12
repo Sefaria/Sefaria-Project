@@ -12,5 +12,5 @@ df = pd.DataFrame(list(User.objects.all().values('date_joined', 'email', 'first_
 month_joined = df['date_joined'].groupby(df.date_joined.dt.to_period("M")).agg('count')
 
 
-print month_joined
+print(month_joined)
 

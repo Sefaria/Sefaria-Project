@@ -123,6 +123,6 @@ for i in range(18):
 	for person in points:
 		count += points[person]
 		if count > winner:
-			print "%d. %s" % (i+1, person)
+			print("%d. %s" % (i+1, person))
 			del points[person]
 			break

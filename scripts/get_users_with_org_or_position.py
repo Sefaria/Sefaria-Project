@@ -17,7 +17,7 @@ for user in users:
 	if profile.organization != "" or profile.position != "":
 		out += "%s\t%s\t%s\t%s\t%s\n" % (user.email, user.first_name, user.last_name, profile.organization, profile.position)
 
-print out
+print(out)
 
 f = open('contacts.csv','w')
 f.write(out.encode('utf-8'))

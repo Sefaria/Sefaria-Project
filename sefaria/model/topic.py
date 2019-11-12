@@ -1,7 +1,7 @@
 """
 topic.py
 """
-from __future__ import absolute_import
+
 
 import pickle
 import time
@@ -76,8 +76,8 @@ class Topic(abst.AbstractMongoRecord):
                     if tag != self.topic: 
                         related_topics_dict[tag] += 1
          
-        self.sources = sorted(sources_dict.iteritems(), key=lambda (k,v): v, reverse=True)
-        self.related_topics = sorted(related_topics_dict.iteritems(), key=lambda (k,v): v, reverse=True)
+        self.sources = sorted(iter(sources_dict.items()), key=lambda k_v: k_v[1], reverse=True)
+        self.related_topics = sorted(iter(related_topics_dict.items()), key=lambda k_v1: k_v1[1], reverse=True)
         #self.sheets = sheets_serialized
 
     def filter(self, topics):
@@ -186,7 +186,7 @@ class TopicsManager(object):
                 if self.is_included(topic):
                     topic_count[topic] += 1
 
-        return sorted(topic_count.iteritems(), key=lambda (k,v): v, reverse=True)
+        return sorted(iter(topic_count.items()), key=lambda k_v2: k_v2[1], reverse=True)
 
     def is_included(self, topic):
         self._lazy_load()
@@ -209,7 +209,7 @@ class TopicsManager(object):
             "count": lambda x: -x["count"],
         }
         results = []
-        for topic in self.topics.keys():
+        for topic in list(self.topics.keys()):
             results.append({"tag": topic, "good_to_promote": self.topics[topic].good_to_promote, "count": len(self.topics[topic].sources)})
         results = sorted(results, key=sort_keys[sort_by])
 

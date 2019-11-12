@@ -22,8 +22,8 @@ from sefaria.model.text import AbstractIndex
 
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from summaries import CATEGORY_ORDER
-from local_settings import SEFARIA_EXPORT_PATH
+from .summaries import CATEGORY_ORDER
+from .local_settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
 
@@ -73,7 +73,7 @@ def make_json(doc):
     Returns JSON of 'doc' with export settings.
     """
     if "original_text" in doc:
-        doc = {k: v for k, v in doc.iteritems() if k is not "original_text"}
+        doc = {k: v for k, v in doc.items() if k is not "original_text"}
     return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
 
 
@@ -92,37 +92,37 @@ def make_text(doc, strip_html=False):
 
     index = library.get_index(doc["title"])
     versionSource = doc["versionSource"] or ""
-    text = u"\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], versionSource])
+    text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], versionSource])
 
     if "versions" in doc:
         if not len(doc["versions"]):
             return None # Occurs when text versions don't actually have content
-        text += u"\nThis file contains merged sections from the following text versions:"
+        text += "\nThis file contains merged sections from the following text versions:"
         for v in doc["versions"]:
-            text += u"\n-%s\n-%s" % (v[0], v[1])
+            text += "\n-%s\n-%s" % (v[0], v[1])
 
     def make_node(node, depth, **kwargs):
         if not node.children:
-            content = u"\n\n%s\n\n" % node.primary_title(doc["language"])
+            content = "\n\n%s\n\n" % node.primary_title(doc["language"])
             cnode = version.content_node(node)
             if strip_html:
                 cnode = version.remove_html_and_make_presentable(cnode)
             content += flatten(cnode, node.sectionNames)
             return content
         else:
-            return u"\n\n%s" % node.primary_title(doc["language"])
+            return "\n\n%s" % node.primary_title(doc["language"])
 
     def flatten(text, sectionNames):
-        text = text or u""
+        text = text or ""
         if len(sectionNames) == 1:
             text = [t if t else "" for t in text]
             # Bandaid for mismatch between text structure, join recursively if text
             # elements are lists instead of strings.
-            return u"\n".join([t if isinstance(t, basestring) else u"\n".join(t) for t in text])
-        flat = u""
+            return "\n".join([t if isinstance(t, str) else "\n".join(t) for t in text])
+        flat = ""
         for i in range(len(text)):
             section = section_to_daf(i + 1) if sectionNames[0] == "Daf" else str(i + 1)
-            flat += u"\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:]))
+            flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:]))
 
         return flat
 
@@ -164,7 +164,7 @@ def make_cltk_full(doc):
             for i,content in enumerate(content_list):
                 if type(content) == list:
                     temp = traverse_to_cltk(content,**kwargs)
-                    if len(temp.keys()) > 0:
+                    if len(list(temp.keys())) > 0:
                         new_js[str(i)] = temp
                 elif content != "":
                     new_js[str(i)] = content
@@ -204,9 +204,9 @@ def make_cltk_flat(doc):
             content["section_names"] = node.sectionNames
         return content
 
-    def traverse_to_cltk(old_js,title=u"",section_names=None, **kwargs):
+    def traverse_to_cltk(old_js,title="",section_names=None, **kwargs):
         new_js = {}
-        title_begin = title if title == u"" else u"{}, ".format(title)
+        title_begin = title if title == "" else "{}, ".format(title)
         if not "nodes" in old_js:
             content_list = []
             if "content" in old_js:
@@ -223,17 +223,17 @@ def make_cltk_flat(doc):
                 section_names = section_names[1:]
 
             for i,content in enumerate(content_list):
-                curr_section = u"" if len(section_names) == 0 else u"_{}".format(section_names[0])
-                temp_title = u"{}{}{}".format(title_begin,str(i),curr_section)
+                curr_section = "" if len(section_names) == 0 else "_{}".format(section_names[0])
+                temp_title = "{}{}{}".format(title_begin,str(i),curr_section)
                 if type(content) == list:
                     new_js.update(traverse_to_cltk(content,temp_title,section_names,**kwargs))
-                elif content != u"":
+                elif content != "":
                     new_js[temp_title] = content
 
         else:
             for i,childJs in enumerate(old_js["nodes"]):
                 curr_node = old_js["nodes"][i]
-                new_js.update(traverse_to_cltk(curr_node,u"{}{}_{}".format(title_begin,str(i),curr_node["title"]),**kwargs))
+                new_js.update(traverse_to_cltk(curr_node,"{}{}_{}".format(title_begin,str(i),curr_node["title"]),**kwargs))
 
         return new_js
 
@@ -283,7 +283,7 @@ def write_text_doc_to_disk(doc=None):
     for format in export_formats:
         out = format[1](doc)
         if not out:
-            print "Skipping %s - no content" % doc["title"]
+            print("Skipping %s - no content" % doc["title"])
             return
         path = make_path(doc, format[0], extension=format[2] if len(format) == 3 else None)
         if not os.path.exists(os.path.dirname(path)):
@@ -300,7 +300,7 @@ def prepare_text_for_export(text):
     by preparing it as a export document and passing to 'write_text_doc_to_disk'.
     """
     try:
-        print text["title"]
+        print(text["title"])
     except KeyError as e:
         log_error('text does\'t contain "title": {}'.format(str(text)))
         return
@@ -308,7 +308,7 @@ def prepare_text_for_export(text):
     try:
         index = library.get_index(text["title"])
     except Exception as e:
-        print "Skipping %s - %s" % (text["title"], e.message)
+        print("Skipping %s - %s" % (text["title"], e.message))
         return
     if any([n.is_virtual for n in index.nodes.get_leaf_nodes()]):  #skip virtual nodes
         return
@@ -354,7 +354,7 @@ def prepare_text_for_export(text):
 
 
 def text_is_copyright(text):
-    return "license" in text and (type(text['license']) is str or type(text['license']) is unicode) \
+    return "license" in text and (type(text['license']) is str or type(text['license']) is str) \
            and text["license"].startswith("Copyright")
 
 
@@ -393,7 +393,7 @@ def prepare_merged_text_for_export(title, lang=None):
     }
     text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
 
-    print "%d versions in %s" % (text_docs.count(), lang)
+    print("%d versions in %s" % (text_docs.count(), lang))
 
 
     # Exclude copyrighted docs from merging
@@ -441,7 +441,7 @@ def export_all_merged():
         except:
             continue
 
-        print title
+        print(title)
         if not title:
             log_error('None title in texts')
             continue
@@ -463,7 +463,7 @@ def export_schemas():
                 f.write(make_json(i.contents(v2=True)).encode('utf-8'))
 
             except InputError as e:
-                print "InputError: %s" % e
+                print("InputError: %s" % e)
                 with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
                     error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
             except Exception as e:
@@ -482,7 +482,7 @@ def export_links():
     """
     Creates a single CSV file containing all links known to Sefaria.
     """
-    print "Exporting links..."
+    print("Exporting links...")
     links_by_book = Counter()
     links_by_book_without_commentary = Counter()
 
@@ -555,7 +555,7 @@ def export_links():
 
 
 def export_tag_graph():
-    print "Exporting tag graph..."
+    print("Exporting tag graph...")
     counts = Counter()
     sheets = db.sheets.find()
     tags = db.sheets.distinct("tags")
@@ -756,7 +756,7 @@ def _import_versions_from_csv(rows, columns, user_id):
         # Populate it
         for row in rows[5:]:
             ref = Ref(row[0])
-            print "Saving: {}".format(ref.normal())
+            print("Saving: {}".format(ref.normal()))
             try:
                 modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
             except InputError:

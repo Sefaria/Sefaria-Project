@@ -34,8 +34,8 @@ def handle_dependant_indices(title):
     if len(dependant_indices) == 0:
         return
 
-    print "{}Warning! Commentary linking will be removed for {} texts{}".\
-        format('\033[93m', len(dependant_indices), '\033[0m')  # The text prints in yellow
+    print("{}Warning! Commentary linking will be removed for {} texts{}".\
+        format('\033[93m', len(dependant_indices), '\033[0m'))  # The text prints in yellow
 
     for record in dependant_indices:
         record.base_text_mapping = None
@@ -425,7 +425,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     assert len(section_names) > 0
 
     if hasattr(ja_node, 'lengths'):
-        print 'WARNING: This node has predefined lengths!'
+        print('WARNING: This node has predefined lengths!')
         del ja_node.lengths
 
     # `delta` is difference in depth.  If positive, we're adding depth.
@@ -493,13 +493,13 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     ja_node._init_address_classes()
     index = ja_node.index
     index.save(override_dependencies=True)
-    print 'Index Saved'
+    print('Index Saved')
     library.refresh_index_record_in_cache(index)
     # ensure the index on the ja_node object is updated with the library refresh
     ja_node.index = library.get_index(ja_node.index.title)
 
     vs = [v for v in index.versionSet()]
-    print 'Updating Versions'
+    print('Updating Versions')
     for v in vs:
         assert isinstance(v, Version)
         if v.get_index() == index:
@@ -576,8 +576,8 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                     try:
                         record.save()
                     except InputError as e:
-                        print 'Bad Data Found: {}'.format(refs)
-                        print e
+                        print('Bad Data Found: {}'.format(refs))
+                        print(e)
             else:
                 if needs_rewrite(refs, record):
                     if sub_attr_name is None:
@@ -588,8 +588,8 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                     try:
                         record.save()
                     except InputError as e:
-                        print 'Bad Data Found: {}'.format(refs)
-                        print e
+                        print('Bad Data Found: {}'.format(refs))
+                        print(e)
 
     def clean_sheets(sheets_to_update):
 
@@ -599,7 +599,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
                 try:
                     ref = Ref(source["ref"])
                 except (InputError, ValueError):
-                    print "Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"])
+                    print("Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"]))
                 else:
                     if needs_rewrite(source['ref']):
                         requires_save = True
@@ -613,7 +613,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
             needs_save = False
             sheet = db.sheets.find_one({"id": sid})
             if not sheet:
-                print "Likely error - can't load sheet {}".format(sid)
+                print("Likely error - can't load sheet {}".format(sid))
             for source in sheet["sources"]:
                 if rewrite_source(source):
                     needs_save = True
@@ -628,7 +628,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
             return
         needs_save = False
 
-        for name, struct in index.get_alt_structures().iteritems():
+        for name, struct in index.get_alt_structures().items():
             for map_node in struct.get_leaf_nodes():
                 assert map_node.depth <= 1, "Need to write some code to handle alt structs with depth > 1!"
                 wr = map_node.wholeRef
@@ -643,7 +643,7 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         if needs_save:
             index.save()
 
-    if isinstance(ref_identifier, basestring):
+    if isinstance(ref_identifier, str):
         ref_identifier = Ref(ref_identifier)
     assert isinstance(ref_identifier, Ref)
 
@@ -656,24 +656,24 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         query_list = [{attribute: {'$regex': '^' + query}} for query in queries]
         return {'$or': query_list}
 
-    print 'Updating Links'
+    print('Updating Links')
     generic_rewrite(LinkSet(construct_query('refs', identifier)), attr_name='refs')
-    print 'Updating Notes'
+    print('Updating Notes')
     generic_rewrite(NoteSet(construct_query('ref', identifier)))
-    print 'Updating Transx Requests'
+    print('Updating Transx Requests')
     generic_rewrite(TranslationRequestSet(construct_query('ref', identifier)))
-    print 'Updating User History'
+    print('Updating User History')
     generic_rewrite(UserHistorySet(construct_query('ref', identifier)))
-    print 'Updating Ref Data'
+    print('Updating Ref Data')
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
-    print 'Updating Garden Stops'
+    print('Updating Garden Stops')
     generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
-    print 'Updating Sheets'
+    print('Updating Sheets')
     clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
-    print 'Updating Alternate Structs'
+    print('Updating Alternate Structs')
     update_alt_structs(ref_identifier.index)
     if not skip_history:
-        print 'Updating History'
+        print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
         generic_rewrite(HistorySet(construct_query('new.ref', identifier), sort=[('new.ref', 1)]), attr_name='new', sub_attr_name='ref')
         generic_rewrite(HistorySet(construct_query('new.refs', identifier), sort=[('new.refs', 1)]), attr_name='new', sub_attr_name='refs')
@@ -803,7 +803,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
             return segment_map[ref.normal()]
 
 
-    print "begin conversion"
+    print("begin conversion")
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
 
     #create a new index with a temp file #make sure to later add all the alternate titles
@@ -824,7 +824,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
     en_title = temp_index.get_title('en')
     temp_index.title = "Complex {}".format(en_title)
     he_title = temp_index.get_title('he')
-    temp_index.set_title(u'{} זמני'.format(he_title), 'he')
+    temp_index.set_title('{} זמני'.format(he_title), 'he')
     temp_index.save()
     #the rest of the title variants need to be copied as well but it will create conflicts while the orig index exists, so we do it after removing the old index in completely_delete_index_and_related.py
 
@@ -834,7 +834,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
         migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
     except InputError as e:
         temp_index.delete()
-        print e.message
+        print(e.message)
         raise e
 
     #are there commentaries? Need to move the text for them to conform to the new structure
@@ -862,9 +862,9 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):
-        print version.versionTitle.encode('utf-8')
+        print(version.versionTitle.encode('utf-8'))
         new_version_title = version.title.replace(orig_title, new_title)
-        print new_version_title
+        print(new_version_title)
         new_version = Version(
                 {
                     "chapter": base_index.nodes.create_skeleton(),
@@ -882,7 +882,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
         for orig_ref in mappings:
             #this makes the mapping contain the correct text/commentary title
             orig_ref = orig_ref.replace(orig_title, version.title)
-            print orig_ref
+            print(orig_ref)
             orRef = Ref(orig_ref)
             tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
             ref_text = tc.text
@@ -891,11 +891,11 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             # and have it changed to the temp index title
             dest_ref = mappings[orig_ref].replace(orig_title, version.title)
             dest_ref = dest_ref.replace(orig_title, new_title)
-            print dest_ref
+            print(dest_ref)
 
             dRef = Ref(dest_ref)
             ref_depth = dRef.range_index() if dRef.is_range() else len(dRef.sections)
-            text_depth = 0 if isinstance(ref_text, basestring) else list_depth(ref_text) #length hack to fit the correct JA
+            text_depth = 0 if isinstance(ref_text, str) else list_depth(ref_text) #length hack to fit the correct JA
             implied_depth = ref_depth + text_depth
             desired_depth = dRef.index_node.depth
             for i in range(implied_depth, desired_depth):
@@ -931,7 +931,7 @@ def toc_opml():
             </opml>
             """ % "\n".join([opml_node(node) for node in toc])
 
-    print opml
+    print(opml)
 
 
 def toc_plaintext():
@@ -949,4 +949,4 @@ def toc_plaintext():
 
     text = "".join([text_node(node, 0) for node in toc])
 
-    print text
+    print(text)

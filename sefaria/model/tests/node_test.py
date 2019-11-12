@@ -12,10 +12,10 @@ class Test_Validate(object):
     def test_jaggedarray_fields(self):
 
         j = JaggedArrayNode()
-        j.add_title(u"title1", "en", primary=True)\
-         .add_title(u"ייי", "he", primary=True)\
-         .add_title(u"title2", "en")\
-         .add_title(u"ייכי", "he")
+        j.add_title("title1", "en", primary=True)\
+         .add_title("ייי", "he", primary=True)\
+         .add_title("title2", "en")\
+         .add_title("ייכי", "he")
         j.depth = 1
         j.sectionNames = ["Foo"]
         j.addressTypes = ["Integer"]
@@ -63,26 +63,26 @@ class Test_Titles(object):
 
     def test_add(self):
         j = JaggedArrayNode()
-        j.add_title(u"title1", "en", primary=True)
-        j.add_title(u"ייי", "he", primary=True)
-        j.add_title(u"title2", "en")
-        j.add_title(u"ייכי", "he")
+        j.add_title("title1", "en", primary=True)
+        j.add_title("ייי", "he", primary=True)
+        j.add_title("title2", "en")
+        j.add_title("ייכי", "he")
         assert len(j.all_node_titles("he")) == 2
         assert len(j.all_node_titles("en")) == 2
 
-        assert j.primary_title("en") == u"title1"
-        j.add_title(u"title3", "en", primary=True, replace_primary=True)
+        assert j.primary_title("en") == "title1"
+        j.add_title("title3", "en", primary=True, replace_primary=True)
         assert len(j.all_node_titles("en")) == 3
         assert len(j.all_node_titles("he")) == 2
-        assert j.primary_title("en") == u"title3"
+        assert j.primary_title("en") == "title3"
 
     def test_remove(self):
         j = JaggedArrayNode()
-        j.add_title(u"title1", "en", primary=True)\
-         .add_title(u"ייי", "he", primary=True)\
-         .add_title(u"title2", "en")\
-         .add_title(u"ייכי", "he")
-        j.remove_title(u"title1", "en")
+        j.add_title("title1", "en", primary=True)\
+         .add_title("ייי", "he", primary=True)\
+         .add_title("title2", "en")\
+         .add_title("ייכי", "he")
+        j.remove_title("title1", "en")
         j.depth = 1
         j.sectionNames = ["Foo"]
         j.addressTypes = ["Integer"]
@@ -97,7 +97,7 @@ class Test_Titles(object):
         s = SchemaNode()
         s.key = "root"
         s.add_title("root", "en", primary=True)
-        s.add_title(u"שרש", "he", primary=True)
+        s.add_title("שרש", "he", primary=True)
 
         j = JaggedArrayNode()
         j.key = "bereshit"
@@ -121,11 +121,11 @@ class Test_Titles(object):
         assert len(td) == 5
 
         target = {
-            u'שרש': s,
-            u'שרש, בראשית': j,
-            u'שרש, נח': j2,
-            u'שרש בראשית': j,
-            u'שרש נח': j2,
+            'שרש': s,
+            'שרש, בראשית': j,
+            'שרש, נח': j2,
+            'שרש בראשית': j,
+            'שרש נח': j2,
         }
 
         assert td == target
@@ -351,7 +351,7 @@ class Test_Titles(object):
         s = SchemaNode()
         s.key = "root"
         s.add_title("root", "en", primary=True)
-        s.add_title(u"שורש", "he", primary=True)
+        s.add_title("שורש", "he", primary=True)
         s.add_title("alt root", "en")
 
         s2 = SchemaNode()
@@ -380,10 +380,10 @@ class Test_Titles(object):
     def test_duplicate_primary(self):
         with pytest.raises(IndexSchemaError):
             j = JaggedArrayNode()
-            j.add_title(u"title1", "en", primary=True)
-            j.add_title(u"title2", "en", primary=True)
+            j.add_title("title1", "en", primary=True)
+            j.add_title("title2", "en", primary=True)
 
         with pytest.raises(IndexSchemaError):
             j = JaggedArrayNode()
-            j.add_title(u"ייי", "he", primary=True)
-            j.add_title(u"ייעי", "he", primary=True)
+            j.add_title("ייי", "he", primary=True)
+            j.add_title("ייעי", "he", primary=True)

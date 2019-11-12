@@ -3,8 +3,8 @@
 import django
 django.setup()
 
-from framework import *
-import basic_tests
+from .framework import *
+from . import basic_tests
 import sys
 
 build = sys.argv[1]
@@ -13,7 +13,7 @@ t = Trial(platform="travis", build=build)
 t.run()
 results = t.results()
 
-print results.report()
+print(results.report())
 fails = results.number_failed()
 if fails > 0:
     sys.stderr.write(str(results))

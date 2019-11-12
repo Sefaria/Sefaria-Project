@@ -25,7 +25,7 @@ for l in ls:
     }
     ds += [d]
 
-ds = sorted(ds, key=lambda(x): x["_order"])
+ds = sorted(ds, key=lambda x: x["_order"])
 
 with open('../data/Mishnah Map.csv', 'w') as csvfile:
     fieldnames = ["Book",

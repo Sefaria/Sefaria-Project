@@ -67,8 +67,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     if with_text:
         text             = TextFamily(linkRef, context=0, commentary=False)
-        com["text"]      = text.text if isinstance(text.text, basestring) else JaggedTextArray(text.text).flatten_to_array()
-        com["he"]        = text.he if isinstance(text.he, basestring) else JaggedTextArray(text.he).flatten_to_array()
+        com["text"]      = text.text if isinstance(text.text, str) else JaggedTextArray(text.text).flatten_to_array()
+        com["he"]        = text.he if isinstance(text.he, str) else JaggedTextArray(text.he).flatten_to_array()
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
@@ -193,10 +193,10 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         try:
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
-            logger.warning(u"Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
             continue
         except AttributeError as e:
-            logger.error(u"AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
+            logger.error("AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
             continue
 
         # Rather than getting text with each link, walk through all links here,
@@ -215,8 +215,8 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             top_nref_tc = TextChunk(top_oref, lang)
                             versionInfoMap = None if not top_nref_tc._versions else {
                                 v.versionTitle: {
-                                    'license': getattr(v, 'license', u''),
-                                    'versionTitleInHebrew': getattr(v, 'versionTitleInHebrew', u'')
+                                    'license': getattr(v, 'license', ''),
+                                    'versionTitleInHebrew': getattr(v, 'versionTitleInHebrew', '')
                                 } for v in top_nref_tc._versions
                             }
                             if top_nref_tc.is_merged:
@@ -250,11 +250,11 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                         if attr not in com:
                             com[attr] = res
                         else:
-                            if isinstance(com[attr], basestring):
+                            if isinstance(com[attr], str):
                                 com[attr] = [com[attr]]
                             com[attr] += res
                         temp_version = temp_nref_data['version']
-                        if isinstance(temp_version, basestring) or temp_version is None:
+                        if isinstance(temp_version, str) or temp_version is None:
                             com[versionAttr] = temp_version
                             com[licenseAttr] = temp_nref_data['license']
                             com[vtitleInHeAttr] = temp_nref_data['versionTitleInHebrew']
@@ -276,7 +276,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             com[vtitleInHeAttr] = versionTitlesInHebrew
             links.append(com)
         except NoVersionFoundError as e:
-            logger.warning(u"Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
+            logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
 
     # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
@@ -292,7 +292,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                 return link
             base_links = [add_prefix(link) for link in base_links]
             orig_links_refs = [(origlink['sourceRef'], origlink['anchorRef']) for origlink in links]
-            base_links = filter(lambda x: ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"]), base_links)
+            base_links = [x for x in base_links if ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"])]
             links += base_links
 
     links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]

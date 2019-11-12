@@ -4,10 +4,10 @@ from sefaria.clean import remove_old_counts
 
 # Move the history books
 
-model.IndexSet({"categories":"History"}).update({"categories": [u'Apocrypha']})
+model.IndexSet({"categories":"History"}).update({"categories": ['Apocrypha']})
 
 anaBekhoach = model.Index().load({'title': 'Ana BeKhoach'})
-anaBekhoach.categories = [u'Liturgy',u'Piyutim'] #why doesn't update() work on an instance?
+anaBekhoach.categories = ['Liturgy','Piyutim'] #why doesn't update() work on an instance?
 anaBekhoach.save()
 
 model.IndexSet({"title":{"$regex": "Rabbah?"}}).update({"categories": ['Midrash', 'Aggadic Midrash', 'Midrash Rabbah']})

@@ -34,35 +34,35 @@ class SheetStats(object):
 		Builds and sorts counts across all sheets.
 		If `test` is not 0, only sample 1 in every `test` sheets to count.
 		"""
-		print "Loading sheets..."
+		print("Loading sheets...")
 		proj = {"sources.ref": 1, "tags": 1, "options": 1, "status": 1, "id": 1}
 		if query:
 			sheets            = db.sheets.find(query, proj)
 			self.total = sheets.count()
-			print "%d matching query" % sheets.count()
+			print("%d matching query" % sheets.count())
 		else:
 			sheets            = db.sheets.find()
 			self.total        = sheets.count()
-			print "%d Total" % self.total
+			print("%d Total" % self.total)
 			self.public_total = db.sheets.find({"status": "public"}, proj).count()
-			print "%d Public" % self.public_total
+			print("%d Public" % self.public_total)
 		
-		print "Processing tags..."
+		print("Processing tags...")
 		self.top_tags     = sheet_tag_counts({})
 
-		print "Processing sheets..."
+		print("Processing sheets...")
 		for sheet in sheets: 
 			if test == 0 or randrange(test) == 1:
 				self.count_sheet(sheet)
 
-		print "Sorting..."
+		print("Sorting...")
 		self.sort()
-		print "Done."
+		print("Done.")
 	
 	def count_sheet(self, sheet):
 		id = sheet.get("id", 1)
 		if id % 1000 == 0:
-			print '{0}%\r'.format(((id * 100)/self.total))
+			print('{0}%\r'.format(((id * 100)/self.total)))
 		self.count_sources(sheet.get("sources", []), sheet.get("tags", []), sheet.get("id", -1))
 		if "options" in sheet and "language" in sheet["options"]:
 			self.languages[sheet["options"]["language"]] += 1
@@ -107,22 +107,22 @@ class SheetStats(object):
 				continue
 
 	def sort(self):
-		self.sorted_refs               = sorted(self.refs.iteritems(), key=lambda x: -x[1])
-		self.sorted_texts              = sorted(self.texts.iteritems(), key=lambda x: -x[1])
-		self.sorted_categories         = sorted(self.categories.iteritems(), key=lambda x: -x[1])
-		self.sorted_books              = sorted(self.books.iteritems(), key=lambda x: -x[1])
-		self.sorted_untrans_refs       = sorted(self.untrans_refs.iteritems(), key=lambda x: -x[1])
-		self.sorted_untrans_texts      = sorted(self.untrans_texts.iteritems(), key=lambda x: -x[1])
-		self.sorted_untrans_categories = sorted(self.untrans_categories.iteritems(), key=lambda x: -x[1])
-		self.sorted_fragments          = sorted(self.fragments.iteritems(), key=lambda x: -len(x[1]))
+		self.sorted_refs               = sorted(iter(self.refs.items()), key=lambda x: -x[1])
+		self.sorted_texts              = sorted(iter(self.texts.items()), key=lambda x: -x[1])
+		self.sorted_categories         = sorted(iter(self.categories.items()), key=lambda x: -x[1])
+		self.sorted_books              = sorted(iter(self.books.items()), key=lambda x: -x[1])
+		self.sorted_untrans_refs       = sorted(iter(self.untrans_refs.items()), key=lambda x: -x[1])
+		self.sorted_untrans_texts      = sorted(iter(self.untrans_texts.items()), key=lambda x: -x[1])
+		self.sorted_untrans_categories = sorted(iter(self.untrans_categories.items()), key=lambda x: -x[1])
+		self.sorted_fragments          = sorted(iter(self.fragments.items()), key=lambda x: -len(x[1]))
 
 		self.sorted_refs_by_tag = {}
 		for ref in self.refs_by_tag:
-			self.sorted_refs_by_tag[ref] = sorted(self.refs_by_tag[ref].iteritems(), key=lambda x: -x[1])
+			self.sorted_refs_by_tag[ref] = sorted(iter(self.refs_by_tag[ref].items()), key=lambda x: -x[1])
 
 		self.sorted_refs_by_category = {}
 		for ref in self.refs_by_category:
-			self.sorted_refs_by_category[ref] = sorted(self.refs_by_category[ref].iteritems(), key=lambda x: -x[1])
+			self.sorted_refs_by_category[ref] = sorted(iter(self.refs_by_category[ref].items()), key=lambda x: -x[1])
 
 	def collapse_ref_counts(self, refs):
 		"""
@@ -143,62 +143,62 @@ class SheetStats(object):
 					matched = True
 			if not matched:
 				collapsed_refs[ref1[0]] = ref1[1]
-		return sorted(collapsed_refs.iteritems(), key=lambda x: -x[1])
+		return sorted(iter(collapsed_refs.items()), key=lambda x: -x[1])
 		 
 	def print_stats(self):
 		show_count = self.show_count
-		print "*********************************\n"
-		print "%d Total Sheets" % self.total
+		print("*********************************\n")
+		print("%d Total Sheets" % self.total)
 		if hasattr(self,"public_total"):
-			print "%d Public Sheets" % self.public_total
-		print "\n"
-		print "%0.1f%% Bilingual" % (100 * self.languages["bilingual"] / float(self.total))
-		print "%0.1f%% Hebrew" % (100 * self.languages["hebrew"] / float(self.total))
-		print "%0.1f%% English" % (100 * self.languages["english"] / float(self.total))
-		print "\n"
-		print "\n%d Sources" % self.sources_count
-		print "%d Untranslated Sources" % self.comments_count
-		print "\n"
-		print "%d Comments" % self.comments_count
-		print "%d Outside Texts" % self.outside_count
-		print "\n"
-		print "%d Potential Fragments (translations in sheets not saved in DB)" % self.fragments_count
+			print("%d Public Sheets" % self.public_total)
+		print("\n")
+		print("%0.1f%% Bilingual" % (100 * self.languages["bilingual"] / float(self.total)))
+		print("%0.1f%% Hebrew" % (100 * self.languages["hebrew"] / float(self.total)))
+		print("%0.1f%% English" % (100 * self.languages["english"] / float(self.total)))
+		print("\n")
+		print("\n%d Sources" % self.sources_count)
+		print("%d Untranslated Sources" % self.comments_count)
+		print("\n")
+		print("%d Comments" % self.comments_count)
+		print("%d Outside Texts" % self.outside_count)
+		print("\n")
+		print("%d Potential Fragments (translations in sheets not saved in DB)" % self.fragments_count)
 
-		print "\n******* Top Sources ********\n"
+		print("\n******* Top Sources ********\n")
 		for item in self.sorted_refs[:show_count]:
-			print "%s: %d" % (item[0], item[1])
+			print("%s: %d" % (item[0], item[1]))
 
-		print "\n******* Top Texts ********\n"
+		print("\n******* Top Texts ********\n")
 		for item in self.sorted_texts[:show_count]:
-			print "%s: %d" % (item[0], item[1])
+			print("%s: %d" % (item[0], item[1]))
 
-		print "\n******* Top Categories ********\n"
+		print("\n******* Top Categories ********\n")
 		for item in self.sorted_categories[:show_count]:
-			print "%s: %d" % (item[0], item[1])
+			print("%s: %d" % (item[0], item[1]))
 
-		print "\n******* Top Untranslated Sources ********\n"
+		print("\n******* Top Untranslated Sources ********\n")
 		for item in self.sorted_untrans_refs[:show_count]:
-			print "%s: %d" % (item[0], item[1])
+			print("%s: %d" % (item[0], item[1]))
 
-		print "\n******* Top Untranslated Texts ********\n"
+		print("\n******* Top Untranslated Texts ********\n")
 		for item in self.sorted_untrans_texts[:show_count]:
-			print "%s: %d" % (item[0], item[1])
+			print("%s: %d" % (item[0], item[1]))
 
-		print "\n******* Top Untranslated Categories ********\n"
+		print("\n******* Top Untranslated Categories ********\n")
 		for item in self.sorted_untrans_categories[:show_count]:
-			print "%s: %d" % (item[0], item[1])
+			print("%s: %d" % (item[0], item[1]))
 
-		print "\n******* Top Fragments ********\n"
+		print("\n******* Top Fragments ********\n")
 		for item in self.sorted_fragments[:show_count]:
-			print "%s: %d" % (item[0], len(item[1]))
+			print("%s: %d" % (item[0], len(item[1])))
 
-		print "\n******* Top Refs by Category ********\n"
+		print("\n******* Top Refs by Category ********\n")
 		for cat in self.sorted_refs_by_category:
-			print "%s: %s" % (cat, self.sorted_refs_by_category[cat][0][0])
+			print("%s: %s" % (cat, self.sorted_refs_by_category[cat][0][0]))
 
-		print "\n******* Top Refs by Tag ********\n"
+		print("\n******* Top Refs by Tag ********\n")
 		for tag in self.top_tags[:50]:
-			print "%s: %s" % (tag["tag"], self.sorted_refs_by_tag[tag["tag"]][0][0])
+			print("%s: %s" % (tag["tag"], self.sorted_refs_by_tag[tag["tag"]][0][0]))
 		
 	def save_top_sources_sheet(self):
 		sheet = {

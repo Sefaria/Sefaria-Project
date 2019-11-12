@@ -26,7 +26,7 @@ with open("./data/sheet_ref_disambiguated.csv", "rb") as fin:
 
 for i, id in enumerate(ids):
     if i % 100 == 0:
-        print i
+        print(i)
     if id not in disambiguated_dict:
         continue
     sheet = db.sheets.find_one({"id": id})
@@ -42,7 +42,7 @@ for i, id in enumerate(ids):
         try:
             source_ref_norm = Ref(source["ref"]).normal()
         except InputError:
-            print "error parsing {}".format(source["ref"])
+            print("error parsing {}".format(source["ref"]))
             continue
         for mapping in mapping_list:
             if source_ref_norm == mapping["Old Ref"]:
@@ -54,13 +54,13 @@ for i, id in enumerate(ids):
 
     db.sheets.update({'_id': sheet["_id"]}, sheet)
 
-print "checking not used..."
+print("checking not used...")
 num_not_used = 0
-for k, v in disambiguated_dict.items():
-    for k1, v1 in v.items():
+for k, v in list(disambiguated_dict.items()):
+    for k1, v1 in list(v.items()):
         for m in v1:
             if not m.get("used", False):
                 num_not_used += 1
-                print u"{} {} {}".format(k, k1, m["Old Ref"])
+                print("{} {} {}".format(k, k1, m["Old Ref"]))
 
-print "not used {}".format(num_not_used)
+print("not used {}".format(num_not_used))

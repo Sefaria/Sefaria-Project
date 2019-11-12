@@ -84,14 +84,14 @@ def spreadsheet(file, results, columns_order):
 if __name__ == "__main__":
     params = " ".join(sys.argv[1:]).split(",")
     collective_title = params[0]
-    print collective_title
+    print(collective_title)
     titles = library.get_indexes_in_category(collective_title, include_dependant=True)
     file = "spread.csv"
     results = {}
     columns_order = ["title", "word count", "link count", "segment count", "link %", "comm section count", "base section count", "sections %"]
     count = 0
     for title in titles:
-        print title
+        print(title)
         mdc = MetaDataCommentary(title, lang='he')
         mdc.calc()
         results[title] = mdc.results

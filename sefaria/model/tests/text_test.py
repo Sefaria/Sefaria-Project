@@ -61,7 +61,7 @@ def test_dup_index_save():
     with pytest.raises(InputError) as e_info:
         d2 = {
             "title": title,
-            "heTitle": u"פרשן ב",
+            "heTitle": "פרשן ב",
             "titleVariants": [title],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Commentary"],
@@ -221,7 +221,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
 
 def test_index_title_setter():
     title = 'Test Index Name'
-    he_title = u"דוגמא"
+    he_title = "דוגמא"
     d = {
          "categories" : [
             "Liturgy"
@@ -296,72 +296,72 @@ def test_index_title_setter():
 def test_get_index():
     r = model.library.get_index("Rashi on Exodus")
     assert isinstance(r, model.Index)
-    assert u'Rashi on Exodus' == r.title
+    assert 'Rashi on Exodus' == r.title
 
     r = model.library.get_index("Exodus")
     assert isinstance(r, model.Index)
-    assert r.title == u'Exodus'
+    assert r.title == 'Exodus'
 
 
 def test_text_helpers():
     res = model.library.get_dependant_indices()
-    assert u'Rashbam on Genesis' in res
-    assert u'Rashi on Bava Batra' in res
-    assert u'Bartenura on Mishnah Oholot' in res
-    assert u'Onkelos Leviticus' in res
-    assert u'Chizkuni' in res
-    assert u'Akeidat Yitzchak' not in res
-    assert u'Berakhot' not in res
+    assert 'Rashbam on Genesis' in res
+    assert 'Rashi on Bava Batra' in res
+    assert 'Bartenura on Mishnah Oholot' in res
+    assert 'Onkelos Leviticus' in res
+    assert 'Chizkuni' in res
+    assert 'Akeidat Yitzchak' not in res
+    assert 'Berakhot' not in res
 
     res = model.library.get_indices_by_collective_title("Rashi")
-    assert u'Rashi on Bava Batra' in res
-    assert u'Rashi on Genesis' in res
-    assert u'Rashbam on Genesis' not in res
+    assert 'Rashi on Bava Batra' in res
+    assert 'Rashi on Genesis' in res
+    assert 'Rashbam on Genesis' not in res
 
     res = model.library.get_indices_by_collective_title("Bartenura")
-    assert u'Bartenura on Mishnah Shabbat' in res
-    assert u'Bartenura on Mishnah Oholot' in res
-    assert u'Rashbam on Genesis' not in res
+    assert 'Bartenura on Mishnah Shabbat' in res
+    assert 'Bartenura on Mishnah Oholot' in res
+    assert 'Rashbam on Genesis' not in res
 
     res = model.library.get_dependant_indices(book_title="Exodus")
-    assert u'Ibn Ezra on Exodus' in res
-    assert u'Ramban on Exodus' in res
-    assert u'Meshech Hochma' in res
-    assert u'Abarbanel on Torah' in res
-    assert u'Targum Jonathan on Exodus' in res
-    assert u'Onkelos Exodus' in res
-    assert u'Harchev Davar on Exodus' in res
+    assert 'Ibn Ezra on Exodus' in res
+    assert 'Ramban on Exodus' in res
+    assert 'Meshech Hochma' in res
+    assert 'Abarbanel on Torah' in res
+    assert 'Targum Jonathan on Exodus' in res
+    assert 'Onkelos Exodus' in res
+    assert 'Harchev Davar on Exodus' in res
 
-    assert u'Exodus' not in res
-    assert u'Rashi on Genesis' not in res
+    assert 'Exodus' not in res
+    assert 'Rashi on Genesis' not in res
 
     res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary')
-    assert u'Ibn Ezra on Exodus' in res
-    assert u'Ramban on Exodus' in res
-    assert u'Meshech Hochma' in res
-    assert u'Abarbanel on Torah' in res
-    assert u'Harchev Davar on Exodus' in res
+    assert 'Ibn Ezra on Exodus' in res
+    assert 'Ramban on Exodus' in res
+    assert 'Meshech Hochma' in res
+    assert 'Abarbanel on Torah' in res
+    assert 'Harchev Davar on Exodus' in res
 
-    assert u'Targum Jonathan on Exodus' not in res
-    assert u'Onkelos Exodus' not in res
-    assert u'Exodus' not in res
-    assert u'Rashi on Genesis' not in res
+    assert 'Targum Jonathan on Exodus' not in res
+    assert 'Onkelos Exodus' not in res
+    assert 'Exodus' not in res
+    assert 'Rashi on Genesis' not in res
 
     res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary', structure_match=True)
-    assert u'Ibn Ezra on Exodus' in res
-    assert u'Ramban on Exodus' in res
+    assert 'Ibn Ezra on Exodus' in res
+    assert 'Ramban on Exodus' in res
 
-    assert u'Harchev Davar on Exodus' not in res
-    assert u'Meshech Hochma' not in res
-    assert u'Abarbanel on Torah' not in res
-    assert u'Exodus' not in res
-    assert u'Rashi on Genesis' not in res
+    assert 'Harchev Davar on Exodus' not in res
+    assert 'Meshech Hochma' not in res
+    assert 'Abarbanel on Torah' not in res
+    assert 'Exodus' not in res
+    assert 'Rashi on Genesis' not in res
 
     cats = model.library.get_text_categories()
-    assert u'Tanakh' in cats
-    assert u'Torah' in cats
-    assert u'Prophets' in cats
-    assert u'Commentary' in cats
+    assert 'Tanakh' in cats
+    assert 'Torah' in cats
+    assert 'Prophets' in cats
+    assert 'Commentary' in cats
 
 
 def test_index_update():
@@ -375,7 +375,7 @@ def test_index_update():
 
     i = model.Index({
         "title": ti,
-        "heTitle": u"כבכב",
+        "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Musar"],
@@ -387,7 +387,7 @@ def test_index_update():
 
     i = model.Index().update({"title": ti}, {
         "title": ti,
-        "heTitle": u"כבכב",
+        "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Philosophy"]
@@ -406,7 +406,7 @@ def test_index_delete():
 
     i = model.Index({
         "title": ti,
-        "heTitle": u"כבכב",
+        "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Musar"],
@@ -421,7 +421,7 @@ def test_index_delete():
                     "title": i.title
                 }
     )
-    new_version1.chapter = [[u''],[u''],[u"לה לה לה לא חשוב על מה"]]
+    new_version1.chapter = [[''],[''],["לה לה לה לא חשוב על מה"]]
     new_version1.save()
     new_version2 = model.Version(
                 {
@@ -448,7 +448,7 @@ def test_index_name_change():
 
     #Simple Text
     tests = [
-        (u"The Book of Maccabees I", u"Movement of Ja People"),  # Simple Text
+        ("The Book of Maccabees I", "Movement of Ja People"),  # Simple Text
         # (u"Rashi", u"The Vintner")              # Commentator Invalid after commentary refactor?
     ]
 
@@ -458,7 +458,7 @@ def test_index_name_change():
         # Make sure that the test isn't passing just because we've been comparing 0 to 0
         assert all([cnt > 0 for cnt in dep_counts(old, index)])
 
-        for cnt in dep_counts(new, index).values():
+        for cnt in list(dep_counts(new, index).values()):
             assert cnt == 0
 
         old_counts = dep_counts(old, index)
@@ -476,7 +476,7 @@ def test_index_name_change():
         index.save()
         #assert old_index == index   #needs redo of titling, above, i suspect
         assert old_counts == dep_counts(old, index)
-        for cnt in dep_counts(new, index).values():
+        for cnt in list(dep_counts(new, index).values()):
             assert cnt == 0
 
 

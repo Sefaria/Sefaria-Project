@@ -23,7 +23,7 @@ def test_text_index_map():
     # Test Range
     g = Ref('Genesis 1:31-2:2')
     chunk = g.text('en', 'The Holy Scriptures: A New Translation (JPS 1917)')
-    ind_list, ref_list, total_len = chunk.text_index_map(lambda x: x.split(u' '))
+    ind_list, ref_list, total_len = chunk.text_index_map(lambda x: x.split(' '))
     assert (ind_list, ref_list) == ([0, 26, 40], [Ref('Genesis 1:31'), Ref('Genesis 2:1'), Ref('Genesis 2:2')])
 
     #test depth 3 with empty sections
@@ -62,7 +62,7 @@ def test_verse_chunk():
         TextChunk(Ref("Daniel 2:3"), "he")
     ]
     for c in chunks:
-        assert isinstance(c.text, basestring)
+        assert isinstance(c.text, str)
         assert len(c.text)
 
 
@@ -82,7 +82,7 @@ def test_depth_1_chunk():
     c = TextChunk(Ref("Hadran"), "he")
     assert isinstance(c.text, list)
     c = TextChunk(Ref("Hadran 3"), "he")
-    assert isinstance(c.text, basestring)
+    assert isinstance(c.text, str)
 
 
 def test_out_of_range_chunks():
@@ -430,16 +430,16 @@ def test_complex_with_depth_1():
     # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
     r = Ref('Pesach Haggadah, Kadesh 1')
     c = TextChunk(r, "he")
-    assert u"כוס ראשון" in c.text
+    assert "כוס ראשון" in c.text
 
     r = Ref('Pesach Haggadah, Kadesh 2')
     c = TextChunk(r, "he")
-    assert u"קַדֵּשׁ" in c.text
+    assert "קַדֵּשׁ" in c.text
 
     r = Ref('Pesach Haggadah, Kadesh 2-4')
     c = TextChunk(r, "he")
     assert len(c.text) == 3
-    assert u"קַדֵּשׁ" in c.text[0]
+    assert "קַדֵּשׁ" in c.text[0]
 
     #Comparing Hebrew is hard.
     #assert u"בְּשַׁבָּת מַתְחִילִין" in c.text[1]
@@ -447,8 +447,8 @@ def test_complex_with_depth_1():
 
     c = TextChunk(r, "en")
     assert len(c.text) == 3
-    assert u"Kiddush" in c.text[0]
-    assert u"seventh day" in c.text[2]
+    assert "Kiddush" in c.text[0]
+    assert "seventh day" in c.text[2]
 
 
 def test_complex_with_depth_2():

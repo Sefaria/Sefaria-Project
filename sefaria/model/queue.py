@@ -30,7 +30,7 @@ class IndexQueue(abst.AbstractMongoRecord):
         for attr in self.required_attrs:
             duplicate_query[attr] = getattr(self, attr, None)
         if self.__class__().load(duplicate_query):
-            logger.warning(u"Aborting save of {}.  Duplicate found: {}".format(self.__class__.__name__, vars(self)))
+            logger.warning("Aborting save of {}.  Duplicate found: {}".format(self.__class__.__name__, vars(self)))
         else:
             super(self.__class__, self).save()
 

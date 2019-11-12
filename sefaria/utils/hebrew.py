@@ -18,16 +18,16 @@ logger = logging.getLogger(__name__)
 
 
 ### Change to all caps for constants
-GERESH = u"\u05F3"
-GERSHAYIM = u"\u05F4"
-ALPHABET_22 = u"אבגדהוזחטיכלמנסעפצקרשת"
-FINAL_LETTERS = u"םןץףך"
+GERESH = "\u05F3"
+GERSHAYIM = "\u05F4"
+ALPHABET_22 = "אבגדהוזחטיכלמנסעפצקרשת"
+FINAL_LETTERS = "םןץףך"
 ALPHABET_27 = ALPHABET_22 + FINAL_LETTERS
 
-H2E_KEYBOARD_MAP = {u"/": u"q", u"׳": u"w", u"ק": u"e", u"ר": u"r", u"א": u"t", u"ט": u"y", u"ו": u"u", u"ן": u"i", u"ם": u"o", u"פ": u"p", u"ש": u"a", u"ד": u"s", u"ג": u"d", u"כ": u"f", u"ע": u"g", u"י": u"h", u"ח": u"j", u"ל": u"k", u"ך": u"l", u"ף": u";", u",": u"'", u"ז": u"z", u"ס": u"x", u"ב": u"c", u"ה": u"v", u"נ": u"b", u"מ": u"n", u"צ": u"m", u"ת": u",", u"ץ": u".", u".": u"/"}
-E2H_KEYBOARD_MAP = {u"'": u',', u',': u'\u05ea', u'.': u'\u05e5', u'/': u'.', u';': u'\u05e3', u'A': u'\u05e9', u'B': u'\u05e0', u'C': u'\u05d1', u'D': u'\u05d2', u'E': u'\u05e7', u'F': u'\u05db', u'G': u'\u05e2', u'H': u'\u05d9', u'I': u'\u05df', u'J': u'\u05d7', u'K': u'\u05dc', u'L': u'\u05da', u'M': u'\u05e6', u'N': u'\u05de', u'O': u'\u05dd', u'P': u'\u05e4', u'Q': u'/', u'R': u'\u05e8', u'S': u'\u05d3', u'T': u'\u05d0', u'U': u'\u05d5', u'V': u'\u05d4', u'W': u'\u05f3', u'X': u'\u05e1', u'Y': u'\u05d8', u'Z': u'\u05d6', u'a': u'\u05e9', u'b': u'\u05e0', u'c': u'\u05d1', u'd': u'\u05d2', u'e': u'\u05e7', u'f': u'\u05db', u'g': u'\u05e2', u'h': u'\u05d9', u'i': u'\u05df', u'j': u'\u05d7', u'k': u'\u05dc', u'l': u'\u05da', u'm': u'\u05e6', u'n': u'\u05de', u'o': u'\u05dd', u'p': u'\u05e4', u'q': u'/', u'r': u'\u05e8', u's': u'\u05d3', u't': u'\u05d0', u'u': u'\u05d5', u'v': u'\u05d4', u'w': u'\u05f3', u'x': u'\u05e1', u'y': u'\u05d8', u'z': u'\u05d6'}
-KEYBOARD_SWAP_MAP = {u"/": u"q", u"׳": u"w", u"ק": u"e", u"ר": u"r", u"א": u"t", u"ט": u"y", u"ו": u"u", u"ן": u"i", u"ם": u"o", u"פ": u"p", u"ש": u"a", u"ד": u"s", u"ג": u"d", u"כ": u"f", u"ע": u"g", u"י": u"h", u"ח": u"j", u"ל": u"k", u"ך": u"l", u"ף": u";", u",": u"'", u"ז": u"z", u"ס": u"x", u"ב": u"c", u"ה": u"v", u"נ": u"b", u"מ": u"n", u"צ": u"m", u"ת": u",", u"ץ": u".", u".": u"/",
-					u"'": u',', u',': u'\u05ea', u'.': u'\u05e5', u'/': u'.', u';': u'\u05e3', u'A': u'\u05e9', u'B': u'\u05e0', u'C': u'\u05d1', u'D': u'\u05d2', u'E': u'\u05e7', u'F': u'\u05db', u'G': u'\u05e2', u'H': u'\u05d9', u'I': u'\u05df', u'J': u'\u05d7', u'K': u'\u05dc', u'L': u'\u05da', u'M': u'\u05e6', u'N': u'\u05de', u'O': u'\u05dd', u'P': u'\u05e4', u'Q': u'/', u'R': u'\u05e8', u'S': u'\u05d3', u'T': u'\u05d0', u'U': u'\u05d5', u'V': u'\u05d4', u'W': u'\u05f3', u'X': u'\u05e1', u'Y': u'\u05d8', u'Z': u'\u05d6', u'a': u'\u05e9', u'b': u'\u05e0', u'c': u'\u05d1', u'd': u'\u05d2', u'e': u'\u05e7', u'f': u'\u05db', u'g': u'\u05e2', u'h': u'\u05d9', u'i': u'\u05df', u'j': u'\u05d7', u'k': u'\u05dc', u'l': u'\u05da', u'm': u'\u05e6', u'n': u'\u05de', u'o': u'\u05dd', u'p': u'\u05e4', u'q': u'/', u'r': u'\u05e8', u's': u'\u05d3', u't': u'\u05d0', u'u': u'\u05d5', u'v': u'\u05d4', u'w': u'\u05f3', u'x': u'\u05e1', u'y': u'\u05d8', u'z': u'\u05d6'}
+H2E_KEYBOARD_MAP = {"/": "q", "׳": "w", "ק": "e", "ר": "r", "א": "t", "ט": "y", "ו": "u", "ן": "i", "ם": "o", "פ": "p", "ש": "a", "ד": "s", "ג": "d", "כ": "f", "ע": "g", "י": "h", "ח": "j", "ל": "k", "ך": "l", "ף": ";", ",": "'", "ז": "z", "ס": "x", "ב": "c", "ה": "v", "נ": "b", "מ": "n", "צ": "m", "ת": ",", "ץ": ".", ".": "/"}
+E2H_KEYBOARD_MAP = {"'": ',', ',': '\u05ea', '.': '\u05e5', '/': '.', ';': '\u05e3', 'A': '\u05e9', 'B': '\u05e0', 'C': '\u05d1', 'D': '\u05d2', 'E': '\u05e7', 'F': '\u05db', 'G': '\u05e2', 'H': '\u05d9', 'I': '\u05df', 'J': '\u05d7', 'K': '\u05dc', 'L': '\u05da', 'M': '\u05e6', 'N': '\u05de', 'O': '\u05dd', 'P': '\u05e4', 'Q': '/', 'R': '\u05e8', 'S': '\u05d3', 'T': '\u05d0', 'U': '\u05d5', 'V': '\u05d4', 'W': '\u05f3', 'X': '\u05e1', 'Y': '\u05d8', 'Z': '\u05d6', 'a': '\u05e9', 'b': '\u05e0', 'c': '\u05d1', 'd': '\u05d2', 'e': '\u05e7', 'f': '\u05db', 'g': '\u05e2', 'h': '\u05d9', 'i': '\u05df', 'j': '\u05d7', 'k': '\u05dc', 'l': '\u05da', 'm': '\u05e6', 'n': '\u05de', 'o': '\u05dd', 'p': '\u05e4', 'q': '/', 'r': '\u05e8', 's': '\u05d3', 't': '\u05d0', 'u': '\u05d5', 'v': '\u05d4', 'w': '\u05f3', 'x': '\u05e1', 'y': '\u05d8', 'z': '\u05d6'}
+KEYBOARD_SWAP_MAP = {"/": "q", "׳": "w", "ק": "e", "ר": "r", "א": "t", "ט": "y", "ו": "u", "ן": "i", "ם": "o", "פ": "p", "ש": "a", "ד": "s", "ג": "d", "כ": "f", "ע": "g", "י": "h", "ח": "j", "ל": "k", "ך": "l", "ף": ";", ",": "'", "ז": "z", "ס": "x", "ב": "c", "ה": "v", "נ": "b", "מ": "n", "צ": "m", "ת": ",", "ץ": ".", ".": "/",
+					"'": ',', ',': '\u05ea', '.': '\u05e5', '/': '.', ';': '\u05e3', 'A': '\u05e9', 'B': '\u05e0', 'C': '\u05d1', 'D': '\u05d2', 'E': '\u05e7', 'F': '\u05db', 'G': '\u05e2', 'H': '\u05d9', 'I': '\u05df', 'J': '\u05d7', 'K': '\u05dc', 'L': '\u05da', 'M': '\u05e6', 'N': '\u05de', 'O': '\u05dd', 'P': '\u05e4', 'Q': '/', 'R': '\u05e8', 'S': '\u05d3', 'T': '\u05d0', 'U': '\u05d5', 'V': '\u05d4', 'W': '\u05f3', 'X': '\u05e1', 'Y': '\u05d8', 'Z': '\u05d6', 'a': '\u05e9', 'b': '\u05e0', 'c': '\u05d1', 'd': '\u05d2', 'e': '\u05e7', 'f': '\u05db', 'g': '\u05e2', 'h': '\u05d9', 'i': '\u05df', 'j': '\u05d7', 'k': '\u05dc', 'l': '\u05da', 'm': '\u05e6', 'n': '\u05de', 'o': '\u05dd', 'p': '\u05e4', 'q': '/', 'r': '\u05e8', 's': '\u05d3', 't': '\u05d0', 'u': '\u05d5', 'v': '\u05d4', 'w': '\u05f3', 'x': '\u05e1', 'y': '\u05d8', 'z': '\u05d6'}
 
 
 @memoized
@@ -35,37 +35,37 @@ def heb_to_int(unicode_char):
 	"""Converts a single Hebrew unicode character into its Hebrew numerical equivalent."""
 
 	hebrew_numerals = {
-		u"\u05D0": 1,
-		u"\u05D1": 2,
-		u"\u05D2": 3,
-		u"\u05D3": 4,
-		u"\u05D4": 5,
-		u"\u05D5": 6,
-		u"\u05D6": 7,
-		u"\u05D7": 8,
-		u"\u05D8": 9,
-		u"\u05D9": 10,
-		u"\u05DB": 20,
-		u"\u05DC": 30,
-		u"\u05DE": 40,
-		u"\u05E0": 50,
-		u"\u05E1": 60,
-		u"\u05E2": 70,
-		u"\u05E4": 80,
-		u"\u05E6": 90,
-		u"\u05E7": 100,
-		u"\u05E8": 200,
-		u"\u05E9": 300,
-		u"\u05EA": 400,  	# u"\u05F3": "'", # Hebrew geresh  # u"\u05F4": '"', # Hebrew gershayim  # u"'":	   "'",
-		u"\u05DA": 20,		# khaf sofit
-		u"\u05DD": 40,		# mem sofit
-		u"\u05DF": 50, 		# nun sofit
-		u"\u05E3": 80, 		# peh sofit
-		u"\u05E5": 90, 		# tzadi sofit
+		"\u05D0": 1,
+		"\u05D1": 2,
+		"\u05D2": 3,
+		"\u05D3": 4,
+		"\u05D4": 5,
+		"\u05D5": 6,
+		"\u05D6": 7,
+		"\u05D7": 8,
+		"\u05D8": 9,
+		"\u05D9": 10,
+		"\u05DB": 20,
+		"\u05DC": 30,
+		"\u05DE": 40,
+		"\u05E0": 50,
+		"\u05E1": 60,
+		"\u05E2": 70,
+		"\u05E4": 80,
+		"\u05E6": 90,
+		"\u05E7": 100,
+		"\u05E8": 200,
+		"\u05E9": 300,
+		"\u05EA": 400,  	# u"\u05F3": "'", # Hebrew geresh  # u"\u05F4": '"', # Hebrew gershayim  # u"'":	   "'",
+		"\u05DA": 20,		# khaf sofit
+		"\u05DD": 40,		# mem sofit
+		"\u05DF": 50, 		# nun sofit
+		"\u05E3": 80, 		# peh sofit
+		"\u05E5": 90, 		# tzadi sofit
 	}
 
-	if unicode_char not in hebrew_numerals.keys():
-		raise KeyError, u"Invalid Hebrew numeral character {}".format(unicode_char)
+	if unicode_char not in list(hebrew_numerals.keys()):
+		raise KeyError("Invalid Hebrew numeral character {}".format(unicode_char))
 
 	else:
 		return hebrew_numerals[unicode_char]
@@ -74,7 +74,7 @@ def heb_to_int(unicode_char):
 def split_thousands(n, littleendian=True):
 	"""
 	Takes a string representing a Hebrew numeral, returns a tuple of the component thousands
-	places.  Requires a geresh (apostrophe or '\u05F3') to indicate thousands.
+	places.  Requires a geresh (apostrophe or '\\u05F3') to indicate thousands.
 	Ignores single geresh at end for numbers < 10.
 
 	Default returns the smallest thousands group first in the tuple (little-endian).  Can be changed
@@ -100,11 +100,11 @@ def heb_string_to_int(n):
 	Takes a single thousands block of Hebrew characters, and returns the integer value of
 	that set of characters, ignoring thousands order of magnitude.
 
-	>>> heb_string_to_int(u'\u05ea\u05e9\u05e1\u05d3') # = u'תשסד'
+	>>> heb_string_to_int(u'\\u05ea\\u05e9\\u05e1\\u05d3') # = u'תשסד'
 	764
 	'''
 
-	n = re.sub(u'[\u05F4"]', u'', n)  # remove gershayim
+	n = re.sub('[\u05F4"]', '', n)  # remove gershayim
 	return sum(map(heb_to_int, n))
 
 @memoized
@@ -116,8 +116,8 @@ def decode_hebrew_numeral(n):
 	5764
 	"""
 
-	t = map(heb_string_to_int, split_thousands(n))  # split and convert to numbers
-	t = map(lambda (E, num): pow(10, 3 * E) * num, enumerate(t))  # take care of thousands and add
+	t = list(map(heb_string_to_int, split_thousands(n)))  # split and convert to numbers
+	t = [pow(10, 3 * E_num[0]) * E_num[1] for E_num in enumerate(t)]  # take care of thousands and add
 	return sum(t)
 
 
@@ -127,7 +127,7 @@ def chunks(l, n):
 	"""
 	Yield successive n-sized chunks from l.
 	"""
-	for i in xrange(0, len(l), n):
+	for i in range(0, len(l), n):
 		yield l[i:i + n]
 
 @memoized
@@ -138,38 +138,38 @@ def int_to_heb(integer):
 
 	Also accepts values divisible by 100 from 500 to 1100.
 
-	>> int_to_heb(10)          #This fails as a doctest.  The yud isn't seen as u'\u05d9'
+	>> int_to_heb(10)          #This fails as a doctest.  The yud isn't seen as u'\\u05d9'
 	י
-	>> int_to_heb(800)          #TavTav is not seen as u'\u05ea\u05ea'
+	>> int_to_heb(800)          #TavTav is not seen as u'\\u05ea\\u05ea'
 	תת
 	"""
 
 	hebrew_numerals = {
-		0: u"",
-		1: u"\u05D0",
-		2: u"\u05D1",
-		3: u"\u05D2",
-		4: u"\u05D3",
-		5: u"\u05D4",
-		6: u"\u05D5",
-		7: u"\u05D6",
-		8: u"\u05D7",
-		9: u"\u05D8",
-		10: u"\u05D9",
-		15: u"\u05D8\u05D5",  # Will not be hit when used with break_int_magnitudes
-		16: u"\u05D8\u05D6",  # Will not be hit when used with break_int_magnitudes
-		20: u"\u05DB",
-		30: u"\u05DC",
-		40: u"\u05DE",
-		50: u"\u05E0",
-		60: u"\u05E1",
-		70: u"\u05E2",
-		80: u"\u05E4",
-		90: u"\u05E6",
-		100: u"\u05E7",
-		200: u"\u05E8",
-		300: u"\u05E9",
-		400: u"\u05EA",
+		0: "",
+		1: "\u05D0",
+		2: "\u05D1",
+		3: "\u05D2",
+		4: "\u05D3",
+		5: "\u05D4",
+		6: "\u05D5",
+		7: "\u05D6",
+		8: "\u05D7",
+		9: "\u05D8",
+		10: "\u05D9",
+		15: "\u05D8\u05D5",  # Will not be hit when used with break_int_magnitudes
+		16: "\u05D8\u05D6",  # Will not be hit when used with break_int_magnitudes
+		20: "\u05DB",
+		30: "\u05DC",
+		40: "\u05DE",
+		50: "\u05E0",
+		60: "\u05E1",
+		70: "\u05E2",
+		80: "\u05E4",
+		90: "\u05E6",
+		100: "\u05E7",
+		200: "\u05E8",
+		300: "\u05E9",
+		400: "\u05EA",
 	}
 
 	# Fill in hebrew_numeral mappings up to 1100
@@ -177,7 +177,7 @@ def int_to_heb(integer):
 		hebrew_numerals[num] = hebrew_numerals[400] * (num // 400) + hebrew_numerals[num % 400]
 
 	if integer > 1100:
-		raise KeyError, "Asked to convert individual integer {} above 1100; too large.".format(integer)
+		raise KeyError("Asked to convert individual integer {} above 1100; too large.".format(integer))
 
 	else:
 		return hebrew_numerals[integer]
@@ -204,7 +204,7 @@ def break_int_magnitudes(n, start=None):
 	"""
 
 	if type(n) is not int:
-		raise TypeError, "Argument 'n' must be int, {} provided.".format(type(n))
+		raise TypeError("Argument 'n' must be int, {} provided.".format(type(n)))
 
 	# if n == 0:
 	# 	return [0]
@@ -212,7 +212,7 @@ def break_int_magnitudes(n, start=None):
 	# Set a default for 'start' if none specified
 	if start is not None:
 		if not (start % 10 == 0 or start == 1):
-			raise TypeError, "Argument 'start' must be 1 or divisible by 10, {} provided.".format(start)
+			raise TypeError("Argument 'start' must be 1 or divisible by 10, {} provided.".format(start))
 	else:
 		start = 10 ** int(math.log10(n))
 
@@ -245,11 +245,11 @@ def sanitize(input_string, punctuation=True):
 	# This takes care of all instances of 15/16, even in the thousands
 
 	replacement_pairs = (
-		(u'\u05d9\u05d4', u'\u05d8\u05d5'),  #15
-		(u'\u05d9\u05d5', u'\u05d8\u05d6'),  #16
-		(u'\u05e8\u05e2\u05d4', u'\u05e2\u05e8\u05d4'),  #275
-		(u'\u05e8\u05e2\u05d1', u'\u05e2\u05e8\u05d1'),  #272
-		(u'\u05e8\u05e2', u'\u05e2\u05e8'),  #270
+		('\u05d9\u05d4', '\u05d8\u05d5'),  #15
+		('\u05d9\u05d5', '\u05d8\u05d6'),  #16
+		('\u05e8\u05e2\u05d4', '\u05e2\u05e8\u05d4'),  #275
+		('\u05e8\u05e2\u05d1', '\u05e2\u05e8\u05d1'),  #272
+		('\u05e8\u05e2', '\u05e2\u05e8'),  #270
 	)
 
 	for wrong, right in replacement_pairs:
@@ -268,57 +268,57 @@ def sanitize(input_string, punctuation=True):
 
 
 def decompose_presentation_forms(orig_char):
-	decomp_map = {u'יִ': u'\u05d9\u05b4',
-		u'ﬞ ' : u'\u05bf',
-		u'ײַ': u'\u05f2\u05b7',
-		u'ﬠ': u'\u05e2',
-		u'ﬡ': u'\u05d0',
-		u'ﬢ': u'\u05d3',
-		u'ﬣ': u'\u05d4',
-		u'ﬤ': u'\u05db',
-		u'ﬥ': u'\u05dc',
-		u'ﬦ': u'\u05dd',
-		u'ﬧ': u'\u05e8',
-		u'ﬨ': u'\u05ea',
-		u'שׁ': u'\u05e9\u05c1',
-		u'שׂ': u'\u05e9\u05c2',
-		u'שּׁ': u'\u05e9\u05bc\u05c1',
-		u'שּׂ': u'\u05e9\u05bc\u05c2',
-		u'אַ': u'\u05d0\u05b7',
-		u'אָ': u'\u05d0\u05b8',
-		u'אּ': u'\u05d0\u05bc',
-		u'בּ': u'\u05d1\u05bc',
-		u'גּ': u'\u05d2\u05bc',
-		u'דּ': u'\u05d3\u05bc',
-		u'הּ': u'\u05d4\u05bc',
-		u'וּ': u'\u05d5\u05bc',
-		u'זּ': u'\u05d6\u05bc',
-		u'טּ': u'\u05d8\u05bc',
-		u'יּ': u'\u05d9\u05bc',
-		u'ךּ': u'\u05da\u05bc',
-		u'כּ': u'\u05db\u05bc',
-		u'לּ': u'\u05dc\u05bc',
-		u'מּ': u'\u05de\u05bc',
-		u'נּ': u'\u05e0\u05bc',
-		u'סּ': u'\u05e1\u05bc',
-		u'ףּ': u'\u05e3\u05bc',
-		u'פּ': u'\u05e4\u05bc',
-		u'צּ': u'\u05e6\u05bc',
-		u'קּ': u'\u05e7\u05bc',
-		u'רּ': u'\u05e8\u05bc',
-		u'שּ': u'\u05e9\u05bc',
-		u'תּ': u'\u05ea\u05bc',
-		u'וֹ': u'\u05d5\u05b9',
-		u'בֿ': u'\u05d1\u05bf',
-		u'כֿ': u'\u05db\u05bf',
-		u'פֿ': u'\u05e4\u05bf',
-		u'ﭏ': u'\u05d0\u05dc'
+	decomp_map = {'יִ': '\u05d9\u05b4',
+		'ﬞ ' : '\u05bf',
+		'ײַ': '\u05f2\u05b7',
+		'ﬠ': '\u05e2',
+		'ﬡ': '\u05d0',
+		'ﬢ': '\u05d3',
+		'ﬣ': '\u05d4',
+		'ﬤ': '\u05db',
+		'ﬥ': '\u05dc',
+		'ﬦ': '\u05dd',
+		'ﬧ': '\u05e8',
+		'ﬨ': '\u05ea',
+		'שׁ': '\u05e9\u05c1',
+		'שׂ': '\u05e9\u05c2',
+		'שּׁ': '\u05e9\u05bc\u05c1',
+		'שּׂ': '\u05e9\u05bc\u05c2',
+		'אַ': '\u05d0\u05b7',
+		'אָ': '\u05d0\u05b8',
+		'אּ': '\u05d0\u05bc',
+		'בּ': '\u05d1\u05bc',
+		'גּ': '\u05d2\u05bc',
+		'דּ': '\u05d3\u05bc',
+		'הּ': '\u05d4\u05bc',
+		'וּ': '\u05d5\u05bc',
+		'זּ': '\u05d6\u05bc',
+		'טּ': '\u05d8\u05bc',
+		'יּ': '\u05d9\u05bc',
+		'ךּ': '\u05da\u05bc',
+		'כּ': '\u05db\u05bc',
+		'לּ': '\u05dc\u05bc',
+		'מּ': '\u05de\u05bc',
+		'נּ': '\u05e0\u05bc',
+		'סּ': '\u05e1\u05bc',
+		'ףּ': '\u05e3\u05bc',
+		'פּ': '\u05e4\u05bc',
+		'צּ': '\u05e6\u05bc',
+		'קּ': '\u05e7\u05bc',
+		'רּ': '\u05e8\u05bc',
+		'שּ': '\u05e9\u05bc',
+		'תּ': '\u05ea\u05bc',
+		'וֹ': '\u05d5\u05b9',
+		'בֿ': '\u05d1\u05bf',
+		'כֿ': '\u05db\u05bf',
+		'פֿ': '\u05e4\u05bf',
+		'ﭏ': '\u05d0\u05dc'
 	}
 	if isinstance(orig_char, str): #needs to be unicode
-		orig_char = unicode(orig_char, 'utf-8')
-	return decomp_map.get(orig_char, u'')
+		orig_char = str(orig_char, 'utf-8')
+	return decomp_map.get(orig_char, '')
 
-presentation_re = re.compile(ur"[\uFB1D-\uFB4F]")
+presentation_re = re.compile(r"[\uFB1D-\uFB4F]")
 
 
 def decompose_presentation_forms_in_str(orig_str):
@@ -328,18 +328,18 @@ def decompose_presentation_forms_in_str(orig_str):
 def normalize_final_letters(orig_char):
 
 	decomp_map = {
-		u"\u05DA": u"\u05DB",		# khaf sofit
-		u"\u05DD": u"\u05DE",		# mem sofit
-		u"\u05DF": u"\u05E0", 		# nun sofit
-		u"\u05E3": u"\u05E4", 		# peh sofit
-		u"\u05E5": u"\u05E6", 		# tzadi sofit
+		"\u05DA": "\u05DB",		# khaf sofit
+		"\u05DD": "\u05DE",		# mem sofit
+		"\u05DF": "\u05E0", 		# nun sofit
+		"\u05E3": "\u05E4", 		# peh sofit
+		"\u05E5": "\u05E6", 		# tzadi sofit
 	}
 
 	if isinstance(orig_char, str): #needs to be unicode
-		orig_char = unicode(orig_char, 'utf-8')
-	return decomp_map.get(orig_char, u'')
+		orig_char = str(orig_char, 'utf-8')
+	return decomp_map.get(orig_char, '')
 
-final_letter_re = re.compile(u"[" + FINAL_LETTERS + u"]")
+final_letter_re = re.compile("[" + FINAL_LETTERS + "]")
 
 
 def normalize_final_letters_in_str(orig_str):
@@ -348,12 +348,12 @@ def normalize_final_letters_in_str(orig_str):
 
 def swap_keyboards_for_letter(orig_char):
 	if isinstance(orig_char, str):  # needs to be unicode
-		orig_char = unicode(orig_char, 'utf-8')
+		orig_char = str(orig_char, 'utf-8')
 	return KEYBOARD_SWAP_MAP.get(orig_char, orig_char)
 
 
 def swap_keyboards_for_string(orig_str):
-	return re.sub(ur".", lambda match: swap_keyboards_for_letter(match.group()), orig_str)
+	return re.sub(r".", lambda match: swap_keyboards_for_letter(match.group()), orig_str)
 
 @memoized
 def encode_small_hebrew_numeral(n):
@@ -362,9 +362,9 @@ def encode_small_hebrew_numeral(n):
 	"""
 
 	if n >= 1200:
-		raise ValueError, "Tried to encode small numeral >= 1200."
+		raise ValueError("Tried to encode small numeral >= 1200.")
 	else:
-		return u''.join(map(int_to_heb, break_int_magnitudes(n, 100)))
+		return ''.join(map(int_to_heb, break_int_magnitudes(n, 100)))
 
 @memoized
 def encode_hebrew_numeral(n, punctuation=True):
@@ -390,7 +390,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 		ret = list(chunks(list(reversed(break_int_magnitudes(n))), 3))
 
 		# Eliminate the orders of magnitude in preparation for being encoded
-		ret = map(lambda (x, y): int(sum(y) * pow(10, -3 * x)), enumerate(ret))
+		ret = [int(sum(x_y[1]) * pow(10, -3 * x_y[0])) for x_y in enumerate(ret)]
 
 		# encode and join together, separating thousands with geresh
 		ret = GERESH.join(map(encode_small_hebrew_numeral, reversed(ret)))
@@ -415,26 +415,26 @@ def strip_nikkud(rawString):
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
 def is_hebrew(s, heb_only=False):
-	if not heb_only and regex.search(u"\p{Hebrew}", s):
+	if not heb_only and regex.search("\p{Hebrew}", s):
 		return True
-	elif heb_only and regex.search(u"\p{Hebrew}", s) and not regex.search(u"[a-zA-Z]", s):
+	elif heb_only and regex.search("\p{Hebrew}", s) and not regex.search("[a-zA-Z]", s):
 		return True
 	return False
 
 
 def strip_cantillation(text, strip_vowels=False):
 	if strip_vowels:
-		strip_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+		strip_regex = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 	else:
-		strip_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
+		strip_regex = re.compile(r"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
 	return strip_regex.sub('', text)
 
 
 def has_cantillation(text, detect_vowels=False):
 	if detect_vowels:
-		rgx = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+		rgx = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 	else:
-		rgx = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
+		rgx = re.compile(r"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
 	return bool(rgx.search(text))
 
 

@@ -6,7 +6,7 @@ Writes to MongoDB Collection: terms
 import string
 from random import sample
 
-import counts
+from . import counts
 from sefaria.utils import hebrew
 from sefaria.model import *
 from sefaria.system.database import db
@@ -31,7 +31,7 @@ def count_terms(query={}, lang=None):
     lookup_lang = "he" if lang == "ar" else lang
 
     for ref in refs:
-        print ref
+        print(ref)
         #text = texts.get_text(ref, commentary=False)
         text = TextFamily(Ref(ref), commentary=False).contents()
         for i, line in enumerate(text.get(lookup_lang, [])):
@@ -54,7 +54,7 @@ def count_terms(query={}, lang=None):
                     }
 
     for term in terms:
-        print term
+        print(term)
         # only include up to 20 random ref samples
         sample_size = len(terms[term]["refs"]) if len(terms[term]["refs"]) < 20 else 20
         terms[term]["refs"] = list(sample(terms[term]["refs"], sample_size))

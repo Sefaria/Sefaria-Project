@@ -537,11 +537,11 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             if aliyah >= 6:  # Friday
                 ref = aliyah_ref(parasha_obj, 6).to(aliyah_ref(parasha_obj, 7)).normal()
                 title = {"en": cal["displayValue"]["en"] + ", Sixth and Seventh Aliyah",
-                         "he": cal["displayValue"]["he"] + u" - " + u"שישי ושביעי"}
+                         "he": cal["displayValue"]["he"] + " - " + "שישי ושביעי"}
             else:
                 ref = aliyah_ref(parasha_obj, aliyah).normal()
                 title = {"en": cal["displayValue"]["en"] + ", " + schema.AddressAliyah.en_map[aliyah - 1] + " Aliyah",
-                         "he": cal["displayValue"]["he"] + u" - " + schema.AddressAliyah.he_map[aliyah - 1]}
+                         "he": cal["displayValue"]["he"] + " - " + schema.AddressAliyah.he_map[aliyah - 1]}
             cls._generate_shared_story(ref=ref, lead=lead, title=title, mustHave=mustHave or [], **kwargs).save()
 
         create_israel_and_diaspora_stories(_create_aliyah_story, **kwargs)
@@ -560,7 +560,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
         cls._generate_shared_story(
             ref=sugya.ref().normal(),
-            lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
+            lead={'en': 'Daf Yomi', 'he': "דף יומי"},
             title=daf_yomi_display_value(),
             **kwargs
         ).save()
@@ -633,15 +633,15 @@ class MultiTextStoryFactory(AbstractStoryFactory):
             mustHave += ["readsHebrew"]
 
         if category == "Talmud":
-            title = {"en": "Related Passage", "he": u"סוגיה קשורה"}
+            title = {"en": "Related Passage", "he": "סוגיה קשורה"}
         else:
-            title = {"en": category + " on the Daf", "he": hebrew_term(category) + u" " + u"על הדף"}
+            title = {"en": category + " on the Daf", "he": hebrew_term(category) + " " + "על הדף"}
 
         try:
             cls.generate_story(
                 refs = [connection_link.ref_opposite(connection_ref).normal(), connection_ref.normal()],
                 title=title,
-                lead={'en': 'Daf Yomi', 'he': u"דף יומי"},
+                lead={'en': 'Daf Yomi', 'he': "דף יומי"},
                 mustHave=mustHave,
                 **kwargs
             ).save()
@@ -673,8 +673,8 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
             cls.generate_story(
                 refs = [top_ref.normal(), connection_ref.normal()],
-                title={"en": category + " on " + cal["displayValue"]["en"], "he": hebrew_term(category) + u" על " + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                title={"en": category + " on " + cal["displayValue"]["en"], "he": hebrew_term(category) + " על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
                 mustHave=mustHave,
                 **kwargs
             ).save()
@@ -704,8 +704,8 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
             cls.generate_story(
                 refs = [top_ref.normal(), commentary_ref.normal()],
-                title={"en": commentator + " on " + cal["displayValue"]["en"], "he": hebrew_term(commentator) + u" על " + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                title={"en": commentator + " on " + cal["displayValue"]["en"], "he": hebrew_term(commentator) + " על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
                 mustHave=mustHave,
                 **kwargs
             ).save()
@@ -717,7 +717,7 @@ class AuthorStoryFactory(AbstractStoryFactory):
     @classmethod
     def _data_object(cls, **kwargs):
         prs = kwargs.get("person")
-        if isinstance(prs, basestring):
+        if isinstance(prs, str):
             prs = person.Person().load({"key": prs})
         assert isinstance(prs, person.Person)
         return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
@@ -851,7 +851,7 @@ class GroupSheetListFactory(AbstractStoryFactory):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
-            sheets = db.sheets.find({"status": "public", "group": u"גיליונות נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
+            sheets = db.sheets.find({"status": "public", "group": "גיליונות נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
             sheets = [s for s in sheets]
             selected = random.sample(sheets, 3)
             if len(selected) < 3:
@@ -863,9 +863,9 @@ class GroupSheetListFactory(AbstractStoryFactory):
             cls.generate_story(
                 sheet_ids=[s["id"] for s in selected],
                 cozy=True,
-                group_name=u"גיליונות נחמה",
-                title={"en": "Nechama on " + cal["displayValue"]["en"], "he": u"נחמה על " + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                group_name="גיליונות נחמה",
+                title={"en": "Nechama on " + cal["displayValue"]["en"], "he": "נחמה על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
                 mustHave=mustHave,
                 **kwargs
             ).save()
@@ -901,7 +901,7 @@ class SheetListFactory(AbstractStoryFactory):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        title = kwargs.get("title", {"en": "Recommended for You", "he": u"מומלץ"})
+        title = kwargs.get("title", {"en": "Recommended for You", "he": "מומלץ"})
 
         d = {
             "sheet_ids": kwargs.get("sheet_ids"),
@@ -954,8 +954,8 @@ class SheetListFactory(AbstractStoryFactory):
 
             cls.generate_story(
                 sheet_ids=sheet_ids,
-                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": u"גליונות על " + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                title={"en": "Sheets on " + cal["displayValue"]["en"], "he": "גליונות על " + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
                 mustHave=mustHave,
                 **kwargs
             ).save()
@@ -968,7 +968,7 @@ class SheetListFactory(AbstractStoryFactory):
         if ids:
             cls.generate_story(
                 sheet_ids=cls._get_daf_sheet_ids(),
-                title={"en": "On Today's Daf", "he": u"על דף היומי"},
+                title={"en": "On Today's Daf", "he": "על דף היומי"},
                 mustHave=["usesSheets"], **kwargs
             ).save()
 
@@ -983,7 +983,7 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def generate_featured_story(cls, **kwargs):
-        return cls.generate_story(sheet_ids=cls._get_featured_ids(3), title={"en": "Popular", "he": u"מומלץ"}, **kwargs)
+        return cls.generate_story(sheet_ids=cls._get_featured_ids(3), title={"en": "Popular", "he": "מומלץ"}, **kwargs)
 
     @classmethod
     def create_featured_story(cls, **kwargs):
@@ -1003,8 +1003,8 @@ class TopicListStoryFactory(AbstractStoryFactory):
         # todo: handle possibility of Hebrew terms trending.
         return {
             "topics": [{"en": topic, "he": hebrew_term(topic)} for topic in normal_topics],
-            "title": kwargs.get("title", {"en": "Trending Recently", "he": u"פופולרי"}),
-            "lead": kwargs.get("lead", {"en": "Topics", "he": u"נושאים"})
+            "title": kwargs.get("title", {"en": "Trending Recently", "he": "פופולרי"}),
+            "lead": kwargs.get("lead", {"en": "Topics", "he": "נושאים"})
         }
 
     @classmethod
@@ -1037,8 +1037,8 @@ class TopicListStoryFactory(AbstractStoryFactory):
 
             cls.generate_story(
                 topics=related_topics,
-                title={"en": "Topics in " + cal["displayValue"]["en"], "he": u"נושאים ב" + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": u'פרשת השבוע'},
+                title={"en": "Topics in " + cal["displayValue"]["en"], "he": "נושאים ב" + cal["displayValue"]["he"]},
+                lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
                 mustHave=mustHave or [],
                 **kwargs
             ).save()
@@ -1099,7 +1099,7 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
     def generate_random_shared_story(cls, **kwargs):
         from . import topic
 
-        topics_filtered = filter(lambda x: x['good_to_promote'], topic.get_topics().list())
+        topics_filtered = [x for x in topic.get_topics().list() if x['good_to_promote']]
         random_topic = random.choice(topics_filtered)['tag']
 
         return cls._generate_shared_story(topic=random_topic, **kwargs)
@@ -1123,13 +1123,13 @@ def daf_yomi_display_value():
 
 
 def random_commentary_on(ref):
-    commentary_refs = [l.ref_opposite(ref) for l in filter(lambda x: x.type == "commentary", ref.linkset())]
-    candidates = filter(lambda r: not r.is_empty(), commentary_refs)
+    commentary_refs = [l.ref_opposite(ref) for l in [x for x in ref.linkset() if x.type == "commentary"]]
+    candidates = [r for r in commentary_refs if not r.is_empty()]
     return random.choice(candidates)
 
 
 def random_connection_to(ref):
-    connection_refs = [(l, l.ref_opposite(ref)) for l in filter(lambda x: x.type != "commentary", ref.linkset())]
+    connection_refs = [(l, l.ref_opposite(ref)) for l in [x for x in ref.linkset() if x.type != "commentary"]]
 
     def is_useful(r):
         if r.is_empty():
@@ -1139,7 +1139,7 @@ def random_connection_to(ref):
             return False
         return True
 
-    candidates = filter(lambda (link, ref): is_useful(ref), connection_refs)
+    candidates = [link_ref for link_ref in connection_refs if is_useful(link_ref[1])]
     return random.choice(candidates)
 
 

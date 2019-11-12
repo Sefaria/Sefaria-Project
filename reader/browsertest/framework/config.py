@@ -1,6 +1,6 @@
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-from creds import BS_USER, BS_KEY, SAUCE_ACCESS_KEY, SAUCE_USERNAME
+from .creds import BS_USER, BS_KEY, SAUCE_ACCESS_KEY, SAUCE_USERNAME
 BS_MAX_THREADS = 2
 SAUCE_MAX_THREADS = 5
 

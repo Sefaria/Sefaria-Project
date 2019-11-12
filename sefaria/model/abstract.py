@@ -49,7 +49,7 @@ class AbstractMongoRecord(object):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
 
-        if isinstance(_id, basestring):
+        if isinstance(_id, str):
             # allow _id as either string or ObjectId
             _id = ObjectId(_id)
         return self.load({"_id": _id})
@@ -81,7 +81,7 @@ class AbstractMongoRecord(object):
         :param bool is_init: Indicates whether this dictionary is initializing (as opposed to updating) an object.  If this is true, the primary keys are tracked from this load, and any change will trigger an 'attributeChange' notification.
         :return: the object
         """
-        for key, value in d.items():
+        for key, value in list(d.items()):
             setattr(self, key, value)
         if is_init and not self.is_new():
             self._set_pkeys()
@@ -128,7 +128,7 @@ class AbstractMongoRecord(object):
                 raise Exception("{} inserted when expecting an update.".format(type(self).__name__))
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
-            for key, old_value in self.pkeys_orig_values.items():
+            for key, old_value in list(self.pkeys_orig_values.items()):
                 if old_value != getattr(self, key, None):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
@@ -152,13 +152,13 @@ class AbstractMongoRecord(object):
     def delete(self, force=False):
         if not self.can_delete():
             if force:
-                logger.error(u"Forcing delete of {}.".format(str(self)))
+                logger.error("Forcing delete of {}.".format(str(self)))
             else:
-                logger.error(u"Failed to delete {}.".format(str(self)))
+                logger.error("Failed to delete {}.".format(str(self)))
                 return
 
         if self.is_new():
-            raise InputError(u"Can not delete {} that doesn't exist in database.".format(type(self).__name__))
+            raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         notify(self, "delete")
         getattr(db, self.collection).delete_one({"_id": self._id})
@@ -250,7 +250,7 @@ class AbstractMongoRecord(object):
         all_attrs = self.required_attrs + self.optional_attrs
         for attr in all_attrs:
             val = getattr(self, attr, None)
-            if isinstance(val, basestring):
+            if isinstance(val, str):
                 setattr(self, attr, bleach.clean(val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS))
 
     def same_record(self, other):
@@ -454,20 +454,20 @@ def notify(inst, action, **kwargs):
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):
-            raise Exception(u"Missing required argument {} in notify {}, {}".format(arg, inst, action))
+            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug(u"Notify: " + unicode(inst) + u"." + kwargs["attr"] + u": " + kwargs["old"] + u" is becoming " + kwargs["new"])
+        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
     else:
-        logger.debug(u"Notify: " + unicode(inst) + u" is being " + action + u"d.")
+        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
         callbacks = deps.get((type(inst), action, None), [])
 
     if not callbacks:
         return
 
     for callback in callbacks:
-        logger.debug(u"Notify: Calling " + callback.__name__ + u"() for " + inst.__class__.__name__ + " " + action)
+        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)
 
 
@@ -492,7 +492,7 @@ def cascade(set_class, attr):
     elif len(attrs) == 2:
         def foo(obj, **kwargs):
             for rec in set_class({attr: kwargs["old"]}):
-                new_dict = {k: (v if k != attrs[1] else kwargs["new"]) for k, v in getattr(rec, attrs[0]).items()}
+                new_dict = {k: (v if k != attrs[1] else kwargs["new"]) for k, v in list(getattr(rec, attrs[0]).items())}
                 setattr(rec, attrs[0], new_dict)
                 rec.save()
         return foo

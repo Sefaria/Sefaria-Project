@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from config import *
+from .config import *
 from sefaria.model import *
 #from multiprocessing import Pool
 from pathos.multiprocessing import ProcessingPool as Pool
 import random
 import os
 import inspect
-import httplib
+import http.client
 import base64
 import json
 import traceback
@@ -72,7 +72,7 @@ class AbstractTest(object):
     def run(self):
         pass
 
-    def carp(self, msg, short_msg=u"", always=False):
+    def carp(self, msg, short_msg="", always=False):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
@@ -831,7 +831,7 @@ class AbstractTest(object):
             element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
 
     def search_ref(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self.type_in_search_box(ref.normal())
@@ -843,7 +843,7 @@ class AbstractTest(object):
         return self
 
     def browse_to_ref(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
 
@@ -894,7 +894,7 @@ class AbstractTest(object):
         :param filter: "all", "Rashi", etc
         :return:
         """
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
@@ -929,7 +929,7 @@ class AbstractTest(object):
         return self
 
     def load_text_toc(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
@@ -940,7 +940,7 @@ class AbstractTest(object):
         return self
 
     def click_text_toc_section(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref="{}"], .schema-node-toc[data-ref="{}"]'.format(ref.normal(), ref.normal()))
@@ -951,7 +951,7 @@ class AbstractTest(object):
         return self
 
     def open_text_toc_menu(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         p1 = self.driver.find_element_by_css_selector('.schema-node-toc[data-ref="{}"]>span'.format(ref.normal()))
@@ -964,7 +964,7 @@ class AbstractTest(object):
         pass
 
     def click_segment(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self._perform_segment_click(ref)
@@ -974,7 +974,7 @@ class AbstractTest(object):
         return self
 
     def click_segment_to_close_commentary(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self._perform_segment_click(ref)
@@ -1040,7 +1040,7 @@ class AbstractTest(object):
         return self
 
     def scroll_to_segment(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         # todo
@@ -1159,7 +1159,7 @@ class AbstractTest(object):
 
     # Editing
     def load_translate(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/translate/" + ref.url()
@@ -1168,7 +1168,7 @@ class AbstractTest(object):
         return self
 
     def load_edit(self, ref, lang, version):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/edit/" + ref.url() + "/" + lang + "/" + version.replace(" ", "_")
@@ -1177,7 +1177,7 @@ class AbstractTest(object):
         return self
 
     def load_add(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/add/" + ref.url()
@@ -1200,10 +1200,10 @@ class TestSuite(AbstractTest):
         return len(self.tests)
 
     def long_name(self):
-        return u"{}\n{}".format(self.name(), self.tests_string())
+        return "{}\n{}".format(self.name(), self.tests_string())
 
     def tests_string(self):
-        return u", ".join([t.__class__.__name__ for t in self.tests])
+        return ", ".join([t.__class__.__name__ for t in self.tests])
 
     def setup(self):
         pass
@@ -1212,18 +1212,18 @@ class TestSuite(AbstractTest):
         pass
 
     def run(self):
-        self.carp(u"\n{}\n".format(str(self)), always=True)
+        self.carp("\n{}\n".format(str(self)), always=True)
 
         try:
             self.setup()
         except Exception:
-            msg = u"Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
+            msg = "Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
             self.carp(msg, always=True)
             return SingleTestResult(self.__class__, self.cap, False, msg)
 
         max = None
         for i, test in enumerate(self.tests):
-            self.carp(u" * Enter {}:{}\n".format(self.name(), test.__class__.__name__))
+            self.carp(" * Enter {}:{}\n".format(self.name(), test.__class__.__name__))
             result = test.run()
             result.order = i
             result.suite = self
@@ -1233,7 +1233,7 @@ class TestSuite(AbstractTest):
         try:
             self.teardown()
         except Exception:
-            msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
+            msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
             self.carp(msg, always=True)
             result = SingleTestResult(self.__class__, self.cap, False, msg)
             result.order = max + 1
@@ -1290,12 +1290,12 @@ class AtomicTest(AbstractTest):
             try:
                 self.setup()
             except Exception:
-                msg = u"Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
+                msg = "Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
                 return SingleTestResult(self.__class__, self.cap, False, msg)
 
         try:
-            self.carp(u"{} - Starting\n".format(self.name()))
+            self.carp("{} - Starting\n".format(self.name()))
             self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
             self.body()
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
@@ -1309,10 +1309,10 @@ class AtomicTest(AbstractTest):
             try:
                 self.teardown()
             except Exception:
-                msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
+                msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
 
-        self.carp(u"{} - {}\n".format(result.word_status(), self.name()), always=not result.success)
+        self.carp("{} - {}\n".format(result.word_status(), self.name()), always=not result.success)
         if err:
             self.carp(err, always=True)
 
@@ -1356,7 +1356,7 @@ class AbstractTestResult(object):
 
 
 class SingleTestResult(AbstractTestResult):
-    def __init__(self, test_class, cap, success, message=u""):
+    def __init__(self, test_class, cap, success, message=""):
         assert isinstance(success, bool)
         assert issubclass(test_class, AbstractTest)
 
@@ -1384,10 +1384,10 @@ class SingleTestResult(AbstractTestResult):
         return ret
 
     def word_status(self):
-        return u"Passed" if self.success else u"Failed"
+        return "Passed" if self.success else "Failed"
 
     def letter_status(self):
-        return u"." if self.success else u"F"
+        return "." if self.success else "F"
 
     @property
     def message(self):
@@ -1448,25 +1448,25 @@ class TestResultSet(AbstractTestResult):
         p = self.number_passed()
         f = self.number_failed()
         if p and f:
-            return u"Mixed"
+            return "Mixed"
         elif p:
-            return u"Passed"
+            return "Passed"
         elif f:
-            return u"Failed"
+            return "Failed"
         else:
-            return u"Empty"
+            return "Empty"
 
     def letter_status(self):
         p = self.number_passed()
         f = self.number_failed()
         if p and f:
-            return u"/"
+            return "/"
         elif p:
-            return u"."
+            return "."
         elif f:
-            return u"F"
+            return "F"
         else:
-            return u"0"
+            return "0"
 
     def number_passed(self):
         return len([t for t in self._test_results if t.success])
@@ -1502,9 +1502,9 @@ class TestResultSet(AbstractTestResult):
             if res is None:
                 return "s"
             if res.success is True:
-                return u"."
+                return "."
             if res.success is False:
-                return u"Fail"
+                return "Fail"
 
         current_suite = None
 
@@ -1523,7 +1523,7 @@ class TestResultSet(AbstractTestResult):
         # http://stackoverflow.com/a/13214945/213042
         matrix = self._results_as_matrix()
         s = [[str(e) for e in row] for row in matrix]
-        lens = [max(map(len, col)) for col in zip(*s)]
+        lens = [max(list(map(len, col))) for col in zip(*s)]
         fmt = ' '.join('{{:{}}}'.format(x) for x in lens)
         table = [fmt.format(*row) for row in s]
         ret += '\n'.join(table)
@@ -1658,9 +1658,9 @@ class Trial(object):
 
             msg = traceback.format_exc()
             if self.isVerbose:
-                self.carp(u"{} / {} - Aborted\n{}\n".format(test_class.__name__, Trial.cap_to_string(cap), msg))
+                self.carp("{} / {} - Aborted\n{}\n".format(test_class.__name__, Trial.cap_to_string(cap), msg))
             else:
-                self.carp(u"A")
+                self.carp("A")
 
             if driver is not None:
                 try:
@@ -1678,7 +1678,7 @@ class Trial(object):
         """
         result_set = TestResultSet()
         caps = _caps or self.caps
-        self.carp(u"\n{}: ".format(test_class.__name__))
+        self.carp("\n{}: ".format(test_class.__name__))
         exception_thrown = False
         is_first_test = _caps is None
         is_second_test = _caps is not None
@@ -1688,10 +1688,10 @@ class Trial(object):
             p = Pool(self.thread_count)
             l = len(caps)
             try:
-                tresults = p.map(_test_one_worker, zip([self] * l, [test_class] * l, caps))
+                tresults = p.map(_test_one_worker, list(zip([self] * l, [test_class] * l, caps)))
             except Exception:
                 msg = traceback.format_exc()
-                self.carp(u"{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
+                self.carp("{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
                 tresults += [SingleTestResult(test_class, caps[0], False, msg)]
                 exception_thrown = True
         else:
@@ -1722,7 +1722,7 @@ class Trial(object):
     def results(self):
         return self._results
 
-    def carp(self, msg, short_msg=u"", always=False):
+    def carp(self, msg, short_msg="", always=False):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
@@ -1732,7 +1732,7 @@ class Trial(object):
 
         def set_test_status(jobid, passed=True):
             body_content = json.dumps({"passed": passed})
-            connection = httplib.HTTPConnection("saucelabs.com")
+            connection = http.client.HTTPConnection("saucelabs.com")
             connection.request('PUT', '/rest/v1/%s/jobs/%s' % (SAUCE_USERNAME, jobid),
                                body_content,
                                headers={"Authorization": "Basic %s" % base64string})

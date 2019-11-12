@@ -13,7 +13,7 @@ def setup_module(module):
     global set_classes
     record_classes = abstract.get_record_classes()
     set_classes = abstract.get_set_classes()
-    print record_classes
+    print(record_classes)
 
 
 class Test_Mongo_Record_Models(object):
@@ -21,7 +21,7 @@ class Test_Mongo_Record_Models(object):
     def test_class_attribute_collection(self):
         for sub in record_classes:
             assert sub.collection
-            assert isinstance(sub.collection, basestring)
+            assert isinstance(sub.collection, str)
 
     def test_class_attribute_required_attrs(self):
         for sub in record_classes:

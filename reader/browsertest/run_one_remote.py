@@ -2,8 +2,8 @@
 # It takes one argument - the name of the class to run
 # For instance: python run_one_local.py ClickVersionedSearchResultDesktop
 
-from framework import *
-import basic_tests
+from .framework import *
+from . import basic_tests
 import sys
 from time import gmtime, strftime
 
@@ -15,4 +15,4 @@ t = Trial(platform="sauce",
           tests=[klass],
           build="{} - {}".format(klass.__name__, strftime("%Y-%m-%d %H:%M:%S", gmtime())),
           verbose=True).run()
-print t.results()
+print(t.results())

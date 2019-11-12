@@ -4,7 +4,7 @@ dependencies.py -- list cross model dependencies and subscribe listeners to chan
 
 from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, timeperiod, person, garden, notification, story, group, library, category, ref_data, user_profile
 
-from abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
+from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
 
 # Index Save / Create

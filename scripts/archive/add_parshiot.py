@@ -56,10 +56,10 @@ def finalize_parasha_entry(parasha):
 
 def parse_parashot(parashiot_file, diaspora=False):
 	p=[]
-	print "{}:{}".format(parashiot_file, "Diaspora" if diaspora else "Israel")
+	print("{}:{}".format(parashiot_file, "Diaspora" if diaspora else "Israel"))
 	with open(parashiot_file, 'rb') as csvfile:
 		parashiot = csv.reader(csvfile)
-		parashiot.next()
+		next(parashiot)
 		parasha = {"date": None}
 		for row in parashiot:
 			if not len(row): continue
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 	parser.add_argument("-p", "--path", help="path of data csv's")
 	args = parser.parse_args()
 	parsha_dicts = []
-	print args.path
+	print(args.path)
 	for fname in glob.glob("{}/*.csv".format(args.path)):
 		parsha_dicts += parse_parashot(fname, "il" not in fname)
 	db.parshiot.remove()

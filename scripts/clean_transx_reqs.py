@@ -26,11 +26,11 @@ n = len(refs)
     ]
 """
 
-print "processing {} duplicate refs".format(n)
+print("processing {} duplicate refs".format(n))
 
 for i, ref in enumerate(refs):
     if (i + 1) % 10 == 0:
-        print "{}/{} - {}".format(i+1, n, ref)
+        print("{}/{} - {}".format(i+1, n, ref))
 
     # Translation requests for this ref, from oldest to newest
     ref_txs = TranslationRequestSet({"ref": ref}, sort=[["first_requested", 1]]).array()
@@ -48,9 +48,9 @@ for i, ref in enumerate(refs):
         subset = TranslationRequestSet({"ref": ref, "request_count": newest.request_count}, sort=[["first_requested", 1]]).array()
         oldest_current = subset[0]
         newest.last_requested = oldest_current.last_requested
-    print vars(newest)
-    print "Deleting {}".format(len(ref_txs[:-1]))
-    print
+    print(vars(newest))
+    print("Deleting {}".format(len(ref_txs[:-1])))
+    print()
     for t in ref_txs[:-1]:
         t.delete()
     newest.save()

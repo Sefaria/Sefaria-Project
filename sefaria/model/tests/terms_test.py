@@ -21,7 +21,7 @@ class Test_Terms_Validation(object):
 
     def test_load_by_non_primary_title(self):
         assert Term().load_by_title('Nachmanides') is not None
-        assert Term().load_by_title(u'פרשת לך לך') is not None
+        assert Term().load_by_title('פרשת לך לך') is not None
 
     def test_add_duplicate_primary(self):
         with pytest.raises(InputError):
@@ -36,7 +36,7 @@ class Test_Terms_Validation(object):
                     },
                     {
                         "lang": "he",
-                        "text": u"ראשי כפול",
+                        "text": "ראשי כפול",
                         "primary": True
                     },
                     {
@@ -45,7 +45,7 @@ class Test_Terms_Validation(object):
                     },
                     {
                         "lang": "he",
-                        "text": u"ראשי כפול",
+                        "text": "ראשי כפול",
                     }
                 ]
             })
@@ -63,7 +63,7 @@ class Test_Terms_Validation(object):
                 },
                 {
                     "lang": "he",
-                    "text": u"גלדכחשדף",
+                    "text": "גלדכחשדף",
                     "primary": True
                 }
             ]
@@ -82,7 +82,7 @@ class Test_Terms_Validation(object):
                 },
                 {
                     "lang": "he",
-                    "text": u"גלדכחשדף ב",
+                    "text": "גלדכחשדף ב",
                     "primary": True,
                     "presentation": "alone"
                 }
@@ -174,7 +174,7 @@ class Test_Terms_Validation(object):
                 "scheme": "testing_terms",
                 "titles": [
                     {"lang": "en", "text": "Test Fail Two"},
-                    {"lang": "he", "text": u"גלדכחשדף"}
+                    {"lang": "he", "text": "גלדכחשדף"}
                 ]
             }).save()
 
@@ -190,7 +190,7 @@ class Test_Terms_Validation(object):
                     },
                     {
                         "lang": "he",
-                        "text": u"גלדכחשדף",
+                        "text": "גלדכחשדף",
                         "primary": True
                     }
                 ]
@@ -209,7 +209,7 @@ class Test_Terms_Validation(object):
                     },
                     {
                         "lang": "he",
-                        "text": u"גלדכחשדף",
+                        "text": "גלדכחשדף",
                         "primary": True
                     }
                 ]
@@ -227,7 +227,7 @@ class Test_Terms_Validation(object):
                     },
                     {
                         "lang": "he",
-                        "text": u"גלדכחשדף",
+                        "text": "גלדכחשדף",
                         "primary": True
                     }
                 ]
@@ -236,17 +236,17 @@ class Test_Terms_Validation(object):
         # for ascii validation
         with pytest.raises(InputError):
             Term({
-                "name": u"Test Fail Six\u2019", # primary contains non ascii
+                "name": "Test Fail Six\u2019", # primary contains non ascii
                 "scheme": "testing_terms",
                 "titles" : [
                     {
                         "lang": "en",
-                        "text": u"Test Fail Six\u2019",
+                        "text": "Test Fail Six\u2019",
                         "primary": True
                     },
                     {
                         "lang": "he",
-                        "text": u"גלדכחשדף",
+                        "text": "גלדכחשדף",
                         "primary": True
                     }
                 ]

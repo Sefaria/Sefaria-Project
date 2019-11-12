@@ -6,7 +6,7 @@ import json
 import re
 import bleach
 from datetime import datetime, timedelta
-from urlparse import urlparse
+from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
 from webpack_loader import utils as webpack_utils
@@ -89,7 +89,7 @@ def process_register_form(request, auth_method='session'):
         elif auth_method == 'jwt':
             token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
     return {
-        k: v[0] if len(v) > 0 else unicode(v) for k, v in form.errors.items()
+        k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())
     }, token_dict, form
 
 
@@ -245,7 +245,7 @@ def title_regex_api(request, titles):
             except (AttributeError, AssertionError) as e:
                 # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
                 # logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                errors.append(u"{} : {}".format(title, e))
+                errors.append("{} : {}".format(title, e))
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
@@ -285,8 +285,8 @@ def bulktext_api(request, refs):
                     he = model.TextChunk(oref, "he").text
                     en = model.TextChunk(oref, "en").text
                     res[tref] = {
-                        'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
-                        'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
+                        'he': he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
+                        'en': en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string(),
                         'lang': lang,
                         'ref': oref.normal(),
                         'heRef': oref.he_normal(),
@@ -426,7 +426,7 @@ def reset_cached_api(request, apiurl):
         #mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
         #func = mod.__getattribute__(match.func.func_name)
 
-        if "django_cache" in match.func.func_dict:
+        if "django_cache" in match.func.__dict__:
             api_view = undecorated(match.func)
             redecorated_api_view = scache.django_cache(action="reset")(api_view)
             redecorated_api_view(request, *match.args, **match.kwargs)
@@ -436,10 +436,10 @@ def reset_cached_api(request, apiurl):
             raise Http404("API not in cache")
 
     except Resolver404 as re:
-        logger.warn(u"Attempted to reset invalid url")
+        logger.warn("Attempted to reset invalid url")
         raise Http404()
     except Exception as e:
-        logger.warn(u"Unable to reset cache for {}".format(apiurl))
+        logger.warn("Unable to reset cache for {}".format(apiurl))
         raise Http404()
 
 
@@ -614,7 +614,7 @@ def export_all(request):
     try:
         start_export_all()
         resp = {"status": "ok"}
-    except Exception, e:
+    except Exception as e:
         resp = {"error": str(e)}
     resp["time"] = (datetime.now()-start).seconds
     return jsonResponse(resp)
@@ -623,7 +623,7 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
-    logger.error(u"This is a simple error")
+    logger.error("This is a simple error")
     try:
         erorr = excepting
     except Exception as e:
@@ -658,9 +658,9 @@ def list_contest_results(request):
         user_requests[request.completer] += 1
         total_points += points
 
-    results += "%d participants completed %d requests<br><br>" % (len(user_requests.keys()), total_requests)
+    results += "%d participants completed %d requests<br><br>" % (len(list(user_requests.keys())), total_requests)
 
-    for user in user_points.keys():
+    for user in list(user_points.keys()):
         profile = model.user_profile.UserProfile(id=user)
         results += "%s: completed %d requests for %d points (%s)<br>" % (profile.full_name, user_requests[user], user_points[user], profile.email)
         lottery += ([user] * user_points[user])
@@ -721,7 +721,7 @@ def untagged_sheets(request):
 
     for sheet in sheets:
         html += "<li><a href='/sheets/%d' target='_blank'>%s</a></li>" % (sheet["id"], strip_tags(sheet["title"]))
-    html += u"<br><a href='/admin/untagged-sheets?page=%d'>More ›</a>" % (page + 1)
+    html += "<br><a href='/admin/untagged-sheets?page=%d'>More ›</a>" % (page + 1)
 
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
@@ -764,7 +764,7 @@ def core_link_stats(request):
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
-    from local_settings import DEBUG
+    from .local_settings import DEBUG
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])
@@ -820,14 +820,14 @@ def bulk_download_versions_api(request):
     with zipfile.ZipFile(file_like_object, "a", zipfile.ZIP_DEFLATED) as zfile:
         for version in vs:
             filebytes = _get_text_version_file(format, version.title, version.language, version.versionTitle)
-            name = u'{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format).encode('utf-8')
-            if isinstance(filebytes, unicode):
+            name = '{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format).encode('utf-8')
+            if isinstance(filebytes, str):
                 filebytes = filebytes.encode('utf-8')
             zfile.writestr(name, filebytes)
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
-    filename = u"{}-{}-{}-{}.zip".format(filter(str.isalnum, str(title_pattern)), filter(str.isalnum, str(version_title_pattern)), language, format).encode('utf-8')
+    filename = "{}-{}-{}-{}.zip".format(list(filter(str.isalnum, str(title_pattern))), list(filter(str.isalnum, str(version_title_pattern))), language, format).encode('utf-8')
     response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
     return response
 
@@ -905,9 +905,9 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
             secRef = secRef.section_ref()
         secRef = secRef.normal()
     if v1:
-        v1 = v1.replace(u"_", u" ")
+        v1 = v1.replace("_", " ")
     if v2:
-        v2 = v2.replace(u"_", u" ")
+        v2 = v2.replace("_", " ")
 
     return render(request,'compare.html', {"JSON_PROPS": json.dumps({
         'secRef': secRef,

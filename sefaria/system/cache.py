@@ -35,7 +35,7 @@ def cache_get_key(*args, **kwargs):
     serialise = []
     for arg in args:
         serialise.append(str(arg))
-    for key,arg in sorted(kwargs.items(), key=lambda x: x[0]):
+    for key,arg in sorted(list(kwargs.items()), key=lambda x: x[0]):
         serialise.append(str(key))
         serialise.append(str(arg))
     key = hashlib.md5("".join(serialise)).hexdigest()
@@ -50,7 +50,7 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, 
         cache_key = None
 
     def decorator(fn):
-        fn.func_dict["django_cache"] = True
+        fn.__dict__["django_cache"] = True
         @wraps(fn)
         def wrapper(*args, **kwargs):
             #logger.debug([args, kwargs])
@@ -114,9 +114,9 @@ def delete_cache_elem(key, cache_type=None):
 
 
 def get_template_cache(fragment_name='', *args):
-    cache_key = 'template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest())
+    cache_key = 'template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args])).hexdigest())
     return get_cache_elem(cache_key)
 
 
 def delete_template_cache(fragment_name='', *args):
-    delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(u':'.join([arg for arg in args])).hexdigest()))
+    delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args])).hexdigest()))

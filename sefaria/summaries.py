@@ -6,8 +6,8 @@ Writes to MongoDB Collection: summaries
 """
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
-from model import *
-from model.category import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
+from .model import *
+from .model.category import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
 import logging
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def update_search_filter_table_of_contents():
 def get_toc_categories(index_obj, for_search=False):
     cats = index_obj.categories[:]
     if cats[0] not in TOP_CATEGORIES:
-        cats.insert(0, u"Other")
+        cats.insert(0, "Other")
     if for_search and getattr(index_obj, "dependence", None) == 'Commentary':
         try:
             cats.remove('Commentary')

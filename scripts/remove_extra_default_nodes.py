@@ -16,6 +16,6 @@ ins = library.all_index_records()
 for i in ins:
     for n in i.nodes.get_leaf_nodes():
         if n.is_default() and len(n.siblings()) == 0:
-            print n.full_title()
+            print(n.full_title())
             if args.make_changes:
                 merge_default_into_parent(n.parent)

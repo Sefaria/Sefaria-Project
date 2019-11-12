@@ -4,7 +4,7 @@ import sys
 import requests
 import argparse
 import unicodecsv as csv
-from StringIO import StringIO
+from io import StringIO
 from functools import partial
 #from multiprocessing import Pool
 from pathos.multiprocessing import ProcessingPool as Pool
@@ -18,10 +18,10 @@ from sefaria.model import *
 
 
 def version_urls(server, book_title):
-    version_list_url = u'{}/api/texts/versions/{}'.format(server, book_title)
+    version_list_url = '{}/api/texts/versions/{}'.format(server, book_title)
     version_list = requests.get(version_list_url).json()
     for v in version_list:
-        yield u'{}/download/version/{} - {} - {}.json'.format(server, book_title, v[u'language'], v[u'versionTitle'])
+        yield '{}/download/version/{} - {} - {}.json'.format(server, book_title, v['language'], v['versionTitle'])
 
 
 def pull_text_from_server(url, uid):
@@ -35,9 +35,9 @@ def pull_text_from_server(url, uid):
 
 
 def derive_ref(node_list):
-    if node_list[-1] == u'':
+    if node_list[-1] == '':
         node_list = node_list[:-1]
-    ref_string = u', '.join(node_list)
+    ref_string = ', '.join(node_list)
     return Ref(ref_string).default_child_ref()
 
 
@@ -87,7 +87,7 @@ def save_text(user_id, version_title, version_lang, action_type, text_json):
 
 def save_row(user_id, version_title, version_lang, action_type, row):
     ref = Ref(row[0])
-    print "Saving: {}".format(ref.normal())
+    print("Saving: {}".format(ref.normal()))
     try:
         modify_text(user_id, ref, version_title, version_lang, row[1], type=action_type)
     except InputError:

@@ -26,21 +26,21 @@ def param_fixer(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        func_params = func.func_code.co_varnames[:func.func_code.co_argcount]
+        func_params = func.__code__.co_varnames[:func.__code__.co_argcount]
         extra_params = set(kwargs.keys()) - set(func_params)
         for extra in extra_params:
             kwargs.pop(extra)
         args = list(args)
         params_with_defaults = {
-            u"source_proj": default_bool,
-            u"filters": default_list,
-            u"filter_fields": default_list,
-            u"aggs": default_list,
-            u"sort_fields": default_list,
-            u"sort_reverse": default_bool,
-            u"search_obj": default_search
+            "source_proj": default_bool,
+            "filters": default_list,
+            "filter_fields": default_list,
+            "aggs": default_list,
+            "sort_fields": default_list,
+            "sort_reverse": default_bool,
+            "search_obj": default_search
         }
-        for param, setter in params_with_defaults.items():
+        for param, setter in list(params_with_defaults.items()):
             i = func_params.index(param)
             if len(args) > i:
                 # in args
@@ -55,8 +55,8 @@ def param_fixer(func):
 @param_fixer
 def get_query_obj(
         query,
-        type=u"text",
-        field=u"exact",
+        type="text",
+        field="exact",
         source_proj=False,
         slop=0,
         start=0,
@@ -64,7 +64,7 @@ def get_query_obj(
         filters=None,
         filter_fields=None,
         aggs=None,
-        sort_method=u"sort",
+        sort_method="sort",
         sort_fields=None,
         sort_reverse=False,
         sort_score_missing=0,
@@ -89,17 +89,17 @@ def get_query_obj(
     :return: Search object with all the stuff ready to execute
     """
     search_obj = search_obj.source(source_proj)
-    query = re.sub(ur"(\S)\"(\S)", ur"\1\u05f4\2", query)  # Replace internal quotes with gershaim.
-    core_query = Q(u"match_phrase", **{field: {u"query": query, u"slop": slop}})
+    query = re.sub(r"(\S)\"(\S)", r"\1\u05f4\2", query)  # Replace internal quotes with gershaim.
+    core_query = Q("match_phrase", **{field: {"query": query, "slop": slop}})
 
     # sort
-    if sort_method == u"sort":
-        search_obj = search_obj.sort(*[u"{}{}".format(u"-" if sort_reverse else u"", f) for f in sort_fields])
+    if sort_method == "sort":
+        search_obj = search_obj.sort(*["{}{}".format("-" if sort_reverse else "", f) for f in sort_fields])
 
     # aggregations
     if len(aggs) > 0:
         for a in aggs:
-            search_obj.aggs.bucket(a, u"terms", field=a, size=10000)
+            search_obj.aggs.bucket(a, "terms", field=a, size=10000)
 
     # filters
     if len(filters) == 0:
@@ -108,19 +108,19 @@ def get_query_obj(
         inner_query = Bool(must=core_query, filter=get_filter_obj(type, filters, filter_fields))
 
     # finish up
-    if sort_method == u"score" and len(sort_fields) == 1:
+    if sort_method == "score" and len(sort_fields) == 1:
         search_obj.query = {
-            u"function_score": {
-                u"query": inner_query.to_dict(),
-                u"field_value_factor": {
-                    u"field": sort_fields[0],
-                    u"missing": sort_score_missing
+            "function_score": {
+                "query": inner_query.to_dict(),
+                "field_value_factor": {
+                    "field": sort_fields[0],
+                    "missing": sort_score_missing
                 }
             }
         }
     else:
         search_obj.query = inner_query
-    search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=[u"<b>"], post_tags=[u"</b>"])
+    search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"])
     return search_obj[start:start + size]
 
 
@@ -130,16 +130,16 @@ def get_filter_obj(type, filters, filter_fields):
     unique_fields = set(filter_fields)
     must_bools = []
     for agg_type in unique_fields:
-        type_filters = filter(lambda x: x[1] == agg_type, zip(filters, filter_fields))
+        type_filters = [x for x in zip(filters, filter_fields) if x[1] == agg_type]
         should_bool = Bool(should=[make_filter(type, agg_type, f) for f, t in type_filters])
         must_bools += [should_bool]
     return Bool(must=must_bools)
 
 
 def make_filter(type, agg_type, agg_key):
-    if type == u"text":
+    if type == "text":
         # filters with '/' might be leading to books. also, very unlikely they'll match an false positives
-        reg = re.escape(agg_key) + (u".*" if u"/" in agg_key else u"/.*")
+        reg = re.escape(agg_key) + (".*" if "/" in agg_key else "/.*")
         return Regexp(path=reg)
-    elif type == u"sheet":
+    elif type == "sheet":
         return Term(**{agg_type: agg_key})
