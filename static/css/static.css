@@ -685,6 +685,13 @@
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   color: #000;
 }
+.registrationContent .g-recaptcha{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.registrationContent #register-form p:nth-of-type(5){
+  padding-top: 10px;
+}
 .interface-hebrew input#id_email::-webkit-input-placeholder {
   text-align: right;
 }
