@@ -571,8 +571,7 @@ input.noselect {
   font-weight: normal;
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 30px;
-  margin: 0;
-  margin-bottom: 40px;
+  margin-bottom: 0px;
 }
 .sefariaModalInnerContent {
   display: flex;
@@ -580,11 +579,22 @@ input.noselect {
   align-items: flex-start;
   margin-bottom: 40px;
 }
-.sefariaModalInnerContent div {
+.sefariaModalInnerContent div, .sefariaModalInnerContent h3{
   display: flex;
   align-items: center;
   text-align: start;
   padding: 10px 0;
+}
+.sefariaModalContent h3{
+  align-items: center;
+  text-align: start;
+  padding: 10px 0;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: normal;
+  margin-bottom: 10px;
+  margin-top: 5px;
 }
 .sefariaModalBottomContent {
   font-size: 16px;

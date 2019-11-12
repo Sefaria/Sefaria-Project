@@ -1175,11 +1175,10 @@ LoginPrompt.propTypes = {
 class SignUpModal extends Component {
   render() {
     const innerContent = [
-      ["sheet-white.png", Sefaria._("Organize sources with sheets")],
-      ["note-white.png", Sefaria._("Make notes")],
       ["star-white.png", Sefaria._("Save texts")],
-      ["user-2-white.png", Sefaria._("Follow your favorite authors")],
-      ["email-white.png", Sefaria._("Get updates on texts")],
+      ["sheet-white.png", Sefaria._("Make source sheets")],
+      ["note-white.png", Sefaria._("Take notes")],
+      ["email-white.png", Sefaria._("Stay in the know")],
     ].map(x => (
       <div key={x[0]}>
         <img src={`/static/img/${x[0]}`} alt={x[1]} />
@@ -1194,12 +1193,17 @@ class SignUpModal extends Component {
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
-            <h2>{Sefaria._("Join " + Sefaria._siteSettings.SITE_NAME.en + ".")}</h2>
+            <h2>
+              {Sefaria._("Love Learning?")}
+            </h2>
+            <h3>
+              {Sefaria._("Sign up to get more from Sefaria")}
+            </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
             <a className="button white control-elem" href={"/register" + nextParam}>
-              { Sefaria._("Create Your Account")}
+              { Sefaria._("Sign Up")}
             </a>
             <div className="sefariaModalBottomContent">
               { Sefaria._("Already have an account?") + " "}
