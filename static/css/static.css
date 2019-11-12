@@ -696,14 +696,26 @@ input#id_email{
   width: 100%;
 }
 .registrationContent a {
+}
+.registrationContent a.registration-links, .registrationContent p.registration-links{
+  margin-top: 20px;
   display: block;
   text-align: center;
   color: #999;
   font-size: 14px;
   font-style: normal;
+  text-decoration: none;
 }
-.registrationContent a.registration-links{
-  margin-top: 20px;
+.registrationContent a.registration-links:hover{
+  color: #666;
+}
+p.registration-links a{
+  color: #999;
+  text-decoration: none;
+}
+p.registration-links a:hover{
+  color: #666;
+  text-decoration: none;
 }
 #visualizationsPage {
   text-align: left;
