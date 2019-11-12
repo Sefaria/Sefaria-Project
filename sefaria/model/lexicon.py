@@ -268,12 +268,23 @@ class LexiconEntrySubClassMapping(object):
 class LexiconEntrySet(abst.AbstractMongoSet):
     recordClass = LexiconEntry
 
+    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, primary_tuples=None):
+        super(LexiconEntrySet, self).__init__(query, page, limit, sort, proj, hint)
+        self._primary_tuples = primary_tuples
+
     def _read_records(self):
+        def is_primary(entry):
+            return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
+
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
                 self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
             self.max = len(self.records)
+            if self._primary_tuples:
+                self.records.sort(key=is_primary)
+
+
 
 
 class LexiconLookupAggregator(object):
@@ -291,7 +302,7 @@ class LexiconLookupAggregator(object):
         return gram_list
 
     @classmethod
-    def _single_lookup(cls, input_word, lookup_key='form', **kwargs):
+    def get_word_form_objects(cls, input_word, lookup_key='form', **kwargs):
         from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
         from sefaria.model import Ref
 
@@ -309,12 +320,17 @@ class LexiconLookupAggregator(object):
         if lookup_ref and len(forms) == 0:
             del query_obj["refs"]
             forms = WordFormSet(query_obj)
+        return forms
+
+
+    @classmethod
+    def _single_lookup(cls, input_word, lookup_key='form', **kwargs):
+        forms = cls.get_word_form_objects(input_word, lookup_key=lookup_key, **kwargs)
         if len(forms) > 0:
             headword_query = []
             for form in forms:
                 for lookup in form.lookups:
-                    headword_query.append({'headword': lookup['headword']})
-                    # TODO: if we want the 'lookups' in wf to be a dict we can pass as is to the lexiconentry, we need to change the key 'lexicon' to 'parent_lexicon' in word forms
+                    headword_query.append(lookup)
             return headword_query
         else:
             return []
@@ -341,6 +357,15 @@ class LexiconLookupAggregator(object):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results
         if len(results):
-            return LexiconEntrySet({"$or": results})
+            primary_tuples = set()
+            query = set() #TODO: optimize number of word form lookups? there can be a lot of duplicates... is it needed?
+            for r in results:
+                # extract the lookups with "primary" field so it can be used for sorting lookup in the LexicinEntrySet,
+                # but also delete it, because its not part of the query obj
+                if "primary" in r:
+                    if r["primary"] is True:
+                        primary_tuples.add((r["headword"], r["parent_lexicon"]))
+                    del r["primary"]
+            return LexiconEntrySet({"$or": results}, primary_tuples=primary_tuples)
         else:
             return None
