@@ -77,6 +77,11 @@ class Test_Jagged_Array(object):
         ]).last_index(3) == [2, 3, 4]
 
 
+class Test_Jagged_Int_Array(object):
+    def test_sum(self):
+        assert ja.JaggedIntArray([[1, 2], [3, 4]]) + ja.JaggedIntArray([[2, 3], [4]]) == ja.JaggedIntArray([[3, 5], [7, 4]])
+
+
 class Test_Jagged_Text_Array(object):
     def test_until_last_nonempty(self):
         sparse_ja = ja.JaggedTextArray([["", "", ""], ["", "foo", "", "bar", ""], ["", "", ""],[]])
