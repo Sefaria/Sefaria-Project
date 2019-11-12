@@ -1256,7 +1256,7 @@ def merge_texts(text, sources):
         results = []
         result_sources = []
         for x in range(max(list(map(len, text)))):    # Let longest text determine how many times to iterate
-            translations = map(None, *text)[x]  # transpose, and take section x
+            translations = [_ for _ in itertools.zip_longest(*text)][x]  # transpose, and take section x
             remove_nones = lambda x: x or []
             result, source = merge_texts(list(map(remove_nones, translations)), sources)
             results.append(result)
@@ -1269,7 +1269,7 @@ def merge_texts(text, sources):
     if depth == 1:
         text = [[x] for x in text]
 
-    merged = list(*text)  # transpose
+    merged = itertools.zip_longest(*text)  # transpose
     text = []
     text_sources = []
     for verses in merged:
