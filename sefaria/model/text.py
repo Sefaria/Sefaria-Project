@@ -635,9 +635,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("{} field must be a non empty list of strings.".format(key))
 
         #allow only ASCII in text titles
-        try:
-            self.title.decode('ascii')
-        except (UnicodeDecodeError, UnicodeEncodeError):
+        if not self.title.isascii():
             raise InputError("Text title may contain only simple English characters.")
 
         # Disallow special characters in text titles

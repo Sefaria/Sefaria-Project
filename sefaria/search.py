@@ -96,11 +96,8 @@ def make_text_doc_id(ref, version, lang):
     """
     if not version:
         version = "merged"
-    else:
-        try:
-            version.decode('ascii')
-        except Exception as e:
-            version = str(unicode_number(version))
+    if not version.isascii():
+        version = str(unicode_number(version))
 
     id = "%s (%s [%s])" % (ref, version, lang)
     return id
