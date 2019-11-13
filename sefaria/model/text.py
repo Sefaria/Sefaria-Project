@@ -2332,12 +2332,7 @@ class Ref(object, metaclass=RefCacheType):
         if self._lang == "he":
             return
 
-        try:
-            self.tref = self.tref.decode('utf-8').replace(":", ".")
-        except UnicodeEncodeError as e:
-            return {"error": "UnicodeEncodeError: %s" % e}
-        except AttributeError as e:
-            return {"error": "AttributeError: %s" % e}
+        self.tref = self.tref.replace(":", ".")
 
         try:
             # capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
