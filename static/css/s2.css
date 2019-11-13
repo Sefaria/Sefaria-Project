@@ -1518,21 +1518,24 @@ a.readerNavCategory {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
+.readerNavMenu .dedication {
+  margin: -10px 0 58px 0;
+}
+.readerTextTableOfContents .categoryAttribution,
+.readerTextTableOfContents .dedication {
+  margin: 28px 0;
+}
 .readerTextTableOfContents .categoryAttribution,
 .readerTextTableOfContents .dedication,
 .readerNavMenu .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
-  margin: 28px 0;
 }
 .readerTextTableOfContents .categoryAttribution .he,
 .readerTextTableOfContents .dedication .he,
 .readerNavMenu .dedication .he {
   font-style: normal;
-}
-.readerNavMenu .dedication {
-  margin: -10px 0 58px 0;
 }
 .hebrew .readerNavMenu .dedication {
   direction: rtl;
