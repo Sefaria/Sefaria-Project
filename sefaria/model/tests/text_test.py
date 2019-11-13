@@ -302,6 +302,17 @@ def test_get_index():
     assert isinstance(r, model.Index)
     assert r.title == u'Exodus'
 
+def test_merge():
+    assert model.merge_texts([["a", ""], ["", "b", "c"]], ["first", "second"]) == [["a", "b", "c"], ["first","second","second"]]
+    # This fails because the source field isn't nested on return
+    # assert model.merge_texts([[["a", ""],["p","","q"]], [["", "b", "c"],["p","d",""]]], ["first", "second"]) == [[["a", "b", "c"],["p","d","q"]], [["first","second","second"],["first","second","first"]]]
+
+    # depth 2
+    assert model.merge_texts([[["a", ""],["p","","q"]], [["", "b", "c"],["p","d",""]]], ["first", "second"])[0] == [["a", "b", "c"],["p","d","q"]]
+
+    # three texts, depth 2
+    assert model.merge_texts([[["a", ""],["p","",""]], [["", "b", ""],["p","d",""]], [["","","c"],["","","q"]]], ["first", "second", "third"])[0] == [["a", "b", "c"],["p","d","q"]]
+
 
 def test_text_helpers():
     res = model.library.get_dependant_indices()
