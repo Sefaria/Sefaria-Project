@@ -718,7 +718,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         elif getattr(self, 'base_text_titles', None):
             order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
             return order
-        return None
+        return 9999
 
     def slim_toc_contents(self):
         toc_contents_dict = {

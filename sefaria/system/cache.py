@@ -38,7 +38,7 @@ def cache_get_key(*args, **kwargs):
     for key,arg in sorted(list(kwargs.items()), key=lambda x: x[0]):
         serialise.append(str(key))
         serialise.append(str(arg))
-    key = hashlib.md5("".join(serialise)).hexdigest()
+    key = hashlib.md5("".join(serialise).encode('utf-8')).hexdigest()
     return key
 
 
@@ -114,9 +114,9 @@ def delete_cache_elem(key, cache_type=None):
 
 
 def get_template_cache(fragment_name='', *args):
-    cache_key = 'template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args])).hexdigest())
+    cache_key = 'template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args]).encode('utf-8')).hexdigest())
     return get_cache_elem(cache_key)
 
 
 def delete_template_cache(fragment_name='', *args):
-    delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args])).hexdigest()))
+    delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args]).encode('utf-8')).hexdigest()))

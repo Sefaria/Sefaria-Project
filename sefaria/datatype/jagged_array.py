@@ -368,7 +368,7 @@ class JaggedArray(object):
             end_indexes = start_indexes
 
         assert len(start_indexes) == len(end_indexes)
-        assert len(start_indexes) <= self.depth
+        assert len(start_indexes) <= self.get_depth()
         range_index = len(start_indexes)
 
         for i in range(0, len(start_indexes)):
@@ -550,8 +550,12 @@ class JaggedArray(object):
                 flat += [[[i+1], el]]
         return flat
 
-
     def last_index(self, depth):
+        """
+        Return indicies of the last populated element of this JaggedArray.
+        :param depth: Return indicies only to this depth
+        :return: Array of 0 based indexes
+        """
         if depth > self.get_depth():
             depth = self.get_depth()
         res = []
@@ -560,7 +564,7 @@ class JaggedArray(object):
             try:
                 res += [len(next.array()) - 1]
                 next = next.subarray(res[-1:])
-            except IndexError:
+            except (IndexError, AssertionError):
                 # For sparse texts that end before the array ends
                 return self.prev_index(res)
         return res

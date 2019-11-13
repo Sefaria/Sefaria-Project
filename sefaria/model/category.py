@@ -219,24 +219,30 @@ class TocTree(object):
 
     def _sort(self):
         def _explicit_order_and_title(node):
+            """
+            Return sort key as tuple:  (isString, value)
+            :param node:
+            :return:
+            """
             title = node.primary_title("en")
             complete = getattr(node, "enComplete", False)
             complete_or_title_key = "1z" + title if complete else "2z" + title
 
             try:
                 # First sort by global order list below
-                return CATEGORY_ORDER.index(title)
+                return (False, CATEGORY_ORDER.index(title))
 
             except ValueError:
-                # Sort top level Commentary categories just below theit base category
+                # Sort top level Commentary categories just below their base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
-                        return CATEGORY_ORDER.index(temp_cat_name) + 0.5
+                        return (False, CATEGORY_ORDER.index(temp_cat_name) + 0.5)
 
-                # Sort by an eplicit `order` field if present
+                # Sort by an explicit `order` field if present
                 # otherwise into two alphabetical list for complete and incomplete.
-                return getattr(node, "order", complete_or_title_key)
+                res = getattr(node, "order", complete_or_title_key)
+                return (isinstance(res, str), res)
 
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)

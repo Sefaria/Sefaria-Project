@@ -4,7 +4,6 @@
 from datetime import datetime, timedelta, date
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
-from sets import Set
 from random import choice
 from pprint import pprint
 import json
@@ -2814,7 +2813,7 @@ def texts_history_api(request, tref, lang=None, version=None):
         query = {"ref": {"$regex": refRe }}
     history = db.history.find(query)
 
-    summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
+    summary = {"copiers": set(), "translators": set(), "editors": set(), "reviewers": set() }
     updated = history[0]["date"].isoformat() if len(history) else "Unknown"
 
     for act in history:

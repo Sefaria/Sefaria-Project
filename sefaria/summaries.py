@@ -133,25 +133,27 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
 def node_sort_key(a):
     """
     Sort function for texts/categories per below.
+    Return sort key as tuple:  (isString, value)
+
     """
     if "category" in a:
         try:
-            return CATEGORY_ORDER.index(a["category"])
+            return False, CATEGORY_ORDER.index(a["category"])
         except ValueError:
             temp_cat_name = a["category"].replace(" Commentaries", "")
             if temp_cat_name in TOP_CATEGORIES:
-                return CATEGORY_ORDER.index(temp_cat_name) + 0.5
-            return 'zz' + a["category"]
+                return False, CATEGORY_ORDER.index(temp_cat_name) + 0.5
+            return True, 'zz' + a["category"]
     elif "title" in a:
         try:
-            return CATEGORY_ORDER.index(a["title"])
+            return False, CATEGORY_ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"]
+                return False, a["order"]
             else:
-                return a["title"]
+                return True, a["title"]
 
-    return None
+    return False, 9999
 
 
 def sort_toc_node(node, recur=False):
