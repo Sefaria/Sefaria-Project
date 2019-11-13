@@ -219,7 +219,7 @@ def break_int_magnitudes(n, start=None):
 	if start == 1:
 		return [n]
 	else:
-		return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start / 10)
+		return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start // 10)
 
 @memoized
 def sanitize(input_string, punctuation=True):

@@ -89,7 +89,7 @@ def get_query_obj(
     :return: Search object with all the stuff ready to execute
     """
     search_obj = search_obj.source(source_proj)
-    query = re.sub(r"(\S)\"(\S)", r"\1\u05f4\2", query)  # Replace internal quotes with gershaim.
+    query = re.sub(r"(\S)\"(\S)", "\\1\u05f4\\2", query)  # Replace internal quotes with gershaim.
     core_query = Q("match_phrase", **{field: {"query": query, "slop": slop}})
 
     # sort

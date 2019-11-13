@@ -1933,7 +1933,6 @@ class AddressDictionary(AddressType):
         pass
 
 
-
 class AddressTalmud(AddressType):
     """
     :class:`AddressType` for Talmud style Daf + Amud addresses
@@ -2000,7 +1999,7 @@ class AddressTalmud(AddressType):
     @classmethod
     def toStr(cls, lang, i, **kwargs):
         i += 1
-        daf_num = i / 2
+        daf_num = i // 2
         daf = ""
 
         if i > daf_num * 2:
