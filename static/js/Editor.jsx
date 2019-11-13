@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Editor} from 'slate-react'
-import {Block, Value, Data, Inline} from 'slate'
+import {Block, Value, Data, Inline, Selection} from 'slate'
 import Html from 'slate-html-serializer'
 import Sheet from "./Sheet";
 import Sefaria from './sefaria/sefaria';
@@ -820,13 +820,49 @@ function SefariaEditor(props) {
             }
         }
         else if (event.key == " ") {
-            const textContent = editor.value.focusText.text;
-            const refRe = Sefaria.makeRefRe(Sefaria.titlesInText(textContent));
-            let foundRefs = textContent.match(refRe);
+            const textContent = editor.value.focusText;
+            const titles = Sefaria.titlesInText(textContent.text);
+
+            const refRe = titles.length > 0 ? Sefaria.makeRefRe() : null
+            let foundRefs = textContent.text.match(refRe);
             console.log(foundRefs);
+            console.log(textContent.text)
+            const match = refRe.exec(textContent.text);
+            if (match) {
+                console.log(match)
+
+                console.log(editor.value.selection.focus)
+                console.log(editor.moveTo(match.index))
+            }
+
+/*
+
+            editor.addMarkAtRange({
+                type: 'underline',
+                range:
+            });
 
 
-            const lastWord = (editor.value.focusText.text.split(" ")).pop();
+
+            if (foundRefs.length > 0) {
+                const textsInBlock = editor.value.focusBlock.getTexts();
+                    debugger;
+                for (const [node, path] of textsInBlock) {
+
+                    const {key, text} = node;
+                    console.log(text)
+                    const parts = text.split(foundRefs[0]);
+                    let offset = 0;
+
+                    parts.forEach((part, i) => {
+                        console.log(i)
+                        console.log(path)
+                        console.log(key)
+                        console.log(offset)
+                    })
+                }
+            }
+*/
         }
         else {
             return next();
@@ -980,6 +1016,7 @@ function SefariaEditor(props) {
     }
 
     function renderInline(props, editor, next) {
+        console.log('do i get called?')
         const {attributes, children, node} = props;
         const {data} = node;
         switch (node.type) {
