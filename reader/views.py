@@ -131,10 +131,11 @@ def render_react_component(component, props):
 
     encoded_args = urllib.parse.urlencode({
         "propsJSON": propsJSON,
-    })
+    }).encode("utf-8")
     try:
-        response = urllib.request.urlopen(url, encoded_args, NODE_TIMEOUT)
-        html = response.read()
+        req = urllib.request.Request(url)
+        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        html = response.read().decode("utf-8")
         return html
     except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
