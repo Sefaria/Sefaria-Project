@@ -314,8 +314,8 @@ def decompose_presentation_forms(orig_char):
 		'פֿ': '\u05e4\u05bf',
 		'ﭏ': '\u05d0\u05dc'
 	}
-	if isinstance(orig_char, str): #needs to be unicode
-		orig_char = str(orig_char, 'utf-8')
+	# if isinstance(orig_char, str): #needs to be unicode
+	#	orig_char = str(orig_char, 'utf-8')
 	return decomp_map.get(orig_char, '')
 
 presentation_re = re.compile(r"[\uFB1D-\uFB4F]")
@@ -335,8 +335,8 @@ def normalize_final_letters(orig_char):
 		"\u05E5": "\u05E6", 		# tzadi sofit
 	}
 
-	if isinstance(orig_char, str): #needs to be unicode
-		orig_char = str(orig_char, 'utf-8')
+	# if isinstance(orig_char, str): #needs to be unicode
+	#	orig_char = str(orig_char, 'utf-8')
 	return decomp_map.get(orig_char, '')
 
 final_letter_re = re.compile("[" + FINAL_LETTERS + "]")
@@ -347,8 +347,8 @@ def normalize_final_letters_in_str(orig_str):
 
 
 def swap_keyboards_for_letter(orig_char):
-	if isinstance(orig_char, str):  # needs to be unicode
-		orig_char = str(orig_char, 'utf-8')
+	# if isinstance(orig_char, str):  # needs to be unicode
+	#	orig_char = str(orig_char, 'utf-8')
 	return KEYBOARD_SWAP_MAP.get(orig_char, orig_char)
 
 

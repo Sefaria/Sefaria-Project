@@ -29,7 +29,7 @@ letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05
 def normalizer(lang):
     if lang == "he":
         return hebrew.normalize_final_letters_in_str
-    return string.lower
+    return str.lower
 
 splitter = re.compile(r"[\s,]+")
 

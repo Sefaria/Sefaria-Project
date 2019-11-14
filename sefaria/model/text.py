@@ -1075,8 +1075,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def __unicode__(self):
         return "Version: {} <{}>".format(self.title, self.versionTitle)
 
-    def __str__(self):
-        return str(self).encode('utf-8')
+    # def __str__(self):
+    #    return str(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return "{}().load({{'title': '{}', 'versionTitle': '{}'}})".format(self.__class__.__name__, self.title, self.versionTitle)

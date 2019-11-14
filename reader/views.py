@@ -1,33 +1,23 @@
 # -*- coding: utf-8 -*-
 
-# noinspection PyUnresolvedReferences
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
-from pprint import pprint
 import json
-import urllib.parse
-import urllib.request, urllib.error, urllib.parse
 import urllib.request, urllib.parse, urllib.error
 import dateutil.parser
-import base64
-import zlib
 from bson.json_util import dumps
-import p929
 import socket
 import bleach
 from collections import OrderedDict
 
 from rest_framework.decorators import api_view
-from django.views.decorators.cache import cache_page
-from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
@@ -44,18 +34,15 @@ from sefaria.model.topic import get_topics
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, \
-    DuplicateRecordError, DictionaryEntryNotFoundError
-# noinspection PyUnresolvedReferences
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
-from sefaria.utils.util import list_depth, text_preview
-from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
-from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.util import text_preview
+from sefaria.utils.hebrew import hebrew_term, is_hebrew
+from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
