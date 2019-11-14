@@ -283,7 +283,7 @@ class UserProfile(object):
 
         # Gravatar
         default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-        gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
+        gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"
         self.gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
         self.gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
 
