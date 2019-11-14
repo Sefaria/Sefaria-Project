@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Editor} from 'slate-react'
-import {Block, Value, Data, Inline, Selection} from 'slate'
+import {Block, Value, Range, Data, Inline, Selection, Point} from 'slate'
 import Html from 'slate-html-serializer'
 import Sheet from "./Sheet";
 import Sefaria from './sefaria/sefaria';
@@ -823,24 +823,53 @@ function SefariaEditor(props) {
             const textContent = editor.value.focusText;
             const titles = Sefaria.titlesInText(textContent.text);
 
-            const refRe = titles.length > 0 ? Sefaria.makeRefRe() : null
-            let foundRefs = textContent.text.match(refRe);
-            console.log(foundRefs);
-            console.log(textContent.text)
+            if (titles.length == 0) {return next()}
+
+            const refRe = Sefaria.makeRefRe(titles)
+
             const match = refRe.exec(textContent.text);
             if (match) {
-                console.log(match)
+                const focus = match.index + match[0].trim().length;
+                const anchor = match.index;
 
-                console.log(editor.value.selection.focus)
-                console.log(editor.moveTo(match.index))
+                /*
+                {
+                    anchor: {
+                        key: textContent.key,
+                        offset: anchor,
+                    },
+                    focus: {
+                        key: textContent.key,
+                        offset: focus,
+                    },
+                }
+                */
+                event.preventDefault;
+
+                editor.select({
+                    anchor: {
+                        key: textContent.key,
+                        offset: anchor,
+                    },
+                    focus: {
+                        key: textContent.key,
+                        offset: focus,
+                    },
+                }).insertInline({
+                    data: {ref: match[0]},
+                    nodes: [{
+                        "object": "text",
+                        "text": match[0]
+                    }],
+                    type: "inlineTextRef"
+                });
+
             }
 
 /*
 
-            editor.addMarkAtRange({
-                type: 'underline',
-                range:
-            });
+
+
 
 
 
@@ -1003,6 +1032,7 @@ function SefariaEditor(props) {
 
     function renderMark(props, editor, next) {
         const {mark, attributes} = props;
+        console.log('render mark')
         switch (mark.type) {
             case 'bold':
                 return <strong {...attributes}>{props.children}</strong>;
@@ -1016,14 +1046,13 @@ function SefariaEditor(props) {
     }
 
     function renderInline(props, editor, next) {
-        console.log('do i get called?')
         const {attributes, children, node} = props;
         const {data} = node;
         switch (node.type) {
-            case 'TextRef':
+            case 'inlineTextRef':
                 const ref = data.get('ref');
                 return (
-                    <div className="ref"><a href={"/" + ref}>{children}</a></div>
+                    <span className="ref"><a href={"/" + ref}>{children}</a></span>
                 );
             default:
                 return next()
