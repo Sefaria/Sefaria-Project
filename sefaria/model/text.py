@@ -2576,6 +2576,9 @@ class Ref(object, metaclass=RefCacheType):
     def __eq__(self, other):
         return isinstance(other, Ref) and self.uid() == other.uid()
 
+    def __hash__(self):
+        return hash(self.uid())
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
