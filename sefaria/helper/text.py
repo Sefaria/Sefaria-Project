@@ -469,16 +469,16 @@ def get_library_stats():
         row = [n.get(field) for field in fields]
         if n["name"] in with_commentary:
             if n["name"] == "Tanakh":
-                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                cn = next(filter(lambda x: x["name"] == "Commentary", n["children"]))
                 c_row = [cn.get(field) for field in fields]
-                tn = filter(lambda x: x["name"] == "Targum", n["children"])[0]
+                tn = next(filter(lambda x: x["name"] == "Targum", n["children"]))
                 t_row = [tn.get(field) for field in fields]
                 row[1:] = list(map(sub, list(map(sub, row[1:], c_row[1:])), t_row[1:]))
                 writer.writerow(row)
                 writer.writerow(c_row)
                 writer.writerow(t_row)
             else:
-                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                cn = next(filter(lambda x: x["name"] == "Commentary", n["children"]))
                 c_row = [cn.get(field) for field in fields]
                 row[1:] = list(map(sub, row[1:], c_row[1:]))
                 writer.writerow(row)

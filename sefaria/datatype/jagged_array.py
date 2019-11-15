@@ -157,8 +157,9 @@ class JaggedArray(object):
     def sub_array_length(self, indexes=None, until_last_nonempty=False):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
-        :param until_last_nonempty_section: True if you want to return the length of the last of the last nonempty (super-section, section, segment)
+        :param until_last_nonempty_section: True if you want to return the length of the last nonempty (super-section, section, segment)
         :return: The length of the array at the provided index
+            If indexes are beyond end of book, return None   # Is this best?
         """
         if indexes is None:
             indexes = []
@@ -177,7 +178,7 @@ class JaggedArray(object):
                 result = curr_result
             else:
                 result = len(a)
-        except TypeError:
+        except TypeError as e:
             result = 0
         return result
 

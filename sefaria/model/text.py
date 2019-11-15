@@ -1148,7 +1148,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         :param func action: (segment_str, tref, version) => None
         """
         def get_primary_title(lang, titles):
-            return filter(lambda x: x.get("primary", False) and x.get("lang", "") == lang, titles)[0]["text"]
+            return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
 
         if item is None:
             item = self.chapter
@@ -2926,17 +2926,13 @@ class Ref(object, metaclass=RefCacheType):
         # calculate the number of "paddings" required to get down to segment level
         max_depth = self.index_node.depth - len(self.sections)
 
-        sec_padding = to_sec_padding = max_depth
-
-        while sec_padding > 0:
-            d['sections'].append(1)
-            sec_padding -= 1
+        d['sections'] += [1] * max_depth
 
         state_ja = current_ending_ref.get_state_ja()
 
-        while to_sec_padding > 0:
+        for _ in range(max_depth):
             size = state_ja.sub_array_length([i - 1 for i in current_ending_ref.sections])
-            if size > 0:
+            if size and size > 0:
                 d['toSections'].append(size)
             else:
                 d['toSections'].append(1)
@@ -2945,8 +2941,6 @@ class Ref(object, metaclass=RefCacheType):
             temp_d = current_ending_ref._core_dict()
             temp_d['sections'] = temp_d['toSections'][:] = d['toSections'][:]
             current_ending_ref = Ref(_obj=temp_d)
-
-            to_sec_padding -= 1
 
         return Ref(_obj=d)
 
@@ -4851,6 +4845,7 @@ class Library(object):
         :param lang: "he" or "en"
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text.
         :return: list of :class:`Ref` objects
+            Order is not guaranteed
         """
         # todo: only match titles of content nodes
 

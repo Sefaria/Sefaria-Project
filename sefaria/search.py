@@ -155,7 +155,7 @@ def index_sheet(index_name, id):
 
 def make_sheet_tags(sheet):
     def get_primary_title(lang, titles):
-        return filter(lambda x: x.get("primary", False) and x.get("lang", "") == lang, titles)[0]["text"]
+        return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
 
     tags = sheet.get('tags', [])
     tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in tags]

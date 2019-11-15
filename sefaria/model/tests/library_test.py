@@ -252,7 +252,7 @@ class Test_he_get_refs_in_text(object):
         if citing_only:
             assert matched_refs == [Ref("Leviticus 12.4")]
         else:
-            assert matched_refs == [Ref("Leviticus 12.4"), Ref("The Book of Susanna 1.2")]
+            assert set(matched_refs) == {Ref("The Book of Susanna 1.2"), Ref("Leviticus 12.4")}
 
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_supposed_ref_graceful_fail(self, citing_only):
