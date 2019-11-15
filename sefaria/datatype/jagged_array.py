@@ -12,6 +12,8 @@ jagged_array.py: a sparse array of arrays
 import re
 from functools import reduce
 from itertools import zip_longest
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JaggedArray(object):
@@ -368,7 +370,11 @@ class JaggedArray(object):
             end_indexes = start_indexes
 
         assert len(start_indexes) == len(end_indexes)
-        assert len(start_indexes) <= self.get_depth()
+        if len(start_indexes) > self.get_depth():
+            logger.info("Failed to get subarray.  Specified subarray depth greater than depth of array.")
+            return self.__class__([])
+
+
         range_index = len(start_indexes)
 
         for i in range(0, len(start_indexes)):
@@ -561,10 +567,9 @@ class JaggedArray(object):
         res = []
         next = self
         for _ in range(depth):
-            try:
-                res += [len(next.array()) - 1]
-                next = next.subarray(res[-1:])
-            except (IndexError, AssertionError):
+            res += [len(next.array()) - 1]
+            next = next.subarray(res[-1:])
+            if next.array() == []:
                 # For sparse texts that end before the array ends
                 return self.prev_index(res)
         return res

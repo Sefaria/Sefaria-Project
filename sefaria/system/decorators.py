@@ -14,7 +14,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 # TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
 def json_response_decorator(func):
     """
@@ -27,6 +26,7 @@ def json_response_decorator(func):
     def decorator(request, *args, **kwargs):
         return jsonResponse(func(request, *args, **kwargs), callback=request.GET.get("callback", None))
     return decorator
+
 
 def catch_error_as_json(func):
     """

@@ -28,6 +28,10 @@ else:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
+def get_test_db():
+    return client[TEST_DB]
+
+
 def drop_test():
     global client
     client.drop_database(TEST_DB)
@@ -42,7 +46,8 @@ def refresh_test():
                          todb=TEST_DB)
 
 
-def ensure_indices():
+def ensure_indices(active_db=None):
+    active_db = active_db or db
     indices = [
         ('following', ["follower"],{}),
         ('following', ["followee"],{}),
@@ -106,7 +111,7 @@ def ensure_indices():
 
     for col, args, kwargs in indices:
         try:
-            getattr(db, col).create_index(*args, **kwargs)
+            getattr(active_db, col).create_index(*args, **kwargs)
         except OperationFailure as e:
             print("Collection: {}, args: {}, kwargs: {}\n{}".format(col, args, kwargs, e))
 

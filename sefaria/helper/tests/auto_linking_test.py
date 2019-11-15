@@ -16,7 +16,7 @@ class Test_AutoLinker(object):
     }
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         # create dummy indexes: "Many to One on Genesis" and "One to One on Genesis"
         # ensure dummy index was properly deleted
         index = Index().load({'title': 'Many to One on Genesis'})
@@ -229,12 +229,12 @@ class Test_AutoLinker(object):
         VersionState("One to One on Genesis").refresh()
 
         link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
-        self.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
-        self.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
+        cls.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
+        cls.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
         #print 'End of test setup'
 
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         #print 'Cleaning Up'
         ls = LinkSet(Ref("Many to One on Genesis"))
         ls.delete()
