@@ -26,9 +26,6 @@ class RecommendationSource:
         self.anchor_ref = anchor_ref
 
     def __str__(self):
-        return str(self).encode('utf-8')
-
-    def __unicode__(self):
         return "RecommendationSource: {}, {}".format(self.source, self.anchor_ref.normal())
 
     def __repr__(self):
@@ -66,11 +63,8 @@ class Recommendation:
         self.sources += other.sources
         return self
 
-    def __unicode__(self):
-        return "Recommendation: {}, {}, {}".format(self.ref.normal(), self.score, self.sources)
-
     def __str__(self):
-        return str(self).encode('utf-8')
+        return "Recommendation: {}, {}, {}".format(self.ref.normal(), self.score, self.sources)
 
     def __repr__(self):
         return "{}({}, score={}, sources={})".format(self.__class__.__name__, self.ref, self.score, self.sources).encode('utf-8')

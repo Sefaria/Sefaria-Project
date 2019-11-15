@@ -212,11 +212,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "dedication"            # (dict) Dedication texts, keyed by language
     ]
 
-    def __unicode__(self):
-        return "Index: {}".format(self.title)
-
     def __str__(self):
-        return str(self).encode('utf-8')
+        return "Index: {}".format(self.title)
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return "{}().load({{'title': '{}'}})".format(self.__class__.__name__, self.title)
@@ -1072,11 +1069,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "extendedNotesHebrew",
     ]
 
-    def __unicode__(self):
+    def __str__(self):
         return "Version: {} <{}>".format(self.title, self.versionTitle)
-
-    # def __str__(self):
-    #    return str(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return "{}().load({{'title': '{}', 'versionTitle': '{}'}})".format(self.__class__.__name__, self.title, self.versionTitle)
@@ -1384,14 +1378,11 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:
             raise Exception("TextChunk requires a language.")
 
-    def __unicode__(self):
+    def __str__(self):
         args = "{}, {}".format(self._oref, self.lang)
         if self.vtitle:
             args += ", {}".format(self.vtitle)
         return args
-
-    def __str__(self):
-        return str(self).encode('utf-8')
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         args = "{}, {}".format(self._oref, self.lang)

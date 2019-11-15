@@ -22,11 +22,8 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = ["enDesc", "heDesc", "titles", "sharedTitle"]
 
-    def __unicode__(self):
-        return "Category: {}".format(", ".join(self.path))
-
     def __str__(self):
-        return str(self).encode('utf-8')
+        return "Category: {}".format(", ".join(self.path))
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
         return "{}().load({{'path': [{}]}})".format(self.__class__.__name__, ", ".join(['"{}"'.format(x) for x in self.path]))
