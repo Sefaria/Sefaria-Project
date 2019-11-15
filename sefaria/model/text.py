@@ -800,7 +800,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         return self.nodes.find_string(regex_str, cleaner=cleaner, strict=strict, lang=lang, vtitle=vtitle)
 
-    def text_index_map(self, tokenizer=lambda x: re.split('\s+',x), strict=True, lang='he', vtitle=None):
+    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+', x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
         :param tokenizer:
@@ -1007,16 +1007,16 @@ class AbstractTextRecord(object):
         if isinstance(t, list):
             for i, v in enumerate(t):
                 if isinstance(v, str):
-                    t[i] = re.sub('<[^>]+>', " ", v)
-                    t[i] = re.sub('[ ]{2,}', " ", t[i])
-                    t[i] = re.sub('(\S) ([.?!,])', r"\1\2", t[i])  # Remove spaces preceding punctuation
+                    t[i] = re.sub(r'<[^>]+>', " ", v)
+                    t[i] = re.sub(r'[ ]{2,}', " ", t[i])
+                    t[i] = re.sub(r'(\S) ([.?!,])', r"\1\2", t[i])  # Remove spaces preceding punctuation
                     t[i] = t[i].strip()
                 else:
                     t[i] = AbstractTextRecord.remove_html_and_make_presentable(v)
         elif isinstance(t, str):
-            t = re.sub('<[^>]+>', " ", t)
-            t = re.sub('[ ]{2,}', " ", t)
-            t = re.sub('(\S) ([.?!,])', r"\1\2", t)  # Remove spaces preceding punctuation
+            t = re.sub(r'<[^>]+>', " ", t)
+            t = re.sub(r'[ ]{2,}', " ", t)
+            t = re.sub(r'(\S) ([.?!,])', r"\1\2", t)  # Remove spaces preceding punctuation
             t = t.strip()
         else:
             return False
@@ -1744,7 +1744,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
         return matches
 
-    def text_index_map(self, tokenizer=lambda x: re.split('\s+', x), strict=True, ret_ja=False):
+    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+', x), strict=True, ret_ja=False):
         """
         Primarily used for depth-2 texts in order to get index/ref pairs relative to the full text string
          indexes are the word index in word_list
@@ -2562,7 +2562,7 @@ class Ref(object, metaclass=RefCacheType):
             self.toSections[0] = self.sections[0] + 1
 
         # 'Shabbat 24b-25a'
-        elif regex.match("\d+[abᵃᵇ]", self.toSections[0]):
+        elif regex.match(r"\d+[abᵃᵇ]", self.toSections[0]):
             self.toSections[0] = daf_to_section(self.toSections[0])
 
         # 'Shabbat 24b.12-24'
@@ -3631,30 +3631,30 @@ class Ref(object, metaclass=RefCacheType):
                 normals = [r.normal() for r in self.range_list()]
 
             for r in normals:
-                sections = re.sub("^%s" % re.escape(self.book), '', r)
-                patterns.append("%s$" % sections)   # exact match
-                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
-                patterns.append("%s \d" % sections) # extra granularity following space
+                sections = re.sub(r"^%s" % re.escape(self.book), '', r)
+                patterns.append(r"%s$" % sections)   # exact match
+                patterns.append(r"%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(r"%s \d" % sections) # extra granularity following space
         else:
-            sections = re.sub("^%s" % re.escape(self.book), '', self.normal())
-            patterns.append("%s$" % sections)   # exact match
+            sections = re.sub(r"^%s" % re.escape(self.book), '', self.normal())
+            patterns.append(r"%s$" % sections)   # exact match
             if self.index_node.has_titled_continuation():
-                patterns.append("{}({}).".format(sections, "|".join(self.index_node.title_separators)))
+                patterns.append(r"{}({}).".format(sections, "|".join(self.index_node.title_separators)))
             if self.index_node.has_numeric_continuation():
-                patterns.append("%s:" % sections)   # more granualar, exact match followed by :
-                patterns.append("%s \d" % sections) # extra granularity following space
+                patterns.append(r"%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(r"%s \d" % sections) # extra granularity following space
 
         escaped_book = re.escape(self.book)
         if anchored:
             if as_list:
-                return ["^{}{}".format(escaped_book, p) for p in patterns]
+                return [r"^{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "^%s(%s)" % (escaped_book, "|".join(patterns))
+                return r"^%s(%s)" % (escaped_book, "|".join(patterns))
         else:
             if as_list:
-                return ["{}{}".format(escaped_book, p) for p in patterns]
+                return [r"{}{}".format(escaped_book, p) for p in patterns]
             else:
-                return "%s(%s)" % (escaped_book, "|".join(patterns))
+                return r"%s(%s)" % (escaped_book, "|".join(patterns))
 
     def ref_regex_query(self):
         """
@@ -5169,18 +5169,18 @@ def prepare_index_regex_for_dependency_process(index_object, as_list=False):
     Simplified version of Ref.regex()
     """
     patterns = []
-    patterns.append("$")   # exact match
+    patterns.append(r"$")   # exact match
     if index_object.nodes.has_titled_continuation():
-        patterns.append("({}).".format("|".join(index_object.nodes.title_separators)))
+        patterns.append(r"({}).".format(r"|".join(index_object.nodes.title_separators)))
     if index_object.nodes.has_numeric_continuation():
-        patterns.append(":")   # more granualar, exact match followed by :
-        patterns.append(" \d") # extra granularity following space
+        patterns.append(r":")   # more granualar, exact match followed by :
+        patterns.append(r" \d") # extra granularity following space
 
     escaped_book = re.escape(index_object.title)
     if as_list:
-        return ["^{}{}".format(escaped_book, p) for p in patterns]
+        return [r"^{}{}".format(escaped_book, p) for p in patterns]
     else:
-        return "^%s(%s)" % (escaped_book, "|".join(patterns))
+        return r"^%s(%s)" % (escaped_book, "|".join(patterns))
 
 
 def process_index_title_change_in_versions(indx, **kwargs):

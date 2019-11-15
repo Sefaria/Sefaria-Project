@@ -168,7 +168,7 @@ def test_ancestors():
 def test_text_index_map():
     def tokenizer(s):
         s = re.sub(r'<.+?>','',s).strip()
-        return re.split('\s+', s)
+        return re.split(r'\s+', s)
 
 
     nodes = library.get_index("Megillat Taanit").nodes

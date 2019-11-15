@@ -270,7 +270,7 @@ class AbstractMongoRecord(object):
         return not self.__eq__(other)
 
 
-class AbstractMongoSet(collections.Iterable):
+class AbstractMongoSet(collections.abc.Iterable):
     """
     A set of mongo records from a single collection
     """

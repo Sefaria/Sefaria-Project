@@ -364,7 +364,8 @@ class JaggedArray(object):
         """
         Trims a JA to the specifications of start_indexes and end_indexes
         This works on simple Refs and range refs of unlimited depth and complexity.
-        :param txt:
+        :param start_indexes: List of zero-based indexes
+        :param end_indexes: List of zero-based indexes
         :return: List|String depending on depth of Ref
         """
         if not end_indexes:
@@ -372,9 +373,7 @@ class JaggedArray(object):
 
         assert len(start_indexes) == len(end_indexes)
         if len(start_indexes) > self.get_depth():
-            logger.info("Failed to get subarray.  Specified subarray depth greater than depth of array.")
             return self.__class__([])
-
 
         range_index = len(start_indexes)
 
