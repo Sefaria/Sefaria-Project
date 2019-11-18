@@ -3,7 +3,7 @@
 # For instance: python run_one_local.py ClickVersionedSearchResultDesktop
 import django
 django.setup()
-from .framework import *
+from framework import Trial
 from . import basic_tests
 import sys
 

@@ -3,8 +3,7 @@
 import django
 django.setup()
 
-from .framework import *
-from . import basic_tests
+from framework import Trial
 import sys
 
 build = sys.argv[1]

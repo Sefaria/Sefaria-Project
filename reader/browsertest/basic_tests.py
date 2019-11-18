@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-#from __future__ import absolute_import
 
-from .framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
+from framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
 from sefaria.utils.hebrew import has_cantillation
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -10,11 +9,9 @@ from selenium.webdriver.support.expected_conditions import title_contains, stale
 
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_cantillation
-from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
-
 
 TEMPER = 10
 

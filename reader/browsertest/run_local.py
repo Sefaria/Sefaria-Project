@@ -5,7 +5,7 @@ from appium import webdriver as appiumWebdriver
 from optparse import OptionParser
 import django
 django.setup()
-from .framework import *
+from framework import Trial
 from . import basic_tests
 
 

@@ -2,7 +2,7 @@
 # It takes one argument - the name of the class to run
 # For instance: python run_one_local.py ClickVersionedSearchResultDesktop
 
-from .framework import *
+from framework import Trial
 from . import basic_tests
 import sys
 from time import gmtime, strftime
