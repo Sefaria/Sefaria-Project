@@ -1124,9 +1124,14 @@ function SefariaEditor(props) {
     }
 
     function isEndOfSheetItemBlockContent(v) {
-        //Usually the end of the node *is* the end of the sheetItem block, b/c of legacy sheets sometimes another
+        //Usually the end of the node *is* the end of the sheetItem block, but b/c of legacy sheets sometimes another
         // paragraph follows it -- this ensures this value is set correctly in that case
-        return (v.selection.focus.isAtEndOfNode(v.anchorBlock) && v.document.getNextNode(v.anchorBlock.key).get("type") !== "paragraph")
+
+        const nextNodeBlock = v.document.getNextNode(v.anchorBlock.key);
+        if (!nextNodeBlock) {return true}
+        else {
+            return (v.selection.focus.isAtEndOfNode(v.anchorBlock) && nextNodeBlock.get("type") !== "paragraph")
+        }
     }
 
     function onChange({v}) {
