@@ -5,44 +5,364 @@
 
 {% block description %}{% trans "Download the free Sefaria Apps for iOS and Android." %}{% endblock %}
 
+{% block css %}
+
+{% endblock %}
+
+{% block bodyclasses %}nochrome{% endblock %}
 {% block content %}
-<div id="homePage" class="static biReady">
-    <div id="homeMobile" class="section textRight">
-        <div class="sectionInner">
-            <div class="textBox">
-                <h2>
-                    <span class="int-en">Sefaria Mobile</span>
-                    <span class="int-he">ספריא בנייד</span>
-                </h2>
-                <div class="description">
-                    <span class="int-en">
-                            Enjoy Sefaria's entire library of Jewish texts &mdash; Tanakh, Talmud, Kabbalah and more &mdash; and all of its links and interconnections on-the-go. Sefaria’s apps for Android and iOS available to download for free.
-                        </span>
-                        <span class="int-he">
-                            הספריה המלאה של ספריא, הכוללת את כל הלינקים והקשרים, זמינה גם בנייד.
-                            האפליקציות של ספריא לאנדרואיד ולאייפון זמינות עכשיו להורדה בחינם.
-                        </span>
-                </div>
-                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank">
-                    <div class="button white control-elem">
-                        <i class="fa fa-android"></i>
-                        <span class="int-en">Get Android App &rsaquo;</span>
-                        <span class="int-he"> הורדה לאנדרואיד &rsaquo;</span>
-                    </div>
-                </a>
-                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" id="iOSButton" target="_blank">
-                    <div class="button white control-elem">
-                        <i class="fa fa-apple"></i>
-                        <span class="int-en">Get iOS App &rsaquo;</span>
-                        <span class="int-he"> הורדה לאייפון &rsaquo;</span>
-                    </div>
-                </a>
+<div id="mobilePage" class="static">
+    <img id="topHeaderAndroid" src="{% static "img/mobile-landing-page/Artboard 1.png" %}" alt="Sefaria app on Android">
+    <img id="topHeaderIOS" src="{% static "img/mobile-landing-page/Artboard 3 2.png" %}" alt="Sefaria app on IOS" />
+    <div id="mobilePageHeader">
+        <div class="sectionInner sectionRegular flexContainer flexReverse">
+            <div id="mobilePageHeaderImage" class="sectionInner">
+                <img id="mobilePageHeaderPhoneImage" src="{% static "img/mobile-landing-page/headerphone.png" %}" alt="Sefaria app on Phone">
+                <img id="mobilePageHeaderTabletImage" src="{% static "img/mobile-landing-page/tablet.png" %}" alt="Sefaria app on Tablet" />
             </div>
-            <div class="imageBox">
-                <img src="{% static 'img/home-mobile.png' %}" alt="Image of Sefaria on mobile phones" />
+            <div id="mobilePageHeaderText" class="">
+                <h1>
+                    <span class="int-en">The Sefaria App</span>
+                    <span class="int-he">האפליקציה לנייד של ספריא</span>
+                </h1>
+                <div id="mobilePageSubHeaderText">
+                    <h2>
+                        <span class="int-en">The Jewish library-- </span>
+                        <span class="int-he">ארון הספרים היהודי--</span>
+                    </h2>
+                    <h2>
+                        <span class="int-en">Free, anywhere, anytime. </span>
+                        <span class="int-he"> בחינם, בכל מקום ובכל זמן. </span>
+                    </h2>
+                </div>
+                <div id="mobilePageHeaderButtons">
+                    <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContainer">
+                        <img class="button-icon ios" src="{% static "img/mobile-landing-page/apple.png" %}" alt="Sefaria on iOS">
+                        <span class="int-en">Download for iOS</span>
+                        <span class="int-he">הורדה ל IOS – מכשירי אייפון</span>
+                    </a>
+                    <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer">
+                        <img class="button-icon android" src="{% static "img/mobile-landing-page/googleplay.png" %}" alt="Sefaria on Android">
+                        <span class="int-en">Download for Android</span>
+                        <span class="int-he">הורדה לאנדרואיד</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="mobileDescription">
+        <div class="sectionInner sectionRegular">
+            <p>
+                <span class="int-en">
+                    Explore Sefaria's entire free library of Jewish texts in Hebrew and English translation — Torah, Talmud, Mishnah, Kabbalah, Siddur and more.
+                    Discover 3,000 years of texts with all of their links, interconnections, and commentaries.
+                    Download the entire library to learn offline, anywhere, anytime.
+                </span>
+                <span class="int-he">
+                    גלו את ספריא -  ספריה שלמה וחינמית של כל הכתבים והספרים החשובים ביהדות – בעברית ובתרגום לאנגלית: תורה, גמרא, משנה, קבלה, סידור התפילה ועוד.
+                    לרשותכם 3,000 שנה של כל ארון הספרים היהודי - עם כל הקישורים, מראי המקום, הערות השוליים והפרשנים.
+                    הורידו את הספריה כולה ללימוד בלתי-מקוון בכל מקום שתרצו, בזמנכם הפנוי.
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <div class="colorLine"></div>
+
+    <div id="mobileTestimonials">
+        <div class="sectionInner flexContainer">
+            <div id="mobileSiddur" class="mobileTestimonial">
+                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/siddur.png" %}" alt="icon of siddur">
+                <h3 class="mobileTestimonialHeader">
+                    <span class="int-en">Always have a siddur In your pocket</span>
+                    <span class="int-he">תמיד יהיה לך סידור בכיס</span>
+                </h3>
+                <div class="mobileTestimonialContent int-en">
+                    <p class="mobileTestimonialText">
+                        “I can look up anything in an easy format.
+                        You never know when you might need to find a prayer or a passage,
+                        and it's all sitting there on my phone.”
+                    </p>
+                    <span class="mobileTestimonialAttribution">Jessica L, User</span>
+                </div>
+                <div class="mobileTestimonialContent int-he">
+                    <p class="mobileTestimonialText">
+                        לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח.
+                        עמחליף קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית. סת אלמנקום ניסי נון ניבאה.
+                    </p>
+                    <span class="mobileTestimonialAttribution">ג'סיקה ל., משתמשת</span>
+                </div>
+            </div>
+            <div id="mobileEducate" class="mobileTestimonial">
+                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/educate.png" %}" alt="icon of pencil">
+                <h3 class="mobileTestimonialHeader">
+                    <span class="int-en">Look up education resources on-the-go</span>
+                    <span class="int-he">מצא חומר ומקורות ללימוד בכל מקום בו אתה נמצא</span>
+                </h3>
+                <div class="mobileTestimonialContent int-en">
+                    <p class="mobileTestimonialText">
+                        “I use Sefaria all the time - prepping for class,
+                        learning on the go, in the middle of a conversation and want to find a source.
+                        It has been an amazing tool in my life.”
+                    </p>
+                    <span class="mobileTestimonialAttribution">Jaclyn S, Educator</span>
+                </div>
+                <div class="mobileTestimonialContent int-he">
+                    <p class="mobileTestimonialText">
+                        "אני משתמשת בספריא כל הזמן – בהכנת מערכי לימוד, בלימוד תוך כדי נסיעה, או כשאני באמצע שיחה ורוצה תוך כדי למצוא מקור מסוים. זה הפך לכלי עזר מדהים בחיים שלי".
+                    </p>
+                    <span class="mobileTestimonialAttribution">-ג'קלין ס., מחנכת</span>
+                </div>
+            </div>
+            <div id="mobileCommute" class="mobileTestimonial">
+                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/commute.png" %}" alt="icon of train">
+                <h3 class="mobileTestimonialHeader">
+                    <span class="int-en">Learn on your commute</span>
+                    <span class="int-he">לימוד תוך כדי נסיעה לעבודה או לימודים</span>
+                </h3>
+                <div class="mobileTestimonialContent int-en">
+                    <p class="mobileTestimonialText">
+                        “I am constantly on the app during my NYC subway commute,
+                        whether I'm reviewing texts for class, reading the day's 929 chapter,
+                        or studying parshat hashavua.”
+                    </p>
+                    <span class="mobileTestimonialAttribution">Vanessa H, Rabbinical Student</span>
+                </div>
+                <div class="mobileTestimonialContent int-he">
+                    <p class="mobileTestimonialText">
+                        "אני משתמשת באופן קבוע באפליקציה תוך כדי הנסיעה היומיומית שלי ברכבת התחתית ללימודים בניו-יורק, בין אם לשינון חומר לימודי, או לקרוא את פרק התנ"ך היומי במסגרת פרוייקט 929, או ללמוד את פרשת השבוע".
+                    </p>
+                    <span class="mobileTestimonialAttribution">-ונסה ה. תלמידת בית מדרש לרבנים</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="mobileExamples">
+        <div class="sectionInner sectionNarrow">
+            <div id="mobileExampleCalendar" class="example flexContainer">
+                <div class="mobileExampleText">
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Calendar</span>
+                            <span class="int-he">לוח שנה</span>
+                        </h3>
+                    </div>
+                    <p class="int-en">
+                        Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and more.
+                    </p>
+                    <p class="int-he">
+                        בדוק את הלוח היומי כדי למצוא את הקריאה בתורה ופרשת השבוע, דף יומי, פרק היום בתנ"ך (929) ועוד.
+                    </p>
+                </div>
+                <div class="mobileExampleImage">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/calmock.png" %}" alt="screenshot of calendar on app">
+                </div>
+            </div>
+            <div id="mobileExampleCommentaries" class="example flexContainer flexReverse">
+                                <div class="mobileExampleText">
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Commentaries</span>
+                            <span class="int-he">פרשנים</span>
+                        </h3>
+                    </div>
+                    <p class="int-en">
+                        Learn with a variety of commentaries and explore the interconnections between texts.
+                        Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more.
+                        Talmud Bavli commentaries include Rashi, Tosafot, Rashba, Rosh, and more.
+                    </p>
+                    <p class="int-he">
+                        תוכל להיעזר במגוון של פרשנים בזמן הלימוד העצמי – ולגלות את הקישורים בין טקסטים שונים בעזרת מראי מקום. פרשני התורה כוללים את רש"י, אבן עזרא, רמב"ן, ספורנו, אברבנאל ועוד. פרשני התלמוד הבבלי כוללים רש"י, תוספות, רשב"א, רא"ש ועוד.
+                    </p>
+                </div>
+                <div class="mobileExampleImage">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/commmock.png" %}" alt="screenshot of commentary panel on app">
+                </div>
+            </div>
+            <div id="mobileExampleSearch" class="example flexContainer">
+                                <div class="mobileExampleText">
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Search</span>
+                            <span class="int-he">חיפוש</span>
+                        </h3>
+                    </div>
+                    <p class="int-en">
+                        Use the search tool to find topics, words, and phrases in both Hebrew and English.
+                        Filter your search by book, category, or relevance.
+                        Search results include primary sources and user-created source sheets.
+                    </p>
+                     <p class="int-he">
+                        השתמשו בפונקציית החיפוש על מנת למצוא נושאים, מילים וביטויים – גם בעברית וגם באנגלית. ניתן להוסיף לחיפוש סינון לפי ספרים, קטגוריות או מידת רלוונטיות. תוצאות החיפוש יכללו מקורות ראשוניים וכן דפי מקורות שנוצרו ע"י המשתמשים.
+                    </p>
+                </div>
+                <div class="mobileExampleImage">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/searchmock.png" %}" alt="screenshot of search on app">
+                </div>
+            </div>
+            <div id="mobileExampleSheets" class="example flexContainer flexReverse">
+                <div class="mobileExampleText">
+                    <div class="mobileExampleHeader">
+                        <h3>
+                            <span class="int-en">Source Sheets</span>
+                            <span class="int-he">דפי מקורות</span>
+                        </h3>
+                    </div>
+                    <p class="int-en">
+                        Explore thousands of user-created source sheets by topic or search directly for your favorite contributor.
+                    </p>
+                    <p class="int-he">
+                        תוכלו להיעזר באלפי דפי מקורות שנוצרו ע"י המשתמשים לפי נושאים, או  לחפש באופן ישיר לפי יוצרי דפי המקורות המועדפים עליכם.
+
+                    </p>
+                </div>
+                <div class="mobileExampleImage">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/sheetsmock.png" %}" alt="screenshot of sheets on app">
+                </div>
             </div>
         </div>
-    </div>    
+    </div>
+
+    <div id="mobileUpdate">
+        <div class="sectionInner flexContainer sectionRegular">
+            <div class="mobileUpdateText">
+                <span class="mobileUpdateVersion">
+                    <span class="int-en">New in Version 5.4.0</span>
+                    <span class="int-he">כעת בגירסה 5.4.0</span>
+                </span>
+                <h3 class="mobileUpdateTitle">
+                    <span class="int-en">Introducing:</span>
+                    <span class="int-en">account Login on the app</span>
+                    <span class="int-he">חדש!</span>
+                    <span class="int-he">כניסה לחשבון מהאפליקציה</span>
+                </h3>
+                <p class="mobileUpdateDescription">
+                    <span class="int-en">
+                        You can now log into your Sefaria account on the mobile app to sync your reading history and saved texts on your mobile device.
+                    </span>
+                    <span class="int-he">
+                        מעתה תוכלו להיכנס לחשבונכם בספריא מהטלפון הנייד על מנת לסנכרן את היסטוריית הקריאה שלכם והטקסטים ששמרתם לעצמכם גם במכשיר הנייד.
+                    </span>
+                </p>
+            </div>
+            <div id="mobileUpdateImage">
+                <img class="button-icon" src="{% static "img/mobile-landing-page/historymock.png" %}" alt="screenshot of latest app update">
+            </div>
+
+        </div>
+    </div>
+
+    <div id="mobileDownloadLinks">
+        <div class="sectionInner sectionNarrow">
+            <div class="mobileDownloadHeader">
+                <h3>
+                    <span class="int-en">Download the app and start exploring today</span>
+                    <span class="int-he">הורידו את האפליקציה והתחילו לגלות אותה כבר היום!</span>
+                </h3>
+            </div>
+            <div class="mobileDownloadButtons flexContainer">
+                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContainer">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/apple.png" %}" alt="iOS icon">
+                    <span class="int-en">Download for iOS</span>
+                    <span class="int-he">הורדה ל- IOS – אייפון</span>
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer">
+                    <img class="button-icon" src="{% static "img/mobile-landing-page/googleplay.png" %}" alt="Android Google Play icon">
+                    <span class="int-en">Download for Android</span>
+                    <span class="int-he">הורדה לאנדרואיד</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mobileNewsletterSocial">
+        <div class="sectionInner sectionNarrow">
+            <div>
+                <h3 class="mobileNewsletterHeader">
+                    <span class="int-en">Sign up to receive the latest updates</span>
+                    <span class="int-he">הירשמו לקבלת  עדכונים</span>
+                </h3>
+            </div>
+            <div class="newsletterSignUpBox">
+                <span class="int-en">
+                    <input id="newsletterInput" class="newsletterInput" placeholder="Sign up for our Newsletter" value="">
+                </span>
+                <span class="int-he">
+                    <input class="newsletterInput" class="newsletterInput" placeholder="הירשמו לקבלת העלון שלנו" value="">
+                </span>
+                <img src="/static/img/circled-arrow-right.svg" id="subscribe">
+                <div id="newsletterInput-subscribeMessage"></div>
+            </div>
+            <div class="mobileSocialLinks flexContainer">
+                <a href="https://www.facebook.com/sefaria.org" target="_blank">
+                    <span class="int-en">Facebook</span>
+                    <span class="int-he">פייסבוק</span>
+                </a>
+                <span class="dot">•</span>
+                <a href="https://twitter.com/SefariaProject" target="_blank">
+                    <span class="int-en">Twitter</span>
+                    <span class="int-he">טוויטר</span>
+                </a>
+                <span class="dot">•</span>
+                <a href="https://www.instagram.com/sefariaproject/" target="_blank">
+                    <span class="int-en">Instagram</span>
+                    <span class="int-he">אינסטגרם</span>
+                </a>
+            </div>
+            <div id="mobilePageNonProfit">
+                <p class="int-en">
+                    Sefaria is a 501(c)3 non-profit organization that creates open source software and publishes digital texts with open licenses.
+                </p>
+                <p class="int-he">
+                    ספריא הוא אירגון ללא מטרת רווח לפי חוקי ארצות הברית אשר יוצר תוכנות חיפוש למקורות פתוחים לשימוש ומפרסם טקסטים דיגיטליים שאין עליהם זכויות יוצרים.
+                </p>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
+{% endblock %}
+
+{% block js  %}
+    <script>
+    $(function() {
+        // General Email List sign up at end of page
+        $("#subscribe").click(function() {
+            const email = $("#newsletterInput").val();
+            if (Sefaria.util.isValidEmailAddress(email)) {
+                Sefaria.track.event("Educators", "Subscribe from Education Homepage", "");
+                $("#newsletterInput-subscribeMessage").html('{% trans "<i>Subscribing...</i>" %}').show();
+                let list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+                $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
+                    if ("error" in data) {
+                        $("#newsletterInput-subscribeMessage").text(data.error).show();
+                    } else {
+                        $("#newsletterInput-subscribeMessage").text('{% trans "Subscribed! Welcome to our list." %}').show();
+                    }
+                }).error(function(data) {
+                    $("#newsletterInput-subscribeMessage").text('{% trans "Sorry, there was an error." %}').show();
+                })
+            } else {
+                $("#newsletterInput-subscribeMessage").text('{% trans "Please enter a valid email address." %}').show();
+            }
+        });
+
+        $("#newsletterInput").keyup(function(e){
+            if (e.keyCode === 13) {
+                $("#subscribe").trigger("click");
+            }else{
+                const email = $("#newsletterInput").val();
+                if (email.length == 0){
+                    $("#newsletterInput-subscribeMessage").text("");
+                }
+            }
+        });
+    });
+    </script>
 {% endblock %}
