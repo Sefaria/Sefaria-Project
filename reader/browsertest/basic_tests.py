@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
+from .framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
 from sefaria.utils.hebrew import has_cantillation
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException

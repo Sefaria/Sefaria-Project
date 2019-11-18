@@ -121,9 +121,9 @@ class TimePeriod(abst.AbstractMongoRecord):
         if end is None:
             end = start
 
-        if start < 0 < end:
+        if int(start) < 0 < int(end):
             return ("BCE ", "CE") if lang == "en" else ('לפנה"ס' + ' ', "לספירה")
-        elif end > 0:
+        elif int(end) > 0:
             return ("", "CE") if lang == "en" else ("", "לספירה")
         else:  # self.end <= 0
             return ("", "BCE") if lang == "en" else ("", 'לפנה"ס')
