@@ -1530,7 +1530,7 @@ class TestResultSet(AbstractTestResult):
 
         total_tests = len(self._test_results)
         passed_tests = self.number_passed()
-        percentage_passed = (float(passed_tests) / total_tests) * 100
+        percentage_passed = (float(passed_tests) / total_tests) * 100 if total_tests > 0 else 0
         ret += "\n\n{}/{} - {:.0f}% passed\n".format(passed_tests, total_tests, percentage_passed)
 
         if passed_tests < total_tests:
