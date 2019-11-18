@@ -149,14 +149,14 @@ class SheetContent extends Component {
     }
 
     //scroll down
-    var nextSegment = segment.next();
-    var segmentBottomDistanceFromTop = segment.offset().top+segment.height()-160;
+    const nextSegment = segment.closest("section").next().find('.segment');
+    const segmentBottomDistanceFromTop = segment.offset().top+segment.height()-160;
     if (segmentBottomDistanceFromTop < 0 && this.props.hasSidebar) {
       nextSegment.click();
     }
     //scroll up
-    var prevSegment = segment.prev();
-    var segmentTopDistanceFromBottom = segment.offset().top;
+    const prevSegment = segment.closest("section").prev().find('.segment');
+    const segmentTopDistanceFromBottom = segment.offset().top;
     if (segmentTopDistanceFromBottom > this.windowMiddle && this.props.scrollDir == "up" && this.props.hasSidebar) {
       prevSegment.click();
     }
