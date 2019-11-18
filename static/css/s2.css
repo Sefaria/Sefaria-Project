@@ -7312,3 +7312,7 @@ body .homeFeedWrapper.userStats {
     padding: 3px;
     font-size: 12px;
 }
+
+.inlineTextRef {
+    background-color: rgb(255, 238, 186)
+}

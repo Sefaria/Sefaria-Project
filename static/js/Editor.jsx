@@ -798,15 +798,114 @@ function SefariaEditor(props) {
 
         }]
     };
+    function createEmptyBlockJSON2(ref, heRef, text, he) {
+        return {
+            "object": "block",
+            "type": "SheetItem",
+            "nodes": [{
+                "object": "block",
+                "type": "SheetOutsideText",
+                "data": {
+                    "node": nextSheetNode
+                },
+                "nodes": [{
+                    "object": "block",
+                    "type": "paragraph",
+                    "nodes": [{
+                        "object": "text",
+                        "text": ref + " " + text
+                    },
+                    {
+                        "object": "text",
+                        "text": heRef + " " + he
+                    }
+                    ]
+                }],
 
-    function addNewSheetItem(editor) {
+            }]
+        };
+    }
+
+    function createSheetSourceJSON(ref, heRef, text, he) {
+        return {
+            "object": "block",
+            "type": "SheetItem",
+            "nodes": [{
+                "object": "block",
+                "type": "SheetSource",
+                "data": {
+                    "ref": ref,
+                    "heRef": heRef,
+                    "title": null,
+                    "node": nextSheetNode
+                },
+                "nodes": [
+                    {
+                        "object": "block",
+                        "type": "TextRef",
+                        "data": {
+                            "ref": ref,
+                            "refText": heRef,
+                            "lang": "he",
+                        },
+                    },
+                    {
+                        "object": "block",
+                        "type": "he",
+                        "data": {"heRef": heRef},
+                        "nodes": parseSheetItemHTML(he)
+                    },
+                    {
+                        "object": "block",
+                        "type": "TextRef",
+                        "data": {
+                            "ref": ref,
+                            "refText": ref,
+                            "lang": "en",
+                        },
+                    },
+                    {
+                        "object": "block",
+                        "type": "en",
+                        "data": {"ref": ref},
+                        "nodes": parseSheetItemHTML(text)
+                    }
+                ]
+            }]
+        }
+
+    }
+
+
+    function addNewSheetItem(editor, blockToAdd) {
         const sheetContentKey = editor.value.document.filterDescendants(n => n.type === 'SheetContent').get(0).key;
         const curSelectionPath = editor.value.selection.focus.path;
         const curSheetItemPath = curSelectionPath.slice(0, 2);
         const nextIndex = curSheetItemPath.get(1)+1;
         setNextSheetMode(nextSheetNode + 1);
-        let emptyBlock = Block.fromJSON(emptyBlockJSON);
-        return editor.insertNodeByKey(sheetContentKey, nextIndex, emptyBlock).moveToEndOfNode(editor.value.document.getNode(curSheetItemPath)).moveForward(1);
+        return editor.insertNodeByKey(sheetContentKey, nextIndex, blockToAdd).moveToEndOfNode(editor.value.document.getNode(curSheetItemPath)).moveForward(1);
+    }
+
+    function wrapRefInInline(editor, key, focus, anchor, ref) {
+                editor.select({
+                    anchor: {
+                        key: key,
+                        offset: anchor,
+                    },
+                    focus: {
+                        key: key,
+                        offset: focus,
+                    },
+                }).insertInline({
+                    data: {ref: ref },
+                    nodes: [{
+
+                        "object": "text",
+                        "text": ref
+                    }],
+                    type: "inlineTextRef"
+                });
+
     }
 
     function onKeyDown(event, editor, next) {
@@ -814,13 +913,15 @@ function SefariaEditor(props) {
 
             if (isEndOfSheetItemBlockContent(editor.value)) {
                 event.preventDefault();
-                return addNewSheetItem(editor);
+                let emptyBlock = Block.fromJSON(emptyBlockJSON);
+                return addNewSheetItem(editor, emptyBlock);
             } else {
                 return next();
             }
         }
         else if (event.key == " ") {
             const textContent = editor.value.focusText;
+
             const titles = Sefaria.titlesInText(textContent.text);
 
             if (titles.length == 0) {return next()}
@@ -829,74 +930,29 @@ function SefariaEditor(props) {
 
             const match = refRe.exec(textContent.text);
             if (match) {
-                const focus = match.index + match[0].trim().length;
-                const anchor = match.index;
-
-                /*
-                {
-                    anchor: {
-                        key: textContent.key,
-                        offset: anchor,
-                    },
-                    focus: {
-                        key: textContent.key,
-                        offset: focus,
-                    },
-                }
-                */
                 event.preventDefault;
-
-                editor.select({
-                    anchor: {
-                        key: textContent.key,
-                        offset: anchor,
-                    },
-                    focus: {
-                        key: textContent.key,
-                        offset: focus,
-                    },
-                }).insertInline({
-                    data: {ref: match[0]},
-                    nodes: [{
-                        "object": "text",
-                        "text": match[0]
-                    }],
-                    type: "inlineTextRef"
-                });
-
+                wrapRefInInline(editor, textContent.key, match.index + match[0].trim().length, match.index, match[0].trim())
             }
-
-/*
-
-
-
-
-
-
-            if (foundRefs.length > 0) {
-                const textsInBlock = editor.value.focusBlock.getTexts();
-                    debugger;
-                for (const [node, path] of textsInBlock) {
-
-                    const {key, text} = node;
-                    console.log(text)
-                    const parts = text.split(foundRefs[0]);
-                    let offset = 0;
-
-                    parts.forEach((part, i) => {
-                        console.log(i)
-                        console.log(path)
-                        console.log(key)
-                        console.log(offset)
-                    })
-                }
-            }
-*/
         }
         else {
             return next();
         }
     }
+
+    function onClick(event, editor, next) {
+
+        if (editor.value.inlines.size === 1) {
+            const refToAdd = (editor.value.inlines.getIn([0, 'data', 'ref']));
+
+            Sefaria.getText(refToAdd).then(text => {
+                let sheetSourceJSON = createSheetSourceJSON(text.ref, text.heRef, text.text, text.he);
+                let newSheetSource = Block.fromJSON(sheetSourceJSON);
+                addNewSheetItem(editor, sheetSourceJSON);
+            });
+        }
+
+    }
+
 
     function renderBlock(props, editor, next) {
         const {attributes, children, node} = props;
@@ -1032,7 +1088,6 @@ function SefariaEditor(props) {
 
     function renderMark(props, editor, next) {
         const {mark, attributes} = props;
-        console.log('render mark')
         switch (mark.type) {
             case 'bold':
                 return <strong {...attributes}>{props.children}</strong>;
@@ -1052,7 +1107,7 @@ function SefariaEditor(props) {
             case 'inlineTextRef':
                 const ref = data.get('ref');
                 return (
-                    <span className="ref"><a href={"/" + ref}>{children}</a></span>
+                    <span className="inlineTextRef">{children}</span>
                 );
             default:
                 return next()
@@ -1104,6 +1159,7 @@ function SefariaEditor(props) {
             <div className="editorHoverBox">{getMetaMsg()}</div>
             <Editor
                 onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
+                onClick={(event, editor, next) => onClick(event, editor, next)}
                 value={value}
                 renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
                 renderMark={(props, editor, next) => renderMark(props, editor, next)}
