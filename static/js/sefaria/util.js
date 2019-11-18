@@ -274,6 +274,12 @@ class Util {
           };
         }
 
+        String.prototype.splitCamelCase = function() {
+              return this.replace(/([A-Z])/g, ' $1')
+                          .trim()
+                          .replace(/^./, str => str.toUpperCase())
+        };
+
         Array.prototype.compare = function(testArr) {
             if (this.length != testArr.length) return false;
             for (var i = 0; i < testArr.length; i++) {

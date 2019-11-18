@@ -1518,21 +1518,24 @@ a.readerNavCategory {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
+.readerNavMenu .dedication {
+  margin: -10px 0 58px 0;
+}
+.readerTextTableOfContents .categoryAttribution,
+.readerTextTableOfContents .dedication {
+  margin: 28px 0;
+}
 .readerTextTableOfContents .categoryAttribution,
 .readerTextTableOfContents .dedication,
 .readerNavMenu .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
-  margin: 28px 0;
 }
 .readerTextTableOfContents .categoryAttribution .he,
 .readerTextTableOfContents .dedication .he,
 .readerNavMenu .dedication .he {
   font-style: normal;
-}
-.readerNavMenu .dedication {
-  margin: -10px 0 58px 0;
 }
 .hebrew .readerNavMenu .dedication {
   direction: rtl;
@@ -2831,7 +2834,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
   display: flex;
@@ -3837,6 +3839,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: lighter;
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  unicode-bidi: isolate;
 }
 .englishAvailableTag {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -4119,6 +4122,69 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
+}
+.webpageList .website .icon {
+  height: 16px;
+  width: 16px;
+  margin-top: 2px;
+}
+.webpageList .webpage {
+  margin-bottom: 30px;
+  text-align: left;
+  direction: ltr;
+}
+.webpageList .webpage.hebrew {
+  text-align: right;
+  direction: rtl;
+}
+.webpageList .webpage .icon {
+  margin-right: 10px;
+}
+.webpage.hebrew .icon {
+  margin: 0 0 0 10px;
+}
+.webpageList .webpage .title {
+  font-size: 22px;
+  color: black;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .title:hover {
+  text-decoration: none;
+}
+.webpageList .webpage .domain {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .description {
+  font-size: 18px;
+  color: #999;
+}
+.webpageList .webpage .stats {
+  font-size: 13px;
+  color: #999;
+  margin-top: 5px;
+}
+.webpageList.empty .loadingMessage {
+  margin-top: 0px;
+}
+.webpageList .webpagesLinkerMessage {
+  padding: 20px 0px;
+  color: #999;
+  border-top: 1px solid #E5E5E5;
+  font-size: 13px;
+}
+.marginless .webpageList .webpagesLinkerMessage {
+  padding: 20px 34px;
+}
+.webpageList .webpagesLinkerMessage a {
+  color: #999;
+  text-decoration: underline;
+}
+.textList.marginless .webpageList.empty .loadingMessage {
+  margin: 50px 40px;
 }
 .textRange .numberLabel {
   position: absolute;
@@ -4576,7 +4642,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     transform: rotate(360deg);
   }
 }
-
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;

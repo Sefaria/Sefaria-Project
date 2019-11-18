@@ -100,4 +100,4 @@ def ensure_indices():
     db.user_history.create_index("datetime")
     db.trend.create_index("name")
     db.trend.create_index("uid")
-    db.webpages.create_index("ref")
+    db.webpages.create_index("refs")
