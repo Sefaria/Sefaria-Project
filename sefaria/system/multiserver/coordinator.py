@@ -114,14 +114,14 @@ class ServerCoordinator(MessagingNode):
             }
 
         except Exception as e:
-            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, e.message))
+            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, str(e)))
 
             confirm_msg = {
                 'event_id': data["id"],
                 'host': host,
                 'pid': pid,
                 'status': 'error',
-                'error': e.message
+                'error': str(e)
             }
 
         # Send confirmation

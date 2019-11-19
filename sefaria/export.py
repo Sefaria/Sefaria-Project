@@ -308,7 +308,7 @@ def prepare_text_for_export(text):
     try:
         index = library.get_index(text["title"])
     except Exception as e:
-        print("Skipping %s - %s" % (text["title"], e.message))
+        print("Skipping %s - %s" % (text["title"], str(e)))
         return
     if any([n.is_virtual for n in index.nodes.get_leaf_nodes()]):  #skip virtual nodes
         return

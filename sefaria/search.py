@@ -561,7 +561,7 @@ class TextIndexer(object):
             doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories)
             # print doc
         except Exception as e:
-            logger.error("Error making index document {} / {} / {} : {}".format(tref, vtitle, vlang, e.message))
+            logger.error("Error making index document {} / {} / {} : {}".format(tref, vtitle, vlang, str(e)))
             return
 
         if doc:

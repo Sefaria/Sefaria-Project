@@ -891,7 +891,7 @@ def text_upload_api(request):
             import_versions_from_stream(f, [1], request.user.id)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
-            return jsonResponse({"error": e.message, "message": message})
+            return jsonResponse({"error": str(e), "message": message})
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})

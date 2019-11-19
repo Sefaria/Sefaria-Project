@@ -2491,7 +2491,7 @@ def stories_api(request, gid=None):
                 s = SharedStory(payload).save()
                 return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
 
         elif request.user.is_staff:
             @csrf_protect
@@ -2501,7 +2501,7 @@ def stories_api(request, gid=None):
                     s = SharedStory(payload).save()
                     return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
-                    return jsonResponse({"error": e.message})
+                    return jsonResponse({"error": str(e)})
 
             return protected_post(request)
         else:
@@ -2602,14 +2602,14 @@ def story_reflector(request):
                 s = method(**payload)
                 return jsonResponse(s.contents())
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
         else:
             #Treat payload as attrs to story object
             try:
                 s = SharedStory(payload)
                 return jsonResponse(s.contents())
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
 
     return protected_post(request)
 
@@ -2652,7 +2652,7 @@ def updates_api(request, gid=None):
                 SharedStory.from_global_notification(gn).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
 
         elif request.user.is_staff:
             @csrf_protect
@@ -2663,7 +2663,7 @@ def updates_api(request, gid=None):
                     SharedStory.from_global_notification(gn).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
-                    return jsonResponse({"error": e.message})
+                    return jsonResponse({"error": str(e)})
 
             return protected_post(request)
         else:

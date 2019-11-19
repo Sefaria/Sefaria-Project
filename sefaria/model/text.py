@@ -96,7 +96,7 @@ class AbstractIndex(object):
                         }
                     )]
             except Exception as e:
-                logger.warning("Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", e.message))
+                logger.warning("Failed to generate references for {}, section {}. {}".format(c.full_title("en"), ".".join([str(s) for s in sections]) if sections else "-", str(e)))
         return refs
 
     def all_segment_refs(self):
@@ -1194,7 +1194,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                     temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "he", ii+1))
                     self.walk_thru_contents(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
                 except IndexError as e:
-                    print(e.message)
+                    print(str(e))
                     print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
         elif isinstance(item, str):
             action(item, tref, heTref, self)
@@ -5071,7 +5071,7 @@ class Library(object):
                 ref = self._get_ref_from_match(match, node, lang)
                 return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
             except InputError as e:
-                logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), e.message))
+                logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
                 return match.group(0)
         if lang == "en":
             return titles_regex.sub(_wrap_ref_match, st)

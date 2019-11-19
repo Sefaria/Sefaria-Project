@@ -516,6 +516,6 @@ def hebrew_parasha_name(value):
 		try:
 			parasha = library.get_simple_term_mapping().get(value)["he"]
 		except Exception as e:
-			logger.error(e.message)
+			logger.error(str(e))
 			parasha = value
 		return parasha

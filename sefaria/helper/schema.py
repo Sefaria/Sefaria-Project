@@ -834,7 +834,7 @@ def migrate_to_complex_structure(title, schema, mappings, validate_mapping=False
         migrate_versions_of_text(versions, mappings, title, temp_index.title, temp_index)
     except InputError as e:
         temp_index.delete()
-        print(e.message)
+        print(str(e))
         raise e
 
     #are there commentaries? Need to move the text for them to conform to the new structure
