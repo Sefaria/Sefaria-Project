@@ -46,6 +46,7 @@ def refresh_test():
                          todb=TEST_DB)
 
 
+<<<<<<< HEAD
 def ensure_indices(active_db=None):
     active_db = active_db or db
     indices = [
@@ -106,7 +107,7 @@ def ensure_indices(active_db=None):
         ('user_history', ["datetime"],{}),
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
-        ('webpages', ["ref"],{})
+        ('webpages', ["refs"],{})
     ]
 
     for col, args, kwargs in indices:
@@ -114,4 +115,3 @@ def ensure_indices(active_db=None):
             getattr(active_db, col).create_index(*args, **kwargs)
         except OperationFailure as e:
             print("Collection: {}, args: {}, kwargs: {}\n{}".format(col, args, kwargs, e))
-

@@ -390,8 +390,11 @@ class AbstractTest(object):
     def click_versions_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
 
-    def click_tools_on_sidebar(self):
+    def click_webpages_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(7) > span:nth-child(2)')
+
+    def click_tools_on_sidebar(self):
+        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
 
     def click_share_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')

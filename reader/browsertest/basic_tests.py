@@ -447,6 +447,7 @@ class SideBarEntries(AtomicTest):
     # "sidebar" elements will need to be scrolled into view before clicking
 
     def body(self):
+        self.login_user()
         self.browse_to_ref("Genesis 1")
         self.click_segment("Genesis 1:1")
         self.click_commentary_on_sidebar()
@@ -497,9 +498,11 @@ class SideBarEntries(AtomicTest):
         #assert url1 != url2, u"'{}' equals '{}'".format(url1, url2)
         #assert title1 != title2,  u"'{}' equals '{}'".format(title1, title2)
         time.sleep(1)
-        assert self.get_sidebar_nth_version_button(1).text in ['SELECT', 'Select'],  "'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in ['CURRENT', 'Current'], "'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(2).text)
-        self.login_user()
+
+        assert self.get_sidebar_nth_version_button(1).text in [u'SELECT', u'Select'],  u"'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(1).text)
+        assert self.get_sidebar_nth_version_button(2).text in [u'CURRENT', u'Current'], u"'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(2).text)
+        self.click_resources_on_sidebar()
+        self.click_webpages_on_sidebar()
         self.click_resources_on_sidebar()
         self.click_tools_on_sidebar()
         self.click_share_on_sidebar()
