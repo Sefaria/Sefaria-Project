@@ -150,61 +150,63 @@ class ProfilePic extends Component {
         >
           { showButtons ? null : `${initials}` }
         </div>
-        <img
-          className="img-circle profile-img"
-          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-          src={imageSrc}
-          alt="User Profile Picture"
-          onLoad={this.setShowNonDefault}
-          onError={this.setShowDefault}
-        />
-
-      { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
-          (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
-            <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
-            <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-              <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-              <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
-            </label>
-          </div>) : null
+        { Sefaria._inBrowser ?
+          <img
+            className="img-circle profile-img"
+            style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+            src={imageSrc}
+            alt="User Profile Picture"
+            onLoad={this.setShowNonDefault}
+            onError={this.setShowDefault}
+          /> : null
         }
-        { src && (
-          <div id="interruptingMessageBox" className="sefariaModalBox">
-            <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
-            <div id="interruptingMessage" className="profile-pic-cropper-modal">
-              <div className="sefariaModalContent profile-pic-cropper-modal-inner">
-                <ReactCrop
-                  src={src}
-                  crop={crop}
-                  className="profile-pic-cropper"
-                  keepSelection
-                  onImageLoaded={this.onImageLoaded}
-                  onComplete={this.onCropComplete}
-                  onChange={this.onCropChange}
-                />
-            </div>
-            { this.state.uploading ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
-              <div>
-                <div className="smallText profile-pic-cropper-desc">
-                  <span className="int-en">Drag corners to crop image</span>
-                  <span className="int-he">Drag corners to crop image (He)</span>
-                </div>
-                <div className="profile-pic-cropper-button-row">
-                  <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                    <span className="en">Cancel</span>
-                    <span className="he">Cancel (He)</span>
-                  </a>
-                  <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                    <span className="en">Save</span>
-                    <span className="he">Save (He)</span>
-                  </a>
-                </div>
+        { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
+            (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
+              <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
+              <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
+                <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
+                <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
+              </label>
+            </div>) : null
+          }
+          { src && (
+            <div id="interruptingMessageBox" className="sefariaModalBox">
+              <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
+              <div id="interruptingMessage" className="profile-pic-cropper-modal">
+                <div className="sefariaModalContent profile-pic-cropper-modal-inner">
+                  <ReactCrop
+                    src={src}
+                    crop={crop}
+                    className="profile-pic-cropper"
+                    keepSelection
+                    onImageLoaded={this.onImageLoaded}
+                    onComplete={this.onCropComplete}
+                    onChange={this.onCropChange}
+                  />
               </div>
-              )
-            }
+              { this.state.uploading ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
+                <div>
+                  <div className="smallText profile-pic-cropper-desc">
+                    <span className="int-en">Drag corners to crop image</span>
+                    <span className="int-he">Drag corners to crop image (He)</span>
+                  </div>
+                  <div className="profile-pic-cropper-button-row">
+                    <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
+                      <span className="en">Cancel</span>
+                      <span className="he">Cancel (He)</span>
+                    </a>
+                    <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
+                      <span className="en">Save</span>
+                      <span className="he">Save (He)</span>
+                    </a>
+                  </div>
+                </div>
+                )
+              }
+            </div>
           </div>
-        </div>
-        )}
+          )
+        }
       </div>
     );
   }
@@ -1339,11 +1341,10 @@ LoginPrompt.propTypes = {
 class SignUpModal extends Component {
   render() {
     const innerContent = [
-      ["sheet-white.png", Sefaria._("Organize sources with sheets")],
-      ["note-white.png", Sefaria._("Make notes")],
       ["star-white.png", Sefaria._("Save texts")],
-      ["user-2-white.png", Sefaria._("Follow your favorite authors")],
-      ["email-white.png", Sefaria._("Get updates on texts")],
+      ["sheet-white.png", Sefaria._("Make source sheets")],
+      ["note-white.png", Sefaria._("Take notes")],
+      ["email-white.png", Sefaria._("Stay in the know")],
     ].map(x => (
       <div key={x[0]}>
         <img src={`/static/img/${x[0]}`} alt={x[1]} />
@@ -1358,12 +1359,17 @@ class SignUpModal extends Component {
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
-            <h2>{Sefaria._("Join " + Sefaria._siteSettings.SITE_NAME.en + ".")}</h2>
+            <h2>
+              {Sefaria._("Love Learning?")}
+            </h2>
+            <h3>
+              {Sefaria._("Sign up to get more from Sefaria")}
+            </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
             <a className="button white control-elem" href={"/register" + nextParam}>
-              { Sefaria._("Create Your Account")}
+              { Sefaria._("Sign Up")}
             </a>
             <div className="sefariaModalBottomContent">
               { Sefaria._("Already have an account?") + " "}
@@ -1401,7 +1407,13 @@ class InterruptingMessage extends Component {
     }[this.props.style];
   }
   componentDidMount() {
-    this.delayedShow();
+    if (this.shouldShow()) {
+      this.delayedShow();
+    }
+  }
+  shouldShow() {
+    const exlcudedPaths = ["/donate", "/mobile"];
+    return exlcudedPaths.indexOf(window.location.pathname) === -1;
   }
   delayedShow() {
     setTimeout(function() {

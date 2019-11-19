@@ -15,8 +15,10 @@ if USE_VARNISH:
 def regenerate_version_status_tree():
     for lang in [None, "he", "en"]:
         django_cache(action="set", cache_prefix='version_status_tree_api')(library.simplify_toc)(lang=lang if lang else "")
-        if USE_VARNISH:
+    if USE_VARNISH:
+        for lang in ["he", "en"]:
             purge_url(u"{}/api/texts/version-status/tree/{}".format(FRONT_END_URL, lang))
+        purge_url(u"{}/api/texts/version-status/tree/".format(FRONT_END_URL))
 
 
 def regenerate_bare_links_api(cat1, cat2):
