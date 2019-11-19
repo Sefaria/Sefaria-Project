@@ -46,7 +46,6 @@ def refresh_test():
                          todb=TEST_DB)
 
 
-<<<<<<< HEAD
 def ensure_indices(active_db=None):
     active_db = active_db or db
     indices = [
