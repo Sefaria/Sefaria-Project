@@ -4469,22 +4469,28 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .profile-pic-cropper-modal-inner {
   overflow: auto;
-  max-width: 50vw;
-  max-height: 50vh;
   display: block;
   line-height: 0;
   border-radius: 6px;
+}
+.profile-pic-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 17px;
 }
 .profile-pic-cropper-modal .ReactCrop__crop-selection {
   border-radius: 50%;
   box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
 }
+.profile-pic-cropper-modal .ReactCrop__image {
+  max-width: 50vw;
+  max-height: 50vh;
+}
 .profile-pic-close {
   right: 25px !important;
 }
 .profile-pic-cropper {
-  max-width: 50vw;
-  max-height: 50vh;
 }
 .profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
   display: inline-flex;

@@ -78,12 +78,9 @@ class ProfilePic extends Component {
     const canvas = document.createElement("canvas");
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-    canvas.width = crop.width;
-    canvas.height = crop.height;
+    canvas.width = crop.width * scaleX;
+    canvas.height = crop.height * scaleY;
     const ctx = canvas.getContext("2d");
-    for (var key in image) {
-    console.log(key);
-}
     ctx.drawImage(
       image,
       crop.x * scaleX,
@@ -92,8 +89,8 @@ class ProfilePic extends Component {
       crop.height * scaleY,
       0,
       0,
-      crop.width,
-      crop.height
+      crop.width * scaleX,
+      crop.height * scaleY
     );
 
     return new Promise((resolve, reject) => {
@@ -186,7 +183,7 @@ class ProfilePic extends Component {
                   onChange={this.onCropChange}
                 />
             </div>
-            { this.state.uploading ? (<LoadingRing />) : (
+            { this.state.uploading ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
               <div>
                 <div className="smallText profile-pic-cropper-desc">
                   <span className="int-en">Drag corners to crop image</span>
