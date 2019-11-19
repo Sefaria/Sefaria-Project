@@ -135,15 +135,15 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [u"-", u"|", u"—", u"»"]
+        separators = ["-", "|", "—", "»"]
         for separator in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
-                    brand_str = u"{} {} ".format(brand, separator)
+                    brand_str = "{} {} ".format(brand, separator)
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]                   
                 else:    
-                    brand_str = u" {} {}".format(separator, brand)
+                    brand_str = " {} {}".format(separator, brand)
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
@@ -397,9 +397,9 @@ sites_data = [
         "domains":        ["opensiddur.org"],
     },
     {
-        "name":           u"בית הלל",
+        "name":           "בית הלל",
         "domains":        ["beithillel.org.il"],
-        "title_branding": [u"בית הלל - הנהגה תורנית קשובה"]
+        "title_branding": ["בית הלל - הנהגה תורנית קשובה"]
     },
     {
         "name":                   "ParshaNut",
