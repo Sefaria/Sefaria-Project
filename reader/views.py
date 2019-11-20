@@ -42,6 +42,7 @@ from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
+from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
@@ -213,7 +214,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "extended notes"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "Web Pages", "extended notes"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -1943,6 +1944,7 @@ def related_api(request, tref):
             "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
+            "webpages": get_webpages_for_ref(tref),
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -3805,19 +3807,26 @@ def daf_yomi_redirect(request):
     return redirect(iri_to_uri("/" + daf_yomi["url"]), permanent=False)
 
 
-def random_ref():
+def random_ref(categories=None, titles=None):
     """
     Returns a valid random ref within the Sefaria library.
     """
 
     # refs = library.ref_list()
     # ref  = choice(refs)
-
+    if categories is not None or titles is not None:
+        if categories is None:
+            categories = set()
+        if titles is None:
+            titles = set()
+        all_indexes = filter(lambda x: x.title in titles or (x.get_primary_category() in categories), library.all_index_records())
+    else:
+        all_indexes = library.all_index_records()
     # picking by text first biases towards short texts
-    text = choice(VersionSet().distinct("title"))
+    index = choice(all_indexes)
     try:
-        # ref  = choice(VersionStateSet({"title": text}).all_refs()) # check for orphaned texts
-        ref = Ref(text).normal()
+        ref = choice(index.all_segment_refs()).normal() # check for orphaned texts
+        # ref = Ref(text).normal()
     except Exception:
         return random_ref()
     return ref
@@ -3842,7 +3851,9 @@ def random_text_api(request):
     """
     Return Texts API data for a random ref.
     """
-    response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
+    categories = set(request.GET.get('categories', '').split('|'))
+    titles = set(request.GET.get('titles', '').split('|'))
+    response = redirect(iri_to_uri("/api/texts/" + random_ref(categories, titles)) + "?commentary=0&context=0", permanent=False)
     return response
 
 

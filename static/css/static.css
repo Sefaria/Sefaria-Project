@@ -685,6 +685,13 @@
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   color: #000;
 }
+.registrationContent .g-recaptcha{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.registrationContent #register-form p:nth-of-type(5){
+  padding-top: 10px;
+}
 .interface-hebrew input#id_email::-webkit-input-placeholder {
   text-align: right;
 }
@@ -696,14 +703,26 @@ input#id_email{
   width: 100%;
 }
 .registrationContent a {
+}
+.registrationContent a.registration-links, .registrationContent p.registration-links{
+  margin-top: 20px;
   display: block;
   text-align: center;
   color: #999;
   font-size: 14px;
   font-style: normal;
+  text-decoration: none;
 }
-.registrationContent a.registration-links{
-  margin-top: 20px;
+.registrationContent a.registration-links:hover{
+  color: #666;
+}
+p.registration-links a{
+  color: #999;
+  text-decoration: none;
+}
+p.registration-links a:hover{
+  color: #666;
+  text-decoration: none;
 }
 #visualizationsPage {
   text-align: left;
@@ -813,12 +832,26 @@ input#id_email{
 #linkExplorerPage {
   padding-top: 60px;
 }
-#linkerPage p, #supportersPage p{
+#supportersPage p{
   font-size: 16px;
   color: #666;
 }
-#linkerPage .linkerOption {
-  margin: 50px 0;
+#linkerPage h2 {
+  margin: 30px 0 30px 0;
+  font-size: 24px;
+  letter-spacing: 0;
+  padding-bottom: 0;
+  text-transform: none;
+  border: none;
+}
+#linkerPage img {
+  width: 100%;
+  margin: 30px 0 30px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+#linkerPage .buttonBox {
+  margin: 30px 0;
+  text-align: center;
 }
 #teamPage h2{
   font-size: 16px;

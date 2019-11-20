@@ -53,6 +53,8 @@
                 'font-size: 16px;'+
                 'text-align: center;' +
                 'text-decoration: underline;' +
+                'margin: 0;' +
+                'padding: 0;' +
             '}';
 
         if (mode == "popup-click") {

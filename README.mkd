@@ -53,11 +53,11 @@ If you see an error about a missing 'python.h' file, you'll need to install the 
 
 On Debian systems: 
 
-    sudo apt-get install python-dev
+    sudo apt-get install python-dev libpq-dev
 
 On Fedora systems:
 
-    sudo dnf install python2-devel
+    sudo dnf install python2-devel libpq-devel
 
 After installing the Python development libraries, run `pip install -r requirements.txt` again.
 
@@ -83,7 +83,7 @@ On Debian systems
     cp local_settings_example.py local_settings.py
     vim local_settings.py
     
-Replace the placeholder values with values with those matching your environment. For the most part, you should only have to specify values in the top part of the file where it directs you to change the given values.
+Replace the placeholder values with those matching your environment. For the most part, you should only have to specify values in the top part of the file where it directs you to change the given values.
 
 You can name your local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on Mongo.
 

@@ -5,7 +5,6 @@ The system attribute _called_from_test is set in the py.test conftest.py file
 import sys
 from sefaria.settings import *
 import pymongo
-from pymongo import MongoClient
 
 
 if hasattr(sys, '_doc_build'):
@@ -19,6 +18,7 @@ else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
+        # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
         if TEST_DB not in client.list_database_names():
             client.admin.command('copydb',
                                  fromdb=SEFARIA_DB,
@@ -36,6 +36,7 @@ def drop_test():
 def refresh_test():
     global client
     drop_test()
+    # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
     client.admin.command('copydb',
                          fromdb=SEFARIA_DB,
                          todb=TEST_DB)
@@ -99,4 +100,4 @@ def ensure_indices():
     db.user_history.create_index("datetime")
     db.trend.create_index("name")
     db.trend.create_index("uid")
-    db.webpages.create_index("ref")
+    db.webpages.create_index("refs")
