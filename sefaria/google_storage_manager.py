@@ -14,30 +14,30 @@ class GoogleStorageManager(object):
         return bucket
 
     @classmethod
-    def upload_filename(cls, from_filename, to_filename, bucket_name):
+    def upload_file(cls, from_file, to_filename, bucket_name, old_filename=None):
         """
-        Used to upload a file stored on disk
-        :param from_filename: full path to file to upload
+        Used to upload a file to google cloud
+        :param from_file: either full path to file to upload or file-like object
         :param to_filename: filename to save in cloud. should not include folders
         :param bucket_name: name of the bucket to save the file
         """
         bucket = cls.get_bucket(bucket_name)
+        if old_filename is not None:
+            cls.delete_filename(bucket_name, old_filename)
         blob = bucket.blob(to_filename)
-        blob.upload_from_filename(from_filename)
+        if isinstance(from_file, basestring):
+            blob.upload_from_filename(from_file)
+        else:
+            # assume file-like object
+            blob.upload_from_file(from_file)
         return cls.get_url(to_filename, bucket_name)
 
     @classmethod
-    def upload_file(cls, from_file, to_filename, bucket_name):
-        """
-        Used to upload file-like objects
-        :param from_file: file-like object to upload
-        :param to_filename: filename to save in cloud. should not include folders
-        :param bucket_name: name of the bucket to save the file
-        """
+    def delete_filename(cls, bucket_name, filename):
         bucket = cls.get_bucket(bucket_name)
-        blob = bucket.blob(to_filename)
-        blob.upload_from_file(from_file)
-        return cls.get_url(to_filename, bucket_name)
+        blob = bucket.blob(filename)
+        if blob.exists():
+            blob.delete()
 
     @classmethod
     def get_url(cls, filename, bucket_name):

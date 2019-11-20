@@ -3187,6 +3187,8 @@ def profile_upload_photo(request):
     if request.method == "POST":
         from PIL import Image
         from StringIO import StringIO
+        from sefaria.utils.util import epoch_time
+        now = epoch_time()
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
             resized_image_file = StringIO()
@@ -3196,13 +3198,15 @@ def profile_upload_photo(request):
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
+        old_big_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
+        old_small_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
 
-        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}.png".format(profile.slug), bucket_name)
-        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-small.png".format(profile.slug), bucket_name)
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
+        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
 
         profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
         profile.save()
-        return jsonResponse({"yo": [big_pic_url, small_pic_url]})
+        return jsonResponse({"urls": [big_pic_url, small_pic_url]})
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -3399,7 +3403,7 @@ def home(request):
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
-    
+
     # show_feed = request.COOKIES.get("home_feed", None)
     show_feed = request.user.is_authenticated
 
@@ -4280,12 +4284,11 @@ def apple_app_site_association(request):
 
 def application_health_api(request):
     """
-    Defines the /healthz API endpoint which responds with 
-        200 if the appliation is ready for requests, 
+    Defines the /healthz API endpoint which responds with
+        200 if the appliation is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
         return http.HttpResponse("Healthy", status="200")
     else:
         return http.HttpResponse("Unhealthy", status="500")
-        
