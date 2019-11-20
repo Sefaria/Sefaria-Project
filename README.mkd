@@ -53,11 +53,11 @@ If you see an error about a missing 'python.h' file, you'll need to install the 
 
 On Debian systems: 
 
-    sudo apt-get install python-dev
+    sudo apt-get install python-dev libpq-dev
 
 On Fedora systems:
 
-    sudo dnf install python2-devel
+    sudo dnf install python2-devel libpq-devel
 
 After installing the Python development libraries, run `pip install -r requirements.txt` again.
 

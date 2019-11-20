@@ -317,8 +317,7 @@ def linker_tracking_api(request):
         return jsonResponse({"error": "Missing 'json' parameter in post data."})
     data = json.loads(j)
 
-    webpage = WebPage().load(data["url"]) or WebPage(data)
-    webpage.update_from_linker(data)
+    WebPage.add_or_update_from_linker(data)
 
     return jsonResponse({"status": "ok"})
 
