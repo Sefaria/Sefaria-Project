@@ -4525,6 +4525,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .profile-pic .profile-pic-hover-button {
   display: none;
 }
+.profile-pic-cropper-error {
+  line-height: 1;
+  max-width: 50vw;
+  overflow: hidden;
+}
 .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
   display: flex;
 }
