@@ -23,16 +23,22 @@ class ProfilePic extends Component {
       isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
       croppedImageBlob: null,
+      error: null,
     };
   }
   setShowDefault() {this.setState({showDefault: true});  }
   setShowNonDefault() {this.setState({showDefault: false});  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
+      if (!e.target.files[0].type.startsWith('image/')) {
+        this.setState({ error: "Error: Please upload an image with the correct file extension (e.g. jpg, png)"});
+        return;
+      }
       const reader = new FileReader();
       reader.addEventListener("load", () =>
         this.setState({ src: reader.result })
       );
+      console.log("FILE", e.target.files[0]);
       reader.readAsDataURL(e.target.files[0]);
     }
   }
@@ -49,7 +55,6 @@ class ProfilePic extends Component {
   onCropChange(crop, percentCrop) {
     // You could also use percentCrop:
     // this.setState({ crop: percentCrop });
-    console.log(this.imageRef.width, this.imageRef.height);
     if (this.state.isFirstCropChange) {
       const { clientWidth:width, clientHeight:height } = this.imageRef;
       crop.width = Math.min(width, height);
@@ -110,6 +115,7 @@ class ProfilePic extends Component {
       crop: {unit: "px", width: 250, aspect: 1},
       isFirstCropChange: true,
       croppedImageBlob: null,
+      error: null,
     }, cb);
   }
   async upload() {
@@ -123,7 +129,7 @@ class ProfilePic extends Component {
         throw new Error(response.error);
       } else {
         this.closePopup({ cb: () => {
-          this.props.openProfile(Sefaria.slug, Sefaria.full_name, true);  // reload
+          this.props.openProfile(Sefaria.slug, Sefaria.full_name);  // reload
           return;
         }});
       }
@@ -136,7 +142,7 @@ class ProfilePic extends Component {
 
   render() {
     const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
-    const { showDefault, src, crop } = this.state;
+    const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
     const defaultViz = showDefault ? 'flex' : 'none';
@@ -169,22 +175,24 @@ class ProfilePic extends Component {
               </label>
             </div>) : null
           }
-          { src && (
+          { (src || !!error) && (
             <div id="interruptingMessageBox" className="sefariaModalBox">
               <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
               <div id="interruptingMessage" className="profile-pic-cropper-modal">
                 <div className="sefariaModalContent profile-pic-cropper-modal-inner">
-                  <ReactCrop
-                    src={src}
-                    crop={crop}
-                    className="profile-pic-cropper"
-                    keepSelection
-                    onImageLoaded={this.onImageLoaded}
-                    onComplete={this.onCropComplete}
-                    onChange={this.onCropChange}
-                  />
+                  { src ?
+                    (<ReactCrop
+                      src={src}
+                      crop={crop}
+                      className="profile-pic-cropper"
+                      keepSelection
+                      onImageLoaded={this.onImageLoaded}
+                      onComplete={this.onCropComplete}
+                      onChange={this.onCropChange}
+                    />) : (<div className="profile-pic-cropper-error">{ error }</div>)
+                  }
               </div>
-              { this.state.uploading ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
+              { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
                 <div>
                   <div className="smallText profile-pic-cropper-desc">
                     <span className="int-en">Drag corners to crop image</span>
