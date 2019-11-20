@@ -4230,6 +4230,7 @@ class Library(object):
         self._toc = None
         self._toc_json = None
         self._toc_tree = None
+        self._topic_toc_json = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -4346,6 +4347,27 @@ class Library(object):
             self._toc_tree = TocTree(self)
         self._toc_tree_is_ready = True
         return self._toc_tree
+
+    def get_topic_toc_json(self):
+        if not self._topic_toc_json:
+            ts = TermSet({"scheme": "Tag Category"})
+            names = [t.name for t in ts]
+            kid_ts = TermSet({"category": {"$in": names}})
+            kids = defaultdict(list)
+            for k in kid_ts:
+                kids[k.category] += [{
+                    "name": k.name,
+                    "en": k.get_primary_title("en"),
+                    "he": k.get_primary_title("he"),
+                }]
+            topics = [{
+                "name": t.name,
+                "en": t.get_primary_title("en"),
+                "he": t.get_primary_title("he"),
+                "children": kids[t.name]
+            } for t in ts]
+            self._topic_toc_json = json.dumps(topics)
+        return self._topic_toc_json
 
     def get_groups_in_library(self):
         return self._toc_tree.get_groups_in_library()

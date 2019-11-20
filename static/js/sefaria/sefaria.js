@@ -310,6 +310,10 @@ Sefaria = extend(Sefaria, {
     return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
   },
+  getBulkText: function(refs) {
+    // todo: fish existing texts out of cache first
+    return this._promiseAPI(Sefaria.apiHost + "/api/bulktext/" + refs.join("|"))
+  },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
     if (!ref || typeof ref === "object" || typeof ref === "undefined") { debugger; }
@@ -1722,6 +1726,27 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   },
+  getTopic: function(topic) {
+      return this._cachedPromiseAPI({
+          url:   this.apiHost + "/api/topics/" + topic,
+          key:   topic,
+          store: this._topics
+    });
+  },
+  _topicTocPages: {},
+  _initTopicTocPages: function() {
+    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this._topicTocPageKey(c.name)] = c.children; return a;}, {});
+    this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
+  },
+  _topicTocPageKey: name => "_" + name,
+  topicTocPage: function(parent) {
+    const key = this._topicTocPageKey(parent);
+    if (!this._topicTocPages[key]) {
+        this._initTopicTocPages()
+    }
+    return this._topicTocPages[key]
+
+  },
   sheets: {
     _loadSheetByID: {},
     loadSheetByID: function(id, callback) {
@@ -1811,6 +1836,14 @@ Sefaria = extend(Sefaria, {
           }.bind(this));
         }
       return sheets;
+    },
+    getSheetsByTag: function(tag, v2) {
+      const url =  Sefaria.apiHost + "/api" + (v2 ? "/v2" : "") + "/sheets/tag/" + tag.replace("#", "%23");
+      return Sefaria._cachedPromiseAPI({
+          url:  url,
+          store: this._sheetsByTag,
+          key:   tag,
+        });
     },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy, offset, numberToRetrieve, ignoreCache) {
@@ -2277,6 +2310,17 @@ Sefaria = extend(Sefaria, {
     }
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
+  },
+  _cachedPromiseAPI: function({url, key, store}) {
+      // Checks store[key].  Resolves to this value, if present.
+      // Otherwise, calls Promise(url), caches, and returns
+      return (key in store) ?
+          Promise.resolve(store[key]) :
+          Sefaria._promiseAPI(url)
+              .then(data => {
+                  store[key] = data;
+                  return data;
+              })
   },
   //  https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
   makeCancelable: (promise) => {

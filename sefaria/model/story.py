@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class Story(abst.AbstractMongoRecord):
 
     @staticmethod
-    def _sheet_metadata(sheet_id, return_id=False):
+    def sheet_metadata(sheet_id, return_id=False):
         from sefaria.sheets import get_sheet_metadata
         metadata = get_sheet_metadata(sheet_id)
         if not metadata:
@@ -44,7 +44,7 @@ class Story(abst.AbstractMongoRecord):
         return d
 
     @staticmethod
-    def _publisher_metadata(publisher_id, return_id=False):
+    def publisher_metadata(publisher_id, return_id=False):
         udata = user_profile.public_user_data(publisher_id)
         d = {
             "publisher_name": udata["name"],
@@ -88,16 +88,16 @@ class Story(abst.AbstractMongoRecord):
                 "heRef": oref.he_normal()
             } for oref in orefs]
         if "publisher_id" in d:
-            d.update(self._publisher_metadata(d["publisher_id"]))
+            d.update(self.publisher_metadata(d["publisher_id"]))
 
         if "sheet_id" in d:
-            d.update(self._sheet_metadata(d["sheet_id"]))
+            d.update(self.sheet_metadata(d["sheet_id"]))
 
         if "sheet_ids" in d:
-            d["sheets"] = [self._sheet_metadata(i, return_id=True) for i in d["sheet_ids"]]
+            d["sheets"] = [self.sheet_metadata(i, return_id=True) for i in d["sheet_ids"]]
             if "publisher_id" not in d:
                 for sheet_dict in d["sheets"]:
-                    sheet_dict.update(self._publisher_metadata(sheet_dict["publisher_id"]))
+                    sheet_dict.update(self.publisher_metadata(sheet_dict["publisher_id"]))
 
         if "author_key" in d:
             p = person.Person().load({"key": d["author_key"]})

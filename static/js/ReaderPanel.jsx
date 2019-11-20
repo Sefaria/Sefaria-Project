@@ -17,7 +17,7 @@ const SheetsNav                 = require('./SheetsNav');
 const Sheet                     = require('./Sheet');
 const SheetMetadata             = require('./SheetMetadata');
 const TopicsPanel               = require('./TopicsPanel');
-const TopicPage                 = require('./TopicPage');
+const {TopicPage}               = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
 const MyNotesPanel              = require('./MyNotesPanel');
@@ -81,6 +81,7 @@ class ReaderPanel extends Component {
       },
       menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
       navigationCategories: props.initialNavigationCategories || [],
+      navigationTopicCategory:     props.initialNavigationTopicCategory || "",
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
       sheetsGroup:          props.initialGroup || null,
@@ -142,6 +143,7 @@ class ReaderPanel extends Component {
     } else {
       this.setState({
         navigationCategories: nextProps.initialNavigationCategories || [],
+        navigationTopicCategory: nextProps.initialNavigationTopicCategory || "",
         navigationSheetTag:   nextProps.initialSheetsTag || null
       });
     }
@@ -369,6 +371,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
+      navigationTopicCategory: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -386,6 +389,7 @@ class ReaderPanel extends Component {
       // If there's no content to show, return to home
       menuOpen: null,
       navigationCategories: null,
+      navigationTopicCategory: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -399,6 +403,7 @@ class ReaderPanel extends Component {
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
+      navigationTopicCategory: null,
       navigationSheetTag: null
     };
     this.conditionalSetState(state);
@@ -415,6 +420,9 @@ class ReaderPanel extends Component {
   }
   setNavigationCategories(categories) {
     this.conditionalSetState({navigationCategories: categories});
+  }
+  setNavigationTopic(topic) {
+    this.conditionalSetState({navigationTopicCategory: topic});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -455,7 +463,10 @@ class ReaderPanel extends Component {
     this.conditionalSetState({webPagesFilter: filter, connectionsMode: "WebPagesList"});
   }
   setTopic(topic) {
-    this.conditionalSetState({navigationTopic: topic});
+    this.conditionalSetState({
+        menuOpen: "topics",
+        navigationTopic: topic
+    });
   }
   toggleLanguage() {
     if (this.state.settings.language == "hebrew") {
@@ -740,14 +751,17 @@ class ReaderPanel extends Component {
       var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       menu = (<ReaderNavigationMenu
-                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : "navHome"}
+                    key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
                     home={this.state.menuOpen === "home"}
                     compare={this.state.menuOpen === "compare"}
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
+                    topic={this.state.navigationTopicCategory || ""}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
+                    setNavTopic={this.setNavigationTopic}
+                    setTopic={this.setTopic}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}
@@ -900,6 +914,7 @@ class ReaderPanel extends Component {
                       toggleLanguage={this.toggleLanguage}
                       navHome={this.openMenu.bind(null, "navigation")}
                       openDisplaySettings={this.openDisplaySettings}
+                      toggleSignUpModal={this.props.toggleSignUpModal}
                       key={"TopicPage"} />);
       } else {
         menu = (<TopicsPanel

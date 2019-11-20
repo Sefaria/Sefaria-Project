@@ -251,6 +251,43 @@ def title_regex_api(request, titles):
         resp = jsonResponse(res, cb)
         return resp
 
+def bundle_many_texts(refs, useTextFamily=False):
+    res = {}
+    for tref in refs:
+        try:
+            oref = model.Ref(tref)
+            lang = "he" if is_hebrew(tref) else "en"
+            if useTextFamily:
+                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False)
+                he = text_fam.he
+                en = text_fam.text
+                res[tref] = {
+                    'he': he,
+                    'en': en,
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'primary_category': text_fam.contents()['primary_category'],
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+            else:
+                he = model.TextChunk(oref, "he").text
+                en = model.TextChunk(oref, "en").text
+                res[tref] = {
+                    'he': he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string(),
+                # these could be flattened on the client, if need be.
+                    'en': en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string(),
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+        except (InputError, ValueError, AttributeError, KeyError) as e:
+            # referer = request.META.get("HTTP_REFERER", "unknown page")
+            # This chatter fills up the logs.  todo: put in it's own file
+            # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+            res[tref] = {"error": 1}
+    return res
 
 def bulktext_api(request, refs):
     """
@@ -261,42 +298,8 @@ def bulktext_api(request, refs):
     """
     if request.method == "GET":
         cb = request.GET.get("callback", None)
-        useTextFamily = request.GET.get("useTextFamily", None)
         refs = set(refs.split("|"))
-        res = {}
-        for tref in refs:
-            try:
-                oref = model.Ref(tref)
-                lang = "he" if is_hebrew(tref) else "en"
-                if useTextFamily:
-                    text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False)
-                    he = text_fam.he
-                    en = text_fam.text
-                    res[tref] = {
-                        'he': he,
-                        'en': en,
-                        'lang': lang,
-                        'ref': oref.normal(),
-                        'primary_category': text_fam.contents()['primary_category'],
-                        'heRef': oref.he_normal(),
-                        'url': oref.url()
-                    }
-                else:
-                    he = model.TextChunk(oref, "he").text
-                    en = model.TextChunk(oref, "en").text
-                    res[tref] = {
-                        'he': he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
-                        'en': en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string(),
-                        'lang': lang,
-                        'ref': oref.normal(),
-                        'heRef': oref.he_normal(),
-                        'url': oref.url()
-                    }
-            except (InputError, ValueError, AttributeError, KeyError) as e:
-                # referer = request.META.get("HTTP_REFERER", "unknown page")
-                # This chatter fills up the logs.  todo: put in it's own file
-                # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
-                res[tref] = {"error": 1}
+        res = bundle_many_texts(refs, request.GET.get("useTextFamily"))
         resp = jsonResponse(res, cb)
         return resp
 
