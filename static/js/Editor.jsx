@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Editor} from 'slate-react'
+import {Editor, getEventTransfer} from 'slate-react'
 import {Block, Value, Range, Data, Inline, Selection, Point} from 'slate'
 import Html from 'slate-html-serializer'
 import Sheet from "./Sheet";
@@ -766,7 +766,7 @@ function SefariaEditor(props) {
           // Update debounced value after delay
           const handler = setTimeout(() => {
             saveDocument(currentDocument);
-          }, 2000);
+          }, 500);
 
           // Cancel the timeout if value changes (also on delay change or unmount)
           // This is how we prevent debounced value from updating if value is changed ...
@@ -827,6 +827,7 @@ function SefariaEditor(props) {
     }
 
     function createSheetSourceJSON(ref, heRef, text, he) {
+
         return {
             "object": "block",
             "type": "SheetItem",
@@ -944,13 +945,31 @@ function SefariaEditor(props) {
         if (editor.value.inlines.size === 1) {
             const refToAdd = (editor.value.inlines.getIn([0, 'data', 'ref']));
 
+            console.log(Sefaria.splitRangingRef(refToAdd));
+
             Sefaria.getText(refToAdd).then(text => {
-                let sheetSourceJSON = createSheetSourceJSON(text.ref, text.heRef, text.text, text.he);
+                console.log(text.text)
+                const enText =  Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
+                const heText =  Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
+
+
+                let sheetSourceJSON = createSheetSourceJSON(text.ref, text.heRef, enText, heText);
                 let newSheetSource = Block.fromJSON(sheetSourceJSON);
                 addNewSheetItem(editor, sheetSourceJSON);
             });
         }
 
+        else {
+            return next();
+        }
+
+    }
+
+    function onPaste(event, editor, next) {
+        //event.preventDefault();
+        const transfer = getEventTransfer(event);
+        console.log(transfer.fragment.toJSON());
+        //return next();
     }
 
 
@@ -1165,6 +1184,7 @@ function SefariaEditor(props) {
             <Editor
                 onKeyDown={(event, editor, next) => onKeyDown(event, editor, next)}
                 onClick={(event, editor, next) => onClick(event, editor, next)}
+                onPaste={(event, editor, next) => onPaste(event, editor, next)}
                 value={value}
                 renderBlock={(props, editor, next) => renderBlock(props, editor, next)}
                 renderMark={(props, editor, next) => renderMark(props, editor, next)}
