@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
 
 from sefaria.model import *
-from sefaria.utils.hebrew import strip_cantillation
+from sefaria.utils.hebrew import strip_cantillation, strip_nikkud
 from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
@@ -109,7 +109,7 @@ class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
         self.click_source_title()
         self.click_masechet_and_chapter('2','3')
         section = self.get_section_txt('1')
-        assert section.startswith('(דף מא) רבי זירא הוה משתמיט')
+        assert 'רבי זירא הוה קא משתמיט' in strip_nikkud(section)
 
 
 class SectionContentAsExpectedChapter(AtomicTest):
