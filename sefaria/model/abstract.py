@@ -354,12 +354,14 @@ def get_subclasses(c):
     return subclasses
 
 
-def get_record_classes(concrete=True):
+def get_record_classes(concrete=True, dynamic_classes=False):
     sc = get_subclasses(AbstractMongoRecord)
     if concrete:
-        return [s for s in sc if s.collection is not None]
-    else:
-        return sc
+        sc = [s for s in sc if s.collection is not None]
+    if not dynamic_classes:
+        from sefaria.model.lexicon import DictionaryEntry
+        sc = [s for s in sc if not issubclass(s, DictionaryEntry)]
+    return sc
 
 
 def get_set_classes():

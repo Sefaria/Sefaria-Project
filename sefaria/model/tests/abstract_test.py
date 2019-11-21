@@ -52,8 +52,8 @@ class Test_Mongo_Record_Models(object):
         records = getattr(db, record_class.collection).find()
         for rec in records:
             record_keys = set(rec.keys())
-            assert record_keys <= class_keys, "{} - unhandled keys"
-            assert req_class_keys <= record_keys, "{} - required keys missing"
+            assert record_keys <= class_keys, "{} - unhandled keys {}".format(record_class, record_keys - class_keys)
+            assert req_class_keys <= record_keys, "{} - required keys missing: {}".format(record_class, req_class_keys - record_keys)
 
 
 class Test_Mongo_Set_Models(object):
