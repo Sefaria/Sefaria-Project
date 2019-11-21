@@ -1857,29 +1857,29 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #mobilePage .flexReverse{
   flex-direction: row-reverse;
 }
-#mobilePage #topHeaderAndroid{
-  position: absolute;
-  width: 88px;
-  height: 30px;
-  left: 1390px;
+#mobilePage #headerButtons{
+  position: fixed;
+  right: 100px;
   top: 15px;
   z-index: 1002;
 }
+#mobilePage #topHeaderAndroid{
+  width: 88px;
+  height: 30px;
+  top: 15px;
+}
 #mobilePage #topHeaderIOS{
-  position: absolute;
   width: 81px;
   height: 31px;
-  left: 1305px;
   top: 15px;
-  z-index: 1002;
 }
 #mobilePage #mobilePageHeader{
   background: #18345D;
-  padding-top: 120px;
-  padding-bottom: 10%;
+  padding: 70px 0;
 }
 #mobilePage #mobilePageHeader #mobilePageHeaderImage{
   flex: 1;
+  height: 480px;
 }
 #mobilePage #mobilePageHeader #mobilePageHeaderText{
   flex: 1;
@@ -1961,12 +1961,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     margin-bottom: 10%;
 }
 #mobilePage #mobilePageHeader #mobilePageHeaderButtons .button img{
-  width: 30px;
   height: 35px;
 }
 
 #mobilePage #mobileDescription p{
-  font-size: 30px;
+  font-size: 22px;
   line-height: 36px;
   text-align: justify;
   color: #000000;
@@ -1995,13 +1994,20 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
 }
+#mobilePage #mobileTestimonials .mobileTestimonialImageHolder{
+  height: 50px;
+  width: 50px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 #mobilePage #mobileTestimonials img.mobileTestimonialImage{
   height: 50px;
   width: 50px;
-  margin: auto;
 }
+
 #mobilePage #mobileTestimonials h3.mobileTestimonialHeader{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -2049,8 +2055,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #mobilePage #mobileExamples .example{
   border-bottom: 1px solid #CCCCCC;
-  padding-bottom: 10%;
-  padding-top: 10%;
+  padding-bottom: 40px;
+  padding-top: 40px;
 }
 #mobilePage #mobileExamples .example:last-child{
   border-bottom: none;
@@ -2108,7 +2114,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding-top: 5%;
 }
 #mobilePage #mobileUpdate .flexContainer div{
-  flex: 0 0 45%;
+  flex: 1;
 }
 #mobilePage #mobileUpdate #mobileUpdateImage{
   height: 361px;
@@ -2119,7 +2125,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 
 #mobilePage #mobileUpdate div.mobileUpdateText{
-  flex: 0 0 50%;
+  flex: 2;
 }
 
 #mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateVersion span{
@@ -2211,10 +2217,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 }
 
-#mobilePage #mobileNewsletterSocial .newsletterSignUpBox{
-  margin-top: 5%;
-  margin-bottom: 5%;
-}
 #mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput{
   width: 289px;
   height: 46px;
@@ -2245,7 +2247,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: Roboto;
   font-style: normal;
   font-weight: normal;
-  font-size: 22px;
+  font-size: 16px;
   line-height: 26px;
   text-align: center;
   letter-spacing: 0.1em;
@@ -2255,7 +2257,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #mobilePage #mobileNewsletterSocial #mobilePageNonProfit p{
   font-family: "adobe-garamond-pro", Georgia, serif;
-  font-size: 24px;
+  font-size: 12px;
   line-height: 29px;
   color: #000000;
 }
@@ -2276,6 +2278,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   #mobilePage #topHeaderIOS{
     display: none;
   }
+  #mobilePage #mobilePageHeader #mobilePageHeaderImage{
+    height: auto;
+  }
+
   #mobilePage #mobilePageHeader #mobilePageHeaderText{
     padding-top: 20%;
     margin-inline-end: unset;
@@ -2341,7 +2347,12 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     height: 246px;
   }
   #mobilePage #mobileUpdate .flexContainer div{
+    text-align: center;
     flex: 100%;
+  }
+  #mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateDescription{
+    text-align: justify;
+    font-size: 16px;
   }
   #mobilePage #mobileUpdate #mobileUpdateImage{
     margin-top: 10%;

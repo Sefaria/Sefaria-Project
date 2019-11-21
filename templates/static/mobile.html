@@ -12,8 +12,17 @@
 {% block bodyclasses %}nochrome{% endblock %}
 {% block content %}
 <div id="mobilePage" class="static">
-    <img id="topHeaderAndroid" src="{% static "img/mobile-landing-page/Artboard 1.png" %}" alt="Sefaria app on Android">
-    <img id="topHeaderIOS" src="{% static "img/mobile-landing-page/Artboard 3 2.png" %}" alt="Sefaria app on IOS" />
+    <div id="headerButtons">
+        <a target="_blank" href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria">
+            <img id="topHeaderAndroid" src="{% static "img/mobile-landing-page/Artboard 1.png" %}"
+                 alt="Sefaria app on Android">
+        </a>
+        <a target="_blank" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
+
+            <img id="topHeaderIOS" src="{% static "img/mobile-landing-page/Artboard 3 2.png" %}"
+                 alt="Sefaria app on IOS"/>
+        </a>
+    </div>
     <div id="mobilePageHeader">
         <div class="sectionInner sectionRegular flexContainer flexReverse">
             <div id="mobilePageHeaderImage" class="sectionInner">
@@ -74,9 +83,12 @@
     <div id="mobileTestimonials">
         <div class="sectionInner flexContainer">
             <div id="mobileSiddur" class="mobileTestimonial">
-                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/siddur.png" %}" alt="icon of siddur">
+                <div class="mobileTestimonialImageHolder">
+                    <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/siddur.png" %}"
+                         alt="icon of siddur">
+                </div>
                 <h3 class="mobileTestimonialHeader">
-                    <span class="int-en">Always have a siddur In your pocket</span>
+                    <span class="int-en">Always have a siddur <br/>In your pocket</span>
                     <span class="int-he">תמיד יהיה לך סידור בכיס</span>
                 </h3>
                 <div class="mobileTestimonialContent int-en">
@@ -96,7 +108,9 @@
                 </div>
             </div>
             <div id="mobileEducate" class="mobileTestimonial">
-                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/educate.png" %}" alt="icon of pencil">
+                <div class="mobileTestimonialImageHolder">
+                    <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/educate.png" %}" alt="icon of pencil">
+                </div>
                 <h3 class="mobileTestimonialHeader">
                     <span class="int-en">Look up education resources on-the-go</span>
                     <span class="int-he">מצא חומר ומקורות ללימוד בכל מקום בו אתה נמצא</span>
@@ -117,9 +131,11 @@
                 </div>
             </div>
             <div id="mobileCommute" class="mobileTestimonial">
-                <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/commute.png" %}" alt="icon of train">
+                <div class="mobileTestimonialImageHolder">
+                    <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/commute.png" %}" alt="icon of train">
+                </div>
                 <h3 class="mobileTestimonialHeader">
-                    <span class="int-en">Learn on your commute</span>
+                    <span class="int-en">Learn on your <br/>commute</span>
                     <span class="int-he">לימוד תוך כדי נסיעה לעבודה או לימודים</span>
                 </h3>
                 <div class="mobileTestimonialContent int-en">
@@ -283,7 +299,7 @@
         <div class="sectionInner sectionNarrow">
             <div>
                 <h3 class="mobileNewsletterHeader">
-                    <span class="int-en">Sign up to receive the latest updates</span>
+                    <span class="int-en">Receive the latest updates</span>
                     <span class="int-he">הירשמו לקבלת  עדכונים</span>
                 </h3>
             </div>
