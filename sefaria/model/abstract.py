@@ -322,7 +322,7 @@ class AbstractMongoSet(collections.abc.Iterable):
             return self.max
         else:
             kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
-            return getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs)
+            return int(getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs))
 
     def update(self, attrs):
         for rec in self:
