@@ -7,6 +7,7 @@ COPY . /app/
 COPY ./build/node/local_settings.json /app/node/local_settings.json
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && touch /app/dev-db.sqlite
 
+RUN mkdir -p /app/log && mkdir -p /app/sefaria
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE sefaria.settings
