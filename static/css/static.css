@@ -1876,6 +1876,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #mobilePage #mobilePageHeader{
   background: #18345D;
   padding: 70px 0;
+  margin-top: 60px;
 }
 #mobilePage #mobilePageHeader #mobilePageHeaderImage{
   flex: 1;
