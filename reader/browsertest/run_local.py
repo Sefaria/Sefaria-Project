@@ -22,7 +22,7 @@ def get_ios_webdriver():
     caps = {
         "automationName": "XCUITest",
         "platformName": "iOS",
-        "platformVersion": "12.2",
+        "platformVersion": "13.2",
         'browserName': 'Safari',
         "deviceName": "iPhone 8"
     }

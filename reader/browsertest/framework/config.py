@@ -55,7 +55,7 @@ SAUCE_CORE_CAPS = [
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/7.1'},
 
     {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Simulator",
-    'appiumVersion': "1.9.1", 'platformVersion': "12.0", 'deviceOrientation': "portrait",
+    'appiumVersion': "1.9.1", 'platformVersion': "13.2", 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh8'},
 
 ]

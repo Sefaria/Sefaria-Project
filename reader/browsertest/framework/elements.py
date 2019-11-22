@@ -1730,6 +1730,10 @@ class Trial(object):
 
     @staticmethod
     def set_sauce_result(driver, result):
+        sauce_result = "passed" if result else "failed"
+        driver.execute_script("sauce:job-result={}".format(sauce_result))
+
+        """
         base64string = base64.encodebytes(b'%s:%s' % (SAUCE_USERNAME, SAUCE_ACCESS_KEY))[:-1]
 
         def set_test_status(jobid, passed=True):
@@ -1743,6 +1747,7 @@ class Trial(object):
 
         set_test_status(driver.session_id, passed=result)
         return result
+        """
 
     @staticmethod
     def cap_to_string(cap):
