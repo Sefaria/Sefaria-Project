@@ -35,11 +35,11 @@ BS_CAPS = [
 ]
 
 SAUCE_CORE_CAPS = [
-    {'browserName': "firefox", 'platform': "macOS 10.12", 'version': "latest", "screenResolution": "1920x1440",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x12', "extendedDebugging": True},
+    {'browserName': "firefox", 'platform': "macOS 10.13", 'version': "latest", "screenResolution": "1920x1440",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x13', "extendedDebugging": True},
 
-    {'browserName': "safari", 'platform': "OS X 10.11", 'version': "latest", "screenResolution": "1920x1440",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x11'},
+    {'browserName': "safari", 'platform': "macOS 10.14", 'version': "latest", "screenResolution": "1920x1440",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x14'},
 
     {'browserName': "chrome", 'platform': "Windows 10", 'version': "latest", "screenResolution": "1920x1080",
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10', "extendedDebugging": True},
@@ -50,12 +50,12 @@ SAUCE_CORE_CAPS = [
     #{'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
     #    'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
-    {'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '7.1',
-     'browserName': 'Chrome', 'appiumVersion': '1.9.1', 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/7.1'},
+    {'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '9.0',
+     'browserName': 'Chrome', 'appiumVersion': '1.13.0', 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/9.0'},
 
     {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Simulator",
-    'appiumVersion': "1.9.1", 'platformVersion': "13.2", 'deviceOrientation': "portrait",
+    'appiumVersion': "1.13.0", 'platformVersion': "12.2", 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh8'},
 
 ]
