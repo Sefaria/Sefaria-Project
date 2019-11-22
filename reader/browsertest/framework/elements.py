@@ -18,7 +18,8 @@ from selenium.webdriver.common.touch_actions import TouchActions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
-        element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element, _find_element, StaleElementReferenceException
+        element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, \
+    text_to_be_present_in_element, _find_element, StaleElementReferenceException, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException
 # http://selenium-python.readthedocs.io/waits.html
@@ -840,7 +841,7 @@ class AbstractTest(object):
         time.sleep(.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
         time.sleep(.5)  # Something takes a moment here.  Not sure what to wait for.
         return self
 
@@ -913,7 +914,7 @@ class AbstractTest(object):
         else:
             WebDriverWait(self.driver, TEMPER).until(
                 element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
+            WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
         self.set_modal_cookie()
         return self
 
