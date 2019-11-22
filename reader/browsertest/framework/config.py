@@ -51,7 +51,7 @@ SAUCE_CORE_CAPS = [
     #    'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
     {'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '9.0',
-     'browserName': 'Chrome', 'appiumVersion': '1.13.0', 'deviceOrientation': "portrait",
+     'browserName': 'Chrome', 'appiumVersion': '1.12.1', 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/9.0'},
 
     {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Simulator",
