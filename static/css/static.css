@@ -1863,6 +1863,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   top: 15px;
   z-index: 1002;
 }
+
+#mobilePage #headerButtons a:active,
+#mobilePage #headerButtons a:hover{
+  text-decoration: none;
+}
 #mobilePage #topHeaderAndroid{
   width: 88px;
   height: 30px;
@@ -2026,6 +2031,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #mobilePage #mobileTestimonials .mobileTestimonialContent{
   text-align: left;
 }
+.interface-hebrew #mobilePage #mobileTestimonials .mobileTestimonialContent{
+  text-align: right;
+}
 #mobilePage #mobileTestimonials .mobileTestimonialText{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -2106,6 +2114,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-align: justify;
   color: #000000;
 }
+#mobilePage #mobileExamples .example .mobileExampleImage {
+  text-align: center;
+}
 #mobilePage #mobileExamples .example .mobileExampleImage img{
   height: 350px;
 }
@@ -2183,7 +2194,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   align-items: center;
 }
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button img{
-  width: 40px;
   height: 40px;
 }
 
@@ -2231,14 +2241,34 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 18px;
   line-height: 22px;
-  color: #000000;
+  color: #999;
   font-style: normal;
 }
-#mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox .inputWithNestedImageSubmit{
     position: relative;
-    top: 4px;
-    right: 36px;
+    margin: auto;
+    width: 320px;
 }
+#mobilePage #mobileNewsletterSocial input[type=image]{
+  padding: 0;
+  box-shadow: none;
+  color: #000;
+  opacity: .2;
+  height: 20px;
+  width: 20px;
+  position: absolute;
+  top: 14px;
+  right: 26px;
+  left: auto;
+}
+
+.interface-hebrew #mobilePage #mobileNewsletterSocial input[type=image] {
+  transform: scale(-1, 1);
+  left: 26px;
+  right: auto;
+}
+
+
 .interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
     position: relative;
     top: 4px;
