@@ -23,10 +23,10 @@ class ReaderSuite(TestSuite):
     every_build = True
 
     def setup(self):
-        try:
-            self.driver.set_window_size(900, 1100)
-        except WebDriverException:
-            pass
+        # try:
+        #    self.driver.set_window_size(900, 1100)
+        #except WebDriverException:
+        #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
@@ -40,10 +40,10 @@ class PageloadSuite(TestSuite):
     every_build = True
 
     def setup(self):
-        try:
-            self.driver.set_window_size(900, 1100)
-        except WebDriverException:
-            pass
+        # try:
+        #    self.driver.set_window_size(900, 1100)
+        #except WebDriverException:
+        #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
