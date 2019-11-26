@@ -7,12 +7,11 @@ COPY . /app/
 COPY ./build/web/wsgi.whiskey /app/.whiskey 
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && touch /app/dev-db.sqlite
 
-RUN mkdir -p /app/log && mkdir -p /app/sefaria
+RUN mkdir -p /app/log && mkdir -p /app/sefaria && touch /app/dev-db.sqlite
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE sefaria.settings
 WORKDIR /app/
-
 
 RUN pip3 install --no-cache-dir -r ./requirements.txt
 RUN apt-get update && apt-get install --yes apache2 libapache2-mod-wsgi-py3  && apt-get clean
