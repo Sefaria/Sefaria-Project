@@ -675,12 +675,15 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
 
             case 'SheetSource':
 
+                const enBlock = sheetItem.findDescendant(n => n.type === "en");
+                const heBlock = sheetItem.findDescendant(n => n.type === "he");
+
                 let source = {
                     "ref": sheetItem.getIn(['data', 'ref']),
                     "heRef": sheetItem.getIn(['data', 'heRef']),
                     "text": {
-                      "en": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "en").nodes),
-                      "he": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "he").nodes),
+                      "en": enBlock ? convertBlockTextToHTMLWithParagraphs(enBlock.nodes) : "...",
+                      "he": heBlock ? convertBlockTextToHTMLWithParagraphs(heBlock.nodes) : "...",
                     },
                     "node": sheetItem.getIn(['data', 'node']),
 
@@ -798,33 +801,6 @@ function SefariaEditor(props) {
 
         }]
     };
-    function createEmptyBlockJSON2(ref, heRef, text, he) {
-        return {
-            "object": "block",
-            "type": "SheetItem",
-            "nodes": [{
-                "object": "block",
-                "type": "SheetOutsideText",
-                "data": {
-                    "node": nextSheetNode
-                },
-                "nodes": [{
-                    "object": "block",
-                    "type": "paragraph",
-                    "nodes": [{
-                        "object": "text",
-                        "text": ref + " " + text
-                    },
-                    {
-                        "object": "text",
-                        "text": heRef + " " + he
-                    }
-                    ]
-                }],
-
-            }]
-        };
-    }
 
     function createSheetSourceJSON(ref, heRef, text, he) {
 
@@ -954,7 +930,6 @@ function SefariaEditor(props) {
 
 
                 let sheetSourceJSON = createSheetSourceJSON(text.ref, text.heRef, enText, heText);
-                let newSheetSource = Block.fromJSON(sheetSourceJSON);
                 addNewSheetItem(editor, sheetSourceJSON);
             });
         }
@@ -976,9 +951,6 @@ function SefariaEditor(props) {
     function renderBlock(props, editor, next) {
         const {attributes, children, node} = props;
         const {data} = node;
-
-        const heRef = data.get('heRef');
-        const ref = data.get('ref');
 
         switch (node.type) {
 
@@ -1084,7 +1056,7 @@ function SefariaEditor(props) {
                 const lang = data.get('lang')
                 return (
                     <div className={lang}>
-                        <div className="ref"><a href={"/" + ref}>{data.get("refText")}</a></div>
+                        <div className="ref">{data.get("refText")}</div>
                     </div>
                 )
             case 'paragraph':
