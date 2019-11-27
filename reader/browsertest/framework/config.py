@@ -50,9 +50,9 @@ SAUCE_CORE_CAPS = [
     #{'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
     #    'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
-    {'deviceName': 'Android GoogleAPI Emulator', 'platformName': 'Android', 'platformVersion': '9.0',
-     'browserName': 'Chrome', 'appiumVersion': '1.12.1', 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/9.0'},
+    {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '8.0',
+     'browserName': 'Chrome', 'appiumVersion': '1.13.0', 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/8.0'},
 
     {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Simulator",
     'appiumVersion': "1.13.0", 'platformVersion': "12.2", 'deviceOrientation': "portrait",
