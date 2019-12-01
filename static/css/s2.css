@@ -6632,6 +6632,9 @@ span.purim-emoji img{
   margin-top: 20px;
 }
 @media (max-width: 540px) {
+  .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
+    display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
+  }
   .profile-page .profile-summary .profile-img {
     width: 87px !important;
     height: 87px !important;
