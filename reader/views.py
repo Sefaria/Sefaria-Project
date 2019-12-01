@@ -3206,6 +3206,7 @@ def profile_upload_photo(request):
 
         profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
         profile.save()
+        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
         return jsonResponse({"urls": [big_pic_url, small_pic_url]})
     return jsonResponse({"error": "Unsupported HTTP method."})
 

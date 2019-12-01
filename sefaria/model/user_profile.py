@@ -648,9 +648,9 @@ def unread_notifications_count_for_user(uid):
 
 
 public_user_data_cache = {}
-def public_user_data(uid):
+def public_user_data(uid, ignore_cache=False):
     """Returns a dictionary with common public data for `uid`"""
-    if uid in public_user_data_cache:
+    if uid in public_user_data_cache and not ignore_cache:
         return public_user_data_cache[uid]
 
     profile = UserProfile(id=uid)
