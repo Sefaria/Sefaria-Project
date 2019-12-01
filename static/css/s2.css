@@ -420,6 +420,11 @@ input.noselect {
   img.keyboardInputInitiator{
     display: none;
   }
+
+  .nochrome .header .home {
+    display: inline;
+  }
+
 }
 .header .accountLinks {
   display: flex;

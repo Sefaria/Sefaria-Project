@@ -1941,6 +1941,7 @@ class TextFamily(object):
         self.isComplex      = oref.index.is_complex()
         self.text           = None
         self.he             = None
+        self._nonExistantVersions = {}
         self._lang          = lang
         self._original_oref = oref
         self._context_oref  = None
@@ -1959,8 +1960,12 @@ class TextFamily(object):
         for language, attr in self.text_attr_map.items():
             if language == lang:
                 c = TextChunk(oref, language, version)
+                if len(c._versions) == 0:  # indicates `version` doesn't exist
+                    self._nonExistantVersions[language] = version
             elif language == lang2:
                 c = TextChunk(oref, language, version2)
+                if len(c._versions) == 0:
+                    self._nonExistantVersions[language] = version2
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
@@ -2083,6 +2088,9 @@ class TextFamily(object):
             d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
             d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
             d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+
+        if len(self._nonExistantVersions) > 0:
+            d['nonExistantVersions'] = self._nonExistantVersions
 
         if self._inode.index.is_dependant_text():
             #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
