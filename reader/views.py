@@ -30,7 +30,7 @@ from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
-from sefaria.model.topic import get_topics
+from sefaria.model.topic_old import get_topics
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data

@@ -1021,7 +1021,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_parasha_topics_stories(cls, iteration=1, k=6, **kwargs):
         def _create_parasha_topic_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.model.topic import get_topics
+            from sefaria.model.topic_old import get_topics
             from sefaria.utils.util import titlecase
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
 

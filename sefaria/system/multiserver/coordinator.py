@@ -90,7 +90,7 @@ class ServerCoordinator(MessagingNode):
         from sefaria.model import library
         import sefaria.system.cache as scache
         import sefaria.model.text as text
-        import sefaria.model.topic as topic
+        import sefaria.model.topic_old as topic
 
         import socket
         import os

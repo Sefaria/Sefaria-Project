@@ -512,7 +512,7 @@ def rebuild_counts_and_toc(request):
 
 @staff_member_required
 def rebuild_topics(request):
-    from sefaria.model.topic import update_topics
+    from sefaria.model.topic_old import update_topics
     update_topics()
 
     if MULTISERVER_ENABLED:
