@@ -6276,6 +6276,13 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
+
+.sheetItem .SheetSource {
+  border-left: 4px solid #004E5F;
+  margin-left: -34px;
+  padding-left: 34px;
+}
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
