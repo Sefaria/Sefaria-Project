@@ -7,6 +7,7 @@ import collections
 import logging
 import copy
 import bleach
+import re
 
 #Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
@@ -29,6 +30,7 @@ class AbstractMongoRecord(object):
     collection = None  # name of MongoDB collection
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
+    slug_field = None  # If record can be uniquely identified by slug, set this var with the slug field
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
@@ -191,6 +193,23 @@ class AbstractMongoRecord(object):
             d["_id"] = str(self._id)
         return d
 
+    def normalize_slug(self):
+        """
+        Set the slug according to `initial_slug`,
+        using the first available number at the end if duplicates exist
+        :param initial_slug: str, initial guess as to what you want slug to be, assuming no duplicates
+        :param slug_attr: the attribute on self for where to set slug
+        """
+        slug = getattr(self, self.slug_field).lower()
+        slug = slug.replace(" ", "-")
+        slug = re.sub(r"[^a-z0-9\-]", "", slug)
+        dupe_count = 0
+        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
+        while getattr(db, self.collection).find_one({self.slug_field: slug, "_id": {"$ne": _id}}):
+            dupe_count += 1
+            slug = "{}{}".format(slug, dupe_count)
+        return slug
+
     def _set_pkeys(self):
         if self.track_pkeys:
             for pkey in self.pkeys:
@@ -238,7 +257,8 @@ class AbstractMongoRecord(object):
         return True
 
     def _normalize(self):
-        pass
+        if self.slug_field is not None:
+            setattr(self, self.slug_field, self.normalize_slug())
 
     def _pre_save(self):
         pass

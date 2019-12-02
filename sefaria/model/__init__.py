@@ -13,7 +13,7 @@ from . import abstract
 
 # not sure why we have to do this now - it wasn't previously required
 from . import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, \
-    translation_request, lexicon, place, person, timeperiod, garden, group
+    translation_request, lexicon, place, person, timeperiod, garden, group, topic
 
 from .history import History, HistorySet, log_add, log_delete, log_update, log_text
 from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
@@ -44,6 +44,7 @@ from .category import Category, CategorySet
 from .passage import Passage, PassageSet
 from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
+from .topic import Topic, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource
 
 from . import dependencies
 
