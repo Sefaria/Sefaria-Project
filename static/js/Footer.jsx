@@ -171,6 +171,10 @@ class Footer extends Component {
                   <span className="int-en">Jobs</span>
                   <span className="int-he">דרושים</span>
               </a>
+              <a href="https://store.sefaria.org" className="outOfAppLink">
+                  <span className="int-en">Shop</span>
+                  <span className="int-he">חנות</span>
+              </a>
           </div>
 
           <div className="section last connect">
