@@ -19,31 +19,452 @@ import {
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
 
-const initialValue = [
-    {
-        type: 'mooo',
-        children: [
-            {
-                text: '',
-                marks: [],
-            },
-        ],
-    },
+const sheet_item_els = {
+    ref: 'SheetSource',
+    comment: 'SheetComment',
+    outsideText: 'SheetOutsideText',
+    outsideBiText: 'SheetOutsideBiText',
+    media: 'SheetMedia',
+};
+
+const voidElements = [
+    "ProfilePic",
+    "TextRef"
 ]
+
+const ELEMENT_TAGS = {
+  A: el => ({ type: 'link', url: el.getAttribute('href') }),
+  BLOCKQUOTE: () => ({ type: 'quote' }),
+  H1: () => ({ type: 'heading-one' }),
+  H2: () => ({ type: 'heading-two' }),
+  H3: () => ({ type: 'heading-three' }),
+  H4: () => ({ type: 'heading-four' }),
+  H5: () => ({ type: 'heading-five' }),
+  H6: () => ({ type: 'heading-six' }),
+  IMG: el => ({ type: 'image', url: el.getAttribute('src') }),
+  LI: () => ({ type: 'list-item' }),
+  OL: () => ({ type: 'numbered-list' }),
+  P: () => ({ type: 'paragraph' }),
+  PRE: () => ({ type: 'code' }),
+  UL: () => ({ type: 'bulleted-list' }),
+}
+
+const MARK_TAGS = {
+  EM: () => ({ type: 'italic' }),
+  I: () => ({ type: 'italic' }),
+  STRONG: () => ({ type: 'bold' }),
+  B: () => ({ type: 'bold' }),
+  U: () => ({ type: 'underline' }),
+  BIG: () => ({ type: 'big' }),
+  SMALL: () => ({ type: 'small' }),
+}
+
+export const deserialize = el => {
+  if (el.nodeType === 3) {
+    return el.textContent
+  } else if (el.nodeType !== 1) {
+    return null
+  } else if (el.nodeName === 'BR') {
+    return '\n'
+  }
+
+  const { nodeName } = el
+  let parent = el
+
+  if (
+    el.nodeNode === 'PRE' &&
+    el.childNodes[0] &&
+    el.childNodes[0].nodeName === 'CODE'
+  ) {
+    parent = el.childNodes[0]
+  }
+
+  const children = Array.from(parent.childNodes).map(deserialize)
+
+  if (el.nodeName === 'BODY') {
+    return jsx('fragment', {}, children)
+  }
+
+  if (ELEMENT_TAGS[nodeName]) {
+    const attrs = ELEMENT_TAGS[nodeName](el)
+    return jsx('element', attrs, children)
+  }
+
+  if (MARK_TAGS[nodeName]) {
+    const attrs = MARK_TAGS[nodeName](el)
+    return jsx('mark', attrs, children)
+  }
+
+  return children
+}
+
+
+
+function renderSheetItem(source) {
+
+    const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0];
+
+    switch (sheetItemType) {
+        case 'ref': {
+            const content = (
+                {
+                    type: sheet_item_els[sheetItemType],
+                    ref: source.ref,
+                    heRef: source.heRef,
+                    title: source.title || null,
+                    node: source.node,
+                    children: [
+                        {
+                            type: "TextRef",
+                            ref: source.ref,
+                            refText: source.heRef,
+                            lang: "he",
+                            children: [{text:"",marks:[]}]
+                        },
+                        {
+                            type: "he",
+                            children: parseSheetItemHTML(source.text.he)
+                        },
+                        {
+                            type: "TextRef",
+                            ref: source.ref,
+                            refText: source.ref,
+                            lang: "en",
+                            children: [{text:"",marks:[]}]
+                        },
+                        {
+                            type: "en",
+                            children: parseSheetItemHTML(source.text.en)
+                        }
+                    ]
+                }
+            )
+            return content
+        }
+        case 'comment': {
+            const content = (
+                {
+                    type: sheet_item_els[sheetItemType],
+                    children: parseSheetItemHTML(source.comment),
+                    node: source.node
+                }
+            )
+            return content
+        }
+        case 'outsideText': {
+            const content = (
+                {
+                    type: sheet_item_els[sheetItemType],
+                    children: parseSheetItemHTML(source.outsideText),
+                    node: source.node
+                }
+            )
+            return content
+        }
+        case 'outsideBiText': {
+            const content = (
+                {
+                    type: sheet_item_els[sheetItemType],
+                    children: [
+                        {
+                            type: "he",
+                            children: parseSheetItemHTML(source.outsideBiText.he)
+                        },
+                        {
+                            type: "en",
+                            children: parseSheetItemHTML(source.outsideBiText.en)
+                        }
+                    ],
+                    node: source.node
+                }
+            )
+            return content
+        }
+        case 'media': {
+            const content = (
+                {
+                    type: sheet_item_els[sheetItemType],
+                    mediaUrl: source.media,
+                    node: source.node,
+                    children: [
+                        {
+                            text: source.media,
+                            marks: [],
+                        }
+                    ]
+                }
+            )
+            return content
+        }
+        default: {
+            return {
+                text: "",
+                marks: [],
+            }
+
+
+        }
+    }
+}
+
+function parseSheetItemHTML(rawhtml) {
+    const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml.replace(/[\n\r\t]/gm, "")), 'text/html')
+    const fragment = deserialize(parsed.body)
+    return fragment.length > 0 ? fragment : [{text:'', marks:[]}]
+}
+
+
+
+function transformSheetJsonToDraft(sheet) {
+    const sheetTitle = sheet.title.stripHtmlKeepLineBreaks()
+
+     let sourceNodes = sheet.sources.map(source => (
+             {
+                type: "SheetItem",
+                children: [renderSheetItem(source)]
+            }
+        )
+    );
+
+    const initValue = [
+        {
+            type: 'Sheet',
+            status: sheet.status,
+            group: sheet.group,
+            views: sheet.views,
+            tags: sheet.tags,
+            includedRefs: sheet.includedRefs,
+            owner: sheet.owner,
+            summary: sheet.summary,
+            id: sheet.id,
+            dateModified: sheet.dateModified,
+            datePublished: sheet.datePublished,
+            dateCreated: sheet.dateCreated,
+            promptedToPublish: sheet.promptedToPublish,
+            options: sheet.options,
+            nextNode: sheet.nextNode,
+
+            children: [
+                {
+                    type: 'SheetMetaDataBox',
+                    children: [
+                        {
+                            type: 'SheetTitle',
+                            title: sheetTitle,
+                            children: [
+                                {
+                                    text: sheetTitle,
+                                    marks: [],
+                                }
+
+                            ]
+                        },
+                        {
+                            type: 'SheetAuthorStatement',
+                            authorUrl: sheet.ownerProfileUrl,
+                            authorStatement: sheet.ownerName,
+                            children: [
+                                {
+                                    type: 'ProfilePic',
+                                    authorImage: sheet.ownerImageUrl,
+                                    authorStatement: sheet.ownerName,
+                                    children: [
+                                        {
+                                            text: '',
+                                            marks: [],
+                                        },
+                                    ]
+                                },
+                                {
+                                    text: '',
+                                    marks: [],
+                                },
+
+
+                            ]
+                        },
+                        {
+                            type: 'GroupStatement',
+                            group: sheet.group,
+                            groupLogo: sheet.groupLogo,
+                            children: [
+                                {
+                                    text: sheet.group,
+                                    marks: [],
+                                }
+
+                            ]
+                        },
+                    ]
+
+                },
+                {
+                    type: 'SheetContent',
+                    children: sourceNodes
+                }
+
+            ]
+        }
+    ];
+    return initValue;
+}
+
+
+// function transformSheetJsonToDraft(sheet) {
+//     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
+//
+//     const sourceNodes = sheet.sources.map(source => (
+//             {
+//                 "object": "block",
+//                 "type": "SheetItem",
+//                 "nodes": [renderSheetItem(source)]
+//             }
+//         )
+//     );
+//
+//                 },
+//                 "nodes": [
+//                     {
+//
+//                     },
+//                     {
+//                         "object": "block",
+//                         "type": "SheetContent",
+//                         "nodes": sourceNodes
+//                     },
+//
+//
+//                 ]
+//             }
+//         }
+//     )
+//     return sheetJSON;
+// }
 
 
 const Element = ({attributes, children, element}) => {
     switch (element.type) {
-        case 'title':
-            return <h2 {...attributes}>{children}</h2>
-        case 'paragraph':
-            return <p {...attributes}>{children}</p>
-        default:
-            return <p {...attributes}>{children}</p>
+        case 'SheetItem':
+            return (
+                <div className="sheetItem segment" {...attributes}>
+                    {children}
+                </div>
+            );
+        case 'SheetSource':
+            return (
+                <div className="SheetSource" {...attributes}>
+                    {children}
+                </div>
+            );
 
+        case 'SheetComment':
+            return (
+                <div {...attributes}>
+                    {children}
+                </div>
+            );
+
+        case 'SheetOutsideText':
+            return (
+                <div {...attributes}>
+                    {children}
+                </div>
+            );
+
+        case 'SheetOutsideBiText':
+            return (
+                <div {...attributes}>
+                    {children}
+                </div>
+            );
+
+        case 'SheetMedia':
+            return (
+                <div {...attributes}>
+                    {children}
+                </div>
+            );
+        case 'he':
+            return (
+                <div className="he">
+                    {children}
+                </div>
+            );
+        case 'en':
+            return (
+                <div className="en">
+                    {children}
+                </div>
+            );
+        case 'SheetContent':
+            return (
+                <div className="text" {...attributes}>
+                    {children}
+                </div>
+            );
+        case 'SheetMetaDataBox':
+            return (
+                <SheetMetaDataBox>{children}</SheetMetaDataBox>
+            );
+        case 'SheetAuthorStatement':
+            return (
+                <SheetAuthorStatement
+                    authorUrl={element.authorUrl}
+                    authorStatement={element.authorStatement}
+                >{children}</SheetAuthorStatement>
+            );
+        case 'ProfilePic':
+            return (
+                <ProfilePic
+                    url={element.authorImage}
+                    len={30}
+                    name={element.authorStatement}
+                />
+            );
+
+        case 'GroupStatement':
+            return (
+                <GroupStatement
+                    group={element.group}
+                    groupLogo={element.groupLogo}
+                >{children}</GroupStatement>
+            );
+        case 'SheetTitle':
+            return (
+                <SheetTitle title={element.title}>{children}</SheetTitle>
+            );
+        case 'TextRef':
+            return (
+                <div className={element.lang}>
+                    <div className="ref">{element.refText}</div>
+                </div>
+            )
+        case 'paragraph':
+            return (
+                <p>{children}</p>
+            );
+        case 'bulleted-list':
+            return (
+                <ul>{children}</ul>
+            );
+        case 'list-item':
+            return (
+                <li>{children}</li>
+            );
+
+        default:
+            return <div>{children}</div>
     }
+
 }
 
+const withSheetData = editor => {
+    const {exec, isVoid} = editor
+    editor.isVoid = element => {
+        return (element.type in voidElements) ? true : isVoid(element)
+    }
+    return editor
+}
 
 const withMarks = editor => {
     const {exec} = editor
@@ -70,7 +491,7 @@ const withMarks = editor => {
 
 
 const isMarkActive = (editor, type) => {
-    const [mark] = Editor.marks(editor, { match: { type }, mode: 'all' })
+    const [mark] = Editor.marks(editor, {match: {type}, mode: 'all'})
     return !!mark
 };
 
@@ -153,41 +574,43 @@ const MarkButton = ({type}) => {
 
 }
 
-    const SefariaEditor = () => {
+const SefariaEditor = (props) => {
+    const sheet = props.data;
+    const initValue = transformSheetJsonToDraft(sheet);
+    const renderElement = useCallback(props => <Element {...props} />, [])
 
-        const renderElement = useCallback(props => <Element {...props} />, [])
 
-        const beforeInput = event => {
-            switch (event.inputType) {
-                case 'formatBold':
-                    return editor.exec({type: 'toggle_mark', mark: 'bold'})
-                case 'formatItalic':
-                    return editor.exec({type: 'toggle_mark', mark: 'italic'})
-                case 'formatUnderline':
-                    return editor.exec({type: 'toggle_mark', mark: 'underline'})
-            }
+    const beforeInput = event => {
+        switch (event.inputType) {
+            case 'formatBold':
+                return editor.exec({type: 'toggle_mark', mark: 'bold'})
+            case 'formatItalic':
+                return editor.exec({type: 'toggle_mark', mark: 'italic'})
+            case 'formatUnderline':
+                return editor.exec({type: 'toggle_mark', mark: 'underline'})
         }
-
-        const editor = useMemo(
-            () => withMarks(withHistory(withReact(createEditor()))),
-            []
-        )
-
-        return (
-            // Add the editable component inside the context.
-            <Slate editor={editor} defaultValue={initialValue}>
-                <HoverMenu/>
-
-                <Editable
-                    renderMark={props => <Mark {...props} />}
-                    renderElement={renderElement}
-                    placeholder="Enter a title…"
-                    spellCheck
-                    onDOMBeforeInput={beforeInput}
-
-                />
-            </Slate>
-        )
     }
 
-    export default SefariaEditor;
+    const editor = useMemo(
+        () => withSheetData(withMarks(withHistory(withReact(createEditor())))),
+        []
+    )
+
+    return (
+        // Add the editable component inside the context.
+        <Slate editor={editor} defaultValue={initValue}>
+            <HoverMenu/>
+
+            <Editable
+                renderMark={props => <Mark {...props} />}
+                renderElement={renderElement}
+                placeholder="Enter a title…"
+                spellCheck
+                onDOMBeforeInput={beforeInput}
+
+            />
+        </Slate>
+    )
+}
+
+export default SefariaEditor;
