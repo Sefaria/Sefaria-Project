@@ -244,7 +244,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 @media (max-width: 540px) {
   #bannerButtonBox {
-    display: none;
+    margin: 15px 0 0;
   }
   #bannerMessage .mobileOnly {
     display: block;
