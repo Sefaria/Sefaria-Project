@@ -171,7 +171,7 @@ class ProfilePic extends Component {
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
                 <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "Add Picture (HE)" : "Upload New (HE)" }</span>
+                <span className="int-he">{ showDefault ? "הוסף תמונה" : "ייבא תמונה" }</span>
               </label>
             </div>) : null
           }
@@ -196,16 +196,16 @@ class ProfilePic extends Component {
                 <div>
                   <div className="smallText profile-pic-cropper-desc">
                     <span className="int-en">Drag corners to crop image</span>
-                    <span className="int-he">Drag corners to crop image (He)</span>
+                    <span className="int-he">לחיתוך התמונה, גרור את הפינות</span>
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
                       <span className="en">Cancel</span>
-                      <span className="he">Cancel (He)</span>
+                      <span className="he">בטל</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
                       <span className="en">Save</span>
-                      <span className="he">Save (He)</span>
+                      <span className="he">שמור</span>
                     </a>
                   </div>
                 </div>
