@@ -654,11 +654,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
-        if not library.get_toc_tree().lookup(self.categories):
-            # Perhaps we're in the midst of change?  Try to load directly.
-            from sefaria.model import Category
-            if not Category().load({"path": self.categories}):
-                raise InputError(u"You must create category {} before adding texts to it.".format(u"/".join(self.categories)))
+        # Perhaps we're in the midst of change?  Try to load directly.
+        from sefaria.model import Category
+        if not Category().load({"path": self.categories}):
+            raise InputError(u"You must create category {} before adding texts to it.".format(u"/".join(self.categories)))
 
         '''
         for cat in self.categories:
