@@ -676,7 +676,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
 				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
 				"ownerProfileUrl": "/profile/" + ownerData["slug"],
-				"ownerImageUrl":   gravatar_url_small,
+				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
 				"tags":            sheet.get("tags", []),
