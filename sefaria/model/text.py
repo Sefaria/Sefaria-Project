@@ -1040,7 +1040,7 @@ class AbstractTextRecord(object):
             except AttributeError:
                 pass
             fn.decompose()
-        return soup.encode_contents()[5:-6]  # remove divs added
+        return soup.encode_contents().decode()[5:-6]  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
