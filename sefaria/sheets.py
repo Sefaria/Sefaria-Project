@@ -618,10 +618,11 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
 	user_profiles = {item['id']: item for item in django_user_profiles}
-	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1}))
+	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1,"profile_pic_url_small":1}))
 	mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
 	for profile in user_profiles:
 		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
+		user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile]["profile_pic_url_small"]
 
 	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
@@ -635,7 +636,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			except InputError:
 				continue
 			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
-			if len(ownerData['profile_pic_url_small']) == 0:
+			if len(ownerData.get('profile_pic_url_small', '')) == 0:
 				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
 				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
 				gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
