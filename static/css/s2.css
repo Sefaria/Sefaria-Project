@@ -176,6 +176,13 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   width: 100%;
   height: 100%;
 }
+
+.nochrome #s2 .headerNavSection,
+.nochrome #s2 .headerLinksSection,
+.nochrome #footerContainer {
+  display: none;
+}
+
 #bannerMessage {
   color: white;
   background-color: #4871bf;
@@ -237,7 +244,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 @media (max-width: 540px) {
   #bannerButtonBox {
-    display: none;
+    margin: 15px 0 0;
   }
   #bannerMessage .mobileOnly {
     display: block;
@@ -413,6 +420,11 @@ input.noselect {
   img.keyboardInputInitiator{
     display: none;
   }
+
+  .nochrome .header .home {
+    display: inline;
+  }
+
 }
 .header .accountLinks {
   display: flex;
@@ -564,8 +576,7 @@ input.noselect {
   font-weight: normal;
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 30px;
-  margin: 0;
-  margin-bottom: 40px;
+  margin-bottom: 0px;
 }
 .sefariaModalInnerContent {
   display: flex;
@@ -573,11 +584,22 @@ input.noselect {
   align-items: flex-start;
   margin-bottom: 40px;
 }
-.sefariaModalInnerContent div {
+.sefariaModalInnerContent div, .sefariaModalInnerContent h3{
   display: flex;
   align-items: center;
   text-align: start;
   padding: 10px 0;
+}
+.sefariaModalContent h3{
+  align-items: center;
+  text-align: start;
+  padding: 10px 0;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: normal;
+  margin-bottom: 10px;
+  margin-top: 5px;
 }
 .sefariaModalBottomContent {
   font-size: 16px;
@@ -1501,18 +1523,27 @@ a.readerNavCategory {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
+.readerNavMenu .dedication {
+  margin: -10px 0 58px 0;
+}
+.readerTextTableOfContents .categoryAttribution,
+.readerTextTableOfContents .dedication {
+  margin: 28px 0;
+}
 .readerTextTableOfContents .categoryAttribution,
 .readerTextTableOfContents .dedication,
 .readerNavMenu .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
-  margin: 28px 0;
 }
 .readerTextTableOfContents .categoryAttribution .he,
 .readerTextTableOfContents .dedication .he,
 .readerNavMenu .dedication .he {
   font-style: normal;
+}
+.hebrew .readerNavMenu .dedication {
+  direction: rtl;
 }
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;
@@ -2812,7 +2843,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
   display: flex;
@@ -3818,6 +3848,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: lighter;
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  unicode-bidi: isolate;
 }
 .englishAvailableTag {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -4100,6 +4131,69 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
+}
+.webpageList .website .icon {
+  height: 16px;
+  width: 16px;
+  margin-top: 2px;
+}
+.webpageList .webpage {
+  margin-bottom: 30px;
+  text-align: left;
+  direction: ltr;
+}
+.webpageList .webpage.hebrew {
+  text-align: right;
+  direction: rtl;
+}
+.webpageList .webpage .icon {
+  margin-right: 10px;
+}
+.webpage.hebrew .icon {
+  margin: 0 0 0 10px;
+}
+.webpageList .webpage .title {
+  font-size: 22px;
+  color: black;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .title:hover {
+  text-decoration: none;
+}
+.webpageList .webpage .domain {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .description {
+  font-size: 18px;
+  color: #999;
+}
+.webpageList .webpage .stats {
+  font-size: 13px;
+  color: #999;
+  margin-top: 5px;
+}
+.webpageList.empty .loadingMessage {
+  margin-top: 0px;
+}
+.webpageList .webpagesLinkerMessage {
+  padding: 20px 0px;
+  color: #999;
+  border-top: 1px solid #E5E5E5;
+  font-size: 13px;
+}
+.marginless .webpageList .webpagesLinkerMessage {
+  padding: 20px 34px;
+}
+.webpageList .webpagesLinkerMessage a {
+  color: #999;
+  text-decoration: underline;
+}
+.textList.marginless .webpageList.empty .loadingMessage {
+  margin: 50px 40px;
 }
 .textRange .numberLabel {
   position: absolute;
@@ -4557,7 +4651,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     transform: rotate(360deg);
   }
 }
-
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;
@@ -6749,7 +6842,7 @@ body .homeFeedWrapper .content {
   position: relative;
 }
 .homeFeedWrapper #homeCover .sub a {
-  font-size: 18px;
+  font-size: 16px;
 }
 .homeFeedWrapper #homeCover .sub .int-en {
 }
@@ -6767,6 +6860,11 @@ body .homeFeedWrapper .content {
   max-width: 40%;
   background-color: #FBFBFA;
   padding: 60px 50px;
+}
+@media (max-width: 540px) {
+  .homeFeedSidebar {
+    display: none;
+  }
 }
 .homeFeedSidebar .section {
   margin-bottom: 70px;
@@ -7089,11 +7187,14 @@ body .homeFeedWrapper.userStats {
   text-align: center;
   font-weight: normal;
   font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  padding: 60px 0 30px;
+  margin: 0;
 }
 
 .userStats h2 {
   text-transform: none;
-  padding-top: 40px;
+  padding: 40px 0 30px;
   font-size: 21px;
   color: #888;
 }
@@ -7152,7 +7253,7 @@ body .homeFeedWrapper.userStats {
 
 .userStats .chartRow .chartWrapper {
   font: 11px sans-serif;
-  padding: 0 10px;
+  padding: 0;
 }
 
 .bilingual .userStats .blockLink .he,
@@ -7171,19 +7272,27 @@ body .homeFeedWrapper.userStats {
 }
 
 .userStatModeChooser {
-  padding: 10px 0 0 0;
+  padding: 0;
   display:  flex;
   justify-content: center;
+  width: 240px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .userStatModeButton {
   background-color: #fff;
+  color: #666;
   border-radius: 5px;
-  height: 40px;
+  height: 50px;
   width: 120px;
   text-align: center;
   vertical-align: center;
   cursor: pointer;
+  font-size: 16px;
 }
+
 .userStatModeButton.active {
   background-color: #19365d;
   color: #fff;
@@ -7191,10 +7300,14 @@ body .homeFeedWrapper.userStats {
 
 .userStatModeButton span {
   display: block;
-  margin: 12px 0;
+  margin: 15px 0;
 }
 
 .userStats .blockLink {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .userStats .yourPopularSheetsBlock > div {

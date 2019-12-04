@@ -3,7 +3,7 @@ import Component from 'react-class';
 const $                        = require('./sefaria/sefariaJquery');
 const Sefaria                  = require('./sefaria/sefaria');
 const PropTypes                = require('prop-types');
-const {Story}                    = require('./Story');
+const {Story}                  = require('./Story');
 const Footer                   = require('./Footer');
 const { usePaginatedScroll }   = require('./Hooks');
 const { 
@@ -71,7 +71,7 @@ function HomeFeed(props) {
                             <span className="int-he">פרשת השבוע</span>
                         </a>
                         <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Daf Yomi"))} style={{borderColor: "rgb(204, 180, 121)"}}>
-                            <span className="int-en">Daily Talmud</span>
+                            <span className="int-en">Daf Yomi</span>
                             <span className="int-he">דף יומי</span>
                         </a>
                         <a className="refLink" href="/texts/Liturgy/Haggadah" style={{borderColor: "rgb(171, 78, 102)"}}>
@@ -323,10 +323,13 @@ class NewHomeFeedbackBox extends Component {
                  <span className="int-en">Submit Feedback</span>
                  <span className="int-he">שלח</span>
              </div>
+            {/* TODO remove Goodbye prompt code once there's no going back
              <div className="button white" role="button" onClick={this.toggleGoodbyePrompt}>
                  <span className="int-en">Back to old homepage</span>
                  <span className="int-he">חזרה לדף הבית הישן</span>
-             </div></div>}
+             </div>
+             */}
+             </div>}
 
             {this.state.feedbackSent ?
                 <div className="feedbackBox">

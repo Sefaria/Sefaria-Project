@@ -51,6 +51,10 @@ node_modules
 #####################
 /.idea
 
+# Visual Studio Code directory #
+#####################
+/.vscode
+
 # pystest cache #
 #####################
 /.pytest_cache

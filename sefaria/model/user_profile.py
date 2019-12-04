@@ -8,7 +8,7 @@ import csv
 from datetime import datetime
 from random import randint
 
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, SheetNotFoundError
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
@@ -56,7 +56,8 @@ class UserHistory(abst.AbstractMongoRecord):
         "num_times_read",     # int: legacy for migrating old recent views
         "sheet_title",        # str: for sheet history
         "sheet_owner",        # str: ditto
-        "sheet_id"            # int: ditto
+        "sheet_id",           # int: ditto
+        "delete_saved",       # bool: True if this item was saved and but then was deleted
     ]
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
@@ -109,6 +110,11 @@ class UserHistory(abst.AbstractMongoRecord):
             if not self.secondary and not self.is_sheet and getattr(self, "language", None) != "hebrew" and r.is_empty("en"):
                 # logically, this would be on frontend, but easier here.
                 self.language = "hebrew"
+        except SheetNotFoundError:
+            self.context_refs   = [self.ref]
+            self.categories     = ["_unlisted"]
+            self.authors        = []
+            self.is_sheet       = True
         except InputError:   # Ref failed to resolve
             self.context_refs   = [self.ref]
             self.categories     = []
@@ -120,18 +126,22 @@ class UserHistory(abst.AbstractMongoRecord):
     def contents(self, **kwargs):
         d = super(UserHistory, self).contents(**kwargs)
         if kwargs.get("for_api", False):
-            try:
-                del d["uid"]
-            except KeyError:
-                pass
-            try:
-                del d["server_time_stamp"]
-            except KeyError:
-                pass
-            try:
-                d["datetime"] = str(d["datetime"])
-            except KeyError:
-                pass
+            keys = {
+                'ref': u'',
+                'he_ref': u'',
+                'book': u'',
+                'versions': {},
+                'time_stamp': 0,
+                'saved': False,
+                'delete_saved': False,
+                'is_sheet': False,
+                'sheet_id': -1,
+                'sheet_owner': '',
+                'sheet_title': '',
+            }
+            d = {
+                key: d.get(key, default) for key, default in keys.items()
+            }
         return d
 
     def _sanitize(self):
@@ -153,7 +163,8 @@ class UserHistory(abst.AbstractMongoRecord):
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
         uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
             "saved": saved,
-            "server_time_stamp": hist["server_time_stamp"]
+            "server_time_stamp": hist["server_time_stamp"],
+            "delete_saved": action == "delete_saved"
         })
         uh.save()
         return uh
@@ -341,24 +352,11 @@ class UserProfile(object):
             self.save()
         return profile
 
-    def update_attr_time_stamps(self, obj):
-        if "settings" in obj:
-            settings_changed = False
-            for k, v in obj["settings"].items():
-                if k not in self.settings:
-                    settings_changed = True
-                elif v != self.settings[k]:
-                    settings_changed = True
-            if settings_changed:
-                obj["attr_time_stamps"] = obj.get("attr_time_stamps", {})
-                obj["attr_time_stamps"]["settings"] = epoch_time()
-
     def update(self, obj):
         """
         Update this object with the fields in dictionry 'obj'
         """
         self._set_flags_on_update(obj)
-        self.update_attr_time_stamps(obj)
         self.__dict__.update(obj)
 
         return self
@@ -549,7 +547,7 @@ class UserProfile(object):
     def to_api_dict(self, basic=False):
         """
         Return a json serializble dictionary this profile which includes fields used in profile API methods
-        If basic is True, only return enough data to display a profile listing 
+        If basic is True, only return enough data to display a profile listing
         """
         if basic:
             return {
@@ -746,4 +744,3 @@ def process_index_title_change_in_user_history(indx, **kwargs):
             o.save()
         except InputError:
             logger.warning(u"Failed to convert user history from: {} to {}".format(kwargs['old'], kwargs['new']))
-

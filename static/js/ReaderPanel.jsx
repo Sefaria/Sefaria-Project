@@ -451,6 +451,9 @@ class ReaderPanel extends Component {
       this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
     }
   }
+  setWebPagesFilter(filter) {
+    this.conditionalSetState({webPagesFilter: filter, connectionsMode: "WebPagesList"});
+  }
   setTopic(topic) {
     this.conditionalSetState({navigationTopic: topic});
   }
@@ -612,8 +615,10 @@ class ReaderPanel extends Component {
           </div>
         );
     }
-    var items = [];
+
+    let items = [];
     let menu = null;
+    let contentLangOverride = null;
 
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
       items.push(<Sheet
@@ -671,6 +676,9 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
+      if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
+        contentLangOverride = "hebrew";
+      }
       var canEditText = data &&
                         ((langMode === "hebrew" && data.heVersionStatus !== "locked") ||
                         (langMode === "english" && data.versionStatus !== "locked") ||
@@ -696,6 +704,8 @@ class ReaderPanel extends Component {
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
+          webPagesFilter={this.state.webPagesFilter}
+          setWebPagesFilter={this.setWebPagesFilter}
           sheetMetaData={this.state.sheet}
           nodeRef={this.state.nodeRef}
           closeConectionsInPanel={this.closeConnectionsInPanel}
@@ -936,30 +946,31 @@ class ReaderPanel extends Component {
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "homefeed") {
+      if (Sefaria.interfaceLang === "hebrew") {
+        contentLangOverride = "hebrew";
+      } else if (Sefaria.interfaceLang === "english") {
+        contentLangOverride = "bilingual";
+      }
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
+                    toggleSignUpModal={this.props.toggleSignUpModal} />);
+
+    } else if (this.state.menuOpen === "story_editor") {
+      if (Sefaria.interfaceLang === "hebrew") {
+        contentLangOverride = "hebrew";
+      } else if (Sefaria.interfaceLang === "english") {
+        contentLangOverride = "bilingual";
+      }
+      menu = (<StoryEditor
                     toggleSignUpModal={this.props.toggleSignUpModal}
-      />);
+                    interfaceLang={this.props.interfaceLang} />);
+
 
     } else if (this.state.menuOpen === "updates") {
       menu = (<UpdatesPanel
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")} />);
-      /*
-    } else if (this.state.menuOpen === "updates") {
-      menu = (<HomeFeed
-                    interfaceLang={this.props.interfaceLang}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    onlySharedStories={true}
-      />);
-      */
-
-    } else if (this.state.menuOpen === "story_editor") {
-      menu = (<StoryEditor
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    interfaceLang={this.props.interfaceLang}
-      />);
 
     } else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats/>);
@@ -967,6 +978,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "modtools") {
       menu = (<ModeratorToolsPanel
                     interfaceLang={this.props.interfaceLang} />);
+
     } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
       menu = (
         <UserHistoryPanel
@@ -993,15 +1005,10 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
-    classes[this.currentLayout()]             = 1;
-    classes[this.state.settings.color]        = 1;
-    if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
-      // Don't allow language toggle on Connections panel in Hebrew Interface.
-      classes["hebrew"] = 1;
-    } else {
-      classes[this.state.settings.language]   = 1;
-
-    }
+    let contentLang = contentLangOverride || this.state.settings.language;
+    classes[contentLang]              = 1
+    classes[this.currentLayout()]      = 1;
+    classes[this.state.settings.color] = 1;
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (

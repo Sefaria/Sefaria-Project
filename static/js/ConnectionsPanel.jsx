@@ -28,7 +28,6 @@ const classNames             = require('classnames');
 import Component             from 'react-class';
 
 
-
 class ConnectionsPanel extends Component {
   constructor(props) {
     super(props);
@@ -282,7 +281,8 @@ class ConnectionsPanel extends Component {
                     openComparePanel={this.props.openComparePanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
-                    notesCount={Sefaria.notesTotalCount(this.props.srefs)} />
+                    notesCount={Sefaria.notesTotalCount(this.props.srefs)}
+                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length} />
                   </div>);
 
     } else if (this.props.mode === "ConnectionsList") {
@@ -384,8 +384,15 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
-                    interfaceLang={this.props.interfaceLang}
-      />);
+                    interfaceLang={this.props.interfaceLang} />);
+
+    } else if (this.props.mode === "WebPages" || this.props.mode === "WebPagesList") {
+      content = (<WebPagesList
+                    srefs={this.props.srefs}
+                    filter={this.props.mode == "WebPages" ? null : this.props.webPagesFilter}
+                    setWebPagesFilter={this.props.setWebPagesFilter}
+                    interfaceLang={this.props.interfaceLang} 
+                    key="WebPages"/>);
 
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
@@ -397,7 +404,6 @@ class ConnectionsPanel extends Component {
                     masterPanelLanguage={this.props.masterPanelLanguage} />);
 
     } else if (this.props.mode === "Share") {
-        console.log('share');
       content = (<ShareBox
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
@@ -433,6 +439,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
+
     } else if (this.props.mode === "About") {
       content = (<AboutBox
                   currObjectVersions={this.state.currObjectVersions}
@@ -440,8 +447,8 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
-                  viewExtendedNotes={this.props.viewExtendedNotes}
-                />);
+                  viewExtendedNotes={this.props.viewExtendedNotes} />);
+
     } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
       content = (<VersionsBox
                   currObjectVersions={this.state.currObjectVersions}
@@ -458,15 +465,15 @@ class ConnectionsPanel extends Component {
                   getDataRef={this.getDataRef}
                   onRangeClick={this.props.onTextClick}
                   viewExtendedNotes={this.props.viewExtendedNotes}
-                  onCitationClick={this.props.onCitationClick}/>);
+                  onCitationClick={this.props.onCitationClick} />);
+
     } else if (this.props.mode === "extended notes") {
       content = (<ExtendedNotes
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages"].indexOf(this.props.mode) != -1;
 
-    //marginless = 0;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -534,8 +541,7 @@ ConnectionsPanel.propTypes = {
 
 
 class ResourcesList extends Component {
-  // A list of Resources in addition to connections
-
+  // A list of Resources in addition to connection
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
@@ -546,6 +552,7 @@ class ResourcesList extends Component {
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
+              <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -709,6 +716,73 @@ class PublicSheetsList extends Component {
 PublicSheetsList.propTypes = {
   srefs: PropTypes.array.isRequired,
   connectedSheet: PropTypes.string,
+};
+
+class WebPagesList extends Component {
+  // List of web pages for a ref in the sidebar
+  setFilter(filter) {
+    this.props.setWebPagesFilter(filter);
+  }
+  render() {
+    let webpages = Sefaria.webPagesByRef(this.props.srefs)
+    let content = [];
+    
+    if (!this.props.filter) {
+      let sites = {};
+      webpages.map(page => {
+        if (page.siteName in sites) {
+          sites[page.siteName].count++;
+        } else {
+          sites[page.siteName] = {name: page.siteName, faviconUrl: page.faviconUrl, count: 1};
+        }
+      });
+      sites = Object.values(sites).sort((a, b) => b.count - a.count);
+      content = sites.map(site => {
+        return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
+          <img className="icon" src={site.faviconUrl} />
+          <span className="siteName toolsButtonText">{site.name} <span className="connectionsCount">({site.count})</span></span>
+        </div>);
+      });
+    } else {
+      webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
+      content = webpages.map(webpage => {
+        return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
+          <img className="icon" src={webpage.faviconUrl} />
+          <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
+          <div className="domain">{webpage.domain}</div>
+          {webpage.description ? <div className="description">{webpage.description}</div> : null}
+          <div className="stats">
+            <span className="int-en">Citing: {webpage.anchorRef}</span>
+            <span className="int-he">מצטט: {Sefaria._r(webpage.anchorRef)}</span>
+          </div>
+        </div>)
+      });
+    }
+
+    if (!content.length) {
+      const filterName = this.props.filter !== "all" ? this.props.filter : null;
+      const en = "No web pages known" + (filterName ? " from " + filterName : "") + " here.";
+      const he = "אין דפי אינטרנט ידועים" + (filterName ? " מ" + filterName : "") + ".";
+      return <div className="webpageList empty">
+                  <LoadingMessage message={en} heMessage={he} />
+                </div>;
+    }
+
+    const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <div className="webpagesLinkerMessage sans">
+                <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
+                <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשת ההפניות</a>.</span>
+              </div> : null; 
+
+    return <div className="webpageList">
+              {content}
+              {linkerMessage}
+            </div>;
+
+  }
+}
+WebPagesList.propTypes = {
+  srefs: PropTypes.array.isRequired,
 };
 
 

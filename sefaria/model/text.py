@@ -13,7 +13,7 @@ import bleach
 import json
 import itertools
 from collections import defaultdict
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
@@ -22,11 +22,12 @@ except ImportError:
     import re
 
 from . import abstract as abst
-from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType, DictionaryEntryNotFound
+from schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, NoVersionFoundError
+from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
+    NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
@@ -1025,6 +1026,40 @@ class AbstractTextRecord(object):
             return False
         return t
 
+    @staticmethod
+    def _find_itags(tag):
+        if isinstance(tag, Tag):
+            is_footnote =  tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
+            return is_footnote or is_inline_commentator
+        return False
+
+    @staticmethod
+    def _strip_itags(s):
+        soup = BeautifulSoup(u"<div>{}</div>".format(s), 'xml')
+        footnotes = soup.find_all(AbstractTextRecord._find_itags)
+        for fn in footnotes:
+            try:
+                fn.next_sibling.decompose()
+            except AttributeError:
+                pass
+            fn.decompose()
+        return soup.encode_contents()[5:-6]  # remove divs added
+
+    def _get_text_after_modifications(self, text_modification_funcs):
+        """
+        :param text_chunk: text chunk to modify
+        :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
+        :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
+        """
+        if len(text_modification_funcs) == 0:
+            return self.text
+        def modifier(s):
+            for func in text_modification_funcs:
+                s = func(s)
+            return s
+        return self.ja().modify_by_function(modifier)
+
     # Currently assumes that text is JA
     def _sanitize(self):
         setattr(self, self.text_attr,
@@ -1506,7 +1541,7 @@ class TextChunk(AbstractTextRecord):
     def _check_available_text_pre_save(self):
         """
         Stores the availability of this text in before a save is made,
-        so that we can know if segments have been added or deleted overall. 
+        so that we can know if segments have been added or deleted overall.
         """
         self._available_text_pre_save = {}
         langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
@@ -1520,7 +1555,7 @@ class TextChunk(AbstractTextRecord):
         """
         Returns a list of tuples containing a Ref and a boolean availability
         for each Ref that was either made available or unavailble for `lang`.
-        If `lang` is None, returns changed availability across all langauges. 
+        If `lang` is None, returns changed availability across all langauges.
         """
         if lang:
             old_refs_available = self._text_to_ref_available(self._available_text_pre_save[self.lang])
@@ -1547,7 +1582,7 @@ class TextChunk(AbstractTextRecord):
             if not had_previously and have_now:
                 changed.append(new_text)
             elif had_previously and not have_now:
-                # Current save is deleting a line of text, but it could still be 
+                # Current save is deleting a line of text, but it could still be
                 # available in a different version for this language. Check again.
                 if lang:
                     text_still_available = bool(old_text[0].text(lang=lang).text)
@@ -1574,7 +1609,7 @@ class TextChunk(AbstractTextRecord):
     def _update_link_language_availability(self):
         """
         Check if current save has changed the overall availabilty of text for refs
-        in this language, pass refs to update revelant links if so. 
+        in this language, pass refs to update revelant links if so.
         """
         changed = self._check_available_segments_changed_post_save(lang=self.lang)
 
@@ -1919,7 +1954,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False):
         """
         :param oref:
         :param context:
@@ -1931,6 +1966,7 @@ class TextFamily(object):
         :param pad:
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
+        :param stripItags: whether to strip inline commentator tags and inline footnotes from text
         :return:
         """
         if pad:
@@ -1943,6 +1979,7 @@ class TextFamily(object):
         self.isComplex      = oref.index.is_complex()
         self.text           = None
         self.he             = None
+        self._nonExistantVersions = {}
         self._lang          = lang
         self._original_oref = oref
         self._context_oref  = None
@@ -1961,11 +1998,18 @@ class TextFamily(object):
         for language, attr in self.text_attr_map.items():
             if language == lang:
                 c = TextChunk(oref, language, version)
+                if len(c._versions) == 0:  # indicates `version` doesn't exist
+                    self._nonExistantVersions[language] = version
             elif language == lang2:
                 c = TextChunk(oref, language, version2)
+                if len(c._versions) == 0:
+                    self._nonExistantVersions[language] = version2
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
+            text_modification_funcs = []
+            if stripItags:
+                text_modification_funcs += [c._strip_itags]
             if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
@@ -1973,11 +2017,8 @@ class TextFamily(object):
                 query = oref.ref_regex_query()
                 query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
                 if LinkSet(query).count() > 0:
-                    setattr(self, self.text_attr_map[language], c.ja().modify_by_function(lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)))
-                else:
-                    setattr(self, self.text_attr_map[language], c.text)
-            else:
-                setattr(self, self.text_attr_map[language], c.text)
+                    text_modification_funcs += [lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
+            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs))
 
         if oref.is_spanning():
             self.spanning = True
@@ -2086,6 +2127,9 @@ class TextFamily(object):
             d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
             d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
 
+        if len(self._nonExistantVersions) > 0:
+            d['nonExistantVersions'] = self._nonExistantVersions
+
         if self._inode.index.is_dependant_text():
             #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
             #d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
@@ -2142,6 +2186,39 @@ class TextFamily(object):
 
         return d
 
+    @staticmethod
+    def _find_itags(tag):
+        if isinstance(tag, Tag):
+            is_footnote =  tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
+            return is_footnote or is_inline_commentator
+        return False
+
+    def _strip_itags(self, s):
+        soup = BeautifulSoup(u"<div>{}</div>".format(s), 'xml')
+        footnotes = soup.find_all(self._find_itags)
+        for fn in footnotes:
+            try:
+                fn.next_sibling.decompose()
+            except AttributeError:
+                pass
+            fn.decompose()
+        return soup.encode_contents()[5:-6]  # remove divs added
+
+    @staticmethod
+    def _get_text_after_modifications(text_chunk, text_modification_funcs):
+        """
+        :param text_chunk: text chunk to modify
+        :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
+        :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
+        """
+        if len(text_modification_funcs) == 0:
+            return text_chunk.text
+        def modifier(s):
+            for func in text_modification_funcs:
+                s = func(s)
+            return s
+        return text_chunk.ja().modify_by_function(modifier)
 
 """
                     -------------------
@@ -2438,7 +2515,7 @@ class Ref(object):
             reg = self.index_node.full_regex(title, self._lang, terminated=True)  # Try to treat this as a JaggedArray
         except AttributeError:
             if self.index_node.is_virtual:
-                # The line below will raise InputError (or DictionaryEntryNotFound) if no match
+                # The line below will raise InputError (or DictionaryEntryNotFoundError) if no match
                 self.index_node = self.index_node.create_dynamic_node(title, base)
                 self.book = self.index_node.full_title("en")
                 self.sections = self.index_node.get_sections()
@@ -2539,7 +2616,7 @@ class Ref(object):
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
                 # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split(u"[., ]+", parts[1])
+                range_parts = re.split(u"[., :]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
@@ -4267,6 +4344,15 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
 
+        # Initialization Checks
+        # These values are set to True once their initialization is complete
+        self._toc_tree_is_ready = False
+        self._full_auto_completer_is_ready = False
+        self._ref_auto_completer_is_ready = False
+        self._lexicon_auto_completer_is_ready = False
+        self._cross_lexicon_auto_completer_is_ready = False
+
+
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self.build_term_mappings()
 
@@ -4357,6 +4443,7 @@ class Library(object):
         if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
             self._toc_tree = TocTree(self)
+        self._toc_tree_is_ready = True
         return self._toc_tree
 
     def get_groups_in_library(self):
@@ -4396,6 +4483,7 @@ class Library(object):
 
         for lang in self.langs:
             self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
+        self._full_auto_completer_is_ready = True
 
     def build_ref_auto_completer(self):
         from autospell import AutoCompleter
@@ -4405,16 +4493,19 @@ class Library(object):
 
         for lang in self.langs:
             self._ref_auto_completer[lang].set_other_lang_ac(self._ref_auto_completer["he" if lang == "en" else "en"])
+        self._ref_auto_completer_is_ready = True
 
     def build_lexicon_auto_completers(self):
         from autospell import LexiconTrie
         self._lexicon_auto_completer = {
             lexicon: LexiconTrie(lexicon) for lexicon in ["Jastrow Dictionary", "Klein Dictionary"]
         }
+        self._lexicon_auto_completer_is_ready = True
 
     def build_cross_lexicon_auto_completer(self):
         from autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
+        self._cross_lexicon_auto_completer_is_ready = True
 
     def cross_lexicon_auto_completer(self):
         if self._cross_lexicon_auto_completer is None:
@@ -5150,7 +5241,21 @@ class Library(object):
         else:
             return simple_nodes
 
+    def is_initialized(self):
+        """
+        Returns True if the following fields are initialized
+            * self._toc_tree
+            * self._full_auto_completer
+            * self._ref_auto_completer
+            * self._lexicon_auto_completer
+            * self._cross_lexicon_auto_completer
+        """
 
+        # Given how the object is initialized and will always be non-null,
+        # I will likely have to add fields to the object to be changed once
+
+        # Avoid allocation here since it will be called very frequently
+        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
 
 library = Library()
 

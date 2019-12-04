@@ -19,7 +19,8 @@ class ConnectionsPanelHeader extends Component {
     super(props);
     this.previousModes = { // mapping from modes to previous modes
       "Version Open":"Versions",
-      "extended notes":"Versions"
+      "extended notes":"Versions",
+      "WebPagesList": "WebPages"
     };
   }
   componentDidMount() {
@@ -56,8 +57,8 @@ class ConnectionsPanelHeader extends Component {
 
     } else if ((this.props.previousCategory && this.props.connectionsMode == "TextList") || previousMode) {
       // In a text list, back to Previous Category
-      const prev = previousMode ? previousMode : this.props.previousCategory;
-      const prevHe = previousMode ? Sefaria._(previousMode) : Sefaria.hebrewTerm(this.props.previousCategory);
+      const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
+      const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
       const url = Sefaria.util.replaceUrlParam("with", prev);
       var title = <a href={url} className="connectionsHeaderTitle active" onClick={this.onClick}>
                     {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.multiPanel ? prev : null }</div> : null }

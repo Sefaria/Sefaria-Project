@@ -1245,6 +1245,39 @@ Sefaria = extend(Sefaria, {
       });
     });
   },
+  _webpages: {},
+  webPagesByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    var ref = Sefaria.normRefList(refs);
+    refs.map(r => {
+      // Also include webpages linked at section level. Deduped below. 
+      if (r.indexOf(":") !== -1) {
+        refs.push(r.slice(0, r.lastIndexOf(":"))); 
+      }
+    }, this);
+
+    var webpages = [];
+    refs.map(r => {
+      if (this._webpages[r]) { webpages = webpages.concat(this._webpages[r]); }
+    }, this);
+
+    webpages.map(page => page.isHebrew = Sefaria.hebrew.isHebrew(page.title));
+
+    return webpages.filter((obj, pos, arr) => {
+      // Remove duplicates by url field
+      return arr.map(mapObj => mapObj["url"]).indexOf(obj["url"]) === pos;
+    }).sort((a, b) => {
+      // Sort first by page language matching interface language
+      if (a.isHebrew !== b.isHebrew) { return (b.isHebrew ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
+
+      // 3: exact match, 2: range match: 1: section match
+      var aSpecificity, bSpecificity;
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
+      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+
+      return (a.linkerHits > b.linkerHits) ? -1 : 1
+    });
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
@@ -1272,14 +1305,15 @@ Sefaria = extend(Sefaria, {
           links: this._saveLinkData(ref, data.links),
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
+          webpages: this._saveItemsByRef(data.webpages, this._webpages),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1568,13 +1602,13 @@ Sefaria = extend(Sefaria, {
       const savedItem = { ref, versions, time_stamp: Sefaria.util.epoch_time(), action, sheet_owner, sheet_title };
       if (Sefaria._uid) {
         $.post(`${Sefaria.apiHost}/api/profile/sync?no_return=1`,
-          { user_history: JSON.stringify([savedItem]) }
+          { user_history: JSON.stringify([savedItem]), client: 'web' }
         ).done(response => {
           if (!!response['error']) {
             reject(response['error'])
           } else {
-            if (action === "add_saved" && !!response.created) {
-              Sefaria.saved.unshift(response.created);
+            if (action === "add_saved" && !!response.created && response.created.length > 0) {
+              Sefaria.saved = response.created.concat(Sefaria.saved);
             } else {
               // delete
               Sefaria.removeSavedItem({ ref, versions });
@@ -2086,6 +2120,7 @@ Sefaria = extend(Sefaria, {
       "Version Open": "גרסה פתוחה",
       "About": "אודות",
       "Current": "נוכחית",
+      "Web Pages": "דפי אינטרנט",
       "Select": "החלפת גרסה",
       "Members": "חברים",
       "Send": "שלח",
@@ -2144,13 +2179,14 @@ Sefaria = extend(Sefaria, {
       "Tell us what you think..." : "ספרו לנו מה אתם חושבים...",
       "Select Type" : "סוג משוב",
       "Added by" : "נוסף בידי",
-      "Join Sefaria.": "הצטרפו לספריא",
-      "Organize sources with sheets": "ארגנו מקורות במחולל דפי המקורות",
-      "Make notes": "רשמו הערות על טקסטים",
+      "Love Learning?": "אוהבים ללמוד?",
+      "Sign up to get more from Sefaria" : "הרשמו כדי לקבל יותר מספריא",
+      "Make source sheets": "הכינו דפי מקורות",
+      "Take notes": "שמרו הערות",
       "Save texts": "שמרו טקסטים לקריאה חוזרת",
       "Follow your favorite authors": "עקבו אחר הסופרים האהובים עליכם",
-      "Get updates on texts": "קבלו עדכונים על תוכן חדש",
-      "Create Your Account": "צרו חשבון",
+      "Stay in the know": "השארו מעודכנים",
+      "Sign Up": "הרשמו לספריא",
       "Already have an account?": "כבר יש לכם חשבון?",
       "Sign\u00A0in": "התחברו",
       "Save": "שמירת",

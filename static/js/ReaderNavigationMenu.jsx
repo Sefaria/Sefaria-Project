@@ -215,7 +215,7 @@ class ReaderNavigationMenu extends Component {
       let donation  = [
           <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
           <TocLink en="Sponsor a day" he="תרום יום לימוד" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
-      ]
+      ];
 
       donation = (<div className="readerTocResources"><TwoBox content={donation} width={this.width} /></div>);
 
@@ -235,7 +235,7 @@ class ReaderNavigationMenu extends Component {
               <div className={contentClasses}>
                 <div className="contentInner">
                   { this.props.compare ? null : title }
-                  <Dedication />
+                  { this.props.compare ? null : <Dedication /> }
                   { topUserData }
                   <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categories} />
                   { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
@@ -279,7 +279,13 @@ const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, 
 
 const Dedication = () => {
 
-    const [dedicationDate, setDedicationData] = useState([]);
+    //Get the local date 6 hours from now (so that dedication changes at 6pm local time
+    let dedDate = new Date();
+    dedDate.setHours(dedDate .getHours() + 6);
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+    const date = new Date(dedDate - tzoffset).toISOString().substring(0, 10);
+
+    const [dedicationData, setDedicationData] = useState(Sefaria._tableOfContentsDedications[date]);
 
     const $url = 'https://spreadsheets.google.com/feeds/cells/1DWVfyX8H9biliNYEy-EfAd9F-8OotGnZG9jmOVNwojs/2/public/full?alt=json';
 
@@ -297,37 +303,22 @@ const Dedication = () => {
         setDedicationData(Sefaria._tableOfContentsDedications[date]);
     }
 
-
     useEffect( () => {
-
-        //Get the local date 6 hours from now (so that dedication changes at 6pm local time
-        let dedDate = new Date();
-        dedDate.setHours(dedDate .getHours() + 6);
-        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
-        const date=new Date(dedDate - tzoffset).toISOString().substring(0, 10);
-
-        const dedication = Sefaria._tableOfContentsDedications[date];
-
-        if (dedication) {
-            setDedicationData(dedication);
-        }
-
-        else {
+        if (!dedicationData) {
             fetchDedicationData(date);
         }
-
-        }, []);
-
+    }, []);
 
     return (
-        dedicationDate.en == "" ? null :
+        !dedicationData ? null :
         <div className="dedication">
           <span>
-              <span className="en">{dedicationDate.en}</span>
-              <span className="he">{dedicationDate.he}</span>
+              <span className="en">{dedicationData.en}</span>
+              <span className="he">{dedicationData.he}</span>
           </span>
         </div>
-    )
+    );
 };
+
 
 module.exports = ReaderNavigationMenu;
