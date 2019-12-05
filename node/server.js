@@ -1,7 +1,7 @@
 // Initially copypasta'd from https://github.com/mhart/react-server-example
 // https://github.com/mhart/react-server-example/blob/master/server.js
                      require('source-map-support').install();
-                     require('css-modules-require-hook')({
+                     require('css-modules-require-hook')({  // so that node can handle require statements for css files
                          generateScopedName: '[name]',
                      });
 var http           = require('http'),
