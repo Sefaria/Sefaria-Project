@@ -42,3 +42,4 @@ djangorestframework_simplejwt==3.3.0
 undecorated
 apscheduler
 pytz
+google-cloud-storage

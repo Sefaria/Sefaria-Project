@@ -28,6 +28,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
@@ -3165,6 +3166,37 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@catch_error_as_json
+def profile_upload_photo(request):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
+    if request.method == "POST":
+        from PIL import Image
+        from io import StringIO
+        from sefaria.utils.util import epoch_time
+        now = epoch_time()
+        def get_resized_file(image, size):
+            resized_image = image.resize(size, resample=Image.LANCZOS)
+            resized_image_file = StringIO()
+            resized_image.save(resized_image_file, format="PNG")
+            resized_image_file.seek(0)
+            return resized_image_file
+        profile = UserProfile(id=request.user.id)
+        bucket_name = GoogleStorageManager.PROFILES_BUCKET
+        image = Image.open(request.FILES['file'])
+        old_big_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
+        old_small_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
+        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
+
+        profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
+        profile.save()
+        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
+        return jsonResponse({"urls": [big_pic_url, small_pic_url]})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 
 @api_view(["POST"])
 @catch_error_as_json
@@ -3358,7 +3390,7 @@ def home(request):
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
-    
+
     # show_feed = request.COOKIES.get("home_feed", None)
     show_feed = request.user.is_authenticated
 
@@ -4239,12 +4271,11 @@ def apple_app_site_association(request):
 
 def application_health_api(request):
     """
-    Defines the /healthz API endpoint which responds with 
-        200 if the appliation is ready for requests, 
+    Defines the /healthz API endpoint which responds with
+        200 if the appliation is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
         return http.HttpResponse("Healthy", status="200")
     else:
         return http.HttpResponse("Unhealthy", status="500")
-        
