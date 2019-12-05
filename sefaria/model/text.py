@@ -1995,7 +1995,7 @@ class TextFamily(object):
             self._chunks[language] = c
             text_modification_funcs = []
             if stripItags:
-                text_modification_funcs += [c._strip_itags]
+                text_modification_funcs += [c._strip_itags, lambda x: ' '.join(x.split()).strip()]
             if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
