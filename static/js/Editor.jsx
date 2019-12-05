@@ -49,15 +49,47 @@ const ELEMENT_TAGS = {
     UL: () => ({type: 'bulleted-list'}),
 };
 
-const MARK_TAGS = {
-    EM: () => ({type: 'italic'}),
-    I: () => ({type: 'italic'}),
-    STRONG: () => ({type: 'bold'}),
-    B: () => ({type: 'bold'}),
-    U: () => ({type: 'underline'}),
-    BIG: () => ({type: 'big'}),
-    SMALL: () => ({type: 'small'}),
-};
+const format_tag_pairs = [
+    {
+        tag: "EM",
+        format: "italic"
+    },
+    {
+        tag: "I",
+        format: "italic"
+    },
+    {
+        tag: "STRONG",
+        format: "bold"
+    },
+    {
+        tag: "B",
+        format: "bold"
+    },
+    {
+        tag: "U",
+        format: "underline"
+    },
+    {
+        tag: "BIG",
+        format: "big"
+    },
+    {
+        tag: "SMALL",
+        format: "small"
+    },
+];
+
+const TEXT_TAGS = format_tag_pairs.reduce((obj, item) => {
+     obj[item.tag] = () => ({[item.format]: true })
+     return obj
+   }, {})
+
+const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
+     obj[item.format] = item.tag;
+     return obj
+   }, {})
+
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
@@ -90,13 +122,47 @@ export const deserialize = el => {
         return jsx('element', attrs, children)
     }
 
-    if (MARK_TAGS[nodeName]) {
-        const attrs = MARK_TAGS[nodeName](el)
-        return jsx('mark', attrs, children)
+    if (TEXT_TAGS[nodeName]) {
+        const attrs = TEXT_TAGS[nodeName](el)
+        return jsx('text', attrs, children)
     }
 
     return children
 };
+
+
+
+
+
+export const serialize = (content) => {
+    //serialize formatting to html
+
+    if (content.text) {
+        const tagStringObj = Object.keys(content).reduce((tagString, key) => {
+            if (content[key] == true) {
+                const htmlTag = format_to_html_lookup[key]
+                const preTag = (tagString.preTags + "<" + htmlTag + ">");
+                const postTag = ("</" + htmlTag + ">" + tagString.postTags);
+                return {preTags: preTag.toLowerCase(), postTags: postTag.toLowerCase()}
+            }
+            return {preTags: tagString.preTags, postTags: tagString.postTags}
+        }, {preTags: "", postTags: ""});
+
+        return (`${tagStringObj.preTags}${content.text}${tagStringObj.postTags}`)
+    }
+
+    //serialize paragraphs to <p>...</p>
+    if (content.type == "paragraph") {
+        const paragraphHTML =  content.children.reduce((acc, text) => {
+            return (acc + serialize(text))
+        },"");
+        return `<p>${paragraphHTML}</p>`
+    }
+
+    const children = content.children ? content.children.map(serialize) : [];
+
+    return children.join('')
+}
 
 
 function renderSheetItem(source) {
@@ -118,7 +184,7 @@ function renderSheetItem(source) {
                             ref: source.ref,
                             refText: source.heRef,
                             lang: "he",
-                            children: [{text: "", marks: []}]
+                            children: [{text: ""}]
                         },
                         {
                             type: "he",
@@ -129,7 +195,7 @@ function renderSheetItem(source) {
                             ref: source.ref,
                             refText: source.ref,
                             lang: "en",
-                            children: [{text: "", marks: []}]
+                            children: [{text: ""}]
                         },
                         {
                             type: "en",
@@ -188,7 +254,6 @@ function renderSheetItem(source) {
                     children: [
                         {
                             text: source.media,
-                            marks: [],
                         }
                     ]
                 }
@@ -198,7 +263,6 @@ function renderSheetItem(source) {
         default: {
             return {
                 text: "",
-                marks: [],
             }
 
 
@@ -209,7 +273,7 @@ function renderSheetItem(source) {
 function parseSheetItemHTML(rawhtml) {
     const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml.replace(/[\n\r\t]/gm, "")), 'text/html');
     const fragment = deserialize(parsed.body);
-    return fragment.length > 0 ? fragment : [{text: '', marks: []}];
+    return fragment.length > 0 ? fragment : [{text: ''}];
 }
 
 
@@ -252,7 +316,6 @@ function transformSheetJsonToDraft(sheet) {
                             children: [
                                 {
                                     text: sheetTitle,
-                                    marks: [],
                                 }
 
                             ]
@@ -269,13 +332,11 @@ function transformSheetJsonToDraft(sheet) {
                                     children: [
                                         {
                                             text: '',
-                                            marks: [],
                                         },
                                     ]
                                 },
                                 {
                                     text: '',
-                                    marks: [],
                                 },
 
 
@@ -288,7 +349,6 @@ function transformSheetJsonToDraft(sheet) {
                             children: [
                                 {
                                     text: sheet.group,
-                                    marks: [],
                                 }
 
                             ]
@@ -458,16 +518,20 @@ const withSheetData = editor => {
     return editor
 }
 
-const withMarks = editor => {
+const withFormatting = editor => {
     const {exec} = editor
 
     editor.exec = command => {
         switch (command.type) {
-            case 'toggle_mark': {
-                const {mark} = command;
-                const isActive = isMarkActive(editor, mark.type);
-                const cmd = isActive ? 'remove_mark' : 'add_mark';
-                editor.exec({type: cmd, mark});
+            case 'toggle_format': {
+                const {format} = command;
+                const isActive = isFormatActive(editor, format);
+                Editor.setNodes(
+                    editor,
+                    {[format]: isActive ? null : true},
+                    {match: 'text', split: true}
+                )
+
                 break
             }
 
@@ -482,20 +546,28 @@ const withMarks = editor => {
 }
 
 
-const isMarkActive = (editor, type) => {
-    const [mark] = Editor.marks(editor, {match: {type}, mode: 'all'});
-    return !!mark
+const isFormatActive = (editor, format) => {
+    const [match] = Editor.nodes(editor, {
+        match: {[format]: true},
+        mode: 'all',
+    });
+
+    return !!match
 };
 
-const Mark = ({attributes, children, mark}) => {
-    switch (mark.type) {
-        case 'bold':
-            return <strong {...attributes}>{children}</strong>;
-        case 'italic':
-            return <em {...attributes}>{children}</em>;
-        case 'underline':
-            return <u {...attributes}>{children}</u>
+
+const Leaf = ({attributes, children, leaf}) => {
+    if (leaf.bold) {
+        children = <strong>{children}</strong>
     }
+    if (leaf.italic) {
+        children = <em>{children}</em>
+    }
+    if (leaf.underline) {
+        children = <u>{children}</u>
+    }
+
+    return <span {...attributes}>{children}</span>
 }
 
 const HoverMenu = () => {
@@ -536,19 +608,19 @@ const HoverMenu = () => {
     const root = window.document.getElementById('s2');
     return ReactDOM.createPortal(
         <div ref={ref} className="hoverMenu">
-            <MarkButton editor={editor} type="bold"/>
-            <MarkButton editor={editor} type="italic"/>
-            <MarkButton editor={editor} type="underline"/>
+            <FormatButton editor={editor} format="bold"/>
+            <FormatButton editor={editor} format="italic"/>
+            <FormatButton editor={editor} format="underline"/>
         </div>,
         root
     )
 };
 
-const MarkButton = ({type}) => {
+const FormatButton = ({format}) => {
     const editor = useSlate()
 
-    const isActive = isMarkActive(editor, type);
-    const iconName = "fa-" + type;
+    const isActive = isFormatActive(editor, format);
+    const iconName = "fa-" + format;
     const classes = {fa: 1, active: isActive};
     classes[iconName] = 1;
 
@@ -556,7 +628,7 @@ const MarkButton = ({type}) => {
         <span className="markButton"
               onMouseDown={event => {
                   event.preventDefault();
-                  editor.exec({type: 'toggle_mark', mark: {type}})
+                  editor.exec({type: 'toggle_format', format})
               }}
         >
       <i className={classNames(classes)}/>
@@ -570,78 +642,66 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
 
     //const sheetTitle = (convertBlockTextToHTML(doc.getBlocksByType("SheetTitle").get(0).getTexts()));
 
-    const sheetMetaData = doc[0].children.find(el => el.type == "SheetMetaDataBox")
+    const sheetMetaData = doc[0].children.find(el => el.type == "SheetMetaDataBox");
+
+    const sheetTitle = sheetMetaData.children.find(el => el.type == "SheetTitle").children.reduce((htmlString, fragment) => {
+        return htmlString + serialize(fragment)
+    }, "");
 
 
-    const sheetTitle = sheetMetaData.children.find(el => el.type == "SheetTitle").children;
+    const sheetContent = doc[0].children.find(el => el.type == "SheetContent").children;
 
-    console.log(sheetTitle);
-
-    return;
-
-
-    const sheetContent = doc.filterDescendants(n => n.type === 'SheetItem');
-
-    let sources = [];
-
-    sheetContent.forEach(item => {
-        const sheetItem = item.nodes.get(0);
-
-        switch (sheetItem.get("type")) {
-
+    const sources = sheetContent.map(item => {
+        const sheetItem = item.children[0];
+        switch (sheetItem.type) {
             case 'SheetSource':
 
-                const enBlock = sheetItem.findDescendant(n => n.type === "en");
-                const heBlock = sheetItem.findDescendant(n => n.type === "he");
+                const enBlock = sheetItem.children.find(el => el.type == "en");
+                const heBlock = sheetItem.children.find(el => el.type == "he");
 
                 let source = {
-                    "ref": sheetItem.getIn(['data', 'ref']),
-                    "heRef": sheetItem.getIn(['data', 'heRef']),
+                    "ref": sheetItem.ref,
+                    "heRef": sheetItem.heRef,
                     "text": {
-                        "en": enBlock ? convertBlockTextToHTMLWithParagraphs(enBlock.nodes) : "...",
-                        "he": heBlock ? convertBlockTextToHTMLWithParagraphs(heBlock.nodes) : "...",
+                        "en": enBlock ? serialize(enBlock) : "...",
+                        "he": heBlock ? serialize(heBlock) : "...",
                     },
-                    "node": sheetItem.getIn(['data', 'node']),
-
+                    "node": sheetItem.node,
                 };
-                sources.push(source);
-                return;
+                return (source);
             case 'OutsideBiText':
                 let outsideBiText = {
                     "outsideBiText": {
-                        "en": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "en").nodes),
-                        "he": convertBlockTextToHTMLWithParagraphs(sheetItem.findDescendant(n => n.type === "he").nodes),
+                        "en": serialize(sheetItem.children.find(el => el.type == "en")),
+                        "he": serialize(sheetItem.children.find(el => el.type == "he")),
                     },
-                    "node": sheetItem.getIn(['data', 'node']),
+                    "node": sheetItem.node,
 
                 };
-                sources.push(outsideBiText);
-                return;
+                return outsideBiText;
 
             case 'SheetComment':
-                sources.push({
-                    "comment": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes),
-                    "node": sheetItem.getIn(['data', 'node']),
+                return ({
+                    "comment": serialize(sheetItem),
+                    "node": sheetItem.node,
                 });
-                return;
 
             case 'SheetOutsideText':
-                sources.push({
-                    "outsideText": convertBlockTextToHTMLWithParagraphs(sheetItem.nodes),
-                    "node": sheetItem.getIn(['data', 'node']),
+               return ({
+                    "outsideText": serialize(sheetItem),
+                    "node": sheetItem.node,
                 });
-                return;
 
             case 'SheetMedia':
-                sources.push({
-                    "media": sheetItem.getIn(['data', 'mediaUrl']),
-                    "node": sheetItem.getIn(['data', 'node']),
+                return({
+                    "media": sheetItem.mediaUrl,
+                    "node": sheetItem.node,
                 });
                 return;
 
             default:
-                console.log(sheetItem.get("type"));
-                return;
+                console.log(sheetItem)
+                return null;
         }
 
     });
@@ -661,6 +721,7 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
         nextNode: nextSheetNode,
     };
 
+
     return JSON.stringify(sheet);
 
 }
@@ -670,7 +731,8 @@ const SefariaEditor = (props) => {
     const sheet = props.data;
     const initValue = transformSheetJsonToDraft(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
-
+    const [value, setValue] = useState(initValue)
+    const [selection, setSelection] = useState(null)
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [nextSheetNode, setNextSheetMode] = useState(props.data.nextNode);
@@ -696,9 +758,8 @@ const SefariaEditor = (props) => {
     );
 
     function saveDocument(doc) {
-        console.log("Saving");
-        console.log(doc);
-        saveSheetContent(doc, lastModified, nextSheetNode)
+        //onsole.log(doc)
+        console.log(saveSheetContent(doc, lastModified, nextSheetNode));
 
         // $.post("/api/sheets/", {"json": saveSheetContent(doc, lastModified, nextSheetNode)}, res => {
         //     setlastModified(res.dateModified);
@@ -707,20 +768,22 @@ const SefariaEditor = (props) => {
         // });
     }
 
-    function onChange(value) {
+    function onChange(value,selection) {
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
+        setValue(value)
+        setSelection(selection)
     }
 
     const beforeInput = event => {
         switch (event.inputType) {
             case 'formatBold':
-                return editor.exec({type: 'toggle_mark', mark: 'bold'});
+                return editor.exec({type: 'toggle_format', format: 'bold'});
             case 'formatItalic':
-                return editor.exec({type: 'toggle_mark', mark: 'italic'});
+                return editor.exec({type: 'toggle_format', format: 'italic'});
             case 'formatUnderline':
-                return editor.exec({type: 'toggle_mark', mark: 'underline'})
+                return editor.exec({type: 'toggle_format', format: 'underline'})
         }
     };
 
@@ -742,17 +805,17 @@ const SefariaEditor = (props) => {
 
 
     const editor = useMemo(
-        () => withSheetData(withMarks(withHistory(withReact(createEditor())))),
+        () => withSheetData(withFormatting(withHistory(withReact(createEditor())))),
         []
     );
 
     return (
         // Add the editable component inside the context.
-        <Slate editor={editor} defaultValue={initValue} onChange={value => onChange(value)}>
+        <Slate editor={editor} value={value} selection={selection} onChange={(value, selection) => onChange(value, selection)}>
             <HoverMenu/>
 
             <Editable
-                renderMark={props => <Mark {...props} />}
+                renderLeaf={props => <Leaf {...props} />}
                 renderElement={renderElement}
                 placeholder="Enter a title…"
                 spellCheck
