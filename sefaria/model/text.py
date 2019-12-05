@@ -1029,7 +1029,7 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote =  tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
@@ -1037,23 +1037,23 @@ class AbstractTextRecord(object):
     @staticmethod
     def _strip_itags(s):
         soup = BeautifulSoup(u"<div>{}</div>".format(s), 'xml')
-        footnotes = soup.find_all(AbstractTextRecord._find_itags)
-        for fn in footnotes:
+        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+        for itag in itag_list:
             try:
-                fn.next_sibling.decompose()
+                itag.next_sibling.decompose()  # it's a footnote
             except AttributeError:
-                pass
-            fn.decompose()
-        return soup.encode_contents()[5:-6]  # remove divs added
+                pass  # it's an inline commentator
+            itag.decompose()
+        return soup.encode_contents().decode('utf-8')[5:-6]  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
-        :param text_chunk: text chunk to modify
         :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
         :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
         """
         if len(text_modification_funcs) == 0:
-            return self.text
+            return getattr(self, self.text_attr)
+
         def modifier(s):
             for func in text_modification_funcs:
                 s = func(s)
