@@ -638,9 +638,9 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 
 			ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
 			if len(ownerData.get('profile_pic_url_small', '')) == 0:
-				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
-				gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+				default_image = "https://www.sefaria.org/static/img/profile-default.png"
+				gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf-8')).hexdigest() + "?"
+				gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
 				ownerData['profile_pic_url_small'] = gravatar_url_small
 
 			if "assigner_id" in sheet:

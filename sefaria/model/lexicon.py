@@ -80,8 +80,33 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "headword",
         "parent_lexicon",
     ]
-    optional_attrs = ["content"]
-
+    optional_attrs = [
+        "transliteration",
+        "pronunciation",
+        "morphology",
+        "language_code",
+        "refs",
+        "related_words",
+        "number",
+        "language_reference",
+        "number",
+        "content",
+        "citations",
+        "plural_form",
+        "binyan_form",
+        "alt_headwords",
+        "derivatives",
+        "quotes",
+        "prev_hw",
+        "next_hw",
+        "notes",
+        "alternative",
+        "strong_number",
+        "orig_word",
+        "orig_ref",
+        "catane_number",
+        "rid"
+    ]
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
     ALLOWED_ATTRS   = {
         'span':['class', 'dir'],
@@ -104,29 +129,6 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
 
 class DictionaryEntry(LexiconEntry):
-
-    optional_attrs = [
-        "transliteration",
-        "pronunciation",
-        "morphology",
-        "language_code",
-        "refs",
-        "related_words",
-        "number",
-        "language_reference", 
-        "number",
-        "content",
-        "citations",
-        "plural_form",
-        "binyan_form",
-        "alt_headwords",
-        "derivatives",
-        "quotes",
-        "prev_hw",
-        "next_hw",
-        "notes",
-        "alternative"
-    ]
 
     def get_sense(self, sense):
         text = ''
@@ -246,7 +248,6 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
-
     }
 
     @classmethod
@@ -283,8 +284,6 @@ class LexiconEntrySet(abst.AbstractMongoSet):
             self.max = len(self.records)
             if self._primary_tuples:
                 self.records.sort(key=is_primary)
-
-
 
 
 class LexiconLookupAggregator(object):

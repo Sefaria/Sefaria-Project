@@ -650,11 +650,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
-        if not library.get_toc_tree().lookup(self.categories):
-            # Perhaps we're in the midst of change?  Try to load directly.
-            from sefaria.model import Category
-            if not Category().load({"path": self.categories}):
-                raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
+        from sefaria.model import Category
+        if not Category().load({"path": self.categories}):
+            raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
         '''
         for cat in self.categories:
@@ -1054,6 +1052,7 @@ class AbstractTextRecord(object):
             for func in text_modification_funcs:
                 s = func(s)
             return s
+
         return self.ja().modify_by_function(modifier)
 
     # Currently assumes that text is JA
