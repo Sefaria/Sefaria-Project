@@ -654,11 +654,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
-        if not library.get_toc_tree().lookup(self.categories):
-            # Perhaps we're in the midst of change?  Try to load directly.
-            from sefaria.model import Category
-            if not Category().load({"path": self.categories}):
-                raise InputError(u"You must create category {} before adding texts to it.".format(u"/".join(self.categories)))
+        # Perhaps we're in the midst of change?  Try to load directly.
+        from sefaria.model import Category
+        if not Category().load({"path": self.categories}):
+            raise InputError(u"You must create category {} before adding texts to it.".format(u"/".join(self.categories)))
 
         '''
         for cat in self.categories:
@@ -1029,7 +1028,7 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote =  tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
@@ -1037,23 +1036,23 @@ class AbstractTextRecord(object):
     @staticmethod
     def _strip_itags(s):
         soup = BeautifulSoup(u"<div>{}</div>".format(s), 'xml')
-        footnotes = soup.find_all(AbstractTextRecord._find_itags)
-        for fn in footnotes:
+        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+        for itag in itag_list:
             try:
-                fn.next_sibling.decompose()
+                itag.next_sibling.decompose()  # it's a footnote
             except AttributeError:
-                pass
-            fn.decompose()
-        return soup.encode_contents()[5:-6]  # remove divs added
+                pass  # it's an inline commentator
+            itag.decompose()
+        return soup.encode_contents().decode('utf-8')[5:-6]  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
-        :param text_chunk: text chunk to modify
         :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
         :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
         """
         if len(text_modification_funcs) == 0:
-            return self.text
+            return getattr(self, self.text_attr)
+
         def modifier(s):
             for func in text_modification_funcs:
                 s = func(s)
@@ -2185,40 +2184,6 @@ class TextFamily(object):
         d["alts"] = self._alts
 
         return d
-
-    @staticmethod
-    def _find_itags(tag):
-        if isinstance(tag, Tag):
-            is_footnote =  tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
-            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            return is_footnote or is_inline_commentator
-        return False
-
-    def _strip_itags(self, s):
-        soup = BeautifulSoup(u"<div>{}</div>".format(s), 'xml')
-        footnotes = soup.find_all(self._find_itags)
-        for fn in footnotes:
-            try:
-                fn.next_sibling.decompose()
-            except AttributeError:
-                pass
-            fn.decompose()
-        return soup.encode_contents()[5:-6]  # remove divs added
-
-    @staticmethod
-    def _get_text_after_modifications(text_chunk, text_modification_funcs):
-        """
-        :param text_chunk: text chunk to modify
-        :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
-        :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
-        """
-        if len(text_modification_funcs) == 0:
-            return text_chunk.text
-        def modifier(s):
-            for func in text_modification_funcs:
-                s = func(s)
-            return s
-        return text_chunk.ja().modify_by_function(modifier)
 
 """
                     -------------------

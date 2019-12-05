@@ -259,7 +259,7 @@ def trending_tags(days=7, ntags=14):
 	query  = {
 		"status": "public",
 		"dateModified": { "$gt": cutoff.isoformat() },
-		"viaOwner": {"$exists": 0}, 
+		"viaOwner": {"$exists": 0},
 		"assignment_id": {"$exists": 0}
 	}
 
@@ -280,7 +280,7 @@ def trending_tags(days=7, ntags=14):
 
 	for tag in tags.items():
 		if len(tag[0]) and len(tag[1]["authors"]) > 1:  # A trend needs to include at least 2 people
-			results.append({"tag": tag[0], 
+			results.append({"tag": tag[0],
 							"count": tag[1]["sheet_count"],
 							"author_count": len(tag[1]["authors"]),
 							"he_tag": model.Term.normalize(tag[0], "he")})
@@ -618,10 +618,11 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
 	user_profiles = {item['id']: item for item in django_user_profiles}
-	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1}))
+	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1,"profile_pic_url_small":1}))
 	mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
 	for profile in user_profiles:
 		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
+		user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
 
 	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
@@ -634,12 +635,12 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				match = model.Ref(match)
 			except InputError:
 				continue
-			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None})
-
-			default_image = "https://www.sefaria.org/static/img/profile-default.png"
-			gravatar_base = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
-			gravatar_url_small = gravatar_base + urllib.urlencode({'d': default_image, 's': str(80)})
-
+			ownerData = user_profiles.get(sheet["owner"], {'first_name': u'Ploni', 'last_name': u'Almoni', 'email': u'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
+			if len(ownerData.get('profile_pic_url_small', '')) == 0:
+				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
+				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
+				gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+				ownerData['profile_pic_url_small'] = gravatar_url_small
 			if "assigner_id" in sheet:
 				asignerData = public_user_data(sheet["assigner_id"])
 				sheet["assignerName"] = asignerData["name"]
@@ -675,7 +676,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
 				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
 				"ownerProfileUrl": "/profile/" + ownerData["slug"],
-				"ownerImageUrl":   gravatar_url_small,
+				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
 				"tags":            sheet.get("tags", []),
