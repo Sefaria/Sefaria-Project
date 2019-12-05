@@ -264,6 +264,8 @@ class UserProfile(object):
         self.partner_group        = ""
         self.partner_role         = ""
         self.last_sync_web        = 0  # epoch time for last sync of web app
+        self.profile_pic_url      = ""
+        self.profile_pic_url_small = ""
 
         self.settings     =  {
             "email_notifications": "daily",
@@ -282,16 +284,20 @@ class UserProfile(object):
         self.followees = FolloweesSet(self.id)
 
         # Gravatar
-        default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-        gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"
-        self.gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
-        self.gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         profile = self.migrateFromOldRecents(profile)
         if profile:
             self.update(profile)
+
+        if len(self.profile_pic_url) == 0:
+            default_image           = "https://www.sefaria.org/static/img/profile-default.png"
+            gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
+            gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
+            gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+            self.profile_pic_url = gravatar_url
+            self.profile_pic_url_small = gravatar_url_small
 
 
     @property
@@ -542,6 +548,8 @@ class UserProfile(object):
             "partner_group":         self.partner_group,
             "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
+            "profile_pic_url":       self.profile_pic_url,
+            "profile_pic_url_small": self.profile_pic_url_small
         }
 
 
@@ -554,7 +562,7 @@ class UserProfile(object):
             return {
                 "id": self.id,
                 "slug": self.slug,
-                "gravatar_url": self.gravatar_url,
+                "profile_pic_url": self.profile_pic_url,
                 "full_name": self.full_name,
                 "position": self.position,
                 "organization": self.organization
@@ -564,7 +572,7 @@ class UserProfile(object):
             "full_name":             self.full_name,
             "followers":             self.followers.uids,
             "followees":             self.followees.uids,
-            "gravatar_url":          self.gravatar_url
+            "profile_pic_url":       self.profile_pic_url
         }
         dictionary.update(other_info)
         return dictionary
@@ -640,9 +648,9 @@ def unread_notifications_count_for_user(uid):
 
 
 public_user_data_cache = {}
-def public_user_data(uid):
+def public_user_data(uid, ignore_cache=False):
     """Returns a dictionary with common public data for `uid`"""
-    if uid in public_user_data_cache:
+    if uid in public_user_data_cache and not ignore_cache:
         return public_user_data_cache[uid]
 
     profile = UserProfile(id=uid)
@@ -655,7 +663,7 @@ def public_user_data(uid):
     data = {
         "name": profile.full_name,
         "profileUrl": "/profile/" + profile.slug,
-        "imageUrl": profile.gravatar_url_small,
+        "imageUrl": profile.profile_pic_url_small,
         "position": profile.position,
         "organization": profile.organization,
         "isStaff": is_staff,

@@ -453,3 +453,54 @@ def test_complex_with_depth_1():
 
 def test_complex_with_depth_2():
     pass
+
+
+def test_strip_itags():
+    vs = ["Hadran Test"]
+    for vt in vs:
+        try:
+            Version().load({"versionTitle": vt}).delete()
+        except:
+            pass
+
+    r = Ref("Genesis 1:1")
+    c = TextChunk(r, "he")
+    text = c._get_text_after_modifications([c._strip_itags])
+    assert text == TextChunk(r, "he").text
+
+    r = Ref("Genesis 1")
+    c = TextChunk(r, "he")
+    modified_text = c._get_text_after_modifications([c._strip_itags])
+    original_text = TextChunk(r, "he").text
+    for mod, ori in zip(modified_text, original_text):
+        assert mod == ori
+
+    # create new version, depth 1
+    v = Version({
+        "language": "en",
+        "title": "Hadran",
+        "versionSource": "http://foobar.com",
+        "versionTitle": "Hadran Test",
+        "chapter": ['Cool text <sup>1</sup><i class="footnote">well, not that cool</i>',
+                    'Silly text <sup>1</sup><i class="footnote">See <i>cool text</i></i>',
+                    'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more']
+    }).save()
+    modified_text = ['Cool text', 'Silly text', 'More text and yet more']
+    c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
+    test_modified_text = c._get_text_after_modifications([c._strip_itags, lambda x: u' '.join(x.split()).strip()])
+    for m, t in zip(modified_text, test_modified_text):
+        assert m == t
+
+    test_modified_text = v._get_text_after_modifications([v._strip_itags, lambda x: u' '.join(x.split()).strip()])
+    for m, t in zip(modified_text, test_modified_text):
+        assert m == t
+
+    # test without any modification functions
+    test_modified_text = c._get_text_after_modifications([])
+    for m, t in zip(c.text, test_modified_text):
+        assert m == t
+
+    test_modified_text = v._get_text_after_modifications([])
+    for m, t in zip(v.chapter, test_modified_text):
+        assert m == t
+

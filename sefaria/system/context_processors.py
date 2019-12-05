@@ -132,7 +132,7 @@ def user_and_notifications(request):
         "partner_role": profile.partner_role,
         "slug": profile.slug,
         "full_name": profile.full_name,
-        "gravatar_url": profile.gravatar_url,
+        "profile_pic_url": profile.profile_pic_url,
         "following": json.dumps(profile.followees.uids)
     }
 

@@ -1025,7 +1025,7 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote =  tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
@@ -1033,23 +1033,23 @@ class AbstractTextRecord(object):
     @staticmethod
     def _strip_itags(s):
         soup = BeautifulSoup("<div>{}</div>".format(s), 'xml')
-        footnotes = soup.find_all(AbstractTextRecord._find_itags)
-        for fn in footnotes:
+        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+        for itag in itag_list:
             try:
-                fn.next_sibling.decompose()
+                itag.next_sibling.decompose()  # it's a footnote
             except AttributeError:
-                pass
-            fn.decompose()
+                pass  # it's an inline commentator
+            itag.decompose()
         return soup.encode_contents().decode()[5:-6]  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
-        :param text_chunk: text chunk to modify
         :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
         :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
         """
         if len(text_modification_funcs) == 0:
-            return self.text
+            return getattr(self, self.text_attr)
+
         def modifier(s):
             for func in text_modification_funcs:
                 s = func(s)
@@ -1965,6 +1965,7 @@ class TextFamily(object):
         self.isComplex      = oref.index.is_complex()
         self.text           = None
         self.he             = None
+        self._nonExistantVersions = {}
         self._lang          = lang
         self._original_oref = oref
         self._context_oref  = None
@@ -1983,8 +1984,12 @@ class TextFamily(object):
         for language, attr in list(self.text_attr_map.items()):
             if language == lang:
                 c = TextChunk(oref, language, version)
+                if len(c._versions) == 0:  # indicates `version` doesn't exist
+                    self._nonExistantVersions[language] = version
             elif language == lang2:
                 c = TextChunk(oref, language, version2)
+                if len(c._versions) == 0:
+                    self._nonExistantVersions[language] = version2
             else:
                 c = TextChunk(oref, language)
             self._chunks[language] = c
@@ -2107,6 +2112,9 @@ class TextFamily(object):
             d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
             d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
             d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+
+        if len(self._nonExistantVersions) > 0:
+            d['nonExistantVersions'] = self._nonExistantVersions
 
         if self._inode.index.is_dependant_text():
             #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
