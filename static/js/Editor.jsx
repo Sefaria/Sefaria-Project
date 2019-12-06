@@ -288,7 +288,7 @@ function transformSheetJsonToDraft(sheet) {
         )
     );
 
-    const initValue = [
+    let initValue = [
         {
             type: 'Sheet',
             status: sheet.status,
@@ -566,6 +566,12 @@ const Leaf = ({attributes, children, leaf}) => {
     if (leaf.underline) {
         children = <u>{children}</u>
     }
+    if (leaf.big) {
+        children = <big>{children}</big>
+    }
+    if (leaf.small) {
+        children = <small>{children}</small>
+    }
 
     return <span {...attributes}>{children}</span>
 }
@@ -640,16 +646,14 @@ const FormatButton = ({format}) => {
 
 function saveSheetContent(doc, lastModified, nextSheetNode) {
 
-    //const sheetTitle = (convertBlockTextToHTML(doc.getBlocksByType("SheetTitle").get(0).getTexts()));
-
-    const sheetMetaData = doc[0].children.find(el => el.type == "SheetMetaDataBox");
+    const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
 
     const sheetTitle = sheetMetaData.children.find(el => el.type == "SheetTitle").children.reduce((htmlString, fragment) => {
         return htmlString + serialize(fragment)
     }, "");
 
 
-    const sheetContent = doc[0].children.find(el => el.type == "SheetContent").children;
+    const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
 
     const sources = sheetContent.map(item => {
         const sheetItem = item.children[0];
@@ -706,7 +710,6 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
 
     });
 
-
     let sheet = {
         status: doc.status,
         group: doc.group,
@@ -720,7 +723,6 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
         sources: sources,
         nextNode: nextSheetNode,
     };
-
 
     return JSON.stringify(sheet);
 
@@ -758,14 +760,14 @@ const SefariaEditor = (props) => {
     );
 
     function saveDocument(doc) {
-        //onsole.log(doc)
-        console.log(saveSheetContent(doc, lastModified, nextSheetNode));
+        const json = saveSheetContent(doc[0], lastModified, nextSheetNode);
+        console.log('saving...')
 
-        // $.post("/api/sheets/", {"json": saveSheetContent(doc, lastModified, nextSheetNode)}, res => {
-        //     setlastModified(res.dateModified);
-        //     console.log("saved at: "+ res.dateModified);
-        //     setUnsavedChanges(false)
-        // });
+        $.post("/api/sheets/", {"json": json}, res => {
+            setlastModified(res.dateModified);
+            //console.log("saved at: "+ res.dateModified);
+            setUnsavedChanges(false)
+        });
     }
 
     function onChange(value,selection) {
