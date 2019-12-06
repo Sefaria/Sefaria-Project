@@ -1688,6 +1688,26 @@ Sefaria = extend(Sefaria, {
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
+  uploadProfilePhoto: (formData) => {
+    return new Promise((resolve, reject) => {
+      if (Sefaria._uid) {
+        $.ajax({
+          url: Sefaria.apiHost + "/api/profile/upload-photo",
+          type: 'post',
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function(data) {
+            resolve(data);
+          },
+          error: function(e) {
+            console.log("photo upload ERROR", e);
+            reject(e);
+          }
+        });
+      }
+    })
+  },
   lastPlaceForText: function(title) {
     // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.
     return Sefaria.last_place.find(x => x.book === title);

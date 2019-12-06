@@ -43,6 +43,10 @@ var baseConfig = {
                     presets: ['@babel/react', '@babel/preset-env'],
                     plugins: ['@babel/plugin-transform-destructuring', '@babel/plugin-proposal-object-rest-spread', '@babel/plugin-transform-async-to-generator']
                 }
+            },
+            {
+              test: /\.css$/i,
+              use: ['style-loader', 'css-loader'],
             }
         ]
     },

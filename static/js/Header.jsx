@@ -278,7 +278,7 @@ class Header extends Component {
                           null;
     var loggedInLinks  = (<div className="accountLinks">
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
-                            <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.gravatar_url} name={Sefaria.full_name} /></a>
+                            <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login signupLink" href={"/register" + nextParam}>

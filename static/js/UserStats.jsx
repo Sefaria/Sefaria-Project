@@ -8,7 +8,8 @@ import {
     SimpleLinkedBlock,
     SimpleInterfaceBlock,
     TextBlockLink,
-    ThreeBox
+    ThreeBox,
+    LoadingRing
 } from './Misc';
 
 
@@ -53,7 +54,7 @@ const UserStats = () => {
       <div className="content hasFooter" style={{padding: "0 40px 80px"}}>
           <div className="contentInner">
               <h1 style={{textAlign: "center"}}>
-                  {all_ready? user_data.name : <div className="lds-ring"><div></div><div></div><div></div><div></div></div>}
+                  {all_ready? user_data.name : <LoadingRing />}
               </h1>
               {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
               <UserStatModeChooser modes={modes} activeMode={active_mode} setMode={setMode}/>
