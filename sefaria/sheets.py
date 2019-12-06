@@ -353,7 +353,6 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		existing = db.sheets.find_one({"id": sheet["id"]})
 
 		if sheet["lastModified"] != existing["dateModified"]:
-			raise Exception('date mismatch')
 			# Don't allow saving if the sheet has been modified since the time
 			# that the user last received an update
 			existing["error"] = "Sheet updated."
