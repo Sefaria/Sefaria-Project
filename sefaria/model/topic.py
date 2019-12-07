@@ -16,11 +16,6 @@ class Topic(abst.AbstractMongoRecord):
         'displayOrder',
     ]
 
-    def __init__(self, attrs=None):
-        if attrs is None:
-            attrs = {}
-        super(Topic, self).__init__(attrs=attrs)
-
 
 class AbstractTopicLink(abst.AbstractMongoRecord):
     collection = 'topic_links'
@@ -35,11 +30,17 @@ class AbstractTopicLink(abst.AbstractMongoRecord):
 
 
 class IntraTopicLink(AbstractTopicLink):
+    collection = 'topic_links'
     required_attrs = AbstractTopicLink.required_attrs + ['fromTopic']
 
 
 class RefTopicLink(AbstractTopicLink):
+    collection = 'topic_links'
     required_attrs = AbstractTopicLink.required_attrs + ['ref', 'expandedRefs']
+
+
+class RefTopicLinkSet(abst.AbstractMongoSet):
+    recordClass = RefTopicLink
 
 
 class TopicLinkType(abst.AbstractMongoRecord):
@@ -47,11 +48,12 @@ class TopicLinkType(abst.AbstractMongoRecord):
     slug_field = 'slug'
     required_attrs = [
         'slug',
-        'inverseId',
         'displayName',
+        'inverseDisplayName'
     ]
     optional_attrs = [
         'alt_ids',
+        'inverse_alt_ids',
         'shouldDisplay',
         'devDescription'
     ]
