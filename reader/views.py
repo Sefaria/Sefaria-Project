@@ -2934,10 +2934,19 @@ def topics_api(request, topic):
     """
     API to get data for a particular topic.
     """
-    response = _topic_data(topic)
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
-    return response
+    with_links = bool(int(request.GET.get("with_links", False)))
+    annotate_links = bool(int(request.GET.get("annotate_links", False)))
+
+    with_refs = bool(int(request.GET.get("with_refs", False)))
+
+    topic_obj = Topic().load({"slug": topic})
+    response = topic_obj.contents()
+    if with_links:
+        response['links'] = [l.contents(annotate=annotate_links) for l in IntraTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
+
+    if with_refs:
+        response['refs'] = [l.contents() for l in RefTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 def _topic_data(topic):
