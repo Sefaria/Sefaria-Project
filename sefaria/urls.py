@@ -73,6 +73,7 @@ urlpatterns += [
     url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
     url(r'^visualize/sefer-hachinukh-mitzvot$', reader_views.sefer_hachinukh_mitzvot),
     url(r'^visualize/timeline$', reader_views.visualize_timeline),
+    url(r'^visualize/topics$', reader_views.visualize_topics),
     url(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
 ]
 

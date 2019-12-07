@@ -3220,8 +3220,8 @@ def profile_upload_photo(request):
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
-        old_big_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
-        old_small_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+        old_big_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
+        old_small_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
 
         big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
         small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
@@ -4127,6 +4127,10 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
 @staff_member_required
 def visualize_timeline(request):
     return render(request, 'timeline.html', {})
+
+@staff_member_required
+def visualize_topics(request):
+    return render(request, 'topicsViz.html', {})
 
 
 def person_page(request, name):
