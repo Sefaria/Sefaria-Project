@@ -2934,10 +2934,19 @@ def topics_api(request, topic):
     """
     API to get data for a particular topic.
     """
-    response = _topic_data(topic)
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
-    return response
+    with_links = bool(int(request.GET.get("with_links", False)))
+    annotate_links = bool(int(request.GET.get("annotate_links", False)))
+
+    with_refs = bool(int(request.GET.get("with_refs", False)))
+
+    topic_obj = Topic().load({"slug": topic})
+    response = topic_obj.contents()
+    if with_links:
+        response['links'] = [l.contents(annotate=annotate_links) for l in IntraTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
+
+    if with_refs:
+        response['refs'] = [l.contents() for l in RefTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 def _topic_data(topic):
@@ -3220,8 +3229,8 @@ def profile_upload_photo(request):
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
-        old_big_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
-        old_small_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+        old_big_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
+        old_small_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
 
         big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
         small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
