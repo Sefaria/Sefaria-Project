@@ -33,6 +33,19 @@ function switchToHebrew() { lang = "he"; }
 
 (GLOBALS.interfaceLang == "hebrew") ? switchToHebrew() : switchToEnglish();
 
+/*****                   Currying Data                  *****/
+
+async function layoutGraph(topic_data) {
+    let hierarchy = d3.hierarchy(topic_data, d => d["past"]);
+    let tree = d3.tree().size([w/2, graphBox_height]);
+}
+
+async function getTopic(topic) {
+    let url = Sefaria.apiHost + "/api/topics/" + topic + "?with_links=1&annotate_links=1";
+    let res = await Sefaria._promiseAPI(url);
+    return res;
+}
+
 /*****         Draw Tree                                *****/
 
 buildScreen();
@@ -45,7 +58,8 @@ function buildScreen() {
 }
 
 function curryAndRenderData() {
-    return 0;
+    getTopic(currentTopic)
+        .then(layoutGraph);
     // getPassage(currentRef)
     //     .then(buildRawTrees)
     //     .then(buildNetwork)
