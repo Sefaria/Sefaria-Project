@@ -664,7 +664,8 @@ class ReaderApp extends Component {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
         if (window.location.search != ""){
-          hist.url += window.location.search;
+          // Replace initial ? of query string with & which logic below expects
+          hist.url += "&" + window.location.search.slice(1);
         }
         hist.mode   = "Header"
 
@@ -1587,6 +1588,7 @@ class ReaderApp extends Component {
     // requires slug and full_name to properly set window title and url in history
     this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile: { slug, full_name } }, () => {
       Sefaria.profileAPI(slug).then(profile => {
+        Sefaria.profile_pic_url = profile.profile_pic_url;
         this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
       });
     });
