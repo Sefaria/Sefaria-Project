@@ -1,1 +1,8 @@
-null
+{
+	"title": "Help Sefaria",
+	"text": ["Each donation to Sefaria is part of a worldwide effort to make Torah accessible for all, and we are so grateful for your support. If you love Sefaria, donate $10 to Sefaria today."],
+	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=sefariamobile&utm_medium=modal&utm_campaign=support",
+	"buttonText": "Donate",
+	"name": "dec-2019",
+	"schemaVersion": 1
+}
