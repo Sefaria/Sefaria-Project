@@ -1,8 +1,7 @@
 import React, {useCallback, useMemo, useState, useEffect, useRef} from 'react';
 import {jsx} from 'slate-hyperscript'
 import {withHistory} from 'slate-history'
-import {withSchema} from 'slate-schema'
-import {Editor, createEditor, Range, Node} from 'slate'
+import {Editor, createEditor, Range, Node, Point, Path} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate} from 'slate-react'
 
 
@@ -502,7 +501,19 @@ const withSheetData = editor => {
                 }
 
                 const path = editor.selection.focus.path;
-                console.log(Node.closest(editor, path, ([e]) => e.type == "SheetItem"));
+
+                const currentSheetItem = Node.closest(editor, path, ([e]) => e.type == "SheetItem");
+                const lastNodeInSheetItem = Node.last(currentSheetItem[0],[])
+                console.log(currentSheetItem)
+                console.log(lastNodeInSheetItem)
+                console.log(editor.selection)
+
+  //              console.log(Path.compare(lastNodeInSheetItem[1], path));
+
+    //            console.log(lastNodeInSheetItem[1], path)
+
+//                console.log(Point.isPoint(editor.selection.focus));
+
                 exec(command);
                 break
             }
@@ -740,7 +751,6 @@ const SefariaEditor = (props) => {
     const [nextSheetNode, setNextSheetMode] = useState(props.data.nextNode);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
 
-
     useEffect(
         () => {
             setUnsavedChanges(true)
@@ -765,7 +775,7 @@ const SefariaEditor = (props) => {
 
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
-            //console.log("saved at: "+ res.dateModified);
+            console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
         });
     }
@@ -797,8 +807,11 @@ const SefariaEditor = (props) => {
                     event.preventDefault();
                     return editor.exec({type: 'soft_linebreak'})
 
-                };
-                return
+                }
+                else {
+                  return editor.exec({type: 'enter_toggled'})
+                }
+
             default: {
                 return
             }
@@ -823,7 +836,6 @@ const SefariaEditor = (props) => {
                 spellCheck
                 onDOMBeforeInput={beforeInput}
                 onKeyDown={onKeyDown}
-
             />
         </Slate>
     )
