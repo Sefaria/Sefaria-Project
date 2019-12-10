@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install --yes apache2 libapache2-mod-wsgi-py3  && 
 RUN git clone https://code.googlesource.com/re2 && cd re2 && make && make install && cd / && pip3 install https://github.com/andreasvc/pyre2/archive/master.zip
 
 ENTRYPOINT ["/bin/bash", "-c"]
-EXPOSE 8000
+EXPOSE 80
 
 ## TODO:
 # * Separate this container into separate `build` and `run` containers, only preserving the latter
