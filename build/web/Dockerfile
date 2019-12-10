@@ -1,4 +1,4 @@
-FROM gcr.io/production-deployment/wsgi-re2
+FROM gcr.io/production-deployment/wsgi3-re2
 
 RUN rm -rf /app
 COPY . /app/
