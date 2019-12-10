@@ -1,12 +1,12 @@
-var extend     = require('extend'),
-    param      = require('querystring').stringify,
-    Search     = require('./search'),
-    palette    = require('./palette'),
-    Track      = require('./track'),
-    Hebrew     = require('./hebrew'),
-    Util       = require('./util'),
-    $          = require('./sefariaJquery');
-                 require('babel-polyfill');
+const   extend     = require('extend'),
+        param      = require('querystring').stringify,
+        Search     = require('./search'),
+        palette    = require('./palette'),
+        Track      = require('./track'),
+        Hebrew     = require('./hebrew'),
+        Util       = require('./util'),
+        $          = require('./sefariaJquery');
+                     require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -527,6 +527,7 @@ Sefaria = extend(Sefaria, {
       this._refmap[refkey] = contextKey;
     }
   },
+    /*  Not used?
   _splitSpanningText: function(data) {
     // Returns an array of section level data, corresponding to spanning `data`.
     // Assumes `data` includes context.
@@ -543,6 +544,9 @@ Sefaria = extend(Sefaria, {
       section.he         = he[i];
     }
   },
+     */
+
+    /* not used?
   _wrapRefs: function(data) {
     // Wraps citations found in text of data
     if (!data.text) { return data; }
@@ -552,7 +556,7 @@ Sefaria = extend(Sefaria, {
       data.text = data.text.map(Sefaria.wrapRefLinks);
     }
     return data;
-  },
+  }, */
   _index: {}, // Cache for text index records
   _translateTerms: {},
    index: function(text, index) {
@@ -565,14 +569,11 @@ Sefaria = extend(Sefaria, {
     }
   },
   _shape: {}, // Cache for shape records
-  shape:  function(title, cb) {
-    if (title in this._shape) {
-        return this._shape[title];
-    }
-    var url = Sefaria.apiHost + "/api/shape/" + title;
-    return this._api(url, function(data) {
-      if (cb) { cb(data); }
-      Sefaria._shape[title] = data;
+  getShape: function(title) {
+    return this._cachedPromiseAPI({
+        url:   this.apiHost + "/api/shape/" + title,
+        key:   title,
+        store: this._shape
     });
   },
   _cacheIndexFromToc: function(toc) {
@@ -607,26 +608,12 @@ Sefaria = extend(Sefaria, {
         }
     });
   },
-/*  indexDetails: function(title, cb) {
-    // Returns detailed index record for `title` which includes info like author and description
-    console.log("The indexDetails method is deprecated.  Please use getIndexDetails.");
-    var details = title in this._indexDetails ? this._indexDetails[title] : null;
-    if (details) {
-      if (cb) {cb(details)}
-      return details;
-    }
-    var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
-    this._api(url, function(data) {
-      if (cb) { cb(data); }
-      Sefaria._indexDetails[title] = data;
-    });
-    return details;
-  }, */
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
   },
   _titleVariants: {},
+    /*  Unused?
   normalizeTitle: function(title, callback) {
     if (title in this._titleVariants) {
         callback(this._titleVariants[title]);
@@ -640,6 +627,7 @@ Sefaria = extend(Sefaria, {
         });
     }
   },
+     */
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
     this.getName(ref, true)
@@ -703,42 +691,12 @@ Sefaria = extend(Sefaria, {
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly) {
     const trimmed_name = name.trim();
-    const cache = refOnly? this._ref_lookups: this._lookups;
-    if (trimmed_name in cache) {
-        return Promise.resolve(cache[trimmed_name]);
-    }
-    return this._promiseAPI(Sefaria.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""))
-        .then(data => {cache[trimmed_name] = data; return data;})
+    return this._cachedPromiseAPI({
+        url:   this.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""),
+        key:   trimmed_name,
+        store: refOnly? this._ref_lookups: this._lookups
+    });
   },
-
-  // lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
-  /* lookup: function(name, callback, onError, refOnly) {
-    // Deprecated in favor of getName
-
-    //  * name - string to lookup
-    //  * callback - callback function, takes one argument, a data object
-    //  * onError - callback
-    //  * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
-
-    name = name.trim();
-    var cache = refOnly? this._ref_lookups: this._lookups;
-    onError = onError || function() {};
-    if (name in cache) {
-        callback(cache[name]);
-        return null;
-    }
-    else {
-        return $.ajax({
-          dataType: "json",
-          url: Sefaria.apiHost + "/api/name/" + name + (refOnly?"?ref_only=1":""),
-          error: onError,
-          success: function(data) {
-              cache[name] = data;
-              callback(data);
-          }.bind(this)
-        });
-    }
-  }, */
   _lexiconCompletions: {},
   lexiconCompletion: function(word, lexicon, callback) {
       word = word.trim();
