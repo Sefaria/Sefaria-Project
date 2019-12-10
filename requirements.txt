@@ -45,5 +45,8 @@ pytz
 google-cloud-storage
 cython
 django-easy-timezones
+<<<<<<< HEAD
 mod_wsgi
 gunicorn
+=======
+>>>>>>> Update `web` dockerfile
