@@ -251,7 +251,7 @@ def title_regex_api(request, titles):
         resp = jsonResponse(res, cb)
         return resp
 
-def bundle_many_texts(refs, useTextFamily=False):
+def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):
     res = {}
     for tref in refs:
         try:
@@ -271,12 +271,26 @@ def bundle_many_texts(refs, useTextFamily=False):
                     'url': oref.url()
                 }
             else:
-                he = model.TextChunk(oref, "he").text
-                en = model.TextChunk(oref, "en").text
+                he_tc = model.TextChunk(oref, "he")
+                en_tc = model.TextChunk(oref, "en")
+                if as_sized_string:
+                    kwargs = {}
+                    if min_char:
+                        kwargs['min_char'] = min_char
+                    if max_char:
+                        kwargs['max_char'] = max_char
+                    he_text = he_tc.as_sized_string(**kwargs)
+                    en_text = en_tc.as_sized_string(**kwargs)
+                else:
+                    he = he_tc.text
+                    en = en_tc.text
+                    # these could be flattened on the client, if need be.
+                    he_text = he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string()
+                    en_text = en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string()
+
                 res[tref] = {
-                    'he': he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string(),
-                # these could be flattened on the client, if need be.
-                    'en': en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string(),
+                    'he': he_text,
+                    'en': en_text,
                     'lang': lang,
                     'ref': oref.normal(),
                     'heRef': oref.he_normal(),
@@ -299,7 +313,10 @@ def bulktext_api(request, refs):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
         refs = set(refs.split("|"))
-        res = bundle_many_texts(refs, request.GET.get("useTextFamily"))
+        g = lambda x: request.GET.get(x, None)
+        min_char = int(g("minChar")) if g("minChar") else None
+        max_char = int(g("maxChar")) if g("maxChar") else None
+        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char)
         resp = jsonResponse(res, cb)
         return resp
 

@@ -62,6 +62,10 @@ def get_sheet_metadata(id = None):
 	return s
 
 
+def get_sheet_metadata_bulk(id_list):
+	return db.sheets.find({"id": {"$in": id_list}}, {"id": 1, "title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
+
+
 def get_sheet_node(sheet_id=None, node_id=None):
 	"""
 	Returns the source sheet with id.
@@ -639,8 +643,8 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
 			if len(ownerData.get('profile_pic_url_small', '')) == 0:
 				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower()).hexdigest() + "?"
-				gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
+				gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
 				ownerData['profile_pic_url_small'] = gravatar_url_small
 
 			if "assigner_id" in sheet:

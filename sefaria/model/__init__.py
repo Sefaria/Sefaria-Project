@@ -44,7 +44,7 @@ from .category import Category, CategorySet
 from .passage import Passage, PassageSet
 from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
-from .topic import Topic, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, RefTopicLinkSet, IntraTopicLinkSet
+from .topic import Topic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
 
 from . import dependencies
 

@@ -31,7 +31,6 @@ from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
-from sefaria.model.topic_old import get_topics
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
@@ -53,6 +52,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
+from sefaria.helper.topic import get_topics
 from django.utils.html import strip_tags
 
 if USE_VARNISH:
@@ -2892,11 +2892,7 @@ def topics_page(request):
 @sanitize_get_params
 def topic_page(request, topic):
     """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
     """
-    if topic != Term.normalize(topic):
-        return redirect("/topics/%s" % Term.normalize(topic))
 
     props = base_props(request)
     props.update({
@@ -2938,30 +2934,12 @@ def topics_api(request, topic):
     annotate_links = bool(int(request.GET.get("annotate_links", False)))
 
     with_refs = bool(int(request.GET.get("with_refs", False)))
-
-    topic_obj = Topic().load({"slug": topic})
-    response = topic_obj.contents()
-    if with_links:
-        response['links'] = [l.contents(annotate=annotate_links) for l in IntraTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
-
-    if with_refs:
-        response['refs'] = [l.contents() for l in RefTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
+    response = get_topics(topic, with_links, annotate_links, with_refs)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 def _topic_data(topic):
-    topics = get_topics()
-    topic = Term.normalize(titlecase(topic))
-    response = topics.get(topic).contents()
-    term = library.get_term(topic)
-    if term:
-        cat = getattr(term, "category", "")
-        response["category"] = cat
-        if cat:
-            response["siblings"] = [t.get_primary_title() for t in TermSet({"category": cat})]
-        description = getattr(term, "description", None)
-        if description:
-            response["description"] = description
+    response = get_topics(topic, with_links=True, annotate_links=True, with_refs=True)
     return response
 
 

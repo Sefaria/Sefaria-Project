@@ -480,7 +480,7 @@ class ReaderApp extends Component {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             var topics   = state.navigationTopicCategory;
-            hist.title = cats ? Sefaria._va(state.navigationCategories).join(", ") + " | " + Sefaria._(siteName) : topics ? Sefaria._va(state.navigationTopicCategory) + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
+            hist.title = cats ? state.navigationCategories.join(", ") + " | " + Sefaria._(siteName) : topics ? state.navigationTopicCategory + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
             hist.url   = topics ? "topics/category/" + topics : "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;

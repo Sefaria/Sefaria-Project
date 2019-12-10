@@ -310,9 +310,20 @@ Sefaria = extend(Sefaria, {
     return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
   },
-  getBulkText: function(refs) {
+  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
     // todo: fish existing texts out of cache first
-    return this._promiseAPI(Sefaria.apiHost + "/api/bulktext/" + refs.join("|"))
+    if (refs.length === 0) { return Promise.resolve({}); }
+    let paramStr = '';
+
+    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
+      paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
+    }
+    return this._promiseAPI(`${Sefaria.apiHost}/api/bulktext/${refs.join("|")}${paramStr.replace(/&/,'?')}`);
+  },
+  getBulkSheets: function(sheetIds) {
+    // todo: fish existing texts out of cache first
+    if (sheetIds.length === 0) { return Promise.resolve({}); }
+    return this._promiseAPI(`${Sefaria.apiHost}/api/v2/sheets/bulk/${sheetIds.join("|")}`);
   },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
@@ -1254,9 +1265,9 @@ Sefaria = extend(Sefaria, {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
     refs.map(r => {
-      // Also include webpages linked at section level. Deduped below. 
+      // Also include webpages linked at section level. Deduped below.
       if (r.indexOf(":") !== -1) {
-        refs.push(r.slice(0, r.lastIndexOf(":"))); 
+        refs.push(r.slice(0, r.lastIndexOf(":")));
       }
     }, this);
 
@@ -1746,19 +1757,19 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   },
-  getTopic: function(topic) {
+  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true) {
       return this._cachedPromiseAPI({
-          url:   this.apiHost + "/api/topics/" + topic,
+          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}`,
           key:   topic,
           store: this._topics
     });
   },
   _topicTocPages: {},
   _initTopicTocPages: function() {
-    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this._topicTocPageKey(c.name)] = c.children; return a;}, {});
+    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this._topicTocPageKey(c.slug)] = c.children; return a;}, {});
     this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
   },
-  _topicTocPageKey: name => "_" + name,
+  _topicTocPageKey: slug => "_" + slug,
   topicTocPage: function(parent) {
     const key = this._topicTocPageKey(parent);
     if (!this._topicTocPages[key]) {

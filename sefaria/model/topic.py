@@ -1,9 +1,11 @@
 from . import abstract as abst
+from .schema import AbstractTitledObject, TitleGroup
 
 
-class Topic(abst.AbstractMongoRecord):
+class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
     slug_field = 'slug'
+    title_group = None
     required_attrs = [
         'slug',
         'titles',
@@ -16,56 +18,80 @@ class Topic(abst.AbstractMongoRecord):
         'displayOrder',
     ]
 
-    def get_primary_title(self, lang):
-        title_dict = next(x for x in getattr(self, 'titles', []) if x['lang'] == lang and x['primary'])
-        return title_dict['text'] if title_dict is not None else None
+    def _set_derived_attributes(self):
+        self.set_titles(getattr(self, "titles", None))
+
+    def set_titles(self, titles):
+        self.title_group = TitleGroup(titles)
 
 
-class AbstractTopicLink(abst.AbstractMongoRecord):
+class TopicSet(abst.AbstractMongoSet):
+    recordClass = Topic
+
+
+class TopicLinkHelper(object):
     collection = 'topic_links'
     required_attrs = [
         'toTopic',
         'linkType',
+        'class',  # can be 'intraTopic' or 'refTopic'
     ]
     optional_attrs = [
         'dataSource',
         'generatedBy',
     ]
 
+    @staticmethod
+    def init_by_class(topic_link):
+        """
+        :param topic_link: dict from `topic_links` collection
+        :return: either instance of IntraTopicLink or RefTopicLink based on 'class' field of `topic_link`
+        """
+        if topic_link['class'] == 'intraTopic':
+            return IntraTopicLink().load_from_dict(topic_link, is_init=True)
+        if topic_link['class'] == 'refTopic':
+            return RefTopicLink().load_from_dict(topic_link, is_init=True)
 
-class IntraTopicLink(AbstractTopicLink):
-    collection = 'topic_links'
-    required_attrs = AbstractTopicLink.required_attrs + ['fromTopic']
 
-    def contents(self, **kwargs):
-        d = super(IntraTopicLink, self).contents(**kwargs)
-        if kwargs.get("annotate", False):
-            topic_obj = Topic().load({"slug": self.fromTopic})
-            d["en"] = topic_obj.get_primary_title('en')
-            d["he"] = topic_obj.get_primary_title('he')
-        return d
+class IntraTopicLink(abst.AbstractMongoRecord):
+    collection = TopicLinkHelper.collection
+    required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
+
+
+class RefTopicLink(abst.AbstractMongoRecord):
+    collection = TopicLinkHelper.collection
+    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
+
+
+class TopicLinkSetHelper(object):
+
+    @staticmethod
+    def init_query(query, link_class):
+        query = query or {}
+        query['class'] = link_class
+        return query
+
+    @staticmethod
+    def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None):
+        from sefaria.system.database import db
+        raw_records = getattr(db, TopicLinkHelper.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+        return [TopicLinkHelper.init_by_class(r) for r in raw_records]
+
 
 class IntraTopicLinkSet(abst.AbstractMongoSet):
     recordClass = IntraTopicLink
 
     def __init__(self, query=None, *args, **kwargs):
-        query = query or {}
-        query['expandedRefs'] = {"$exists": False}
-        super(IntraTopicLinkSet, self).__init__(query=query, *args, **kwargs)
-
-
-class RefTopicLink(AbstractTopicLink):
-    collection = 'topic_links'
-    required_attrs = AbstractTopicLink.required_attrs + ['ref', 'expandedRefs']
+        query = TopicLinkSetHelper.init_query(query, 'intraTopic')
+        super().__init__(query=query, *args, **kwargs)
 
 
 class RefTopicLinkSet(abst.AbstractMongoSet):
     recordClass = RefTopicLink
 
     def __init__(self, query=None, *args, **kwargs):
-        query = query or {}
-        query['expandedRefs'] = {"$exists": True}
-        super(RefTopicLinkSet, self).__init__(query=query, *args, **kwargs)
+        query = TopicLinkSetHelper.init_query(query, 'intraTopic')
+        super().__init__(query=query, *args, **kwargs)
 
 
 class TopicLinkType(abst.AbstractMongoRecord):
@@ -73,6 +99,7 @@ class TopicLinkType(abst.AbstractMongoRecord):
     slug_field = 'slug'
     required_attrs = [
         'slug',
+        'inverseSlug',
         'displayName',
         'inverseDisplayName'
     ]
@@ -82,6 +109,10 @@ class TopicLinkType(abst.AbstractMongoRecord):
         'shouldDisplay',
         'devDescription'
     ]
+
+
+class TopicLinkTypeSet(abst.AbstractMongoSet):
+    recordClass = TopicLinkType
 
 
 class TopicDataSource(abst.AbstractMongoRecord):

@@ -39,13 +39,13 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
   }, []);
 
   const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : 1000);
-  
+
   const navHome = () => {
     setCategories([]);
     setNavTopic("");
     openNav();
   };
-  
+
   const enableShowMore = (event) => {
     event.preventDefault();
     setShowMore(true);
@@ -54,14 +54,14 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
     event.preventDefault();
     setShowMoreTopics(true);
   };
-  
+
   const handleSearchKeyUp = (event) => {
     if (event.keyCode === 13) {
       const query = $(event.target).val();
       openSearch(query);
     }
   };
-  
+
   const handleSearchButtonClick = (event) => {
     const query = $(ReactDOM.findDOMNode(ref.current)).find(".readerSearch").val();
     if (query) {
@@ -229,8 +229,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
 
 
   let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
-      const openTopic = e => {e.preventDefault(); setNavTopic(t.name)};
-      return <a href={"/topics/category/" + t.name}
+      const openTopic = e => {e.preventDefault(); setNavTopic(t.slug)};
+      return <a href={"/topics/category/" + t.slug}
          onClick={openTopic}
          className="blockLink"
          key={i}>

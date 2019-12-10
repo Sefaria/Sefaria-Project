@@ -649,6 +649,14 @@ def save_sheet_api(request):
         return jsonResponse(responseSheet)
 
 
+def bulksheet_api(request, sheet_id_list):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        sheet_id_list = [int(sheet_id) for sheet_id in set(sheet_id_list.split("|"))]
+        response = jsonResponse({s['sheet_id']: s for s in sheet_list_to_story_list(request, sheet_id_list)}, cb)
+        return response
+
+
 @api_view(["GET"])
 def user_sheet_list_api(request, user_id):
     """
@@ -941,6 +949,18 @@ def sheet_to_story_dict(request, sid):
         d["publisher_followed"] = d["publisher_id"] in following.FolloweesSet(request.user.id).uids
 
     return d
+
+
+def sheet_list_to_story_list(request, sid_list):
+    from sefaria.model.story import Story
+    dict_list = Story.sheet_metadata_bulk(sid_list, return_id=True)
+    followees_set = following.FolloweesSet(request.user.id).uids
+    for d in dict_list:
+        d.update(Story.publisher_metadata(d["publisher_id"]))
+        if request.user.is_authenticated:
+            d["publisher_followed"] = d["publisher_id"] in followees_set
+
+    return dict_list
 
 
 def story_form_sheets_by_tag(request, tag):

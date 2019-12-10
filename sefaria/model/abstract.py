@@ -201,14 +201,15 @@ class AbstractMongoRecord(object):
         :param slug_attr: the attribute on self for where to set slug
         """
         slug = getattr(self, self.slug_field).lower()
-        slug = slug.replace(" ", "-")
+        slug = re.sub(r"[ /]", "-", slug.strip())
         slug = re.sub(r"[^a-z0-9\-]", "", slug)
         dupe_count = 0
         _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
-        while getattr(db, self.collection).find_one({self.slug_field: slug, "_id": {"$ne": _id}}):
+        temp_slug = slug
+        while getattr(db, self.collection).find_one({self.slug_field: temp_slug, "_id": {"$ne": _id}}):
             dupe_count += 1
-            slug = "{}{}".format(slug, dupe_count)
-        return slug
+            temp_slug = "{}{}".format(slug, dupe_count)
+        return temp_slug
 
     def _set_pkeys(self):
         if self.track_pkeys:
