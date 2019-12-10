@@ -461,7 +461,7 @@ const Element = ({attributes, children, element}) => {
         case 'TextRef':
             return (
                 <div className={element.lang}>
-                    <div className="ref">{element.refText}</div>
+                    <div className="ref">{element.refText}{children}</div>
                 </div>
             )
         case 'paragraph':
@@ -486,7 +486,7 @@ const Element = ({attributes, children, element}) => {
 const withSheetData = editor => {
     const {exec, isVoid} = editor;
     editor.isVoid = element => {
-        return (element.type in voidElements) ? true : isVoid(element)
+        return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
 
     editor.exec = command => {
