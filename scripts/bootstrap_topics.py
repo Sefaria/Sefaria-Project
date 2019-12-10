@@ -16,9 +16,11 @@ with open("../data/final_topics.json", 'r') as fin:
     topics = json.load(fin)
 with open("../data/source_sheet_cats.csv", 'r') as fin:
     cin = csv.DictReader(fin)
+    cat_replacer = {"Bible": "Tanakh"}
     fallback_sheet_cat_map = {}
     for row in cin:
-        fallback_sheet_cat_map[row['Tag']] = row['Cat']
+        cat = cat_replacer.get(row['Cat'], row['Cat'])
+        fallback_sheet_cat_map[row['Tag']] = cat
 
 
 def do_topics():
@@ -240,30 +242,30 @@ def do_data_source():
 
 
 def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
-    edge_inverses = set()
-    for edge_type in edge_types:
-        if len(edge_type["Edge Inverse"]) == 0:
-            continue
-        edge_inverses.add(edge_type['Edge Inverse'])
-    for t in tqdm(topics, desc="intraTopic links"):
-        topic = Topic().load({"alt_ids._temp_id": t['id']})
-        for edge_type, to_topic_list in t.get('edges', {}).items():
-            if edge_type in edge_inverses:
-                continue
-            linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
-            for to_topic_id in to_topic_list:
-                to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
-                if to_topic is None:
-                    # print(to_topic_id)
-                    continue
-                tl = IntraTopicLink({
-                    "class": "intraTopic",
-                    "fromTopic": topic.slug,
-                    "toTopic": to_topic.slug,
-                    "linkType": linkType.slug,
-                    "dataSource": "aspaklria-edited-by-sefaria"
-                })
-                tl.save()
+    # edge_inverses = set()
+    # for edge_type in edge_types:
+    #     if len(edge_type["Edge Inverse"]) == 0:
+    #         continue
+    #     edge_inverses.add(edge_type['Edge Inverse'])
+    # for t in tqdm(topics, desc="intraTopic links"):
+    #     topic = Topic().load({"alt_ids._temp_id": t['id']})
+    #     for edge_type, to_topic_list in t.get('edges', {}).items():
+    #         if edge_type in edge_inverses:
+    #             continue
+    #         linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
+    #         for to_topic_id in to_topic_list:
+    #             to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
+    #             if to_topic is None:
+    #                 # print(to_topic_id)
+    #                 continue
+    #             tl = IntraTopicLink({
+    #                 "class": "intraTopic",
+    #                 "fromTopic": topic.slug,
+    #                 "toTopic": to_topic.slug,
+    #                 "linkType": linkType.slug,
+    #                 "dataSource": "aspaklria-edited-by-sefaria"
+    #             })
+    #             tl.save()
 
     # displays-under links
     for top_term in tqdm(TermSet({"scheme": "Tag Category"}), desc="valid intraTopic terms"):
@@ -274,17 +276,25 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
             except KeyError:
                 print("No term slug mapping", sub_term.name)
                 continue
-            tl = IntraTopicLink({
+            tl = IntraTopicLink().load({
                 "class": "intraTopic",
                 "fromTopic": from_slug,
-                "toTopic": top_topic.slug,
-                "linkType": 'displays-under',
-                "dataSource": "sefaria"
+                "toTopic": top_topic.slug
             })
-            tl.save()
+            if tl is None:
+                tl = IntraTopicLink({
+                    "class": "intraTopic",
+                    "fromTopic": from_slug,
+                    "toTopic": top_topic.slug,
+                    "linkType": 'displays-under',
+                    "dataSource": "sefaria"
+                })
+                tl.save()
     for invalid_term, from_slug in tqdm(invalid_term_to_slug_map.items(), desc="invalid intraTopic terms"):
         top_topic = Topic().load({"alt_ids._temp_id": "TOC|{}".format(fallback_sheet_cat_map[invalid_term])})
-
+        if top_topic is None:
+            print("Top Topic Fallback is None", invalid_term, fallback_sheet_cat_map[invalid_term])
+            continue
         tl = IntraTopicLink().load({
             "class": "intraTopic",
             "fromTopic": from_slug,
@@ -354,7 +364,7 @@ def clean_up_time():
 
 
 if __name__ == '__main__':
-    # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map = do_topics()
+    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map = do_topics()
     do_topic_link_types()
     # do_data_source()
     # db.topic_links.drop()
@@ -362,12 +372,10 @@ if __name__ == '__main__':
     # db.topic_links.create_index('expandedRefs')
     # db.topic_links.create_index('toTopic')
     # db.topic_links.create_index('fromTopic')
-    # do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
+    do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
     # do_ref_topic_link(slug_to_sheet_map)
     # clean_up_time()
 
-# TODO rerun to get rid of invalid links
-# TODO look into dup displays-under links
 # TODO Halcha is not Halakha
 # TODO consider how to dedup TOC nodes
 
