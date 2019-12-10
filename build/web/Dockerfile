@@ -1,21 +1,24 @@
-# this entire script is dependent on callig form the root directory.
-# Check into the best practices around this. 
+# Source: python3-dockerfiles
 
-FROM sefaria-web-base:python3-test
-# This base image already has mod_wsgi and the requirements file. 
-# maybe update the base file to NOT install the requirements.txt packages
+FROM python:3.7-buster
 
-# Q: Does COPY create a directory
-
+COPY ./requirements.txt ./
+COPY . /app/
+COPY ./build/web/wsgi.whiskey /app/.whiskey 
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && touch /app/dev-db.sqlite
+
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE sefaria.settings
-
-COPY . /app/
-COPY ./build/web/wsgi.whiskey /app/.whiskey 
-
 WORKDIR /app/
-RUN pip3 install -r requirements.txt
+
+
+RUN pip3 install --no-cache-dir -r ./requirements.txt
+RUN apt-get update && apt-get install --yes apache2 libapache2-mod-wsgi-py3  && apt-get clean
+RUN git clone https://code.googlesource.com/re2 && cd re2 && make && make install && cd / && pip3 install https://github.com/andreasvc/pyre2/archive/master.zip
+
+ENTRYPOINT ["/bin/bash", "-c"]
 EXPOSE 8000
 
+## TODO:
+# * Separate this container into separate `build` and `run` containers, only preserving the latter
