@@ -6,15 +6,15 @@ from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
 
-with open("../data/final_ref_topic_links.csv", 'r') as fin:
+with open("data/final_ref_topic_links.csv", 'r') as fin:
     cin = csv.DictReader(fin)
     ref_topic_links = list(cin)
-with open("../data/edge_types.csv", 'r') as fin:
+with open("data/edge_types.csv", 'r') as fin:
     cin = csv.DictReader(fin)
     edge_types = list(cin)
-with open("../data/final_topics.json", 'r') as fin:
+with open("data/final_topics.json", 'r') as fin:
     topics = json.load(fin)
-with open("../data/source_sheet_cats.csv", 'r') as fin:
+with open("data/source_sheet_cats.csv", 'r') as fin:
     cin = csv.DictReader(fin)
     cat_replacer = {"Bible": "Tanakh"}
     fallback_sheet_cat_map = {}
@@ -141,15 +141,46 @@ def do_topics():
 
     # look up {scheme: "Tag Category"}.order
     # displays-under links
+    top_toc_dedupper = {
+        "Philosophy": "philosophy",
+        "Tanakh": "the-holy-books-bible",
+        "Prayer": "tefillah",
+        "Food": "food",
+        "Israel": "erets-yisrael",
+        "Language": "language",
+        "Education": "education-or-training",
+        "Art": "artistic-process",
+        "History": "historical-event",
+        "Calendar": "calendar",
+        "Science": "science",
+        "Medicine": "healing-or-medicine",
+        "Religion": "theology",
+        "Folklore": "aggadah",
+        "Geography": "geographic-site",
+        "Law": "law",
+        "Texts": "source",
+        "Torah Portions": "parshah"
+    }
     for top_toc in TermSet({"scheme": "Tag Category"}):
         attrs = {
             "slug": top_toc.name,
-            "alt_ids": {'_temp_id': 'TOC|{}'.format(top_toc.name)},
+            "alt_ids": {'_temp_toc_id': top_toc.name},
             "titles": top_toc.titles,
             "isTopLevelDisplay": True,
             "displayOrder": top_toc.order
         }
-        ot = Topic(attrs)
+        dedup_slug = top_toc_dedupper.get(top_toc.name, False)
+        if dedup_slug:
+            ot = Topic().load({"slug": dedup_slug})
+            for t in ot.titles:
+                if t.get('primary', False):
+                    del t['primary']
+            ot.titles = attrs['titles'] + ot.titles
+            ot.alt_ids['_temp_toc_id'] = top_toc.name
+            setattr(ot, 'isTopLevelDisplay', True)
+            setattr(ot, 'displayOrder', attrs['displayOrder'])
+        else:
+            ot = Topic(attrs)
         ot.save()
     return slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map
 
@@ -242,34 +273,34 @@ def do_data_source():
 
 
 def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
-    # edge_inverses = set()
-    # for edge_type in edge_types:
-    #     if len(edge_type["Edge Inverse"]) == 0:
-    #         continue
-    #     edge_inverses.add(edge_type['Edge Inverse'])
-    # for t in tqdm(topics, desc="intraTopic links"):
-    #     topic = Topic().load({"alt_ids._temp_id": t['id']})
-    #     for edge_type, to_topic_list in t.get('edges', {}).items():
-    #         if edge_type in edge_inverses:
-    #             continue
-    #         linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
-    #         for to_topic_id in to_topic_list:
-    #             to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
-    #             if to_topic is None:
-    #                 # print(to_topic_id)
-    #                 continue
-    #             tl = IntraTopicLink({
-    #                 "class": "intraTopic",
-    #                 "fromTopic": topic.slug,
-    #                 "toTopic": to_topic.slug,
-    #                 "linkType": linkType.slug,
-    #                 "dataSource": "aspaklria-edited-by-sefaria"
-    #             })
-    #             tl.save()
+    edge_inverses = set()
+    for edge_type in edge_types:
+        if len(edge_type["Edge Inverse"]) == 0:
+            continue
+        edge_inverses.add(edge_type['Edge Inverse'])
+    for t in tqdm(topics, desc="intraTopic links"):
+        topic = Topic().load({"alt_ids._temp_id": t['id']})
+        for edge_type, to_topic_list in t.get('edges', {}).items():
+            if edge_type in edge_inverses:
+                continue
+            linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
+            for to_topic_id in to_topic_list:
+                to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
+                if to_topic is None:
+                    # print(to_topic_id)
+                    continue
+                tl = IntraTopicLink({
+                    "class": "intraTopic",
+                    "fromTopic": topic.slug,
+                    "toTopic": to_topic.slug,
+                    "linkType": linkType.slug,
+                    "dataSource": "aspaklria-edited-by-sefaria"
+                })
+                tl.save()
 
     # displays-under links
     for top_term in tqdm(TermSet({"scheme": "Tag Category"}), desc="valid intraTopic terms"):
-        top_topic = Topic().load({"alt_ids._temp_id": "TOC|{}".format(top_term.name)})
+        top_topic = Topic().load({"alt_ids._temp_toc_id": top_term.name})
         for sub_term in TermSet({"category": top_term.name}):
             try:
                 from_slug = term_to_slug_map[sub_term.name]
@@ -291,7 +322,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                 })
                 tl.save()
     for invalid_term, from_slug in tqdm(invalid_term_to_slug_map.items(), desc="invalid intraTopic terms"):
-        top_topic = Topic().load({"alt_ids._temp_id": "TOC|{}".format(fallback_sheet_cat_map[invalid_term])})
+        top_topic = Topic().load({"alt_ids._temp_toc_id": fallback_sheet_cat_map[invalid_term]})
         if top_topic is None:
             print("Top Topic Fallback is None", invalid_term, fallback_sheet_cat_map[invalid_term])
             continue
@@ -356,6 +387,10 @@ def clean_up_time():
         if getattr(t, 'alt_ids', None):
             alt_ids = getattr(t, 'alt_ids')
             del alt_ids['_temp_id']
+            try:
+                del alt_ids['_temp_toc_id']
+            except KeyError:
+                pass
             if len(alt_ids) == 0:
                 delattr(t, 'alt_ids')
             else:
@@ -366,16 +401,26 @@ def clean_up_time():
 if __name__ == '__main__':
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map = do_topics()
     do_topic_link_types()
-    # do_data_source()
-    # db.topic_links.drop()
-    # db.topic_links.create_index('class')
-    # db.topic_links.create_index('expandedRefs')
-    # db.topic_links.create_index('toTopic')
-    # db.topic_links.create_index('fromTopic')
+    do_data_source()
+    db.topic_links.drop()
+    db.topic_links.create_index('class')
+    db.topic_links.create_index('expandedRefs')
+    db.topic_links.create_index('toTopic')
+    db.topic_links.create_index('fromTopic')
     do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
-    # do_ref_topic_link(slug_to_sheet_map)
-    # clean_up_time()
+    do_ref_topic_link(slug_to_sheet_map)
+    clean_up_time()
 
-# TODO Halcha is not Halakha
+# TODO Halacha is not Halakha
 # TODO consider how to dedup TOC nodes
+
+"""
+potential things we should fix
+- make transliterations in italics
+- figure out how to disambiguate topic names (Food, Food)
+- change TOC
+  - Authors -> People
+  - Religion -> Theology
+  - Folklore -> maybe something with less of a strong connotation. I feel like this implies it's not true
+"""
 

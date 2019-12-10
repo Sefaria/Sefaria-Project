@@ -56,11 +56,13 @@ class TopicLinkHelper(object):
 class IntraTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
+    optional_attrs = TopicLinkHelper.optional_attrs
 
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
+    optional_attrs = TopicLinkHelper.optional_attrs
 
 
 class TopicLinkSetHelper(object):
