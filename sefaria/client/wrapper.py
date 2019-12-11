@@ -194,6 +194,18 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         else:
             pos = 0 if any(nRef == tref[:lenRef] for tref in link.expandedRefs0) else 1
         try:
+            # Skip any anchor refs that aren't segment level.  Unrolling the call to is_segment_level() here, just to save the N function calls.
+            anchor_ref = Ref(link.refs[pos])
+            node_depth = getattr(anchor_ref.index_node, "depth", None)
+            if node_depth is None or len(anchor_ref.sections) != node_depth:
+                continue
+
+            # Skip any related refs that are super section level
+            source_ref = Ref(link.refs[0 if pos == 1 else 1])
+            node_depth = getattr(source_ref.index_node, "depth", None)
+            if node_depth is None or len(source_ref.sections) + 1 < node_depth:
+                continue
+
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
             logger.warning(u"Bad link: {} - {}".format(link.refs[0], link.refs[1]))
@@ -297,9 +309,6 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             orig_links_refs = [(origlink['sourceRef'], origlink['anchorRef']) for origlink in links]
             base_links = filter(lambda x: ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"]), base_links)
             links += base_links
-
-    links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
-
 
     groups = library.get_groups_in_library()
     if with_sheet_links and len(groups):

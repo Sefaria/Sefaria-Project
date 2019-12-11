@@ -451,6 +451,9 @@ class ReaderPanel extends Component {
       this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
     }
   }
+  setWebPagesFilter(filter) {
+    this.conditionalSetState({webPagesFilter: filter, connectionsMode: "WebPagesList"});
+  }
   setTopic(topic) {
     this.conditionalSetState({navigationTopic: topic});
   }
@@ -701,6 +704,8 @@ class ReaderPanel extends Component {
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
+          webPagesFilter={this.state.webPagesFilter}
+          setWebPagesFilter={this.setWebPagesFilter}
           sheetMetaData={this.state.sheet}
           nodeRef={this.state.nodeRef}
           closeConectionsInPanel={this.closeConnectionsInPanel}

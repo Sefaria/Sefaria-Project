@@ -244,7 +244,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 @media (max-width: 540px) {
   #bannerButtonBox {
-    display: none;
+    margin: 15px 0 0;
   }
   #bannerMessage .mobileOnly {
     display: block;
@@ -420,6 +420,11 @@ input.noselect {
   img.keyboardInputInitiator{
     display: none;
   }
+
+  .nochrome .header .home {
+    display: inline;
+  }
+
 }
 .header .accountLinks {
   display: flex;
@@ -571,8 +576,7 @@ input.noselect {
   font-weight: normal;
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 30px;
-  margin: 0;
-  margin-bottom: 40px;
+  margin-bottom: 0px;
 }
 .sefariaModalInnerContent {
   display: flex;
@@ -580,11 +584,22 @@ input.noselect {
   align-items: flex-start;
   margin-bottom: 40px;
 }
-.sefariaModalInnerContent div {
+.sefariaModalInnerContent div, .sefariaModalInnerContent h3{
   display: flex;
   align-items: center;
   text-align: start;
   padding: 10px 0;
+}
+.sefariaModalContent h3{
+  align-items: center;
+  text-align: start;
+  padding: 10px 0;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: normal;
+  margin-bottom: 10px;
+  margin-top: 5px;
 }
 .sefariaModalBottomContent {
   font-size: 16px;
@@ -1154,7 +1169,8 @@ h1 .languageToggle .he {
   margin-bottom: 44px;
 }
 a.recentItem,
-a.resourcesLink {
+a.resourcesLink,
+input.resourcesLink {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1508,21 +1524,24 @@ a.readerNavCategory {
 .readerTextTableOfContents .readerTextToc .he {
   font-family: "Heebo", sans-serif;
 }
+.readerNavMenu .dedication {
+  margin: -10px 0 58px 0;
+}
+.readerTextTableOfContents .categoryAttribution,
+.readerTextTableOfContents .dedication {
+  margin: 28px 0;
+}
 .readerTextTableOfContents .categoryAttribution,
 .readerTextTableOfContents .dedication,
 .readerNavMenu .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
-  margin: 28px 0;
 }
 .readerTextTableOfContents .categoryAttribution .he,
 .readerTextTableOfContents .dedication .he,
 .readerNavMenu .dedication .he {
   font-style: normal;
-}
-.readerNavMenu .dedication {
-  margin: -10px 0 58px 0;
 }
 .hebrew .readerNavMenu .dedication {
   direction: rtl;
@@ -2821,7 +2840,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
 }
-
 .interface-english .leftButtons,
 .interface-hebrew .rightButtons {
   display: flex;
@@ -3827,6 +3845,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: lighter;
   letter-spacing: 1px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  unicode-bidi: isolate;
 }
 .englishAvailableTag {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -4109,6 +4128,69 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
+}
+.webpageList .website .icon {
+  height: 16px;
+  width: 16px;
+  margin-top: 2px;
+}
+.webpageList .webpage {
+  margin-bottom: 30px;
+  text-align: left;
+  direction: ltr;
+}
+.webpageList .webpage.hebrew {
+  text-align: right;
+  direction: rtl;
+}
+.webpageList .webpage .icon {
+  margin-right: 10px;
+}
+.webpage.hebrew .icon {
+  margin: 0 0 0 10px;
+}
+.webpageList .webpage .title {
+  font-size: 22px;
+  color: black;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .title:hover {
+  text-decoration: none;
+}
+.webpageList .webpage .domain {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+.webpageList .webpage .description {
+  font-size: 18px;
+  color: #999;
+}
+.webpageList .webpage .stats {
+  font-size: 13px;
+  color: #999;
+  margin-top: 5px;
+}
+.webpageList.empty .loadingMessage {
+  margin-top: 0px;
+}
+.webpageList .webpagesLinkerMessage {
+  padding: 20px 0px;
+  color: #999;
+  border-top: 1px solid #E5E5E5;
+  font-size: 13px;
+}
+.marginless .webpageList .webpagesLinkerMessage {
+  padding: 20px 34px;
+}
+.webpageList .webpagesLinkerMessage a {
+  color: #999;
+  text-decoration: underline;
+}
+.textList.marginless .webpageList.empty .loadingMessage {
+  margin: 50px 40px;
 }
 .textRange .numberLabel {
   position: absolute;
@@ -4439,6 +4521,79 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0;
   line-height: 26px;
 }
+.profile-pic {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.profile-page .profile-pic .profile-pic-hover-button {
+  display: none;
+}
+.profile-pic-cropper-error {
+  line-height: 1;
+  max-width: 50vw;
+  overflow: hidden;
+}
+.profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
+  display: flex;
+}
+.profile-page .profile-pic .profile-pic-button-row {
+  display: flex;
+}
+.profile-page .profile-pic .profile-pic-button {
+  position: absolute;
+}
+
+.profile-pic-cropper-modal {
+  max-width: unset !important;
+  max-height: unset !important;
+  padding: 15px 15px 17px 15px !important;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.4);
+  background-color: #FFF !important;
+  border-radius: 6px;
+}
+.profile-pic-cropper-modal-inner {
+  overflow: auto;
+  display: block;
+  line-height: 0;
+  border-radius: 6px;
+}
+.profile-pic-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 17px;
+}
+.profile-pic-cropper-modal .ReactCrop__crop-selection {
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999em rgba(255, 255, 255, 0.6);
+}
+.profile-pic-cropper-modal .ReactCrop__image {
+  max-width: 50vw;
+  max-height: 50vh;
+}
+.profile-pic-close {
+  right: 25px !important;
+}
+.profile-pic-cropper {
+}
+.profile-page .profile-pic .profile-pic-cropper-modal .profile-pic-cropper-button {
+  display: inline-flex;
+}
+.profile-page .profile-pic .profile-pic-cropper-desc {
+  margin-top: 9px;
+  margin-bottom: 18px;
+}
+.profile-pic .profile-pic-input-file {
+  /* make it essentially invisible so it stays in DOM and is accessible */
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
 .readerNavMenu.profile-page .resourcesLink img {
   top: 0;
 }
@@ -4566,7 +4721,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     transform: rotate(360deg);
   }
 }
-
 .sefariaLogo {
   text-align: center;
   text-transform: uppercase;
@@ -6478,6 +6632,9 @@ span.purim-emoji img{
   margin-top: 20px;
 }
 @media (max-width: 540px) {
+  .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
+    display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
+  }
   .profile-page .profile-summary .profile-img {
     width: 87px !important;
     height: 87px !important;
@@ -6511,7 +6668,7 @@ span.purim-emoji img{
 }
 .profile-page .profile-summary .resourcesLink.blue {
   color: white;
-  background-color: #212e50;
+  background-color: #18345d;
 }
 .profile-page .authorByLine {
   margin: 20px 0;
@@ -6831,7 +6988,7 @@ body .homeFeedWrapper .content {
 .homeFeedSidebar #homeFeedback {
   background-color: #EDEDED;
   margin: 0 -50px;
-  padding: 30px 50px;  
+  padding: 30px 50px;
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 0;

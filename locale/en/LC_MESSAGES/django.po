@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-29 14:56+0300\n"
+"POT-Creation-Date: 2019-11-22 14:44-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: reader/templatetags/sefaria_tags.py:229 sefaria/settings.py:23
+#: reader/templatetags/sefaria_tags.py:229 sefaria/settings.py:22
 msgid "English"
 msgstr ""
 
-#: reader/templatetags/sefaria_tags.py:230 sefaria/settings.py:24
+#: reader/templatetags/sefaria_tags.py:230 sefaria/settings.py:23
 msgid "Hebrew"
 msgstr ""
 
@@ -29,89 +29,89 @@ msgstr ""
 msgid "Bilingual"
 msgstr ""
 
-#: reader/views.py:476
+#: reader/views.py:480
 #, python-format
 msgid "Read the text of %(book)s online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:495
+#: reader/views.py:499
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:544 reader/views.py:725
+#: reader/views.py:548 reader/views.py:729
 msgid " | Sefaria"
 msgstr ""
 
-#: reader/views.py:545
+#: reader/views.py:549
 #, python-format
 msgid "Read %(categories)s texts online with commentaries and connections."
 msgstr ""
 
-#: reader/views.py:548
+#: reader/views.py:552
 msgid "Recently Viewed"
 msgstr ""
 
-#: reader/views.py:549
+#: reader/views.py:553
 msgid "Texts that you've recently viewed on Sefaria."
 msgstr ""
 
-#: reader/views.py:620
+#: reader/views.py:624
 msgid "Sefaria Search"
 msgstr ""
 
-#: reader/views.py:621
+#: reader/views.py:625
 msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:638
+#: reader/views.py:642
 msgid "Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:639
+#: reader/views.py:643
 msgid ""
 "Explore thousands of public Source Sheets and use our Source Sheet Builder "
 "to create your own online."
 msgstr ""
 
-#: reader/views.py:669 reader/views.py:676 reader/views.py:683
+#: reader/views.py:673 reader/views.py:680 reader/views.py:687
 #: templates/groups.html:8
 msgid "Sefaria Groups"
 msgstr ""
 
-#: reader/views.py:689
+#: reader/views.py:693
 msgid "My Notes on Sefaria"
 msgstr ""
 
-#: reader/views.py:711
+#: reader/views.py:715
 msgid "My Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:712
+#: reader/views.py:716
 msgid "My Sources Sheets on Sefaria, both private and public."
 msgstr ""
 
-#: reader/views.py:719
+#: reader/views.py:723
 msgid "Public Source Sheets | Sefaria Source Sheets"
 msgstr ""
 
-#: reader/views.py:720
+#: reader/views.py:724
 msgid ""
 "Explore thousands of public Source Sheets drawing on Sefaria's library of "
 "Jewish texts."
 msgstr ""
 
-#: reader/views.py:726
+#: reader/views.py:730
 #, python-format
 msgid ""
 "Public Source Sheets on tagged with \"%(tag)s\", drawing from Sefaria's "
 "library of Jewish texts."
 msgstr ""
 
-#: reader/views.py:824
+#: reader/views.py:828
 msgid "Topics"
 msgstr ""
 
-#: reader/views.py:824 templates/person.html:6 templates/person.html:8
+#: reader/views.py:828 templates/person.html:6 templates/person.html:8
 #: templates/registration/password_reset_complete.html:3
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_done.html:3
@@ -124,103 +124,120 @@ msgstr ""
 msgid "Sefaria"
 msgstr ""
 
-#: reader/views.py:825
+#: reader/views.py:829
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
-#: reader/views.py:886
+#: reader/views.py:890
 msgid ""
 "Browse 1,000s of Jewish texts in the Sefaria Library by category and title."
 msgstr ""
 
-#: reader/views.py:892
+#: reader/views.py:896
 msgid "My Saved Content"
 msgstr ""
 
-#: reader/views.py:893
+#: reader/views.py:897
 msgid "See your saved content on Sefaria"
 msgstr ""
 
-#: reader/views.py:899
+#: reader/views.py:903
 msgid "My User History"
 msgstr ""
 
-#: reader/views.py:900
+#: reader/views.py:904
 msgid "See your user history on Sefaria"
 msgstr ""
 
-#: reader/views.py:906
+#: reader/views.py:910
 msgid "New Additions to the Sefaria Library"
 msgstr ""
 
-#: reader/views.py:907
+#: reader/views.py:911
 msgid ""
 "See texts, translations and connections that have been recently added to "
 "Sefaria."
 msgstr ""
 
-#: reader/views.py:913
-msgid "Sefaria Stories"
+#: reader/views.py:917 templates/static/aramaic-translation-contest.html:4
+#: templates/static/home.html:5 templates/static/shavuot-map-2018.html:4
+msgid "Sefaria: a Living Library of Jewish Texts Online"
 msgstr ""
 
-#: reader/views.py:920
+#: reader/views.py:918 templates/static/aramaic-translation-contest.html:6
+#: templates/static/home.html:7 templates/static/shavuot-map-2018.html:6
+msgid ""
+"The largest free library of Jewish texts available to read online in Hebrew "
+"and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
+"and more."
+msgstr ""
+
+#: reader/views.py:925
 msgid "Story Editor"
 msgstr ""
 
-#: reader/views.py:927
+#: reader/views.py:932
 msgid "User Stats"
 msgstr ""
 
-#: reader/views.py:932
+#: reader/views.py:937
 msgid "Sefaria Account"
 msgstr ""
 
-#: reader/views.py:940
+#: reader/views.py:945
 msgid "Sefaria Notifications"
 msgstr ""
 
-#: reader/views.py:947
+#: reader/views.py:952
 msgid "Moderator Tools"
 msgstr ""
 
-#: reader/views.py:1016
+#: reader/views.py:1004
+msgid "Sheets"
+msgstr ""
+
+#: reader/views.py:1035
 msgid "Texts"
 msgstr ""
 
-#: reader/views.py:3123 reader/views.py:3175
+#: reader/views.py:3144 reader/views.py:3197
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:4047 reader/views.py:4050
+#: reader/views.py:4088 reader/views.py:4091
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
 
-#: sefaria/forms.py:27 sefaria/forms.py:32 sefaria/forms.py:108
+#: sefaria/forms.py:28 sefaria/forms.py:33 sefaria/forms.py:124
 #: templates/static/aramaic-translation-contest.html:140
 #: templates/static/educators.html:359 templates/static/home.html:362
 #: templates/static/newsletter.html:24
 msgid "Email Address"
 msgstr ""
 
-#: sefaria/forms.py:28 sefaria/forms.py:35
+#: sefaria/forms.py:29 sefaria/forms.py:36
 msgid "Password"
 msgstr ""
 
-#: sefaria/forms.py:33
+#: sefaria/forms.py:34
 msgid "First Name"
 msgstr ""
 
-#: sefaria/forms.py:34
+#: sefaria/forms.py:35
 msgid "Last Name"
 msgstr ""
 
-#: sefaria/forms.py:36
+#: sefaria/forms.py:37
 msgid "I am an educator"
 msgstr ""
 
-#: sefaria/forms.py:64
+#: sefaria/forms.py:65
 msgid "A user with that email already exists."
+msgstr ""
+
+#: sefaria/forms.py:117
+msgid "Incorrect mobile_app_key provided"
 msgstr ""
 
 #: sefaria/model/group.py:73
@@ -233,10 +250,11 @@ msgstr ""
 msgid "Public Groups are required to have at least 3 public sheets."
 msgstr ""
 
-#: sefaria/views.py:129 sefaria/views.py:160
+#: sefaria/views.py:160 sefaria/views.py:191 templates/static/app.html:369
 #: templates/static/aramaic-translation-contest.html:189
 #: templates/static/educators.html:389 templates/static/educators.html:411
-#: templates/static/home.html:392 templates/static/newsletter.html:56
+#: templates/static/home.html:392 templates/static/mobile.html:369
+#: templates/static/newsletter.html:56
 msgid "Sorry, there was an error."
 msgstr ""
 
@@ -844,34 +862,38 @@ msgstr ""
 msgid "TBD"
 msgstr ""
 
-#: templates/static/aramaic-translation-contest.html:4
-#: templates/static/home.html:5 templates/static/shavuot-map-2018.html:4
-msgid "Sefaria: a Living Library of Jewish Texts Online"
+#: templates/static/app.html:4
+msgid "Sefaria App"
 msgstr ""
 
-#: templates/static/aramaic-translation-contest.html:6
-#: templates/static/home.html:7 templates/static/shavuot-map-2018.html:6
-msgid ""
-"The largest free library of Jewish texts available to read online in Hebrew "
-"and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries "
-"and more."
+#: templates/static/app.html:6
+msgid "Download the free Sefaria App for iOS and Android."
 msgstr ""
 
+#: templates/static/app.html:315 templates/static/mobile.html:315
+msgid "Sign up for our Newsletter"
+msgstr ""
+
+#: templates/static/app.html:360
 #: templates/static/aramaic-translation-contest.html:180
 #: templates/static/educators.html:380 templates/static/educators.html:403
-#: templates/static/home.html:383 templates/static/newsletter.html:47
+#: templates/static/home.html:383 templates/static/mobile.html:360
+#: templates/static/newsletter.html:47
 msgid "<i>Subscribing...</i>"
 msgstr ""
 
+#: templates/static/app.html:366
 #: templates/static/aramaic-translation-contest.html:186
 #: templates/static/educators.html:386 templates/static/educators.html:408
-#: templates/static/home.html:389 templates/static/newsletter.html:53
+#: templates/static/home.html:389 templates/static/mobile.html:366
+#: templates/static/newsletter.html:53
 msgid "Subscribed! Welcome to our list."
 msgstr ""
 
+#: templates/static/app.html:372
 #: templates/static/aramaic-translation-contest.html:192
 #: templates/static/educators.html:392 templates/static/home.html:395
-#: templates/static/newsletter.html:59
+#: templates/static/mobile.html:372 templates/static/newsletter.html:59
 msgid "Please enter a valid email address."
 msgstr ""
 

@@ -39,9 +39,11 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
+from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
@@ -213,7 +215,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "extended notes"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "Web Pages", "extended notes"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -1241,15 +1243,16 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+        stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
             try:
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
             except AttributeError as e:
                 oref = oref.default_child_ref()
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
             except NoVersionFoundError as e:
                 return {"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
@@ -1943,6 +1946,7 @@ def related_api(request, tref):
             "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
+            "webpages": get_webpages_for_ref(tref),
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -3176,6 +3180,37 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@catch_error_as_json
+def profile_upload_photo(request):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
+    if request.method == "POST":
+        from PIL import Image
+        from StringIO import StringIO
+        from sefaria.utils.util import epoch_time
+        now = epoch_time()
+        def get_resized_file(image, size):
+            resized_image = image.resize(size, resample=Image.LANCZOS)
+            resized_image_file = StringIO()
+            resized_image.save(resized_image_file, format="PNG")
+            resized_image_file.seek(0)
+            return resized_image_file
+        profile = UserProfile(id=request.user.id)
+        bucket_name = GoogleStorageManager.PROFILES_BUCKET
+        image = Image.open(request.FILES['file'])
+        old_big_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
+        old_small_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
+        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
+
+        profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
+        profile.save()
+        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
+        return jsonResponse({"urls": [big_pic_url, small_pic_url]})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 
 @api_view(["POST"])
 @catch_error_as_json
@@ -3369,7 +3404,7 @@ def home(request):
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
-    
+
     # show_feed = request.COOKIES.get("home_feed", None)
     show_feed = request.user.is_authenticated
 
@@ -3804,19 +3839,26 @@ def daf_yomi_redirect(request):
     return redirect(iri_to_uri("/" + daf_yomi["url"]), permanent=False)
 
 
-def random_ref():
+def random_ref(categories=None, titles=None):
     """
     Returns a valid random ref within the Sefaria library.
     """
 
     # refs = library.ref_list()
     # ref  = choice(refs)
-
+    if categories is not None or titles is not None:
+        if categories is None:
+            categories = set()
+        if titles is None:
+            titles = set()
+        all_indexes = filter(lambda x: x.title in titles or (x.get_primary_category() in categories), library.all_index_records())
+    else:
+        all_indexes = library.all_index_records()
     # picking by text first biases towards short texts
-    text = choice(VersionSet().distinct("title"))
+    index = choice(all_indexes)
     try:
-        # ref  = choice(VersionStateSet({"title": text}).all_refs()) # check for orphaned texts
-        ref = Ref(text).normal()
+        ref = choice(index.all_segment_refs()).normal() # check for orphaned texts
+        # ref = Ref(text).normal()
     except Exception:
         return random_ref()
     return ref
@@ -3841,7 +3883,9 @@ def random_text_api(request):
     """
     Return Texts API data for a random ref.
     """
-    response = redirect(iri_to_uri("/api/texts/" + random_ref()) + "?commentary=0", permanent=False)
+    categories = set(request.GET.get('categories', '').split('|'))
+    titles = set(request.GET.get('titles', '').split('|'))
+    response = redirect(iri_to_uri("/api/texts/" + random_ref(categories, titles)) + "?commentary=0&context=0", permanent=False)
     return response
 
 
@@ -4241,12 +4285,11 @@ def apple_app_site_association(request):
 
 def application_health_api(request):
     """
-    Defines the /healthz API endpoint which responds with 
-        200 if the appliation is ready for requests, 
+    Defines the /healthz API endpoint which responds with
+        200 if the appliation is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
         return http.HttpResponse("Healthy", status="200")
     else:
         return http.HttpResponse("Unhealthy", status="500")
-        

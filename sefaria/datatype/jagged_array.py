@@ -726,7 +726,7 @@ class JaggedIntArray(JaggedArray):
         if isinstance(a, list) and isinstance(b, list):
             return [JaggedIntArray._add(a2, b2) for a2, b2 in map(None, a, b)]
 
-        raise Exception("JaggedIntArray._sum() reached a condition it shouldn't have reached")
+        raise Exception("JaggedIntArray._add() reached a condition it shouldn't have reached")
 
     def depth_sum(self, depth):
         return self._depth_sum(self._store, depth)

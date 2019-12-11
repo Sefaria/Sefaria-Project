@@ -288,7 +288,7 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
     };
-    
+
     return settings;
   },
   getTextFromCache: function(ref, settings) {
@@ -478,7 +478,7 @@ Sefaria = extend(Sefaria, {
     let prev = Array(length);
     let next = Array(length);
     if (isSuperSection) {
-      // For supersections, correctly set next and prev on each section to skip empty content    
+      // For supersections, correctly set next and prev on each section to skip empty content
       let hasContent = Array(length);
       for (let i = 0; i < length; i++) {
         hasContent[i] = (!!en[i].length || !!he[i].length);
@@ -495,7 +495,7 @@ Sefaria = extend(Sefaria, {
     for (let i = 0; i < length; i++) {
       const ref          = data.ref + delim + (i+start);
       const segment_data = Sefaria.util.clone(data);
-      const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef 
+      const sectionRef =isSuperSection ? data.ref + delim + (i+1): data.sectionRef
       extend(segment_data, {
         ref: ref,
         heRef: data.heRef + delim + Sefaria.hebrew.encodeHebrewNumeral(i+start),
@@ -1245,6 +1245,39 @@ Sefaria = extend(Sefaria, {
       });
     });
   },
+  _webpages: {},
+  webPagesByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    var ref = Sefaria.normRefList(refs);
+    refs.map(r => {
+      // Also include webpages linked at section level. Deduped below. 
+      if (r.indexOf(":") !== -1) {
+        refs.push(r.slice(0, r.lastIndexOf(":"))); 
+      }
+    }, this);
+
+    var webpages = [];
+    refs.map(r => {
+      if (this._webpages[r]) { webpages = webpages.concat(this._webpages[r]); }
+    }, this);
+
+    webpages.map(page => page.isHebrew = Sefaria.hebrew.isHebrew(page.title));
+
+    return webpages.filter((obj, pos, arr) => {
+      // Remove duplicates by url field
+      return arr.map(mapObj => mapObj["url"]).indexOf(obj["url"]) === pos;
+    }).sort((a, b) => {
+      // Sort first by page language matching interface language
+      if (a.isHebrew !== b.isHebrew) { return (b.isHebrew ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
+
+      // 3: exact match, 2: range match: 1: section match
+      var aSpecificity, bSpecificity;
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
+      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+
+      return (a.linkerHits > b.linkerHits) ? -1 : 1
+    });
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
@@ -1272,14 +1305,15 @@ Sefaria = extend(Sefaria, {
           links: this._saveLinkData(ref, data.links),
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
+          webpages: this._saveItemsByRef(data.webpages, this._webpages),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1653,6 +1687,26 @@ Sefaria = extend(Sefaria, {
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
+  },
+  uploadProfilePhoto: (formData) => {
+    return new Promise((resolve, reject) => {
+      if (Sefaria._uid) {
+        $.ajax({
+          url: Sefaria.apiHost + "/api/profile/upload-photo",
+          type: 'post',
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function(data) {
+            resolve(data);
+          },
+          error: function(e) {
+            console.log("photo upload ERROR", e);
+            reject(e);
+          }
+        });
+      }
+    })
   },
   lastPlaceForText: function(title) {
     // Return the most recently visited item for text `title` or undefined if `title` is not present in last_place.
@@ -2086,6 +2140,7 @@ Sefaria = extend(Sefaria, {
       "Version Open": "גרסה פתוחה",
       "About": "אודות",
       "Current": "נוכחית",
+      "Web Pages": "דפי אינטרנט",
       "Select": "החלפת גרסה",
       "Members": "חברים",
       "Send": "שלח",
@@ -2144,13 +2199,14 @@ Sefaria = extend(Sefaria, {
       "Tell us what you think..." : "ספרו לנו מה אתם חושבים...",
       "Select Type" : "סוג משוב",
       "Added by" : "נוסף בידי",
-      "Join Sefaria.": "הצטרפו לספריא",
-      "Organize sources with sheets": "ארגנו מקורות במחולל דפי המקורות",
-      "Make notes": "רשמו הערות על טקסטים",
+      "Love Learning?": "אוהבים ללמוד?",
+      "Sign up to get more from Sefaria" : "הרשמו כדי לקבל יותר מספריא",
+      "Make source sheets": "הכינו דפי מקורות",
+      "Take notes": "שמרו הערות",
       "Save texts": "שמרו טקסטים לקריאה חוזרת",
       "Follow your favorite authors": "עקבו אחר הסופרים האהובים עליכם",
-      "Get updates on texts": "קבלו עדכונים על תוכן חדש",
-      "Create Your Account": "צרו חשבון",
+      "Stay in the know": "השארו מעודכנים",
+      "Sign Up": "הרשמו לספריא",
       "Already have an account?": "כבר יש לכם חשבון?",
       "Sign\u00A0in": "התחברו",
       "Save": "שמירת",
