@@ -105,9 +105,9 @@
                             {% endif %}
                         {% endif %}
 
-                        {% endif %}
-
                         <div class="line"></div>
+
+                        {% endif %}
 
                         <div class="optionItem" id="print" role="menuitem" tabindex="0">
                             <img src="{% static 'img/print.png' %}" alt="Print Icon">
@@ -116,6 +116,7 @@
                                 <span class="int-he">הדפסה</span>
                             </span>
                         </div>
+                        {% if not new_sheet %}
                         <div class="optionItem" id="visualize" role="menuitem" tabindex="0">
                             <i class="fa fa-picture-o"></i>
                             <span class="optionItemText">
@@ -125,7 +126,6 @@
                                 </a>
                             </span>
                         </div>
-                        {% if not new_sheet %}
                         <div class="optionItem" id="highlightToggle" role="menuitem" tabindex="0">
                             <i class="fa fa-pencil"></i>
                             <span class="optionItemText">
