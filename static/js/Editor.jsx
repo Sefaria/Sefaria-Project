@@ -28,7 +28,6 @@ const sheet_item_els = {
 
 const voidElements = [
     "ProfilePic",
-    "TextRef"
 ];
 
 const ELEMENT_TAGS = {
@@ -183,7 +182,7 @@ function renderSheetItem(source) {
                             ref: source.ref,
                             refText: source.heRef,
                             lang: "he",
-                            children: [{text: ""}]
+                            children: [{text: source.heRef}]
                         },
                         {
                             type: "he",
@@ -194,7 +193,7 @@ function renderSheetItem(source) {
                             ref: source.ref,
                             refText: source.ref,
                             lang: "en",
-                            children: [{text: ""}]
+                            children: [{text: source.ref}]
                         },
                         {
                             type: "en",
@@ -460,7 +459,7 @@ const Element = ({attributes, children, element}) => {
         case 'TextRef':
             return (
                 <div className={element.lang}>
-                    <div className="ref">{element.refText}{children}</div>
+                    <div className="ref">{children}</div>
                 </div>
             )
         case 'paragraph':
@@ -482,6 +481,20 @@ const Element = ({attributes, children, element}) => {
 
 }
 
+const isSelectionFocusAtEndOfSheetItem = (editor) => {
+  const focus = editor.selection.focus
+  const currentSheetItem = Node.closest(editor, focus.path, ([e]) => e.type == "SheetItem");
+  const lastNodeInSheetItem = Node.last(currentSheetItem[0],[])
+
+  // Check if cursor focus is in last node in sheet item
+  if (Path.compare(currentSheetItem[1].concat(lastNodeInSheetItem[1]), focus.path) == 0) {
+    if (lastNodeInSheetItem[0].text.length == focus.offset) {
+      return true
+    }
+  }
+  return false
+}
+
 const withSheetData = editor => {
     const {exec, isVoid} = editor;
     editor.isVoid = element => {
@@ -500,13 +513,8 @@ const withSheetData = editor => {
                     break
                 }
 
-                const path = editor.selection.focus.path;
+                console.log(isSelectionFocusAtEndOfSheetItem(editor))
 
-                const currentSheetItem = Node.closest(editor, path, ([e]) => e.type == "SheetItem");
-                const lastNodeInSheetItem = Node.last(currentSheetItem[0],[])
-                console.log(currentSheetItem)
-                console.log(lastNodeInSheetItem)
-                console.log(editor.selection)
 
   //              console.log(Path.compare(lastNodeInSheetItem[1], path));
 
@@ -784,6 +792,7 @@ const SefariaEditor = (props) => {
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
+
         setValue(value)
         setSelection(selection)
     }
@@ -809,7 +818,7 @@ const SefariaEditor = (props) => {
 
                 }
                 else {
-                  return editor.exec({type: 'enter_toggled'})
+                   return editor.exec({type: 'enter_toggled'})
                 }
 
             default: {
