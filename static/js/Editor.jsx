@@ -513,15 +513,27 @@ const withSheetData = editor => {
                     break
                 }
 
-                console.log(isSelectionFocusAtEndOfSheetItem(editor))
+                if(isSelectionFocusAtEndOfSheetItem(editor)) {
+                  const fragment = {
+                      type: "SheetItem",
+                      children: [{
+                          type: "SheetOutsideText",
+                          node: 9999,
+                          children: [{
+                              type: "paragraph",
+                              children: [{
+                                  text: "new paragraph"
+                              }]
+                          }],
 
-
-  //              console.log(Path.compare(lastNodeInSheetItem[1], path));
-
-    //            console.log(lastNodeInSheetItem[1], path)
-
-//                console.log(Point.isPoint(editor.selection.focus));
-
+                      }]
+                  };
+                  let nextSheetItemPath = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1];
+                  const newLastNode = nextSheetItemPath.pop() + 1
+                  nextSheetItemPath.push(newLastNode)
+                  console.log(nextSheetItemPath)
+                  return Editor.insertNodes(editor, fragment, {at: nextSheetItemPath})
+                }
                 exec(command);
                 break
             }
@@ -720,7 +732,6 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
                     "media": sheetItem.mediaUrl,
                     "node": sheetItem.node,
                 });
-                return;
 
             default:
                 console.log(sheetItem)
