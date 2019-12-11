@@ -570,7 +570,7 @@ Sefaria = extend(Sefaria, {
   },
   _shape: {}, // Cache for shape records
   getShape: function(title) {
-    return this._cachedPromiseAPI({
+    return this._cachedApiPromise({
         url:   this.apiHost + "/api/shape/" + title,
         key:   title,
         store: this._shape
@@ -691,7 +691,7 @@ Sefaria = extend(Sefaria, {
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly) {
     const trimmed_name = name.trim();
-    return this._cachedPromiseAPI({
+    return this._cachedApiPromise({
         url:   this.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""),
         key:   trimmed_name,
         store: refOnly? this._ref_lookups: this._lookups
@@ -1705,7 +1705,7 @@ Sefaria = extend(Sefaria, {
     return data;
   },
   getTopic: function(topic) {
-      return this._cachedPromiseAPI({
+      return this._cachedApiPromise({
           url:   this.apiHost + "/api/topics/" + topic,
           key:   topic,
           store: this._topics
@@ -1817,7 +1817,7 @@ Sefaria = extend(Sefaria, {
     },
     getSheetsByTag: function(tag, v2) {
       const url =  Sefaria.apiHost + "/api" + (v2 ? "/v2" : "") + "/sheets/tag/" + tag.replace("#", "%23");
-      return Sefaria._cachedPromiseAPI({
+      return Sefaria._cachedApiPromise({
           url:  url,
           store: this._sheetsByTag,
           key:   tag,
@@ -2289,7 +2289,7 @@ Sefaria = extend(Sefaria, {
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
   },
-  _cachedPromiseAPI: function({url, key, store}) {
+  _cachedApiPromise: function({url, key, store}) {
       // Checks store[key].  Resolves to this value, if present.
       // Otherwise, calls Promise(url), caches, and returns
       return (key in store) ?
