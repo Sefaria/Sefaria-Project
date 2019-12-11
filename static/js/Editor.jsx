@@ -502,6 +502,7 @@ const withSheetData = editor => {
     };
 
     editor.exec = command => {
+      console.log(command)
         switch (command.type) {
             case 'soft_linebreak': {
                 return editor.exec({ type: 'insert_text', text: '\n' })
@@ -509,7 +510,7 @@ const withSheetData = editor => {
             }
             case 'enter_toggled': {
                 if (!Range.isCollapsed(editor.selection)) {
-                    exec(command);
+                    Editor.splitNodes(editor, { always: true });
                     break
                 }
 
@@ -531,10 +532,9 @@ const withSheetData = editor => {
                   let nextSheetItemPath = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1];
                   const newLastNode = nextSheetItemPath.pop() + 1
                   nextSheetItemPath.push(newLastNode)
-                  console.log(nextSheetItemPath)
                   return Editor.insertNodes(editor, fragment, {at: nextSheetItemPath})
                 }
-                exec(command);
+                Editor.splitNodes(editor, { always: true })
                 break
             }
 
@@ -829,6 +829,7 @@ const SefariaEditor = (props) => {
 
                 }
                 else {
+                   event.preventDefault();
                    return editor.exec({type: 'enter_toggled'})
                 }
 
