@@ -46,7 +46,11 @@ google-cloud-storage
 cython
 django-easy-timezones
 <<<<<<< HEAD
+<<<<<<< HEAD
 mod_wsgi
 gunicorn
 =======
 >>>>>>> Update `web` dockerfile
+=======
+mod_wsgi
+>>>>>>> Add mod_wsgi support

@@ -8,11 +8,6 @@ COPY ./build/web/wsgi.whiskey /app/.whiskey
 COPY ./build/node/local_settings.json /app/node/local_settings.json
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && touch /app/dev-db.sqlite
 
-COPY ./requirements.txt ./
-COPY . /app/
-COPY ./build/web/wsgi.whiskey /app/.whiskey 
-RUN mkdir -p /app/log && mkdir -p /app/sefaria && touch /app/dev-db.sqlite
-
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE sefaria.settings
