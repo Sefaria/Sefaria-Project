@@ -111,6 +111,7 @@ export const deserialize = el => {
 
     const children = Array.from(parent.childNodes).map(deserialize)
 
+
     if (el.nodeName === 'BODY') {
         return jsx('fragment', {}, children)
     }
@@ -122,8 +123,9 @@ export const deserialize = el => {
 
     if (TEXT_TAGS[nodeName]) {
         const attrs = TEXT_TAGS[nodeName](el)
-        return jsx('text', attrs, children)
+        return children.map(child => jsx('text', attrs, child))
     }
+
 
     return children
 };
