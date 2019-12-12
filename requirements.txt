@@ -45,3 +45,4 @@ pytz
 google-cloud-storage
 cython
 django-easy-timezones
+mod_wsgi
