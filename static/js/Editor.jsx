@@ -502,15 +502,16 @@ const withSheetData = editor => {
     };
 
     editor.exec = command => {
-      console.log(command)
         switch (command.type) {
-            case 'soft_linebreak': {
-                return editor.exec({ type: 'insert_text', text: '\n' })
+            case 'insert_break': {
 
-            }
-            case 'enter_toggled': {
+                if (Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetTitle")) {
+                   editor.exec({ type: 'insert_text', text: '\n' })
+                   break
+                }
+
                 if (!Range.isCollapsed(editor.selection)) {
-                    Editor.splitNodes(editor, { always: true });
+                    exec(command)
                     break
                 }
 
@@ -519,11 +520,11 @@ const withSheetData = editor => {
                       type: "SheetItem",
                       children: [{
                           type: "SheetOutsideText",
-                          node: 9999,
+                          node: editor.children[0].nextNode,
                           children: [{
                               type: "paragraph",
                               children: [{
-                                  text: "new paragraph"
+                                  text: ""
                               }]
                           }],
 
@@ -532,9 +533,12 @@ const withSheetData = editor => {
                   let nextSheetItemPath = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1];
                   const newLastNode = nextSheetItemPath.pop() + 1
                   nextSheetItemPath.push(newLastNode)
-                  return Editor.insertNodes(editor, fragment, {at: nextSheetItemPath})
+                  Editor.setNodes(editor, { nextNode: editor.children[0].nextNode + 1 }, { at: [0] })
+                  Editor.insertNodes(editor, fragment, {at: nextSheetItemPath})
+                  Editor.move(editor)
+                  break
                 }
-                Editor.splitNodes(editor, { always: true })
+                exec(command)
                 break
             }
 
@@ -704,7 +708,7 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
                     "node": sheetItem.node,
                 };
                 return (source);
-            case 'OutsideBiText':
+            case 'SheetOutsideBiText':
                 let outsideBiText = {
                     "outsideBiText": {
                         "en": serialize(sheetItem.children.find(el => el.type == "en")),
@@ -750,8 +754,8 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
         options: doc.options,
         tags: doc.tags,
         title: sheetTitle,
-        sources: sources,
-        nextNode: nextSheetNode,
+        sources: sources.filter(x => !!x),
+        nextNode: doc.nextNode,
     };
 
     return JSON.stringify(sheet);
@@ -767,7 +771,6 @@ const SefariaEditor = (props) => {
     const [selection, setSelection] = useState(null)
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [nextSheetNode, setNextSheetMode] = useState(props.data.nextNode);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
 
     useEffect(
@@ -819,26 +822,6 @@ const SefariaEditor = (props) => {
         }
     };
 
-    const onKeyDown = event => {
-        switch (event.key) {
-            case 'Enter':
-                const path = editor.selection.focus.path;
-                if (Node.closest(editor, path, ([e]) => e.type == "SheetTitle")) {
-                    event.preventDefault();
-                    return editor.exec({type: 'soft_linebreak'})
-
-                }
-                else {
-                   event.preventDefault();
-                   return editor.exec({type: 'enter_toggled'})
-                }
-
-            default: {
-                return
-            }
-        }
-    };
-
 
     const editor = useMemo(
         () => withSheetData(withFormatting(withHistory(withReact(createEditor())))),
@@ -856,7 +839,6 @@ const SefariaEditor = (props) => {
                 placeholder="Enter a title…"
                 spellCheck
                 onDOMBeforeInput={beforeInput}
-                onKeyDown={onKeyDown}
             />
         </Slate>
     )
