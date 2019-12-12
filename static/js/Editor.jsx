@@ -1,8 +1,7 @@
 import React, {useCallback, useMemo, useState, useEffect, useRef} from 'react';
 import {jsx} from 'slate-hyperscript'
 import {withHistory} from 'slate-history'
-import {withSchema} from 'slate-schema'
-import {Editor, createEditor, Range, Node} from 'slate'
+import {Editor, createEditor, Range, Node, Point, Path} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate} from 'slate-react'
 
 
@@ -29,7 +28,6 @@ const sheet_item_els = {
 
 const voidElements = [
     "ProfilePic",
-    "TextRef"
 ];
 
 const ELEMENT_TAGS = {
@@ -113,6 +111,7 @@ export const deserialize = el => {
 
     const children = Array.from(parent.childNodes).map(deserialize)
 
+
     if (el.nodeName === 'BODY') {
         return jsx('fragment', {}, children)
     }
@@ -124,8 +123,9 @@ export const deserialize = el => {
 
     if (TEXT_TAGS[nodeName]) {
         const attrs = TEXT_TAGS[nodeName](el)
-        return jsx('text', attrs, children)
+        return children.map(child => jsx('text', attrs, child))
     }
+
 
     return children
 };
@@ -184,7 +184,7 @@ function renderSheetItem(source) {
                             ref: source.ref,
                             refText: source.heRef,
                             lang: "he",
-                            children: [{text: ""}]
+                            children: [{text: source.heRef}]
                         },
                         {
                             type: "he",
@@ -195,7 +195,7 @@ function renderSheetItem(source) {
                             ref: source.ref,
                             refText: source.ref,
                             lang: "en",
-                            children: [{text: ""}]
+                            children: [{text: source.ref}]
                         },
                         {
                             type: "en",
@@ -461,7 +461,7 @@ const Element = ({attributes, children, element}) => {
         case 'TextRef':
             return (
                 <div className={element.lang}>
-                    <div className="ref">{element.refText}</div>
+                    <div className="ref">{children}</div>
                 </div>
             )
         case 'paragraph':
@@ -483,27 +483,165 @@ const Element = ({attributes, children, element}) => {
 
 }
 
+const isSelectionFocusAtEndOfSheetItem = (editor) => {
+  const focus = editor.selection.focus
+  const currentSheetItem = Node.closest(editor, focus.path, ([e]) => e.type == "SheetItem");
+  const lastNodeInSheetItem = Node.last(currentSheetItem[0],[])
+
+  // Check if cursor focus is in last node in sheet item
+  if (Path.compare(currentSheetItem[1].concat(lastNodeInSheetItem[1]), focus.path) == 0) {
+    if (lastNodeInSheetItem[0].text.length == focus.offset) {
+      return true
+    }
+  }
+  return false
+}
+
+const getNextSheetItemPath = (curPath) => {
+    let path = curPath
+    const newLastNode = path.pop() + 1
+    path.push(newLastNode)
+    return path
+}
+
+
+
+const getFirstSefRefInRange = (editor, activeSheetItem) => {
+  const textContent = Node.text(Node.get(editor, activeSheetItem));
+  const titles = Sefaria.titlesInText(textContent);
+  if (titles.length == 0) {return null}
+  const refRe = Sefaria.makeRefRe(titles)
+
+  const match = refRe.exec(textContent);
+  if (match) {
+      return match;
+  }
+  return null
+}
+
+
 const withSheetData = editor => {
     const {exec, isVoid} = editor;
     editor.isVoid = element => {
-        return (element.type in voidElements) ? true : isVoid(element)
+        return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
 
     editor.exec = command => {
         switch (command.type) {
-            case 'soft_linebreak': {
-                return editor.exec({ type: 'insert_text', text: '\n' })
 
-            }
-            case 'enter_toggled': {
-                if (!Range.isCollapsed(editor.selection)) {
-                    exec(command);
+            case 'insert_sheetItem': {
+              switch (command.sheetItemType) {
+                case 'SheetOutsideText': {
+                  const fragment = {
+                      type: "SheetItem",
+                      children: [{
+                          type: "SheetOutsideText",
+                          node: editor.children[0].nextNode,
+                          children: [{
+                              type: "paragraph",
+                              children: [{
+                                  text: ""
+                              }]
+                          }],
+
+                      }]
+                  };
+                  const nextSheetItemPath = getNextSheetItemPath(command.activeSheetItem);
+                  Editor.setNodes(editor, { nextNode: editor.children[0].nextNode + 1 }, { at: [0] })
+                  Editor.insertNodes(editor, fragment, {at: nextSheetItemPath})
+                  Editor.move(editor)
+                  break
+
+                }
+
+                case 'SheetSource': {
+                  console.log(command.sefRef)
+                  console.log(Sefaria.splitRangingRef(command.sefRef));
+
+                  Sefaria.getText(command.sefRef).then(text => {
+                      console.log(text)
+                      const enText =  Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
+                      const heText =  Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
+
+                      const fragment = {
+                          type: "SheetItem",
+                          children: [{
+                              type: "SheetSource",
+                              node: editor.children[0].nextNode,
+                              ref: text.ref,
+                              heRef: text.heRef,
+                              title: null,
+                              children: [
+                                  {
+                                      type: "TextRef",
+                                      ref: text.ref,
+                                      refText: text.heRef,
+                                      lang: "he",
+                                      children: [{text: text.heRef}]
+                                  },
+                                  {
+                                      type: "he",
+                                      children: parseSheetItemHTML(heText)
+                                  },
+                                  {
+                                      type: "TextRef",
+                                      ref: text.ref,
+                                      refText: text.ref,
+                                      lang: "en",
+                                      children: [{text: text.ref}]
+                                  },
+                                  {
+                                      type: "en",
+                                      children: parseSheetItemHTML(enText)
+                                  }
+                              ]
+
+                          }]
+                      };
+
+                      Editor.setNodes(editor, { nextNode: editor.children[0].nextNode + 1 }, { at: [0] })
+                      Editor.insertNodes(editor, fragment, {at: command.activeSheetItem})
+                      Editor.removeNodes(editor, { at: getNextSheetItemPath(command.activeSheetItem) })
+                  });
+                  break
+                }
+
+                default: {
                     break
                 }
 
-                const path = editor.selection.focus.path;
-                console.log(Node.closest(editor, path, ([e]) => e.type == "SheetItem"));
-                exec(command);
+
+              }
+              break
+            }
+
+            case 'insert_break': {
+
+                if (Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetTitle")) {
+                   editor.exec({ type: 'insert_text', text: '\n' })
+                   break
+                }
+
+                if (!Range.isCollapsed(editor.selection)) {
+                    exec(command)
+                    break
+                }
+
+                if(isSelectionFocusAtEndOfSheetItem(editor)) {
+                  const activeSheetItem = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1]
+
+                  const matchingRef = getFirstSefRefInRange(editor, activeSheetItem)
+
+                  if (matchingRef && matchingRef[0] == matchingRef.input) {
+                    editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetSource', activeSheetItem: activeSheetItem, sefRef: matchingRef[0]})
+                    break
+                }
+
+
+                  editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetOutsideText', activeSheetItem: activeSheetItem})
+                  break
+                }
+                exec(command)
                 break
             }
 
@@ -644,7 +782,7 @@ const FormatButton = ({format}) => {
 
 }
 
-function saveSheetContent(doc, lastModified, nextSheetNode) {
+function saveSheetContent(doc, lastModified) {
 
     const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
 
@@ -673,7 +811,7 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
                     "node": sheetItem.node,
                 };
                 return (source);
-            case 'OutsideBiText':
+            case 'SheetOutsideBiText':
                 let outsideBiText = {
                     "outsideBiText": {
                         "en": serialize(sheetItem.children.find(el => el.type == "en")),
@@ -701,7 +839,6 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
                     "media": sheetItem.mediaUrl,
                     "node": sheetItem.node,
                 });
-                return;
 
             default:
                 console.log(sheetItem)
@@ -720,8 +857,8 @@ function saveSheetContent(doc, lastModified, nextSheetNode) {
         options: doc.options,
         tags: doc.tags,
         title: sheetTitle,
-        sources: sources,
-        nextNode: nextSheetNode,
+        sources: sources.filter(x => !!x),
+        nextNode: doc.nextNode,
     };
 
     return JSON.stringify(sheet);
@@ -737,9 +874,7 @@ const SefariaEditor = (props) => {
     const [selection, setSelection] = useState(null)
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [nextSheetNode, setNextSheetMode] = useState(props.data.nextNode);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
-
 
     useEffect(
         () => {
@@ -760,12 +895,12 @@ const SefariaEditor = (props) => {
     );
 
     function saveDocument(doc) {
-        const json = saveSheetContent(doc[0], lastModified, nextSheetNode);
+        const json = saveSheetContent(doc[0], lastModified);
         console.log('saving...')
 
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
-            //console.log("saved at: "+ res.dateModified);
+            console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
         });
     }
@@ -774,6 +909,7 @@ const SefariaEditor = (props) => {
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
+
         setValue(value)
         setSelection(selection)
     }
@@ -786,22 +922,6 @@ const SefariaEditor = (props) => {
                 return editor.exec({type: 'toggle_format', format: 'italic'});
             case 'formatUnderline':
                 return editor.exec({type: 'toggle_format', format: 'underline'})
-        }
-    };
-
-    const onKeyDown = event => {
-        switch (event.key) {
-            case 'Enter':
-                const path = editor.selection.focus.path;
-                if (Node.closest(editor, path, ([e]) => e.type == "SheetTitle")) {
-                    event.preventDefault();
-                    return editor.exec({type: 'soft_linebreak'})
-
-                };
-                return
-            default: {
-                return
-            }
         }
     };
 
@@ -822,8 +942,6 @@ const SefariaEditor = (props) => {
                 placeholder="Enter a title…"
                 spellCheck
                 onDOMBeforeInput={beforeInput}
-                onKeyDown={onKeyDown}
-
             />
         </Slate>
     )
