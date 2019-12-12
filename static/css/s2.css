@@ -727,6 +727,10 @@ input.noselect {
 .ui-helper-hidden-accessible {
   display: none;
 }
+.interface-hebrew .ui-autocomplete .ui-menu-item a {
+  direction: rtl;
+  text-align: right;
+}
 #globalWarningMessage {
   position: fixed;
   width: 100%;
