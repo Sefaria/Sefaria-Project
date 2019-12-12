@@ -495,6 +495,29 @@ const isSelectionFocusAtEndOfSheetItem = (editor) => {
   return false
 }
 
+const getNextSheetItemPath = (curPath) => {
+    let path = curPath
+    const newLastNode = path.pop() + 1
+    path.push(newLastNode)
+    return path
+}
+
+
+
+const getFirstSefRefInRange = (editor, activeSheetItem) => {
+  const textContent = Node.text(Node.get(editor, activeSheetItem));
+  const titles = Sefaria.titlesInText(textContent);
+  if (titles.length == 0) {return null}
+  const refRe = Sefaria.makeRefRe(titles)
+
+  const match = refRe.exec(textContent);
+  if (match) {
+      return match;
+  }
+  return null
+}
+
+
 const withSheetData = editor => {
     const {exec, isVoid} = editor;
     editor.isVoid = element => {
@@ -503,19 +526,10 @@ const withSheetData = editor => {
 
     editor.exec = command => {
         switch (command.type) {
-            case 'insert_break': {
 
-                if (Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetTitle")) {
-                   editor.exec({ type: 'insert_text', text: '\n' })
-                   break
-                }
-
-                if (!Range.isCollapsed(editor.selection)) {
-                    exec(command)
-                    break
-                }
-
-                if(isSelectionFocusAtEndOfSheetItem(editor)) {
+            case 'insert_sheetItem': {
+              switch (command.sheetItemType) {
+                case 'SheetOutsideText': {
                   const fragment = {
                       type: "SheetItem",
                       children: [{
@@ -530,12 +544,99 @@ const withSheetData = editor => {
 
                       }]
                   };
-                  let nextSheetItemPath = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1];
-                  const newLastNode = nextSheetItemPath.pop() + 1
-                  nextSheetItemPath.push(newLastNode)
+                  const nextSheetItemPath = getNextSheetItemPath(command.activeSheetItem);
                   Editor.setNodes(editor, { nextNode: editor.children[0].nextNode + 1 }, { at: [0] })
                   Editor.insertNodes(editor, fragment, {at: nextSheetItemPath})
                   Editor.move(editor)
+                  break
+
+                }
+
+                case 'SheetSource': {
+                  console.log(command.sefRef)
+                  console.log(Sefaria.splitRangingRef(command.sefRef));
+
+                  Sefaria.getText(command.sefRef).then(text => {
+                      console.log(text)
+                      const enText =  Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
+                      const heText =  Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
+
+                      const fragment = {
+                          type: "SheetItem",
+                          children: [{
+                              type: "SheetSource",
+                              node: editor.children[0].nextNode,
+                              ref: text.ref,
+                              heRef: text.heRef,
+                              title: null,
+                              children: [
+                                  {
+                                      type: "TextRef",
+                                      ref: text.ref,
+                                      refText: text.heRef,
+                                      lang: "he",
+                                      children: [{text: text.heRef}]
+                                  },
+                                  {
+                                      type: "he",
+                                      children: parseSheetItemHTML(heText)
+                                  },
+                                  {
+                                      type: "TextRef",
+                                      ref: text.ref,
+                                      refText: text.ref,
+                                      lang: "en",
+                                      children: [{text: text.ref}]
+                                  },
+                                  {
+                                      type: "en",
+                                      children: parseSheetItemHTML(enText)
+                                  }
+                              ]
+
+                          }]
+                      };
+
+                      Editor.setNodes(editor, { nextNode: editor.children[0].nextNode + 1 }, { at: [0] })
+                      Editor.insertNodes(editor, fragment, {at: command.activeSheetItem})
+                      Editor.removeNodes(editor, { at: getNextSheetItemPath(command.activeSheetItem) })
+                  });
+                  break
+                }
+
+                default: {
+                    break
+                }
+
+
+              }
+              break
+            }
+
+            case 'insert_break': {
+
+                if (Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetTitle")) {
+                   editor.exec({ type: 'insert_text', text: '\n' })
+                   break
+                }
+
+                if (!Range.isCollapsed(editor.selection)) {
+                    exec(command)
+                    break
+                }
+
+                if(isSelectionFocusAtEndOfSheetItem(editor)) {
+                  const activeSheetItem = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1]
+
+                  const matchingRef = getFirstSefRefInRange(editor, activeSheetItem)
+
+                  if (matchingRef && matchingRef[0] == matchingRef.input) {
+                    editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetSource', activeSheetItem: activeSheetItem, sefRef: matchingRef[0]})
+                    break
+                }
+
+
+                  editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetOutsideText', activeSheetItem: activeSheetItem})
                   break
                 }
                 exec(command)
@@ -679,7 +780,7 @@ const FormatButton = ({format}) => {
 
 }
 
-function saveSheetContent(doc, lastModified, nextSheetNode) {
+function saveSheetContent(doc, lastModified) {
 
     const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
 
@@ -792,7 +893,7 @@ const SefariaEditor = (props) => {
     );
 
     function saveDocument(doc) {
-        const json = saveSheetContent(doc[0], lastModified, nextSheetNode);
+        const json = saveSheetContent(doc[0], lastModified);
         console.log('saving...')
 
         $.post("/api/sheets/", {"json": json}, res => {
