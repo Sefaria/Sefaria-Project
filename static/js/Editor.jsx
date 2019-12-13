@@ -558,7 +558,6 @@ const withSheetData = editor => {
       const defaultMetaDataBox = {type: 'SheetMetaDataBox', children: [defaultSheetTitle, defaultSheetAuthorStatement, defaultGroupStatement]}
 
       if (node.type === 'Sheet') {
-        console.log(path, node)
         if(node.children[1].type != "SheetContent") {
             const fragment = {type: "SheetContent", children: [emptyOutsideText]}
             Editor.insertNodes(editor, fragment, { at: path.concat(1)})
@@ -1019,6 +1018,20 @@ const SefariaEditor = (props) => {
         }
     };
 
+    const onKeyDown = event => {
+      if (event.key == " ") {
+      if(isSelectionFocusAtEndOfSheetItem(editor)) {
+        const activeSheetItem = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1]
+        const matchingRef = getFirstSefRefInRange(editor, activeSheetItem)
+
+        if (matchingRef && matchingRef[0] == matchingRef.input) {
+          editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetSource', activeSheetItem: activeSheetItem, sefRef: matchingRef[0]})
+      }
+    }
+
+    }
+  };
+
 
     const editor = useMemo(
         () => withSheetData(withLinks(withFormatting(withHistory(withReact(createEditor()))))),
@@ -1035,6 +1048,7 @@ const SefariaEditor = (props) => {
                 renderElement={renderElement}
                 placeholder="Enter a title…"
                 spellCheck
+                onKeyDown={onKeyDown}
                 onDOMBeforeInput={beforeInput}
             />
         </Slate>
