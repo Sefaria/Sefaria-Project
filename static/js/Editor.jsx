@@ -314,6 +314,12 @@ function transformSheetJsonToDraft(sheet) {
             promptedToPublish: sheet.promptedToPublish,
             options: sheet.options,
             nextNode: sheet.nextNode,
+            authorUrl: sheet.ownerProfileUrl,
+            authorStatement: sheet.ownerName,
+            authorImage: sheet.ownerImageUrl,
+            title: sheetTitle,
+            group: sheet.group,
+            groupLogo: sheet.groupLogo,
 
             children: [
                 {
@@ -535,10 +541,75 @@ const getFirstSefRefInRange = (editor, activeSheetItem) => {
 
 
 const withSheetData = editor => {
-    const {exec, isVoid} = editor;
+    const {exec, isVoid, normalizeNode} = editor;
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
+
+    editor.normalizeNode = ([node, path]) => {
+      // const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
+      //
+      // const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
+      const sheet = editor.children[0]
+      const emptyOutsideText = {type: "SheetItem", children: [{type: "SheetOutsideText",node: 1, children: [{type: "paragraph", children: [{text: ""}]}],}]}
+      const defaultSheetTitle = {type: 'SheetTitle', title: sheet.title, children: [{text: sheet.title}]}
+      const defaultSheetAuthorStatement = {type: 'SheetAuthorStatement', authorUrl: sheet.authorUrl, authorStatement: sheet.authorStatement, children: [{type: 'ProfilePic', authorImage: sheet.authorImage, authorStatement: sheet.authorStatement, children: [{text: ''}]}, {text: ''}]}
+      const defaultGroupStatement = {type: 'GroupStatement', group: sheet.group, groupLogo: sheet.groupLogo, children: [{text: sheet.group}]}
+      const defaultMetaDataBox = {type: 'SheetMetaDataBox', children: [defaultSheetTitle, defaultSheetAuthorStatement, defaultGroupStatement]}
+      
+      if (node.type === 'Sheet') {
+        console.log(path, node)
+        if(node.children[1].type != "SheetContent") {
+            const fragment = {type: "SheetContent", children: [emptyOutsideText]}
+            Editor.insertNodes(editor, fragment, { at: path.concat(1)})
+        }
+        if(node.children[0].type != "SheetMetaDataBox") {
+            Editor.insertNodes(editor, defaultMetaDataBox, { at: path.concat(0)})
+        }
+        if (node.children.length > 2) {
+            Editor.removeNodes(editor, {at: [0,2]})
+        }
+      }
+
+      if (node.type === 'SheetMetaDataBox') {
+        if (node.children[0].type !== 'SheetTitle' || node.children[1].type !== 'SheetAuthorStatement' || node.children[2].type !== 'GroupStatement') {
+          Editor.insertNodes(editor, defaultMetaDataBox, { at: path})
+        }
+      }
+
+      if (node.type === 'SheetContent') {
+        if (node.children.length ==0) {
+          const fragment = emptyOutsideText
+          Editor.insertNodes(editor, fragment, { at: path.concat(0)})
+        }
+      }
+
+
+      // if (path.length === 0) { //start at editor level -- one above sheet
+      //   if (editor.children.length > 1) {
+      //     console.log("need to deal with extra nodes beyond sheet")
+      //   }
+      //
+      //   if (editor.children.length < 2) {
+      //     const paragraph = { type: 'paragraph', children: [{ text: '' }] }
+      //     // Editor.insertNodes(editor, paragraph, { at: path.concat(1) })
+      //   }
+      //
+      //   for (const [child, childPath] of Node.children(editor, path)) {
+      //     const type = childPath[0] === 0 ? 'title' : 'paragraph'
+      //
+      //     if (child.type !== type) {
+      //       // Editor.setNodes(editor, { type }, { at: childPath })
+      //     }
+      //   }
+      // }
+
+      return normalizeNode([node, path])
+    }
+
+
+
+
 
     editor.exec = command => {
       // console.log(command)
