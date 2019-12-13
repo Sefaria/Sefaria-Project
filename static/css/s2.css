@@ -6361,7 +6361,7 @@ span.purim-emoji img{
 }
 
 .sheetItem .SheetSource {
-  border-left: 4px solid #004E5F;
+  border-left: 4px solid;
   margin-left: -34px;
   padding-left: 34px;
 }

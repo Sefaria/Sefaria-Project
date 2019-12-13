@@ -392,7 +392,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'SheetSource':
             return (
-                <div className="SheetSource" {...attributes}>
+                <div className="SheetSource" {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
                     {children}
                 </div>
             );
@@ -556,7 +556,7 @@ const withSheetData = editor => {
       const defaultSheetAuthorStatement = {type: 'SheetAuthorStatement', authorUrl: sheet.authorUrl, authorStatement: sheet.authorStatement, children: [{type: 'ProfilePic', authorImage: sheet.authorImage, authorStatement: sheet.authorStatement, children: [{text: ''}]}, {text: ''}]}
       const defaultGroupStatement = {type: 'GroupStatement', group: sheet.group, groupLogo: sheet.groupLogo, children: [{text: sheet.group}]}
       const defaultMetaDataBox = {type: 'SheetMetaDataBox', children: [defaultSheetTitle, defaultSheetAuthorStatement, defaultGroupStatement]}
-      
+
       if (node.type === 'Sheet') {
         console.log(path, node)
         if(node.children[1].type != "SheetContent") {
