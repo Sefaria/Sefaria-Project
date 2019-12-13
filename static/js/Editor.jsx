@@ -31,7 +31,7 @@ const voidElements = [
 ];
 
 const ELEMENT_TAGS = {
-    A: el => ({type: 'link', url: el.getAttribute('href')}),
+    A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref')}),
     BLOCKQUOTE: () => ({type: 'quote'}),
     H1: () => ({type: 'heading-one'}),
     H2: () => ({type: 'heading-two'}),
@@ -136,7 +136,6 @@ export const deserialize = el => {
 
 export const serialize = (content) => {
     //serialize formatting to html
-
     if (content.text) {
         const tagStringObj = Object.keys(content).reduce((tagString, key) => {
             if (content[key] == true) {
@@ -149,6 +148,16 @@ export const serialize = (content) => {
         }, {preTags: "", postTags: ""});
 
         return (`${tagStringObj.preTags}${content.text}${tagStringObj.postTags}`)
+    }
+
+    if (content.type == "link") {
+      const linkHTML =  content.children.reduce((acc, text) => {
+          return (acc + serialize(text))
+      },"");
+
+      return(content.ref ?
+        `<a href="${content.url}" class="refLink" data-ref="${content.ref}">${linkHTML}</a>`
+      : `<a href="${content.url}">${linkHTML}</a>`)
     }
 
     //serialize paragraphs to <p>...</p>
@@ -476,7 +485,12 @@ const Element = ({attributes, children, element}) => {
             return (
                 <li>{children}</li>
             );
-
+        case 'link':
+          return (
+            <a {...attributes} href={element.url}>
+              {children}
+            </a>
+          )
         default:
             return <div>{children}</div>
     }
@@ -527,6 +541,7 @@ const withSheetData = editor => {
     };
 
     editor.exec = command => {
+      // console.log(command)
         switch (command.type) {
 
             case 'insert_sheetItem': {
@@ -555,11 +570,7 @@ const withSheetData = editor => {
                 }
 
                 case 'SheetSource': {
-                  console.log(command.sefRef)
-                  console.log(Sefaria.splitRangingRef(command.sefRef));
-
                   Sefaria.getText(command.sefRef).then(text => {
-                      console.log(text)
                       const enText =  Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
                       const heText =  Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
 
@@ -601,7 +612,9 @@ const withSheetData = editor => {
 
                       Editor.setNodes(editor, { nextNode: editor.children[0].nextNode + 1 }, { at: [0] })
                       Editor.insertNodes(editor, fragment, {at: command.activeSheetItem})
-                      Editor.removeNodes(editor, { at: getNextSheetItemPath(command.activeSheetItem) })
+                      editor.exec({ type: 'delete_backward', unit: 'line'})
+                      editor.exec({ type: 'delete_backward', unit: 'character'})
+                      // Editor.removeNodes(editor, { at: getNextSheetItemPath(command.activeSheetItem) })
                   });
                   break
                 }
@@ -655,6 +668,16 @@ const withSheetData = editor => {
 
     return editor
 }
+
+const withLinks = editor => {
+  const { exec, isInline } = editor
+
+  editor.isInline = element => {
+    return element.type === 'link' ? true : isInline(element)
+  }
+  return editor
+}
+
 
 const withFormatting = editor => {
     const {exec} = editor
@@ -927,7 +950,7 @@ const SefariaEditor = (props) => {
 
 
     const editor = useMemo(
-        () => withSheetData(withFormatting(withHistory(withReact(createEditor())))),
+        () => withSheetData(withLinks(withFormatting(withHistory(withReact(createEditor()))))),
         []
     );
 
