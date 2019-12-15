@@ -53,7 +53,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:
-        com["compDate"] = int(compDate)
+        try:
+            com["compDate"] = int(compDate)
+        except ValueError:
+            pass
         try:
             com["errorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
         except ValueError:
