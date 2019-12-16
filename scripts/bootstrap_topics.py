@@ -5,6 +5,7 @@ from collections import defaultdict
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
+from sefaria.helper.topic import generate_topic_links_from_sheets
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
     cin = csv.DictReader(fin)
@@ -23,11 +24,13 @@ with open("data/source_sheet_cats.csv", 'r') as fin:
         fallback_sheet_cat_map[row['Tag']] = cat
 
 
-def do_topics():
-    db.topics.drop()
-    db.topics.create_index('slug')
-    db.topics.create_index('isTopLevelDisplay')
+def do_topics(dry_run=False):
+    if not dry_run:
+        db.topics.drop()
+        db.topics.create_index('slug')
+        db.topics.create_index('isTopLevelDisplay')
     slug_to_sheet_map = defaultdict(list)
+    tag_to_slug_map = {}
     term_to_slug_map = {}
     invalid_term_to_slug_map = {}
     for t in tqdm(topics, desc="topics"):
@@ -86,15 +89,45 @@ def do_topics():
                     invalid_terms += [sheet_tag]
                     continue
             valid_terms += [term.name]
-            for title in term.titles:
+            term_prime_titles = {
+                "en": term.get_primary_title('en'),
+                "he": term.get_primary_title('he')
+            }
+            titles += list(filter(lambda x: x['text'] not in title_set, term.titles))
+            for title in titles:
+                if title.get('primary', False) and title['text'] != term_prime_titles[title['lang']] and len(term_prime_titles[title['lang']]) > 0:
+                    # remove primary status from existing title
+                    del title['primary']
+                elif not title.get('primary', False) and title['text'] == term_prime_titles[title['lang']]:
+                    title['primary'] = True
                 if title['text'] not in title_set:
-                    titles += [{
-                        'text': title['text'],
-                        'lang': title['lang']
-                    }]
+                    title['fromSheet'] = True
+        # remove duplicate titles
+        title_tup_dict = {}
+        for title in titles:
+            title_key = (title['text'], title['lang'], title.get('primary', False))
+            if title_key not in title_tup_dict:
+                title_tup_dict[title_key] = title
+        titles = list(title_tup_dict.values())
+
+        # remove "A ..." from topic names
+        for title in titles:
+            if title['lang'] == 'en' and re.match(r'An? [A-Za-z\'"]', title['text']):
+                title['text'] = re.sub(r'^An? ', '', title['text'])
+
+        # validate there's exactly one primary title per language
+        primaries = {"prim_en": 0, "prim_he": 0, "he": 0, "en": 0}
+        for title in titles:
+            primaries[title['lang']] += 1
+            if title.get('primary', False):
+                primaries["prim_" + title['lang']] +=1
+        if primaries['he'] > 0 and primaries['prim_he'] != 1:
+            print("{} he primaries for {}".format(primaries['prim_he'], t['id']))
+        if primaries['en'] > 0 and primaries['prim_en'] != 1:
+            print("{} en primaries for {}".format(primaries['prim_en'], t['id']))
         main_en = None
         for title in titles:
-            if title['lang'] == 'en' and title['primary']:
+            if title['lang'] == 'en' and title.get('primary', False):
                 main_en = title['text']
                 break
         if main_en is None:
@@ -129,11 +162,17 @@ def do_topics():
                 'en': t['description'],
                 'he': None
             }
-        ot = Topic(attrs)
-        ot.save()
+        if dry_run:
+            ot = Topic().load({"alt_ids._temp_id": t['id']})
+        else:
+            ot = Topic(attrs)
+            ot.save()
         for sheet_tag in t.get('source_sheet_tags', []):
             for sheet in db.sheets.find({"tags": sheet_tag}):
                 slug_to_sheet_map[ot.slug] += [sheet['id']]
+            if tag_to_slug_map.get(sheet_tag, False):
+                print("TAG TO SLUG ALREADY EXISTS!!!", sheet_tag, ot.slug, tag_to_slug_map[sheet_tag])
+            tag_to_slug_map[sheet_tag] = ot.slug
         for term_name in valid_terms:
             term_to_slug_map[term_name] = ot.slug
         for tag in invalid_terms:
@@ -144,22 +183,22 @@ def do_topics():
     top_toc_dedupper = {
         "Philosophy": "philosophy",
         "Tanakh": "the-holy-books-bible",
-        "Prayer": "tefillah",
+        "Prayer": "liturgy",
         "Food": "food",
-        "Israel": "erets-yisrael",
+        "Israel": "israel",
         "Language": "language",
-        "Education": "education-or-training",
+        "Education": "education",
         "Art": "artistic-process",
         "History": "historical-event",
         "Calendar": "calendar",
         "Science": "science",
-        "Medicine": "healing-or-medicine",
+        "Medicine": "healing",
         "Religion": "theology",
         "Folklore": "aggadah",
         "Geography": "geographic-site",
         "Law": "law",
         "Texts": "source",
-        "Torah Portions": "parshah"
+        "Torah Portions": "parasha"
     }
     for top_toc in TermSet({"scheme": "Tag Category"}):
         attrs = {
@@ -172,6 +211,9 @@ def do_topics():
         dedup_slug = top_toc_dedupper.get(top_toc.name, False)
         if dedup_slug:
             ot = Topic().load({"slug": dedup_slug})
+            if ot is None:
+                print("Dedup Slug is None", dedup_slug, top_toc.name)
+                continue
             for t in ot.titles:
                 if t.get('primary', False):
                     del t['primary']
@@ -181,8 +223,24 @@ def do_topics():
             setattr(ot, 'displayOrder', attrs['displayOrder'])
         else:
             ot = Topic(attrs)
+        if not dry_run:
+            ot.save()
+    # Uncategorized topic
+    ot = Topic({
+        "slug": "_uncategorized",
+        "titles": [{
+            "text": "_Uncategorized",
+            "lang": "en",
+            "primary": True,
+        },{
+            "text": "_Uncategorized",
+            "lang": "he",
+            "primary": True,
+        }]
+    })
+    if not dry_run:
         ot.save()
-    return slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map
+    return slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map
 
 
 def do_topic_link_types():
@@ -192,7 +250,7 @@ def do_topic_link_types():
             continue
         attrs = {
             'slug': edge_type['Edge'],
-            'inverseSlug': edge_type['Edge Inverse'],
+            'inverseSlug': edge_type['Edge Inverse'].replace(' ', '-'),
             'displayName': {
                 'en': titlecase(edge_type['Edge']),
                 'he': titlecase(edge_type['Edge'])
@@ -275,7 +333,8 @@ def do_data_source():
 def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
     edge_inverses = set()
     for edge_type in edge_types:
-        if len(edge_type["Edge Inverse"]) == 0:
+        # don't exclude bi-directional edges!
+        if len(edge_type["Edge Inverse"]) == 0 or edge_type["Edge Inverse"] == edge_type["Edge"]:
             continue
         edge_inverses.add(edge_type['Edge Inverse'])
     for t in tqdm(topics, desc="intraTopic links"):
@@ -301,6 +360,9 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
     # displays-under links
     for top_term in tqdm(TermSet({"scheme": "Tag Category"}), desc="valid intraTopic terms"):
         top_topic = Topic().load({"alt_ids._temp_toc_id": top_term.name})
+        if top_topic is None:
+            print("Top Term is None!!", top_term.name)  # Prayer
+            continue
         for sub_term in TermSet({"category": top_term.name}):
             try:
                 from_slug = term_to_slug_map[sub_term.name]
@@ -382,6 +444,42 @@ def do_ref_topic_link(slug_to_sheet_map):
             tl.save()
 
 
+def do_sheet_refactor(tag_to_slug_map):
+    from sefaria.utils.hebrew import is_hebrew
+    IntraTopicLinkSet({"toTopic": "_uncategorized"}).delete()
+    sheets = db.sheets.find({}, {"tags": 1, "id": 1})
+    uncategorized_dict = {}
+    for s in tqdm(sheets, desc="sheet refactor"):
+        tags = s.get("tags", [])
+        if len(tags) == 0:
+            continue
+        sheet_topics = []
+        for t in tags:
+            if t in tag_to_slug_map:
+                topic_slug = tag_to_slug_map[t]
+            else:
+                # uncategorized
+                term = Term().load_by_title(t)
+                titles = term.titles if term else [{"lang": "he" if is_hebrew(t) else "en", "text": t, "primary": True}]
+                if t in uncategorized_dict:
+                    topic_slug = uncategorized_dict[t]
+                else:
+                    topic = Topic({"slug": t, "titles": titles})
+                    topic.save()
+                    topic_slug = topic.slug
+                    itl = IntraTopicLink({
+                        "fromTopic": topic_slug,
+                        "toTopic": "_uncategorized",
+                        "linkType": "is-a",
+                        "class": "intraTopic"
+                    })
+                    itl.save()
+                    uncategorized_dict[t] = topic_slug
+
+            sheet_topics += [{"slug": topic_slug, "asTyped": t}]
+        db.sheets.update_one({"id": s['id']}, {"$set": {"topics": sheet_topics}})
+
+
 def clean_up_time():
     for t in tqdm(TopicSet(), desc="clean up", total=5898):
         if getattr(t, 'alt_ids', None):
@@ -399,7 +497,7 @@ def clean_up_time():
 
 
 if __name__ == '__main__':
-    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map = do_topics()
+    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_topic_link_types()
     do_data_source()
     db.topic_links.drop()
@@ -409,15 +507,25 @@ if __name__ == '__main__':
     db.topic_links.create_index('fromTopic')
     do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
     do_ref_topic_link(slug_to_sheet_map)
-    clean_up_time()
+    do_sheet_refactor(tag_to_slug_map)
+    generate_topic_links_from_sheets()
+    # clean_up_time()
 
 # TODO Halacha is not Halakha
-# TODO consider how to dedup TOC nodes
+# TODO make source sheet titles primary - looks like sheet titles are already in topics from before, so they're in title_set so they never get processed
+# TODO refactor sheets to hold topics
+# TODO add class automattically to intratopiclinks
 
 """
 potential things we should fix
 - make transliterations in italics
 - figure out how to disambiguate topic names (Food, Food)
+- make "more" button for link types that have many items
+- decide which topics are invisible from side bar
+- translate link types. Both en and he. En needs to decide what will make sense to users. could be some link types will be collapsed for users
+- translate all topics that dont have he (mostly top level topics that won't be invisible)
+- decide sort order for sheets and sources (sources can simply be ref order)
+- pagination!
 - change TOC
   - Authors -> People
   - Religion -> Theology

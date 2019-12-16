@@ -30,7 +30,7 @@ class AbstractMongoRecord(object):
     collection = None  # name of MongoDB collection
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
-    slug_field = None  # If record can be uniquely identified by slug, set this var with the slug field
+    slug_fields = None  # If record can be uniquely identified by slug, set this var with the slug fields
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
@@ -193,20 +193,17 @@ class AbstractMongoRecord(object):
             d["_id"] = str(self._id)
         return d
 
-    def normalize_slug(self):
+    def normalize_slug(self, slug_field):
         """
-        Set the slug according to `initial_slug`,
-        using the first available number at the end if duplicates exist
-        :param initial_slug: str, initial guess as to what you want slug to be, assuming no duplicates
-        :param slug_attr: the attribute on self for where to set slug
+        Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
         """
-        slug = getattr(self, self.slug_field).lower()
+        slug = getattr(self, slug_field).lower()
         slug = re.sub(r"[ /]", "-", slug.strip())
         slug = re.sub(r"[^a-z0-9\-]", "", slug)
         dupe_count = 0
         _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
         temp_slug = slug
-        while getattr(db, self.collection).find_one({self.slug_field: temp_slug, "_id": {"$ne": _id}}):
+        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
             dupe_count += 1
             temp_slug = "{}{}".format(slug, dupe_count)
         return temp_slug
@@ -258,8 +255,9 @@ class AbstractMongoRecord(object):
         return True
 
     def _normalize(self):
-        if self.slug_field is not None:
-            setattr(self, self.slug_field, self.normalize_slug())
+        if self.slug_fields is not None:
+            for slug_field in self.slug_fields:
+                setattr(self, slug_field, self.normalize_slug(slug_field))
 
     def _pre_save(self):
         pass

@@ -4,7 +4,7 @@ from .schema import AbstractTitledObject, TitleGroup
 
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
-    slug_field = 'slug'
+    slug_fields = ['slug']
     title_group = None
     required_attrs = [
         'slug',
@@ -62,7 +62,8 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
-    optional_attrs = TopicLinkHelper.optional_attrs
+    # magnitude is if a link can be given a number which signifies the link's strength (currently used for sheet-derived links)
+    optional_attrs = TopicLinkHelper.optional_attrs + ['magnitude']
 
 
 class TopicLinkSetHelper(object):
@@ -92,13 +93,13 @@ class RefTopicLinkSet(abst.AbstractMongoSet):
     recordClass = RefTopicLink
 
     def __init__(self, query=None, *args, **kwargs):
-        query = TopicLinkSetHelper.init_query(query, 'intraTopic')
+        query = TopicLinkSetHelper.init_query(query, 'refTopic')
         super().__init__(query=query, *args, **kwargs)
 
 
 class TopicLinkType(abst.AbstractMongoRecord):
     collection = 'topic_link_types'
-    slug_field = 'slug'
+    slug_fields = ['slug', 'inverseSlug']
     required_attrs = [
         'slug',
         'inverseSlug',
@@ -119,7 +120,7 @@ class TopicLinkTypeSet(abst.AbstractMongoSet):
 
 class TopicDataSource(abst.AbstractMongoRecord):
     collection = 'topic_data_sources'
-    slug_field = 'slug'
+    slug_fields = ['slug']
     required_attrs = [
         'slug',
         'displayName',
