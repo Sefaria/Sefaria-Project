@@ -1699,6 +1699,7 @@ Sefaria = extend(Sefaria, {
   },
   _tableOfContentsDedications: {},
   _topics: {},
+/*
   topic: function(topic, callback) {
     if (topic in this._topics) {
       var data = this._topics[topic];
@@ -1713,6 +1714,7 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   },
+*/
   getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true) {
       return this._cachedApiPromise({
           url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}`,
@@ -1733,7 +1735,6 @@ Sefaria = extend(Sefaria, {
         this._initTopicTocPages()
     }
     return this._topicTocPages[key]
-
   },
   sheets: {
     _loadSheetByID: {},
