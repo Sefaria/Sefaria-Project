@@ -12,17 +12,17 @@ const {
     textPropType
 }                         = require('./Story');
 const {
-  LanguageToggleButton,
   TabView,
   LoadingMessage,
   Link,
-  TwoOrThreeBox
+  TwoOrThreeBox,
+  InterfaceTextWithFallback,
 }                         = require('./Misc');
 const Footer     = require('./Footer');
 
 
 
-const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
+const TopicCategory = ({topic, setTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
     const [subtopics, setSubtopics] = useState([]);
 
@@ -53,7 +53,7 @@ const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, m
         <div className={navMenuClasses}>
             <div className={contentClasses}>
                 <div className="contentInner">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang}/>
                     <TwoOrThreeBox content={topicBlocks} width={width} />
                 </div>
             </div>
@@ -61,13 +61,16 @@ const TopicCategory = ({topic, setTopic, toggleLanguage, interfaceLang, width, m
     );
 };
 
-const TopicHeader = ({topic, topicData, multiPanel, interfaceLang, toggleLanguage}) => (
+const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
+  const { en, he } = !!topicData ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
+
+  return (
     <div>
         <div className="topicTitle pageTitle">
           <h1>
-            { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-            <span className="int-en">{!!topicData ? topicData.primaryTitle.en : "Loading..."}</span>
-            <span className="int-he">{!!topicData ? topicData.titles.he : "טוען..."}</span>
+            <InterfaceTextWithFallback en={en} he={he} />
+            { !! he ? <span className="topicTitleInHe"><span className="int-en but-text-is-he">{` (${he})`}</span></span> : null}
+
           </h1>
         </div>
        {!topicData?<LoadingMessage/>:""}
@@ -84,9 +87,9 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang, toggleLanguag
             </div>
        :""}
     </div>
-);
+);}
 
-const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, toggleSignUpModal, openDisplaySettings}) => {
+const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState(false);
     const [topicRefs, setTopicRefs] = useState(false);
     const [topicSheets, setTopicSheets] = useState(false);
@@ -135,7 +138,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
                <div className="mainColumn">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang}/>
                    {!!topicData?
                        <TabView
                           tabs={tabs}
@@ -182,7 +185,6 @@ TopicPage.propTypes = {
   hideNavHeader:       PropTypes.bool,
   showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
-  toggleLanguage:      PropTypes.func,
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
 };
@@ -205,12 +207,14 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-const TopicLink = ({topic, topicTitle, clearAndSetTopic}) => (
+const TopicLink = ({topic, topicTitle, clearAndSetTopic}) => {
+
+  return (
     <Link className="relatedTopic" href={"/topics/" + topic} onClick={clearAndSetTopic.bind(null, topic)} key={topic} title={topicTitle.en}>
-      <span className="int-en">{topicTitle.en}</span>
-      <span className="int-he">{topicTitle.he}</span>
+      <InterfaceTextWithFallback en={topicTitle.en} he={topicTitle.he} />
     </Link>
-);
+  );
+};
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
   clearAndSetTopic: PropTypes.func.isRequired,

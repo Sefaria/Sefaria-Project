@@ -9,6 +9,14 @@ import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
 
+// interface text that can fallback to alternate langauge if current language doesn't have content
+const InterfaceTextWithFallback = ({ en, he }) => (
+  <span>
+    <span className={classNames({"int-en": 1, "but-text-is-he": !en})}>{en || he}</span>
+    <span className={classNames({"int-he": 1, "but-text-is-en": !he})}>{he || en}</span>
+  </span>
+);
+
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
@@ -1894,6 +1902,7 @@ module.exports.DropdownOptionList                        = DropdownOptionList;
 module.exports.FeedbackBox                               = FeedbackBox;
 module.exports.FilterableList                            = FilterableList;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
+module.exports.InterfaceTextWithFallback                 = InterfaceTextWithFallback;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
 module.exports.Link                                      = Link;

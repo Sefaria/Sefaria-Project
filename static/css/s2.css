@@ -41,7 +41,8 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-weight: normal;
   color: #000;
 }
-.pageTitle .int-en {
+.pageTitle .int-en,
+.pageTitle .int-he.but-text-is-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 30px;
   font-weight: normal;
@@ -66,13 +67,15 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
-.smallText .int-en {
+.smallText .int-en,
+.smallText .int-he.but-text-is-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
-.systemText .int-en {
+.systemText .int-en,
+.systemText .int-he.but-text-is-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -92,7 +95,8 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-weight: normal;
   color: #000;
 }
-.pageTitle .int-he {
+.pageTitle .int-he,
+.pageTitle .int-en.but-text-is-he {
   font-family: "Heebo", sans-serif;
   font-size: 30px;
   font-weight: normal;
@@ -114,13 +118,15 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
-.smallText .int-he {
+.smallText .int-he,
+.smallText .int-en.but-text-is-he {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
-.systemText .int-he {
+.systemText .int-he,
+.systemText .int-en.but-text-is-he {
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -1133,6 +1139,10 @@ input.noselect {
 }
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
+}
+.pageTitle .topicTitleInHe .but-text-is-he {
+  color: #888;
+  font-size: 20px;
 }
 .topicPanel .topicDescription {
   margin: 30px 0;
@@ -7089,7 +7099,8 @@ body .homeFeedWrapper .content {
 .authorName:hover .smallFollowButton {
   display: inline-block;
 }
-.bilingual .homeFeedWrapper span.he {
+.bilingual .homeFeedWrapper span.he,
+.bilingual .readerNavMenu.topicPanel .he {
   display: block;
   padding-bottom: 10px;
 }

@@ -900,35 +900,42 @@ class ReaderPanel extends Component {
                   />);
 
     } else if (this.state.menuOpen === "topics") {
+      if (Sefaria.interfaceLang === "hebrew") {
+        contentLangOverride = "hebrew";
+      } else if (Sefaria.interfaceLang === "english") {
+        contentLangOverride = "bilingual";
+      }
+      console.log('contentLangOverride', contentLangOverride);
       if (this.state.navigationTopic) {
         menu = (<TopicPage
-                      topic={this.state.navigationTopic}
-                      interfaceLang={this.props.interfaceLang}
-                      setTopic={this.setTopic}
-                      openTopics={this.openMenu.bind(null, "topics")}
-                      showBaseText={this.props.onNavTextClick || this.showBaseText}
-                      openNav={this.openMenu.bind(null, "navigation")}
-                      close={this.closeMenus}
-                      multiPanel={this.props.multiPanel}
-                      hideNavHeader={this.props.hideNavHeader}
-                      toggleLanguage={this.toggleLanguage}
-                      navHome={this.openMenu.bind(null, "navigation")}
-                      openDisplaySettings={this.openDisplaySettings}
-                      toggleSignUpModal={this.props.toggleSignUpModal}
-                      key={"TopicPage"} />);
+                  topic={this.state.navigationTopic}
+                  interfaceLang={this.props.interfaceLang}
+                  setTopic={this.setTopic}
+                  openTopics={this.openMenu.bind(null, "topics")}
+                  showBaseText={this.props.onNavTextClick || this.showBaseText}
+                  openNav={this.openMenu.bind(null, "navigation")}
+                  close={this.closeMenus}
+                  multiPanel={this.props.multiPanel}
+                  hideNavHeader={this.props.hideNavHeader}
+                  navHome={this.openMenu.bind(null, "navigation")}
+                  openDisplaySettings={this.openDisplaySettings}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
+                  key={"TopicPage"}
+                />);
       } else {
         menu = (<TopicsPanel
-                      interfaceLang={this.props.interfaceLang}
-                      width={this.state.width}
-                      setTopic={this.setTopic}
-                      openNav={this.openMenu.bind(null, "navigation")}
-                      close={this.closeMenus}
-                      multiPanel={this.props.multiPanel}
-                      hideNavHeader={this.props.hideNavHeader}
-                      toggleLanguage={this.toggleLanguage}
-                      navHome={this.openMenu.bind(null, "navigation")}
-                      openDisplaySettings={this.openDisplaySettings}
-                      key={"TopicsPanel"} />);
+                  interfaceLang={this.props.interfaceLang}
+                  width={this.state.width}
+                  setTopic={this.setTopic}
+                  openNav={this.openMenu.bind(null, "navigation")}
+                  close={this.closeMenus}
+                  multiPanel={this.props.multiPanel}
+                  hideNavHeader={this.props.hideNavHeader}
+                  toggleLanguage={this.toggleLanguage}
+                  navHome={this.openMenu.bind(null, "navigation")}
+                  openDisplaySettings={this.openDisplaySettings}
+                  key={"TopicsPanel"}
+                />);
       }
 
     } else if (this.state.menuOpen === "account") {
