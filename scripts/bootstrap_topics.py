@@ -2,6 +2,7 @@ import django, csv, json, re
 django.setup()
 from tqdm import tqdm
 from collections import defaultdict
+from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
@@ -22,6 +23,18 @@ with open("data/source_sheet_cats.csv", 'r') as fin:
     for row in cin:
         cat = cat_replacer.get(row['Cat'], row['Cat'])
         fallback_sheet_cat_map[row['Tag']] = cat
+
+
+def autoreconnect_query(collection=None, query=None, proj=None, tries=0):
+    if collection:
+        try:
+            return [d for d in getattr(db, collection).find(query, proj)]
+        except AutoReconnect:
+            if tries < 10:
+                return autoreconnect_query(collection=collection, query=query, proj=proj, tries=tries+1)
+            else:
+                print("Tried 10 times")
+                raise AutoReconnect
 
 
 def do_topics(dry_run=False):
@@ -168,7 +181,8 @@ def do_topics(dry_run=False):
             ot = Topic(attrs)
             ot.save()
         for sheet_tag in t.get('source_sheet_tags', []):
-            for sheet in db.sheets.find({"tags": sheet_tag}):
+            temp_sheets = autoreconnect_query('sheets', {"tags": sheet_tag})
+            for sheet in temp_sheets:
                 slug_to_sheet_map[ot.slug] += [sheet['id']]
             if tag_to_slug_map.get(sheet_tag, False):
                 print("TAG TO SLUG ALREADY EXISTS!!!", sheet_tag, ot.slug, tag_to_slug_map[sheet_tag])
@@ -447,7 +461,7 @@ def do_ref_topic_link(slug_to_sheet_map):
 def do_sheet_refactor(tag_to_slug_map):
     from sefaria.utils.hebrew import is_hebrew
     IntraTopicLinkSet({"toTopic": "_uncategorized"}).delete()
-    sheets = db.sheets.find({}, {"tags": 1, "id": 1})
+    sheets = autoreconnect_query('sheets', {}, {"tags": 1, "id": 1})
     uncategorized_dict = {}
     for s in tqdm(sheets, desc="sheet refactor"):
         tags = s.get("tags", [])
