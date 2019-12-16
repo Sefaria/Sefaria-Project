@@ -2324,6 +2324,24 @@ Sefaria = extend(Sefaria, {
         promise: wrappedPromise,
         cancel() { hasCanceled_ = true; },
       };
+  },
+  incrementalPromise: async (fetchResponse, data, increment, setResponse, setCancel) => {
+    /*
+    fetchResponse - func that takes slice of `data` as param and returns promise
+    data - array of input data for fetchResponse
+    increment - int, how many values to send to fetchResponse at a time
+    setResponse - callback to react to send updated results
+    isCanceled - function that returns true when promise is canceled
+    */
+    let allResponses = [];
+    while (allResponses.length < data.length) {
+      const tempData = data.slice(allResponses.length, allResponses.length + increment);
+      const { promise, cancel } = Sefaria.makeCancelable(fetchResponse(tempData));
+      setCancel(cancel);
+      const tempResponses = await promise;
+      allResponses = allResponses.concat(tempResponses);
+      setResponse(allResponses);
+    }
   }
 });
 

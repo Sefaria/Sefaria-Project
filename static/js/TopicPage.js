@@ -88,30 +88,48 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang, toggleLanguag
 
 const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleLanguage, toggleSignUpModal, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState(false);
+    const [topicRefs, setTopicRefs] = useState(false);
+    const [topicSheets, setTopicSheets] = useState(false);
     const [sheetData, setSheetData] = useState(null);
     const [textData, setTextData] = useState(null);
+    let textCancel, sheetCancel;
     const clearAndSetTopic = (topic) => {setTopicData(false); setTopic(topic)};
     useEffect(() => {
-      const { promise, cancel } = Sefaria.makeCancelable(
-        Sefaria.getTopic(topic)
-        .then(d => { setTopicData(d); return d; })
-        .then(d => {
-          const refs = d.refs.filter(s => !s.is_sheet).map(s => s.ref);
-          const sheetIds = d.refs.filter(s => s.is_sheet).map(s => s.ref.replace('Sheet ',''));
-          return Promise.all([
-            Sefaria.getBulkText(refs, true).then(setTextData),
-            Sefaria.getBulkSheets(sheetIds).then(setSheetData),
-          ]);
-        }
-      ));
-      promise.catch(e => {});
+      const { promise, cancel } = Sefaria.makeCancelable((async () => {
+        const d = await Sefaria.getTopic(topic);
+        setTopicData(d);
+        const refs = [...new Set(d.refs.filter(s => !s.is_sheet).map(s => s.ref))];
+        const sheetIds = [...new Set(d.refs.filter(s => s.is_sheet).map(s => s.ref.replace('Sheet ','')))];
+        setTopicRefs(refs);
+        setTopicSheets(sheetIds);
+
+        return Promise.all([
+          Sefaria.incrementalPromise(
+            refs => Sefaria.getBulkText(refs, true).then(resp => Object.entries(resp)),
+            refs, 100, setTextData, newCancel => { textCancel = newCancel; }
+          ),
+          Sefaria.incrementalPromise(
+            sheetIds => Sefaria.getBulkSheets(sheetIds).then(resp => Object.values(resp)),
+            sheetIds, 100, setSheetData, newCancel => { sheetCancel = newCancel; }
+          ),
+        ]);
+      })());
+      ;
       return () => {
         cancel();
+        if (textCancel) { textCancel(); }
+        if (sheetCancel) { sheetCancel(); }
         setTopicData(false);
+        setTopicRefs(false);
+        setTopicSheets(false);
         setSheetData(null);
         setTextData(null);
       }
     }, [topic]);
+    const tabs = [];
+    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
+    if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
+
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -120,23 +138,30 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} toggleLanguage={toggleLanguage}/>
                    {!!topicData?
                        <TabView
-                          tabs={[ {text: Sefaria._("Sheets")}, {text: Sefaria._("Sources")} ]}
+                          tabs={tabs}
                           renderTab={t => <div className="tab">{t.text}</div>} >
-                            <div className="story topicTabContents">
-                              {
-                                !!sheetData ?
-                                  <StorySheetList sheets={Object.values(sheetData)} compact={true}/>
-                                : <LoadingMessage/>
-                              }
-                            </div>
-                            <div className="story topicTabContents">
+                            { !!topicSheets.length ?
+                              <div className="story topicTabContents">
                                 {
-                                  !!textData ?
-                                    topicData.refs.filter(s => !s.is_sheet).map((s,i) => (
-                                      <TextPassage key={i} text={textData[s.ref]} toggleSignUpModal={toggleSignUpModal}/>
-                                    )) : <LoadingMessage/>
+                                  !!sheetData ?
+                                    <StorySheetList sheets={sheetData} compact={true}/>
+                                  : <LoadingMessage/>
                                 }
-                            </div>
+                              </div>
+                              : null
+                            }
+                            {
+                              !!topicRefs.length ?
+                              <div className="story topicTabContents">
+                                  {
+                                    !!textData ?
+                                      textData.map((s,i) => (
+                                        <TextPassage key={s[0]} text={s[1]} toggleSignUpModal={toggleSignUpModal}/>
+                                      )) : <LoadingMessage/>
+                                  }
+                              </div>
+                              : null
+                            }
                         </TabView>
                    :""}
                 </div>
