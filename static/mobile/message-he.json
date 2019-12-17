@@ -1,1 +1,8 @@
-null
+{
+	"title": "עזרו לנו",
+	"text": ["ספריא תלויה במשתמשים כמוכם על מנת שנוכל להמשיך ולפעול."],
+	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=sefariamobile&utm_medium=modal&utm_campaign=support",
+	"buttonText": "תרמו עכשיו",
+	"name": "dec-2019-2",
+	"schemaVersion": 1
+}
