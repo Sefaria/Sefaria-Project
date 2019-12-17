@@ -151,7 +151,7 @@ def calculate_mean_tfidf():
     def preprocess_word(w):
         return re.sub(r'^\u05d5', '', w.replace('"', ''))
     
-    with open('hebrew_stopwords.txt', 'r') as fin:
+    with open('data/hebrew_stopwords.txt', 'r') as fin:
         stopwords = set()
         for line in fin:
             stopwords.add(line.strip())
@@ -194,7 +194,6 @@ def calculate_mean_tfidf():
                 print("Dont have {}".format(tref))
                 continue
             for w in words:
-                w = preprocess_word(w)
                 if w not in unique_words:
                     doc_word_counts[w] += 1
                     unique_words.add(w)
@@ -230,7 +229,7 @@ def calculate_other_ref_scores(ref_topic_map):
     langs_available = {}
     ref_order_map = {}
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate other ref scores'):
-        seg_ref_counter = defaultdict(lambda: defaultdict(int))
+        seg_ref_counter = defaultdict(int)
         tref_range_lists = {}
         for tref in ref_list:
             try:
@@ -243,24 +242,33 @@ def calculate_other_ref_scores(ref_topic_map):
             for seg_ref in tref_range_lists[tref]:
                 seg_ref_counter[seg_ref] += 1
         for tref in ref_list:
-            num_datasource_map[(topic, tref)] = max(seg_ref_counter[seg_ref] for seg_ref in tref_range_lists[tref])
+            range_list = tref_range_lists.get(tref, None)
+            num_datasource_map[(topic, tref)] = 0 if range_list is None else max(seg_ref_counter[seg_ref] for seg_ref in range_list)
     return num_datasource_map, langs_available, ref_order_map
 
 
 def update_link_orders():
     from tqdm import tqdm
-
+    from sefaria.system.database import db
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, ref_order_map = calculate_other_ref_scores(ref_topic_map)
-    ref_topic_links = RefTopicLinkSet({"is_sheet": False})
+    ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
     for l in tqdm(ref_topic_links, total=total, desc='update link orders'):
-        key = (l.toTopic, l.ref)
-        setattr(l, 'order', {
-            'tfidf': topic_tref_score_map[key],
-            'numDatasource': num_datasource_map[key],
-            'availableLangs': langs_available[key],
-            'ref': ref_order_map[key]
-        })
+        if l.is_sheet:
+            sheet = db.sheets.find_one({"id": int(l.ref.replace("Sheet ", ""))}, {"views": 1})
+            setattr(l, 'order', {'views': sheet.get('views', 0)})
+        else:
+            key = (l.toTopic, l.ref)
+            try:
+                setattr(l, 'order', {
+                    'tfidf': topic_tref_score_map[key],
+                    'numDatasource': num_datasource_map[key],
+                    'availableLangs': langs_available[key],
+                    'ref': ref_order_map[key]
+                })
+            except KeyError:
+                print("Key Error", key)
+                continue
         l.save()
 

@@ -905,7 +905,6 @@ class ReaderPanel extends Component {
       } else if (Sefaria.interfaceLang === "english") {
         contentLangOverride = "bilingual";
       }
-      console.log('contentLangOverride', contentLangOverride);
       if (this.state.navigationTopic) {
         menu = (<TopicPage
                   topic={this.state.navigationTopic}

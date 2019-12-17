@@ -1153,8 +1153,10 @@ input.noselect {
     font-weight: 200;
 }
 .topicPanel .tab-view .tab-list {
-    margin-bottom: 30px;
     border-bottom: 1px solid #999;
+}
+.topicPanel .tab-view .filter-bar {
+  margin-bottom: 30px;
 }
 .topicPanel .tab-view .tab-list .tab {
   font-size: 30px;

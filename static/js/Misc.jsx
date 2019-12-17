@@ -292,6 +292,15 @@ class FilterableList extends Component {
     const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter } = this.props;
     const { loading, currFilter, displaySort, currSortOption, data } = this.state;
     const newData = data.filter(this.filterFunc).sort(this.sortFunc);
+    if (currSortOption === 'Relevance') {
+      console.log('sorted', newData.map(x => ({
+        ref: x[1].ref,
+        langs: x[1].order.availableLangs,
+        refO: x[1].order.ref,
+        tf: x[1].order.tfidf,
+        datas: x[1].order.numDatasource
+      })));
+    }
     return (
       <div className="filterable-list">
         <div className="filter-bar">
@@ -306,7 +315,7 @@ class FilterableList extends Component {
             />
           </div>
           <div>
-            { sortOptions.length ?
+            { sortOptions.length > 1 ?
               <DropdownModal close={this.closeSort} isOpen={displaySort}>
                 <DropdownButton
                   isOpen={displaySort}

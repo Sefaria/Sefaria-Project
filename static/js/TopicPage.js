@@ -3,6 +3,7 @@ const PropTypes           = require('prop-types');
 const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
 const {
+    SheetBlock,
     StorySheetList,
     SaveLine,
     StoryTitleBlock,
@@ -17,6 +18,7 @@ const {
   Link,
   TwoOrThreeBox,
   InterfaceTextWithFallback,
+  FilterableList,
 }                         = require('./Misc');
 const Footer     = require('./Footer');
 
@@ -101,19 +103,42 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
         const d = await Sefaria.getTopic(topic);
         setTopicData(d);
-        const refs = [...new Set(d.refs.filter(s => !s.is_sheet).map(s => s.ref))];
-        const sheetIds = [...new Set(d.refs.filter(s => s.is_sheet).map(s => s.ref.replace('Sheet ','')))];
+        let refMap = {};
+        for (let refObj of d.refs.filter(s => !s.is_sheet)) {
+          refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order};
+        }
+        const refs = Object.values(refMap);
+        let sheetMap = {};
+        for (let refObj of d.refs.filter(s => s.is_sheet)) {
+          const sid = refObj.ref.replace('Sheet ', '');
+          sheetMap[sid] = {sid, order: refObj.order};
+        }
+        const sheets = Object.values(sheetMap);
         setTopicRefs(refs);
-        setTopicSheets(sheetIds);
+        setTopicSheets(sheets);
 
         return Promise.all([
           Sefaria.incrementalPromise(
-            refs => Sefaria.getBulkText(refs, true).then(resp => Object.entries(resp)),
+            inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true).then(outRefs => {
+              for (let tempRef of inRefs) {
+                if (outRefs[tempRef.ref]) {
+                  outRefs[tempRef.ref].order = tempRef.order;
+                }
+              }
+              return Object.entries(outRefs);
+            }),
             refs, 100, setTextData, newCancel => { textCancel = newCancel; }
           ),
           Sefaria.incrementalPromise(
-            sheetIds => Sefaria.getBulkSheets(sheetIds).then(resp => Object.values(resp)),
-            sheetIds, 100, setSheetData, newCancel => { sheetCancel = newCancel; }
+            inSheets => Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
+              for (let tempSheet of inSheets) {
+                if (outSheets[tempSheet.sid]) {
+                  outSheets[tempSheet.sid].order = tempSheet.order;
+                }
+              }
+              return Object.values(outSheets)
+            }),
+            sheets, 100, setSheetData, newCancel => { sheetCancel = newCancel; }
           ),
         ]);
       })());
@@ -132,7 +157,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const tabs = [];
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
-
+    console.log(topicSheets);
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -142,29 +167,67 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                    {!!topicData?
                        <TabView
                           tabs={tabs}
-                          renderTab={t => <div className="tab">{t.text}</div>} >
-                            { !!topicSheets.length ?
-                              <div className="story topicTabContents">
-                                {
-                                  !!sheetData ?
-                                    <StorySheetList sheets={sheetData} compact={true}/>
-                                  : <LoadingMessage/>
+                          renderTab={t => <div className="tab">{t.text}</div>}
+                        >
+                          { !!topicSheets.length ? (
+                            <TopicPageTab
+                              data={sheetData}
+                              classes={"storySheetList"}
+                              sortOptions={['Views']}
+                              filterFunc={(currFilter, sheet) => {
+                                const n = text => !!text ? text.toLowerCase() : '';
+                                currFilter = n(currFilter);
+                                for (let field of ['sheet_title', 'publisher_name', 'publisher_position', 'publisher_organization']) {
+                                  if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
                                 }
-                              </div>
-                              : null
-                            }
-                            {
-                              !!topicRefs.length ?
-                              <div className="story topicTabContents">
-                                  {
-                                    !!textData ?
-                                      textData.map((s,i) => (
-                                        <TextPassage key={s[0]} text={s[1]} toggleSignUpModal={toggleSignUpModal}/>
-                                      )) : <LoadingMessage/>
+                              }}
+                              sortFunc={(currSortOption, a, b) => {
+                                if (!a.order && !b.order) { return 0; }
+                                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+                                return b.order.views - b.order.views;
+                              }}
+                              renderItem={item=>(
+                                <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
+                              )}
+                              />
+                            ) : null
+                          }
+                          { !!topicRefs.length ? (
+                            <TopicPageTab
+                              data={textData}
+                              sortOptions={['Relevance', 'Chronological']}
+                              filterFunc={(currFilter, ref) => {
+                                const n = text => !!text ? text.toLowerCase() : '';
+                                currFilter = n(currFilter);
+                                for (let field of ['en', 'he', 'ref']) {
+                                  if (n(ref[1][field]).indexOf(currFilter) > -1) { return true; }
+                                }
+                              }}
+                              sortFunc={(currSortOption, a, b) => {
+                                a = a[1]; b = b[1];
+                                if (!a.order && !b.order) { return 0; }
+                                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+                                if (currSortOption === 'Chronological') {
+                                  if (a.order.ref < b.order.ref) { return -1; };
+                                  if (b.order.ref < a.order.ref) { return 1; };
+                                  return 0;
+                                }
+                                else {
+                                  if (interfaceLang === 'english' && a.order.availableLangs.length !== b.order.availableLangs.length) {
+                                    if (a.order.availableLangs.indexOf('en') > -1) { return -1; }
+                                    if (b.order.availableLangs.indexOf('en') > -1) { return 1; }
+                                    return 0;
                                   }
-                              </div>
-                              : null
-                            }
+                                  else if (a.order.numDatasource !== b.order.numDatasource) { return b.order.numDatasource - a.order.numDatasource; }
+                                  else { return b.order.tfidf - a.order.tfidf; }
+                                }
+                              }}
+                              renderItem={item=>(
+                                <TextPassage key={item[0]} text={item[1]} toggleSignUpModal={toggleSignUpModal}/>
+                              )}
+                              />
+                            ) : null
+                          }
                         </TabView>
                    :""}
                 </div>
@@ -188,6 +251,24 @@ TopicPage.propTypes = {
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
 };
+
+const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc }) => (
+  <div className="story topicTabContents">
+    {!!data ?
+      <div className={classes}>
+        <FilterableList
+          filterFunc={filterFunc}
+          sortFunc={sortFunc}
+          renderItem={renderItem}
+          renderEmptyList={()=>null}
+          renderHeader={()=>null}
+          sortOptions={sortOptions}
+          getData={()=> Promise.resolve(data)}
+        />
+      </div> : <LoadingMessage />
+    }
+  </div>
+);
 
 const TextPassage = ({text, toggleSignUpModal}) => {
     if (!text.ref) { return null; }
