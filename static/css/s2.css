@@ -6012,16 +6012,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  color: #ccc;
-  border: solid 1px #eee;
-  padding: 3px 8px;
+  color: #000;
+  box-shadow: 0 1px 2px #999;
+  padding: 5px 8px;
   text-transform: uppercase;
   background-color: white;
   border-radius: 4px;
   line-height: 24px;
 }
 .versionsBox a.selectButton.currSelectButton {
-  color: #666;
+  color: #fff;
+  background-color: #212E50;
   text-decoration: none;
   cursor: default;
 }

@@ -74,7 +74,7 @@ class UserProfile extends Component {
           <span className="int-he">0 קבוצות</span>
         </div>
         { Sefaria._uid === this.props.profile.id ?
-          <a href="/groups/new" className="resourcesLink faded">
+          <a href="/groups/new" className="resourcesLink">
             <img src="/static/img/group.svg" alt="Group icon" />
             <span className="int-en">Create a New Group</span>
             <span className="int-he">צור קבוצה חדשה</span>
@@ -92,7 +92,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/groups/new" className="resourcesLink faded">
+        <a href="/groups/new" className="resourcesLink">
           <img src="/static/img/group.svg" alt="Group icon" />
           <span className="int-en">Create a New Group</span>
           <span className="int-he">צור קבוצה חדשה</span>
@@ -182,7 +182,7 @@ class UserProfile extends Component {
             באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
           </span>
         </div>
-        <a href="/sheets/new" className="resourcesLink faded">
+        <a href="/sheets/new" className="resourcesLink">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">צור דף חדש</span>
@@ -213,7 +213,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/sheets/new" className="resourcesLink faded">
+        <a href="/sheets/new" className="resourcesLink">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">צור דף חדש</span>
