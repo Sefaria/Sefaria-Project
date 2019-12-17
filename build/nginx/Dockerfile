@@ -1,4 +1,11 @@
-FROM nginx
+# Take an upstream docker image as an argument
+# build the static directory there
 
+# SRC_IMG will be the `web` container, with the assets collected in /app/static-collected
+ARG SRC_IMG
+
+FROM ${SRC_IMG} AS static_source
+
+FROM nginx
 RUN mkdir /app/
-COPY ./static/ /app/static/
+COPY --from=static_source /app/static-collected /app/static/
