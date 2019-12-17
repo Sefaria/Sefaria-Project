@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from sefaria.model import *
 import logging
@@ -139,4 +140,127 @@ def generate_topic_links_from_sheets():
             rtl.save()
         # related_topics = sorted(iter(related_topics_dict.items()), key=lambda k_v1: k_v1[1], reverse=True)
         # related_topics = [topic for topic in related_topics if topic[0] in topics]
+
+
+def calculate_mean_tfidf():
+    import math
+    from sefaria.system.exceptions import InputError
+    from sefaria.utils.hebrew import strip_cantillation
+    from tqdm import tqdm
+    
+    def preprocess_word(w):
+        return re.sub(r'^\u05d5', '', w.replace('"', ''))
+    
+    with open('hebrew_stopwords.txt', 'r') as fin:
+        stopwords = set()
+        for line in fin:
+            stopwords.add(line.strip())
+    ref_topic_links = RefTopicLinkSet({"is_sheet": False})
+    ref_topic_map = defaultdict(list)
+    ref_words_map = {}
+    total = ref_topic_links.count()
+    for l in tqdm(ref_topic_links, total=total, desc='process text'):
+        ref_topic_map[l.toTopic] += [l.ref]
+        if l.ref not in ref_words_map:
+            try:
+                oref = Ref(l.ref)
+            except InputError:
+                print(l.ref)
+                continue
+            try:
+                text = TextChunk._strip_itags(oref.text('he').as_string())
+            except AttributeError:
+                print("Attrib", l.ref)
+                continue
+            text = strip_cantillation(text, strip_vowels=True)
+            text = re.sub('<[^>]+>', ' ', text)
+            text = re.sub(r'[־\-()]', ' ', text)
+            words = []
+            if len(text) != 0:
+                # text = requests.post('https://prefix.dicta.org.il/api', data=json.dumps({'data': text})).text
+                # text = re.sub(r'(?<=\s|"|\(|\[|-)[\u05d0-\u05ea]+\|', '', ' ' + text)  # remove prefixes
+                text = re.sub(r'[^\u05d0-\u05ea"]', ' ', text)
+                words = list(filter(lambda w: w not in stopwords, [preprocess_word(w) for w in text.split()]))
+            ref_words_map[l.ref] = words
+
+    # idf
+    doc_word_counts = defaultdict(int)
+    for topic, ref_list in tqdm(ref_topic_map.items(), desc='idf'):
+        unique_words = set()
+        for tref in ref_list:
+            try:
+                words = ref_words_map[tref]
+            except KeyError:
+                print("Dont have {}".format(tref))
+                continue
+            for w in words:
+                w = preprocess_word(w)
+                if w not in unique_words:
+                    doc_word_counts[w] += 1
+                    unique_words.add(w)
+    idf_dict = {}
+    for w, count in doc_word_counts.items():
+        idf_dict[w] = math.log2(len(ref_topic_map)/count)
+
+    # tf-idf
+    topic_tref_score_map = {}
+    for topic, ref_list in ref_topic_map.items():
+        tfidf_dict = defaultdict(int)
+        for tref in ref_list:
+            words = ref_words_map.get(tref, [])
+            for w in words:
+                tfidf_dict[w] += 1
+        for w, tf in tfidf_dict.items():
+            tfidf_dict[w] = tf * idf_dict[w]
+        for tref in ref_list:
+            words = ref_words_map.get(tref, [])
+            if len(words) == 0:
+                continue
+            topic_tref_score_map[(topic, tref)] = sum(tfidf_dict[w] for w in words)/len(words)
+
+    return topic_tref_score_map, ref_topic_map
+
+
+def calculate_other_ref_scores(ref_topic_map):
+    from sefaria.system.exceptions import InputError
+    from tqdm import tqdm
+    
+    LANGS_CHECKED = ['en', 'he']
+    num_datasource_map = {}
+    langs_available = {}
+    ref_order_map = {}
+    for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate other ref scores'):
+        seg_ref_counter = defaultdict(lambda: defaultdict(int))
+        tref_range_lists = {}
+        for tref in ref_list:
+            try:
+                oref = Ref(tref)
+            except InputError:
+                continue
+            tref_range_lists[tref] = [seg_ref.normal() for seg_ref in oref.range_list()]
+            ref_order_map[(topic, tref)] = oref.order_id()
+            langs_available[(topic, tref)] = [lang for lang in LANGS_CHECKED if oref.is_text_fully_available(lang)]
+            for seg_ref in tref_range_lists[tref]:
+                seg_ref_counter[seg_ref] += 1
+        for tref in ref_list:
+            num_datasource_map[(topic, tref)] = max(seg_ref_counter[seg_ref] for seg_ref in tref_range_lists[tref])
+    return num_datasource_map, langs_available, ref_order_map
+
+
+def update_link_orders():
+    from tqdm import tqdm
+
+    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
+    num_datasource_map, langs_available, ref_order_map = calculate_other_ref_scores(ref_topic_map)
+    ref_topic_links = RefTopicLinkSet({"is_sheet": False})
+    total = ref_topic_links.count()
+    for l in tqdm(ref_topic_links, total=total, desc='update link orders'):
+        key = (l.toTopic, l.ref)
+        setattr(l, 'order', {
+            'tfidf': topic_tref_score_map[key],
+            'numDatasource': num_datasource_map[key],
+            'availableLangs': langs_available[key],
+            'ref': ref_order_map[key]
+        })
+        l.save()
 

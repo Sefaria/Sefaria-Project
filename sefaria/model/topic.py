@@ -63,7 +63,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
     # magnitude is if a link can be given a number which signifies the link's strength (currently used for sheet-derived links)
-    optional_attrs = TopicLinkHelper.optional_attrs + ['magnitude']
+    optional_attrs = TopicLinkHelper.optional_attrs + ['magnitude', 'order']
 
 
 class TopicLinkSetHelper(object):

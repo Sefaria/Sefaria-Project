@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets
+from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
     cin = csv.DictReader(fin)
@@ -523,12 +523,14 @@ if __name__ == '__main__':
     do_ref_topic_link(slug_to_sheet_map)
     do_sheet_refactor(tag_to_slug_map)
     generate_topic_links_from_sheets()
+    update_link_orders()
+    
     # clean_up_time()
 
 # TODO Halacha is not Halakha
-# TODO make source sheet titles primary - looks like sheet titles are already in topics from before, so they're in title_set so they never get processed
 # TODO refactor sheets to hold topics
 # TODO add class automattically to intratopiclinks
+# TODO is `is category` being applied from Aspaklaria sheet?
 
 """
 potential things we should fix
