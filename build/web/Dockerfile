@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install --yes apache2 apache2-dev libapache2-mod-w
 RUN pip3 install --no-cache-dir -r ./requirements.txt
 RUN git clone https://code.googlesource.com/re2 && cd re2 && make && make install && cd / && pip3 install https://github.com/andreasvc/pyre2/archive/master.zip
 RUN npm install && npm run build-prod
+RUN python manage.py collectstatic
 
 ENTRYPOINT ["/bin/bash", "-c"]
 EXPOSE 80

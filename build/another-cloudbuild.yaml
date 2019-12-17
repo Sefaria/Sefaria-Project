@@ -1,0 +1,13 @@
+---
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-web-test:$TAG_NAME", "-f", "build/web/Dockerfile", "."]
+    id: web_container
+  
+  # Find a better way of passing in SRC_IMG
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-asset-test:$TAG_NAME", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web-test:$TAG_NAME", "."]
+    id: nginx_container
+    wait_for:
+      - web_container
+...
