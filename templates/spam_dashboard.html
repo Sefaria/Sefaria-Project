@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+
+    {% if deleted_sheets or reviewed_sheets %}
+        <div style="margin: 80px">
+
+            <div>Deleted {{ deleted_sheets }} sheets</div>
+            <div>Marked {{ reviewed_sheets }} as reviewed</div>
+            <div>Deactivated {{ spammers_deactivated }} spam accounts</div>
+
+        </div>
+
+    {% else %}
+
+        <div style="margin: 80px">
+            <h1>{{ title }}</h1>
+            <form action='/admin/spam' method='post' id='spam_form'>{% csrf_token %}</form>
+            <table>
+                <thead>
+                <th>Sheet Name</th>
+                <th>Owner Name</th>
+                <th>Is Spam</th>
+                <th>Is Not Spam</th>
+                </thead>
+                <tbody>
+                {% for sheet in sheets %}
+                    <tr>
+                        <td><a href='/sheets/{{ sheet.id }}' target='_blank'>{{ sheet.title }}</a></td>
+                        <td>{{ sheet.owner|safe }}</td>
+                        <td><input type='checkbox' name='spam_sheets[]' value='{{ sheet.id }}' form='spam_form'/></td>
+                        <td><input type='checkbox' name='reviewed_sheets[]' value='{{ sheet.id }}' form='spam_form'/>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <input type='submit' value='Mark Sheets' form='spam_form'/></html>
+        </div>
+
+    {% endif %}
+
+
+{% endblock %}
+
+
