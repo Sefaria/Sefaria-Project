@@ -176,6 +176,22 @@
                   lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
               }
 
+              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.closest('.readerPanel'))
+
+              if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
+                  var elsToRemove = container.getElementsByClassName('en')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
+              }
+
+              else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
+                  var elsToRemove = container.getElementsByClassName('he')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
+              }
+
               html = container.innerHTML;
           }
           else {
