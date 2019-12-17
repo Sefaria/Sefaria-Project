@@ -54,11 +54,11 @@
 
     {% block head %}{% endblock %}
 
-    <link rel="stylesheet" href="{% static 'css/common.css' %}">
-    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
-    <link rel="stylesheet" href="{% static 'css/keyboard.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
-    <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" type="text/css" href="{%  static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+    <link rel="stylesheet" type="text/css" href="{%  static 'css/s2.css' %}">
+    <link rel="stylesheet" type="text/css" href="{%  static 'css/s2-print.css' %}" media="print" />
 
     {% block static_css %}
     {% if not html %}
