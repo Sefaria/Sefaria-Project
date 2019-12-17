@@ -763,7 +763,7 @@ def spam_dashboard(request):
             date = datetime.strptime(date, '%Y-%m-%d')
 
         else:
-            date = request.GET.get("date", datetime.now() - timedelta(days=300))
+            date = request.GET.get("date", datetime.now() - timedelta(days=30))
 
         earliest_new_user_id = User.objects.filter(date_joined__gte=date)[0].id
 
@@ -776,7 +776,7 @@ def spam_dashboard(request):
             sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
 
         return render(request, 'spam_dashboard.html',
-                      {"title": "Potential Spam Sheets: %s" % date.strftime("%Y-%m-%d"),
+                      {"title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
                        "sheets": sheets_list,
                        })
 
