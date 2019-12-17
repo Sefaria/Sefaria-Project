@@ -1,4 +1,4 @@
 FROM nginx
 
-RUN mkdir -p /app/static
-COPY ./static/* /app/static/
+RUN mkdir /app/
+COPY ./static/ /app/static/
