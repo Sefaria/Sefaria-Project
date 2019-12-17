@@ -350,11 +350,20 @@ function transformSheetJsonToDraft(sheet) {
                                         },
                                     ]
                                 },
-                                {
-                                    text: '',
-                                },
-
-
+                              {type: "paragraph",
+                                  children: [
+                                      {
+                                          text: "by "
+                                      },
+                                      {
+                                          type: "link",
+                                          url: sheet.ownerProfileUrl,
+                                          children: [
+                                              {text: sheet.ownerName}
+                                          ]
+                                      },
+                                  ]
+                              },
                             ]
                         },
                         {
@@ -459,6 +468,7 @@ const Element = ({attributes, children, element}) => {
                     url={element.authorImage}
                     len={30}
                     name={element.authorStatement}
+                    outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
                 />
             );
 

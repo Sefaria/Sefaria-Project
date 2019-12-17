@@ -1896,10 +1896,7 @@ SheetTitle.propTypes = {
 
 const SheetAuthorStatement = (props) => (
     <div className="authorStatement">
-      <div className="groupListingImageBox imageBox">
           {props.children}
-      </div>
-      <span>by <a href={props.authorUrl}>{props.authorStatement}</a></span>
     </div>
 )
 

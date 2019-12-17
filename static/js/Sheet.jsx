@@ -289,7 +289,9 @@ class SheetContent extends Component {
                 url={this.props.authorImage}
                 len={30}
                 name={this.props.authorStatement}
+                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
               />
+              <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
             </SheetAuthorStatement>
             <GroupStatement
                 group={this.props.group}
