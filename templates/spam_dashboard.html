@@ -1,4 +1,12 @@
 {% extends "base.html" %}
+{% block css %}
+    tr:nth-child(even) {
+       background-color: #ddd;
+    }
+    td {
+       padding: 4px;
+    }
+{% endblock %}
 
 {% load sefaria_tags %}
 {% load humanize static %}
