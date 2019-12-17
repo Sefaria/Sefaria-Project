@@ -73,7 +73,11 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
-
+"""
+Notes on where Terms are used
+Index (alt structs and schema)
+Category
+"""
 # Version State Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
