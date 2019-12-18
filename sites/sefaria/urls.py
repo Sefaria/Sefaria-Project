@@ -42,6 +42,7 @@ static_pages = [
     "testimonials",
     "torah-tab",
     "dicta-thanks",
+    "dafyomi",
 ]
 
 
