@@ -30,6 +30,11 @@ class TopicSet(abst.AbstractMongoSet):
 
 
 class TopicLinkHelper(object):
+    """
+    Used to collect attributes and functions that are useful for both IntraTopicLink and RefTopicLink
+    Decided against superclass arch b/c instantiated objects will be of type super class.
+    This is inconvenient when validating the attributes of object before saving (since subclasses have different required attributes)
+    """
     collection = 'topic_links'
     required_attrs = [
         'toTopic',
@@ -54,6 +59,14 @@ class TopicLinkHelper(object):
 
 
 class IntraTopicLink(abst.AbstractMongoRecord):
+    """
+    How to validate:
+        <person link type>: make sure both sides are people (exceptions are has-role and member-of)
+        has-role: target is role, source is independent continuant
+        member-of: target is group, source is independent continuant
+        has-cause: both sides are processes
+
+    """
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs

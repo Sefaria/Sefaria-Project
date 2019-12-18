@@ -142,15 +142,42 @@ def generate_topic_links_from_sheets():
         # related_topics = [topic for topic in related_topics if topic[0] in topics]
 
 
+def tokenize_words_for_tfidf(text, stopwords):
+    from sefaria.utils.hebrew import strip_cantillation
+
+    try:
+        text = TextChunk._strip_itags(text)
+    except AttributeError:
+        pass
+    text = strip_cantillation(text, strip_vowels=True)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    for match in re.finditer(r'\(.*?\)', text):
+        if len(match.group().split()) <= 5:
+            text = text.replace(match.group(), " ")
+    text = re.sub(r'־', ' ', text)
+    text = re.sub(r'\[[^\[\]]{1,7}\]', '',
+                  text)  # remove kri but dont remove too much to avoid messing with brackets in talmud
+    text = re.sub(r'[A-Za-z.,"?!״:׃]', '', text)
+    # replace common hashem replacements with the tetragrammaton
+    text = re.sub(r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d4['\u05f3]|\u05d9\u05d9)($|\s)",
+                  r"\1\2\u05d9\u05d4\u05d5\u05d4\3", text)
+    # replace common elokim replacement with elokim
+    text = re.sub(
+        r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d0\u05dc\u05e7\u05d9\u05dd)($|\s)",
+        r"\1\2\u05d0\u05dc\u05d4\u05d9\u05dd\3", text)
+    words = []
+    if len(text) != 0:
+        # text = requests.post('https://prefix.dicta.org.il/api', data=json.dumps({'data': text})).text
+        # text = re.sub(r'(?<=\s|"|\(|\[|-)[\u05d0-\u05ea]+\|', '', ' ' + text)  # remove prefixes
+        text = re.sub(r'[^\u05d0-\u05ea"]', ' ', text)
+        words = list(filter(lambda w: w not in stopwords, [re.sub(r'^\u05d5', '', w.replace('"', '')) for w in text.split()]))
+    return words
+
+
 def calculate_mean_tfidf():
     import math
     from sefaria.system.exceptions import InputError
-    from sefaria.utils.hebrew import strip_cantillation
     from tqdm import tqdm
-    
-    def preprocess_word(w):
-        return re.sub(r'^\u05d5', '', w.replace('"', ''))
-    
     with open('data/hebrew_stopwords.txt', 'r') as fin:
         stopwords = set()
         for line in fin:
@@ -167,21 +194,8 @@ def calculate_mean_tfidf():
             except InputError:
                 print(l.ref)
                 continue
-            try:
-                text = TextChunk._strip_itags(oref.text('he').as_string())
-            except AttributeError:
-                print("Attrib", l.ref)
-                continue
-            text = strip_cantillation(text, strip_vowels=True)
-            text = re.sub('<[^>]+>', ' ', text)
-            text = re.sub(r'[־\-()]', ' ', text)
-            words = []
-            if len(text) != 0:
-                # text = requests.post('https://prefix.dicta.org.il/api', data=json.dumps({'data': text})).text
-                # text = re.sub(r'(?<=\s|"|\(|\[|-)[\u05d0-\u05ea]+\|', '', ' ' + text)  # remove prefixes
-                text = re.sub(r'[^\u05d0-\u05ea"]', ' ', text)
-                words = list(filter(lambda w: w not in stopwords, [preprocess_word(w) for w in text.split()]))
-            ref_words_map[l.ref] = words
+
+            ref_words_map[l.ref] = tokenize_words_for_tfidf(oref.text('he').as_string(), stopwords)
 
     # idf
     doc_word_counts = defaultdict(int)
@@ -204,18 +218,23 @@ def calculate_mean_tfidf():
     # tf-idf
     topic_tref_score_map = {}
     for topic, ref_list in ref_topic_map.items():
-        tfidf_dict = defaultdict(int)
+        total_tf = defaultdict(int)
+        tref_tf = defaultdict(lambda: defaultdict(int))
         for tref in ref_list:
             words = ref_words_map.get(tref, [])
             for w in words:
-                tfidf_dict[w] += 1
-        for w, tf in tfidf_dict.items():
+                total_tf[w] += 1
+                tref_tf[tref][w] += 1
+        tfidf_dict = {}
+        for w, tf in total_tf.items():
             tfidf_dict[w] = tf * idf_dict[w]
         for tref in ref_list:
             words = ref_words_map.get(tref, [])
             if len(words) == 0:
                 continue
-            topic_tref_score_map[(topic, tref)] = sum(tfidf_dict[w] for w in words)/len(words)
+            # calculate avg tfidf - tfidf for words that appear in this tref
+            # so that tref can't influence score
+            topic_tref_score_map[(topic, tref)] = sum((tfidf_dict[w] - tref_tf[tref].get(w, 0)*idf_dict[w]) for w in words)/len(words)
 
     return topic_tref_score_map, ref_topic_map
 

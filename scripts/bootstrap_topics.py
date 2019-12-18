@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders
+from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, calculate_mean_tfidf
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
     cin = csv.DictReader(fin)
@@ -510,7 +510,50 @@ def clean_up_time():
             t.save()
 
 
+def set_term_descriptions(topic, en, he):
+    term = Term().load_by_title(topic)
+    if not term:
+        print("No {}".format(topic))
+        return
+    term.description = {
+        "en": en,
+        "he": he
+    }
+    # print u"{}, {}, {}".format(topic,en,he)
+    term.save()
+
+
+def import_term_descriptions():
+    holidays_filename = 'data/Topic Descriptions - Holidays.tsv'
+    parshiot_filename = 'data/Topic Descriptions - Parshiyot.tsv'
+
+    # HOLIDAYS
+    # 0 Category
+    # 1 Topic
+    # 2 Copy
+    # 3 Hebrew Copy
+
+    # PARSHIYOT
+    # 0 Topic
+    # 1 Copy
+    # 2 Hebrew Copy
+    with open(holidays_filename) as tsvfile:
+        next(tsvfile)
+        next(tsvfile)
+        reader = csv.reader(tsvfile, delimiter='\t')
+        for row in reader:
+            set_term_descriptions(row[1], row[2], row[3])
+
+    with open(parshiot_filename) as tsvfile:
+        next(tsvfile)
+        next(tsvfile)
+        reader = csv.reader(tsvfile, delimiter='\t')
+        for row in reader:
+            set_term_descriptions(row[0], row[1], row[2])
+
+
 if __name__ == '__main__':
+    import_term_descriptions()
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_topic_link_types()
     do_data_source()
@@ -524,8 +567,7 @@ if __name__ == '__main__':
     do_sheet_refactor(tag_to_slug_map)
     generate_topic_links_from_sheets()
     update_link_orders()
-    
-    # clean_up_time()
+    clean_up_time()
 
 # TODO Halacha is not Halakha
 # TODO refactor sheets to hold topics
@@ -546,5 +588,10 @@ potential things we should fix
   - Authors -> People
   - Religion -> Theology
   - Folklore -> maybe something with less of a strong connotation. I feel like this implies it's not true
+
+why is {toTopic: "stingy", class: "refTopic", ref: /^Pesik/} the highest?
+how does it have such a high mean tfidf?
+
+why does /insistence-or-exactitude not have any sources? there are sources in aspaklaria
 """
 
