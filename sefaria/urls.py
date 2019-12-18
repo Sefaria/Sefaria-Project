@@ -110,7 +110,7 @@ urlpatterns += [
 # Calendar Redirects
 urlpatterns += [
     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
-    url(r'^daf-yomi-today$', reader_views.daf_yomi_redirect),
+    url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
 ]
 
 # Texts Add / Edit / Translate
