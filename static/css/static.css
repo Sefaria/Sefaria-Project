@@ -2652,6 +2652,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin: 50px 0 0 0;
 }
 
+#dafyomiPage h3.headerText {
+  border-bottom: none;
+}
+
+
 #dafyomiPage h3.headerText span {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 48px;
