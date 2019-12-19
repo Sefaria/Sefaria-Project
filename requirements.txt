@@ -47,3 +47,4 @@ cython
 django-easy-timezones
 mod_wsgi
 gunicorn
+httplib2
