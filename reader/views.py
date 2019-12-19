@@ -2895,11 +2895,14 @@ def topic_page(request, topic):
     """
 
     props = base_props(request)
-    props.update({
-        "initialMenu":  "topics",
-        "initialTopic": topic,
-        "topicData": _topic_data(topic),
-    })
+    try:
+        props.update({
+            "initialMenu":  "topics",
+            "initialTopic": topic,
+            "topicData": _topic_data(topic),
+        })
+    except AttributeError:
+        raise Http404
 
     title = "%(topic)s | Sefaria" % {"topic": topic}
     desc  = 'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
@@ -2932,14 +2935,14 @@ def topics_api(request, topic):
     """
     with_links = bool(int(request.GET.get("with_links", False)))
     annotate_links = bool(int(request.GET.get("annotate_links", False)))
-
+    group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
-    response = get_topics(topic, with_links, annotate_links, with_refs)
+    response = get_topics(topic, with_links, annotate_links, with_refs, group_related)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 def _topic_data(topic):
-    response = get_topics(topic, with_links=True, annotate_links=True, with_refs=True)
+    response = get_topics(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
     return response
 
 

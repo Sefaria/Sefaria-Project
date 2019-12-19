@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_topics(topic, with_links, annotate_links, with_refs):
+def get_topics(topic, with_links, annotate_links, with_refs, group_related):
     topic_obj = Topic().load({"slug": topic})
     response = topic_obj.contents()
     response['primaryTitle'] = {
@@ -36,10 +36,15 @@ def get_topics(topic, with_links, annotate_links, with_refs):
             del link['class']
             link['fromTopic'] = other_topic_slug
             link_type = library.get_link_type(link['linkType'])
-            link['linkType'] = link_type.inverseSlug if is_inverse else link_type.slug
+            del link['linkType']
+            if link_type.get('groupRelated', is_inverse, False):
+                link_type_slug = TopicLinkType.related_type
+            else:
+                link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
             if annotate_links:
                 # add display information
+                # TODO load all-at-once with TopicSet
                 other_topic = Topic().load({"slug": other_topic_slug})
                 if other_topic is None:
                     logger.warning("Topic slug {} doesn't exist. Linked to {}".format(other_topic_slug, topic))
@@ -48,14 +53,16 @@ def get_topics(topic, with_links, annotate_links, with_refs):
                     "en": other_topic.get_primary_title('en'),
                     "he": other_topic.get_primary_title('he')
                 }
-            if link['linkType'] in response['links']:
-                response['links'][link['linkType']]['links'] += [link]
+            if link_type_slug in response['links']:
+                response['links'][link_type_slug]['links'] += [link]
             else:
-                response['links'][link['linkType']] = {
+                response['links'][link_type_slug] = {
                     'links': [link],
-                    'title': link_type.inverseDisplayName if is_inverse else link_type.displayName,
-                    'shouldDisplay': getattr(link_type, 'shouldDisplay', True)
+                    'title': link_type.get('displayName', is_inverse),
+                    'shouldDisplay': link_type.get('shouldDisplay', is_inverse, False)
                 }
+                if link_type.get('pluralDisplayName', is_inverse, False):
+                    response['links'][link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
     return response
 
 
@@ -82,7 +89,7 @@ def generate_topic_links_from_sheets():
                 all_topics[slug] = {
                                 "topic": slug,
                                 "sources_dict": defaultdict(set),
-                                "related_topics_dict": defaultdict(int)
+                                "related_topics_dict": defaultdict(set)
                             }
             for tref in sheet.get("includedRefs", []):
                 try:
@@ -91,15 +98,26 @@ def generate_topic_links_from_sheets():
                         all_topics[slug]["sources_dict"][sub_oref.normal()].add(sheet['owner'])
                 except:
                     continue
-            # for related_topic_dict in sheet_topics:
-            #     if slug != related_topic_dict['slug']:
-            #         all_topics[slug]["related_topics_dict"][related_topic_dict['slug']] += 1
+            for related_topic_dict in sheet_topics:
+                if slug != related_topic_dict['slug']:
+                    all_topics[slug]["related_topics_dict"][related_topic_dict['slug']].add(sheet['owner'])
 
     for slug, blob in tqdm(all_topics.items(), desc="creating sheet topic links"):
-        # related_topics_dict = blob['related_topics_dict']
-
-        # filter sources with less than 3 users who added it
-        sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 3]
+        # filter related topics with less than 2 users who voted for it
+        related_topics = [related_topic for related_topic in blob['related_topics_dict'].items() if len(related_topic[1]) >= 2]
+        for related_topic, user_votes in related_topics:
+            tl = IntraTopicLink({
+                "class": "intraTopic",
+                "fromTopic": related_topic,
+                "toTopic": slug,
+                "linkType": "sheets-related-to",
+                "dataSource": "sefaria-users",
+                "generatedBy": "sheet-topic-aggregator",
+                "order": {"user_votes": len(user_votes)}
+            })
+            tl.save()
+        # filter sources with less than 2 users who added it
+        sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 2]
 
         # transform data to more convenient format
         temp_sources = []
@@ -118,7 +136,7 @@ def generate_topic_links_from_sheets():
             counts = [x['data'] for x in cluster]
             avg_count = sum(counts) / len(cluster)
             max_count = max(counts)
-            if max_count >= 4:
+            if max_count >= 3:
                 temp_sources += [(ranged_ref.normal(), [r.normal() for r in ranged_ref.range_list()], avg_count)]
             # else:
             #     print("Rejected!", max_count, slug, ranged_ref.normal())
@@ -135,7 +153,7 @@ def generate_topic_links_from_sheets():
                 "is_sheet": False,
                 "dataSource": "sefaria-users",
                 "generatedBy": "sheet-topic-aggregator",
-                "magnitude": source[2]
+                "order": {"user_votes": source[2]}
             })
             rtl.save()
         # related_topics = sorted(iter(related_topics_dict.items()), key=lambda k_v1: k_v1[1], reverse=True)
@@ -231,6 +249,7 @@ def calculate_mean_tfidf():
         for tref in ref_list:
             words = ref_words_map.get(tref, [])
             if len(words) == 0:
+                topic_tref_score_map[(topic, tref)] = 0
                 continue
             # calculate avg tfidf - tfidf for words that appear in this tref
             # so that tref can't influence score
@@ -280,30 +299,13 @@ def update_link_orders():
         else:
             key = (l.toTopic, l.ref)
             try:
-                topic_tref_score_map[key]
+                setattr(l, 'order', {
+                    'tfidf': topic_tref_score_map[key],
+                    'numDatasource': num_datasource_map[key],
+                    'availableLangs': langs_available[key],
+                    'ref': ref_order_map[key]
+                })
             except KeyError:
-                print('topic tref score map', key)
-                continue
-            try:
-                num_datasource_map[key]
-            except KeyError:
-                print('num datasource map', key)
-                continue
-            try:
-                langs_available[key]
-            except KeyError:
-                print('langs available', key)
-                continue
-            try:
-                ref_order_map[key]
-            except KeyError:
-                print('ref order map', key)
-                continue
-            setattr(l, 'order', {
-                'tfidf': topic_tref_score_map[key],
-                'numDatasource': num_datasource_map[key],
-                'availableLangs': langs_available[key],
-                'ref': ref_order_map[key]
-            })
+                print("KeyError", key)
         l.save()
 

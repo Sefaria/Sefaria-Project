@@ -305,14 +305,14 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => (
   links ?
     Object.values(links)
     .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.length > 0)
-    .map(linkType => (
-      <div key={linkType.title.en}>
+    .map(({ title, pluralTitle, links }) => (
+      <div key={title.en}>
         <h2>
-          <span className="int-en">{linkType.title.en}</span>
-          <span className="int-he">{linkType.title.he}</span>
+          <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
+          <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he :title.he}</span>
         </h2>
         <div className="sideList">
-          {linkType.links.map(t => TopicLink({topic:t.fromTopic, topicTitle: t.fromTopicTitle, clearAndSetTopic}))}
+          {links.map(t => TopicLink({topic:t.fromTopic, topicTitle: t.fromTopicTitle, clearAndSetTopic}))}
         </div>
       </div>
     ))

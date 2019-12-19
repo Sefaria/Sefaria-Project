@@ -186,7 +186,10 @@ def do_topics(dry_run=False):
                 slug_to_sheet_map[ot.slug] += [sheet['id']]
             if tag_to_slug_map.get(sheet_tag, False):
                 print("TAG TO SLUG ALREADY EXISTS!!!", sheet_tag, ot.slug, tag_to_slug_map[sheet_tag])
-            tag_to_slug_map[sheet_tag] = ot.slug
+            term = Term().load_by_title(sheet_tag)
+            term_titles = [sheet_tag] if term is None else [term_title['text'] for term_title in term.titles]
+            for term_title in term_titles:
+                tag_to_slug_map[term_title] = ot.slug
         for term_name in valid_terms:
             term_to_slug_map[term_name] = ot.slug
         for tag in invalid_terms:
@@ -266,15 +269,31 @@ def do_topic_link_types():
             'slug': edge_type['Edge'],
             'inverseSlug': edge_type['Edge Inverse'].replace(' ', '-'),
             'displayName': {
-                'en': titlecase(edge_type['Edge']),
-                'he': titlecase(edge_type['Edge'])
+                'en': edge_type['en name'],
+                'he': edge_type['he name']
             },
             'inverseDisplayName': {
-                'en': titlecase(edge_type['Edge Inverse']),
-                'he': titlecase(edge_type['Edge Inverse'])
+                'en': edge_type['inverse en name'],
+                'he': edge_type['inverse he name']
             },
-            'shouldDisplay': True
+            'shouldDisplay': len(edge_type['display']) > 0,
+            'inverseShouldDisplay': len(edge_type['inverse display']) > 0
         }
+        if len(edge_type['plural en name']) > 0:
+            attrs['pluralDisplayName'] = {
+                'en': edge_type['plural en name'],
+                'he': edge_type['plural he name']
+            }
+        if len(edge_type['inverse plural en name']) > 0:
+            attrs['inversePluralDisplayName'] = {
+                'en': edge_type['inverse plural en name'],
+                'he': edge_type['inverse plural he name']
+            }
+        if len(edge_type['group related']) > 0:
+            attrs['groupRelated'] = True
+        if len(edge_type['inverse group related']) > 0:
+            attrs['inverseGroupRelated'] = True
+
         if len(edge_type["BFO ID"]) > 0:
             attrs['alt_ids'] = {"bfo": re.findall(r'/([^/]+)$', edge_type["BFO ID"])[0]}
             attrs['inverse_alt_ids'] = {"bfo": re.findall(r'/([^/]+)$', edge_type["Inverse BFO ID"])[0]}
@@ -292,7 +311,8 @@ def do_topic_link_types():
             "en": "Has About",
             "he": "Has About"
         },
-        "shouldDisplay": True
+        "shouldDisplay": True,
+        "inverseShouldDisplay": True
     })
     tlt.save()
     tlt = TopicLinkType({
@@ -306,7 +326,23 @@ def do_topic_link_types():
             "en": "Displays Above",
             "he": "Displays Above"
         },
-        "shouldDisplay": False
+        "shouldDisplay": False,
+        "inverseShouldDisplay": False
+    })
+    tlt.save()
+    tlt = TopicLinkType({
+        "slug": "sheets-related-to",
+        "inverseSlug": "sheets-related-to",
+        "displayName": {
+            "en": "Related By Sheets",
+            "he": "Related By Sheets"
+        },
+        "inverseDisplayName": {
+            "en": "Related By Sheets",
+            "he": "Related By Sheets"
+        },
+        "shouldDisplay": True,
+        "inverseShouldDisplay": True
     })
     tlt.save()
 
@@ -515,12 +551,20 @@ def set_term_descriptions(topic, en, he):
     if not term:
         print("No {}".format(topic))
         return
-    term.description = {
+    ts = TopicSet({"titles.text": topic})
+    if ts.count() != 1:
+        print("{} topics matched for {}".format(ts.count(), topic))
+        return
+    t = ts.array()[0]
+    if getattr(t, 'description', None):
+        print("Description already exists for {}".format(t.slug))
+        print(t.description['en'])
+    t.description = {
         "en": en,
         "he": he
     }
     # print u"{}, {}, {}".format(topic,en,he)
-    term.save()
+    t.save()
 
 
 def import_term_descriptions():
@@ -553,21 +597,22 @@ def import_term_descriptions():
 
 
 if __name__ == '__main__':
-    import_term_descriptions()
-    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
+    # import_term_descriptions()
+    # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_topic_link_types()
-    do_data_source()
-    db.topic_links.drop()
-    db.topic_links.create_index('class')
-    db.topic_links.create_index('expandedRefs')
-    db.topic_links.create_index('toTopic')
-    db.topic_links.create_index('fromTopic')
-    do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
-    do_ref_topic_link(slug_to_sheet_map)
-    do_sheet_refactor(tag_to_slug_map)
-    generate_topic_links_from_sheets()
-    update_link_orders()
-    clean_up_time()
+    # do_data_source()
+    # db.topic_links.drop()
+    # db.topic_links.create_index('class')
+    # db.topic_links.create_index('expandedRefs')
+    # db.topic_links.create_index('toTopic')
+    # db.topic_links.create_index('fromTopic')
+    # do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
+    # do_ref_topic_link(slug_to_sheet_map)
+    # do_sheet_refactor(tag_to_slug_map)
+    # generate_topic_links_from_sheets()
+    # update_link_orders()
+
+    # clean_up_time()
 
 # TODO Halacha is not Halakha
 # TODO refactor sheets to hold topics
@@ -593,5 +638,7 @@ why is {toTopic: "stingy", class: "refTopic", ref: /^Pesik/} the highest?
 how does it have such a high mean tfidf?
 
 why does /insistence-or-exactitude not have any sources? there are sources in aspaklaria
+
+Rename 'intention' to 'purpose'/'תכלית'
 """
 

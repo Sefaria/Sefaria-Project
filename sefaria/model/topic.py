@@ -44,6 +44,7 @@ class TopicLinkHelper(object):
     optional_attrs = [
         'dataSource',
         'generatedBy',
+        'order'
     ]
 
     @staticmethod
@@ -76,7 +77,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
     # magnitude is if a link can be given a number which signifies the link's strength (currently used for sheet-derived links)
-    optional_attrs = TopicLinkHelper.optional_attrs + ['magnitude', 'order']
+    optional_attrs = TopicLinkHelper.optional_attrs
 
 
 class TopicLinkSetHelper(object):
@@ -120,11 +121,21 @@ class TopicLinkType(abst.AbstractMongoRecord):
         'inverseDisplayName'
     ]
     optional_attrs = [
+        'pluralDisplayName',
+        'inversePluralDisplayName',
         'alt_ids',
         'inverse_alt_ids',
         'shouldDisplay',
+        'inverseShouldDisplay',
+        'groupRelated',
+        'inverseGroupRelated',
         'devDescription'
     ]
+    related_type = 'related-to'
+
+    def get(self, attr, is_inverse, default=None):
+        attr = 'inverse{}{}'.format(attr[0].upper(), attr[1:]) if is_inverse else attr
+        return getattr(self, attr, default)
 
 
 class TopicLinkTypeSet(abst.AbstractMongoSet):
