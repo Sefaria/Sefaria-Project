@@ -1,4 +1,4 @@
-from .local_settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
+from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
 
 class GoogleStorageManager(object):
