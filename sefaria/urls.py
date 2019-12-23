@@ -18,7 +18,7 @@ import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
 from sefaria.site.urls import site_urlpatterns
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
@@ -391,8 +391,6 @@ urlpatterns += [
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
     url(r'^admin/?', include(admin.site.urls)),
 ]
-
-urlpatterns += staticfiles_urlpatterns()
 
 # Stats API - return CSV
 urlpatterns += [
