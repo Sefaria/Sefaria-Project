@@ -58,8 +58,8 @@
 .interface-hebrew h3,
 .interface-hebrew h4,
 .static h1 .int-he,
-.static h2 .int-he, 
-.static h3 .int-he, 
+.static h2 .int-he,
+.static h3 .int-he,
 .static h4 .int-he {
   font-family: "Heebo", sans-serif;
 }
@@ -306,7 +306,7 @@
 #homePage .sectionInner {
   width: 750px;
   max-width: 94%;
-  margin: auto; 
+  margin: auto;
 }
 #homePage .section:nth-child(even) {
   background-color: #FBFBFA;
@@ -913,7 +913,7 @@ p.registration-links a:hover{
 #teamPage .teamMember .teamEmail {
   color: #999;
 }
-#teamPage .teamMember .teamBio { 
+#teamPage .teamMember .teamBio {
   margin-top: 20px;
   white-space: normal;
 }
@@ -921,7 +921,7 @@ p.registration-links a:hover{
   color: #666;
 }
 #editProfilePage .inner {
-  position: relative; 
+  position: relative;
 }
 #saveCancelButtons {
   position: absolute;
@@ -2682,6 +2682,13 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   top: -7px;
 }
 
+#dafyomiPage .int-he.testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10e'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
 
 @media screen and (max-width: 700px) {
   #dafyomiPage .sectionInner{
@@ -2748,8 +2755,3 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .svg-white {
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
-
-
-
-
-
