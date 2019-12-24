@@ -396,6 +396,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
         topic = Topic().load({"alt_ids._temp_id": t['id']})
         if topic is None:
             print("Intra topic link topic is None: {}".format(t['id']))
+            continue
         for edge_type, to_topic_list in t.get('edges', {}).items():
             if edge_type in edge_inverses:
                 continue
