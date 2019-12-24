@@ -382,8 +382,8 @@ Sefaria = extend(Sefaria, {
       multiple:   settings.multiple
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
-    if (settings.enVersion) { url += "&ven=" + settings.enVersion.replace(/ /g,"_"); }
-    if (settings.heVersion) { url += "&vhe=" + settings.heVersion.replace(/ /g,"_"); }
+    if (settings.enVersion) { url += "&ven=" + encodeURIComponent(settings.enVersion.replace(/ /g,"_")); }
+    if (settings.heVersion) { url += "&vhe=" + encodeURIComponent(settings.heVersion.replace(/ /g,"_")); }
     url += "&" + params;
     return url.replace("&","?"); // make sure first param has a '?'
   },
@@ -2135,6 +2135,7 @@ Sefaria = extend(Sefaria, {
       //reader panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
+      "Search for:": "חיפוש:",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
       "Versions": "גרסאות",

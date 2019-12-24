@@ -43,3 +43,8 @@ undecorated
 apscheduler
 pytz
 google-cloud-storage
+cython
+django-easy-timezones
+gunicorn
+httplib2
+lxml
