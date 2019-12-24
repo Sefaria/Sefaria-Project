@@ -1,8 +1,12 @@
 {
 	"title": "עזרו לנו",
-	"text": ["ספריא תלויה במשתמשים כמוכם על מנת שנוכל להמשיך ולפעול."],
-	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile?utm_source=sefaria&utm_medium=modal&utm_campaign=EOY_Hebrew",
-	"buttonText": "תרמו עכשיו",
-	"name": "dec-2019-2",
+	"text": ["חברים יקרים,",
+"הכסף שאתם תורמים כעת יאפשר לבצע פרוייקט אדיר ורחב-ממדים של בניית ספריית-קוד-פתוח העומדת לשימוש הציבור בחינם, וכוללת טקסטים ומקורות יהודיים.",
+"תרמו עוד היום להבטחת המשך פעילותה של ספריא.",
+"חנוכה שמח,"],
+	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile?utm_source=sefariamobile&utm_medium=modal&utm_campaign=EOY_Hebrew",
+	"buttonText": "תרמו",
+	"name": "dec-2019-3",
 	"schemaVersion": 1
 }
+
