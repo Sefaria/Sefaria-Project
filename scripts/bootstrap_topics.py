@@ -184,7 +184,7 @@ def do_topics(dry_run=False):
             temp_sheets = autoreconnect_query('sheets', {"tags": sheet_tag})
             for sheet in temp_sheets:
                 slug_to_sheet_map[ot.slug] += [sheet['id']]
-            if tag_to_slug_map.get(sheet_tag, False):
+            if tag_to_slug_map.get(sheet_tag, False) and ot.slug != tag_to_slug_map[sheet_tag]:
                 print("TAG TO SLUG ALREADY EXISTS!!!", sheet_tag, ot.slug, tag_to_slug_map[sheet_tag])
             term = Term().load_by_title(sheet_tag)
             term_titles = [sheet_tag] if term is None else [term_title['text'] for term_title in term.titles]
@@ -279,6 +279,11 @@ def do_topic_link_types():
             'shouldDisplay': len(edge_type['display']) > 0,
             'inverseShouldDisplay': len(edge_type['inverse display']) > 0
         }
+        if len(edge_type['Valid From']) > 0:
+            attrs['validFrom'] = edge_type['Valid From'].split('|')
+        if len(edge_type['Valid To']) > 0:
+            attrs['validTo'] = edge_type['Valid To'].split('|')
+
         if len(edge_type['plural en name']) > 0:
             attrs['pluralDisplayName'] = {
                 'en': edge_type['plural en name'],
@@ -546,16 +551,16 @@ def clean_up_time():
             t.save()
 
 
-def set_term_descriptions(topic, en, he):
+def set_term_descriptions(topic, en, he, itls):
     term = Term().load_by_title(topic)
     if not term:
         print("No {}".format(topic))
         return
-    ts = TopicSet({"titles.text": topic})
-    if ts.count() != 1:
-        print("{} topics matched for {}".format(ts.count(), topic))
+    ts = [t for t in TopicSet({"titles.text": topic}) if t.slug not in itls]
+    if len(ts) != 1:
+        print("{} topics matched for {}: {}".format(len(ts), topic, ', '.join([t.slug for t in ts])))
         return
-    t = ts.array()[0]
+    t = ts[0]
     if getattr(t, 'description', None):
         print("Description already exists for {}".format(t.slug))
         print(t.description['en'])
@@ -568,6 +573,8 @@ def set_term_descriptions(topic, en, he):
 
 
 def import_term_descriptions():
+    itls = {l.fromTopic for l in IntraTopicLinkSet({"linkType": "is-a", "toTopic": "_uncategorized"})}
+
     holidays_filename = 'data/Topic Descriptions - Holidays.tsv'
     parshiot_filename = 'data/Topic Descriptions - Parshiyot.tsv'
 
@@ -586,18 +593,17 @@ def import_term_descriptions():
         next(tsvfile)
         reader = csv.reader(tsvfile, delimiter='\t')
         for row in reader:
-            set_term_descriptions(row[1], row[2], row[3])
+            set_term_descriptions(row[1], row[2], row[3], itls)
 
     with open(parshiot_filename) as tsvfile:
         next(tsvfile)
         next(tsvfile)
         reader = csv.reader(tsvfile, delimiter='\t')
         for row in reader:
-            set_term_descriptions(row[0], row[1], row[2])
+            set_term_descriptions(row[0], row[1], row[2], itls)
 
 
 if __name__ == '__main__':
-    # import_term_descriptions()
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_topic_link_types()
     do_data_source()
@@ -611,6 +617,7 @@ if __name__ == '__main__':
     do_sheet_refactor(tag_to_slug_map)
     generate_topic_links_from_sheets()
     update_link_orders()
+    import_term_descriptions()
 
     # clean_up_time()
 

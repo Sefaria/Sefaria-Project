@@ -1,6 +1,7 @@
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-
+import logging
+logger = logging.getLogger(__name__)
 
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
@@ -24,6 +25,45 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
+
+    def get_types(self, types=None, curr_path=None, search_slug=None):
+        """
+        WARNING: Expensive, lots of database calls
+        Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
+        :param types: set(str), current known types, for recursive calls
+        :param curr_path: current path of this recursive call
+        :param search_slug: if passed, will return early once/if `search_slug` is found
+        :return: set(str)
+        """
+        types = types or {self.slug}
+        curr_path = curr_path or [self.slug]
+        isa_set = {l.toTopic for l in IntraTopicLinkSet({"fromTopic": self.slug, "linkType": TopicLinkType.isa_type})}
+        types |= isa_set
+        if search_slug is not None and search_slug in types:
+            return types
+        for isa_slug in isa_set:
+            new_path = [p for p in curr_path]
+            if isa_slug in new_path:
+                logger.warning("Circular path starting from {} and ending at {} detected".format(new_path[0], isa_slug))
+                continue
+            new_path += [isa_slug]
+            new_topic = Topic().load({"slug": isa_slug})
+            if new_topic is None:
+                logger.warning("{} is None. Current path is {}".format(isa_slug, ', '.join(new_path)))
+                continue
+            new_topic.get_types(types, new_path, search_slug)
+        return types
+
+
+    def has_type(self, search_slug):
+        """
+        WARNING: Expensive, lots of database calls
+        Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
+        :param search_slug: str, slug to search for
+        :return: bool
+        """
+        types = self.get_types(search_slug=search_slug)
+        return search_slug in types
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
@@ -71,6 +111,9 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
+    valid_links = []
+    def _validate(self):
+        super(IntraTopicLink, self)._validate()
 
 
 class RefTopicLink(abst.AbstractMongoRecord):
@@ -129,9 +172,12 @@ class TopicLinkType(abst.AbstractMongoRecord):
         'inverseShouldDisplay',
         'groupRelated',
         'inverseGroupRelated',
-        'devDescription'
+        'devDescription',
+        'validFrom',
+        'validTo'
     ]
     related_type = 'related-to'
+    isa_type = 'is-a'
 
     def get(self, attr, is_inverse, default=None):
         attr = 'inverse{}{}'.format(attr[0].upper(), attr[1:]) if is_inverse else attr
