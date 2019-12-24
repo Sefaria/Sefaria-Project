@@ -38,7 +38,7 @@ import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import NewUserForm, NewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
-from sefaria.model.user_profile import UserProfile
+from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
@@ -724,6 +724,62 @@ def untagged_sheets(request):
 
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
+
+
+@staff_member_required
+def spam_dashboard(request):
+
+    from django.contrib.auth.models import User
+
+    if request.method == 'POST':
+
+        spam_sheet_ids = list(map(int, request.POST.getlist("spam_sheets[]", [])))
+        reviewed_sheet_ids = list(map(int, request.POST.getlist("reviewed_sheets[]", [])))
+
+        db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
+
+        spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
+
+        for spammer in spammers:
+            try:
+                spammer_account = User.objects.get(id=spammer["owner"])
+                spammer_account.is_active = False
+                spammer_account.save()
+            except:
+                continue
+
+        db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
+
+        return render(request, 'spam_dashboard.html',
+                      {"deleted_sheets": len(spam_sheet_ids),
+                       "sheet_ids": spam_sheet_ids,
+                       "reviewed_sheets": len(reviewed_sheet_ids),
+                       "spammers_deactivated": len(spammers)
+                       })
+
+    else:
+        date = request.GET.get("date", None)
+
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%d')
+
+        else:
+            date = request.GET.get("date", datetime.now() - timedelta(days=30))
+
+        earliest_new_user_id = User.objects.filter(date_joined__gte=date)[0].id
+
+        regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
+        sheets = db.sheets.find({"sources.ref": {"$exists": False}, "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")}, "owner": {"$gt": earliest_new_user_id}, "includedRefs": {"$size": 0}, "reviewed": {"$ne": True}, "$or": [{"sources.outsideText": {"$regex": regex}}, {"sources.comment": {"$regex": regex}}, {"sources.outsideBiText.en": {"$regex": regex}}, {"sources.outsideBiText.he": {"$regex": regex}}]})
+
+        sheets_list = []
+
+        for sheet in sheets:
+            sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
+
+        return render(request, 'spam_dashboard.html',
+                      {"title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
+                       "sheets": sheets_list,
+                       })
 
 @staff_member_required
 def versions_csv(request):

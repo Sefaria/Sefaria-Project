@@ -58,8 +58,8 @@
 .interface-hebrew h3,
 .interface-hebrew h4,
 .static h1 .int-he,
-.static h2 .int-he, 
-.static h3 .int-he, 
+.static h2 .int-he,
+.static h3 .int-he,
 .static h4 .int-he {
   font-family: "Heebo", sans-serif;
 }
@@ -306,7 +306,7 @@
 #homePage .sectionInner {
   width: 750px;
   max-width: 94%;
-  margin: auto; 
+  margin: auto;
 }
 #homePage .section:nth-child(even) {
   background-color: #FBFBFA;
@@ -913,7 +913,7 @@ p.registration-links a:hover{
 #teamPage .teamMember .teamEmail {
   color: #999;
 }
-#teamPage .teamMember .teamBio { 
+#teamPage .teamMember .teamBio {
   margin-top: 20px;
   white-space: normal;
 }
@@ -921,7 +921,7 @@ p.registration-links a:hover{
   color: #666;
 }
 #editProfilePage .inner {
-  position: relative; 
+  position: relative;
 }
 #saveCancelButtons {
   position: absolute;
@@ -2399,7 +2399,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     margin-bottom: 10%;
   }
   #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3{
-    margin: 10% 0 10%% 0;
+    margin: 10% 0 10% 0;
   }
   #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3 span{
     font-size: 30px;
@@ -2428,5 +2428,330 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
 }
 
+/******* daf yomi landing page ****/
+#dafyomiPage{
+  background: #FBFBFA;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.interface-hebrew #dafyomiPage.static .int-he{
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif !important;
+}
+#dafyomiPage .button{
+  padding: 3% 5%;
+}
+#dafyomiPage .sectionInner{
+  position: relative;
+  max-width: 1152px;
+  margin: auto;
+}
+#dafyomiPage .sectionWide{}
+#dafyomiPage .sectionRegular{
+  max-width: 960px;
+}
+#dafyomiPage .sectionNarrow{
+  max-width: 640px;
+}
+#dafyomiPage .flexContainer{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#dafyomiPage .flexReverse{
+  flex-direction: row-reverse;
+}
+#dafyomiPage #dafyomiPageHeader{
+  background-color: #18345D;
+  padding: 70px 0;
+  margin-top: 60px;
+  background-image: url(/static/img/daf-yomi-landing-page/talmudtextheader.jpg);
+  background-size: cover;
+  background-position: center;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+  flex: 1;
+  /* width: 438px; */
+  padding-top: 0%;
+  margin: auto;
+  text-align: center;
+}
+#dafyomiPage #dafyomiPageHeader h1{
+  /*width: 438px;*/
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 64px;
+  line-height: 77px;
+  text-align: center;
+  letter-spacing: 2px;
+  color: #FFFFFF;
+  margin: auto;
+}
+
+#dafyomiPage #dafyomiPageHeader h1 img {
+  width: 244px;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText{
+  padding: 2% 0;
+}
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 35px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #FFFFFF;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: auto;
+}
+
+#dafyomiPage .center {
+    text-align: center;
+}
+#dafyomiPage #dafyomiDescription p{
+  font-size: 22px;
+  line-height: 36px;
+  text-align: justify;
+  color: #000000;
+  margin-top: 62px;
+  margin-bottom: 65px;
+}
+#dafyomiPage #dafyomiDescription p .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#dafyomiPage #dafyomiWhatIs,
+#dafyomiPage #dafyomiWhatsNew {
+  background: #EDEDEC;
+  padding-top: 5%;
+}
+#dafyomiPage #dafyomiWhatIs .flexContainer div,
+#dafyomiPage #dafyomiWhatsNew .flexContainer div{
+  flex: 1;
+}
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatIsImage,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatsNewImage {
+  margin: 30px;
+  text-align: center;
+}
+
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img{
+  width: 362px;
+  margin-left: 40px;
+}
+
+#dafyomiPage #dafyomiWhatIs div.dafyomiWhatIsText,
+#dafyomiPage #dafyomiWhatsNew div.dafyomiWhatsNewText{
+  flex: 2;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 35px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000000;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle span,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle span{
+  display: inline-block;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewDescription,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsDescription{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  color: #000000;
+}
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewNew span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+  line-height: 29px;
+  text-align: justify;
+  color: #000000;
+  font-style: italic;
+}
+
+#dafyomiPage #dafyomiExamples{
+  background-color: #fff;
+}
+#dafyomiPage #dafyomiExamples .example{
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 40px;
+  padding-top: 40px;
+}
+#dafyomiPage #dafyomiExamples .example:last-child{
+  border-bottom: none;
+}
+
+#dafyomiPage #dafyomiExamples .example div{
+  flex: 0 0 45%;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3{
+  display: inline-block;
+  border-bottom: 4px solid;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleMobileApp.example .dafyomiExampleHeader h3{
+  border-bottom-color: #CCB479;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleCalendar.example .dafyomiExampleHeader h3{
+  border-bottom-color: #4871BF;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleTranslations.example .dafyomiExampleHeader h3{
+  border-bottom-color: #5D956F;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleConnections.example .dafyomiExampleHeader h3{
+  border-bottom-color: #802F3E;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #666666;
+}
+#dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+  text-align: end;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  text-align: justify;
+  color: #000000;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage {
+  text-align: center;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+  height: 350px;
+}
+
+#dafyomiPage #dafyomiExamples .dafyomiExamplesHeader h3{
+  text-align: center;
+  border-bottom: none;
+  margin: 50px 0 0 0;
+}
+
+#dafyomiPage h3.headerText {
+  border-bottom: none;
+}
 
 
+#dafyomiPage h3.headerText span {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 48px;
+  line-height: 58px;
+  color: #666666;
+  text-transform: initial;
+}
+
+#dafyomiPage hr {
+  border-top: 1px solid #ccc;
+  margin: 50px;
+}
+
+#dafyomiPage .testimonial {
+  font-style: italic;
+  margin: 40px 0;
+
+}
+#dafyomiPage .testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10d'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+#dafyomiPage .int-he.testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10e'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+
+@media screen and (max-width: 700px) {
+  #dafyomiPage .sectionInner{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionRegular{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionNarrow{
+    max-width: 310px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderImage{
+    height: auto;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+    padding-top: 20%;
+  }
+  #dafyomiPage #dafyomiPageHeader h1{
+    font-size: 40px;
+    line-height: 48px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+    font-size: 16px;
+    line-height: 19px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderButtons .button{
+    width: 183px;
+    height: 47px;
+    font-size: 12px;
+    line-height: 14px;
+  }
+  #dafyomiPage #dafyomiDescription p{
+    font-size: 18px;
+    line-height: 22px;
+  }
+  #dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+  #dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img {
+    margin-left: 0;
+  }
+  #dafyomiPage #dafyomiExamples{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example div{
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+    flex: 100%;
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage{
+    margin-top: 10%;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+    height: 246px;
+  }
+}
+
+/*** Filters for coloring svgs ***/
+.svg-white {
+  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
+}

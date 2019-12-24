@@ -1,1 +1,11 @@
-null
+{
+	"title": "Help Sefaria",
+	"text": ["Dear Friend:",
+"Your gelt goes a long way when it comes to building a free, open source library of Jewish texts. Support Sefaria today.",
+"Happy Chanukah,"],
+	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=sefariamobile&utm_medium=modal&utm_campaign=support",
+	"buttonText": "Donate",
+	"name": "dec-2019-3",
+	"schemaVersion": 1
+}
+
