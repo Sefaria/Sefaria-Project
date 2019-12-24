@@ -3184,12 +3184,14 @@ def profile_upload_photo(request):
         from io import StringIO
         from sefaria.utils.util import epoch_time
         now = epoch_time()
+
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
             resized_image_file = StringIO()
             resized_image.save(resized_image_file, format="PNG")
             resized_image_file.seek(0)
             return resized_image_file
+
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
