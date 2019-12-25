@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 with open (VARNISH_SECRET, "r") as sfile:
     secret=sfile.read().replace('\n', '')
-manager = VarnishManager([VARNISH_ADM_ADDR])
+manager = VarnishManager((VARNISH_ADM_ADDR,))
 
 
 # PyPi version of python-varnish has broken purge function.  We use this instead.
