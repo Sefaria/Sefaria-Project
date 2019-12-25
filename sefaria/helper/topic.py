@@ -177,18 +177,18 @@ def tokenize_words_for_tfidf(text, stopwords):
                   text)  # remove kri but dont remove too much to avoid messing with brackets in talmud
     text = re.sub(r'[A-Za-z.,"?!״:׃]', '', text)
     # replace common hashem replacements with the tetragrammaton
-    text = re.sub(r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d4['\u05f3]|\u05d9\u05d9)($|\s)",
-                  r"\1\2\u05d9\u05d4\u05d5\u05d4\3", text)
+    text = re.sub("(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d4['\u05f3]|\u05d9\u05d9)($|\s)",
+                  "\\1\\2\u05d9\u05d4\u05d5\u05d4\\3", text)
     # replace common elokim replacement with elokim
     text = re.sub(
-        r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d0\u05dc\u05e7\u05d9\u05dd)($|\s)",
-        r"\1\2\u05d0\u05dc\u05d4\u05d9\u05dd\3", text)
+        "(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d0\u05dc\u05e7\u05d9\u05dd)($|\s)",
+        "\\1\\2\u05d0\u05dc\u05d4\u05d9\u05dd\\3", text)
     words = []
     if len(text) != 0:
         # text = requests.post('https://prefix.dicta.org.il/api', data=json.dumps({'data': text})).text
         # text = re.sub(r'(?<=\s|"|\(|\[|-)[\u05d0-\u05ea]+\|', '', ' ' + text)  # remove prefixes
-        text = re.sub(r'[^\u05d0-\u05ea"]', ' ', text)
-        words = list(filter(lambda w: w not in stopwords, [re.sub(r'^\u05d5', '', w.replace('"', '')) for w in text.split()]))
+        text = re.sub('[^\u05d0-\u05ea"]', ' ', text)
+        words = list(filter(lambda w: w not in stopwords, [re.sub('^\u05d5', '', w.replace('"', '')) for w in text.split()]))
     return words
 
 
@@ -261,7 +261,7 @@ def calculate_mean_tfidf():
 def calculate_other_ref_scores(ref_topic_map):
     from sefaria.system.exceptions import InputError
     from tqdm import tqdm
-    
+
     LANGS_CHECKED = ['en', 'he']
     num_datasource_map = {}
     langs_available = {}
@@ -310,4 +310,3 @@ def update_link_orders():
             except KeyError:
                 print("KeyError", key)
         l.save()
-
