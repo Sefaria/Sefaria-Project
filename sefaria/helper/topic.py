@@ -299,12 +299,14 @@ def update_link_orders():
         else:
             key = (l.toTopic, l.ref)
             try:
-                setattr(l, 'order', {
+                order = getattr(l, 'order', {})
+                order.update({
                     'tfidf': topic_tref_score_map[key],
                     'numDatasource': num_datasource_map[key],
                     'availableLangs': langs_available[key],
                     'ref': ref_order_map[key]
                 })
+                setattr(l, 'order', order)
             except KeyError:
                 print("KeyError", key)
         l.save()

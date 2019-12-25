@@ -114,7 +114,7 @@ def do_topics(dry_run=False):
                 elif not title.get('primary', False) and title['text'] == term_prime_titles[title['lang']]:
                     title['primary'] = True
                 if title['text'] not in title_set:
-                    title['fromSheet'] = True
+                    title['fromTerm'] = True
         # remove duplicate titles
         title_tup_dict = {}
         for title in titles:
@@ -244,7 +244,7 @@ def do_topics(dry_run=False):
             ot.save()
     # Uncategorized topic
     ot = Topic({
-        "slug": "_uncategorized",
+        "slug": Topic.uncategorized_topic,
         "titles": [{
             "text": "_Uncategorized",
             "lang": "en",
@@ -504,7 +504,7 @@ def do_ref_topic_link(slug_to_sheet_map):
 
 def do_sheet_refactor(tag_to_slug_map):
     from sefaria.utils.hebrew import is_hebrew
-    IntraTopicLinkSet({"toTopic": "_uncategorized"}).delete()
+    IntraTopicLinkSet({"toTopic": Topic.uncategorized_topic}).delete()
     sheets = autoreconnect_query('sheets', {}, {"tags": 1, "id": 1})
     uncategorized_dict = {}
     for s in tqdm(sheets, desc="sheet refactor"):
@@ -527,7 +527,7 @@ def do_sheet_refactor(tag_to_slug_map):
                     topic_slug = topic.slug
                     itl = IntraTopicLink({
                         "fromTopic": topic_slug,
-                        "toTopic": "_uncategorized",
+                        "toTopic": Topic.uncategorized_topic,
                         "linkType": "is-a",
                         "class": "intraTopic"
                     })
@@ -576,7 +576,7 @@ def set_term_descriptions(topic, en, he, itls):
 
 
 def import_term_descriptions():
-    itls = {l.fromTopic for l in IntraTopicLinkSet({"linkType": "is-a", "toTopic": "_uncategorized"})}
+    itls = {l.fromTopic for l in IntraTopicLinkSet({"linkType": "is-a", "toTopic": Topic.uncategorized_topic})}
 
     holidays_filename = 'data/Topic Descriptions - Holidays.tsv'
     parshiot_filename = 'data/Topic Descriptions - Parshiyot.tsv'

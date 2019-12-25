@@ -1,5 +1,7 @@
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
+from sefaria.system.exceptions import DuplicateRecordError
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'isTopLevelDisplay',
         'displayOrder',
     ]
+    uncategorized_topic = 'uncategorized0000'
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
@@ -25,21 +28,20 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
-
-    def get_types(self, types=None, curr_path=None, search_slug=None):
+    def get_types(self, types=None, curr_path=None, search_slug_set=None):
         """
         WARNING: Expensive, lots of database calls
         Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
         :param types: set(str), current known types, for recursive calls
         :param curr_path: current path of this recursive call
-        :param search_slug: if passed, will return early once/if `search_slug` is found
+        :param search_slug_set: if passed, will return early once/if any element of `search_slug_set` is found
         :return: set(str)
         """
         types = types or {self.slug}
         curr_path = curr_path or [self.slug]
         isa_set = {l.toTopic for l in IntraTopicLinkSet({"fromTopic": self.slug, "linkType": TopicLinkType.isa_type})}
         types |= isa_set
-        if search_slug is not None and search_slug in types:
+        if search_slug_set is not None and len(search_slug_set.intersection(types)) > 0:
             return types
         for isa_slug in isa_set:
             new_path = [p for p in curr_path]
@@ -51,19 +53,19 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             if new_topic is None:
                 logger.warning("{} is None. Current path is {}".format(isa_slug, ', '.join(new_path)))
                 continue
-            new_topic.get_types(types, new_path, search_slug)
+            new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-
-    def has_type(self, search_slug):
+    def has_types(self, search_slug_set):
         """
         WARNING: Expensive, lots of database calls
         Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
-        :param search_slug: str, slug to search for
+        :param search_slug_set: set(str), slugs to search for. returns True if any slug is found
         :return: bool
         """
-        types = self.get_types(search_slug=search_slug)
-        return search_slug in types
+        types = self.get_types(search_slug_set=search_slug_set)
+        return len(search_slug_set.intersection(types)) > 0
+
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
@@ -112,8 +114,34 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
+
+    def _pre_save(self):
+        if getattr(self, "_id", None) is None:
+            # check for duplicates
+            duplicate = IntraTopicLink().load(
+                {"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
+                 "class": getattr(self, 'class')})
+            if duplicate is not None:
+                raise DuplicateRecordError("Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
+                self.linkType, self.fromTopic, self.toTopic))
+
     def _validate(self):
         super(IntraTopicLink, self)._validate()
+
+        # check everything exists
+        link_type = TopicLinkType().load({"slug": self.linkType})
+        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
+        from_topic = Topic().load({"slug": self.fromTopic})
+        assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
+        to_topic = Topic().load({"slug": self.toTopic})
+        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
+
+        # check types of topics are valid according to validFrom/To
+        if getattr(link_type, 'validFrom', False):
+            assert from_topic.has_types(set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
+        if getattr(link_type, 'validTo', False):
+            assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+
 
 
 class RefTopicLink(abst.AbstractMongoRecord):

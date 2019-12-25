@@ -157,7 +157,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const tabs = [];
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
-    console.log(topicSheets);
+    console.log(textData);
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
