@@ -1715,9 +1715,9 @@ Sefaria = extend(Sefaria, {
     return data;
   },
 */
-  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true) {
+  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true, group_related=true) {
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}`,
+          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}`,
           key:   topic,
           store: this._topics
     });
