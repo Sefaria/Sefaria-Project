@@ -13,12 +13,12 @@
 {% block content %}
 <div id="mobilePage" class="static">
     <div id="headerButtons">
-        <a target="_blank" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
+        <a target="_blank" class="iOSDownloadLink" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
 
             <img id="topHeaderIOS" src="{% static "img/mobile-landing-page/Artboard 3 2.png" %}"
                  alt="Sefaria app on IOS"/>
         </a>
-        <a target="_blank" href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria">
+        <a target="_blank" class="androidDownloadLink" href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria">
             <img id="topHeaderAndroid" src="{% static "img/mobile-landing-page/Artboard 1.png" %}"
                  alt="Sefaria app on Android">
         </a>
@@ -47,12 +47,12 @@
                     </h2>
                 </div>
                 <div id="mobilePageHeaderButtons">
-                    <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContainer">
+                    <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContainer iOSDownloadLink">
                         <img class="button-icon ios" src="{% static "img/mobile-landing-page/apple.png" %}" alt="Sefaria on iOS">
                         <span class="int-en">Download for iOS</span>
                         <span class="int-he">הורדה ל iOS</span>
                     </a>
-                    <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer">
+                    <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer androidDownloadLink">
                         <img class="button-icon android" src="{% static "img/mobile-landing-page/googleplay.png" %}" alt="Sefaria on Android">
                         <span class="int-en">Download for Android</span>
                         <span class="int-he">הורדה לאנדרואיד</span>
@@ -288,12 +288,12 @@
                 </h3>
             </div>
             <div class="mobileDownloadButtons flexContainer">
-                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContainer">
+                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8" target="_blank" class="button flexContaine iOSDownloadLink">
                     <img class="button-icon" src="{% static "img/mobile-landing-page/apple.png" %}" alt="iOS icon">
                     <span class="int-en">Download for iOS</span>
                     <span class="int-he">הורדה ל- iOS</span>
                 </a>
-                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer">
+                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria" target="_blank" class="button flexContainer androidDownloadLink">
                     <img class="button-icon" src="{% static "img/mobile-landing-page/googleplay.png" %}" alt="Android Google Play icon">
                     <span class="int-en">Download for Android</span>
                     <span class="int-he">הורדה לאנדרואיד</span>
@@ -352,6 +352,21 @@
 {% block js  %}
     <script>
     $(function() {
+        // Set tracking links to app stores
+        var urlVars = Sefaria.util.getUrlVars();
+        var source = urlVars["utm_source"];
+        var medium = urlVars["utm_medium"];
+        var campaign = urlVars["utm_campaign"];
+
+        if (source && medium && campaign) {
+            var androidUrl = "https://play.google.com/store/apps/details?id=org.sefaria.sefaria&referrer=utm_source%3D" + source + "%26utm_medium%3D" + medium + "%26utm_campaign%3D" + campaign;
+
+            var iOSUrl = "https://apps.apple.com/app/apple-store/id1163273965?pt=118389482&ct=" + [source, medium, campaign].join("-") + "&mt=8";
+
+            $(".androidDownloadLink").attr("href", androidUrl);
+            $(".iOSDownloadLink").attr("href", iOSUrl);
+        }
+
         // General Email List sign up at end of page
         $("#subscribe").click(function() {
             const email = $("#newsletterInput").val();

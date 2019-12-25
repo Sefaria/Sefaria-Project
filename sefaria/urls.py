@@ -19,7 +19,6 @@ import django.contrib.auth.views as django_auth_views
 
 from sefaria.site.urls import site_urlpatterns
 
-
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
 
@@ -111,7 +110,7 @@ urlpatterns += [
 # Calendar Redirects
 urlpatterns += [
     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
-    url(r'^daf-yomi$', reader_views.daf_yomi_redirect),
+    url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
 ]
 
 # Texts Add / Edit / Translate
@@ -390,6 +389,7 @@ urlpatterns += [
     url(r'^admin/translation-requests-stats', sefaria_views.translation_requests_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
+    url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
     url(r'^admin/?', include(admin.site.urls)),
