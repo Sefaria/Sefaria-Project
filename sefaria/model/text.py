@@ -1038,7 +1038,7 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup(u"<div>{}</div>".format(s), 'xml')
+        soup = BeautifulSoup(u"<div>{}</div>".format(s), 'html.parser')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
