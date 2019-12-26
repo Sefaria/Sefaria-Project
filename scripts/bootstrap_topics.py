@@ -200,14 +200,14 @@ def do_topics(dry_run=False):
     # displays-under links
     top_toc_dedupper = {
         "Philosophy": "philosophy",
-        "Tanakh": "the-holy-books-bible",
+        "Tanakh": "the-holy-books",
         "Prayer": "liturgy",
         "Food": "food",
         "Israel": "israel",
         "Language": "language",
         "Education": "education",
         "Art": "artistic-process",
-        "History": "historical-event",
+        "History": "history",
         "Calendar": "calendar",
         "Science": "science",
         "Medicine": "healing",
