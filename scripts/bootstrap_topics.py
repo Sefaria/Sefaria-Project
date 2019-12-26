@@ -7,6 +7,7 @@ from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
 from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, calculate_mean_tfidf
+from sefaria.system.exceptions import DuplicateRecordError
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
     cin = csv.DictReader(fin)
@@ -392,6 +393,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
         if len(edge_type["Edge Inverse"]) == 0 or edge_type["Edge Inverse"] == edge_type["Edge"]:
             continue
         edge_inverses.add(edge_type['Edge Inverse'])
+    num_invalid_links = 0
     for t in tqdm(topics, desc="intraTopic links"):
         topic = Topic().load({"alt_ids._temp_id": t['id']})
         if topic is None:
@@ -413,7 +415,15 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                     "linkType": linkType.slug,
                     "dataSource": "aspaklria-edited-by-sefaria"
                 })
-                tl.save()
+                try:
+                    tl.save()
+                except AssertionError:
+                    num_invalid_links += 1
+                    tl.linkType = TopicLinkType.related_type
+                    tl.save()
+                except DuplicateRecordError as e:
+                    print(e)
+    print("Num invalid links fixed: {}".format(num_invalid_links))
 
     # displays-under links
     for top_term in tqdm(TermSet({"scheme": "Tag Category"}), desc="valid intraTopic terms"):
@@ -531,7 +541,10 @@ def do_sheet_refactor(tag_to_slug_map):
                         "linkType": "is-a",
                         "class": "intraTopic"
                     })
-                    itl.save()
+                    try:
+                        itl.save()
+                    except DuplicateRecordError as e:
+                        print(e)
                     uncategorized_dict[t] = topic_slug
 
             sheet_topics += [{"slug": topic_slug, "asTyped": t}]
