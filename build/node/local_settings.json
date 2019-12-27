@@ -1,5 +1,5 @@
 {
-    "DJANGO_HOST": "http://web",
+    "DJANGO_HOST": "http://web-p3",
     "PORT": 3000,
     "DEBUG": false
 }

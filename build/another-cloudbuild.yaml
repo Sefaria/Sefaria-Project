@@ -2,6 +2,7 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/production-deployment/sefaria-node-test:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
+    id: node_container
     
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
