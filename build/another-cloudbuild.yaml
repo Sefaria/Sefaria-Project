@@ -1,18 +1,19 @@
 ---
-steps:
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node-test:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
-    id: node_container
-    
+steps:    
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
     id: web_container
-    waitFor: ['-']
   
   # Find a better way of passing in SRC_IMG
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/production-deployment/sefaria-asset-test:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA", "."]
     id: nginx_container
+    wait_for:
+      - web_container
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node-test:$SHORT_SHA", "-f", "build/node/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA", "."]
+    id: nodejs_container
     wait_for:
       - web_container
 
