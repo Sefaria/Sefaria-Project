@@ -393,14 +393,38 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
         if len(edge_type["Edge Inverse"]) == 0 or edge_type["Edge Inverse"] == edge_type["Edge"]:
             continue
         edge_inverses.add(edge_type['Edge Inverse'])
-    num_invalid_links = 0
-    for t in tqdm(topics, desc="intraTopic links"):
+
+    # IS A links first so that validation will work on second pass
+    for t in tqdm(topics, desc="intraTopic links is-a"):
         topic = Topic().load({"alt_ids._temp_id": t['id']})
         if topic is None:
             print("Intra topic link topic is None: {}".format(t['id']))
             continue
         for edge_type, to_topic_list in t.get('edges', {}).items():
-            if edge_type in edge_inverses:
+            if edge_type in edge_inverses or edge_type != 'is a':
+                continue
+            linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
+            for to_topic_id in to_topic_list:
+                to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
+                if to_topic is None:
+                    # print(to_topic_id)
+                    continue
+                tl = IntraTopicLink({
+                    "class": "intraTopic",
+                    "fromTopic": topic.slug,
+                    "toTopic": to_topic.slug,
+                    "linkType": linkType.slug,
+                    "dataSource": "aspaklria-edited-by-sefaria"
+                })
+                tl.save()
+    num_invalid_links = 0
+    for t in tqdm(topics, desc="intraTopic links is-not-a"):
+        topic = Topic().load({"alt_ids._temp_id": t['id']})
+        if topic is None:
+            print("Intra topic link topic is None: {}".format(t['id']))
+            continue
+        for edge_type, to_topic_list in t.get('edges', {}).items():
+            if edge_type in edge_inverses or edge_type == 'is a':
                 continue
             linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
             for to_topic_id in to_topic_list:
@@ -420,7 +444,10 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                 except AssertionError:
                     num_invalid_links += 1
                     tl.linkType = TopicLinkType.related_type
-                    tl.save()
+                    try:
+                        tl.save()
+                    except DuplicateRecordError as e:
+                        print(e)
                 except DuplicateRecordError as e:
                     print(e)
     print("Num invalid links fixed: {}".format(num_invalid_links))
@@ -604,6 +631,37 @@ def import_term_descriptions():
     # 0 Topic
     # 1 Copy
     # 2 Hebrew Copy
+    """
+    topics to create
+    Halloween
+    Taanit Esther
+    Yom Hashoah
+    
+    no term
+    Rabbinic Holiday
+    Yom Haatzmaut
+    Yom Yerushalayim
+    Taanit Bekhorot
+    Yom HaZikaron
+    Sigd
+    
+    ambig
+    Fast Day: fasting, fast-day
+    Shabbat: shabbat, shabbat1
+    Sukkot: sukkot, sukkot1
+    Bereshit: bereshit, bereshit1, bereshit2
+    Noach: noach, noach1
+    Shemot: shemot, shemot1, shemot2
+    Yitro: yitro, yitro1
+    Terumah: terumah, terumah1
+    Vayikra: vayikra, vayikra1
+    Bamidbar: bamidbar, bamidbar1
+    Korach: korach, korach1, korach2
+    Balak: balak, balak1
+    Pinchas: pinchas, pinchas1
+    Devarim: deuteronomy, devarim
+    Shoftim: shoftim, shoftim1, shoftim2
+    """
     with open(holidays_filename) as tsvfile:
         next(tsvfile)
         next(tsvfile)

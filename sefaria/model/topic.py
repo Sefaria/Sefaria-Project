@@ -28,6 +28,9 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
+    def title_is_transliteration(self, title, lang):
+        return self.title_group.get_title_attr(title, lang, 'transliteration') is not None
+
     def get_types(self, types=None, curr_path=None, search_slug_set=None):
         """
         WARNING: Expensive, lots of database calls

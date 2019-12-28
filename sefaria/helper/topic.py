@@ -12,6 +12,10 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
         'en': topic_obj.get_primary_title('en'),
         'he': topic_obj.get_primary_title('he')
     }
+    response['primaryTitleIsTransliteration'] = {
+        'en': topic_obj.title_is_transliteration(response['primaryTitle']['en'], 'en'),
+        'he': topic_obj.title_is_transliteration(response['primaryTitle']['he'], 'he')
+    }
     intra_link_query = {"$or": [{"fromTopic": topic}, {"toTopic": topic}]}
     if with_links and with_refs:
         # can load faster by querying `topic_links` query just once
@@ -34,7 +38,7 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
             from_topic_set.add(other_topic_slug)
             del link['toTopic']
             del link['class']
-            link['fromTopic'] = other_topic_slug
+            link['topic'] = other_topic_slug
             link_type = library.get_link_type(link['linkType'])
             del link['linkType']
             if link_type.get('groupRelated', is_inverse, False):
@@ -42,6 +46,12 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
             else:
                 link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
+            # for related sheet links
+            if link.get('order', {}).get('fromTfidf', None) is not None:
+                tfidf = link['order']['fromTfidf'] if is_inverse else link['order']['toTfidf']
+                link['order']['tfidf'] = tfidf
+                del link['order']['fromTfidf']
+                del link['order']['toTfidf']
             if annotate_links:
                 # add display information
                 # TODO load all-at-once with TopicSet
@@ -49,9 +59,13 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
                 if other_topic is None:
                     logger.warning("Topic slug {} doesn't exist. Linked to {}".format(other_topic_slug, topic))
                     continue
-                link["fromTopicTitle"] = {
+                link["title"] = {
                     "en": other_topic.get_primary_title('en'),
                     "he": other_topic.get_primary_title('he')
+                }
+                link['titleIsTransliteration'] = {
+                    'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
+                    'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
                 }
             if link_type_slug in response['links']:
                 response['links'][link_type_slug]['links'] += [link]
@@ -102,10 +116,17 @@ def generate_topic_links_from_sheets():
                 if slug != related_topic_dict['slug']:
                     all_topics[slug]["related_topics_dict"][related_topic_dict['slug']].add(sheet['owner'])
 
+    already_created_related_links = {}
     for slug, blob in tqdm(all_topics.items(), desc="creating sheet topic links"):
         # filter related topics with less than 2 users who voted for it
         related_topics = [related_topic for related_topic in blob['related_topics_dict'].items() if len(related_topic[1]) >= 2]
         for related_topic, user_votes in related_topics:
+            if related_topic == slug:
+                continue
+            key = (related_topic, slug) if related_topic > slug else (slug, related_topic)
+            if already_created_related_links.get(key, False):
+                continue
+            already_created_related_links[key] = True
             tl = IntraTopicLink({
                 "class": "intraTopic",
                 "fromTopic": related_topic,
@@ -235,6 +256,7 @@ def calculate_mean_tfidf():
 
     # tf-idf
     topic_tref_score_map = {}
+    top_words_map = {}
     for topic, ref_list in ref_topic_map.items():
         total_tf = defaultdict(int)
         tref_tf = defaultdict(lambda: defaultdict(int))
@@ -254,8 +276,8 @@ def calculate_mean_tfidf():
             # calculate avg tfidf - tfidf for words that appear in this tref
             # so that tref can't influence score
             topic_tref_score_map[(topic, tref)] = sum((tfidf_dict[w] - tref_tf[tref].get(w, 0)*idf_dict[w]) for w in words)/len(words)
-
-    return topic_tref_score_map, ref_topic_map
+            top_words_map[(topic, tref)] = [x[0] for x in sorted([(w, (tfidf_dict[w] - tref_tf[tref].get(w, 0)*idf_dict[w])) for w in words], key=lambda x: x[1], reverse=True)[:10]]
+    return topic_tref_score_map, ref_topic_map, top_words_map
 
 
 def calculate_other_ref_scores(ref_topic_map):
@@ -288,7 +310,7 @@ def calculate_other_ref_scores(ref_topic_map):
 def update_link_orders():
     from tqdm import tqdm
     from sefaria.system.database import db
-    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
+    topic_tref_score_map, ref_topic_map, top_words_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, ref_order_map = calculate_other_ref_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
@@ -302,6 +324,7 @@ def update_link_orders():
                 order = getattr(l, 'order', {})
                 order.update({
                     'tfidf': topic_tref_score_map[key],
+                    'topWords': top_words_map[key],
                     'numDatasource': num_datasource_map[key],
                     'availableLangs': langs_available[key],
                     'ref': ref_order_map[key]

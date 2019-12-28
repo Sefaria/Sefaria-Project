@@ -83,6 +83,19 @@ class TitleGroup(object):
 
         return self._primary_title.get(lang)
 
+    def get_title_attr(self, title, lang, attr):
+        """
+        Get attribute `attr` for title `title`.
+        For example, get attribute 'transliteration' for a certain title
+        :param title: str
+        :param lang: en or he
+        :param attr: str
+        :return: value of attribute `attr`
+        """
+        for t in self.titles:
+            if t.get('lang') == lang and t.get('text') == title:
+                return t.get(attr, None)
+
     def all_titles(self, lang=None):
         """
         :param lang: "en" or "he"
