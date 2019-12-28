@@ -10,10 +10,10 @@ import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
 
 // interface text that can fallback to alternate langauge if current language doesn't have content
-const InterfaceTextWithFallback = ({ en, he }) => (
+const InterfaceTextWithFallback = ({ en, he, isItalics }) => (
   <span>
-    <span className={classNames({"int-en": 1, "but-text-is-he": !en})}>{en || he}</span>
-    <span className={classNames({"int-he": 1, "but-text-is-en": !he})}>{he || en}</span>
+    <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics.en })}>{en || he}</span>
+    <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics.he })}>{he || en}</span>
   </span>
 );
 

@@ -140,6 +140,9 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-weight: normal;
   color: #000;
 }
+.italics {
+  font-style: italic;
+}
 /* end Style Guide */
 
 @font-face {

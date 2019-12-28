@@ -65,12 +65,12 @@ const TopicCategory = ({topic, setTopic, interfaceLang, width, multiPanel, compa
 
 const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
   const { en, he } = !!topicData ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-
+  const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   return (
     <div>
         <div className="topicTitle pageTitle">
           <h1>
-            <InterfaceTextWithFallback en={en} he={he} />
+            <InterfaceTextWithFallback en={en} he={he} isItalics={isTransliteration} />
             { !! he ? <span className="topicTitleInHe"><span className="int-en but-text-is-he">{` (${he})`}</span></span> : null}
 
           </h1>
@@ -105,7 +105,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
         setTopicData(d);
         let refMap = {};
         for (let refObj of d.refs.filter(s => !s.is_sheet)) {
-          refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order};
+          refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSource: refObj.dataSource};
         }
         const refs = Object.values(refMap);
         let sheetMap = {};
@@ -123,6 +123,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
               for (let tempRef of inRefs) {
                 if (outRefs[tempRef.ref]) {
                   outRefs[tempRef.ref].order = tempRef.order;
+                  outRefs[tempRef.ref].dataSource = tempRef.dataSource;
                 }
               }
               return Object.entries(outRefs);
@@ -157,7 +158,6 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const tabs = [];
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
-    console.log(textData);
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -273,7 +273,6 @@ const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filter
 const TextPassage = ({text, toggleSignUpModal}) => {
     if (!text.ref) { return null; }
     const url = "/" + Sefaria.normRef(text.ref);
-
     return <StoryFrame cls="textPassageStory">
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
@@ -281,6 +280,7 @@ const TextPassage = ({text, toggleSignUpModal}) => {
         <ColorBarBox tref={text.ref}>
             <StoryBodyBlock en={text.en} he={text.he}/>
         </ColorBarBox>
+        <div>{text.dataSource}</div>
     </StoryFrame>;
 };
 TextPassage.propTypes = {
@@ -288,23 +288,37 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-const TopicLink = ({topic, topicTitle, clearAndSetTopic}) => {
+const TopicLink = ({topic, topicTitle, clearAndSetTopic, userVotes, tfidf, isTransliteration}) => {
 
   return (
     <Link className="relatedTopic" href={"/topics/" + topic} onClick={clearAndSetTopic.bind(null, topic)} key={topic} title={topicTitle.en}>
-      <InterfaceTextWithFallback en={topicTitle.en} he={topicTitle.he} />
+      <InterfaceTextWithFallback
+        en={topicTitle.en + (!!tfidf ? ` (${tfidf.toFixed(2)}) ` : '') + (!!userVotes ? ` (+${userVotes})` : '')}
+        he={topicTitle.he + (!!tfidf ? ` (${tfidf.toFixed(2)}) ` : '') + (!!userVotes ? ` (+${userVotes})` : '')}
+        isItalics={isTransliteration}
+      />
     </Link>
   );
 };
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
   clearAndSetTopic: PropTypes.func.isRequired,
+  isTransliteration: PropTypes.object,
 };
 
 const TopicSideColumn = ({ links, clearAndSetTopic }) => (
   links ?
     Object.values(links)
     .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.length > 0)
+    .sort((a, b) => {
+      const aInd = a.title.en.indexOf('Related');
+      const bInd = b.title.en.indexOf('Related');
+      if (aInd > -1 && bInd > -1) { return 0; }
+      if (aInd > -1) { return 1; }
+      if (bInd > -1) { return -1; }
+      //alphabetical by en just to keep order consistent
+      return a.title.en.localeCompare(b.title.en);
+    })
     .map(({ title, pluralTitle, links }) => (
       <div key={title.en}>
         <h2>
@@ -312,7 +326,21 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => (
           <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he :title.he}</span>
         </h2>
         <div className="sideList">
-          {links.map(t => TopicLink({topic:t.fromTopic, topicTitle: t.fromTopicTitle, clearAndSetTopic}))}
+          {
+            links
+            .sort((a, b) => {
+              const aVotes = !!a.order && a.order.tfidf;
+              const bVotes = !!b.order && b.order.tfidf;
+              if (aVotes >= 0 && bVotes >= 0) { return bVotes - aVotes; }
+              return a.title.en.localeCompare(b.title.en);
+            })
+            .map(l =>
+              TopicLink({
+                topic:l.topic, topicTitle: l.title, clearAndSetTopic,
+                userVotes: l.order && l.order.user_votes, tfidf: l.order && l.order.tfidf, isTransliteration: l.titleIsTransliteration
+              })
+            )
+          }
         </div>
       </div>
     ))
