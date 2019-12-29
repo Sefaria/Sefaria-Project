@@ -24,7 +24,7 @@ steps:
 
   - name: 'gcr.io/cloud-builders/kubectl'
     dir: k8s-admin/v2
-    args: ["apply", "-f", "./_build/"]
+    args: ["apply", "-R", "-f", "./_build/"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
       - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
