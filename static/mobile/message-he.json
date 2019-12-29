@@ -1,12 +1,12 @@
 {
-	"title": "עזרו לנו",
-	"text": ["חברים יקרים,",
-"הכסף שאתם תורמים כעת יאפשר לבצע פרוייקט אדיר ורחב-ממדים של בניית ספריית-קוד-פתוח העומדת לשימוש הציבור בחינם, וכוללת טקסטים ומקורות יהודיים.",
-"תרמו עוד היום להבטחת המשך פעילותה של ספריא.",
-"חנוכה שמח,"],
-	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile?utm_source=sefariamobile&utm_medium=modal&utm_campaign=EOY_Hebrew",
-	"buttonText": "תרמו",
-	"name": "dec-2019-3",
+	"title": "אנו זקוקים לעזרתכם!",
+	"text": ["זהו המאמץ האחרון במבצע ההתרמה שלנו. ספריא היא אירגון ללא כוונת רווח ואנו תלויים בעזרה ובתמיכה שנקבל ממשתמשים כמוכם, אשר מאפשרים לספריא להמשיך ולפעול.",
+"תוכלו לסיים את השנה הזו בתרומה לספריא. קיבלנו התחייבות למאצ'ינג –תורם יכפיל כל סכום שייתרם לנו!",
+"על, כל 1₪ שאתה תורם לנו - אנחנו מזוכים ב- 2 ₪!",
+"תודה, רבה!"],
+	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile?utm_source=sefaria&utm_medium=modal&utm_campaign=support-20191231-matching-hebrew",
+	"buttonText": "תרום עכשיו",
+	"name": "dec-2019-4",
 	"schemaVersion": 1
 }
 

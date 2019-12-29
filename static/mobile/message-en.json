@@ -1,11 +1,11 @@
 {
-	"title": "Help Sefaria",
-	"text": ["Dear Friend:",
-"Your gelt goes a long way when it comes to building a free, open source library of Jewish texts. Support Sefaria today.",
-"Happy Chanukah,"],
-	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=sefariamobile&utm_medium=modal&utm_campaign=support",
+	"title": "We need your help",
+	"text": ["This is our final fundraising push. Sefaria is a non-profit and we depend on the support of users like you to keep Sefaria running.",
+      "Close out the year with a donation to Sefaria. All contributions will be matched 1:1.",
+      "Thank you."],
+	"buttonLink": "https://sefaria.nationbuilder.com/support_a?utm_source=sefariamobile&utm_medium=modal&utm_campaign=support-20191231-matching",
 	"buttonText": "Donate",
-	"name": "dec-2019-3",
+	"name": "dec-2019-4",
 	"schemaVersion": 1
 }
 
