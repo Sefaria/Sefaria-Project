@@ -7,12 +7,13 @@
 steps:
   # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'lorenzo/deploy-python3', '--single-branch']
 
   # Helm Path:
   # apply helm chart
   - name: "gcr.io/production-deployment/cloudbuild-runner"
-    args: ['helm', 'template', './v2/charts/sefaria-p3-prod', '--set-string', '"releaseHash=TESTHASH"', '--output-dir', './k8s-admin/v2/_build']
+    dir: k8s-admin/v2
+    args: ['helm', 'template', './charts/sefaria-p3-prod', '--set-string', '"releaseHash=TESTHASH"', '--output-dir', './_build']
 
 
   # Helm Path:
@@ -22,7 +23,8 @@ steps:
 
 
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ["apply", "-f", "k8s-admin/v2/_build/"]
+    dir: k8s-admin/v2
+    args: ["apply", "-f", "./_build/"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
       - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
