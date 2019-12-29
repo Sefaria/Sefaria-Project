@@ -28,7 +28,7 @@ steps:
 
   # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
   - name: "gcr.io/cloud-builders/git"
-  args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'lorenzo/deploy-python3', '--single-branch']
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'lorenzo/deploy-python3', '--single-branch']
 
   # Helm Path:
   # apply helm chart
