@@ -12,8 +12,21 @@ steps:
   # Helm Path:
   # apply helm chart
   - name: "gcr.io/production-deployment/cloudbuild-runner"
-    args: ['kubectl', 'version --client']
+    args: ['helm', 'template', 'k8s-admin/v2/charts/sefaria-p3-prod', '--set-string', '"releaseHash=TESTHASH"', '--output', './k8s-admin/v2/_build']
 
+
+  # Helm Path:
+  # apply helm chart
+  # - name: "gcr.io/production-deployment/cloudbuild-runner"
+  #   args: ['helm', 'upgrade', '-i', 'sefaria-p3', './charts/sefaria-p3-prod', '--debug' ]
+
+
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ["apply", "-f", "k8s-admin/v2/_build/"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  
   # # Post Deploy
   # - name: 'gcr.io/cloud-builders/kubectl'
   #   entrypoint: "bash"
