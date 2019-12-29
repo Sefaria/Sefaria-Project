@@ -12,14 +12,14 @@ steps:
   # Helm Path:
   # apply helm chart
   - name: "gcr.io/production-deployment/cloudbuild-runner"
-    args: ['kubectl', 'version', '--client']
+    args: ['kubectl', 'version --client']
 
-  # Post Deploy
-  - name: 'gcr.io/cloud-builders/kubectl'
-    entrypoint: "bash"
-    dir: "k8s-admin/scripts"
-    args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $TAG_NAME"]
-    env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  # # Post Deploy
+  # - name: 'gcr.io/cloud-builders/kubectl'
+  #   entrypoint: "bash"
+  #   dir: "k8s-admin/scripts"
+  #   args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $TAG_NAME"]
+  #   env:
+  #   - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+  #   - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
 ...
