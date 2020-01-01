@@ -125,9 +125,11 @@ def do_topics(dry_run=False):
         titles = list(title_tup_dict.values())
 
         # remove "A ..." from topic names
+        # for title in titles:
+        #     if title['lang'] == 'en' and re.match(r'An? [A-Za-z\'"]', title['text']):
+        #         title['text'] = re.sub(r'^An? ', '', title['text'])
         for title in titles:
-            if title['lang'] == 'en' and re.match(r'An? [A-Za-z\'"]', title['text']):
-                title['text'] = re.sub(r'^An? ', '', title['text'])
+            title['text'] = title['text'].strip()
 
         # validate there's exactly one primary title per language
         primaries = {"prim_en": 0, "prim_he": 0, "he": 0, "en": 0}
@@ -200,12 +202,12 @@ def do_topics(dry_run=False):
     # displays-under links
     top_toc_dedupper = {
         "Philosophy": "philosophy",
-        "Tanakh": "the-holy-books",
-        "Prayer": "liturgy",
+        "Tanakh": "holy-books",
+        "Prayer": "prayer",
         "Food": "food",
         "Israel": "israel",
         "Language": "language",
-        "Education": "education",
+        "Education": "jewish-education",
         "Art": "artistic-process",
         "History": "history",
         "Calendar": "calendar",
@@ -213,7 +215,7 @@ def do_topics(dry_run=False):
         "Medicine": "healing",
         "Religion": "theology",
         "Folklore": "aggadah",
-        "Geography": "geographic-site",
+        "Geography": "geographic-locations",
         "Law": "law",
         "Texts": "source",
         "Torah Portions": "parasha"
@@ -515,7 +517,7 @@ def do_ref_topic_link(slug_to_sheet_map):
             "class": "refTopic",
             "toTopic": to_topic.slug,
             "ref": l["Ref"],
-            "expandedRefs": [r.normal() for r in Ref(l["Ref"]).range_list()],
+            "expandedRefs": [r.normal() for r in Ref(l["Ref"]).all_segment_refs()],
             "linkType": "about",
             "is_sheet": False
         }
@@ -574,6 +576,17 @@ def do_sheet_refactor(tag_to_slug_map):
                         print(e)
                     uncategorized_dict[t] = topic_slug
 
+                # ref topic link wasn't created for uncategorized topics
+                rtl = RefTopicLink({
+                    "class": "refTopic",
+                    "toTopic": topic_slug,
+                    "ref": "Sheet {}".format(s['id']),
+                    "expandedRefs": ["Sheet {}".format(s['id'])],
+                    "linkType": "about",
+                    "is_sheet": True,
+                    "dataSource": "sefaria-users"
+                })
+                rtl.save()
             sheet_topics += [{"slug": topic_slug, "asTyped": t}]
         db.sheets.update_one({"id": s['id']}, {"$set": {"topics": sheet_topics}})
 
@@ -678,20 +691,20 @@ def import_term_descriptions():
 
 
 if __name__ == '__main__':
-    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
+    # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
+    # do_data_source()
     do_topic_link_types()
-    do_data_source()
-    db.topic_links.drop()
-    db.topic_links.create_index('class')
-    db.topic_links.create_index('expandedRefs')
-    db.topic_links.create_index('toTopic')
-    db.topic_links.create_index('fromTopic')
-    do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
-    do_ref_topic_link(slug_to_sheet_map)
-    do_sheet_refactor(tag_to_slug_map)
-    generate_topic_links_from_sheets()
-    update_link_orders()
-    import_term_descriptions()
+    # db.topic_links.drop()
+    # db.topic_links.create_index('class')
+    # db.topic_links.create_index('expandedRefs')
+    # db.topic_links.create_index('toTopic')
+    # db.topic_links.create_index('fromTopic')
+    # do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
+    # do_ref_topic_link(slug_to_sheet_map)
+    # do_sheet_refactor(tag_to_slug_map)
+    # generate_topic_links_from_sheets()
+    # update_link_orders()
+    # import_term_descriptions()
 
     # clean_up_time()
 

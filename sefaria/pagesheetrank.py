@@ -15,6 +15,8 @@ from sefaria.system.database import db
 from .settings import STATICFILES_DIRS
 from functools import reduce
 
+tanach_indexes = set(library.get_indexes_in_category("Tanakh"))
+
 class web:
   def __init__(self,n):
     self.size = n
@@ -106,12 +108,12 @@ def pagerank(g,s=0.85,tolerance=0.00001, maxiter=100, verbose=False):
   return {k:v for k,v in zip([x[0] for x in g], pr_list)}
 
 
-def init_pagerank_graph():
+def init_pagerank_graph(ref_list=None):
     """
+    :param ref_list: optional list of refs to use instead of using all links. link graph is built from all links to these refs
     :return: graph which is a double dict. the keys of both dicts are refs. the values are the number of incoming links
     between outer key and inner key
     """
-    tanach_indexes = library.get_indexes_in_category("Tanakh")
     def is_tanach(r):
         return r.index.title in tanach_indexes
 
@@ -139,6 +141,9 @@ def init_pagerank_graph():
     def put_link_in_graph(ref1, ref2, weight=1.0):
         str1 = ref1.normal()
         str2 = ref2.normal()
+        if ref_list is not None and (str1 not in ref_list_seg_set or str2 not in ref_list_seg_set):
+            # not part of original ref_list, continue
+            return
         if str1 not in all_ref_cat_counts:
             all_ref_cat_counts[str1] = set()
         if str2 not in all_ref_cat_counts:
@@ -160,12 +165,21 @@ def init_pagerank_graph():
         graph[str1][str2] += weight
 
     graph = OrderedDict()
-    all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
-    len_all_links = all_links.count()
+    if ref_list is None:
+        all_links = LinkSet()  # LinkSet({"type": re.compile(ur"(commentary|quotation)")}).array()
+        len_all_links = all_links.count()
+    else:
+        link_list = []
+        ref_list_seg_set = {rr.normal() for r in ref_list for rr in r.all_segment_refs()}
+        for oref in ref_list:
+            link_list += oref.linkset().array()
+        len_all_links = len(link_list)
+        all_links = LinkSet()
+        all_links.records = link_list
     all_ref_cat_counts = {}
     current_link, page, link_limit = 0, 0, 100000
-    all_links = LinkSet(limit=link_limit, page=page)
-
+    if ref_list is None:
+        all_links = LinkSet(limit=link_limit, page=page)
 
     while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
@@ -187,6 +201,8 @@ def init_pagerank_graph():
                 older_ref = older_ref.padded_ref()
                 newer_ref = newer_ref.padded_ref()
                 if start1 == start2:
+                    if ref_list is not None:
+                        continue  # looks like links at the same time span can cause a big increase in PR. I'm going to disable this right now for small graphs
                     # randomly switch refs that are equally dated
                     older_ref, newer_ref = (older_ref, newer_ref) if random.choice([True, False]) else (newer_ref, older_ref)
                 recursively_put_in_graph(older_ref, newer_ref)
@@ -205,15 +221,32 @@ def init_pagerank_graph():
                 print(link.refs)
                 pass
             current_link += 1
-
-        page += 1
-        all_links = LinkSet(limit=link_limit, page=page)
+        if ref_list is None:
+            page += 1
+            all_links = LinkSet(limit=link_limit, page=page)
+        else:
+            break
 
     for ref in all_ref_cat_counts:
         if ref not in graph:
             graph[ref] = {}
 
     return graph, all_ref_cat_counts
+
+
+def pagerank_rank_ref_list(ref_list):
+    # make unique
+    ref_list = [v for k, v in {r.normal(): r for r in ref_list}.items()]
+    graph, all_ref_cat_counts = init_pagerank_graph(ref_list)
+    print(graph)
+    pr = pagerank(list(graph.items()), 0.85, verbose=True, tolerance=0.00005)
+    print("PR", pr)
+    ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
+    orig_ref_pr = sorted([
+        (r, max([pr.get(rr, 0.0) for rr in ref_map[r.normal()]])) for r in ref_list
+    ], key=lambda x: x[1], reverse=True)
+    return orig_ref_pr
+
 
 def calculate_pagerank():
     graph, all_ref_cat_counts = init_pagerank_graph()

@@ -280,6 +280,24 @@ def calculate_mean_tfidf():
     return topic_tref_score_map, ref_topic_map, top_words_map
 
 
+def calculate_pagerank_scores(ref_topic_map):
+    from sefaria.system.exceptions import InputError
+    from sefaria.pagesheetrank import pagerank_rank_ref_list
+    from tqdm import tqdm
+    pr_map = {}
+    for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
+        oref_list = []
+        for tref in ref_list:
+            try:
+                oref_list += [Ref(tref)]
+            except InputError:
+                continue
+        oref_pr_list = pagerank_rank_ref_list(oref_list)
+        for oref, pr in oref_pr_list:
+            pr_map[(topic, oref.normal())] = pr
+    return pr_map
+
+
 def calculate_other_ref_scores(ref_topic_map):
     from sefaria.system.exceptions import InputError
     from tqdm import tqdm
@@ -312,6 +330,7 @@ def update_link_orders():
     from sefaria.system.database import db
     topic_tref_score_map, ref_topic_map, top_words_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, ref_order_map = calculate_other_ref_scores(ref_topic_map)
+    pr_map = calculate_pagerank_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
     for l in tqdm(ref_topic_links, total=total, desc='update link orders'):
@@ -327,7 +346,8 @@ def update_link_orders():
                     'topWords': top_words_map[key],
                     'numDatasource': num_datasource_map[key],
                     'availableLangs': langs_available[key],
-                    'ref': ref_order_map[key]
+                    'ref': ref_order_map[key],
+                    'pr': pr_map[key]
                 })
                 setattr(l, 'order', order)
             except KeyError:
