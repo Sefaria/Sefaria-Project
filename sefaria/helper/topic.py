@@ -353,3 +353,53 @@ def update_link_orders():
             except KeyError:
                 print("KeyError", key)
         l.save()
+
+
+def tfidf_related_sheet_topics():
+    import math
+    from tqdm import tqdm
+    itls = IntraTopicLinkSet({"linkType": "sheets-related-to"})
+    docs = defaultdict(dict)
+    for l in tqdm(itls, total=itls.count(), desc='init'):
+        docs[l.fromTopic][l.toTopic] = {"dir": 'to', 'count': l.order['user_votes'], 'id': str(l._id)}
+        docs[l.toTopic][l.fromTopic] = {"dir": 'from', 'count': l.order['user_votes'], 'id': str(l._id)}
+
+    # idf
+    doc_topic_counts = defaultdict(int)
+    for slug, topic_counts in docs.items():
+        for temp_slug, counts in topic_counts.items():
+            doc_topic_counts[temp_slug] += 1
+    idf_dict = {}
+    for slug, count in doc_topic_counts.items():
+        idf_dict[slug] = math.log2(len(docs)/count)
+
+    # tf-idf
+    id_score_map = defaultdict(dict)
+    for slug, topic_counts in docs.items():
+        for temp_slug, counts in topic_counts.items():
+            id_score_map[counts['id']][counts['dir']] = counts['count'] * idf_dict[temp_slug]
+
+    # save
+    for l in tqdm(itls, total=itls.count(), desc='save'):
+        score_dict = id_score_map[str(l._id)]
+        for dir, score in score_dict.items():
+            l.order[dir + 'Tfidf'] = score
+        l.save()
+
+
+def new_edge_type_research():
+    from tqdm import tqdm
+    itls = IntraTopicLinkSet({"linkType": "specifically-dependent-on"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'specific-person-relationship'}) and tt.has_types({'person'}):
+            l.linkType = 'relationship-of'
+            l.save()
+    itls = IntraTopicLinkSet({"linkType": "participates-in"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'person'}) and tt.has_types({'history'}):
+            l.linkType = 'person-participates-in-event'
+            l.save()

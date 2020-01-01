@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, calculate_mean_tfidf
+from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, tfidf_related_sheet_topics, new_edge_type_research
 from sefaria.system.exceptions import DuplicateRecordError
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
@@ -691,20 +691,23 @@ def import_term_descriptions():
 
 
 if __name__ == '__main__':
-    # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
-    # do_data_source()
+    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
+    do_data_source()
     do_topic_link_types()
-    # db.topic_links.drop()
-    # db.topic_links.create_index('class')
-    # db.topic_links.create_index('expandedRefs')
-    # db.topic_links.create_index('toTopic')
-    # db.topic_links.create_index('fromTopic')
-    # do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
-    # do_ref_topic_link(slug_to_sheet_map)
-    # do_sheet_refactor(tag_to_slug_map)
-    # generate_topic_links_from_sheets()
-    # update_link_orders()
-    # import_term_descriptions()
+    db.topic_links.drop()
+    db.topic_links.create_index('class')
+    db.topic_links.create_index('expandedRefs')
+    db.topic_links.create_index('toTopic')
+    db.topic_links.create_index('fromTopic')
+    do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
+    do_ref_topic_link(slug_to_sheet_map)
+    do_sheet_refactor(tag_to_slug_map)
+    generate_topic_links_from_sheets()
+    update_link_orders()
+    import_term_descriptions()
+    tfidf_related_sheet_topics()
+    new_edge_type_research()
+    
 
     # clean_up_time()
 
