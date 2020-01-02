@@ -47,7 +47,7 @@ If you don't already have it in your Python installation, install [pip](https://
 
 	pip install -r requirements.txt
 
-If you are not using virtualenv, run it with sudo: `sudo pip install -r requirements.txt`
+If you are not using virtualenv, run: `pip install --user -r requirements.txt`. This normally installs packages to the .local directory in your home directory. You can find the exact location by running `import site; print(site.USER_SITE)`. Any binaries will be added to $HOME/.local/bin so this directory should be added to your $PATH.
 
 If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
 
