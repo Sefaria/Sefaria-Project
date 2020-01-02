@@ -49,7 +49,7 @@ If you don't already have it in your Python installation, install [pip](https://
 
 If you are not using virtualenv, run it with sudo: `sudo pip install -r requirements.txt`
 
-If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
+If you see an error about a missing 'Python.h' file, you'll need to install the Python development libraries. 
 
 On Debian systems: 
 
