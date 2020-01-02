@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Test runner for scripts
 # Currently just runs listed scripts and show any error messages.
 
