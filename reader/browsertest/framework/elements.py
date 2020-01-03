@@ -1576,7 +1576,7 @@ class Trial(object):
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
-            self.caps = caps if caps else SAUCE_CAPS if platform == "sauce" else BS_CAPS
+            self.caps = caps if caps else BS_CAPS
         self.isVerbose = verbose
         self.platform = platform
         self.build = build
