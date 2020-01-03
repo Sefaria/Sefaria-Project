@@ -1,23 +1,15 @@
 const {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  LanguageToggleButton,
-  LoadingMessage,
   Note,
 }                         = require('./Misc');
 const React               = require('react');
 const PropTypes           = require('prop-types');
-const ReactDOM            = require('react-dom');
-const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
 const $                   = require('./sefaria/sefariaJquery');
 const TextRange           = require('./TextRange');
 const { AddToSourceSheetWindow } = require('./AddToSourceSheet');
-const Footer              = require('./Footer');
 import Component          from 'react-class';
 
-
+/*
 class MyNotesPanel extends Component {
   constructor(props) {
       super(props);
@@ -100,7 +92,7 @@ MyNotesPanel.propTypes = {
   toggleLanguage:      PropTypes.func,
   openDisplaySettings: PropTypes.func,
 };
-
+*/
 
 class NoteListing extends Component {
   constructor(props) {
@@ -166,6 +158,3 @@ NoteListing.propTypes = {
 NoteListing.defaultProps = {
   showText: true
 };
-
-
-module.exports = MyNotesPanel;

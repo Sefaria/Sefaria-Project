@@ -517,12 +517,7 @@ class ReaderApp extends Component {
                 hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Group");
                 hist.mode  = "sheets tag";
             } else if (states[i].navigationSheetTag) {
-              if (states[i].navigationSheetTag == "My Sheets") {
-                hist.url   = "sheets/private";
-                hist.title = Sefaria._("My Source Sheets | " + siteName + " Source Sheets");
-                hist.mode  = "sheets tag";
-              }
-              else if (states[i].navigationSheetTag == "All Sheets") {
+              if (states[i].navigationSheetTag == "All Sheets") {
                 hist.url   = "sheets/tags/" + state.navigationSheetTag;
                 hist.title = Sefaria._("Public Source Sheets | " + siteName + " Source Sheets");
                 hist.mode  = "sheets tag";
@@ -568,16 +563,6 @@ class ReaderApp extends Component {
             hist.title = Sefaria._(siteName + " Groups");
             hist.url = "groups";
             hist.mode = "publicGroups";
-            break;
-          case "myGroups":
-            hist.title = Sefaria._(siteName + " Groups");
-            hist.url = "my/groups";
-            hist.mode = "myGroups";
-            break;
-          case "myNotes":
-            hist.title = Sefaria._("My Notes on " + siteName);
-            hist.url = "my/notes";
-            hist.mode = "myNotes";
             break;
           case "updates":
             hist.title = Sefaria._("New Additions to the " + siteName + " Library");
@@ -992,12 +977,6 @@ class ReaderApp extends Component {
       this.showLibrary();
     } else if (path == "sheets") {
       this.showSheets();
-    } else if (path == "sheets/private") {
-      this.showMySheets();
-    } else if (path == "my/groups") {
-      this.showMyGroups();
-    } else if (path == "my/notes") {
-      this.showMyNotes();
     } else if (path == "torahtracker") {
       this.showUserStats();
     } else if (Sefaria.isRef(path)) {
@@ -1564,15 +1543,6 @@ class ReaderApp extends Component {
   }
   showUserStats() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
-  }
-  showMySheets() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "My Sheets"});
-  }
-  showMyGroups() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "myGroups"});
-  }
-  showMyNotes() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "myNotes"});
   }
   setStateInHeaderOrSinglePanel(state, cb) {
     // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel

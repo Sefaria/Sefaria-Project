@@ -9,6 +9,7 @@ const Footer     = require('./Footer');
 const Sefaria    = require('./sefaria/sefaria');
 import Component from 'react-class';
 
+/*
 class MyGroupsPanel extends Component {
   componentDidMount() {
     if (!Sefaria.groupsList()) {
@@ -63,7 +64,7 @@ class MyGroupsPanel extends Component {
   }
 }
 MyGroupsPanel.propTypes = {};
-
+*/
 
 class PublicGroupsPanel extends Component {
   componentDidMount() {
@@ -158,5 +159,4 @@ GroupListing.propTypes = {
 };
 
 module.exports.GroupListing = GroupListing;
-module.exports.MyGroupsPanel = MyGroupsPanel;
 module.exports.PublicGroupsPanel = PublicGroupsPanel;

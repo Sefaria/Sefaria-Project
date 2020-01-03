@@ -1139,11 +1139,6 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
         return self
 
-    def load_account(self):
-        self.driver.get(self.base_url + "/account")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountPanel .blockLink")))
-        return self
-
     def load_notifications(self):
         self.driver.get(self.base_url + "/notifications")
         WebDriverWait(self.driver, TEMPER).until(

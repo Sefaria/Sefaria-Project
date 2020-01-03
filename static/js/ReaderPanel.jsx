@@ -18,9 +18,7 @@ const Sheet                     = require('./Sheet');
 const SheetMetadata             = require('./SheetMetadata');
 const TopicsPanel               = require('./TopicsPanel');
 const TopicPage                 = require('./TopicPage');
-const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
-const MyNotesPanel              = require('./MyNotesPanel');
 const UserHistoryPanel          = require('./UserHistoryPanel');
 const UserProfile               = require('./UserProfile');
 const UpdatesPanel              = require('./UpdatesPanel');
@@ -28,10 +26,7 @@ const HomeFeed                  = require('./HomeFeed');
 const StoryEditor               = require('./StoryEditor');
 const UserStats                 = require('./UserStats');
 const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
-const {
-  MyGroupsPanel,
-  PublicGroupsPanel
-}                               = require('./MyGroupsPanel');
+const { PublicGroupsPanel }     = require('./MyGroupsPanel');
 const {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,
@@ -916,32 +911,13 @@ class ReaderPanel extends Component {
                       key={"TopicsPanel"} />);
       }
 
-    } else if (this.state.menuOpen === "account") {
-      menu = (<AccountPanel
-                    handleInAppLinkClick={this.props.handleInAppLinkClick}
-                    interfaceLang={this.props.interfaceLang} />);
-
     } else if (this.state.menuOpen === "notifications") {
       menu = (<NotificationsPanel
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                     interfaceLang={this.props.interfaceLang} />);
 
-    } else if (this.state.menuOpen === "myNotes") {
-      menu = (<MyNotesPanel
-                    interfaceLang={this.props.interfaceLang}
-                    multiPanel={this.props.multiPanel}
-                    hideNavHeader={this.props.hideNavHeader}
-                    navHome={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
-                    toggleLanguage={this.toggleLanguage} />);
-
     } else if (this.state.menuOpen === "publicGroups") {
       menu = (<PublicGroupsPanel
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")}/>);
-
-    } else if (this.state.menuOpen === "myGroups") {
-      menu = (<MyGroupsPanel
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 

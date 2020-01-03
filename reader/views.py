@@ -669,25 +669,11 @@ def public_groups(request):
     return menu_page(request, props, "publicGroups")
 
 
-@login_required
-def my_groups(request):
-    props = base_props(request)
-    title = _("Sefaria Groups")
-    return menu_page(request, props, "myGroups")
-
-
-@login_required
-def my_notes(request):
-    title = _("My Notes on Sefaria")
-    props = base_props(request)
-    return menu_page(request, props, "myNotes", title)
-
-
 @sanitize_get_params
 def sheets_by_tag(request, tag):
     """
     Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
+    Currently used for "All Sheets" as well.
     """
     if tag != Term.normalize(tag):
         return redirect("/sheets/tags/%s" % Term.normalize(tag))
@@ -697,16 +683,8 @@ def sheets_by_tag(request, tag):
         "initialMenu":     "sheets",
         "initialSheetsTag": tag,
     })
-    if tag == "My Sheets" and request.user.is_authenticated:
-        props["userSheets"] = user_sheets(request.user.id)["sheets"]
-        props["userTags"]   = user_tags(request.user.id)
-        title = _("My Source Sheets | Sefaria Source Sheets")
-        desc  = _("My Sources Sheets on Sefaria, both private and public.")
 
-    elif tag == "My Sheets" and not request.user.is_authenticated:
-        return redirect("/login?next=/sheets/private")
-
-    elif tag == "All Sheets":
+    if tag == "All Sheets":
         props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
         title = _("Public Source Sheets | Sefaria Source Sheets")
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
@@ -737,16 +715,8 @@ def sheets_list(request, type=None):
         # Sheet Splash page
         return sheets(request)
 
-    response = { "status": 0 }
-
     if type == "public":
         return sheets_by_tag(request,"All Sheets")
-
-    elif type == "private" and request.user.is_authenticated:
-        return sheets_by_tag(request,"My Sheets")
-
-    elif type == "private" and not request.user.is_authenticated:
-        return redirect("/login?next=/sheets/private")
 
 
 def sheets_tags_list(request):
@@ -798,7 +768,6 @@ def groups_admin_page(request):
 def topics_page(request):
     """
     Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
     """
     topics = get_topics()
     props = base_props(request)
@@ -822,8 +791,6 @@ def topics_page(request):
 @sanitize_get_params
 def topic_page(request, topic):
     """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
     """
     if topic != Term.normalize(topic):
         return redirect("/topics/%s" % Term.normalize(topic))
@@ -919,13 +886,6 @@ def user_stats(request):
     props = base_props(request)
     title = _("User Stats")
     return menu_page(request, props, "user_stats", title)
-
-@login_required
-def account(request):
-    title = _("Sefaria Account")
-    props = base_props(request)
-    return menu_page(request, props, "account", title)
-
 
 @login_required
 def notifications(request):

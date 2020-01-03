@@ -339,7 +339,7 @@ class ConnectionsPanel extends Component {
                     setConnectionsMode={this.props.setConnectionsMode}
                     addToSourceSheet={this.props.addToSourceSheet} />
                   { Sefaria._uid ?
-                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
+                  <a href="/my/profile" className="allSheetsLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Sheets</span>
                     <span className="int-he">דפי המקורות שלי</span>
                   </a>
@@ -373,7 +373,7 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
-                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
+                  <a href="/my/profile" className="allNotesLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Notes</span>
                     <span className="int-he">הרשומות שלי</span>
                   </a>

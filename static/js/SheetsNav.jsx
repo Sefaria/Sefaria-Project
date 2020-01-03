@@ -37,27 +37,16 @@ class SheetsNav extends Component {
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   }
   render() {
-    var enTitle = this.props.tag ? (this.props.tag == "sefaria-groups" ? null : this.props.tag) : "Source Sheets";
-    var heTitle = Sefaria.hebrewTerm(enTitle);
+    const enTitle = this.props.tag ? (this.props.tag == "sefaria-groups" ? null : this.props.tag) : "Source Sheets";
+    const heTitle = Sefaria.hebrewTerm(enTitle);
+    let content;
 
-    if (this.props.tag == "My Sheets") {
-      var content = (<MySheetsPage
-                        hideNavHeader={this.props.hideNavHeader}
-                        tagSort={this.props.tagSort}
-                        mySheetSort={this.props.mySheetSort}
-                        multiPanel={this.props.multiPanel}
-                        setMySheetSort={this.props.setMySheetSort}
-                        setSheetTag={this.props.setSheetTag}
-                        setSheetTagSort={this.props.setSheetTagSort}
-                        width={this.state.width} />);
-
-
-    } else if (this.props.tag == "All Sheets") {
-      var content = (<AllSheetsPage
+    if (this.props.tag === "All Sheets") {
+      content = (<AllSheetsPage
                         hideNavHeader={this.props.hideNavHeader} />);
 
-    } else if (this.props.tag == "sefaria-groups") {
-      var content = (<GroupPage
+    } else if (this.props.tag === "sefaria-groups") {
+      content = (<GroupPage
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
                         group={this.props.group}
@@ -71,7 +60,7 @@ class SheetsNav extends Component {
                       />);
 
     } else if (this.props.tag) {
-      var content = (<TagSheetsPage
+      content = (<TagSheetsPage
                         tag={this.props.tag}
                         setSheetTag={this.props.setSheetTag}
                         multiPanel={this.props.multiPanel}
@@ -79,7 +68,7 @@ class SheetsNav extends Component {
                         width={this.state.width} />);
 
     } else {
-      var content = (<SheetsHomePage
+      content = (<SheetsHomePage
                        tagSort={this.props.tagSort}
                        setSheetTag={this.props.setSheetTag}
                        setSheetTagSort={this.props.setSheetTagSort}
@@ -88,7 +77,7 @@ class SheetsNav extends Component {
                        width={this.state.width} />);
     }
 
-    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
+    const classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
     return (<div className={classes}>
               <CategoryColorLine category="Sheets" />
               {this.props.hideNavHeader ? null :
@@ -152,9 +141,11 @@ class SheetsHomePage extends Component {
     if (!this.getTagListFromCache()) { this.getTagListFromAPI(); }
     if (!this.getTrendingTagsFromCache()) { this.getTrendingTagsFromAPI(); }
   }
+  /*
   showYourSheets() {
-    this.props.setSheetTag("My Sheets");
+   this.props.setSheetTag("My Sheets");
   }
+  */
   showAllSheets(e) {
     e.preventDefault();
     this.props.setSheetTag("All Sheets");
@@ -185,20 +176,21 @@ class SheetsHomePage extends Component {
     var publicSheetList = topSheets ? topSheets.map(function(sheet) {
       return (<PublicSheetListing sheet={sheet} key={sheet.id} />);
     }) : <LoadingMessage />;
-
+/*
     var yourSheetsButton  = Sefaria._uid ?
       (<div className="yourSheetsLink navButton" onClick={this.showYourSheets}>
         <span className="int-en">My Source Sheets <i className="fa fa-chevron-right"></i></span>
         <span className="int-he">דפי המקורות שלי <i className="fa fa-chevron-left"></i></span>
        </div>) : null;
-
+*/
     return (<div className="content hasFooter">
               <div className="contentInner">
                 {this.props.hideNavHeader ? (<h1>
                   <span className="int-en">Source Sheets</span>
                   <span className="int-he">דפי מקורות</span>
                 </h1>) : null}
-                { this.props.multiPanel ? null : yourSheetsButton }
+                { // this.props.multiPanel ? null : yourSheetsButton
+                }
 
                 { this.props.multiPanel ?
                   (<h2 className="splitHeader">
@@ -428,7 +420,7 @@ SheetTagButton.propTypes = {
   setSheetTag: PropTypes.func.isRequired
 };
 
-
+/*
 class MySheetsPage extends Component {
   constructor(props) {
     super(props);
@@ -527,7 +519,6 @@ class MySheetsPage extends Component {
         this.getMoreSheets();
       }
     }
-    /*debugger;*/
     sheets = sheets ? sheets.map(function(sheet) {
       return (<PrivateSheetListing sheet={sheet} setSheetTag={this.props.setSheetTag} key={sheet.id} />);
     }.bind(this)) : (<LoadingMessage />);
@@ -585,6 +576,7 @@ MySheetsPage.propTypes = {
   hideNavHeader:   PropTypes.bool
 
 };
+*/
 
 
 class PrivateSheetListing extends Component {

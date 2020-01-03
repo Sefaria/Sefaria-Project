@@ -93,7 +93,6 @@ class PagesLoad(AtomicTest):
         #logged in stuff
         self.login_user()
         # self.load_notifications()
-        self.load_account()
         self.load_private_sheets()
         self.load_private_groups()
 
