@@ -1,5 +1,6 @@
 import re
 from collections import defaultdict
+from functools import cmp_to_key
 from sefaria.model import *
 import logging
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
                 continue
             from_topic_set.add(other_topic_slug)
             del link['toTopic']
+            del link['fromTopic']
             del link['class']
             link['topic'] = other_topic_slug
             link_type = library.get_link_type(link['linkType'])
@@ -77,6 +79,36 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
                 }
                 if link_type.get('pluralDisplayName', is_inverse, False):
                     response['links'][link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
+    if with_refs:
+        # sort by relevance and group similar refs
+        def compare(a, b):
+            aord = a.get('order', {})
+            bord = b.get('order', {})
+            if not aord and not bord:
+                return 0
+            if bool(aord) != bool(bord):
+                return len(bord) - len(aord)
+            if aord.get('numDatasource', 0) != bord.get('numDatasource', 0):
+                return bord.get('numDatasource', 0) - aord.get('numDatasource', 0)
+            if aord.get('pr', 0) != bord.get('pr', 0):
+                return bord.get('pr', 0)*bord.get('tfidf', 0) - aord.get('pr', 0)*aord.get('tfidf', 0)
+            return bord.get('tfidf', 0) - aord.get('tfidf', 0)
+        response['refs'].sort(key=cmp_to_key(compare))
+        subset_ref_map = defaultdict(list)
+        new_refs = []
+        for link in response['refs']:
+            del link['class']
+            del link['toTopic']
+            temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
+            for seg_ref in temp_subset_refs:
+                for index in subset_ref_map[seg_ref]:
+                    new_refs[index]['subsetRefs'] = new_refs[index].get('subsetRefs', []) + [link]
+            if len(temp_subset_refs) == 0:
+                new_refs += [link]
+                for seg_ref in link.get('expandedRefs', []):
+                    subset_ref_map[seg_ref] += [len(new_refs) - 1]
+
+        response['refs'] = new_refs
     return response
 
 

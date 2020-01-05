@@ -524,7 +524,10 @@ def do_ref_topic_link(slug_to_sheet_map):
         if dataSource is not None:
             attrs["dataSource"] = dataSource.slug
         tl = RefTopicLink(attrs)
-        tl.save()
+        try:
+            tl.save()
+        except DuplicateRecordError:
+            pass
     for slug, sheet_id_list in tqdm(slug_to_sheet_map.items(), desc="refTopic sheet links"):
         to_topic = Topic().load({"slug": slug})
         for sheet_id in sheet_id_list:
@@ -538,7 +541,10 @@ def do_ref_topic_link(slug_to_sheet_map):
                 "dataSource": "sefaria-users"
             }
             tl = RefTopicLink(attrs)
-            tl.save()
+            try:
+                tl.save()
+            except DuplicateRecordError:
+                pass
 
 
 def do_sheet_refactor(tag_to_slug_map):
@@ -586,7 +592,10 @@ def do_sheet_refactor(tag_to_slug_map):
                     "is_sheet": True,
                     "dataSource": "sefaria-users"
                 })
-                rtl.save()
+                try:
+                    rtl.save()
+                except DuplicateRecordError:
+                    pass
             sheet_topics += [{"slug": topic_slug, "asTyped": t}]
         db.sheets.update_one({"id": s['id']}, {"$set": {"topics": sheet_topics}})
 
@@ -707,7 +716,7 @@ if __name__ == '__main__':
     import_term_descriptions()
     tfidf_related_sheet_topics()
     new_edge_type_research()
-    
+
 
     # clean_up_time()
 

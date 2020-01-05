@@ -152,6 +152,16 @@ class RefTopicLink(abst.AbstractMongoRecord):
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
     optional_attrs = TopicLinkHelper.optional_attrs
 
+    def _pre_save(self):
+        if getattr(self, "_id", None) is None:
+            # check for duplicates
+            duplicate = RefTopicLink().load(
+                {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}),
+                 "class": getattr(self, 'class')})
+            if duplicate is not None:
+                raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
+                self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
+
 
 class TopicLinkSetHelper(object):
 

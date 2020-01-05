@@ -141,7 +141,7 @@ def init_pagerank_graph(ref_list=None):
     def put_link_in_graph(ref1, ref2, weight=1.0):
         str1 = ref1.normal()
         str2 = ref2.normal()
-        if ref_list is not None and (str1 not in ref_list_seg_set or str2 not in ref_list_seg_set):
+        if ref_list is not None:
             # not part of original ref_list, continue
             return
         if str1 not in all_ref_cat_counts:
@@ -172,7 +172,7 @@ def init_pagerank_graph(ref_list=None):
         link_list = []
         ref_list_seg_set = {rr.normal() for r in ref_list for rr in r.all_segment_refs()}
         for oref in ref_list:
-            link_list += oref.linkset().array()
+            link_list += list(filter(lambda x: len(set(x.expandedRefs0) & ref_list_seg_set) > 0 and len(set(x.expandedRefs1) & ref_list_seg_set) > 0, oref.linkset().array()))
         len_all_links = len(link_list)
         all_links = LinkSet()
         all_links.records = link_list
@@ -238,14 +238,24 @@ def pagerank_rank_ref_list(ref_list):
     # make unique
     ref_list = [v for k, v in {r.normal(): r for r in ref_list}.items()]
     graph, all_ref_cat_counts = init_pagerank_graph(ref_list)
-    print(graph)
     pr = pagerank(list(graph.items()), 0.85, verbose=True, tolerance=0.00005)
-    print("PR", pr)
+
+    # remove lowest pr value which just means it quoted at least one source but was never quoted
+    sorted_ranking = sorted(list(pr.items()), key=lambda x: x[1])
+    count = 0
+    if len(sorted_ranking) > 0:
+        smallest_pr = sorted_ranking[0][1]
+        while count < len(sorted_ranking) and (sorted_ranking[count][1] - smallest_pr) < 1e-30:
+            count += 1
+        if count < len(sorted_ranking) - 1:
+            pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
+
+    # map pr values onto ref_list
     ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
-    orig_ref_pr = sorted([
+    ref_list_with_pr = sorted([
         (r, max([pr.get(rr, 0.0) for rr in ref_map[r.normal()]])) for r in ref_list
     ], key=lambda x: x[1], reverse=True)
-    return orig_ref_pr
+    return ref_list_with_pr
 
 
 def calculate_pagerank():
@@ -255,7 +265,7 @@ def calculate_pagerank():
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
     count = 0
     smallest_pr = sorted_ranking[0][1]
-    while (sorted_ranking[count][1] - smallest_pr) < 1e-30:
+    while count < len(sorted_ranking) and (sorted_ranking[count][1] - smallest_pr) < 1e-30:
         count += 1
     sorted_ranking = sorted_ranking[count:]
     print("Removing {} low pageranks".format(count))
