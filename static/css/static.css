@@ -2430,9 +2430,15 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 /******* daf yomi landing page ****/
 #dafyomiPage{
-  background: #FBFBFA;
+  background: #fff;
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
+
+#dafyomiPage p {
+  font-size: 16px;
+  line-height: 21px;
+}
+
 .interface-hebrew #dafyomiPage.static .int-he{
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif !important;
 }
@@ -2515,7 +2521,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #dafyomiPage #dafyomiDescription p{
   font-size: 22px;
-  line-height: 36px;
+  line-height: 26px;
   text-align: justify;
   color: #000000;
   margin-top: 62px;
@@ -2528,7 +2534,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #dafyomiPage #dafyomiWhatIs,
 #dafyomiPage #dafyomiWhatsNew {
   background: #EDEDEC;
-  padding-top: 5%;
+  padding: 2% 0;
 }
 #dafyomiPage #dafyomiWhatIs .flexContainer div,
 #dafyomiPage #dafyomiWhatsNew .flexContainer div{
@@ -2546,6 +2552,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin-left: 40px;
 }
 
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img {
+  margin-bottom: -30px
+}
+
 #dafyomiPage #dafyomiWhatIs div.dafyomiWhatIsText,
 #dafyomiPage #dafyomiWhatsNew div.dafyomiWhatsNewText{
   flex: 2;
@@ -2561,6 +2571,12 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-transform: uppercase;
   color: #000000;
 }
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText h3.dafyomiWhatsNewTitle {
+  margin-top: 10px;
+}
+
+
 #dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle span,
 #dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle span{
   display: inline-block;
@@ -2643,19 +2659,21 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-align: center;
 }
 #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
-  height: 350px;
+  height: 250px;
 }
 
 #dafyomiPage #dafyomiExamples .dafyomiExamplesHeader h3{
   text-align: center;
   border-bottom: none;
-  margin: 50px 0 0 0;
+  margin: 65px 0 10px 0;
 }
 
 #dafyomiPage h3.headerText {
   border-bottom: none;
 }
-
+#dafyomiPage h3.headerText.additionalMargin {
+  margin: 80px 0 60px 0;
+}
 
 #dafyomiPage h3.headerText span {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -2687,6 +2705,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   content: '\f10e'; /*quote left icon*/
   position: relative;
   top: -7px;
+}
+
+#dafyomiPage .finalContent {
+  margin-bottom: 80px;
 }
 
 
@@ -2727,6 +2749,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   #dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
   #dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img {
     margin-left: 0;
+    margin-bottom: 0;
   }
   #dafyomiPage #dafyomiExamples{
     text-align: center;

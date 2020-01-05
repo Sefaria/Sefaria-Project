@@ -1,0 +1,40 @@
+# Release Process
+# 1. Get the k8s-admin repo
+# 2. Apply helm chart -- pass in the appropriate container tags
+# 3. Run post deploy scripts
+
+---
+steps:
+  # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'lorenzo/deploy-python3', '--single-branch']
+
+  # Helm Path:
+  # apply helm chart
+  - name: "gcr.io/production-deployment/cloudbuild-runner"
+    dir: k8s-admin/v2
+    args: ['helm', 'template', './charts/sefaria-p3-prod', '--set-string', '"releaseHash=TESTHASH"', '--output-dir', './_build']
+
+
+  # Helm Path:
+  # apply helm chart
+  # - name: "gcr.io/production-deployment/cloudbuild-runner"
+  #   args: ['helm', 'upgrade', '-i', 'sefaria-p3', './charts/sefaria-p3-prod', '--debug' ]
+
+
+  - name: 'gcr.io/cloud-builders/kubectl'
+    dir: k8s-admin/v2
+    args: ["apply", "-R", "-f", "./_build/"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+  
+  # # Post Deploy
+  # - name: 'gcr.io/cloud-builders/kubectl'
+  #   entrypoint: "bash"
+  #   dir: "k8s-admin/scripts"
+  #   args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $TAG_NAME"]
+  #   env:
+  #   - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+  #   - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+...

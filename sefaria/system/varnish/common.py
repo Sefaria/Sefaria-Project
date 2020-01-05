@@ -1,4 +1,4 @@
-from varnish import VarnishManager
+from varnishadm import VarnishManager
 from urllib.parse import urlparse
 from http.client import HTTPConnection
 from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 with open (VARNISH_SECRET, "r") as sfile:
     secret=sfile.read().replace('\n', '')
-manager = VarnishManager([VARNISH_ADM_ADDR])
+manager = VarnishManager((VARNISH_ADM_ADDR,), secret)
 
 
 # PyPi version of python-varnish has broken purge function.  We use this instead.

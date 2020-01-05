@@ -1,7 +1,7 @@
 import json
 import time
 
-from sefaria.local_settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
+from sefaria.settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
 import logging
 logging.basicConfig()

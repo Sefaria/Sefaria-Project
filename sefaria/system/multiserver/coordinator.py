@@ -3,7 +3,7 @@ import uuid
 
 from django.core.exceptions import MiddlewareNotUsed
 
-from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
+from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
 from .messaging import MessagingNode
 
