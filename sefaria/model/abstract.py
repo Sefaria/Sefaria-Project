@@ -199,7 +199,7 @@ class AbstractMongoRecord(object):
         """
         slug = getattr(self, slug_field).lower()
         slug = re.sub(r"[ /]", "-", slug.strip())
-        slug = re.sub(r"[^a-z0-9\-]", "", slug)
+        slug = re.sub(r"[^a-z0-9א-ת\-]", "", slug)
         dupe_count = 0
         _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
         temp_slug = slug
