@@ -272,7 +272,7 @@ GroupSheetListStory.propTypes = {
 };
 
 const SheetListStory = (props) => {
-  const lead = props.data.lead || {en: "Sheets", he: "דפים"};
+  const lead = props.data.lead || {en: "Sheets", he: "גליונות"};
 
   return (
     <StoryFrame cls="sheetListStory">

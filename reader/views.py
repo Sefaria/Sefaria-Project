@@ -1174,8 +1174,6 @@ def terms_editor(request, term=None):
                              })
 
 
-
-
 def interface_language_redirect(request, language):
     """
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
@@ -3109,6 +3107,8 @@ def user_profile(request, username):
     """
     User's profile page.
     """
+    user = None
+
     try:
         profile = UserProfile(slug=username)
     except Exception, e:
@@ -3119,6 +3119,11 @@ def user_profile(request, username):
         profile = UserProfile(id=user.id)
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
+
+    if user is None:
+        user = User.objects.get(id=profile.id)
+    if not user.is_active:
+        raise Http404('Profile is inactive.')
 
     props = base_props(request)
     profileJSON = profile.to_api_dict()
@@ -3265,7 +3270,7 @@ def profile_sync_api(request):
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
             last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
             ret["settings"] = profile.settings

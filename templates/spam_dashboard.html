@@ -20,6 +20,11 @@
         <div style="margin: 80px">
 
             <div>Deleted {{ deleted_sheets }} sheets</div>
+            <div>
+                {% for o in spam_sheet_ids %}
+                    <span> {{ o }} </span>
+                {% endfor %}
+            </div>
             <div>Marked {{ reviewed_sheets }} as reviewed</div>
             <div>Deactivated {{ spammers_deactivated }} spam accounts</div>
 

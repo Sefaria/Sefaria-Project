@@ -753,6 +753,7 @@ def spam_dashboard(request):
 
         return render(request, 'spam_dashboard.html',
                       {"deleted_sheets": len(spam_sheet_ids),
+                       "sheet_ids": spam_sheet_ids,
                        "reviewed_sheets": len(reviewed_sheet_ids),
                        "spammers_deactivated": len(spammers)
                        })
