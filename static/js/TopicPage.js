@@ -218,8 +218,8 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                                     if (b.order.availableLangs.indexOf('en') > -1) { return 1; }
                                     return 0;
                                   }
-                                  else if (a.order.numDatasource !== b.order.numDatasource) { return b.order.numDatasource - a.order.numDatasource; }
-                                  else { return b.order.tfidf - a.order.tfidf; }
+                                  else if (a.order.pr !== b.order.pr) { return (b.order.pr ) - (a.order.pr ); }
+                                  else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
                                 }
                               }}
                               renderItem={item=>(
