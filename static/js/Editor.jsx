@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState, useEffect, useRef} from 'react';
 import {jsx} from 'slate-hyperscript'
 import {withHistory} from 'slate-history'
-import {Editor, createEditor, Range, Node, Point, Path} from 'slate'
+import {Editor, createEditor, Range, Node, Transforms, Path} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate} from 'slate-react'
 
 
@@ -759,42 +759,24 @@ const withLinks = editor => {
 }
 
 
-const withFormatting = editor => {
-    const {exec} = editor
+const toggleFormat = (editor, format) => {
+  const isActive = isFormatActive(editor, format)
 
-    editor.exec = command => {
-        switch (command.type) {
-            case 'toggle_format': {
-                const {format} = command;
-                const isActive = isFormatActive(editor, format);
-                Editor.setNodes(
-                    editor,
-                    {[format]: isActive ? null : true},
-                    {match: 'text', split: true}
-                )
-
-                break
-            }
-
-            default: {
-                exec(command);
-                break
-            }
-        }
-    }
-
-    return editor
-}
-
+  if (isActive) {
+    Editor.removeMark(editor, format)
+  } else {
+    Editor.addMark(editor, format, true)
+  }
+};
 
 const isFormatActive = (editor, format) => {
-    const [match] = Editor.nodes(editor, {
-        match: {[format]: true},
-        mode: 'all',
-    });
-
-    return !!match
+  const [match] = Editor.nodes(editor, {
+    match: n => n[format] === true,
+    mode: 'all',
+  })
+  return !!match
 };
+
 
 
 const Leaf = ({attributes, children, leaf}) => {
@@ -833,7 +815,7 @@ const HoverMenu = () => {
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.text(editor, selection) === ''
+            Editor.string(editor, selection) === ''
         ) {
             el.removeAttribute('style');
             return
@@ -875,7 +857,7 @@ const FormatButton = ({format}) => {
         <span className="markButton"
               onMouseDown={event => {
                   event.preventDefault();
-                  editor.exec({type: 'toggle_format', format})
+                  toggleFormat(editor, format);
               }}
         >
       <i className={classNames(classes)}/>
@@ -974,7 +956,6 @@ const SefariaEditor = (props) => {
     const initValue = transformSheetJsonToDraft(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue)
-    const [selection, setSelection] = useState(null)
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
@@ -1008,23 +989,24 @@ const SefariaEditor = (props) => {
         });
     }
 
-    function onChange(value,selection) {
+    function onChange(value) {
+        console.log(value)
         if (currentDocument !== value) {
+        console.log('change')
             setCurrentDocument(value);
         }
 
         setValue(value)
-        setSelection(selection)
     }
 
     const beforeInput = event => {
         switch (event.inputType) {
             case 'formatBold':
-                return editor.exec({type: 'toggle_format', format: 'bold'});
+                return toggleFormat(editor, 'bold');
             case 'formatItalic':
-                return editor.exec({type: 'toggle_format', format: 'italic'});
+                return toggleFormat(editor, 'italic')
             case 'formatUnderline':
-                return editor.exec({type: 'toggle_format', format: 'underline'})
+                return toggleFormat(editor, 'underline')
         }
     };
 
@@ -1044,13 +1026,13 @@ const SefariaEditor = (props) => {
 
 
     const editor = useMemo(
-        () => withSheetData(withLinks(withFormatting(withHistory(withReact(createEditor()))))),
+        () => withSheetData(withLinks(withHistory(withReact(createEditor())))),
         []
     );
 
     return (
         // Add the editable component inside the context.
-        <Slate editor={editor} value={value} selection={selection} onChange={(value, selection) => onChange(value, selection)}>
+        <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
             <HoverMenu/>
 
             <Editable
@@ -1058,7 +1040,6 @@ const SefariaEditor = (props) => {
                 renderElement={renderElement}
                 placeholder="Enter a title…"
                 spellCheck
-                onKeyDown={onKeyDown}
                 onDOMBeforeInput={beforeInput}
             />
         </Slate>
