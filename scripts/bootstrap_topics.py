@@ -371,7 +371,7 @@ def do_data_source():
             "displayName": "Aspaklaria"
         },
         {
-            "slug": "aspaklria-edited-by-sefaria",
+            "slug": "aspaklaria-edited-by-sefaria",
             "displayName": "Aspaklaria-edited-by-Sefaria"
         },
         {
@@ -397,28 +397,28 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
         edge_inverses.add(edge_type['Edge Inverse'])
 
     # IS A links first so that validation will work on second pass
-    for t in tqdm(topics, desc="intraTopic links is-a"):
-        topic = Topic().load({"alt_ids._temp_id": t['id']})
-        if topic is None:
-            print("Intra topic link topic is None: {}".format(t['id']))
-            continue
-        for edge_type, to_topic_list in t.get('edges', {}).items():
-            if edge_type in edge_inverses or edge_type != 'is a':
-                continue
-            linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
-            for to_topic_id in to_topic_list:
-                to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
-                if to_topic is None:
-                    # print(to_topic_id)
-                    continue
-                tl = IntraTopicLink({
-                    "class": "intraTopic",
-                    "fromTopic": topic.slug,
-                    "toTopic": to_topic.slug,
-                    "linkType": linkType.slug,
-                    "dataSource": "aspaklria-edited-by-sefaria"
-                })
-                tl.save()
+    # for t in tqdm(topics, desc="intraTopic links is-a"):
+    #     topic = Topic().load({"alt_ids._temp_id": t['id']})
+    #     if topic is None:
+    #         print("Intra topic link topic is None: {}".format(t['id']))
+    #         continue
+    #     for edge_type, to_topic_list in t.get('edges', {}).items():
+    #         if edge_type in edge_inverses or edge_type != 'is a':
+    #             continue
+    #         linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
+    #         for to_topic_id in to_topic_list:
+    #             to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
+    #             if to_topic is None:
+    #                 # print(to_topic_id)
+    #                 continue
+    #             tl = IntraTopicLink({
+    #                 "class": "intraTopic",
+    #                 "fromTopic": topic.slug,
+    #                 "toTopic": to_topic.slug,
+    #                 "linkType": linkType.slug,
+    #                 "dataSource": "aspaklaria-edited-by-sefaria"
+    #             })
+    #             tl.save()
     num_invalid_links = 0
     for t in tqdm(topics, desc="intraTopic links is-not-a"):
         topic = Topic().load({"alt_ids._temp_id": t['id']})
@@ -439,7 +439,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                     "fromTopic": topic.slug,
                     "toTopic": to_topic.slug,
                     "linkType": linkType.slug,
-                    "dataSource": "aspaklria-edited-by-sefaria"
+                    "dataSource": "aspaklaria-edited-by-sefaria"
                 })
                 try:
                     tl.save()
