@@ -88,11 +88,9 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
                 return 0
             if bool(aord) != bool(bord):
                 return len(bord) - len(aord)
-            if aord.get('numDatasource', 0) != bord.get('numDatasource', 0):
-                return bord.get('numDatasource', 0) - aord.get('numDatasource', 0)
             if aord.get('pr', 0) != bord.get('pr', 0):
-                return bord.get('pr', 0)*bord.get('tfidf', 0) - aord.get('pr', 0)*aord.get('tfidf', 0)
-            return bord.get('tfidf', 0) - aord.get('tfidf', 0)
+                return bord.get('pr', 0) - aord.get('pr', 0)
+            return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
         response['refs'].sort(key=cmp_to_key(compare))
         subset_ref_map = defaultdict(list)
         new_refs = []
@@ -102,8 +100,9 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
             temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
             for seg_ref in temp_subset_refs:
                 for index in subset_ref_map[seg_ref]:
-                    new_refs[index]['subsetRefs'] = new_refs[index].get('subsetRefs', []) + [link]
+                    new_refs[index]['subsetRefs'] += [link]
             if len(temp_subset_refs) == 0:
+                link['subsetRefs'] = []
                 new_refs += [link]
                 for seg_ref in link.get('expandedRefs', []):
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
@@ -308,8 +307,8 @@ def calculate_mean_tfidf():
             # calculate avg tfidf - tfidf for words that appear in this tref
             # so that tref can't influence score
             topic_tref_score_map[(topic, tref)] = sum((tfidf_dict[w] - tref_tf[tref].get(w, 0)*idf_dict[w]) for w in words)/len(words)
-            top_words_map[(topic, tref)] = [x[0] for x in sorted([(w, (tfidf_dict[w] - tref_tf[tref].get(w, 0)*idf_dict[w])) for w in words], key=lambda x: x[1], reverse=True)[:10]]
-    return topic_tref_score_map, ref_topic_map, top_words_map
+            # top_words_map[(topic, tref)] = [x[0] for x in sorted([(w, (tfidf_dict[w] - tref_tf[tref].get(w, 0)*idf_dict[w])) for w in words], key=lambda x: x[1], reverse=True)[:10]]
+    return topic_tref_score_map, ref_topic_map
 
 
 def calculate_pagerank_scores(ref_topic_map):
@@ -347,7 +346,12 @@ def calculate_other_ref_scores(ref_topic_map):
             except InputError:
                 continue
             tref_range_lists[tref] = [seg_ref.normal() for seg_ref in oref.range_list()]
-            ref_order_map[(topic, tref)] = oref.order_id()
+            tp = oref.index.best_time_period()
+            try:
+                year = int(tp.start) if tp else 3000
+            except ValueError:
+                year = 3000
+            ref_order_map[(topic, tref)] = year
             langs_available[(topic, tref)] = [lang for lang in LANGS_CHECKED if oref.is_text_fully_available(lang)]
             for seg_ref in tref_range_lists[tref]:
                 seg_ref_counter[seg_ref] += 1
@@ -360,7 +364,7 @@ def calculate_other_ref_scores(ref_topic_map):
 def update_link_orders():
     from tqdm import tqdm
     from sefaria.system.database import db
-    topic_tref_score_map, ref_topic_map, top_words_map = calculate_mean_tfidf()
+    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, ref_order_map = calculate_other_ref_scores(ref_topic_map)
     pr_map = calculate_pagerank_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
@@ -375,7 +379,6 @@ def update_link_orders():
                 order = getattr(l, 'order', {})
                 order.update({
                     'tfidf': topic_tref_score_map[key],
-                    'topWords': top_words_map[key],
                     'numDatasource': num_datasource_map[key],
                     'availableLangs': langs_available[key],
                     'ref': ref_order_map[key],
@@ -398,9 +401,12 @@ def tfidf_related_sheet_topics():
 
     # idf
     doc_topic_counts = defaultdict(int)
+    doc_len = defaultdict(int)
     for slug, topic_counts in docs.items():
         for temp_slug, counts in topic_counts.items():
             doc_topic_counts[temp_slug] += 1
+            doc_len[temp_slug] += counts['count']
+
     idf_dict = {}
     for slug, count in doc_topic_counts.items():
         idf_dict[slug] = math.log2(len(docs)/count)
@@ -409,7 +415,7 @@ def tfidf_related_sheet_topics():
     id_score_map = defaultdict(dict)
     for slug, topic_counts in docs.items():
         for temp_slug, counts in topic_counts.items():
-            id_score_map[counts['id']][counts['dir']] = counts['count'] * idf_dict[temp_slug]
+            id_score_map[counts['id']][counts['dir']] = (counts['count'] * idf_dict[temp_slug]) / doc_len[slug]
 
     # save
     for l in tqdm(itls, total=itls.count(), desc='save'):

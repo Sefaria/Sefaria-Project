@@ -141,9 +141,6 @@ def init_pagerank_graph(ref_list=None):
     def put_link_in_graph(ref1, ref2, weight=1.0):
         str1 = ref1.normal()
         str2 = ref2.normal()
-        if ref_list is not None:
-            # not part of original ref_list, continue
-            return
         if str1 not in all_ref_cat_counts:
             all_ref_cat_counts[str1] = set()
         if str2 not in all_ref_cat_counts:
@@ -172,7 +169,7 @@ def init_pagerank_graph(ref_list=None):
         link_list = []
         ref_list_seg_set = {rr.normal() for r in ref_list for rr in r.all_segment_refs()}
         for oref in ref_list:
-            link_list += list(filter(lambda x: len(set(x.expandedRefs0) & ref_list_seg_set) > 0 and len(set(x.expandedRefs1) & ref_list_seg_set) > 0, oref.linkset().array()))
+            link_list += list(filter(lambda x: len(set(x.expandedRefs0) & ref_list_seg_set) > 0 and len(set(x.expandedRefs1) & ref_list_seg_set) > 0, oref.linkset()))
         len_all_links = len(link_list)
         all_links = LinkSet()
         all_links.records = link_list
@@ -249,11 +246,10 @@ def pagerank_rank_ref_list(ref_list):
             count += 1
         if count < len(sorted_ranking) - 1:
             pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
-
     # map pr values onto ref_list
     ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
     ref_list_with_pr = sorted([
-        (r, max([pr.get(rr, 0.0) for rr in ref_map[r.normal()]])) for r in ref_list
+        (r, max([pr.get(rr, 0.0) for rr in ref_map[r.normal()]])) if len(ref_map[r.normal()]) > 0 else (r, 0.0) for r in ref_list
     ], key=lambda x: x[1], reverse=True)
     return ref_list_with_pr
 
