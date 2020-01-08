@@ -23,15 +23,15 @@ except ImportError:
     logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
-letter_scope = u"\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'& \""
+letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'& \""
 
 
 def normalizer(lang):
     if lang == "he":
         return hebrew.normalize_final_letters_in_str
-    return string.lower
+    return str.lower
 
-splitter = re.compile(ur"[\s,]+")
+splitter = re.compile(r"[\s,]+")
 
 
 class AutoCompleter(object):
@@ -63,7 +63,7 @@ class AutoCompleter(object):
         # Titles in library
         if include_titles:
             title_node_dict = self.library.get_title_node_dict(lang)
-            tnd_items = [(t, d) for t, d in title_node_dict.items() if not isinstance(d, SheetLibraryNode)]
+            tnd_items = [(t, d) for t, d in list(title_node_dict.items()) if not isinstance(d, SheetLibraryNode)]
             titles = [t for t, d in tnd_items]
             normal_titles = [self.normalizer(t) for t, d in tnd_items]
             self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)
@@ -181,7 +181,7 @@ class AutoCompleter(object):
         # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
         normal_string = self.normalizer(instring)
         try:
-            ret = [v["title"] for k, v in self.title_trie.items(normal_string + u",")].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
+            ret = [v["title"] for k, v in self.title_trie.items(normal_string + ",")].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
             return ret or []
         except KeyError:
             return []
@@ -284,7 +284,7 @@ class Completions(object):
 
 
 class LexiconTrie(datrie.Trie):
-    dict_letter_scope = u"\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeff`' \""
+    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeff`' \""
 
     def __init__(self, lexicon_name):
         super(LexiconTrie, self).__init__(self.dict_letter_scope)
@@ -347,9 +347,9 @@ class SpellChecker(object):
         self.lang = lang
         self.normalizer = normalizer(lang)
         if lang == "en":
-            self.letters = u"abcdefghijklmnopqrstuvwxyz'."
+            self.letters = "abcdefghijklmnopqrstuvwxyz'."
         else:
-            self.letters = hebrew.ALPHABET_22 + hebrew.GERESH + hebrew.GERSHAYIM + u'".' + u"'"
+            self.letters = hebrew.ALPHABET_22 + hebrew.GERESH + hebrew.GERSHAYIM + '".' + "'"
         self.WORDS = defaultdict(int)
 
     def train_phrases(self, phrases):
@@ -411,7 +411,7 @@ class NGramMatcher(object):
                 if not token:
                     continue
                 self.token_to_titles[token].append(title)
-        for k in self.token_to_titles.keys():
+        for k in list(self.token_to_titles.keys()):
             self.token_trie[k] = 1
 
     def _get_real_tokens_from_possible_n_grams(self, tokens):
@@ -435,7 +435,7 @@ class NGramMatcher(object):
         for title, score in titles__scores:
             collapsed_title_to_score[title] += score
             collapsed_title_to_occurence[title] += 1
-        for title in collapsed_title_to_score.keys():
+        for title in list(collapsed_title_to_score.keys()):
             collapsed_title_to_score[title] *= collapsed_title_to_occurence[title] / float(num_tokens)
         return collapsed_title_to_score
 
@@ -455,6 +455,6 @@ class NGramMatcher(object):
         real_tokens = self._get_real_tokens_from_possible_n_grams(tokens)
         titles__scores = self._get_scored_titles_uncollapsed(real_tokens)
         collapsed_titles_to_score = self._combined_title_scores(titles__scores, len(tokens))
-        titles__scores = collapsed_titles_to_score.items()
+        titles__scores = list(collapsed_titles_to_score.items())
         titles__scores.sort(key=lambda t: t[1], reverse=True)
         return self._filtered_results(titles__scores)

@@ -45,7 +45,7 @@ class SefariaTestCase(TestCase):
         self.assertFalse(title in library._index_map)
         self.assertTrue(title not in library.full_title_list())
         self.assertTrue(title not in json.loads(library.get_text_titles_json()))
-        self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().iteritems()))
+        self.assertFalse(any(key.startswith(title) for key, value in Ref._raw_cache().items()))
 
 
 class PagesTest(SefariaTestCase):
@@ -324,7 +324,7 @@ class PostV2IndexTest(SefariaTestCase):
                             },
                             {
                                 "lang": "he",
-                                "text": u"אידרה רבה",
+                                "text": "אידרה רבה",
                                 "primary": True
                             }
                         ],
@@ -533,7 +533,7 @@ class PostTextNameChange(SefariaTestCase):
         index = {
             "title": "Name Change Test",
             "titleVariants": ["The Book of Name Change Test"],
-            "heTitle": u'Hebrew Name Change Test',
+            "heTitle": 'Hebrew Name Change Test',
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -557,17 +557,17 @@ class PostTextNameChange(SefariaTestCase):
 
         # Test posting notes and links
         note1 = {
-            'title': u'test title 1',
-            'text': u'test body 1',
-            'type': u'note',
-            'ref': u'Name Change Test 1.1',
+            'title': 'test title 1',
+            'text': 'test body 1',
+            'type': 'note',
+            'ref': 'Name Change Test 1.1',
             'public': False
         }
         note2 = {
-            'title': u'test title 2',
-            'text': u'test body 2',
-            'type': u'note',
-            'ref': u'Name Change Test 1.1',
+            'title': 'test title 2',
+            'text': 'test body 2',
+            'type': 'note',
+            'ref': 'Name Change Test 1.1',
             'public': True
         }
         link1 = {
@@ -606,9 +606,9 @@ class PostTextNameChange(SefariaTestCase):
         response = c.get("/api/index/Name_Changed")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertTrue(u"Name Changed" == data["title"])
-        self.assertIn(u"Name Changed", data["titleVariants"])
-        self.assertTrue(u"Name Change Test" not in data["titleVariants"])
+        self.assertTrue("Name Changed" == data["title"])
+        self.assertIn("Name Changed", data["titleVariants"])
+        self.assertTrue("Name Change Test" not in data["titleVariants"])
 
         # In History
         self.assertEqual(0, HistorySet({"rev_type": "add index", "title": "Name Change Test"}).count())
@@ -628,8 +628,8 @@ class PostTextNameChange(SefariaTestCase):
         # And in the titles api
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
-        self.assertTrue(u"Name Changed" in data["books"])
-        self.assertTrue(u"Name Change Test" not in data["books"])
+        self.assertTrue("Name Changed" in data["books"])
+        self.assertTrue("Name Change Test" not in data["books"])
 
         # toc changed
         toc = json.loads(c.get("/api/index").content)
@@ -653,13 +653,13 @@ class PostTextNameChange(SefariaTestCase):
         self.assertEqual(1, HistorySet({"old.refs": {"$regex": "Name Changed"}, "rev_type": "delete link"}).count())
 
         # Delete Test Index
-        IndexSet({"title": u'Name Changed'}).delete()
+        IndexSet({"title": 'Name Changed'}).delete()
 
         # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache
         self.not_in_cache("Name Changed")
-        self.assertEqual(0, IndexSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, VersionSet({"title": u'Name Changed'}).count())
-        self.assertEqual(0, VersionStateSet({"title": u'Name Changed'}).count())
+        self.assertEqual(0, IndexSet({"title": 'Name Changed'}).count())
+        self.assertEqual(0, VersionSet({"title": 'Name Changed'}).count())
+        self.assertEqual(0, VersionStateSet({"title": 'Name Changed'}).count())
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Name Changed"}}).count())
         self.assertEqual(0, NoteSet({"ref": {"$regex": "^Name Changed"}}).count())
 
@@ -776,7 +776,7 @@ class PostTextTest(SefariaTestCase):
         index = {
             "title": "Sefer Test",
             "titleVariants": ["The Book of Test"],
-            "heTitle": u"Hebrew Sefer Test",
+            "heTitle": "Hebrew Sefer Test",
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Musar"],
         }
@@ -784,11 +784,11 @@ class PostTextTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn("titleVariants", data)
-        self.assertIn(u'Sefer Test', data["titleVariants"])
+        self.assertIn('Sefer Test', data["titleVariants"])
 
         response = c.get("/api/index/titles")
         data = json.loads(response.content)
-        self.assertIn(u'Sefer Test', data["books"])
+        self.assertIn('Sefer Test', data["books"])
 
         # test the toc is updated
         toc = json.loads(c.get("/api/index").content)
@@ -861,13 +861,13 @@ class PostTextTest(SefariaTestCase):
 
         # Delete Test Index
         textRegex = Ref('Sefer Test').regex()
-        IndexSet({"title": u'Sefer Test'}).delete()
+        IndexSet({"title": 'Sefer Test'}).delete()
 
         # Make sure that index was deleted, and that delete cascaded to: versions, counts, links, cache,
         # todo: notes?, reviews?
-        self.assertEqual(0, IndexSet({"title": u'Sefer Test'}).count())
-        self.assertEqual(0, VersionSet({"title": u'Sefer Test'}).count())
-        self.assertEqual(0, VersionStateSet({"title": u'Sefer Test'}).count())
+        self.assertEqual(0, IndexSet({"title": 'Sefer Test'}).count())
+        self.assertEqual(0, VersionSet({"title": 'Sefer Test'}).count())
+        self.assertEqual(0, VersionStateSet({"title": 'Sefer Test'}).count())
         # todo: better way to do this?
         self.assertEqual(0, LinkSet({"refs": {"$regex": textRegex}}).count())
 
@@ -956,7 +956,7 @@ class PostCategory(SefariaTestCase):
                 },
                 {
                     "lang": "he",
-                    "text": u"תורה",
+                    "text": "תורה",
                     "primary": True
                 }
             ]
@@ -981,7 +981,7 @@ class PostCategory(SefariaTestCase):
                 },
                 {
                     "lang": "he",
-                    "text": u"חידושים",
+                    "text": "חידושים",
                     "primary": True
                 }
             ]
@@ -1001,7 +1001,7 @@ class PostCategory(SefariaTestCase):
                 },
                 {
                     "lang": "he",
-                    "text": u"חידושים",
+                    "text": "חידושים",
                     "primary": True
                 }
             ]
@@ -1037,7 +1037,7 @@ class PostCategory(SefariaTestCase):
             "titles": [
                 {
                     "lang": "he",
-                    "text": u"חידושים",
+                    "text": "חידושים",
                     "primary": True
                 }
             ]
@@ -1061,7 +1061,7 @@ class PostCategory(SefariaTestCase):
                 },
                 {
                     "lang": "he",
-                    "text": u"חידושים",
+                    "text": "חידושים",
                     "primary": True
                 }
             ]
@@ -1099,12 +1099,12 @@ class PostLinks(SefariaTestCase):
                 link_obj = {
                     "type": "commentary",
                     "refs": ["Meshech Hochma %d:%d" % (i, j), "%s 1:1" % rand.choice(bible_books)],
-                    "anchorText": u"עת לעשות לה' הפרו תורתך",
+                    "anchorText": "עת לעשות לה' הפרו תורתך",
                 }
                 links.append(link_obj)
         self.assertEqual(600, len(links))
         response = c.post("/api/links/", {'json': json.dumps(links)})
-        print response.status_code
+        print(response.status_code)
         self.assertEqual(200, response.status_code)
         self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshech Hochma'}}).count())
         # Delete links
@@ -1171,7 +1171,7 @@ class SheetPostTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertIn("datePublished", data)
         self.assertEqual("public", data["status"])
-        log = db.history.find().sort([["_id", -1]]).limit(1).next()
+        log = next(db.history.find().sort([["_id", -1]]).limit(1))
         self.assertEqual(1, log["user"])
         self.assertEqual(sheet_id, log["sheet"])
         self.assertEqual("publish sheet", log["rev_type"])

@@ -8,7 +8,7 @@ from sefaria.model import *
 
 
 class SugyaDeriver(object):
-    sugya_symbol = u'§'
+    sugya_symbol = '§'
 
     def __init__(self, title):
         self.title = title
@@ -38,7 +38,7 @@ class SugyaDeriver(object):
                 talref, mref = mref, talref
 
             ds += [{"_order": talref.order_id(), "talref": talref, "mref": mref}]
-        return sorted(ds, key=lambda (d): d["_order"])
+        return sorted(ds, key=lambda d: d["_order"])
 
     def get_perek_starts(self):
         # return dictionary of perek-starting mishnah ranges
@@ -144,7 +144,7 @@ if __name__ == '__main__':
                      "Yevamot", "Yoma", "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin"]
 
     for m in mesechtot:
-        print m
+        print(m)
         mesechet = SugyaDeriver(m)
 
         with open('../data/sugyot/{}.csv'.format(m), 'w') as csvfile:

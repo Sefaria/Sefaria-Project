@@ -12,7 +12,8 @@ from collections import defaultdict, OrderedDict
 from sefaria.model import *
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
-from settings import STATICFILES_DIRS
+from .settings import STATICFILES_DIRS
+from functools import reduce
 
 class web:
   def __init__(self,n):
@@ -20,7 +21,7 @@ class web:
     self.in_links = {}
     self.number_out_links = {}
     self.dangling_pages = {}
-    for j in xrange(n):
+    for j in range(n):
       self.in_links[j] = []
       self.number_out_links[j] = 0
       self.dangling_pages[j] = True
@@ -41,9 +42,9 @@ def random_web(n=1000,power=2.0):
   probability mass function p(l) proportional to
   1/(l+1)^power.'''
   g = web(n)
-  for k in xrange(n):
+  for k in range(n):
     lk = paretosample(n+1,power)-1
-    values = random.sample(xrange(n),lk)
+    values = random.sample(range(n),lk)
     g.in_links[k] = values
     for j in values:
       if g.number_out_links[j] == 0: g.dangling_pages.pop(j)
@@ -52,7 +53,7 @@ def random_web(n=1000,power=2.0):
 
 
 def create_empty_nodes(g):
-  all_links = set(reduce(lambda a, b: a + b, [v.keys() for v in g.values()], []))
+  all_links = set(reduce(lambda a, b: a + b, [list(v.keys()) for v in list(g.values())], []))
   for l in all_links:
     if l not in g:
       g[l] = {}
@@ -65,7 +66,7 @@ def create_web(g):
   node2index = {r:i for i, r in enumerate([x[0] for x in g])}
   for i, (r, links) in enumerate(g):
     r_ind = node2index[r]
-    link_inds = [(node2index[r_temp], count) for r_temp, count in links.items()]
+    link_inds = [(node2index[r_temp], count) for r_temp, count in list(links.items())]
     w.in_links[r_ind] = reduce(lambda a, b: a + [b[0]]*int(round(b[1])), link_inds, [])
     for j, count in link_inds:
       if w.number_out_links[j] == 0: w.dangling_pages.pop(j)
@@ -79,8 +80,8 @@ def step(w,p,s=0.85):
   vector.'''
   n = w.size
   v = numpy.matrix(numpy.zeros((n,1)))
-  inner_product = sum([p[j] for j in w.dangling_pages.keys()])
-  for j in xrange(n):
+  inner_product = sum([p[j] for j in list(w.dangling_pages.keys())])
+  for j in range(n):
     v[j] = s*sum([p[k]/w.number_out_links[k]
     for k in w.in_links[j]])+s*inner_product/n+(1-s)/n
   # We rescale the return vector, so it remains a
@@ -95,10 +96,10 @@ def pagerank(g,s=0.85,tolerance=0.00001, maxiter=100, verbose=False):
   iteration = 1
   change = 2
   while change > tolerance and iteration < maxiter:
-    if verbose: print "Iteration: %s" % iteration
+    if verbose: print("Iteration: %s" % iteration)
     new_p = step(w,p,s)
     change = numpy.sum(numpy.abs(p-new_p))
-    if verbose: print "Change in l1 norm: %s" % change
+    if verbose: print("Change in l1 norm: %s" % change)
     p = new_p
     iteration += 1
   pr_list = list(numpy.squeeze(numpy.asarray(p)))
@@ -169,7 +170,7 @@ def init_pagerank_graph():
     while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
             if current_link % 1000 == 0:
-                print "{}/{}".format(current_link, len_all_links)
+                print("{}/{}".format(current_link, len_all_links))
 
             try:
                 #TODO pagerank segments except Talmud. Talmud is pageranked by section
@@ -193,15 +194,15 @@ def init_pagerank_graph():
             except InputError:
                 pass
             except TypeError as e:
-                print "TypeError"
-                print link.refs
+                print("TypeError")
+                print(link.refs)
             except IndexError:
                 pass
             except AssertionError:
                 pass
             except ValueError:
-                print "ValueError"
-                print link.refs
+                print("ValueError")
+                print(link.refs)
                 pass
             current_link += 1
 
@@ -217,14 +218,14 @@ def init_pagerank_graph():
 def calculate_pagerank():
     graph, all_ref_cat_counts = init_pagerank_graph()
     #json.dump(graph.items(), open("{}pagerank_graph3.json".format(STATICFILES_DIRS[0]), "wb"))
-    ranked = pagerank(graph.items(), 0.85, verbose=True, tolerance=0.00005)
+    ranked = pagerank(list(graph.items()), 0.85, verbose=True, tolerance=0.00005)
     sorted_ranking = sorted(list(dict(ranked).items()), key=lambda x: x[1])
     count = 0
     smallest_pr = sorted_ranking[0][1]
     while (sorted_ranking[count][1] - smallest_pr) < 1e-30:
         count += 1
     sorted_ranking = sorted_ranking[count:]
-    print "Removing {} low pageranks".format(count)
+    print("Removing {} low pageranks".format(count))
 
     pagerank_dict = {tref: pr for tref, pr in sorted_ranking}
     return pagerank_dict
@@ -233,14 +234,14 @@ def update_pagesheetrank():
     pagerank = calculate_pagerank()
     sheetrank = calculate_sheetrank()
     pagesheetrank = {}
-    all_trefs = set(pagerank.keys() + sheetrank.keys())
+    all_trefs = set(list(pagerank.keys()) + list(sheetrank.keys()))
     for tref in all_trefs:
         temp_pagerank_scaled = math.log(pagerank[tref]) + 20 if tref in pagerank else RefData.DEFAULT_PAGERANK
         temp_sheetrank_scaled = (1.0 + sheetrank[tref] / 5)**2 if tref in sheetrank else RefData.DEFAULT_SHEETRANK
         pagesheetrank[tref] = temp_pagerank_scaled * temp_sheetrank_scaled
     from pymongo import UpdateOne
     result = db.ref_data.bulk_write([
-        UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True) for tref, psr in pagesheetrank.items()
+        UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True) for tref, psr in list(pagesheetrank.items())
     ])
 
 def cat_bonus(num_cats):
@@ -266,7 +267,7 @@ def test_pagerank(a,b):
         "c": {}
     }
     ranked = pagerank(g, a, verbose=True, tolerance=b)
-    print ranked
+    print(ranked)
 
 
 def get_all_sheets(tries=0, page=0):
@@ -278,7 +279,7 @@ def get_all_sheets(tries=0, page=0):
         except AutoReconnect as e:
             tries += 1
             if tries >= 200:
-                print "Tried: {} times".format(tries)
+                print("Tried: {} times".format(tries))
                 raise e
             time.sleep(5)
             continue
@@ -322,7 +323,7 @@ def calculate_sheetrank():
                 except AttributeError:
                     continue
                 except IndexError:
-                    print s["ref"]
+                    print(s["ref"])
                     continue
 
             if "subsources" in s:
@@ -335,7 +336,7 @@ def calculate_sheetrank():
     sources_count = 0
     for i, sheet in enumerate(sheets):
         if i % 1000 == 0:
-            print "{}/{}".format(i, len_sheets)
+            print("{}/{}".format(i, len_sheets))
         if "sources" not in sheet:
             continue
         sources_count += count_sources(sheet["sources"])

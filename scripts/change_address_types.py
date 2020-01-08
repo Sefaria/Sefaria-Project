@@ -11,12 +11,12 @@ def change_mishneh_torah():
     :return:
     '''
 
-    yad_list = library.get_indexes_in_category(u"Mishneh Torah")
+    yad_list = library.get_indexes_in_category("Mishneh Torah")
     schema_yad_dict = {}
     for title in yad_list:
         schema_yad_dict[title] = library.get_schema_node(title)
 
-    for node in schema_yad_dict.values():
+    for node in list(schema_yad_dict.values()):
         # excluding depth one ['Integer'] address types (ex, in category introduction)
         if len(node.sectionNames) != 2:
             continue
@@ -29,8 +29,8 @@ def change_sa():
     :return:
     '''
 
-    SA_ind = [u'Shulchan Arukh, Choshen Mishpat', u'Shulchan Arukh, Even HaEzer',
-              u'Shulchan Arukh, Orach Chayim', u"Shulchan Arukh, Yoreh De'ah"]
+    SA_ind = ['Shulchan Arukh, Choshen Mishpat', 'Shulchan Arukh, Even HaEzer',
+              'Shulchan Arukh, Orach Chayim', "Shulchan Arukh, Yoreh De'ah"]
     for title in SA_ind:
         node = library.get_schema_node(title)
         change_node_structure(node, node.sectionNames, address_types=['Siman', 'Seif'])

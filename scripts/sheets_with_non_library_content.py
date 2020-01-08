@@ -40,7 +40,7 @@ for sheet in sheets:
 
 	if len(row) > 0:
 		sheets_with_non_library_content.append(row)
-		print row
+		print(row)
 
 with open("output.csv", "wb") as f:
 	writer = csv.writer(f)

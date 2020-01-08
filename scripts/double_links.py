@@ -72,12 +72,12 @@ class DoubleLinks:
             assert l
             l.delete()
             how_many += 1
-        print "Deleted {} links".format(how_many)
+        print("Deleted {} links".format(how_many))
 
-        print "Both auto: {}".format(self.both_auto)
-        print "Both manual: {}".format(self.both_manual)
-        print "General auto only: {}".format(self.general_auto_specific_manual)
-        print "Specific auto only: {}".format(self.specific_auto_general_manual)
+        print("Both auto: {}".format(self.both_auto))
+        print("Both manual: {}".format(self.both_manual))
+        print("General auto only: {}".format(self.general_auto_specific_manual))
+        print("Specific auto only: {}".format(self.specific_auto_general_manual))
 
 
 
@@ -137,11 +137,11 @@ class DoubleLinks:
                 l.delete()
                 deleted_num += 1
 
-        print "Number of refs that have more than one link: {}".format(len(self.duplicate_ids))
-        print "Number of links deleted: {}".format(deleted_num)
-        print "Number of links total: {}".format(total)
-        print "Number of source_text_oid: {}".format(source_text)
-        print "Number of generated_by: {}".format(generated_by)
+        print("Number of refs that have more than one link: {}".format(len(self.duplicate_ids)))
+        print("Number of links deleted: {}".format(deleted_num))
+        print("Number of links total: {}".format(total))
+        print("Number of source_text_oid: {}".format(source_text))
+        print("Number of generated_by: {}".format(generated_by))
 
 
 
@@ -155,14 +155,14 @@ if __name__ == "__main__":
     count = 0
     assert len(sys.argv) != 1, "Input error: Requires name of text."
     title = " ".join(sys.argv[1:])
-    print title
+    print(title)
     index = library.get_index(title)
     category = index.categories[0]
     delete = True
     for l in LinkSet(Ref(title)):
         count += 1
         if count % 10000 == 0:
-            print count
+            print(count)
         ref1, ref2 = l.refs
         invalid = False
         try:

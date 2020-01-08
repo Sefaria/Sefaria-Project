@@ -6,6 +6,9 @@ export DJANGO_SETTINGS_MODULE=sefaria.settings
 if [[ $* == *-i* ]]
 then
     ipython -i cli.py
+elif [[ $* == *-3* ]]
+then
+    ipython3 -i cli.py	
 else
     python -i cli.py
 fi

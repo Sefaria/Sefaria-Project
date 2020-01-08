@@ -5,9 +5,9 @@ django.setup()
 from sefaria import model
 
 
-tag_categories = [u'Art', u'Authors', u'Tanakh', u'Calendar', u'Education', u'Folklore', u'Food', u'Geography', u'History', u'Holidays', u'Israel', u'Language', u'Law', u'Literature', u'Medicine', u'Philosophy', u'Prayer', u'Religion', u'Ritual Objects', u'Science', u'Society', u'Texts', u'Torah Portions']
-he_tag_categories = [u'אמנות', u'אישים', u'תנ"ך', u'מעגל השנה', u'חינוך', u'הווי ומסורת', u'מזון', u'גיאוגרפיה', u'היסטוריה', u'מועדי ישראל', u'ישראל', u'לשון', u'חוקים', u'ספרות', u'רפואה', u'פילוסופיה', u'תפילה', u'הדתות', u'מצוה ומנהג', u'מדע', u'קהילה וחברה', u'טקסטים', u'פרשיות התורה']
-z = zip(tag_categories, he_tag_categories)
+tag_categories = ['Art', 'Authors', 'Tanakh', 'Calendar', 'Education', 'Folklore', 'Food', 'Geography', 'History', 'Holidays', 'Israel', 'Language', 'Law', 'Literature', 'Medicine', 'Philosophy', 'Prayer', 'Religion', 'Ritual Objects', 'Science', 'Society', 'Texts', 'Torah Portions']
+he_tag_categories = ['אמנות', 'אישים', 'תנ"ך', 'מעגל השנה', 'חינוך', 'הווי ומסורת', 'מזון', 'גיאוגרפיה', 'היסטוריה', 'מועדי ישראל', 'ישראל', 'לשון', 'חוקים', 'ספרות', 'רפואה', 'פילוסופיה', 'תפילה', 'הדתות', 'מצוה ומנהג', 'מדע', 'קהילה וחברה', 'טקסטים', 'פרשיות התורה']
+z = list(zip(tag_categories, he_tag_categories))
 
 ts = model.TermScheme()
 if not ts.load({"name": "Tag Category"}):
@@ -36,7 +36,7 @@ def add_term(i, en, he):
 
 
 # Need to remove "Law/חוקים" from Halakhah --
-titles_to_delete_if_they_exist = [(u"Law", "en"), (u"חוקים", "he")]
+titles_to_delete_if_they_exist = [("Law", "en"), ("חוקים", "he")]
 for title in titles_to_delete_if_they_exist:
     term = model.Term().load_by_title(title[0])
     if term:

@@ -7,6 +7,7 @@ from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
+from functools import reduce
 
 
 def add_spelling(category, old, new, lang="en"):
@@ -20,14 +21,14 @@ def add_spelling(category, old, new, lang="en"):
     indxs = library.get_indexes_in_category(category)
     for ind in indxs:
         i = library.get_index(ind)
-        print
+        print()
         assert isinstance(i, Index)
         schema = i.nodes
         assert isinstance(schema, JaggedArrayNode)
         for title in schema.all_node_titles(lang):
             if old in title:
                 new_title = title.replace(old, new)
-                print new_title
+                print(new_title)
                 schema.add_title(new_title, lang)
                 i.save()
 
@@ -163,7 +164,7 @@ def merge_text_versions(version1, version2, text_title, language, warn=False):
 
     else:  #this could be handled with the visitor and callback, above.
         if warn and v1.ja().overlaps(v2.ja()):
-            print "WARNING - %s & %s have overlapping content. Aborting." % (version1, version2)
+            print("WARNING - %s & %s have overlapping content. Aborting." % (version1, version2))
 
         merged_text, sources = merge_texts([v1.chapter, v2.chapter], [version1, version2])
 
@@ -292,11 +293,10 @@ def replace_roman_numerals(text, allow_lowercase=False, only_lowercase=False):
     """
     import roman
     if only_lowercase:
-        regex = re.compile(u"((^|[{\[( ])[{\[( ]*)(m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3}))(\. ?)(\d)?")
+        regex = re.compile(r"((^|[{\[( ])[{\[( ]*)(m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3}))(\. ?)(\d)?")
     else:
         flag = re.I if allow_lowercase else 0
-        regex = re.compile(u"((^|[{\[( ])[{\[( ]*)(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))($|[.,;\])}: ]+)(\d)?", flag)
-
+        regex = re.compile(r"((^|[{\[( ])[{\[( ]*)(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))($|[.,;\])}: ]+)(\d)?", flag)
 
     def replace_roman_numerals_in_match(m):
         s = m.group(3)
@@ -304,9 +304,9 @@ def replace_roman_numerals(text, allow_lowercase=False, only_lowercase=False):
         try:
             if s:
                 if m.group(8):    
-                    return u"{}{}:{}".format(m.group(1), roman.fromRoman(s), m.group(8))
+                    return "{}{}:{}".format(m.group(1), roman.fromRoman(s), m.group(8))
                 else:
-                    return u"{}{}{}".format(m.group(1), roman.fromRoman(s), m.group(7))
+                    return "{}{}{}".format(m.group(1), roman.fromRoman(s), m.group(7))
             else:
                 return m.group(0)
         except:
@@ -346,7 +346,7 @@ def make_versions_csv():
     writer.writerow(fields)
     vs = VersionSet()
     for v in vs:
-        writer.writerow([unicode(getattr(v, f, "")).encode("utf-8") for f in fields])
+        writer.writerow([str(getattr(v, f, "")).encode("utf-8") for f in fields])
 
     return output.getvalue()
 
@@ -408,8 +408,8 @@ def get_library_stats():
                 query = {"title": x["title"]}
                 simple_node["type"] = "index"
                 simple_node["children"] = [{
-                       "name": u"{} ({})".format(v.versionTitle, v.language),
-                       "path": " ".join(node_path + [u"{} ({})".format(v.versionTitle, v.language)]),
+                       "name": "{} ({})".format(v.versionTitle, v.language),
+                       "path": " ".join(node_path + ["{} ({})".format(v.versionTitle, v.language)]),
                        "size": v.word_count(),
                        "type": "version",
                        "language": v.language,
@@ -468,18 +468,18 @@ def get_library_stats():
         row = [n.get(field) for field in fields]
         if n["name"] in with_commentary:
             if n["name"] == "Tanakh":
-                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                cn = next(filter(lambda x: x["name"] == "Commentary", n["children"]))
                 c_row = [cn.get(field) for field in fields]
-                tn = filter(lambda x: x["name"] == "Targum", n["children"])[0]
+                tn = next(filter(lambda x: x["name"] == "Targum", n["children"]))
                 t_row = [tn.get(field) for field in fields]
-                row[1:] = map(sub, map(sub, row[1:], c_row[1:]), t_row[1:])
+                row[1:] = list(map(sub, list(map(sub, row[1:], c_row[1:])), t_row[1:]))
                 writer.writerow(row)
                 writer.writerow(c_row)
                 writer.writerow(t_row)
             else:
-                cn = filter(lambda x: x["name"] == "Commentary", n["children"])[0]
+                cn = next(filter(lambda x: x["name"] == "Commentary", n["children"]))
                 c_row = [cn.get(field) for field in fields]
-                row[1:] = map(sub, row[1:], c_row[1:])
+                row[1:] = list(map(sub, row[1:], c_row[1:]))
                 writer.writerow(row)
                 writer.writerow(c_row)
         else:
@@ -511,9 +511,9 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
         diff_delete, diff_insert, diff_equal = -1, 1, 0
         html = []
         if css_classes:
-            ins, dell = u'class="ins"', u'class="del"'
+            ins, dell = 'class="ins"', 'class="del"'
         else:
-            ins, dell = u'style="background:#e6ffe6;"', u'style="background:#ffe6e6;"'
+            ins, dell = 'style="background:#e6ffe6;"', 'style="background:#ffe6e6;"'
 
         for (op, data) in diffs:
             my_text = (data.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "&para;<br>"))
@@ -521,15 +521,15 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
                 if change_from:
                     continue
                 else:
-                    html.append(u"<span {}>{}</span>".format(ins, my_text))
+                    html.append("<span {}>{}</span>".format(ins, my_text))
             elif op == diff_delete:
                 if change_from:
-                    html.append(u"<span {}>{}</span>".format(dell, my_text))
+                    html.append("<span {}>{}</span>".format(dell, my_text))
                 else:
                     continue
             elif op == diff_equal:
-                html.append(u"<span>%s</span>" % my_text)
-        return u"".join(html)
+                html.append("<span>%s</span>" % my_text)
+        return "".join(html)
 
     if edit_cb is not None:
         seg1, seg2 = edit_cb(seg1), edit_cb(seg2)

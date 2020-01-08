@@ -9,13 +9,13 @@ from sefaria.model import *
 url_base = 'http://www.sefaria.org/'
 
 def laaz_process(s):
-    return fuzzyutils.full_process(re.sub(ur'[\":]','', s), False)
+    return fuzzyutils.full_process(re.sub(r'[\":]','', s), False)
 
 
 def create_ngrams(input_words, n):
     gram_list = []
     for k in range(1,n+1):
-        gram_list += [" ".join(input_words[i:i + k]) for i in xrange(len(input_words) - k + 1)]
+        gram_list += [" ".join(input_words[i:i + k]) for i in range(len(input_words) - k + 1)]
     return gram_list
 
 
@@ -46,7 +46,7 @@ def narrow_search_by_orig_word(text_rows, orig_word):
 
 def narrow_search_by_word_existence(text_rows, keywords):
     kwfilter = lambda w: any(x in w[1] for x in keywords)
-    return filter(kwfilter, text_rows)
+    return list(filter(kwfilter, text_rows))
 
 
 def find_closest_match(text_rows, word, default_compare=True, filter_words_with_quotation_marks=True):
@@ -75,16 +75,16 @@ def find_closest_match(text_rows, word, default_compare=True, filter_words_with_
 
 
 laaz_rashi_entries = LexiconEntrySet({'parent_lexicon': 'Rashi Foreign Lexicon'})
-print "{})\t[{}]\t{}\t{}\t{}\t{}".format("Catane Number",
+print("{})\t[{}]\t{}\t{}\t{}\t{}".format("Catane Number",
                                          "Word Referenced in Text",
                                          "Lexicon Headword",
                                          "Best Ref",
                                          "Best Word Match",
-                                         "Level of Uncertainity")
+                                         "Level of Uncertainity"))
 for entry in laaz_rashi_entries:
     results = []
-    only_in_print_str = u'מצוי רק בדפוס'
-    not_in_print_str = [u'מצוי רק ב', u'לא בדפוסי', u'חסר בדפוסי', u'חסרה בדפוסי', u'אינה נמצאת בדפוסי', u'בדפוסים המלה חסרה', u'אינה בדפוסי']
+    only_in_print_str = 'מצוי רק בדפוס'
+    not_in_print_str = ['מצוי רק ב', 'לא בדפוסי', 'חסר בדפוסי', 'חסרה בדפוסי', 'אינה נמצאת בדפוסי', 'בדפוסים המלה חסרה', 'אינה בדפוסי']
     if only_in_print_str in entry.content['notes'] or all(s not in entry.content['notes'] for s in not_in_print_str):
         oref = Ref("Rashi on {}".format(entry.orig_ref))
         level_of_uncertainity = 1
@@ -105,24 +105,24 @@ for entry in laaz_rashi_entries:
             level_of_uncertainity +=2
             best_match = find_closest_match(filtered_text_rows, entry.headword, filter_words_with_quotation_marks=False)
         if best_match:
-            print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
+            print("{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                                entry.orig_word.encode('utf-8'),
                                                entry.headword.encode('utf-8'),
                                                url_base + best_match[0],
                                                best_match[2].encode('utf-8'),
-                                                     level_of_uncertainity)
+                                                     level_of_uncertainity))
         else:
-            print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
+            print("{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                                      entry.orig_word.encode('utf-8'),
                                                      entry.headword.encode('utf-8'),
                                                      url_base + oref.normal(),
-                                                     'NO MATCH FOUND',-1)
+                                                     'NO MATCH FOUND',-1))
     else:
-        print "{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
+        print("{}\t[{}]\t{}\t{}\t{}\t{}".format(entry.catane_number.encode('utf-8'),
                                     entry.orig_word.encode('utf-8'),
                                     entry.headword.encode('utf-8'),
                                     oref.normal(),
-                                    'Does not appear in print versions',-1)
+                                    'Does not appear in print versions',-1))
 
 
 

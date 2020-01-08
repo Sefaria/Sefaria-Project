@@ -13,10 +13,10 @@ writeMishnahMapChanges = True
 
 filename = '../data/Mishnah Map.csv'
 versionTitle = "Wikisource Talmud Bavli"
-matni_re = re.compile(ur"(^|\s+)((?:" + u"מת" + u"נ" + u"?" + u"י" + u"?" + ur"(?:'|" + u"׳" + u"|" + u"תין" + u")?)|" + ur"משנה" + ur")" + ur"(?:$|:|\s+)(.*)")
-gemarah_re = re.compile(ur"(^|\s+)(" + u"גמ" + ur"(?:" + ur"\'" + u"|" + u"רא))" + ur"(?:$|:|\s+)(.*)")
-standard_mishnah_start = u"מתני׳"
-standard_gemara_start = u"גמ׳"
+matni_re = re.compile(r"(^|\s+)((?:" + "מת" + "נ" + "?" + "י" + "?" + r"(?:'|" + "׳" + "|" + "תין" + ")?)|" + r"משנה" + r")" + r"(?:$|:|\s+)(.*)")
+gemarah_re = re.compile(r"(^|\s+)(" + "גמ" + r"(?:" + r"\'" + "|" + "רא))" + r"(?:$|:|\s+)(.*)")
+standard_mishnah_start = "מתני׳"
+standard_gemara_start = "גמ׳"
 m_count = 0
 g_count = 0
 refresh_count = 0
@@ -38,13 +38,13 @@ def review_map(splicer):
     for row in mishnah_map:
         if row["new_ref"]:
             if splicer._needs_rewrite(row["new_ref"]):
-                print "* Rewriting new_ref {} ...".format(row["new_ref"])
+                print("* Rewriting new_ref {} ...".format(row["new_ref"]))
                 row["new_ref"] = splicer._rewrite(row["new_ref"])
-                print "...to {}".format(row["new_ref"])
+                print("...to {}".format(row["new_ref"]))
         elif splicer._needs_rewrite(row["orig_ref"]):
-            print "* Rewriting orig_ref {} ...".format(row["orig_ref"])
+            print("* Rewriting orig_ref {} ...".format(row["orig_ref"]))
             row["new_ref"] = splicer._rewrite(row["orig_ref"])
-            print "...to {}".format(row["new_ref"])
+            print("...to {}".format(row["new_ref"]))
 
 missing_matni = ["Berakhot 54a:1",
     "Beitzah 15b:1",
@@ -60,11 +60,11 @@ missing_matni = ["Berakhot 54a:1",
      "Tamid 33b:1"]
 for r in missing_matni:
     tc = TextChunk(Ref(r), "he", versionTitle)
-    tc.text = standard_mishnah_start + u" " + tc.text
+    tc.text = standard_mishnah_start + " " + tc.text
     if live:
         tc.save()
     else:
-        print u"Changing text to {}".format(tc.text)
+        print("Changing text to {}".format(tc.text))
 
 #These will need some manual work afterwards
 to_split = ["Nedarim.25b.9",
@@ -82,7 +82,7 @@ for r in to_split:
     if live:
         s.execute()
     else:
-        print u"Adding blank segment after {}".format(r)
+        print("Adding blank segment after {}".format(r))
     review_map(s)
 
 to_merge = ["Zevachim.66a.23", # merge into previous 22
@@ -99,7 +99,7 @@ for r in to_merge:
     if live:
         s.execute()
     else:
-        print u"Merging {} into previous".format(r)
+        print("Merging {} into previous".format(r))
     review_map(s)
 
 
@@ -135,42 +135,42 @@ for booklist in booklists:
                 tc = current["ref"].text("he", versionTitle)
                 if matni_re.match(tc.text):
                     if not matni_re.match(tc.text).group(3):
-                        print u"(ma) Bare Mishnah word"
+                        print("(ma) Bare Mishnah word")
                         m_count += 1
                         try:
                             splc = SegmentSplicer().splice_this_into_next(current["ref"]).bulk_mode()
                             if live:
                                 splc.execute()
                             else:
-                                print u"Merging bare Mishnah at {} into next".format(current["ref"].normal())
+                                print("Merging bare Mishnah at {} into next".format(current["ref"].normal()))
                             change_made = True
                             needs_refresh = True
                             review_map(splc)
                         except Exception as e:
-                            print "(mf) Failed to splice {} into next: {}".format(current["ref"].normal(),e)
+                            print("(mf) Failed to splice {} into next: {}".format(current["ref"].normal(),e))
                 else:
-                    print u"(m0) Did not match mishnah {}".format(current["ref"].normal())
+                    print("(m0) Did not match mishnah {}".format(current["ref"].normal()))
             elif current["type"] == "Gemara":
                 tc = current["ref"].text("he", versionTitle)
                 if gemarah_re.match(tc.text):
                     if not gemarah_re.match(tc.text).group(3):
-                        print u"(ga) Bare Gemara word"
+                        print("(ga) Bare Gemara word")
                         g_count += 1
                         try:
                             splc = SegmentSplicer().splice_this_into_next(current["ref"]).bulk_mode()
                             if live:
                                 splc.execute()
                             else:
-                                print u"Merging bare Gemara at {} into next".format(current["ref"].normal())
+                                print("Merging bare Gemara at {} into next".format(current["ref"].normal()))
                             review_map(splc)
                             change_made = True
                             needs_refresh = True
                         except Exception as e:
-                            print "(gf) Failed to splice {} into next: {}".format(current["ref"].normal(), e)
+                            print("(gf) Failed to splice {} into next: {}".format(current["ref"].normal(), e))
                 else:
-                    print u"(g0) Did not match 'Gemara' in {}".format(current["ref"].normal())
+                    print("(g0) Did not match 'Gemara' in {}".format(current["ref"].normal()))
             else:
-                print "Unexpect type: {}".format(current["type"])
+                print("Unexpect type: {}".format(current["type"]))
                 exit()
 
             # Adjust any later elements
@@ -178,9 +178,9 @@ for booklist in booklists:
             if change_made:
                 for i, item in enumerate(booklist):
                     if splc._needs_rewrite(item["ref"]):
-                        print "* Rewriting ref {} ...".format(item["ref"])
+                        print("* Rewriting ref {} ...".format(item["ref"]))
                         item["ref"] = splc._rewrite(item["ref"])
-                        print "...to {}".format(item["ref"])
+                        print("...to {}".format(item["ref"]))
                         next_list.append(item)
                         booklist[i] = None
                 booklist = [n for n in booklist if n is not None]
@@ -201,9 +201,9 @@ for booklist in booklists:
             splc.refresh_states()
             Ref.clear_cache()
 
-print "Mishnah count: {}".format(m_count)
-print "Gemara count: {}".format(g_count)
-print "Refresh count: {}".format(refresh_count)
+print("Mishnah count: {}".format(m_count))
+print("Gemara count: {}".format(g_count))
+print("Refresh count: {}".format(refresh_count))
 
 # Write out the new Mishnah Map
 if writeMishnahMapChanges:

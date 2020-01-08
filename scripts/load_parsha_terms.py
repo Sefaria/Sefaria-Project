@@ -14,11 +14,11 @@ if not ts.load({"name": "Parasha"}):
 
 with open(cfile, 'rb') as pfile:
     parashiot = csv.reader(pfile)
-    parashiot.next()
+    next(parashiot)
     order = 1
     for row in parashiot:
         (en, he, ref) = row
-        print en
+        print(en)
         if en == "Lech-Lecha":
             en = "Lech Lecha"
         term = model.Term()

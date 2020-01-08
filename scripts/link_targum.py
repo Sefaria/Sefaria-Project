@@ -15,19 +15,19 @@ def link_targums(prepend, titles):
             t_ref = Ref(prepend + title)
             b_len = len(TextChunk(b_ref, "he").text)
             t_len = len(TextChunk(t_ref, "he").text)
-            if b_len != t_len: print "{}, {}/{}".format(b_ref.normal(), b_len, t_len)
+            if b_len != t_len: print("{}, {}/{}".format(b_ref.normal(), b_len, t_len))
 
             for b_ref in b_index.all_section_refs():
                 t_ref = Ref(prepend + b_ref.normal())
 
                 b_len = len(TextChunk(b_ref, "he").text)
                 t_len = len(TextChunk(t_ref, "he").text)
-                if b_len != t_len: print "{}, {}/{}".format(b_ref.normal(), b_len, t_len)
+                if b_len != t_len: print("{}, {}/{}".format(b_ref.normal(), b_len, t_len))
 
             for b_ref in b_index.all_segment_refs():
                 t_ref = Ref(prepend + b_ref.normal())
-                if t_ref.is_empty(): print "{} empty".format(t_ref.normal())
-                if b_ref.is_empty(): print "{} empty".format(b_ref.normal())
+                if t_ref.is_empty(): print("{} empty".format(t_ref.normal()))
+                if b_ref.is_empty(): print("{} empty".format(b_ref.normal()))
 
         else:
             t_index = library.get_index(prepend + title)

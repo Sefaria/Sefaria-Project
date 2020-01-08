@@ -1,10 +1,11 @@
-from settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
+from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
+
 
 class GoogleStorageManager(object):
 
-    PROFILES_BUCKET = u'sefaria-profile-pictures'
-    BASE_URL = u"https://storage.googleapis.com"
+    PROFILES_BUCKET = 'sefaria-profile-pictures'
+    BASE_URL = "https://storage.googleapis.com"
 
     @classmethod
     def get_bucket(cls, bucket_name):
@@ -25,7 +26,7 @@ class GoogleStorageManager(object):
         if old_filename is not None:
             cls.delete_filename(bucket_name, old_filename)
         blob = bucket.blob(to_filename)
-        if isinstance(from_file, basestring):
+        if isinstance(from_file, str):
             blob.upload_from_filename(from_file)
         else:
             # assume file-like object
@@ -41,4 +42,4 @@ class GoogleStorageManager(object):
 
     @classmethod
     def get_url(cls, filename, bucket_name):
-        return u"{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
+        return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)

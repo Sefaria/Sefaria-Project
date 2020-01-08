@@ -26,15 +26,15 @@ def test_rename_category():
 
 def test_get_commentary_texts_list():
     l = tm.library.get_dependant_indices()
-    assert u'Baal HaTurim on Genesis' in l
-    assert u'Bartenura on Mishnah Eduyot' in l
-    assert u'Tosafot on Pesachim' in l
+    assert 'Baal HaTurim on Genesis' in l
+    assert 'Bartenura on Mishnah Eduyot' in l
+    assert 'Tosafot on Pesachim' in l
 
 
 def test_get_text_categories():
     l = tm.library.get_text_categories()
-    assert u'Torah' in l
-    assert u'Talmud' in l
+    assert 'Torah' in l
+    assert 'Talmud' in l
 
 
 def test_get_book_link_collection():

@@ -16,7 +16,7 @@ def argmax(iterable, n=1):
     if n == 1:
         return max(enumerate(iterable), key=lambda x: x[1])[0]
     else:
-        return heapq.nlargest(n, xrange(len(iterable)), iterable.__getitem__)
+        return heapq.nlargest(n, range(len(iterable)), iterable.__getitem__)
 
 ref2parsha = {}
 parsha2pr = defaultdict(list)
@@ -34,7 +34,7 @@ with codecs.open("../static/pagerank.json", "rb", encoding="utf8") as fin:
     jin = json.load(fin, encoding="utf8")
     for ii, (tref, pr) in enumerate(jin):
         if ii % 1000 == 0:
-            print ii
+            print(ii)
         try:
             oref = Ref(tref)
             if len(oref.text("he").text) == 0:

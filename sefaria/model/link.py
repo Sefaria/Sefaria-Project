@@ -70,7 +70,7 @@ class Link(abst.AbstractMongoRecord):
                 if not self.auto and self.type and not samelink.type:
                     samelink.type = self.type
                     samelink.save()
-                    raise DuplicateRecordError(u"Updated existing link with new type: {}".format(self.type))
+                    raise DuplicateRecordError("Updated existing link with new type: {}".format(self.type))
 
                 elif self.auto and not samelink.auto:
                     samelink.auto = self.auto
@@ -79,10 +79,10 @@ class Link(abst.AbstractMongoRecord):
                     samelink.type = self.type
                     samelink.refs = self.refs  #in case the refs are reversed. switch them around
                     samelink.save()
-                    raise DuplicateRecordError(u"Updated existing link with auto generation data {} - {}".format(self.refs[0], self.refs[1]))
+                    raise DuplicateRecordError("Updated existing link with auto generation data {} - {}".format(self.refs[0], self.refs[1]))
 
                 else:
-                    raise DuplicateRecordError(u"Link already exists {} - {}. Try editing instead.".format(self.refs[0], self.refs[1]))
+                    raise DuplicateRecordError("Link already exists {} - {}. Try editing instead.".format(self.refs[0], self.refs[1]))
 
             else:
                 #find a potential link that already has a more precise ref of either of this link's refs.
@@ -92,7 +92,7 @@ class Link(abst.AbstractMongoRecord):
 
                 if preciselink:
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
-                    raise DuplicateRecordError(u"A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
+                    raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
 
         if not getattr(self, "_skip_lang_check", False):
@@ -167,7 +167,7 @@ class LinkSet(abst.AbstractMongoSet):
 
         ! Returns a list of Links, not a LinkSet
         """
-        if isinstance(sources, basestring):
+        if isinstance(sources, str):
             return self.filter([sources])
 
         # Expand Categories
@@ -261,28 +261,28 @@ class LinkSet(abst.AbstractMongoSet):
                 results[cat]["books"][oref.book] = 0
             results[cat]["books"][oref.book] += 1
 
-        return [{"name": key, "count": results[key]["count"], "books": results[key]["books"] } for key in results.keys()]
+        return [{"name": key, "count": results[key]["count"], "books": results[key]["books"] } for key in list(results.keys())]
 
 
 def process_index_title_change_in_links(indx, **kwargs):
-    print "Cascading Links {} to {}".format(kwargs['old'], kwargs['new'])
+    print("Cascading Links {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from text import re as reg_reg
+    from .text import re as reg_reg
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in text.Ref(indx.title).regex(as_list=True)]
     queries = [{'refs': {'$regex': pattern}} for pattern in patterns]
     links = LinkSet({"$or": queries})
     for l in links:
-        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.refs]
-        l.expandedRefs0 = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.expandedRefs0]
-        l.expandedRefs1 = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search(u'|'.join(patterns), r) else r for r in l.expandedRefs1]
+        l.refs = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(patterns), r) else r for r in l.refs]
+        l.expandedRefs0 = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(patterns), r) else r for r in l.expandedRefs0]
+        l.expandedRefs1 = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(patterns), r) else r for r in l.expandedRefs1]
         try:
             l._skip_lang_check = True
             l._skip_expanded_refs_set = True
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract
-            logger.warning(u"Deleting link that failed to save: {} - {}".format(l.refs[0], l.refs[1]))
+            logger.warning("Deleting link that failed to save: {} - {}".format(l.refs[0], l.refs[1]))
             l.delete()
 
 
@@ -352,7 +352,7 @@ def get_link_counts(cat1, cat2):
 # todo: check vis-a-vis commentary refactor
 def get_category_commentator_linkset(cat, commentator):
     return LinkSet({"$or": [
-                        {"$and": [{"refs": {"$regex": ur"{} \d".format(t)}},
+                        {"$and": [{"refs": {"$regex": r"{} \d".format(t)}},
                                   {"refs": {"$regex": "^{} on {}".format(commentator, t)}}
                                   ]
                          }

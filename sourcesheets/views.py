@@ -5,7 +5,7 @@ from urllib3.exceptions import NewConnectionError
 from elasticsearch.exceptions import AuthorizationException
 
 from datetime import datetime, timedelta
-from StringIO import StringIO
+from io import StringIO
 
 import logging
 logger = logging.getLogger(__name__)
@@ -382,9 +382,9 @@ def delete_sheet_api(request, sheet_id):
 		es_index_name = search.get_new_and_current_index_names("sheet")['current']
 		search.delete_sheet(es_index_name, id)
 	except NewConnectionError as e:
-		logger.warn(u"Failed to connect to elastic search server on sheet delete.")
+		logger.warn("Failed to connect to elastic search server on sheet delete.")
 	except AuthorizationException as e:
-		logger.warn(u"Failed to connect to elastic search server on sheet delete.")
+		logger.warn("Failed to connect to elastic search server on sheet delete.")
 
 
 	return jsonResponse({"status": "ok"})
@@ -965,7 +965,7 @@ def get_aliyot_by_parasha_api(request, parasha):
 
 	else:
 		p = db.parshiot.find({"parasha": parasha}, limit=1).sort([("date", 1)])
-		p = p.next()
+		p = next(p)
 
 		for aliyah in p["aliyot"]:
 			response["ref"].append(aliyah)

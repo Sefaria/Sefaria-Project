@@ -3,7 +3,7 @@ from sefaria.model import *
 def make_commentary2(commentator):
     indices = IndexSet({"title": {"$regex": "^%s on " % commentator}})
     for i in indices:
-        print i.title
+        print(i.title)
         basetext = i.title[(len(commentator) + 4):]
         b = library.get_index(basetext)
         i.categories = ["Commentary2"] + b.categories + [basetext]

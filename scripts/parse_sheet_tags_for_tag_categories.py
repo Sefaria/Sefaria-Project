@@ -15,7 +15,7 @@ conflicting_terms = []
 
 with open(cfile, 'rb') as tfile:
     tags = csv.reader(tfile)
-    tags.next()
+    next(tags)
     for row in tags:
         (parent_tag, tag, count, tag_category) = row
 
@@ -75,5 +75,5 @@ with open(cfile, 'rb') as tfile:
 
 
 
-print missing_terms
-print conflicting_terms
+print(missing_terms)
+print(conflicting_terms)

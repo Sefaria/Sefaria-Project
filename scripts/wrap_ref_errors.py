@@ -5,7 +5,7 @@ import re
 
 input_rows = []
 filename = 'log/sefaria.log'
-l_regex = re.compile(ur'Wrap Ref Warning: Ref:\((.*)\)', re.UNICODE)
+l_regex = re.compile(r'Wrap Ref Warning: Ref:\((.*)\)', re.UNICODE)
 with open(filename, 'rb') as infile:
     for line in infile:
         line = line.strip()
@@ -15,4 +15,4 @@ with open(filename, 'rb') as infile:
 
 input_rows = set(input_rows)
 for row in input_rows:
-    print row
+    print(row)

@@ -38,7 +38,7 @@ for sheet in sheets:
     for source in sources:
 
         if "node" not in source:
-            print "adding nodes to sheet "+str(sheet["id"])
+            print("adding nodes to sheet "+str(sheet["id"]))
             nextNode = find_next_unused_node(nextNode,usedNodes)
             source["node"] = nextNode
         else:
@@ -46,18 +46,18 @@ for sheet in sheets:
                 nextNode = find_next_unused_node(source["node"],usedNodes)
 
             if source["node"] is None:
-                print "found null node in sheet "+str(sheet["id"])
+                print("found null node in sheet "+str(sheet["id"]))
                 nextNode = find_next_unused_node(nextNode,usedNodes)
                 source["node"] = nextNode
 
             if is_node_used(source["node"],usedNodes):
-                print "found repeating node in sheet "+str(sheet["id"])
+                print("found repeating node in sheet "+str(sheet["id"]))
                 nextNode = find_next_unused_node(nextNode,usedNodes)
                 source["node"] = nextNode
             else:
                 usedNodes.append(source["node"])
         if "ref" in source and "text" not in source:
-            print "adding sources to sheet "+str(sheet["id"])
+            print("adding sources to sheet "+str(sheet["id"]))
             source["text"] = {}
             try:
                 oref = Ref(source["ref"])
@@ -69,7 +69,7 @@ for sheet in sheets:
                     source["text"]["he"] = tc_heb.ja().flatten_to_string()
 
             except:
-                print "error on " + str(source["ref"]) + " on sheet " + str(sheet["id"])
+                print("error on " + str(source["ref"]) + " on sheet " + str(sheet["id"]))
                 continue
 
         checked_sources.append(source)

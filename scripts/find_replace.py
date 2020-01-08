@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import urllib
-import urllib2
-from urllib2 import URLError, HTTPError
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
+from urllib.error import URLError, HTTPError
 import json 
 import pdb
 import os
@@ -23,12 +23,12 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 	if not args.version or not args.language or not args.title:
-		print "Need to specify title of book, its language, and its version title."
-		print "Title of book specified: '"+args.title+"'"
-		print "Language specified: '"+args.language+"'"
-		print "Version title specified: '"+args.version+"'"
+		print("Need to specify title of book, its language, and its version title.")
+		print("Title of book specified: '"+args.title+"'")
+		print("Language specified: '"+args.language+"'")
+		print("Version title specified: '"+args.version+"'")
 	elif args.language != 'en' and args.language != 'he':
-		print "Language must be either English ('en') or Hebrew ('he').  The language you specified: "+args.language+" is not 'he' or 'en'."
+		print("Language must be either English ('en') or Hebrew ('he').  The language you specified: "+args.language+" is not 'he' or 'en'.")
 	else:
 		vtitle = args.version
 		uid = args.uid

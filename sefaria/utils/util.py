@@ -3,9 +3,10 @@
 Miscellaneous functions for Sefaria.
 """
 from datetime import datetime
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 import re
 from functools import wraps
+from itertools import zip_longest
 
 epoch = datetime.utcfromtimestamp(0)
 
@@ -42,7 +43,7 @@ def list_depth(x, deep=False):
     """
     if isinstance(x, int):
         return 0
-    elif len(x) > 0 and (deep or all(map(lambda y: isinstance(y, list), x))):
+    elif len(x) > 0 and (deep or all([isinstance(y, list) for y in x])):
         return 1 + max([list_depth(y, deep=deep) for y in x])
     else:
         return 1
@@ -135,10 +136,16 @@ def union(a, b):
 
 class MLStripper(HTMLParser):
     def __init__(self):
+        super().__init__()
+
         self.reset()
+        self.strict = False
+        self.convert_charrefs = True
         self.fed = []
+
     def handle_data(self, d):
         self.fed.append(d)
+
     def get_data(self):
         return ' '.join(self.fed)
 
@@ -160,19 +167,19 @@ def text_preview(en, he):
     text merging what's available in jagged string arrays 'en' and 'he'.
     """
     n_chars = 80
-    en = [en] if isinstance(en, basestring) else [""] if en == [] or not isinstance(en, list) else en
-    he = [he] if isinstance(he, basestring) else [""] if he == [] or not isinstance(he, list) else he
+    en = [en] if isinstance(en, str) else [""] if en == [] or not isinstance(en, list) else en
+    he = [he] if isinstance(he, str) else [""] if he == [] or not isinstance(he, list) else he
 
     def preview(section):
         """Returns a preview string for list section"""
-        section =[s for s in section if isinstance(s, basestring)]
-        section = " ".join(map(unicode, section))
+        section =[s for s in section if isinstance(s, str)]
+        section = " ".join(map(str, section))
         return strip_tags(section[:n_chars]).strip()
 
     if not any(isinstance(x, list) for x in en + he):
         return {'en': preview(en), 'he': preview(he)}
     else:
-        zipped = map(None, en, he)
+        zipped = zip_longest(en, he)
         return [text_preview(x[0], x[1]) for x in zipped]
 
 
@@ -262,7 +269,7 @@ def replace_using_regex(regex, query, old, new, endline=None):
             temp = match.replace(old, new)
             query = query.replace(match, temp)
         if endline is not None:
-            query.replace(u'\n', endline+u'\n')
+            query.replace('\n', endline+'\n')
     return query
 
 
@@ -365,12 +372,12 @@ def titlecase(text):
                 continue
 
             if "/" in word and "//" not in word:
-                slashed = map(lambda t: titlecase(t), word.split('/'))
+                slashed = [titlecase(t) for t in word.split('/')]
                 tc_line.append("/".join(slashed))
                 continue
 
             if '-' in word:
-                hyphenated = map(lambda t: titlecase(t), word.split('-'))
+                hyphenated = [titlecase(t) for t in word.split('-')]
                 tc_line.append("-".join(hyphenated))
                 continue
 
@@ -449,8 +456,8 @@ def get_size(obj, seen=None):
                     size += get_size(obj.__dict__, seen)
                 break
     if isinstance(obj, dict):
-        size += sum((get_size(v, seen) for v in obj.values()))
-        size += sum((get_size(k, seen) for k in obj.keys()))
+        size += sum((get_size(v, seen) for v in list(obj.values())))
+        size += sum((get_size(k, seen) for k in list(obj.keys())))
     elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
         size += sum((get_size(i, seen) for i in obj))
     return size

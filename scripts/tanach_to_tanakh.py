@@ -7,7 +7,7 @@ indices = library.get_indexes_in_category('Tanach', include_dependant=True, full
 for idx in indices:
     pos = idx.categories.index('Tanach')
     #print "{}:{}".format(idx.categories, pos)
-    idx.categories[pos] = u'Tanakh'
+    idx.categories[pos] = 'Tanakh'
     idx.save()
 
 bdb = Lexicon().load({'name': 'BDB Augmented Strong'})

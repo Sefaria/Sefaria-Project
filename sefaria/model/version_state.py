@@ -3,6 +3,7 @@ version_state.py
 Writes to MongoDB Collection:
 """
 import logging
+from functools import reduce
 
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 from . import abstract as abst
 from . import text
 from . import link
-from text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, Ref
+from .text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, Ref
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
 from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.system.cache import delete_template_cache
@@ -95,7 +96,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
 
     langs = ["en", "he"]
     lang_map = {lang: "_" + lang for lang in langs}
-    lang_keys = lang_map.values()
+    lang_keys = list(lang_map.values())
 
     def __init__(self, index=None, attrs=None, proj=None):
         """
@@ -110,14 +111,14 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
                 try:
                     self.index = library.get_index(self.title)
                 except BookNameError as e:
-                    logger.warning(u"Failed to load Index for VersionState - {}: {} (Normal on Index name change)".format(self.title, e))
+                    logger.warning("Failed to load Index for VersionState - {}: {} (Normal on Index name change)".format(self.title, e))
             return
 
         if not isinstance(index, AbstractIndex):
             try:
                 index = library.get_index(index)
             except BookNameError as e:
-                logger.warning(u"Failed to load Index for VersionState {}: {}".format(index, e))
+                logger.warning("Failed to load Index for VersionState {}: {}".format(index, e))
                 raise
 
         self.index = index
@@ -233,7 +234,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         padded_ja = {}  # Padded JaggedIntArrays for each language
 
         # Get base counts for each language
-        for lang, lkey in self.lang_map.items():
+        for lang, lkey in list(self.lang_map.items()):
             if not current.get(lkey):
                 current[lkey] = {}
 
@@ -247,7 +248,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
             "shape": ja['_all'].shape()
         }
         # Get derived data for all languages
-        for lang, lkey in self.lang_map.items():
+        for lang, lkey in list(self.lang_map.items()):
             # build zero-padded count ("availableTexts")
             padded_ja[lkey] = ja[lkey] + zero_mask
             current[lkey]["availableTexts"] = padded_ja[lkey].array()
@@ -346,7 +347,7 @@ class VersionStateSet(abst.AbstractMongoSet):
 
 class StateNode(object):
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
-    lang_keys = lang_map.values()
+    lang_keys = list(lang_map.values())
     meta_proj = {'content._all.completenessPercent': 1,
          'content._all.percentAvailable': 1,
          'content._all.percentAvailableInvalid': 1,
@@ -378,7 +379,7 @@ class StateNode(object):
             if not snode:
                 snode = library.get_schema_node(title)
             if not snode:
-                raise InputError(u"Can not resolve name: {}".format(title))
+                raise InputError("Can not resolve name: {}".format(title))
             if snode.is_default():
                 snode = snode.parent
         if snode:
@@ -430,7 +431,7 @@ class StateNode(object):
         try:
             return self.d[self.lang_map[lang]][key]
         except Exception as e:
-            raise e.__class__(u"Failed in StateNode.var(), in node: {}, language: {}, key: {}".format(self.snode.primary_title("en"), lang, key))
+            raise e.__class__("Failed in StateNode.var(), in node: {}, language: {}, key: {}".format(self.snode.primary_title("en"), lang, key))
 
     def ja(self, lang, key="availableTexts"):
         """
@@ -474,11 +475,11 @@ def refresh_all_states():
     indices = IndexSet()
 
     for index in indices:
-        logger.debug(u"Rebuilding state for {}".format(index.title))
+        logger.debug("Rebuilding state for {}".format(index.title))
         try:
             VersionState(index).refresh()
         except Exception as e:
-            logger.warning(u"Got exception rebuilding state for {}: {}".format(index.title, e))
+            logger.warning("Got exception rebuilding state for {}: {}".format(index.title, e))
 
     library.rebuild_toc()
 

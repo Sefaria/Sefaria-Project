@@ -1,12 +1,14 @@
 # This script runs all available tests locally, and displays a report
+__package__ = "reader.browsertest"
+
 import sys
 from selenium import webdriver
 from appium import webdriver as appiumWebdriver
 from optparse import OptionParser
 import django
 django.setup()
-from framework import *
-import basic_tests
+from .framework import Trial
+from . import basic_tests
 
 
 def _get_appium_webdriver(caps):
@@ -20,7 +22,7 @@ def get_ios_webdriver():
     caps = {
         "automationName": "XCUITest",
         "platformName": "iOS",
-        "platformVersion": "12.2",
+        "platformVersion": "13.2",
         'browserName': 'Safari',
         "deviceName": "iPhone 8"
     }
@@ -57,7 +59,7 @@ if __name__ == '__main__':
     t.run()
     results = t.results()
 
-    print results.report()
+    print(results.report())
     fails = results.number_failed()
     if fails > 0:
         sys.stderr.write(str(results))

@@ -11,7 +11,7 @@ en_he_parshiot = []
 en_parshiot = []
 with open("./data/tmp/parsha.csv") as parsha_file:
     parshiot = csv.reader(parsha_file)
-    parshiot.next()
+    next(parshiot)
     order = 1
     for row in parshiot:
         (en, he, ref) = row
@@ -23,12 +23,12 @@ with open("./data/tmp/parsha.csv") as parsha_file:
 
 book = SchemaNode()
 book.add_title("Midrash Tanchuma", "en", primary=True)
-book.add_title(u"מדרש תנחומא", "he", primary=True)
+book.add_title("מדרש תנחומא", "he", primary=True)
 book.key = "midrash_tanhuma"
 
 foreword = JaggedArrayNode()
 foreword.add_title("Foreword", "en", primary=True)
-foreword.add_title(u"פתח דבר", "he", primary=True)
+foreword.add_title("פתח דבר", "he", primary=True)
 foreword.key = "foreword"
 foreword.depth = 1
 foreword.sectionNames = ["Paragraph"]
@@ -36,7 +36,7 @@ foreword.addressTypes = ["Integer"]
 
 intro = JaggedArrayNode()
 intro.add_title("Introduction", "en", primary=True)
-intro.add_title(u"הקדמה", "he", primary=True)
+intro.add_title("הקדמה", "he", primary=True)
 intro.key = "intro"
 intro.depth = 1
 intro.sectionNames = ["Paragraph"]

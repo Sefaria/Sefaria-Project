@@ -20,22 +20,22 @@ for sheet in sheets:
     if "status" in sheet and sheet["status"] == "public":
         public_authors[owner] += 1
 
-sorted_authors          = sorted(authors.iteritems(), key=lambda x: -x[1])
-sorted_public_authors   = sorted(public_authors.iteritems(), key=lambda x: -x[1])
-sorted_authors_by_views = sorted(authors_by_views.iteritems(), key=lambda x: -x[1])
+sorted_authors          = sorted(iter(authors.items()), key=lambda x: -x[1])
+sorted_public_authors   = sorted(iter(public_authors.items()), key=lambda x: -x[1])
+sorted_authors_by_views = sorted(iter(authors_by_views.items()), key=lambda x: -x[1])
 
 
-print "\n\nTop Public Sheet Authors"
+print("\n\nTop Public Sheet Authors")
 for author in sorted_public_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d public sheets - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
+    print("%s: %d public sheets - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug))
 
-print "\n\nTop Total Sheet Authors"
+print("\n\nTop Total Sheet Authors")
 for author in sorted_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d sheets - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
+    print("%s: %d sheets - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug))
 
-print "\n\nTop Total Sheet Authors by Views"
+print("\n\nTop Total Sheet Authors by Views")
 for author in sorted_authors_by_views[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d total sheet views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
+    print("%s: %d total sheet views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug))

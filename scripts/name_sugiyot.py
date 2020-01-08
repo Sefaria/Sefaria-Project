@@ -15,8 +15,8 @@ n_top_words = 20
 
 
 def tokenizer(s):
-    s = re.sub(ur'<.+?>', u'', s)
-    s = re.sub(ur'\(.+?\)', u'', s).strip()
+    s = re.sub(r'<.+?>', '', s)
+    s = re.sub(r'\(.+?\)', '', s).strip()
     return re.split('\s+', s)
 
 
@@ -31,9 +31,9 @@ def _word_ngrams(tokens, stop_words=None, min_n=2, max_n=4):
         original_tokens = tokens
         tokens = []
         n_original_tokens = len(original_tokens)
-        for n in xrange(min_n,
+        for n in range(min_n,
                         min(max_n + 1, n_original_tokens + 1)):
-            for i in xrange(n_original_tokens - n + 1):
+            for i in range(n_original_tokens - n + 1):
                 tokens.append(" ".join(original_tokens[i: i + n]))
 
     return tokens
@@ -53,9 +53,9 @@ def analyzer(doc):
 
 def print_top_words(model, feature_names, n_top_words):
     for topic_idx, topic in enumerate(model.components_):
-        print("Topic #%d:" % topic_idx)
-        print(" ".join([feature_names[i]
-                        for i in topic.argsort()[:-n_top_words - 1:-1]]))
+        print(("Topic #%d:" % topic_idx))
+        print((" ".join([feature_names[i]
+                        for i in topic.argsort()[:-n_top_words - 1:-1]])))
     print()
 
 
@@ -77,12 +77,12 @@ def derive_names(rows):
     # http://www.markhneedham.com/blog/2015/02/15/pythonscikit-learn-calculating-tfidf-on-how-i-met-your-mother-transcripts/
     dense = tfidf.todense()
     for sugnum in range(len(dense)):
-        print sugyah_refs[sugnum]
+        print(sugyah_refs[sugnum])
         sug = dense[sugnum].tolist()[0]
-        phrase_scores = [pair for pair in zip(range(0, len(sug)), sug) if pair[1] > 0]
+        phrase_scores = [pair for pair in zip(list(range(0, len(sug))), sug) if pair[1] > 0]
         sorted_phrase_scores = sorted(phrase_scores, key=lambda t: t[1] * -1)
         for phrase, score in [(tfidf_feature_names[word_id], score) for (word_id, score) in sorted_phrase_scores][:3]:
-            print(u'{0: <20} {1}'.format(phrase, score))
+            print(('{0: <20} {1}'.format(phrase, score)))
 
 
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     rows = []
 
     for m in mesechtot:
-        print m
+        print(m)
         with open('../data/sugyot/{}.csv'.format(m), 'r') as csvfile:
             reader = csv.DictReader(csvfile)
             rows += [row for row in reader]

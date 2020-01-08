@@ -37,7 +37,7 @@ def add_sephardic(filename):
                 }
 
 
-    print haftara_dict
+    print(haftara_dict)
 
     all_calendar_parashot = db.parshiot.find({})
     for parasha in all_calendar_parashot:
@@ -45,8 +45,8 @@ def add_sephardic(filename):
             parasha["haftara"] = {"ashkenazi": parasha["haftara"]}
         if parasha["parasha"] in haftara_dict:
             parasha["haftara"]["sephardi"] = haftara_dict[parasha["parasha"]]["sephardic"]
-            print parasha["date"]
-            print parasha["haftara"]
+            print(parasha["date"])
+            print(parasha["haftara"])
         db.parshiot.save(parasha)
 
 

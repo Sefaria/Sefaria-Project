@@ -23,5 +23,5 @@ for sheet in sheets:
         db.sheets.update({'_id': olddoc["_id"]}, newdoc)
 
     except:
-        print sheet
+        print(sheet)
 

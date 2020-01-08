@@ -2,7 +2,7 @@ from pytz import utc
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from sefaria.system.database import client
-import jobs
+from . import jobs
 
 
 def run_background_scheduler():

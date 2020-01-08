@@ -17,7 +17,7 @@ def migrate_to_complex_structure(title, schema, mappings):
     #print title
     #print mappings
     #print json.dumps(schema)
-    print "begin conversion"
+    print("begin conversion")
     #TODO: add method on model.Index to change all 3 (title, nodes.key and nodes.primary title)
 
     #create a new index with a temp file #make sure to later add all the alternate titles
@@ -32,7 +32,7 @@ def migrate_to_complex_structure(title, schema, mappings):
     en_title = temp_index.get_title('en')
     temp_index.title = "Complex {}".format(en_title)
     he_title = temp_index.get_title('he')
-    temp_index.set_title(u'{} זמני'.format(he_title), 'he')
+    temp_index.set_title('{} זמני'.format(he_title), 'he')
     temp_index.save()
     #the rest of the title variants need to be copied as well but it will create conflicts while the orig index exists, so we do it after removing the old index in completely_delete_index_and_related.py
 
@@ -58,9 +58,9 @@ def migrate_to_complex_structure(title, schema, mappings):
 
 def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_index):
     for i, version in enumerate(versions):
-        print version.versionTitle.encode('utf-8')
+        print(version.versionTitle.encode('utf-8'))
         new_version_title = version.title.replace(orig_title, new_title)
-        print new_version_title
+        print(new_version_title)
         new_version = Version(
                 {
                     "chapter": base_index.nodes.create_skeleton(),
@@ -78,7 +78,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
         for mapping in mappings:
             #this makes the mapping contain the correct text/commentary title
             orig_ref = mapping[0].replace(orig_title, version.title)
-            print orig_ref
+            print(orig_ref)
             orRef = Ref(orig_ref)
             tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
             ref_text = tc.text
@@ -87,11 +87,11 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             # and have it changed to the temp index title
             dest_ref = mapping[1].replace(orig_title, version.title)
             dest_ref = dest_ref.replace(orig_title, new_title)
-            print dest_ref
+            print(dest_ref)
 
             dRef = Ref(dest_ref)
             ref_depth = dRef.range_index() if dRef.is_range() else len(dRef.sections)
-            text_depth = 0 if isinstance(ref_text, basestring) else list_depth(ref_text) #length hack to fit the correct JA
+            text_depth = 0 if isinstance(ref_text, str) else list_depth(ref_text) #length hack to fit the correct JA
             implied_depth = ref_depth + text_depth
             desired_depth = dRef.index_node.depth
             for i in range(implied_depth, desired_depth):
@@ -131,7 +131,7 @@ def migrate_links_of_ref(orRef, destRef):
     ref_links = LinkSet(query)
 
     for link in ref_links:
-        print link.refs
+        print(link.refs)
         linkRef1 = Ref(link.refs[0])
         linkRef2 = Ref(link.refs[1])
         curLinkRef = linkRef1 if orRef.contains(linkRef1) else linkRef2 #make sure we manipulate the right ref
@@ -141,9 +141,9 @@ def migrate_links_of_ref(orRef, destRef):
         try:
             tranlsatedLink.save()
             make_link_history_record(curLinkRef, tranlsatedLinkRef)
-            print newrefs
+            print(newrefs)
         except DuplicateRecordError:
-            print "SUCH A LINK ALREADY EXISTS: {}".format(newrefs)
+            print("SUCH A LINK ALREADY EXISTS: {}".format(newrefs))
 
 
 def make_link_history_record(curLinkRef, tranlsatedLinkRef):
@@ -196,7 +196,7 @@ if __name__ == '__main__':
     """args.title = 'Pesach Haggadah'
     args.schema_file = "data/tmp/pesach_haggadah_complex.json"
     args.mapping_file = "data/tmp/Pessach Haggadah Convert.csv"""""
-    print args
+    print(args)
     with open(args.schema_file, 'r') as filep:
         schema = json.load(filep)
     with open(args.mapping_file, 'rb') as csvfile:

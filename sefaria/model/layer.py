@@ -66,7 +66,7 @@ class Layer(abst.AbstractMongoRecord):
         """
         Add 'note_id' to this Layer.
         """
-        if isinstance(note_id, basestring):
+        if isinstance(note_id, str):
             note_id = ObjectId(note_id)
         if note_id not in self.note_ids:
             self.note_ids.append(note_id)

@@ -26,7 +26,7 @@ def jsonResponse(data, callback=None, status=200):
         data["_id"] = str(data["_id"])
 
     if isinstance(data, dict):
-        for key in data.keys():
+        for key in list(data.keys()):
             if isinstance(data[key], datetime):
                 data[key] = data[key].isoformat()
 

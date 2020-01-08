@@ -14,7 +14,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 # TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
 def json_response_decorator(func):
     """
@@ -28,6 +27,7 @@ def json_response_decorator(func):
         return jsonResponse(func(request, *args, **kwargs), callback=request.GET.get("callback", None))
     return decorator
 
+
 def catch_error_as_json(func):
     """
     Decorator that catches InputErrors and translates them into JSON 'error' dicts for front end consumption.
@@ -37,9 +37,9 @@ def catch_error_as_json(func):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
-            logger.warning(u"An exception occurred processing request for '{}' while running {}. Caught as JSON".format(args[0].path, func.__name__), exc_info=True)
+            logger.warning("An exception occurred processing request for '{}' while running {}. Caught as JSON".format(args[0].path, func.__name__), exc_info=True)
             request = args[0]
-            return jsonResponse({"error": unicode(e)}, callback=request.GET.get("callback", None))
+            return jsonResponse({"error": str(e)}, callback=request.GET.get("callback", None))
         return result
     return wrapper
 
@@ -53,14 +53,14 @@ def catch_error_as_http(func):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
-            logger.warning(u"An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__), exc_info=True)
+            logger.warning("An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__), exc_info=True)
             raise Http404
         except Http404:
             raise
         except Exception as e:
-            logger.exception(u"An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__))
+            logger.exception("An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__))
             return render_to_response(args[0], 'static/generic.html',
-                             {"content": u"There was an error processing your request: {}".format(unicode(e))})
+                             {"content": "There was an error processing your request: {}".format(str(e))})
         return result
     return wrapper
 
@@ -71,7 +71,7 @@ def log(func):
         """Assumes that function doesn't change input data"""
         #logger.debug("Calling: " + func + "(" + args + kwargs + ")")
         result = func(*args, **kwargs)
-        msg = func.__name__ + "(" + ",".join([unicode(a) for a in args])
+        msg = func.__name__ + "(" + ",".join([str(a) for a in args])
         msg += ", " + str(kwargs) if kwargs else ""
         msg += "):\n\t" + str(result)
         logger.debug(msg)
@@ -87,9 +87,9 @@ def sanitize_get_params(func):
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         request.GET = request.GET.copy()  #  see https://stackoverflow.com/questions/18930234/django-modifying-the-request-object/18931697
-        for k, v in request.GET.items():
+        for k, v in list(request.GET.items()):
             request.GET[k] = bleach.clean(v)
-        args = map(lambda a: bleach.clean(a) if isinstance(a, basestring) else a, args)  # while we're at it, clean any other vars passed
+        args = [bleach.clean(a) if isinstance(a, str) else a for a in args]  # while we're at it, clean any other vars passed
         result = func(request, *args, **kwargs)
         return result
     return wrapper
@@ -107,7 +107,7 @@ class memoized(object):
         self.cache = {}
 
     def __call__(self, *args, **kwargs):
-        if not isinstance(args, collections.Hashable):
+        if not isinstance(args, collections.abc.Hashable):
             # uncacheable. a list, for instance.
             # better to not cache than blow up.
             return self.func(*args, **kwargs)

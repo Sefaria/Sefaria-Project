@@ -44,7 +44,7 @@ def get_session_traits(request, uid=None):
         # "isSephardi"
         # "learnsDafYomi", etc
 
-    return [k for k, v in traits.items() if v]
+    return [k for k, v in list(traits.items()) if v]
 
 
 class DateRange(object):
@@ -158,7 +158,7 @@ def setUserSheetTraits():
 
     for daterange in active_dateranges:
         all_users = getAllUsersSheetUsage(daterange)
-        for uid, data in all_users.iteritems():
+        for uid, data in all_users.items():
             Trend({
                 "name":         "SheetsRead",
                 "value":        int(data["cnt"]),
@@ -178,10 +178,10 @@ def setCategoryTraits():
         site_data = {cat: 0 for cat in TOP_CATEGORIES}
 
         all_users = getAllUsersCategories(daterange)
-        for uid, data in all_users.iteritems():
-            TrendSet({"period": daterange.key, "uid": uid, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
+        for uid, data in all_users.items():
+            TrendSet({"period": daterange.key, "uid": uid, "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}}).delete()
 
-            for cat, val in data["categories"].items():
+            for cat, val in list(data["categories"].items()):
                 if cat not in TOP_CATEGORIES:
                     continue
                 Trend({
@@ -196,9 +196,9 @@ def setCategoryTraits():
                 site_data[cat] += val
 
         # Site Traits
-        TrendSet({"period": daterange.key, "scope": "site", "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}}).delete()
+        TrendSet({"period": daterange.key, "scope": "site", "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}}).delete()
 
-        for cat, val in site_data.iteritems():
+        for cat, val in site_data.items():
             Trend({
                 "name": read_in_category_key(cat),
                 "value": val,
@@ -214,7 +214,7 @@ def setUserLanguageTraits():
 
     for daterange in active_dateranges:
         all_users = getAllUsersLanguageUsage(daterange)
-        for uid, data in all_users.iteritems():
+        for uid, data in all_users.items():
             profile = user_profile.UserProfile(id=uid)
 
             he = float(data["languages"].get("hebrew", 0.0))
@@ -340,7 +340,7 @@ def site_stats_data():
     for daterange in active_dateranges:
         d[daterange.key] = {"categoriesRead": {reverse_read_in_category_key(t.name): t.value
                             for t in TrendSet({"scope": "site", "period": daterange.key,
-                                "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}
+                                "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}
                             })}}
     return d
 
@@ -380,7 +380,7 @@ def user_stats_data(uid):
         most_popular_sheet_ids = [s["_id"] for s in sorted(usheet_views, key=lambda o: o["cnt"], reverse=True)[:3]]
         most_popular_sheets = []
         for sheet_id in most_popular_sheet_ids:
-            most_popular_sheets += filter(lambda s: s["id"] == sheet_id, usheets)
+            most_popular_sheets += [s for s in usheets if s["id"] == sheet_id]
 
         sheets_this_period = [s for s in usheets if daterange.contains(datetime.strptime(s["created"], "%Y-%m-%dT%H:%M:%S.%f"))]
 
@@ -413,7 +413,7 @@ def user_stats_data(uid):
         most_viewed_sheets_ids = [s["_id"] for s in sorted(sheets_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and s["_id"] not in usheet_ids][:3]
 
         most_viewed_sheets = [Story._sheet_metadata(i, return_id=True) for i in most_viewed_sheets_ids]
-        most_viewed_sheets = filter(lambda a: a, most_viewed_sheets)
+        most_viewed_sheets = [a for a in most_viewed_sheets if a]
 
         for sheet_dict in most_viewed_sheets:
             sheet_dict.update(Story._publisher_metadata(sheet_dict["publisher_id"]))
@@ -422,7 +422,7 @@ def user_stats_data(uid):
         user_stats_dict[daterange.key] = {
             "sheetsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": True, "secondary": False, "uid": uid})).hits(),
             "textsRead": user_profile.UserHistorySet(daterange.update_match({"is_sheet": False, "secondary": False, "uid": uid})).hits(),
-            "categoriesRead": {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "period": daterange.key, "name": {"$in": map(read_in_category_key, TOP_CATEGORIES)}})},
+            "categoriesRead": {reverse_read_in_category_key(t.name): t.value for t in TrendSet({"uid":uid, "period": daterange.key, "name": {"$in": list(map(read_in_category_key, TOP_CATEGORIES))}})},
             "totalSheets": len(usheets),
             "publicSheets": len([s for s in usheets if s["status"] == "public"]),
             "popularSheets": most_popular_sheets,

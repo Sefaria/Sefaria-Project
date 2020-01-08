@@ -13,7 +13,7 @@ def setup_module(module):
     global set_classes
     record_classes = abstract.get_record_classes()
     set_classes = abstract.get_set_classes()
-    print record_classes
+    print(record_classes)
 
 
 class Test_Mongo_Record_Models(object):
@@ -21,7 +21,7 @@ class Test_Mongo_Record_Models(object):
     def test_class_attribute_collection(self):
         for sub in record_classes:
             assert sub.collection
-            assert isinstance(sub.collection, basestring)
+            assert isinstance(sub.collection, str)
 
     def test_class_attribute_required_attrs(self):
         for sub in record_classes:
@@ -29,32 +29,31 @@ class Test_Mongo_Record_Models(object):
             assert len(sub.required_attrs)
             assert "_id" not in sub.required_attrs
 
-
-    def test_instanciation_load_and_validity(self):
-        for sub in record_classes:
-            m = sub()
-            if m.collection == "term": #remove this line once terms are normalized
-                continue
-            res = m.load({})
-            if not res:  # Collection may be empty
-                return
-            assert m._id
-            m._validate()
+    @pytest.mark.parametrize("sub", abstract.get_record_classes())
+    def test_instanciation_load_and_validity(self, sub):
+        m = sub()
+        if m.collection == "term": #remove this line once terms are normalized
+            return
+        res = m.load({})
+        if not res:  # Collection may be empty
+            return
+        assert m._id
+        m._validate()
 
     @pytest.mark.deep
-    def test_attr_definitions(self):
+    @pytest.mark.parametrize("record_class", abstract.get_record_classes())
+    def test_attr_definitions(self, record_class):
         """
         As currently written, this examines every record in the mongo db.
         If this test fails, use the validate_model_attr_definitions.py script to diagnose.
         """
-        for record_class in record_classes:
-            class_keys = set(record_class.required_attrs + record_class.optional_attrs + [record_class.id_field])
-            req_class_keys = set(record_class.required_attrs)
-            records = getattr(db, record_class.collection).find()
-            for rec in records:
-                record_keys = set(rec.keys())
-                assert record_keys <= class_keys
-                assert req_class_keys <= record_keys
+        class_keys = set(record_class.required_attrs + record_class.optional_attrs + [record_class.id_field])
+        req_class_keys = set(record_class.required_attrs)
+        records = getattr(db, record_class.collection).find()
+        for rec in records:
+            record_keys = set(rec.keys())
+            assert record_keys <= class_keys, "{} - unhandled keys {}".format(record_class, record_keys - class_keys)
+            assert req_class_keys <= record_keys, "{} - required keys missing: {}".format(record_class, req_class_keys - record_keys)
 
 
 class Test_Mongo_Set_Models(object):
