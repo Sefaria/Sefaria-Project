@@ -85,7 +85,7 @@
             '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">';
 
         if (mode == "popup-click") {
-            html += '<div class="en">Text from Sefaria.org.  <a class = "sefaria-popup-ref" href = "">Click here</a> for full context and commentary.</div>' +
+            html += '<div class="en">Text from Sefaria.org.  <a class = "sefaria-popup-ref" target="_blank" href = "">Click here</a> for full context and commentary.</div>' +
             '<div class="he" dir="rtl">תוכן מספריא. ' +
                 ' <a class = "sefaria-popup-ref" href = "">' + 'ליחצו' + '</a> ' + 'לראות הקשר ופרושים' +
             '</div>';
