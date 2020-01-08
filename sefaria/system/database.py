@@ -104,6 +104,9 @@ def ensure_indices(active_db=None):
         ('user_history', ["uid"],{}),
         ('user_history', ["sheet_id"],{}),
         ('user_history', ["datetime"],{}),
+        ('user_history', ["ref"], {}),
+        ('user_history', [[("uid", pymongo.ASCENDING), ("server_time_stamp", pymongo.ASCENDING)]], {}),
+        ('user_history', [[("uid", pymongo.ASCENDING), ("book", pymongo.ASCENDING), ("last_place", pymongo.ASCENDING)]], {}),
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
         ('webpages', ["refs"],{})
