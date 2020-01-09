@@ -558,7 +558,6 @@ Sefaria = extend(Sefaria, {
     return data;
   }, */
   _index: {}, // Cache for text index records
-  _translateTerms: {},
    index: function(text, index) {
     if (!index) {
       return this._index[text];
@@ -589,45 +588,18 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
-  _cacheHebrewTerms: function(terms) {
-      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
-  },
   _indexDetails: {},
-  /* hasIndexDetails: title => {title in this._indexDetails}, */
   getIndexDetails: function(title) {
-    return new Promise((resolve, reject) => {
-        var details = title in this._indexDetails ? this._indexDetails[title] : null;
-        if (details) {
-          resolve(details);
-        } else {
-            var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
-            this._api(url, data => {
-                Sefaria._indexDetails[title] = data;
-                resolve(data);
-            });
-        }
+    return this._cachedApiPromise({
+        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1",
+        key:   title,
+        store: this._indexDetails
     });
   },
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
   },
-  _titleVariants: {},
-    /*  Unused?
-  normalizeTitle: function(title, callback) {
-    if (title in this._titleVariants) {
-        callback(this._titleVariants[title]);
-    }
-    else {
-        this._api("/api/v2/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i++) {
-            Sefaria._titleVariants[data.titleVariants[i]] = data.title;
-          }
-          callback(data.title);
-        });
-    }
-  },
-     */
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
     this.getName(ref, true)
@@ -1962,33 +1934,21 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, sortBy, callback) {
-    // Returns data for an individual group
-    var groupObj = this._groups[group];
-    if (groupObj) {
-      if (callback) { callback(groupObj); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups/" + group;
-       Sefaria._api(url, function(data) {
-           this._groups[group] = data;
-           callback(data);
-        }.bind(this));
-      }
-    return groupObj;
+  getGroup: function(key) {
+      const url = Sefaria.apiHost + "/api/groups/" + key;
+      const store = this._groups;
+      return this._cachedApiPromise({url, key, store});
   },
   _groupsList: null,
-  groupsList: function(callback) {
-    // Returns list of public and private groups
-    if (this._groupsList) {
-      if (callback) { callback(this._groupsList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups";
-       Sefaria._api(url, function(data) {
-          this._groupsList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._groupsList;
+  getGroupsList: function() {
+      // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
+      return (this._groupsList) ?
+          Promise.resolve(this._groupsList) :
+          Sefaria._promiseAPI(Sefaria.apiHost + "/api/groups")
+              .then(data => {
+                  this._groupsList = data;
+                  return data;
+              })
   },
   userGroups: function(uid) {
     const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
@@ -1997,6 +1957,10 @@ Sefaria = extend(Sefaria, {
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
+  },
+  _translateTerms: {},
+  _cacheHebrewTerms: function(terms) {
+      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
@@ -2292,7 +2256,7 @@ Sefaria = extend(Sefaria, {
   },
   _cachedApiPromise: function({url, key, store}) {
       // Checks store[key].  Resolves to this value, if present.
-      // Otherwise, calls Promise(url), caches, and returns
+      // Otherwise, calls Promise(url), caches in store[key], and returns
       return (key in store) ?
           Promise.resolve(store[key]) :
           Sefaria._promiseAPI(url)
