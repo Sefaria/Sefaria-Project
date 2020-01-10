@@ -84,6 +84,10 @@ class WebPage(abst.AbstractMongoRecord):
             "rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
             "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
+            "myjewishlearning.com\/\?post_type=evergreen", # These urls end up not working
+            "http:\/\/webcache.googleusercontent.com",
+            "https:\/\/translate.googleusercotent.com",
+            "http:\/\/:localhost(:\d+)?",
         ]
         return "|".join(bad_urls)
 
@@ -389,7 +393,7 @@ sites_data = [
     {
         "name":           "Halachipedia",
         "domains":        ["halachipedia.com"],
-        "normalization_rules": ["use https", "remove www", "remove mediawiki params"]
+        "normalization_rules": ["use https", "remove www", "remove mediawiki params"],
     },
     {
         "name":           "Torah In Motion",
@@ -402,7 +406,7 @@ sites_data = [
     {
         "name":           u"בית הלל",
         "domains":        ["beithillel.org.il"],
-        "title_branding": [u"בית הלל - הנהגה תורנית קשובה"]
+        "title_branding": [u"בית הלל - הנהגה תורנית קשובה"],
     },
     {
         "name":                   "ParshaNut",
