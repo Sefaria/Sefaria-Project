@@ -659,7 +659,6 @@ Sefaria = extend(Sefaria, {
   },
   _lookups: {},
   _ref_lookups: {},
-
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly) {
     const trimmed_name = name.trim();
@@ -717,11 +716,6 @@ Sefaria = extend(Sefaria, {
     }
   },
   _links: {},
-  /*
-  hasLinks: function(ref) {
-      return ref in this._links;
-  },
-  */
   getLinks: function(ref) {
     // When there is an error in the returned data, this calls `reject` rather than returning empty.
     return new Promise((resolve, reject) => {
@@ -744,31 +738,6 @@ Sefaria = extend(Sefaria, {
     ref = Sefaria.humanRef(ref);
     return ref in this._links ? this._links[ref] : [];
   },
-  /*
-  links: function(ref, cb) {
-    // Returns a list of links known for `ref`.
-    // WARNING: calling this function with spanning refs can cause bad state in cache.
-    // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
-    // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
-    // Fixing this generally on the client side requires more understanding of ref logic.
-    console.log("Method Sefaria.links() is deprecated in favor of Sefaria.getLinks()");
-    ref = Sefaria.humanRef(ref);
-    if (!cb) {
-      return this._links[ref] || [];
-    }
-    if (ref in this._links) {
-      cb(this._links[ref]);
-    } else {
-       const url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
-       this._api(url, function(data) {
-          if ("error" in data) {
-            return;
-          }
-          this._saveLinkData(ref, data);
-          cb(data);
-        }.bind(this));
-    }
-  }, */
   _saveLinkData: function(ref, data) {
     ref = Sefaria.humanRef(ref);
     const l = this._saveLinksByRef(data);
@@ -994,20 +963,6 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  /*
-  flatLinkSummary: function(ref) {
-    // Returns an array containing texts and categories with counts for ref
-    var summary = Sefaria.linkSummary(ref);
-    var booksByCat = summary.map(function(cat) {
-      return cat.books.map(function(book) {
-        return book;
-      });
-    });
-    var books = [];
-    books = books.concat.apply(books, booksByCat);
-    return books;
-  },
-  */
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
