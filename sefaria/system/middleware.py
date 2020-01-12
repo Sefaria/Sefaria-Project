@@ -1,12 +1,13 @@
 import sys 
 import tempfile
-import hotshot
-import hotshot.stats
-from cStringIO import StringIO
+import cProfile
+import pstats
+from io import StringIO
 
 from django.conf import settings
 from django.utils import translation
 from django.shortcuts import redirect
+from django.http import HttpResponse
 
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -140,7 +141,7 @@ class CORSDebugMiddleware(MiddlewareMixin):
 
 class ProfileMiddleware(MiddlewareMixin):
     """
-    Displays hotshot profiling for any view.
+    Displays profiling for any view.
     http://yoursite.com/yourview/?prof
 
     Add the "prof" key to query string by appending ?prof (or &prof=)
@@ -150,30 +151,22 @@ class ProfileMiddleware(MiddlewareMixin):
     * Only tested on Linux
     """
     def process_request(self, request):
-        if settings.DEBUG and request.GET.has_key('prof'):
-            self.tmpfile = tempfile.NamedTemporaryFile()
-            self.prof = hotshot.Profile(self.tmpfile.name)
+        if settings.DEBUG and 'prof' in request.GET:
+            self.prof = cProfile.Profile()
 
     def process_view(self, request, callback, callback_args, callback_kwargs):
-        if settings.DEBUG and request.GET.has_key('prof'):
+        if settings.DEBUG and 'prof' in request.GET:
             return self.prof.runcall(callback, request, *callback_args, **callback_kwargs)
 
     def process_response(self, request, response):
-        if settings.DEBUG and request.GET.has_key('prof'):
-            self.prof.close()
+        if settings.DEBUG and 'prof' in request.GET:
+            self.prof.create_stats()
 
-            out = StringIO()
-            old_stdout = sys.stdout
-            sys.stdout = out
+            io = StringIO()
+            stats = pstats.Stats(self.prof, stream=io)
 
-            stats = hotshot.stats.load(self.tmpfile.name)
-            stats.strip_dirs().sort_stats("cumulative")
+            stats.strip_dirs().sort_stats(request.GET.get('sort', "cumulative"))
             stats.print_stats()
 
-            sys.stdout = old_stdout
-            stats_str = out.getvalue()
-
-            if response and response.content and stats_str:
-                response.content = "<pre>" + stats_str + "</pre>"
-
+            response = HttpResponse('<pre>%s</pre>' % io.getvalue())
         return response

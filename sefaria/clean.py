@@ -56,7 +56,7 @@ def broken_links(tref=None, auto_links = False, manual_links = False, delete_lin
                 error_msg = "Ref 2 has no text in the system"
 
             broken_links_list.append("{}\t{}\t{}".format(link.refs, link_type, error_msg))
-            print broken_links_list[-1]
+            print(broken_links_list[-1])
             if delete_links:
                 link.delete()
     return broken_links_list
@@ -82,14 +82,14 @@ def remove_old_counts():
     counts = db.vstate.find({}, {"title": 1})
     for count in counts:
         if count.get("title", None):
-            print "Checking " + count["title"]
+            print("Checking " + count["title"])
             try:
                 i = model.library.get_index(count["title"])
                 if model.VersionSet({"title": i.title}).count() == 0:
-                    print u"Old count for Commentary with no content: %s" % count["title"]
+                    print("Old count for Commentary with no content: %s" % count["title"])
                     db.vstate.remove({"_id": count["_id"]})                    
             except BookNameError:
-                print u"Old count: %s" % count["title"]
+                print("Old count: %s" % count["title"])
                 db.vstate.remove({"_id": count["_id"]})
 
 
@@ -103,7 +103,7 @@ def remove_trailing_empty_segments():
             continue # Ignore text versions we don't understand
         new_text = rtrim_jagged_string_array(deepcopy(text.chapter))
         if new_text != text.chapter:
-            print text.title + " CHANGED"
+            print(text.title + " CHANGED")
             text.chapter = new_text
             text.save()
             model.VersionState(text.title).refresh()
@@ -117,6 +117,6 @@ def remove_bad_translation_requests():
     for tr in trs:
         try:
             model.Ref(tr.ref)
-        except Exception, e:
-            print tr.ref + "\n*** " + str(e)
+        except Exception as e:
+            print(tr.ref + "\n*** " + str(e))
             tr.delete()

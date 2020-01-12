@@ -43,7 +43,7 @@ class Garden(abst.AbstractMongoRecord):
         "filters": {
             "default": {
                 "en": "Tags",
-                "he": u"תגיות",
+                "he": "תגיות",
                 "logic": "AND",  # AND / OR
                 "position": "SIDE"  # SIDE / TOP
             }
@@ -51,7 +51,7 @@ class Garden(abst.AbstractMongoRecord):
         "sorts": {
             "start": {
                 "en": "Date",
-                "he": u"תאריך",
+                "he": "תאריך",
                 "datatype": "Int",  #Int, Str
                 "default": "ASC"
             }
@@ -134,7 +134,7 @@ class Garden(abst.AbstractMongoRecord):
         stops = self.stopSet()
 
         for stop in stops:
-            for typ, tags in getattr(stop, "tags", {}).iteritems():
+            for typ, tags in getattr(stop, "tags", {}).items():
                 if not by_tag.get(typ):
                     by_tag[typ] = {}
 
@@ -174,7 +174,7 @@ class Garden(abst.AbstractMongoRecord):
                 if not getattr(existing, "tags", None):
                     existing.tags = attrs.get("tags")
                 else:
-                    for typ, tags in attrs.get("tags", {}).iteritems():
+                    for typ, tags in attrs.get("tags", {}).items():
                         if not existing.tags.get(typ):
                             existing.tags[typ] = attrs["tags"][typ]
                         else:
@@ -197,7 +197,7 @@ class Garden(abst.AbstractMongoRecord):
         try:
             gs.save()
         except Exception as e:
-            logger.warning(u"Failed to add stop to Garden {}. {}".format(self.title, e))
+            logger.warning("Failed to add stop to Garden {}. {}".format(self.title, e))
 
     def add_relationship(self, attrs):
         gs = GardenStopRelation(attrs)
@@ -205,10 +205,10 @@ class Garden(abst.AbstractMongoRecord):
         try:
             gs.save()
         except Exception as e:
-            logger.warning(u"Failed to add relationship to Garden {}. {}".format(self.title, e))
+            logger.warning("Failed to add relationship to Garden {}. {}".format(self.title, e))
 
     def import_sheets_by_user(self, user_id):
-        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": u"משקל"})
+        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": "משקל"})
         sheet_list = db.sheets.find({"owner": int(user_id), "status": {"$ne": 5}})
         for sheet in sheet_list:
             self.import_sheet(sheet["id"])
@@ -216,8 +216,8 @@ class Garden(abst.AbstractMongoRecord):
     def import_sheets_by_tag(self, tag):
         from sefaria.sheets import get_sheets_by_tag
 
-        self.updateFilter("Sheet Author", {"en": "Sheet Author", "he": u"מחבר דף"})
-        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": u"משקל"})
+        self.updateFilter("Sheet Author", {"en": "Sheet Author", "he": "מחבר דף"})
+        self.updateSort("weight", {"type": "Int", "en": "Weight", "he": "משקל"})
         sheet_list = get_sheets_by_tag(tag)
         for sheet in sheet_list:
             self.import_sheet(sheet["id"], remove_tags=[tag])
@@ -243,7 +243,7 @@ class Garden(abst.AbstractMongoRecord):
             refClauses += [{"refs.1": {"$regex": rgx}}]
 
         for rgx in regexes:
-            print "Garden.get_links() - {}".format(rgx)
+            print("Garden.get_links() - {}".format(rgx))
             links += [l for l in link.LinkSet({"$and": [{"refs.0": {"$regex": rgx}}, {"$or": refClauses}]})]
 
         return links
@@ -252,7 +252,7 @@ class Garden(abst.AbstractMongoRecord):
         from sefaria.search import query
         res = query(q)
 
-        self.updateFilter("default", {"en": "Categories", "he": u"קטגוריות"})
+        self.updateFilter("default", {"en": "Categories", "he": "קטגוריות"})
 
         for hit in res["hits"]["hits"]:
             tags = {"default": hit["_source"]["path"].split("/")}
@@ -263,17 +263,17 @@ class Garden(abst.AbstractMongoRecord):
                 "tags": tags
             }
             if hit["_source"]["lang"] == "en":
-                stop["enText"] = u" ".join(hit["highlight"]["content"])
+                stop["enText"] = " ".join(hit["highlight"]["content"])
             elif hit["_source"]["lang"] == "he":
-                stop["heText"] = u" ".join(hit["highlight"]["content"])
+                stop["heText"] = " ".join(hit["highlight"]["content"])
             self.add_stop(stop)
 
     def import_ref_list(self, reflist, defaults=None):
         if defaults is None:
             defaults = {}
-        self.updateFilter("default", {"en": "Categories", "he": u"קטגוריות"})
+        self.updateFilter("default", {"en": "Categories", "he": "קטגוריות"})
         for ref in reflist:
-            if isinstance(ref, basestring):
+            if isinstance(ref, str):
                 try:
                     ref = text.Ref(ref)
                 except:
@@ -289,7 +289,7 @@ class Garden(abst.AbstractMongoRecord):
 
             if defaults.get("tags") is not None:
                 stop_dict["tags"].update(defaults["tags"])
-            stop_dict.update({k:v for k,v in defaults.items() if k != "tags"})
+            stop_dict.update({k:v for k,v in list(defaults.items()) if k != "tags"})
 
             self.add_stop(stop_dict)
         return self
@@ -299,7 +299,7 @@ class Garden(abst.AbstractMongoRecord):
 
         sheet = Sheet().load({"id": sheet_id})
         if not sheet:
-            logger.warning(u"Failed to load sheet {}".format(sheet_id))
+            logger.warning("Failed to load sheet {}".format(sheet_id))
 
         def process_sources(sources, tags):
             for source in sources:
@@ -388,7 +388,7 @@ class GardenStop(abst.AbstractMongoRecord):
     ]
 
     def hasCustomText(self, lang):
-        assert lang, u"hasCustomText() requires a language code"
+        assert lang, "hasCustomText() requires a language code"
         if lang == "en":
             return bool(getattr(self, 'enText', False))
         elif lang == "he":
@@ -496,7 +496,7 @@ class GardenStop(abst.AbstractMongoRecord):
         return place.Place().load({"key": self.placeKey})
 
     def set_tags(self, tags, type="default"):
-        if isinstance(tags, basestring):
+        if isinstance(tags, str):
             tags = [tags]
         if self.tags.get(type):
             for tag in tags:

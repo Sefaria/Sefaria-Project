@@ -20,12 +20,12 @@ for profile in profiles:
 		lastVisited    = None
 		bookVisitCount = None
 		for field in recentItem[2:]:
-			if isinstance(field, basestring) and field.startswith("2017"):
+			if isinstance(field, str) and field.startswith("2017"):
 				lastVisited = field
-				print "#%d: Found a timestamp: %s" % (profile["id"], lastVisited)
+				print("#%d: Found a timestamp: %s" % (profile["id"], lastVisited))
 			elif isinstance(field, int):
 				bookVisitCount = field
-				print "#%d: Found a count: %d" % (profile["id"], bookVisitCount)
+				print("#%d: Found a count: %d" % (profile["id"], bookVisitCount))
 		profile["recentlyViewed"][i] = [ref, heRef, lastVisited, bookVisitCount, None, None]
 	db.profiles.save(profile)
 

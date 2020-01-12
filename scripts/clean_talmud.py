@@ -14,7 +14,7 @@ mesechtot = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Beitzah", "Chagigah",
 class SegementFixer:
 
     def __init__(self):
-        self.soup = BeautifulSoup(u'', 'html5lib')
+        self.soup = BeautifulSoup('', 'html5lib')
         self.valid_classes = {'gemarra-italic', 'gemarra-regular', 'it-text'}
 
     def standardize_tag(self, element):
@@ -81,19 +81,19 @@ class SegementFixer:
         attributes.
         :param Tag span:
         """
-        if span['class'] == [u'it-text']:
+        if span['class'] == ['it-text']:
             if span.parent.name == 'i':
                 span.unwrap()
             else:
                 span.name = 'i'
 
-        elif span['class'] == [u'gemarra-regular']:
+        elif span['class'] == ['gemarra-regular']:
             if span.parent.name == 'b':
                 span.unwrap()
             else:
                 span.name = 'b'
 
-        elif span['class'] == [u'gemarra-italic']:
+        elif span['class'] == ['gemarra-italic']:
             if span.parent.name == 'b' or span.parent.name == 'i':
                 # This requirement is fulfilled within the logic of standaridze_tag.
                 raise AttributeError("gemarra-italic cannot have 'b' or 'i' as a parent!")
@@ -102,19 +102,19 @@ class SegementFixer:
                 span.wrap(self.soup.new_tag('b'))
         else:
             raise AttributeError("Eelement has no valid class")
-        for attr in span.attrs.keys():
+        for attr in list(span.attrs.keys()):
             del span[attr]
 
     def fix_segment(self, input_text):
-        self.soup = BeautifulSoup(u'<body>{}</body>'.format(input_text), 'html5lib')
+        self.soup = BeautifulSoup('<body>{}</body>'.format(input_text), 'html5lib')
         for element in list(self.soup.body.children):
             self.standardize_tag(element)
-        cleaned = u''.join([unicode(i) for i in self.soup.body.children])
-        cleaned = re.sub(u'\s+', u' ', cleaned)
-        cleaned = re.sub(ur'<i> (.*?)</i>', ur' <i>\1</i>',cleaned)
-        cleaned = re.sub(ur'<b> (.*?)</b>', ur' <b>\1</b>', cleaned)
-        cleaned = re.sub(ur'<i>(.*?) </i>', ur'<i>\1</i> ', cleaned)
-        cleaned = re.sub(ur'<b>(.*?) </b>', ur'<b>\1</b> ', cleaned)
+        cleaned = ''.join([str(i) for i in self.soup.body.children])
+        cleaned = re.sub('\s+', ' ', cleaned)
+        cleaned = re.sub(r'<i> (.*?)</i>', r' <i>\1</i>',cleaned)
+        cleaned = re.sub(r'<b> (.*?)</b>', r' <b>\1</b>', cleaned)
+        cleaned = re.sub(r'<i>(.*?) </i>', r'<i>\1</i> ', cleaned)
+        cleaned = re.sub(r'<b>(.*?) </b>', r'<b>\1</b> ', cleaned)
         return cleaned.strip()
 
 
@@ -125,7 +125,7 @@ def fix_tractate(tractate):
 
     for daf in text_array:
         for loc, segment in enumerate(daf[:]):
-            assert isinstance(segment, basestring)
+            assert isinstance(segment, str)
             daf[loc] = fixer.fix_segment(segment)
 
     chunk.text = text_array
@@ -136,14 +136,14 @@ def span_attrs(tractate_list=None):
     classes = set()
     if tractate_list is None:
         tractate_list = mesechtot
-    if isinstance(tractate_list, basestring):
+    if isinstance(tractate_list, str):
         tractate_list = [tractate_list]
     for tractate in tractate_list:
-        print tractate
+        print(tractate)
         text_array = Ref(tractate).text('en', 'William Davidson Edition - English').text
 
         for daf in text_array:
-            daf_text = u' '.join(daf)
+            daf_text = ' '.join(daf)
             soup = BeautifulSoup(daf_text, 'html5lib')
             spans = soup.find_all('span')
             for span in spans:
@@ -152,9 +152,9 @@ def span_attrs(tractate_list=None):
 
     if len(classes) < 50:
         for i in classes:
-            print i
+            print(i)
     else:
-        print "Found lots and lots of things"
+        print("Found lots and lots of things")
 
 
 class SegmentFixerTester(object):
@@ -216,7 +216,7 @@ class SegmentFixerTester(object):
         SegmentFixerTester.test_base_cases()
         SegmentFixerTester.test_merging()
         SegmentFixerTester.test_gemarra_italic()
-        print "All tests passes successfully"
+        print("All tests passes successfully")
 
 
 if __name__ == '__main__':
@@ -237,7 +237,7 @@ if __name__ == '__main__':
             raise argparse.ArgumentTypeError("A user id must be supplied if linking is desired")
 
     for tractate in mesechtot:
-        print "formatting tractate {}".format(tractate)
+        print("formatting tractate {}".format(tractate))
         fix_tractate(tractate)
         if arguments.link:
             rebuild_links_from_text(tractate, arguments.user)

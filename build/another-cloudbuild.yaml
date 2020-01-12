@@ -1,0 +1,50 @@
+---
+steps:  
+
+  #
+  # Build artifacts
+  #
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
+    id: web_container
+  
+  # Find a better way of passing in SRC_IMG
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-asset-test:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA", "."]
+    id: nginx_container
+    wait_for:
+      - web_container
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node-test:$SHORT_SHA", "-f", "build/node/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA", "."]
+    id: nodejs_container
+    wait_for:
+      - web_container
+
+
+  #
+  # Deploy to Kubernetes
+  #
+
+  # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'lorenzo/deploy-python3', '--single-branch']
+
+  # Helm Path:
+  # apply helm chart
+  - name: "gcr.io/production-deployment/cloudbuild-runner"
+    dir: k8s-admin/v2
+    args: ['helm', 'template', './charts/sefaria-p3-prod', '--set-string', '"releaseHash=$SHORT_SHA"', '--output-dir', './_build']
+
+  - name: 'gcr.io/cloud-builders/kubectl'
+    dir: k8s-admin/v2
+    args: ["apply", "-R", "-f", "./_build/"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-east1-b'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=cluster-1'
+
+images:
+  - "gcr.io/production-deployment/sefaria-asset-test:$SHORT_SHA"
+  - "gcr.io/production-deployment/sefaria-web-test:$SHORT_SHA"
+  - "gcr.io/production-deployment/sefaria-node-test:$SHORT_SHA"
+...

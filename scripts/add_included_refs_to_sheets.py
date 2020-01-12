@@ -19,7 +19,7 @@ for sheet in sheets:
             try:
                 included_refs.append(Ref(source["ref"]).normal())
             except:
-                print "Bad Ref: {0}".format(source["ref"])
+                print("Bad Ref: {0}".format(source["ref"]))
 
     newdoc = olddoc
     included_refs = list(set(included_refs))  # refs should be unique

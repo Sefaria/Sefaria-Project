@@ -77,7 +77,7 @@ def rewrite(ref):
 links = db.links.find({"refs": {"$regex": "^Shulchan Aruch"}})
 new_links = []
 for link in links:
-	link["refs"] = map(rewrite, link["refs"])
+	link["refs"] = list(map(rewrite, link["refs"]))
 	db.links.save(link)
 
 
@@ -86,9 +86,9 @@ def rewrite_hist(h):
 	if "ref" in h:
 		h["ref"] = rewrite(h["ref"])
 	if "new" in h and h["new"] and "refs" in h["new"]:
-		h["new"]["refs"] = map(rewrite, h["new"]["refs"])
+		h["new"]["refs"] = list(map(rewrite, h["new"]["refs"]))
 	if "old" in h and h["old"] and "refs" in h["old"]:
-		h["old"]["refs"] = map(rewrite, h["old"]["refs"])
+		h["old"]["refs"] = list(map(rewrite, h["old"]["refs"]))
 	db.history.save(h)
 
 text_hist = db.history.find({"ref": {"$regex": "^Shulchan Aruch"}})

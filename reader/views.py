@@ -1,35 +1,24 @@
 # -*- coding: utf-8 -*-
 
-# noinspection PyUnresolvedReferences
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
-from sets import Set
 from random import choice
-from pprint import pprint
 import json
-import urlparse
-import urllib2
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import dateutil.parser
-import base64
-import zlib
 from bson.json_util import dumps
-import p929
 import socket
 import bleach
 from collections import OrderedDict
 
 from rest_framework.decorators import api_view
-from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_http_methods
-from django.template import RequestContext
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.http import urlquote
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
@@ -49,18 +38,15 @@ from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.model.manuscript_image import ManuscriptImage, ManuscriptImageSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, \
-    DuplicateRecordError, DictionaryEntryNotFoundError
-# noinspection PyUnresolvedReferences
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
-from sefaria.utils.util import list_depth, text_preview
-from sefaria.utils.hebrew import hebrew_plural, hebrew_term, encode_hebrew_numeral, encode_hebrew_daf, is_hebrew, strip_cantillation, has_cantillation
-from sefaria.utils.talmud import section_to_daf, daf_to_section
-from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.util import text_preview
+from sefaria.utils.hebrew import hebrew_term, is_hebrew
+from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
@@ -79,7 +65,7 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn(u"Initializing library objects.")
+logger.warn("Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
@@ -108,7 +94,7 @@ def catchall(request, tref, sheet=None):
         try:
             oref = model.Ref(tref)
         except PartialRefInputError as e:
-            logger.warning(u'{}'.format(e))
+            logger.warning('{}'.format(e))
             matched_ref = Ref(e.matched_part)
             return reader_redirect(matched_ref.url())
         except InputError:
@@ -147,12 +133,13 @@ def render_react_component(component, props):
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
-    encoded_args = urllib.urlencode({
+    encoded_args = urllib.parse.urlencode({
         "propsJSON": propsJSON,
-    })
+    }).encode("utf-8")
     try:
-        response = urllib2.urlopen(url, encoded_args, NODE_TIMEOUT)
-        html = response.read()
+        req = urllib.request.Request(url)
+        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        html = response.read().decode("utf-8")
         return html
     except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
@@ -184,7 +171,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             currVersions = {"en": versionEn, "he": versionHe}
             if versionEn is not None and versionHe is not None:
                 curr_lang = kwargs.get("panelDisplayLanguage", "en")
-                for key in currVersions.keys():
+                for key in list(currVersions.keys()):
                     if key == curr_lang:
                         continue
                     else:
@@ -242,7 +229,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
             panel["text"] = text_family
 
-            if oref.index.categories == [u"Tanakh", u"Torah"]:
+            if oref.index.categories == ["Tanakh", "Torah"]:
                 panel["indexDetails"] = oref.index.contents(v2=True) # Included for Torah Parashah titles rendered in text
 
             if oref.is_segment_level(): # Note: a ranging or spanning ref like "Genesis 1:2-3:4" is considered segment level
@@ -429,15 +416,15 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            versionEn  = request.GET.get("ven{}".format(i)).replace(u"_", u" ") if request.GET.get("ven{}".format(i)) else None
-            versionHe  = request.GET.get("vhe{}".format(i)).replace(u"_", u" ") if request.GET.get("vhe{}".format(i)) else None
+            versionEn  = request.GET.get("ven{}".format(i)).replace("_", " ") if request.GET.get("ven{}".format(i)) else None
+            versionHe  = request.GET.get("vhe{}".format(i)).replace("_", " ") if request.GET.get("vhe{}".format(i)) else None
             if not versionEn and not versionHe:
                 # potential link using old version format
                 language = request.GET.get("l{}".format(i))
                 if language == "en":
-                    versionEn = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+                    versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
                 else: # he
-                    versionHe = request.GET.get("v{}".format(i)).replace(u"_", u" ") if request.GET.get("v{}".format(i)) else None
+                    versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
 
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
@@ -527,7 +514,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
     """
     if len(text_list) == 0:
         return text_list
-    while not isinstance(text_list[0], basestring):
+    while not isinstance(text_list[0], str):
         text_list = text_list[0]
     return text_list
 
@@ -548,7 +535,7 @@ def texts_category_list(request, cats):
         cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
         if cat_toc is None or len(cats) == 0:
             return texts_list(request)
-        cat_string = u", ".join(cats) if request.interfaceLang == "english" else u", ".join([hebrew_term(cat) for cat in cats])
+        cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         title = cat_string + _(" | Sefaria")
         desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
 
@@ -577,18 +564,16 @@ def get_param(param, i=None):
 
 def get_search_params(get_dict, i=None):
     gp = get_param
-    sheet_group_search_filters = map(lambda f: urllib.unquote(f),
-                                     get_dict.get(gp("sgroupFilters", i)).split("|")) if get_dict.get(gp("sgroupFilters", i),
+    sheet_group_search_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("sgroupFilters", i)).split("|")] if get_dict.get(gp("sgroupFilters", i),
                                                                                                      "") else []
-    sheet_tags_search_filters = map(lambda f: urllib.unquote(f),
-                                    get_dict.get(gp("stagsFilters", i), "").split("|")) if get_dict.get(gp("stagsFilters", i),
+    sheet_tags_search_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("stagsFilters", i), "").split("|")] if get_dict.get(gp("stagsFilters", i),
                                                                                                        "") else []
     sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(
         sheet_tags_search_filters)  # i got a tingly feeling writing this
-    text_filters = map(lambda f: urllib.unquote(f), get_dict.get(gp("tpathFilters", i)).split("|")) if get_dict.get(gp("tpathFilters", i)) else []
+    text_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("tpathFilters", i)).split("|")] if get_dict.get(gp("tpathFilters", i)) else []
     return {
-        "query": urllib.unquote(get_dict.get(gp("q", i), "")),
-        "tab": urllib.unquote(get_dict.get(gp("tab", i), "text")),
+        "query": urllib.parse.unquote(get_dict.get(gp("q", i), "")),
+        "tab": urllib.parse.unquote(get_dict.get(gp("tab", i), "text")),
         "textField": ("naive_lemmatizer" if get_dict.get(gp("tvar", i)) == "1" else "exact") if get_dict.get(gp("tvar", i)) else "",
         "textSort": get_dict.get(gp("tsort", i), None),
         "textFilters": text_filters,
@@ -853,8 +838,8 @@ def topic_page(request, topic):
         "topicData": topics.get(topic).contents(),
     })
 
-    title = u"%(topic)s | Sefaria" % {"topic": topic}
-    desc  = u'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
+    title = "%(topic)s | Sefaria" % {"topic": topic}
+    desc  = 'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -1003,7 +988,7 @@ def _crumb(pos, id, name):
 
 def sheet_crumbs(request, sheet=None):
     if sheet is None:
-        return u""
+        return ""
 
     # todo: write up topic breadcrumbs
     breadcrumbJsonList = [_crumb(1, "/sheets", _("Sheets"))]
@@ -1024,7 +1009,7 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
     """
 
     if cats is None and title is None and oref is None:
-        return u""
+        return ""
 
     # Fill in missing information
     if oref is not None:
@@ -1063,9 +1048,9 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
             depth = oref.index_node.depth
             for i in range(len(oref.sections)):
                 if request.interfaceLang == "english":
-                    name = oref.index_node.sectionNames[i] + u" " + oref.normal_section(i, "en")
+                    name = oref.index_node.sectionNames[i] + " " + oref.normal_section(i, "en")
                 else:
-                    name = hebrew_term(oref.index_node.sectionNames[i]) + u" " + oref.normal_section(i, "he")
+                    name = hebrew_term(oref.index_node.sectionNames[i]) + " " + oref.normal_section(i, "he")
                 breadcrumbJsonList += [_crumb(nextPosition, "/" + oref.context_ref(depth - i - 1).url(), name)]
                 nextPosition += 1
 
@@ -1258,7 +1243,7 @@ def texts_api(request, tref):
                 oref = oref.default_child_ref()
                 text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
             except NoVersionFoundError as e:
-                return {"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
+                return {"error": str(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
 
             # TODO: what if pad is false and the ref is of an entire book? Should next_section_ref return None in that case?
@@ -1385,7 +1370,7 @@ def texts_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def old_text_versions_api_redirect(request, tref, lang, version):
-    url = u"/api/texts/{}?v{}={}".format(tref, lang, version)
+    url = "/api/texts/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
     response['Location'] += "&{}".format(params) if params else ""
@@ -1422,13 +1407,13 @@ def search_autocomplete_redirecter(request):
     ref = completions_dict['ref']
     object_data = completions_dict['object_data']
     if ref:
-        response = redirect(u'/{}'.format(ref.url()), permanent=False)
+        response = redirect('/{}'.format(ref.url()), permanent=False)
     elif object_data is not None and object_data.get('type', '') == 'Person':
-        response = redirect(u'/person/{}'.format(object_data['key']), permanent=False)
+        response = redirect('/person/{}'.format(object_data['key']), permanent=False)
     elif object_data is not None and object_data.get('type', '') == 'TocCategory':
-        response = redirect(u'/{}'.format(object_data['key']), permanent=False)
+        response = redirect('/{}'.format(object_data['key']), permanent=False)
     else:
-        response = redirect(u'/search?q={}'.format(query), permanent=False)
+        response = redirect('/search?q={}'.format(query), permanent=False)
     return response
 
 
@@ -1802,7 +1787,7 @@ def links_api(request, link_id_or_ref=None):
                     retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
-                    res.append({"error": "Link: {} | {} Error: {}".format(i["refs"][0], i["refs"][1], unicode(e))})
+                    res.append({"error": "Link: {} | {} Error: {}".format(i["refs"][0], i["refs"][1], str(e))})
 
             try:
                 res_slice = request.GET.get("truncate_response", None)
@@ -2202,9 +2187,9 @@ def category_api(request, path=None):
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
         if Category().load({"path": j["path"]}):
-            return jsonResponse({"error": "Category {} already exists.".format(u", ".join(j["path"]))})
+            return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
         if not Category().load({"path": j["path"][:-1]}):
-            return jsonResponse({"error": "No parent category found: {}".format(u", ".join(j["path"][:-1]))})
+            return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
@@ -2314,7 +2299,7 @@ def get_name_completions(name, limit, ref_only):
         if inode.is_virtual and inode.parent and getattr(inode.parent, "lexiconName", None) in library._lexicon_auto_completer:
             base_title = inode.parent.full_title()
             lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
-            t = [base_title + u", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
+            t = [base_title + ", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
             completions = list(OrderedDict.fromkeys(t))  # filter out dupes
         else:
             completions = [name.capitalize()] + completer.next_steps_from_node(name)
@@ -2328,7 +2313,7 @@ def get_name_completions(name, limit, ref_only):
     except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
-        t = [e.base_title + u", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
+        t = [e.base_title + ", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
     except InputError:
         completions = completer.complete(name, limit)
@@ -2380,7 +2365,7 @@ def name_api(request, name):
         if inode.has_numeric_continuation():
             inode = inode.get_default_child() if inode.has_default_child() else inode
             d["sectionNames"] = inode.sectionNames
-            d["heSectionNames"] = map(hebrew_term, inode.sectionNames)
+            d["heSectionNames"] = list(map(hebrew_term, inode.sectionNames))
             d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
             d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
 
@@ -2513,7 +2498,7 @@ def stories_api(request, gid=None):
                 s = SharedStory(payload).save()
                 return jsonResponse({"status": "ok", "story": s.contents()})
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
 
         elif request.user.is_staff:
             @csrf_protect
@@ -2523,7 +2508,7 @@ def stories_api(request, gid=None):
                     s = SharedStory(payload).save()
                     return jsonResponse({"status": "ok", "story": s.contents()})
                 except AssertionError as e:
-                    return jsonResponse({"error": e.message})
+                    return jsonResponse({"error": str(e)})
 
             return protected_post(request)
         else:
@@ -2561,12 +2546,12 @@ def addDynamicStories(stories, user, page):
             if getattr(most_recent, "is_sheet", None):
                 stry = SheetListFactory().generate_story(
                     sheet_ids=[most_recent.sheet_id],
-                    title={"en": "Keep Reading", "he": u"המשך לקרוא"},
-                    lead={"en": "Sheets", "he": u"דפים"}
+                    title={"en": "Keep Reading", "he": "המשך לקרוא"},
+                    lead={"en": "Sheets", "he": "דפים"}
                 )
             else:
                 stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
-                    lead={"en": "Keep Reading", "he": u"המשך לקרוא"})
+                    lead={"en": "Keep Reading", "he": "המשך לקרוא"})
             stories = [stry.contents()] + stories
 
     if page == 1:
@@ -2575,7 +2560,7 @@ def addDynamicStories(stories, user, page):
         if len(saved) > 2:
             saved_item = choice(saved)
             stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
-                    lead={"en": "Take Another Look", "he": u"קרא עוד"})
+                    lead={"en": "Take Another Look", "he": "קרא עוד"})
             stories = [stry.contents()] + stories
 
     return stories
@@ -2624,14 +2609,14 @@ def story_reflector(request):
                 s = method(**payload)
                 return jsonResponse(s.contents())
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
         else:
             #Treat payload as attrs to story object
             try:
                 s = SharedStory(payload)
                 return jsonResponse(s.contents())
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
 
     return protected_post(request)
 
@@ -2674,7 +2659,7 @@ def updates_api(request, gid=None):
                 SharedStory.from_global_notification(gn).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
-                return jsonResponse({"error": e.message})
+                return jsonResponse({"error": str(e)})
 
         elif request.user.is_staff:
             @csrf_protect
@@ -2685,7 +2670,7 @@ def updates_api(request, gid=None):
                     SharedStory.from_global_notification(gn).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
-                    return jsonResponse({"error": e.message})
+                    return jsonResponse({"error": str(e)})
 
             return protected_post(request)
         else:
@@ -2825,7 +2810,7 @@ def texts_history_api(request, tref, lang=None, version=None):
         query = {"ref": {"$regex": refRe }}
     history = db.history.find(query)
 
-    summary = {"copiers": Set(), "translators": Set(), "editors": Set(), "reviewers": Set() }
+    summary = {"copiers": set(), "translators": set(), "editors": set(), "reviewers": set() }
     updated = history[0]["date"].isoformat() if len(history) else "Unknown"
 
     for act in history:
@@ -3007,7 +2992,7 @@ def user_activity(request, slug, page=1):
 
     try:
         profile = UserProfile(slug=slug)
-    except Exception, e:
+    except Exception as e:
         raise Http404
 
 
@@ -3052,7 +3037,7 @@ def segment_history(request, tref, lang, version, page=1):
     version = version.replace("_", " ")
     version_record = Version().load({"title":oref.index.title, "versionTitle":version, "language":lang})
     if not version_record:
-        raise Http404(u"We do not have a version of {} called '{}'.  Please use the menu to find the text you are looking for.".format(oref.index.title, version))
+        raise Http404("We do not have a version of {} called '{}'.  Please use the menu to find the text you are looking for.".format(oref.index.title, version))
     filter_type = request.GET.get("type", None)
     history = text_history(oref, version, lang, filter_type=filter_type, page=page)
 
@@ -3116,7 +3101,7 @@ def user_profile(request, username):
 
     try:
         profile = UserProfile(slug=username)
-    except Exception, e:
+    except Exception as e:
         # Couldn't find by slug, try looking up by username (old style urls)
         # If found, redirect to new URL
         # If we no longer want to support the old URLs, we can remove this
@@ -3136,8 +3121,8 @@ def user_profile(request, username):
         "initialMenu":  "profile",
         "initialProfile": profileJSON,
     })
-    title = u"%(full_name)s on Sefaria" % {"full_name": profile.full_name}
-    desc = u'%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
+    title = "%(full_name)s on Sefaria" % {"full_name": profile.full_name}
+    desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -3199,23 +3184,25 @@ def profile_upload_photo(request):
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
         from PIL import Image
-        from StringIO import StringIO
+        from io import StringIO
         from sefaria.utils.util import epoch_time
         now = epoch_time()
+
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
             resized_image_file = StringIO()
             resized_image.save(resized_image_file, format="PNG")
             resized_image_file.seek(0)
             return resized_image_file
+
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
-        old_big_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
-        old_small_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+        old_big_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
+        old_small_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
 
-        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
-        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
+        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
 
         profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
         profile.save()
@@ -3327,10 +3314,10 @@ def profile_get_user_history(request):
     :tref: Ref associated with history item
     """
     if not request.user.is_authenticated:
-        import urlparse
-        recents = json.loads(urlparse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
+        import urllib.parse
+        recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
         recents = UserProfile.transformOldRecents(None, recents)
-        history = json.loads(urlparse.unquote(request.COOKIES.get("user_history", '[]')))
+        history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
         return jsonResponse(history + recents)
     if request.method == "GET":
         saved, secondary, last_place, oref = get_url_params_user_history(request)
@@ -3864,7 +3851,7 @@ def random_ref(categories=None, titles=None):
             categories = set()
         if titles is None:
             titles = set()
-        all_indexes = filter(lambda x: x.title in titles or (x.get_primary_category() in categories), library.all_index_records())
+        all_indexes = [x for x in library.all_index_records() if x.title in titles or (x.get_primary_category() in categories)]
     else:
         all_indexes = library.all_index_records()
     # picking by text first biases towards short texts
@@ -3907,7 +3894,7 @@ def random_by_topic_api(request):
     Returns Texts API data for a random text taken from popular topic tags
     """
     cb = request.GET.get("callback", None)
-    topics_filtered = filter(lambda x: x['good_to_promote'], get_topics().list())
+    topics_filtered = [x for x in get_topics().list() if x['good_to_promote']]
     if len(topics_filtered) == 0:
         resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
         resp['Content-Type'] = "application/json; charset=utf-8"
@@ -3929,7 +3916,7 @@ def random_by_topic_api(request):
 def dummy_search_api(request):
     # Thou shalt upgrade thine app or thou shalt not glean the results of search thou seeketh
     # this api is meant to information users of the old search.sefaria.org to upgrade their apps to get search to work again
-    were_sorry = u"We're sorry, but your version of the app is no longer compatible with our new search. We recommend you upgrade the Sefaria app to fully enjoy all it has to offer <br> עמכם הסליחה, אך גרסת האפליקציה הנמצאת במכשירכם איננה תואמת את מנוע החיפוש החדש. אנא עדכנו את אפליקצית ספריא להמשך שימוש בחיפוש"
+    were_sorry = "We're sorry, but your version of the app is no longer compatible with our new search. We recommend you upgrade the Sefaria app to fully enjoy all it has to offer <br> עמכם הסליחה, אך גרסת האפליקציה הנמצאת במכשירכם איננה תואמת את מנוע החיפוש החדש. אנא עדכנו את אפליקצית ספריא להמשך שימוש בחיפוש"
     resp = jsonResponse({
         "took": 613,
         "timed_out": False,
@@ -3960,7 +3947,7 @@ def dummy_search_api(request):
                         "lang": "he",
                         "pagesheetrank": 1,
                         "ref": "Genesis 1:1",
-                        "heRef": u"בראשית א:א",
+                        "heRef": "בראשית א:א",
                         "version": None,
                         "order":"A00000100220030"
                     },
@@ -3998,7 +3985,7 @@ def search_wrapper_api(request):
         j = json.loads(j)
         es_client = Elasticsearch(SEARCH_ADMIN)
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
-        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in j.items()})
+        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in list(j.items())})
         response = search_obj.execute()
         if response.success():
             return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
@@ -4198,10 +4185,10 @@ def talmud_person_index(request):
 
 
 def _get_sheet_tag_garden(tag):
-    garden_key = u"sheets.tagged.{}".format(tag)
+    garden_key = "sheets.tagged.{}".format(tag)
     g = Garden().load({"key": garden_key})
     if not g:
-        g = Garden({"key": garden_key, "title": u"Sources from Sheets Tagged {}".format(tag), "heTitle": u"מקורות מדפים מתויגים:" + u" " + unicode(tag)})
+        g = Garden({"key": garden_key, "title": "Sources from Sheets Tagged {}".format(tag), "heTitle": "מקורות מדפים מתויגים:" + " " + str(tag)})
         g.import_sheets_by_tag(tag)
         g.save()
     return g
@@ -4225,10 +4212,10 @@ def custom_visual_garden_page(request, key):
 
 
 def _get_search_garden(q):
-    garden_key = u"search.query.{}".format(q)
+    garden_key = "search.query.{}".format(q)
     g = Garden().load({"key": garden_key})
     if not g:
-        g = Garden({"key": garden_key, "title": u"Search: {}".format(q), "heTitle": u"חיפוש:" + u" " + unicode(q)})
+        g = Garden({"key": garden_key, "title": "Search: {}".format(q), "heTitle": "חיפוש:" + " " + str(q)})
         g.import_search(q)
         g.save()
     return g

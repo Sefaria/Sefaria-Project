@@ -12,15 +12,15 @@ def section_to_daf(section, lang="en"):
 
     if lang == "en":
         if section > daf * 2:
-            daf = u"{}b".format(daf)
+            daf = "{}b".format(daf)
         else:
-            daf = u"{}a".format(daf)
+            daf = "{}a".format(daf)
 
     elif lang == "he":
         if section > daf * 2:
-            daf = u"{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), ':')
+            daf = "{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), ':')
         else:
-            daf = u"{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), '.')
+            daf = "{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), '.')
 
     return daf
 

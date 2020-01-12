@@ -1,6 +1,6 @@
 from random import randrange
 from pprint import pprint
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import hashlib
 
 from django.contrib.auth.models import User
@@ -15,7 +15,7 @@ for contender in contenders:
     user = UserProfile(id=contender["id"])
     users[user.id] = user
     gravatar = "http://www.gravatar.com/avatar/" + hashlib.md5(user.email.lower()).hexdigest() + "?d=404"
-    r = urllib.urlopen(gravatar)
+    r = urllib.request.urlopen(gravatar)
     if r.getcode() == 404:
         points[user.id] = 0
     else:
@@ -29,6 +29,6 @@ for i in range(contenders.count()):
     for person in points:
         count += points[person]
         if count > winner:
-            print "%d. %s, %s" % (i+1, "www.sefaria.org/profile/" + users[person].slug, users[person].email)
+            print("%d. %s, %s" % (i+1, "www.sefaria.org/profile/" + users[person].slug, users[person].email))
             del points[person]
             break

@@ -25,7 +25,7 @@ class WordForm(abst.AbstractMongoRecord):
     ]
 
     def load(self, query, proj=None):
-        if 'form' in query and isinstance(query['form'], basestring):
+        if 'form' in query and isinstance(query['form'], str):
             query['form'] = {"$regex": "^"+query['form']+"$", "$options": "i"}
         return super(WordForm, self).load(query, proj=None)
 
@@ -80,8 +80,33 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "headword",
         "parent_lexicon",
     ]
-    optional_attrs = ["content"]
-
+    optional_attrs = [
+        "transliteration",
+        "pronunciation",
+        "morphology",
+        "language_code",
+        "refs",
+        "related_words",
+        "number",
+        "language_reference",
+        "number",
+        "content",
+        "citations",
+        "plural_form",
+        "binyan_form",
+        "alt_headwords",
+        "derivatives",
+        "quotes",
+        "prev_hw",
+        "next_hw",
+        "notes",
+        "alternative",
+        "strong_number",
+        "orig_word",
+        "orig_ref",
+        "catane_number",
+        "rid"
+    ]
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
     ALLOWED_ATTRS   = {
         'span':['class', 'dir'],
@@ -105,62 +130,39 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
 class DictionaryEntry(LexiconEntry):
 
-    optional_attrs = [
-        "transliteration",
-        "pronunciation",
-        "morphology",
-        "language_code",
-        "refs",
-        "related_words",
-        "number",
-        "language_reference", 
-        "number",
-        "content",
-        "citations",
-        "plural_form",
-        "binyan_form",
-        "alt_headwords",
-        "derivatives",
-        "quotes",
-        "prev_hw",
-        "next_hw",
-        "notes",
-        "alternative"
-    ]
-
     def get_sense(self, sense):
-        text = u''
-        text += sense.get('number', u'')
+        text = ''
+        text += sense.get('number', '')
         if text:
-            text = u"<b>{}</b> ".format(text)
+            text = "<b>{}</b> ".format(text)
         for field in ['definition', 'alternative', 'notes']:
-            text += sense.get(field, u'')
+            text += sense.get(field, '')
         return text
 
     def headword_string(self):
-        return u', '.join(
-            [u'<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
+        return ', '.join(
+            ['<strong dir="rtl">{}</strong>'.format(hw) for hw in [self.headword] + getattr(self, 'alt_headwords', [])])
 
     def word_count(self):
         return JaggedTextArray(self.as_strings()).word_count()
 
     def as_strings(self, with_headword=True):
-        new_content = u""
-        next_line = u""
+        new_content = ""
+        next_line = ""
 
         if with_headword:
             next_line = self.headword_string()
 
         for field in ['morphology']:
             if field in self.content:
-                next_line += u" " + self.content[field]
+                next_line += " " + self.content[field]
 
-        lang = u''
+        lang = ''
         if hasattr(self, 'language_code'):
-            lang += u" " + self.language_code
+            lang += " " + self.language_code
         if hasattr(self, 'language_reference'):
             if lang:
-                lang += u' '
+                lang += ' '
             lang += self.language_reference
         if lang:
             next_line += lang
@@ -169,21 +171,21 @@ class DictionaryEntry(LexiconEntry):
             if 'grammar' in sense:
                 # This is where we would start a new segment for the new form
                 new_content += next_line
-                next_line = u'<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{}</strong> - '.format(sense['grammar']['verbal_stem'])
-                next_line += u', '.join(
-                    [u'<strong dir="rtl">{}</strong>'.format(b) for b in sense['grammar']['binyan_form']])
+                next_line = '<br/>&nbsp;&nbsp;&nbsp;&nbsp;<strong>{}</strong> - '.format(sense['grammar']['verbal_stem'])
+                next_line += ', '.join(
+                    ['<strong dir="rtl">{}</strong>'.format(b) for b in sense['grammar']['binyan_form']])
                 try:
                     for binyan_sense in sense['senses']:
-                        next_line += u" " + self.get_sense(binyan_sense)
+                        next_line += " " + self.get_sense(binyan_sense)
                 except KeyError:
                     pass
             else:
-                next_line += u" " + self.get_sense(sense)
+                next_line += " " + self.get_sense(sense)
         
         if hasattr(self, 'notes'):
-            next_line += u" " + self.notes
+            next_line += " " + self.notes
         if hasattr(self, 'derivatives'):
-            next_line += u" " + self.derivatives
+            next_line += " " + self.derivatives
 
         if next_line:
             new_content += next_line
@@ -202,24 +204,24 @@ class JastrowDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
     
     def get_sense(self, sense):
-        text = u''
-        text += sense.get('number', u'')
+        text = ''
+        text += sense.get('number', '')
         if text:
-            text = u"<b>{}</b> ".format(text)
+            text = "<b>{}</b> ".format(text)
         for field in ['definition']:
-            text += sense.get(field, u'')
+            text += sense.get(field, '')
         return text
 
     def headword_string(self):
-        line = u""
+        line = ""
         for hw in [self.headword] + getattr(self, 'alt_headwords', []):
-            hw = re.sub(ur' [\u00B2\u00B3\u2074\u2075\u2076]', '', hw)  # Drop superscripts from presentation
-            for txt in re.split(ur'([^ IV\u0590-\u05fe\'\-\"̇̇…̇̇])', hw):
-                if re.search(ur'[IV\u0590-\u05fe\'\-\"̇̇…̇̇]', txt):
-                    line += u'<strong dir="rtl">{}</strong>'.format(txt)
+            hw = re.sub(r' [\u00B2\u00B3\u2074\u2075\u2076]', '', hw)  # Drop superscripts from presentation
+            for txt in re.split(r'([^ IV\u0590-\u05fe\'\-\"̇̇…̇̇])', hw):
+                if re.search(r'[IV\u0590-\u05fe\'\-\"̇̇…̇̇]', txt):
+                    line += '<strong dir="rtl">{}</strong>'.format(txt)
                 else:
                     line += txt
-            line += u', '
+            line += ', '
         line = line[:-2]
         return line
 
@@ -228,14 +230,14 @@ class KleinDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     
     def get_sense(self, sense):
-        text = u''
+        text = ''
         for field in ['plural_form', 'language_code', 'alternative']:
-            text += sense.get(field, u'') + u' '
-        num = sense.get('number', u'')
+            text += sense.get(field, '') + ' '
+        num = sense.get('number', '')
         if num:
-            text += u"<b>{}</b> ".format(num)
+            text += "<b>{}</b> ".format(num)
         for field in ['definition', 'notes']:
-            text += sense.get(field, u'') + u' '
+            text += sense.get(field, '') + ' '
         return text[:-1]
 
 
@@ -246,7 +248,6 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
-
     }
 
     @classmethod
@@ -285,20 +286,18 @@ class LexiconEntrySet(abst.AbstractMongoSet):
                 self.records.sort(key=is_primary)
 
 
-
-
 class LexiconLookupAggregator(object):
 
     @classmethod
     def _split_input(cls, input_str):
-        input_str = re.sub(ur"[:\u05c3\u05be\u05c0.]", " ", input_str)
+        input_str = re.sub(r"[:\u05c3\u05be\u05c0.]", " ", input_str)
         return [s.strip() for s in input_str.split()]
 
     @classmethod
     def _create_ngrams(cls, input_words, n):
         gram_list = []
         for k in range(1, n + 1):
-            gram_list += [" ".join(input_words[i:i + k]) for i in xrange(len(input_words) - k + 1)]
+            gram_list += [" ".join(input_words[i:i + k]) for i in range(len(input_words) - k + 1)]
         return gram_list
 
     @classmethod
@@ -340,7 +339,7 @@ class LexiconLookupAggregator(object):
         words = cls._split_input(input_str)
         input_length = len(words)
         queries = []
-        for i in reversed(range(input_length)):
+        for i in reversed(list(range(input_length))):
             ngrams = cls._create_ngrams(words, i)
             for ng in ngrams:
                 res = cls._single_lookup(ng, **kwargs)

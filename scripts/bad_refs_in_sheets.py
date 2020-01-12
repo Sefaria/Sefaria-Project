@@ -15,7 +15,7 @@ for sheet in sheets:
             except:
                 bad_refs += 1
                 bad_sheets.add(sheet["id"])
-                print "%s --- bad ref in sheet %d" % (ref["ref"], sheet["id"])
+                print("%s --- bad ref in sheet %d" % (ref["ref"], sheet["id"]))
 
-print "***"
-print "%d bad refs in %d sheets" % (bad_refs, len(bad_sheets))
+print("***")
+print("%d bad refs in %d sheets" % (bad_refs, len(bad_sheets)))

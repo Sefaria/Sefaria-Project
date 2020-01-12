@@ -42,27 +42,27 @@ from collections import defaultdict
 
 
 primary_titles = {
-        u'פרשה': 'Parasha',
+        'פרשה': 'Parasha',
         'Gra': 'Gra',
-        u'רס"ג': 'Saadia Gaon',
-        u'שער': 'Gate',
-        u'פסוק': 'Verse',
-        u'סעיף': 'Seif',
-        u'גר"א': 'Gra',
-        u'חלק': 'Section',
+        'רס"ג': 'Saadia Gaon',
+        'שער': 'Gate',
+        'פסוק': 'Verse',
+        'סעיף': 'Seif',
+        'גר"א': 'Gra',
+        'חלק': 'Section',
         'Rasag': 'Saadia Gaon',
-        u'משנה': 'Mishnah',
+        'משנה': 'Mishnah',
         'Gate': 'Gate',
-        u'הלכה': 'Halakhah',
-        u'סדר טהרות': 'Seder Tahorot',
-        u'תפילה': 'Liturgy',
-        u'סעיף קטן': 'Seif Katan',
-        u'מסכתות קטנות': 'Minor Tractates',
-        u'מסכת': 'Tractate',
-        u'ספר': 'Book',
-        u'פסקה': 'Paragraph',
-        u'פירוש': 'Comment',
-        u'פרק': 'Chapter'
+        'הלכה': 'Halakhah',
+        'סדר טהרות': 'Seder Tahorot',
+        'תפילה': 'Liturgy',
+        'סעיף קטן': 'Seif Katan',
+        'מסכתות קטנות': 'Minor Tractates',
+        'מסכת': 'Tractate',
+        'ספר': 'Book',
+        'פסקה': 'Paragraph',
+        'פירוש': 'Comment',
+        'פרק': 'Chapter'
     }
 
 
@@ -115,7 +115,7 @@ def merge_terms_into_one(primary_term, other_terms):
 
 
 def remove_duplicates(duplicates):
-    for title, dup in duplicates.items():
+    for title, dup in list(duplicates.items()):
         if title in primary_titles:
             primary_term = Term().load({'name': primary_titles[title]})
             if not primary_term: #one case where we want an entirely new primary.
@@ -194,10 +194,10 @@ for term in termset:
         results[title['text']]["lang"].add(title['lang'])
 
 
-assert all(len(v["unique_obj_ids"]) >= 1 and v["count"] >= 1 for v in results.values())
+assert all(len(v["unique_obj_ids"]) >= 1 and v["count"] >= 1 for v in list(results.values()))
 
-duplicates_he = {k: v for k, v in results.items() if v['count'] > 1 and v['lang'] == set(['he'])}
-duplicates_en = {k: v for k, v in results.items() if v['count'] > 1 and v['lang'] == set(['en'])}
+duplicates_he = {k: v for k, v in list(results.items()) if v['count'] > 1 and v['lang'] == set(['he'])}
+duplicates_en = {k: v for k, v in list(results.items()) if v['count'] > 1 and v['lang'] == set(['en'])}
 
 remove_duplicates(duplicates_he)
 remove_duplicates(duplicates_en)

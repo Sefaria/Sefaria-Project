@@ -57,11 +57,11 @@ def filter_type_to_query(filter_type):
     q = {}
 
     if filter_type == "translate":
-        q = {"$and": [dict(q.items() + {"rev_type": "add text"}.items()), {"version": "Sefaria Community Translation"}]}
+        q = {"$and": [dict(list(q.items()) + list({"rev_type": "add text"}.items())), {"version": "Sefaria Community Translation"}]}
     elif filter_type == "index_change":
         q = {"rev_type": {"$in": ["add index", "edit index"]}}
     elif filter_type == "flagged":
-        q = {"$and": [dict(q.items() + {"rev_type": "review"}.items()), {"score": {"$lte": 0.4}}]}
+        q = {"$and": [dict(list(q.items()) + list({"rev_type": "review"}.items())), {"score": {"$lte": 0.4}}]}
     elif filter_type:
         q["rev_type"] = filter_type.replace("_", " ")
 
@@ -167,7 +167,7 @@ def text_at_revision(tref, version, lang, revision):
     """
     changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
     current = TextChunk(Ref(tref), lang, version)
-    text = unicode(current.text)  # needed?
+    text = str(current.text)  # needed?
 
     for r in changes:
         if r["revision"] == revision: break

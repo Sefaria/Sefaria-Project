@@ -113,7 +113,7 @@ class Test_OO_Toc(object):
 
         # Deep test of toc lists
         result = DeepDiff(derived_toc, serialized_oo_toc)
-        assert not result or all(["JPS" in j["new_value"] for i in result.values() for j in i.values()])
+        assert not result or all(["JPS" in j["new_value"] for i in list(result.values()) for j in list(i.values())])
 
         if result:
             # Irrelevant difference, but it makes the test below impossible.

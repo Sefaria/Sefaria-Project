@@ -23,15 +23,15 @@ u.save()
 p = UserProfile(id=u.id)
 p.mark_interrupting_message_read('newUserWelcome')
 p.slug = "testy-mctestuser"
-print "Test User's name and slug"
-print p.full_name
-print p.slug
+print("Test User's name and slug")
+print(p.full_name)
+print(p.slug)
 p.save()
 p = UserProfile(id=u.id)
 p.slug = "testy-mctestuser"
 p.save()
 p = UserProfile(id=u.id)
-print "Test User's name and slug after save"
-print p.full_name
-print p.slug
+print("Test User's name and slug after save")
+print(p.full_name)
+print(p.slug)
 

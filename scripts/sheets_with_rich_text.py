@@ -87,24 +87,24 @@ for sheet in sheets:
 			if source["outsideText"] != None and "color:#" in source["outsideText"]:
 				sheets_with_font_color.add(sheet["id"])
 
-print "****************************"
-print "sheets_with_resized_text:" + str(len(sheets_with_resized_text))
+print("****************************")
+print("sheets_with_resized_text:" + str(len(sheets_with_resized_text)))
 #print sheets_with_resized_text
-print "****************************"
-print "sheets_with_changed_fonts:" + str(len(sheets_with_changed_fonts))
+print("****************************")
+print("sheets_with_changed_fonts:" + str(len(sheets_with_changed_fonts)))
 #print sheets_with_changed_fonts
-print "****************************"
-print "sheets_with_tables:" + str(len(sheets_with_tables))
+print("****************************")
+print("sheets_with_tables:" + str(len(sheets_with_tables)))
 #print sheets_with_tables
-print "****************************"
-print "sheets_with_bold:" + str(len(sheets_with_bold))
+print("****************************")
+print("sheets_with_bold:" + str(len(sheets_with_bold)))
 #print sheets_with_bold
-print "****************************"
-print "sheets_with_italics:" + str(len(sheets_with_italics))
+print("****************************")
+print("sheets_with_italics:" + str(len(sheets_with_italics)))
 #print sheets_with_italics
-print "****************************"
-print "sheets_with_bg_color:" + str(len(sheets_with_bg_color))
+print("****************************")
+print("sheets_with_bg_color:" + str(len(sheets_with_bg_color)))
 #print sheets_with_bg_color
-print "****************************"
-print "sheets_with_font_color:" + str(len(sheets_with_font_color))
+print("****************************")
+print("sheets_with_font_color:" + str(len(sheets_with_font_color)))
 #print sheets_with_font_color

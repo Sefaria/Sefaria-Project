@@ -1,7 +1,7 @@
 from sefaria.model import *
 from sefaria.helper.schema import *
 if __name__ == "__main__":
-    print "Removing duplicate Incense OFfering"
+    print("Removing duplicate Incense OFfering")
     index = library.get_index("Siddur Edot HaMizrach")
     nodes = index.nodes
     shacharit = nodes.children[2]
@@ -10,12 +10,12 @@ if __name__ == "__main__":
     reorder_children(shacharit, new_keys)
 
 
-    print "Getting text from Incense Offering"
+    print("Getting text from Incense Offering")
     ref = Ref("Siddur Edot HaMizrach, Weekday Shacharit, Incense Offering")
     incense_he_text = ref.text('he').text
     incense_en_text = ref.text('en').text
 
-    print "Moving text to end of Kaveh"
+    print("Moving text to end of Kaveh")
     kaveh_ref = Ref("Siddur Edot HaMizrach, Weekday Shacharit, Kaveh")
     kaveh_he_text = kaveh_ref.text('he').text
     kaveh_en_text = [[] for i in range(len(kaveh_he_text))]

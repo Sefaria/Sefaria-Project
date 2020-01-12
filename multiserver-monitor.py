@@ -1,7 +1,7 @@
 import django
 django.setup()
 
-from sefaria.local_settings import MULTISERVER_ENABLED
+from sefaria.settings import MULTISERVER_ENABLED
 
 from sefaria.system.multiserver.monitor import MultiServerMonitor
 from sefaria.system.scheduler.scheduler import run_background_scheduler

@@ -17,17 +17,17 @@ db = connection[SEFARIA_DB]
 if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 	
-print "Mishnah Translation Campaign Stats"
+print("Mishnah Translation Campaign Stats")
 start = datetime(2013,6,19)
 
 # percent complete
 percent = get_percent_available("Mishna")
 #StateNode("Mishna").get_percent_available("en") doesn't work yet - category state
-print "%d percent complete" % percent
+print("%d percent complete" % percent)
 
 # mishnayot remaining
 remaining = get_untranslated_count_by_unit("Mishna", "Mishna")
-print "Mishnayot remaing: %d" % remaining
+print("Mishnayot remaing: %d" % remaining)
 
 # mishnayot done since 6/19
 translated = db.history.find({
@@ -44,13 +44,13 @@ copied = db.history.find({
 	}).count()
 done = translated+copied
 
-print "Mishnayot completed since campaign start: %d" % (done)
+print("Mishnayot completed since campaign start: %d" % (done))
 
 # translated
-print "... original translations: %d" % translated
+print("... original translations: %d" % translated)
 
 # copied
-print "... new copied texts: %d" % copied
+print("... new copied texts: %d" % copied)
 
 # participants
 participants = len(db.history.find({
@@ -59,16 +59,16 @@ participants = len(db.history.find({
 	"date": {"$gt": start},
 	}).distinct("user"))
 
-print "Number of participants: %d" % participants
+print("Number of participants: %d" % participants)
 
 # average weekly velocity
 days_elapsed = (datetime.now() - start).days
 day_rate = (done / days_elapsed)
-print "Average mishnayot per week: %d" % (day_rate * 7)
+print("Average mishnayot per week: %d" % (day_rate * 7))
 
 # time to complete
 days_left = remaining / day_rate if day_rate > 0 else -1
-print "Days to completion (given total velocity): %d" % days_left
+print("Days to completion (given total velocity): %d" % days_left)
 
 
 # weekly velocity (this week)

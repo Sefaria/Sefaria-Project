@@ -2,9 +2,9 @@
 # There is also a parallel file thin_wrapper.py, which does not rely on core code - used for the multiserver monitor.
 
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
-from common import manager, secret, purge_url, FRONT_END_URL
+from .common import manager, secret, purge_url, FRONT_END_URL
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import graceful_exception
@@ -26,40 +26,40 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     if not isinstance(oref, Ref):
         return
     
-    if getattr(oref.index_node, u"depth", False) and len(oref.sections) >= oref.index_node.depth - 1:
+    if getattr(oref.index_node, "depth", False) and len(oref.sections) >= oref.index_node.depth - 1:
         oref = oref.section_ref()
 
     if version:
-        version = urllib.quote(version.replace(u" ", u"_").encode("utf-8"))
+        version = urllib.parse.quote(version.replace(" ", "_").encode("utf-8"))
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
-        purge_url(u"{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
         if version and lang:
             try:
-                purge_url(u"{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
+                purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
             except Exception as e:
                 logger.exception(e)
         # Hacky to add these
-        purge_url(u"{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
         if version and lang:
             try:
-                purge_url(u"{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
+                purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
             except Exception as e:
                 logger.exception(e)
-        purge_url(u"{}/api/links/{}".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/related/{}".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/related/{}?with_sheet_links=1".format(FRONT_END_URL, oref.url()))
-        purge_url(u"{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/links/{}".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/related/{}".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/related/{}?with_sheet_links=1".format(FRONT_END_URL, oref.url()))
+        purge_url("{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url()))
 
     # Ban anything underneath this section
-    manager.run(u"ban", u'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
-    manager.run(u"ban", u'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
-    manager.run(u"ban", u'obj.http.url ~ "/api/related/{}"'.format(url_regex(oref)), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
+    manager.run("ban", 'obj.http.url ~ "/api/related/{}"'.format(url_regex(oref)), secret=secret)
 
 
 
@@ -68,7 +68,7 @@ def invalidate_linked(oref):
         try:
             invalidate_ref(linkref)
         except UnicodeDecodeError:
-            logger.warn(u"Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
+            logger.warn("Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
 
 
 @graceful_exception(logger=logger, return_value=None, exception_type=UnicodeDecodeError)
@@ -76,10 +76,10 @@ def invalidate_counts(indx):
     if isinstance(indx, Index):
         oref = Ref(indx.title)
         url = oref.url()
-    elif isinstance(indx, basestring):
+    elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
-        logger.warn(u"Could not parse index '{}' to purge counts from Varnish.".format(indx))
+        logger.warn("Could not parse index '{}' to purge counts from Varnish.".format(indx))
         return
 
     purge_url("{}/api/preview/{}".format(FRONT_END_URL, url))
@@ -98,12 +98,12 @@ def invalidate_index(indx):
             oref = Ref(indx.title)
             url = oref.url()
         except InputError as e:
-            logger.warn(u"In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
             return
-    elif isinstance(indx, basestring):
+    elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
-        logger.warn(u"Could not parse index '{}' to purge from Varnish.".format(indx))
+        logger.warn("Could not parse index '{}' to purge from Varnish.".format(indx))
         return
 
     purge_url("{}/api/index/{}".format(FRONT_END_URL, url))
@@ -154,7 +154,7 @@ def url_regex(ref):
         patterns.append(r"%s\\?" % sections)  # Exact match with '?' afterwards
         patterns.append(r"%s\\/" % sections) # Exact match with '/' afterwards
         if ref.index_node.has_titled_continuation():
-            patterns.append(u"{}({}).".format(sections, u"|".join([s.replace(" ","_") for s in ref.index_node.title_separators])))
+            patterns.append("{}({}).".format(sections, "|".join([s.replace(" ","_") for s in ref.index_node.title_separators])))
 
         elif ref.index_node.has_numeric_continuation():
             patterns.append(r"%s\\." % sections)   # more granualar, exact match followed by .

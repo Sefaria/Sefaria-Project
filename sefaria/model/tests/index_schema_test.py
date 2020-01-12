@@ -27,7 +27,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u"משנה תורה כאילו",
+                    "text": "משנה תורה כאילו",
                     "primary": True
                 }
             ],
@@ -42,7 +42,7 @@ class Test_Schema(object):
                         },
                         {
                             "lang": "he",
-                            "text": u"הקדמה",
+                            "text": "הקדמה",
                             "primary": True
                         }
                     ],
@@ -324,7 +324,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'ליקוטי מוהרן',  # took the " out from before final nun to avoid name conflict
+                    "text": 'ליקוטי מוהרן',  # took the " out from before final nun to avoid name conflict
                     "primary": True
                 }
             ],
@@ -339,7 +339,7 @@ class Test_Schema(object):
                         },
                         {
                             "lang": "he",
-                            "text": u'הסכמות',
+                            "text": 'הסכמות',
                             "primary": True
                         }
                     ],
@@ -358,7 +358,7 @@ class Test_Schema(object):
                         },
                         {
                             "lang": "he",
-                            "text": u"הקדמה",
+                            "text": "הקדמה",
                             "primary": True
                         }
                     ],
@@ -385,7 +385,7 @@ class Test_Schema(object):
                         },
                         {
                             "lang": "he",
-                            "text": u'תנינא',
+                            "text": 'תנינא',
                             "primary": True
                         }
                     ],
@@ -408,7 +408,7 @@ class Test_Schema(object):
                                 },
                                 {
                                     "lang": "he",
-                                    "text": u'מכתב יד',
+                                    "text": 'מכתב יד',
                                     "primary": True
                                 }
                             ],
@@ -460,7 +460,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'כגכג',
+                    "text": 'כגכג',
                     "primary": True
                 }
             ],
@@ -519,7 +519,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'כגככג',
+                    "text": 'כגככג',
                     "primary": True
                 }
             ],
@@ -533,12 +533,12 @@ class Test_Schema(object):
             "parasha": {
                 "nodes": [
                     {
-                        'sharedTitle': u'Shemot',
+                        'sharedTitle': 'Shemot',
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': u'Stest 1:1-6:1',
+                        'wholeRef': 'Stest 1:1-6:1',
                         'refs': [
                                 "Stest 1:1-1:17",
                                 "Stest 1:18-2:10",
@@ -550,12 +550,12 @@ class Test_Schema(object):
                         ]
                     },
                     {
-                        'sharedTitle': u'Vaera',
+                        'sharedTitle': 'Vaera',
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': u'Stest 6:2-9:35',
+                        'wholeRef': 'Stest 6:2-9:35',
                         'refs': [
                             "Stest 10:1-10:11",
                             "Stest 10:12-10:23",
@@ -618,7 +618,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'כגככג',
+                    "text": 'כגככג',
                     "primary": True
                 }
             ],
@@ -637,7 +637,7 @@ class Test_Schema(object):
                         },
                         {
                             "lang": "he",
-                            "text": u'ילד',
+                            "text": 'ילד',
                             "primary": True
                         }
                     ],
@@ -656,7 +656,7 @@ class Test_Schema(object):
                         },
                         {
                             "lang": "he",
-                            "text": u'ילד אחר',
+                            "text": 'ילד אחר',
                             "primary": True
                         }
                     ],
@@ -668,12 +668,12 @@ class Test_Schema(object):
             "parasha": {
                 "nodes": [
                     {
-                        'sharedTitle': u'Shemot',
+                        'sharedTitle': 'Shemot',
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': u'CAtest, Kid 1:1-6:1',
+                        'wholeRef': 'CAtest, Kid 1:1-6:1',
                         'refs': [
                                 "CAtest, Kid 1:1-1:17",
                                 "CAtest, Kid 1:18-2:10",
@@ -685,12 +685,12 @@ class Test_Schema(object):
                         ]
                     },
                     {
-                        'sharedTitle': u'Vaera',
+                        'sharedTitle': 'Vaera',
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': u'CAtest, Kid 6:2-9:35',
+                        'wholeRef': 'CAtest, Kid 6:2-9:35',
                         'refs': [
                             "CAtest, Kid 10:1-10:11",
                             "CAtest, Kid 10:12-10:23",
@@ -753,7 +753,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'כגככג',
+                    "text": 'כגככג',
                     "primary": True
                 }
             ],
@@ -764,7 +764,7 @@ class Test_Schema(object):
             "nodes": [
                 {
                     "key": "s1",
-                    'sharedTitle': u'Shemot',
+                    'sharedTitle': 'Shemot',
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
@@ -772,7 +772,7 @@ class Test_Schema(object):
                 },
                 {
                     "key": "s2",
-                    'sharedTitle': u'Vaera',
+                    'sharedTitle': 'Vaera',
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
@@ -780,7 +780,7 @@ class Test_Schema(object):
                 },
                 {
                     "key": "s3",
-                    'sharedTitle': u'Bo',
+                    'sharedTitle': 'Bo',
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
@@ -788,7 +788,7 @@ class Test_Schema(object):
                 },
                 {
                     "key": "s4",
-                    'sharedTitle': u'Beshalach',
+                    'sharedTitle': 'Beshalach',
                     "nodeType": "JaggedArrayNode",
                     "depth": 1,
                     "addressTypes": ["Integer"],
@@ -840,7 +840,7 @@ class Test_Schema(object):
                 },
                 {
                     "lang": "he",
-                    "text": u'כגככג',
+                    "text": 'כגככג',
                     "primary": True
                 }
             ],
@@ -858,12 +858,12 @@ class Test_Schema(object):
                 "depth": 1,
                 "nodes": [
                     {
-                        'sharedTitle': u'Shemot',
+                        'sharedTitle': 'Shemot',
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': u'Stest 1:1-6:1',
+                        'wholeRef': 'Stest 1:1-6:1',
                         'refs': [
                                 "Stest 1:1-1:17",
                                 "Stest 1:18-2:10",
@@ -875,12 +875,12 @@ class Test_Schema(object):
                         ]
                     },
                     {
-                        'sharedTitle': u'Vaera',
+                        'sharedTitle': 'Vaera',
                         "nodeType": "ArrayMapNode",
                         "depth": 1,
                         "addressTypes": ["Integer"],
                         "sectionNames": ["Aliyah"],
-                        'wholeRef': u'Stest 6:2-9:35',
+                        'wholeRef': 'Stest 6:2-9:35',
                         'refs': [
                             "Stest 10:1-10:11",
                             "Stest 10:12-10:23",
@@ -922,14 +922,14 @@ class Test_Schema(object):
     def test_quick_initialization(self):
         old_style = JaggedArrayNode()
         old_style.add_title('Title', 'en', primary=True)
-        old_style.add_title(u'כותרת', 'he', primary=True)
+        old_style.add_title('כותרת', 'he', primary=True)
         old_style.key = 'Title'
         old_style.sectionNames = ['Chapter', 'Verse']
         old_style.addressTypes = ['Integer', 'Integer']
         old_style.depth = 2
 
         quick_way = JaggedArrayNode()
-        quick_way.add_primary_titles('Title', u'כותרת')
+        quick_way.add_primary_titles('Title', 'כותרת')
         quick_way.add_structure(['Chapter', 'Verse'])
 
         assert quick_way.serialize() == old_style.serialize()

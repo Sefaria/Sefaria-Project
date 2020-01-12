@@ -39,10 +39,10 @@ for sheet in sheets:
 	newdoc["tags"] = normTags
 
 
-	print newdoc["id"]
-	print olddoc["tags"]
-	print newdoc["tags"]
-	print "-------"
+	print(newdoc["id"])
+	print(olddoc["tags"])
+	print(newdoc["tags"])
+	print("-------")
 
 #	print newdoc
 

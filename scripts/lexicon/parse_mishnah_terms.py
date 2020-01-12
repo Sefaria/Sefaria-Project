@@ -52,12 +52,12 @@ with open('/var/tmp/HTS3.csv', 'rb') as csvfile:
             forms = extract_form_tuples(entry)
             for form in forms:
                 if form[0] and form[0] != '':
-                    print unicode(form[0].strip(), 'utf-8').encode('utf-8')
+                    print(str(form[0].strip(), 'utf-8').encode('utf-8'))
                     create_word_form(form[0], form[1], [{'headword':entry[1], 'parent_lexicon': lexicon_name}])
 
-        print "Updated Entries:"
+        print("Updated Entries:")
         for i,e in enumerate(existing_entries):
-            print e
+            print(e)
 
 
 

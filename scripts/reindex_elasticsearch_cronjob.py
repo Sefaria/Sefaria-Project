@@ -27,7 +27,7 @@ try:
     if "error" in r.text:
         raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
     else:
-        print "SUCCESS!", r.text
+        print("SUCCESS!", r.text)
 except Exception as e:
     t, v, tb = sys.exc_info()
     post_object = {
@@ -44,4 +44,4 @@ except Exception as e:
         ]
     }
     requests.post(os.environ['SLACK_URL'], json=post_object)
-    raise t, v, tb
+    raise t(v).with_traceback(tb)

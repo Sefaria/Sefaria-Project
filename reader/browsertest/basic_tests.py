@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-#from __future__ import absolute_import
 
-from framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
+from .framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
 from sefaria.utils.hebrew import has_cantillation
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -9,12 +8,10 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
 
 from sefaria.model import *
-from sefaria.utils.hebrew import strip_cantillation
-from selenium.webdriver.common.keys import Keys
+from sefaria.utils.hebrew import strip_cantillation, strip_nikkud
 from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
-
 
 TEMPER = 10
 
@@ -26,10 +23,10 @@ class ReaderSuite(TestSuite):
     every_build = True
 
     def setup(self):
-        try:
-            self.driver.set_window_size(900, 1100)
-        except WebDriverException:
-            pass
+        # try:
+        #    self.driver.set_window_size(900, 1100)
+        #except WebDriverException:
+        #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
@@ -43,10 +40,10 @@ class PageloadSuite(TestSuite):
     every_build = True
 
     def setup(self):
-        try:
-            self.driver.set_window_size(900, 1100)
-        except WebDriverException:
-            pass
+        # try:
+        #    self.driver.set_window_size(900, 1100)
+        #except WebDriverException:
+        #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
@@ -112,7 +109,7 @@ class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
         self.click_source_title()
         self.click_masechet_and_chapter('2','3')
         section = self.get_section_txt('1')
-        assert section.startswith(u'(דף מא) רבי זירא הוה משתמיט')
+        assert 'רבי זירא הוה קא משתמיט' in strip_nikkud(section)
 
 
 class SectionContentAsExpectedChapter(AtomicTest):
@@ -125,7 +122,7 @@ class SectionContentAsExpectedChapter(AtomicTest):
         self.click_source_title()
         self.click_chapter('4')
         section = self.get_section_txt('1')
-        assert u'פרק ד ' == section
+        assert 'פרק ד ' == section
 
 '''
 That'd be the old home
@@ -277,9 +274,9 @@ class ChangeLanguage(AtomicTest):
 
     def body(self):
         self.load_ref("Genesis 1")
-        expected_heb = u'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
-        expected_eng_closed = u'When God began to create heaven and earth—'
-        expected_eng_open = u'In the beginning God created the heaven and the earth.'
+        expected_heb = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
+        expected_eng_closed = 'When God began to create heaven and earth—'
+        expected_eng_open = 'In the beginning God created the heaven and the earth.'
         sgmnt_eng = self.get_nth_section_english(1)
         sgmnt_heb = self.get_nth_section_hebrew(1)
         str_eng = sgmnt_eng.text.strip()
@@ -287,8 +284,8 @@ class ChangeLanguage(AtomicTest):
         # not sure why, but he strings aren't equal unless vowels are stripped
         expected_heb_stripped = strip_cantillation(expected_heb, strip_vowels=True)
         str_heb_stripped = strip_cantillation(str_heb, strip_vowels=True)
-        assert expected_heb_stripped == str_heb_stripped, u"'{}' does not equal '{}'".format(expected_heb_stripped, str_heb_stripped)
-        assert str_eng in [expected_eng_open, expected_eng_closed], u"'{}' does not equal '{}' or '{}'".format(str_eng, expected_eng_closed, expected_eng_open)
+        assert expected_heb_stripped == str_heb_stripped, "'{}' does not equal '{}'".format(expected_heb_stripped, str_heb_stripped)
+        assert str_eng in [expected_eng_open, expected_eng_closed], "'{}' does not equal '{}' or '{}'".format(str_eng, expected_eng_closed, expected_eng_open)
         self.toggle_on_text_settings()
         self.toggle_language_hebrew()
         assert 'hebrew' in self.get_content_language()
@@ -321,9 +318,9 @@ class TextSettings(AtomicTest):
 
         larger = 21.6
         smaller = 18.7826
-        just_text = u'בראשית ברא אלהים את השמים ואת הארץ'
-        text_with_vowels = u'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
-        text_with_cantillation = u'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
+        just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
+        text_with_vowels = 'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
+        text_with_cantillation = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
         self.load_ref("Genesis 1")
         # 1] Language: heb/eng/bilingual
         self.toggle_on_text_settings()
@@ -380,15 +377,15 @@ class TextSettings(AtomicTest):
         # 5] Vocalization: vowels and cantillation
         # self.toggle_on_text_settings()
         self.toggle_vowels_partial()
-        assert self.get_nth_section_hebrew(1).text.strip() == text_with_vowels, u"'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_vowels)
+        assert self.get_nth_section_hebrew(1).text.strip() == text_with_vowels, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_vowels)
 
         self.toggle_on_text_settings()
         self.toggle_vowels_all()
-        assert self.get_nth_section_hebrew(1).text.strip() == text_with_cantillation, u"'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_cantillation)
+        assert self.get_nth_section_hebrew(1).text.strip() == text_with_cantillation, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_cantillation)
 
         self.toggle_on_text_settings()
         self.toggle_vowels_none()
-        assert self.get_nth_section_hebrew(1).text.strip() == just_text, u"'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), just_text)
+        assert self.get_nth_section_hebrew(1).text.strip() == just_text, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), just_text)
 
 '''
 class TanakhCantillationAndVowels(AtomicTest):
@@ -487,20 +484,21 @@ class SideBarEntries(AtomicTest):
         self.click_notes_on_sidebar()
         self.click_about_on_sidebar()
         msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').text
-        assert msg == u'About This Text'
+        assert msg == 'About This Text'
         self.click_resources_on_sidebar()
         self.click_versions_on_sidebar()
         #todo: This version doesn't show up on title bar.  Rework this to change to a version that will show on bar.
         #url1 = self.get_current_url()
         #title1 = self.get_current_content_title()
-        assert self.get_sidebar_nth_version_button(1).text in [u'CURRENT', u'Current'],  u"'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in [u'SELECT', u'Select'],  u"'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(2).text)
+        assert self.get_sidebar_nth_version_button(1).text in ['CURRENT', 'Current'],  "'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(1).text)
+        assert self.get_sidebar_nth_version_button(2).text in ['SELECT', 'Select'],  "'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_sidebar_nth_version_button(2)
         #url2 = self.get_current_url()
         #title2 = self.get_current_content_title()
         #assert url1 != url2, u"'{}' equals '{}'".format(url1, url2)
         #assert title1 != title2,  u"'{}' equals '{}'".format(title1, title2)
         time.sleep(1)
+
         assert self.get_sidebar_nth_version_button(1).text in [u'SELECT', u'Select'],  u"'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(1).text)
         assert self.get_sidebar_nth_version_button(2).text in [u'CURRENT', u'Current'], u"'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_resources_on_sidebar()
@@ -553,30 +551,30 @@ class ChangeSiteLanguage(AtomicTest):
             time.sleep(1)
             assert self.driver.find_element_by_class_name('interface-hebrew') != None
         else:
-            assert ivrit_title == u'האוסף של ספריא'
+            assert ivrit_title == 'האוסף של ספריא'
             # assume you're not logged in
             # assert self.get_login_link_text() == u'התחבר'
             # assert self.get_signup_link_text() == u'הרשם'
-            assert self.get_what_is_sefaria_link_text() == u'מהי ספריא'
-            assert self.get_teach_with_sefaria_link_text() == u'למד באמצעות ספריא'
-            assert self.get_get_involved_link_text() == u'הצטרף אלינו'
-            assert self.get_donate_link_text() == u'תרומות'
-            assert self.get_facebook_link_text() == u'פייסבוק'
+            assert self.get_what_is_sefaria_link_text() == 'מהי ספריא'
+            assert self.get_teach_with_sefaria_link_text() == 'למד באמצעות ספריא'
+            assert self.get_get_involved_link_text() == 'הצטרף אלינו'
+            assert self.get_donate_link_text() == 'תרומות'
+            assert self.get_facebook_link_text() == 'פייסבוק'
         self.click_english_link()
         english_title = self.get_sefaria_lib_title()
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)
             assert self.driver.find_element_by_class_name('interface-english') != None
         else:
-            assert english_title == u'The Sefaria Library'
+            assert english_title == 'The Sefaria Library'
             # assume you're not logged in
             # assert self.get_login_link_text() == u'Log in'
             # assert self.get_signup_link_text() == u'Sign up'
-            assert self.get_what_is_sefaria_link_text() == u'What is Sefaria?'
-            assert self.get_teach_with_sefaria_link_text() == u'Teach with Sefaria'
-            assert self.get_get_involved_link_text() == u'Get Involved'
-            assert self.get_donate_link_text() == u'Donate'
-            assert self.get_facebook_link_text() == u'Facebook'
+            assert self.get_what_is_sefaria_link_text() == 'What is Sefaria?'
+            assert self.get_teach_with_sefaria_link_text() == 'Teach with Sefaria'
+            assert self.get_get_involved_link_text() == 'Get Involved'
+            assert self.get_donate_link_text() == 'Donate'
+            assert self.get_facebook_link_text() == 'Facebook'
 
 
 class CheckGraphs(AtomicTest):
@@ -995,7 +993,7 @@ class SaveNewSourceSheet(AtomicTest):
             # this is site language dependent. try both options
             WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
         except TimeoutException:
-            WebDriverWait(self.driver, TEMPER).until(title_contains(u"דף מקורות חדש | בונה דפי המקורות בספריא"))
+            WebDriverWait(self.driver, TEMPER).until(title_contains("דף מקורות חדש | בונה דפי המקורות בספריא"))
 
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.headerNavSection .library')))
 
@@ -1029,13 +1027,13 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
         self.type_in_search_box("Midrash")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
 
-        self.type_in_search_box(u"שבת")
+        self.type_in_search_box("שבת")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
-        self.type_in_search_box(u"שבת י״ד")
+        self.type_in_search_box("שבת י״ד")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".segment")))
-        self.type_in_search_box(u"יוסף שאול נתנזון")
+        self.type_in_search_box("יוסף שאול נתנזון")
         WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef"))
-        self.type_in_search_box(u"מדרש")
+        self.type_in_search_box("מדרש")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
 
 
@@ -1059,7 +1057,7 @@ class InfiniteScrollUp(AtomicTest):
     every_build = True
 
     def test_up(self, start_ref, prev_segment_ref):
-        from urllib import quote_plus
+        from urllib.parse import quote_plus
         self.browse_to_ref(start_ref)
         self.scroll_reader_panel_up(1000)
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % prev_segment_ref)))

@@ -28,12 +28,12 @@ chapterEnd = None
 lastrow = None
 
 versionTitle = "Wikisource Talmud Bavli"
-matni_re = re.compile(ur"(^|\s+)((?:" + u"מת" + u"נ" + u"?" + u"י" + u"?" + ur"(?:'|" + u"׳" + u"|" + u"תין" + u")?)|" + ur"משנה" + ur")" + ur'(?:$|:|\s+)(([\u05d0-\u05f4"]*)(.*))')
-gemarah_re = re.compile(ur"(^|\s+)(" + u"גמ" + ur"(?:" + ur"\'" + u"|" + u"רא))" + ur"(?:$|:|\s+)(.*)")
-hadran_re = re.compile(ur'^(.*\s*)\(?(\u05d4\u05d3\u05e8\u05df \u05e2\u05dc\u05da\s+(.*?):?\s*(?:' + ur'וסליקא לה' + ur'.*?' + ur')?)\)?\s*$')
+matni_re = re.compile(r"(^|\s+)((?:" + "מת" + "נ" + "?" + "י" + "?" + r"(?:'|" + "׳" + "|" + "תין" + ")?)|" + r"משנה" + r")" + r'(?:$|:|\s+)(([\u05d0-\u05f4"]*)(.*))')
+gemarah_re = re.compile(r"(^|\s+)(" + "גמ" + r"(?:" + r"\'" + "|" + "רא))" + r"(?:$|:|\s+)(.*)")
+hadran_re = re.compile(r'^(.*\s*)\(?(\u05d4\u05d3\u05e8\u05df \u05e2\u05dc\u05da\s+(.*?):?\s*(?:' + r'וסליקא לה' + r'.*?' + r')?)\)?\s*$')
 
-standard_mishnah_start = u"מתני׳"
-standard_gemara_start = u"גמ׳"
+standard_mishnah_start = "מתני׳"
+standard_gemara_start = "גמ׳"
 
 
 def parse_and_bold_hadran(hadran_ref):
@@ -42,14 +42,14 @@ def parse_and_bold_hadran(hadran_ref):
     if match:
         perek_names[lastrow[0]] = perek_names.get(lastrow[0], []) + [match.group(3)]
         old = tc.text
-        tc.text = hadran_re.sub(ur'\1<br/><br/><big><strong>\2</strong></big><br/><br/>', tc.text)
+        tc.text = hadran_re.sub(r'\1<br/><br/><big><strong>\2</strong></big><br/><br/>', tc.text)
         if live:
             tc.save()
         else:
-            print u"(h1) Replacing:\n{}\nwith\n{}\n".format(old, tc.text)
+            print("(h1) Replacing:\n{}\nwith\n{}\n".format(old, tc.text))
         return True
     else:
-        print u"(h0) Missed Hadran on {} - '{}'".format(hadran_ref.normal(), tc.text)
+        print("(h0) Missed Hadran on {} - '{}'".format(hadran_ref.normal(), tc.text))
         return False
 
 
@@ -65,7 +65,7 @@ with open(filename, 'rb') as csvfile:
         # Add link
         mishnaRef = Ref("{} {}:{}-{}".format(row[0], row[1], row[2], row[3]))
         mishnahInTalmudRef = Ref("{} {}:{}-{}:{}".format(row[0], row[4], row[5], row[6], row[7]))
-        print mishnaRef.normal() + " ... " + mishnahInTalmudRef.normal()
+        print(mishnaRef.normal() + " ... " + mishnahInTalmudRef.normal())
 
         if live:
             try:
@@ -76,7 +76,7 @@ with open(filename, 'rb') as csvfile:
                     "type": "mishnah in talmud"
                 })
             except DuplicateRecordError as e:
-                print e
+                print(e)
 
         # Try highlighting hadran.  Note that the last hadran gets highlighted outside of the loop
         """
@@ -140,31 +140,31 @@ with open(filename, 'rb') as csvfile:
         tc = mishnahInTalmudRef.starting_ref().text("he", versionTitle)
         if matni_re.match(tc.text):
             if not matni_re.match(tc.text).group(3):
-                print u"(ma) Bare Mishnah word"
+                print("(ma) Bare Mishnah word")
             old = tc.text
             if is_new_perek:
-                print u"(mp) Perek Start line: {}".format(tc.text)
-                tc.text = matni_re.sub(ur'\1' + standard_mishnah_start + ur' <big><strong>\4</strong></big>\5', tc.text)
+                print("(mp) Perek Start line: {}".format(tc.text))
+                tc.text = matni_re.sub(r'\1' + standard_mishnah_start + r' <big><strong>\4</strong></big>\5', tc.text)
             else:
-                tc.text = matni_re.sub(ur'\1<big><strong>' + standard_mishnah_start + ur'</strong></big> \3', tc.text)
+                tc.text = matni_re.sub(r'\1<big><strong>' + standard_mishnah_start + r'</strong></big> \3', tc.text)
             if live:
                 tc.save()
             else:
-                print u"(m1) Replacing:\n{}\nwith\n{}\n".format(old, tc.text)
+                print("(m1) Replacing:\n{}\nwith\n{}\n".format(old, tc.text))
         else:  # try the line earlier
             if not mishnahInTalmudRef.starting_ref().prev_segment_ref():
-                print u"(m0) No Mishnah word starting Mesechet: {}".format(mishnahInTalmudRef.starting_ref().normal())
+                print("(m0) No Mishnah word starting Mesechet: {}".format(mishnahInTalmudRef.starting_ref().normal()))
                 continue
             tc = mishnahInTalmudRef.starting_ref().prev_segment_ref().text("he", versionTitle)
             if matni_re.match(tc.text):
                 old = tc.text
-                tc.text = matni_re.sub(ur'\1' + standard_mishnah_start + ur' <big><strong>\4</strong></big>\5', tc.text)
+                tc.text = matni_re.sub(r'\1' + standard_mishnah_start + r' <big><strong>\4</strong></big>\5', tc.text)
                 if live:
                     tc.save()
                 else:
-                    print u"(m2) Replacing:\n{}\nwith\n{}\n".format(old, tc.text)
+                    print("(m2) Replacing:\n{}\nwith\n{}\n".format(old, tc.text))
             else:
-                print u"(m0) Could not match {}".format(mishnahInTalmudRef.normal())
+                print("(m0) Could not match {}".format(mishnahInTalmudRef.normal()))
 
         # Try highlighting Gemara
         """
@@ -193,15 +193,15 @@ with open(filename, 'rb') as csvfile:
         tc = mishnahInTalmudRef.ending_ref().next_segment_ref().text("he", versionTitle)
         if gemarah_re.match(tc.text):
             if not gemarah_re.match(tc.text).group(3):
-                print u"(ga) Bare Gemara word"
+                print("(ga) Bare Gemara word")
             old = tc.text
-            tc.text = gemarah_re.sub(ur'\1<big><strong>' + standard_gemara_start + ur'</strong></big> \3', tc.text)
+            tc.text = gemarah_re.sub(r'\1<big><strong>' + standard_gemara_start + r'</strong></big> \3', tc.text)
             if live:
                 tc.save()
             else:
-                print u"(g1) Replacing:\n{}\nwith\n{}\n".format(old, tc.text)
+                print("(g1) Replacing:\n{}\nwith\n{}\n".format(old, tc.text))
         else:
-            print u"(g0) Could not match 'gemara' in {}".format(mishnahInTalmudRef.ending_ref().next_segment_ref().normal())
+            print("(g0) Could not match 'gemara' in {}".format(mishnahInTalmudRef.ending_ref().next_segment_ref().normal()))
 
         # Compile Perek Data
 
@@ -226,7 +226,7 @@ parse_and_bold_hadran(hadran_ref)
 
 # process book records to alt structures
 if live:
-    for bookname, chapters in perek_refs.iteritems():
+    for bookname, chapters in perek_refs.items():
         i = get_index(bookname)
 
         a = ArrayMapNode()
@@ -245,6 +245,6 @@ if live:
 #  Write perek names to csv
 with open("../data/perek_names.csv", "w") as f:
     writer = csv.writer(f)
-    for bookname, chapters in perek_names.iteritems():
+    for bookname, chapters in perek_names.items():
         for i, n in enumerate(chapters):
             writer.writerow([bookname, i + 1, n])
