@@ -40,10 +40,10 @@
   font-family: "Heebo", sans-serif;
 }
 .interface-english .static .int-he {
-  display: none;
+  display: none !important;
 }
 .interface-hebrew .static .int-en {
-  display: none;
+  display: none !important;
 }
 .static h2,
 .static h3,
@@ -58,8 +58,8 @@
 .interface-hebrew h3,
 .interface-hebrew h4,
 .static h1 .int-he,
-.static h2 .int-he, 
-.static h3 .int-he, 
+.static h2 .int-he,
+.static h3 .int-he,
 .static h4 .int-he {
   font-family: "Heebo", sans-serif;
 }
@@ -306,7 +306,7 @@
 #homePage .sectionInner {
   width: 750px;
   max-width: 94%;
-  margin: auto; 
+  margin: auto;
 }
 #homePage .section:nth-child(even) {
   background-color: #FBFBFA;
@@ -913,7 +913,7 @@ p.registration-links a:hover{
 #teamPage .teamMember .teamEmail {
   color: #999;
 }
-#teamPage .teamMember .teamBio { 
+#teamPage .teamMember .teamBio {
   margin-top: 20px;
   white-space: normal;
 }
@@ -921,7 +921,7 @@ p.registration-links a:hover{
   color: #666;
 }
 #editProfilePage .inner {
-  position: relative; 
+  position: relative;
 }
 #saveCancelButtons {
   position: absolute;
@@ -1823,4 +1823,958 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   height: 4px;
   z-index: 101;
   background: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)
+}
+
+/******* mobile landing page ****/
+#mobilePage{
+  background: #FBFBFA;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.interface-hebrew #mobilePage.static .int-he{
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif !important;
+}
+#mobilePage .button{
+  padding: 3% 5%;
+}
+#mobilePage .sectionInner{
+  position: relative;
+  max-width: 1152px;
+  margin: auto;
+}
+#mobilePage .sectionWide{}
+#mobilePage .sectionRegular{
+  max-width: 960px;
+}
+#mobilePage .sectionNarrow{
+  max-width: 640px;
+}
+#mobilePage .flexContainer{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#mobilePage .flexReverse{
+  flex-direction: row-reverse;
+}
+#mobilePage #headerButtons{
+  position: fixed;
+  right: 100px;
+  top: 15px;
+  z-index: 1002;
+}
+
+#mobilePage #headerButtons a:active,
+#mobilePage #headerButtons a:hover{
+  text-decoration: none;
+}
+#mobilePage #topHeaderAndroid{
+  width: 88px;
+  height: 30px;
+  top: 15px;
+}
+#mobilePage #topHeaderIOS{
+  width: 81px;
+  height: 31px;
+  top: 15px;
+}
+#mobilePage #mobilePageHeader{
+  background: #18345D;
+  padding: 70px 0;
+  margin-top: 60px;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderImage{
+  flex: 1;
+  height: 480px;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderText{
+  flex: 1;
+  /* width: 438px; */
+  padding-top: 0%;
+  margin: auto;
+  text-align: center;
+  margin-inline-end: 10%;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+    position: absolute;
+    width: 207px;
+    height: 335px;
+    z-index: 1;
+    left: -80px;
+    top: 144px;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+    position: relative;
+    width: 335px;
+    height: 419px;
+    left: 35px;
+    top: -10px;
+}
+.interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+    left: 205px;
+}
+.interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+    left: -48px;
+}
+#mobilePage #mobilePageHeader h1{
+  /*width: 438px;*/
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 64px;
+  line-height: 77px;
+  text-align: center;
+  letter-spacing: 2px;
+  color: #FFFFFF;
+  margin: auto;
+}
+#mobilePage #mobilePageHeader #mobilePageSubHeaderText{
+  padding: 10% 0;
+}
+#mobilePage #mobilePageHeader #mobilePageSubHeaderText h2{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #FFFFFF;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: auto;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderButtons{
+  display: inline-block;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderButtons .button{
+  width: 228px;
+  height: 59px;
+  background: #EDEDEC;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: right;
+  color: #18345D;
+  align-items: center;
+  letter-spacing: 0px;
+  justify-content: space-evenly;
+  margin-top: 3%;
+    margin-bottom: 10%;
+}
+#mobilePage #mobilePageHeader #mobilePageHeaderButtons .button img{
+  height: 35px;
+}
+
+#mobilePage #mobileDescription p{
+  font-size: 22px;
+  line-height: 36px;
+  text-align: justify;
+  color: #000000;
+  margin-top: 62px;
+  margin-bottom: 65px;
+}
+#mobilePage #mobileDescription p .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+#mobilePage .newsletterSignUpBox{
+    position: relative;
+    margin-bottom: 4px;
+}
+#mobilePage .colorLine {
+  width: 100%;
+  height: 4px;
+  z-index: 101;
+  background: linear-gradient(90deg, #00505E 0% 14.2%, #5698B4 14.2% 28.4%, #CCB37C 28.4% 42.67%, #5B9370 42.67% 56.85%, #823241 56.85% 71%, #5A4474 71% 85.2%, #AD4F66 85.2% 100%)
+}
+#mobilePage #mobileTestimonials{
+  padding: 3% 0 3% 0;
+  background: #EDEDEC;
+}
+#mobilePage #mobileTestimonials .mobileTestimonial{
+  flex: 0 0 30%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialImageHolder{
+  height: 50px;
+  width: 50px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#mobilePage #mobileTestimonials img.mobileTestimonialImage{
+  height: 50px;
+  width: 50px;
+}
+
+#mobilePage #mobileTestimonials h3.mobileTestimonialHeader{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: center;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #000000;
+  margin-bottom: 10%;
+  border: none;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialContent{
+  text-align: left;
+}
+.interface-hebrew #mobilePage #mobileTestimonials .mobileTestimonialContent{
+  text-align: right;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialText{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: justify;
+  color: #000000;
+  margin-bottom: 5%;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialAttribution{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: justify;
+  color: #000000;
+  font-style: italic;
+  text-align: left;
+  font-weight: bold;
+}
+#mobilePage #mobileTestimonials .mobileTestimonialAttribution::before{
+  content: '-';
+  font-style: italic;
+}
+#mobilePage #mobileExamples{
+}
+#mobilePage #mobileExamples .example{
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 40px;
+  padding-top: 40px;
+}
+#mobilePage #mobileExamples .example:last-child{
+  border-bottom: none;
+}
+
+#mobilePage #mobileExamples .example div{
+  flex: 0 0 45%;
+}
+#mobilePage #mobileExamples .example .mobileExampleHeader h3{
+  display: inline-block;
+  border-bottom: 4px solid;
+}
+#mobilePage #mobileExamples #mobileExampleCalendar.example .mobileExampleHeader h3{
+  border-bottom-color: #CCB479;
+}
+#mobilePage #mobileExamples #mobileExampleCommentaries.example .mobileExampleHeader h3{
+  border-bottom-color: #4871BF;
+}
+#mobilePage #mobileExamples #mobileExampleSearch.example .mobileExampleHeader h3{
+  border-bottom-color: #5D956F;
+}
+#mobilePage #mobileExamples #mobileExampleSheets.example .mobileExampleHeader h3{
+  border-bottom-color: #802F3E;
+}
+#mobilePage #mobileExamples .example .mobileExampleHeader h3 .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #666666;
+}
+#mobilePage #mobileExamples .flexReverse.example .mobileExampleHeader{
+  text-align: end;
+}
+#mobilePage #mobileExamples .example .mobileExampleText{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  text-align: justify;
+  color: #000000;
+}
+#mobilePage #mobileExamples .example .mobileExampleImage {
+  text-align: center;
+}
+#mobilePage #mobileExamples .example .mobileExampleImage img{
+  height: 350px;
+}
+
+#mobilePage #mobileUpdate {
+  background: #EDEDEC;
+  padding-top: 5%;
+}
+#mobilePage #mobileUpdate .flexContainer div{
+  flex: 1;
+}
+#mobilePage #mobileUpdate #mobileUpdateImage{
+  height: 352px;
+  overflow: hidden;
+}
+#mobilePage #mobileUpdate #mobileUpdateImage img{
+  width: 362px;
+}
+
+#mobilePage #mobileUpdate div.mobileUpdateText{
+  flex: 2;
+}
+
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateVersion span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+  line-height: 29px;
+  text-align: justify;
+  color: #000000;
+}
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 35px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000000;
+}
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle span{
+  display: inline-block;
+}
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateDescription{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 22px;
+  line-height: 26px;
+  color: #000000;
+}
+#mobilePage #mobileDownloadLinks{
+  margin: auto;
+  padding-top: 3%;
+  padding-bottom: 3%;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadHeader h3{
+  text-align: center;
+  border-bottom: none;
+  margin: 10% 0 10% 0;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadHeader h3 span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 48px;
+  line-height: 58px;
+  color: #666666;
+  text-transform: initial;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadButtons .button{
+  width: 300px;
+  height: 78px;
+  background: #212E50;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  align-items: center;
+}
+#mobilePage #mobileDownloadLinks .mobileDownloadButtons .button img{
+  height: 40px;
+}
+
+#mobilePage #mobileDownloadLinks .mobileDownloadButtons .button span{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 20px;
+  line-height: 23px;
+  text-align: right;
+  color: #FFFFFF;
+  letter-spacing: 0px;
+}
+
+#mobilePage #mobileNewsletterSocial{
+  padding-bottom: 3%;
+  padding-top: 3%;
+  background: #FFFFFF;
+  text-align: center;
+}
+#mobilePage #mobileNewsletterSocial div h3{
+  border-bottom: none;
+  text-align: center;
+  margin: auto;
+}
+#mobilePage #mobileNewsletterSocial div h3 span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 30px;
+  line-height: 36px;
+  color: #000000;
+  text-transform: initial;
+
+}
+
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput{
+  width: 289px;
+  height: 46px;
+  background: #FFFFFF;
+  border: 1px solid #666666;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput::placeholder,
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox #newsletterInput-subscribeMessage{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
+  line-height: 22px;
+  color: #999;
+  font-style: normal;
+}
+#mobilePage #mobileNewsletterSocial .newsletterSignUpBox .inputWithNestedImageSubmit{
+    position: relative;
+    margin: auto;
+    width: 320px;
+}
+#mobilePage #mobileNewsletterSocial input[type=image]{
+  padding: 0;
+  box-shadow: none;
+  color: #000;
+  opacity: .2;
+  height: 20px;
+  width: 20px;
+  position: absolute;
+  top: 14px;
+  right: 26px;
+  left: auto;
+}
+
+.interface-hebrew #mobilePage #mobileNewsletterSocial input[type=image] {
+  transform: scale(-1, 1);
+  left: 26px;
+  right: auto;
+}
+
+
+.interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
+    position: relative;
+    top: 4px;
+    right: -40px;
+}
+#mobilePage #mobileNewsletterSocial .mobileSocialLinks{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 26px;
+  text-align: center;
+  letter-spacing: 0.1em;
+  color: #666666;
+  margin: 5% 10%;
+  justify-content: space-around;
+}
+#mobilePage #mobileNewsletterSocial #mobilePageNonProfit p{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 12px;
+  line-height: 29px;
+  color: #000000;
+}
+
+@media screen and (max-width: 700px) {
+  #mobilePage .sectionInner{
+    max-width: 310px;
+  }
+  #mobilePage .sectionRegular{
+    max-width: 310px;
+  }
+  #mobilePage .sectionNarrow{
+    max-width: 310px;
+  }
+  #mobilePage #topHeaderAndroid{
+    display: none;
+  }
+  #mobilePage #topHeaderIOS{
+    display: none;
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderImage{
+    height: auto;
+  }
+
+  #mobilePage #mobilePageHeader #mobilePageHeaderText{
+    padding-top: 20%;
+    margin-inline-end: unset;
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+      width: 151px;
+      height: 245px;
+      left: -11px;
+      top: 87px;
+  }
+  .interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderPhoneImage{
+      left:5px
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+      width: 245px;
+      height: 306px;
+      left: 70px;
+  }
+  .interface-hebrew #mobilePage #mobilePageHeader #mobilePageHeaderTabletImage{
+      left: 22px
+  }
+  #mobilePage #mobilePageHeader h1{
+    font-size: 40px;
+    line-height: 48px;
+  }
+  #mobilePage #mobilePageHeader #mobilePageSubHeaderText h2{
+    font-size: 16px;
+    line-height: 19px;
+  }
+  #mobilePage #mobilePageHeader #mobilePageHeaderButtons .button{
+    width: 183px;
+    height: 47px;
+    font-size: 12px;
+    line-height: 14px;
+  }
+  #mobilePage #mobileDescription p{
+    font-size: 18px;
+    line-height: 22px;
+  }
+  #mobilePage #mobileTestimonials .mobileTestimonial{
+    flex: 100%;
+    margin-top: 10%;
+  }
+  #mobilePage #mobileExamples{
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .example div{
+    margin: auto;
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .flexReverse.example .mobileExampleHeader{
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .example .mobileExampleText{
+    flex: 100%;
+    margin: auto;
+    text-align: center;
+  }
+  #mobilePage #mobileExamples .example .mobileExampleImage{
+    margin-top: 10%;
+  }
+  #mobilePage #mobileExamples .example .mobileExampleImage img{
+    height: 246px;
+  }
+  #mobilePage #mobileUpdate .flexContainer div{
+    text-align: center;
+    flex: 100%;
+  }
+  #mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateDescription{
+    text-align: justify;
+    font-size: 16px;
+  }
+  #mobilePage #mobileUpdate #mobileUpdateImage{
+    margin-top: 10%;
+    height: 245px;
+  }
+  #mobilePage #mobileUpdate #mobileUpdateImage img{
+    width: 100%;
+  }
+  #mobilePage #mobileUpdate div.mobileUpdateText{
+    flex: 100%;
+  }
+  #mobilePage #mobileDownloadLinks{
+    margin-bottom: 10%;
+  }
+  #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3{
+    margin: 10% 0 10% 0;
+  }
+  #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3 span{
+    font-size: 30px;
+    line-height: 36px;
+  }
+  #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button{
+    justify-content: space-evenly;
+  }
+  #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
+    top: -32px;
+    right: -110px;
+  }
+  .interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
+    top: -32px;
+    right: 115px;
+  }
+  #mobilePage #mobileNewsletterSocial .mobileSocialLinks a{
+    flex: 100%;
+    margin: 3% auto;
+  }
+  #mobilePage #mobileNewsletterSocial .mobileSocialLinks .dot{
+    display: none;
+  }
+  #mobilePage #mobileNewsletterSocial #mobilePageNonProfit p{
+    margin-top: 20%;
+  }
+}
+
+/******* daf yomi landing page ****/
+#dafyomiPage{
+  background: #fff;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#dafyomiPage p {
+  font-size: 16px;
+  line-height: 21px;
+}
+
+.interface-hebrew #dafyomiPage.static .int-he{
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif !important;
+}
+#dafyomiPage .button{
+  padding: 3% 5%;
+}
+#dafyomiPage .sectionInner{
+  position: relative;
+  max-width: 1152px;
+  margin: auto;
+}
+#dafyomiPage .sectionWide{}
+#dafyomiPage .sectionRegular{
+  max-width: 960px;
+}
+#dafyomiPage .sectionNarrow{
+  max-width: 640px;
+}
+#dafyomiPage .flexContainer{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#dafyomiPage .flexReverse{
+  flex-direction: row-reverse;
+}
+#dafyomiPage #dafyomiPageHeader{
+  background-color: #18345D;
+  padding: 70px 0;
+  margin-top: 60px;
+  background-image: url(/static/img/daf-yomi-landing-page/talmudtextheader.jpg);
+  background-size: cover;
+  background-position: center;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+  flex: 1;
+  /* width: 438px; */
+  padding-top: 0%;
+  margin: auto;
+  text-align: center;
+}
+#dafyomiPage #dafyomiPageHeader h1{
+  /*width: 438px;*/
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 64px;
+  line-height: 77px;
+  text-align: center;
+  letter-spacing: 2px;
+  color: #FFFFFF;
+  margin: auto;
+}
+
+#dafyomiPage #dafyomiPageHeader h1 img {
+  width: 244px;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText{
+  padding: 2% 0;
+}
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 35px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #FFFFFF;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: auto;
+}
+
+#dafyomiPage .center {
+    text-align: center;
+}
+#dafyomiPage #dafyomiDescription p{
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  color: #000000;
+  margin-top: 62px;
+  margin-bottom: 65px;
+}
+#dafyomiPage #dafyomiDescription p .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#dafyomiPage #dafyomiWhatIs,
+#dafyomiPage #dafyomiWhatsNew {
+  background: #EDEDEC;
+  padding: 2% 0;
+}
+#dafyomiPage #dafyomiWhatIs .flexContainer div,
+#dafyomiPage #dafyomiWhatsNew .flexContainer div{
+  flex: 1;
+}
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatIsImage,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatsNewImage {
+  margin: 30px;
+  text-align: center;
+}
+
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img{
+  width: 362px;
+  margin-left: 40px;
+}
+
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img {
+  margin-bottom: -30px
+}
+
+#dafyomiPage #dafyomiWhatIs div.dafyomiWhatIsText,
+#dafyomiPage #dafyomiWhatsNew div.dafyomiWhatsNewText{
+  flex: 2;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 35px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText h3.dafyomiWhatsNewTitle {
+  margin-top: 10px;
+}
+
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle span,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle span{
+  display: inline-block;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewDescription,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsDescription{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  color: #000000;
+}
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewNew span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+  line-height: 29px;
+  text-align: justify;
+  color: #000000;
+  font-style: italic;
+}
+
+#dafyomiPage #dafyomiExamples{
+  background-color: #fff;
+}
+#dafyomiPage #dafyomiExamples .example{
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 40px;
+  padding-top: 40px;
+}
+#dafyomiPage #dafyomiExamples .example:last-child{
+  border-bottom: none;
+}
+
+#dafyomiPage #dafyomiExamples .example div{
+  flex: 0 0 45%;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3{
+  display: inline-block;
+  border-bottom: 4px solid;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleMobileApp.example .dafyomiExampleHeader h3{
+  border-bottom-color: #CCB479;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleCalendar.example .dafyomiExampleHeader h3{
+  border-bottom-color: #4871BF;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleTranslations.example .dafyomiExampleHeader h3{
+  border-bottom-color: #5D956F;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleConnections.example .dafyomiExampleHeader h3{
+  border-bottom-color: #802F3E;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #666666;
+}
+#dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+  text-align: end;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  text-align: justify;
+  color: #000000;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage {
+  text-align: center;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+  height: 250px;
+}
+
+#dafyomiPage #dafyomiExamples .dafyomiExamplesHeader h3{
+  text-align: center;
+  border-bottom: none;
+  margin: 65px 0 10px 0;
+}
+
+#dafyomiPage h3.headerText {
+  border-bottom: none;
+}
+#dafyomiPage h3.headerText.additionalMargin {
+  margin: 80px 0 60px 0;
+}
+
+#dafyomiPage h3.headerText span {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 48px;
+  line-height: 58px;
+  color: #666666;
+  text-transform: initial;
+}
+
+#dafyomiPage hr {
+  border-top: 1px solid #ccc;
+  margin: 50px;
+}
+
+#dafyomiPage .testimonial {
+  font-style: italic;
+  margin: 40px 0;
+
+}
+#dafyomiPage .testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10d'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+#dafyomiPage .int-he.testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10e'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+#dafyomiPage .finalContent {
+  margin-bottom: 80px;
+}
+
+
+@media screen and (max-width: 700px) {
+  #dafyomiPage .sectionInner{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionRegular{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionNarrow{
+    max-width: 310px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderImage{
+    height: auto;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+    padding-top: 20%;
+  }
+  #dafyomiPage #dafyomiPageHeader h1{
+    font-size: 40px;
+    line-height: 48px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+    font-size: 16px;
+    line-height: 19px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderButtons .button{
+    width: 183px;
+    height: 47px;
+    font-size: 12px;
+    line-height: 14px;
+  }
+  #dafyomiPage #dafyomiDescription p{
+    font-size: 18px;
+    line-height: 22px;
+  }
+  #dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+  #dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img {
+    margin-left: 0;
+    margin-bottom: 0;
+  }
+  #dafyomiPage #dafyomiExamples{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example div{
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+    flex: 100%;
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage{
+    margin-top: 10%;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+    height: 246px;
+  }
+}
+
+/*** Filters for coloring svgs ***/
+.svg-white {
+  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }

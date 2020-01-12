@@ -40,6 +40,7 @@ from django.utils import timezone
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
+from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.topic import get_topics
@@ -384,8 +385,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
-    if sheet == None:
+    noindex = False
 
+    if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
         if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
@@ -418,7 +420,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             sheet_id = request.GET.get("s{}".format(i))
             panelDisplayLanguage = request.GET.get("lang", "bi")
             panels += make_sheet_panel_dict(sheet_id, None, **{"panelDisplayLanguage": panelDisplayLanguage})
-
 
         else:
             try:
@@ -505,7 +506,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
         breadcrumb = sheet_crumbs(request, sheet)
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
-
+        noindex = sheet["status"] != "public"
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -514,7 +515,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  breadcrumb
+        "ldBreadcrumbs":  breadcrumb,
+        "noindex":        noindex,
     })
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
@@ -674,6 +676,7 @@ def get_group_page(request, group, authenticated):
         "html": html,
         "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
+        "noindex": not getattr(group[0], "listed", False)
     })
 
 
@@ -1244,15 +1247,16 @@ def texts_api(request, tref):
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
+        stripItags = bool(int(request.GET.get("stripItags", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
             try:
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
             except AttributeError as e:
                 oref = oref.default_child_ref()
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks).contents()
+                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
             except NoVersionFoundError as e:
                 return {"error": unicode(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
@@ -3108,6 +3112,8 @@ def user_profile(request, username):
     """
     User's profile page.
     """
+    user = None
+
     try:
         profile = UserProfile(slug=username)
     except Exception, e:
@@ -3118,6 +3124,11 @@ def user_profile(request, username):
         profile = UserProfile(id=user.id)
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
+
+    if user is None:
+        user = User.objects.get(id=profile.id)
+    if not user.is_active:
+        raise Http404('Profile is inactive.')
 
     props = base_props(request)
     profileJSON = profile.to_api_dict()
@@ -3181,6 +3192,37 @@ def profile_follow_api(request, ftype, slug):
         response = [UserProfile(id=uid).to_api_dict(basic=True) for uid in follow_set.uids]
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+@catch_error_as_json
+def profile_upload_photo(request):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
+    if request.method == "POST":
+        from PIL import Image
+        from StringIO import StringIO
+        from sefaria.utils.util import epoch_time
+        now = epoch_time()
+        def get_resized_file(image, size):
+            resized_image = image.resize(size, resample=Image.LANCZOS)
+            resized_image_file = StringIO()
+            resized_image.save(resized_image_file, format="PNG")
+            resized_image_file.seek(0)
+            return resized_image_file
+        profile = UserProfile(id=request.user.id)
+        bucket_name = GoogleStorageManager.PROFILES_BUCKET
+        image = Image.open(request.FILES['file'])
+        old_big_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
+        old_small_pic_filename = re.findall(ur"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
+
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
+        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
+
+        profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
+        profile.save()
+        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
+        return jsonResponse({"urls": [big_pic_url, small_pic_url]})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 
 @api_view(["POST"])
@@ -3375,7 +3417,7 @@ def home(request):
 
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
-    
+
     # show_feed = request.COOKIES.get("home_feed", None)
     show_feed = request.user.is_authenticated
 
@@ -4295,12 +4337,11 @@ def apple_app_site_association(request):
 
 def application_health_api(request):
     """
-    Defines the /healthz API endpoint which responds with 
-        200 if the appliation is ready for requests, 
+    Defines the /healthz API endpoint which responds with
+        200 if the appliation is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
         return http.HttpResponse("Healthy", status="200")
     else:
         return http.HttpResponse("Unhealthy", status="500")
-        

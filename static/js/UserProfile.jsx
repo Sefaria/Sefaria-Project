@@ -74,7 +74,7 @@ class UserProfile extends Component {
           <span className="int-he">0 קבוצות</span>
         </div>
         { Sefaria._uid === this.props.profile.id ?
-          <a href="/groups/new" className="resourcesLink faded">
+          <a href="/groups/new" className="resourcesLink">
             <img src="/static/img/group.svg" alt="Group icon" />
             <span className="int-en">Create a New Group</span>
             <span className="int-he">צור קבוצה חדשה</span>
@@ -92,7 +92,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/groups/new" className="resourcesLink faded">
+        <a href="/groups/new" className="resourcesLink">
           <img src="/static/img/group.svg" alt="Group icon" />
           <span className="int-en">Create a New Group</span>
           <span className="int-he">צור קבוצה חדשה</span>
@@ -143,7 +143,7 @@ class UserProfile extends Component {
         // add urls to sheets for rendering with SheetListing
         sheets.forEach(s => {
           s.options.language = "en";
-          s.sheetUrl = `/Sheet.${s.id}`; 
+          s.sheetUrl = `/Sheet.${s.id}`;
         });
         resolve(sheets);
       }, undefined, 0, 0, ignoreCache);
@@ -182,7 +182,7 @@ class UserProfile extends Component {
             באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
           </span>
         </div>
-        <a href="/sheets/new" className="resourcesLink faded">
+        <a href="/sheets/new" className="resourcesLink">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">צור דף חדש</span>
@@ -213,7 +213,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/sheets/new" className="resourcesLink faded">
+        <a href="/sheets/new" className="resourcesLink">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">צור דף חדש</span>
@@ -255,7 +255,7 @@ class UserProfile extends Component {
         slug={item.slug}
         url={`/profile/${item.slug}`}
         name={item.full_name}
-        image={item.gravatar_url}
+        image={item.profile_pic_url}
         is_followed={Sefaria.following.indexOf(item.id) > -1}
         position={item.position}
         organization={item.organization}
@@ -325,6 +325,7 @@ class UserProfile extends Component {
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
+                  openProfile={this.props.openProfile}
                   toggleSignUpModal={this.props.toggleSignUpModal}
                 />
                 <TabView
@@ -410,7 +411,7 @@ UserProfile.propTypes = {
   handleInAppLinkClick: PropTypes.func.isRequired,
 };
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
+const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, openProfile, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
@@ -493,10 +494,12 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
       </div>
       <div className="summary-column end">
         <ProfilePic
-          url={p.gravatar_url}
+          url={p.profile_pic_url}
           name={p.full_name}
+          openProfile={openProfile}
           len={175}
-          hideOnDefault={true}
+          hideOnDefault={Sefaria._uid !== p.id}
+          showButtons={Sefaria._uid === p.id}
         />
       </div>
     </div>

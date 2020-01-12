@@ -93,6 +93,7 @@ urlpatterns += [
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
     url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
+    url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
@@ -109,7 +110,7 @@ urlpatterns += [
 # Calendar Redirects
 urlpatterns += [
     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
-    url(r'^daf-yomi$', reader_views.daf_yomi_redirect),
+    url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
 ]
 
 # Texts Add / Edit / Translate
@@ -392,6 +393,7 @@ urlpatterns += [
     url(r'^admin/translation-requests-stats', sefaria_views.translation_requests_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
+    url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
     url(r'^admin/?', include(admin.site.urls)),

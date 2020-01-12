@@ -604,6 +604,8 @@ class Util {
 
         this.current_lookup_ajax = null;
 
+        this.dropdownAnchorSide = this.options.interfaceLang == "he" ? "right" : "left";
+
         this.$input
             .on("input", this.check.bind(this))
             .keyup(function(e) {
@@ -617,6 +619,7 @@ class Util {
                          .then(d => d.completions)
                          .then(response);
                 },
+                position: {my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom"},
                 select: (event, ui) => this._lookupAndRoute(ui.item.value),
                 minLength: 3
             });
@@ -770,7 +773,7 @@ Util.RefValidator.prototype = {
         this.$input.autocomplete("disable");
         this.$preview.show();
         this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
-        this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+        this.$preview.position({my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom", of: this.$input, collision: "none" }).width('691px');
     }.bind(this));
   },
   check: function() {
