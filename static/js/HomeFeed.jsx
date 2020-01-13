@@ -44,6 +44,11 @@ function HomeFeedSidebar({showLibrary}) {
                         <CategoryLink category={"Midrash"} showLibrary={showLibrary} />
                         <CategoryLink category={"Halakhah"} showLibrary={showLibrary} />
                     </div>
+                    <a href="/texts" className="button white fillWidth control-elem" onClick={showLibrary}>
+                        <i class="fa fa-bars"></i>
+                        <span className="int-en">Browse the Library</span>
+                        <span className="int-he"></span>
+                    </a>
                 </div>
             </div>
 
@@ -62,6 +67,64 @@ function HomeFeedSidebar({showLibrary}) {
                             <img src="/static/img/sheet.svg" />
                             <span className="int-en">Start a Sheet</span>
                             <span className="int-he">צור דף מקורות</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="homeConnect" className="section center">
+                <div className="sectionInner">
+                    <h2>
+                        <span className="int-en">Stay Connected</span>
+                        <span className="int-he">השארו מחוברים</span>
+                    </h2>
+                    <NewsletterSignUpForm contextName="Home Page Sidebar" />
+                    <div id="homeSocialButtons">
+                        <a target="_blank" href={"https://www.facebook.com/sefaria.org" + (Sefaria.interfaceLang == "hebrew" ? ".il" : "")} className="fa fa-facebook"></a>
+                        <a target="_blank" href="https://www.twitter.com/SefariaProject" className="fa fa-twitter"></a>
+                        <a target="_blank" href="https://www.instagram.com/SefariaProject" className="fa fa-instagram"></a>
+                        <a target="_blank" href="https://www.youtube.com/user/SefariaProject" className="fa fa-youtube-play"></a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="homeHelp" className="section">
+                <div className="sectionInner">
+                    <h2>
+                        <span className="int-en">Support Sefaria</span>
+                        <span className="int-he">אנו זקוקים לעזרתכם</span>
+                    </h2>
+                    <div className="description systemText">
+                        <span className="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</span>
+                        <span className="int-he">פרויקט ספריא פתוח לקהל הרחב (open source) ללא מטרות רווח. תמכו בנו באמצעות תרומה פטורה ממס.</span>
+                    </div>
+                    <a href="/donate">
+                        <div className="button white fillWidth control-elem">
+                            <img src="/static/img/heart.png" />
+                            <span className="int-en">Make a Donation</span>
+                            <span className="int-he">תרמו לנו</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div id="homeEducators" className="section">
+                <div className="sectionInner">
+                    <div className="textBox">
+                         <h2>
+                            <span className="int-en">Teach with Sefaria</span>
+                            <span className="int-he">מחנכים</span>
+                        </h2>
+                        <div className="description systemText">
+                            <span className="int-en">Discover Sefaria’s potential in the classroom, connect with other educators and learn to integrate Sefaria into your teaching.</span>
+                            <span className="int-he">קרא עוד על יתרונות השימוש בספריא בכיתת הלימוד, צור קשר עם אנשי חינוך אחרים בתחום ולמד כיצד לשלב את ספריא בהוראה.</span>
+                        </div>
+                        <a href="/educators">
+                            <div className="button white fillWidth control-elem">
+                                <span className="int-en">Learn More</span>
+                                <span className="int-he">קרא עוד</span>
+                            </div>
                         </a>
                     </div>
                 </div>
@@ -106,66 +169,6 @@ function HomeFeedSidebar({showLibrary}) {
                 </div>
             </div>
 
-            <div id="homeEducators" className="section">
-                <div className="sectionInner">
-                    <div className="textBox">
-                         <h2>
-                            <span className="int-en">Educators</span>
-                            <span className="int-he">מחנכים</span>
-                        </h2>
-                        <div className="description systemText">
-                            <span className="int-en">Discover Sefaria’s potential in the classroom, connect with other educators and learn to integrate Sefaria into your teaching.</span>
-                            <span className="int-he">קרא עוד על יתרונות השימוש בספריא בכיתת הלימוד, צור קשר עם אנשי חינוך אחרים בתחום ולמד כיצד לשלב את ספריא בהוראה.</span>
-                        </div>
-                        <a href="/educators">
-                            <div className="button white fillWidth control-elem">
-                                <span className="int-en">Learn More</span>
-                                <span className="int-he">קרא עוד</span>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div id="homeHelp" className="section">
-                <div className="sectionInner">
-                    <h2>
-                        <span className="int-en">Support Sefaria</span>
-                        <span className="int-he">אנו זקוקים לעזרתכם</span>
-                    </h2>
-                    <div className="description systemText">
-                        <span className="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</span>
-                        <span className="int-he">פרויקט ספריא פתוח לקהל הרחב (open source) ללא מטרות רווח. תמכו בנו באמצעות תרומה פטורה ממס.</span>
-                    </div>
-                    <a href="/donate">
-                        <div className="button white fillWidth control-elem">
-                            <img src="/static/img/heart.png" />
-                            <span className="int-en">Make a Donation</span>
-                            <span className="int-he">תרמו לנו</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <div id="homeConnect" className="section center">
-                <div className="sectionInner">
-                    <h2>
-                        <span className="int-en">Stay Connected</span>
-                        <span className="int-he">השארו מחוברים</span>
-                    </h2>
-                    <NewsletterSignUpForm contextName="Home Page Sidebar" />
-                    <div id="homeSocialButtons">
-                        <a target="_blank" href={"https://www.facebook.com/sefaria.org" + (Sefaria.interfaceLang == "hebrew" ? ".il" : "")} className="fa fa-facebook"></a>
-                        <a target="_blank" href="https://www.twitter.com/SefariaProject" className="fa fa-twitter"></a>
-                        <a target="_blank" href="https://www.instagram.com/SefariaProject" className="fa fa-instagram"></a>
-                        <a target="_blank" href="https://www.youtube.com/user/SefariaProject" className="fa fa-youtube-play"></a>
-                    </div>
-                </div>
-            </div>
-
-            <div id="homeFeedback">
-                <NewHomeFeedbackBox />
-            </div>
           </div>
     );
 }
@@ -222,7 +225,7 @@ HomeFeed.propTypes = {
   onlySharedStories:  PropTypes.bool,
 };
 
-
+/*
 class NewHomeFeedbackBox extends Component {
   constructor(props) {
     super(props);
@@ -317,12 +320,6 @@ class NewHomeFeedbackBox extends Component {
                  <span className="int-en">Submit Feedback</span>
                  <span className="int-he">שלח</span>
              </div>
-            {/* TODO remove Goodbye prompt code once there's no going back
-             <div className="button white" role="button" onClick={this.toggleGoodbyePrompt}>
-                 <span className="int-en">Back to old homepage</span>
-                 <span className="int-he">חזרה לדף הבית הישן</span>
-             </div>
-             */}
              </div>}
 
             {this.state.feedbackSent ?
@@ -337,6 +334,6 @@ class NewHomeFeedbackBox extends Component {
     );
   }
 }
-
+*/
 
 module.exports = HomeFeed;
