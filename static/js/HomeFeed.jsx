@@ -12,9 +12,19 @@ const {
 }                              = require('./Misc');
 
 
-function HomeFeedSidebar(props) {
-    return (
-        <div className="homeFeedSidebar">
+function CategoryLink({category, showLibrary}) {
+    return ( <a className="refLink inAppLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
+                <span className="int-en">{category}</span>
+                <span className="int-he">{Sefaria.hebrewTerm(category)}</span>
+            </a>);
+}
+CategoryLink.propTypes = {
+  showLibrary:   PropTypes.func.isRequired,
+  category:      PropTypes.string
+};
+
+function HomeFeedSidebar({showLibrary}) {
+    return (<div className="homeFeedSidebar">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
                     <div className="textBox">
@@ -28,31 +38,11 @@ function HomeFeedSidebar(props) {
                         </div>
                     </div>
                     <div className="imageBox">
-                        <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Parashat Hashavua"))} style={{borderColor: "rgb(0, 78, 95)"}}>
-                            <span className="int-en">Weekly Torah Portion</span>
-                            <span className="int-he">פרשת השבוע</span>
-                        </a>
-                        <a className="refLink inAppLink" href={"/" + Sefaria.normRef(Sefaria.calendarRef("Daf Yomi"))} style={{borderColor: "rgb(204, 180, 121)"}}>
-                            <span className="int-en">Daf Yomi</span>
-                            <span className="int-he">דף יומי</span>
-                        </a>
-                        <a className="refLink" href="/texts/Liturgy/Haggadah" style={{borderColor: "rgb(171, 78, 102)"}}>
-                            <span className="int-en">Passover Haggadah</span>
-                            <span className="int-he">הגדה של פסח</span>
-                        </a>
-                        <a className="refLink inAppLink" href="/Pirkei_Avot.1" style={{borderColor: "rgb(90, 153, 183)"}}>
-                            <span className="int-en">Pirkei Avot</span>
-                            <span className="int-he">פרקי אבות</span>
-                        </a>
-                        <a className="refLink inAppLink" href="/Bereishit_Rabbah.1" style={{borderColor: "rgb(93, 149, 111)"}}>
-                            <span className="int-en">Midrash Rabbah</span>
-                            <span className="int-he">מדרש רבה</span>
-                        </a>
-                        <a className="refLink inAppLink" href="/Shulchan_Arukh,_Orach_Chayyim.1" style={{borderColor: "rgb(128, 47, 62)"}}>
-                            <span className="int-en">Shulchan Arukh</span>
-                            <span className="int-he">שולחן ערוך</span>
-                        </a>
-
+                        <CategoryLink category={"Tanakh"} showLibrary={showLibrary} />
+                        <CategoryLink category={"Mishnah"} showLibrary={showLibrary} />
+                        <CategoryLink category={"Talmud"} showLibrary={showLibrary} />
+                        <CategoryLink category={"Midrash"} showLibrary={showLibrary} />
+                        <CategoryLink category={"Halakhah"} showLibrary={showLibrary} />
                     </div>
                 </div>
             </div>
@@ -176,10 +166,12 @@ function HomeFeedSidebar(props) {
             <div id="homeFeedback">
                 <NewHomeFeedbackBox />
             </div>
-
           </div>
     );
 }
+HomeFeedSidebar.propTypes = {
+  showLibrary:   PropTypes.func.isRequired,
+};
 
 function HomeFeed(props) {
   const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
@@ -218,7 +210,7 @@ function HomeFeed(props) {
                 {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
                 </div>
             </div>
-            <HomeFeedSidebar/>
+            <HomeFeedSidebar showLibrary={props.showLibrary} />
         </div>
       </div>
     </div>);
@@ -226,7 +218,8 @@ function HomeFeed(props) {
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func.isRequired,
-  onlySharedStories:  PropTypes.bool
+  showLibrary:   PropTypes.func.isRequired,
+  onlySharedStories:  PropTypes.bool,
 };
 
 
