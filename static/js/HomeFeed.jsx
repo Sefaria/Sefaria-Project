@@ -12,47 +12,9 @@ const {
 }                              = require('./Misc');
 
 
-function HomeFeed(props) {
-  const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
-  const [stories, setStories] = useState([]);
-  const scrollable_element = useRef();
-
-  usePaginatedScroll(
-      scrollable_element,
-      "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
-      data => setStories(prev => ([...prev, ...data.stories]))
-  );
-
-  return (
-    <div className="homeFeedWrapper">
-      <div className="content hasFooter" ref={scrollable_element}>
-        
-        <div id="homeCover">
-            <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
-                <source src="/static/img/home-video-narrow.webm" type="video/webm" />
-                <source src="/static/img/home-video-narrow.mp4" type="video/mp4" />
-                Video of sofer writing letters of the Torah
-            </video>
-            <h1 className="featureTitle">
-                <span className="int-en">A Living Library of Jewish Texts</span>
-                <span className="int-he">ספריה חיה של טקסטים יהודיים</span>
-            </h1>
-            <div className="sub">
-                <span className="int-en">Explore 3,000 years of Jewish texts in Hebrew and English translation. <a href="/about">Learn More &rsaquo;</a></span>
-                <span className="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרושים לפניך. <a href="/about">קרא עוד&rsaquo;</a></span>
-            </div>
-        </div>
-
-        <div className="homeFeedColumns">
-
-          <div className="storyFeed">
-            <div className="storyFeedInner">
-            {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
-            </div>
-          </div>
-
-          <div className="homeFeedSidebar">
-
+function HomeFeedSidebar(props) {
+    return (
+        <div className="homeFeedSidebar">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
                     <div className="textBox">
@@ -207,7 +169,7 @@ function HomeFeed(props) {
                         <a target="_blank" href="https://www.twitter.com/SefariaProject" className="fa fa-twitter"></a>
                         <a target="_blank" href="https://www.instagram.com/SefariaProject" className="fa fa-instagram"></a>
                         <a target="_blank" href="https://www.youtube.com/user/SefariaProject" className="fa fa-youtube-play"></a>
-                    </div>            
+                    </div>
                 </div>
             </div>
 
@@ -216,9 +178,48 @@ function HomeFeed(props) {
             </div>
 
           </div>
+    );
+}
 
+function HomeFeed(props) {
+  const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
+  const [stories, setStories] = useState([]);
+  const scrollable_element = useRef();
+
+  usePaginatedScroll(
+      scrollable_element,
+      "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
+      data => setStories(prev => ([...prev, ...data.stories]))
+  );
+
+  return (
+    <div className="homeFeedWrapper">
+      <div className="content hasFooter" ref={scrollable_element}>
+        
+        <div id="homeCover">
+            <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
+                <source src="/static/img/home-video-narrow.webm" type="video/webm" />
+                <source src="/static/img/home-video-narrow.mp4" type="video/mp4" />
+                Video of sofer writing letters of the Torah
+            </video>
+            <h1 className="featureTitle">
+                <span className="int-en">A Living Library of Jewish Texts</span>
+                <span className="int-he">ספריה חיה של טקסטים יהודיים</span>
+            </h1>
+            <div className="sub">
+                <span className="int-en">Explore 3,000 years of Jewish texts in Hebrew and English translation. <a href="/about">Learn More &rsaquo;</a></span>
+                <span className="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרושים לפניך. <a href="/about">קרא עוד&rsaquo;</a></span>
+            </div>
         </div>
 
+        <div className="homeFeedColumns">
+            <div className="storyFeed">
+                <div className="storyFeedInner">
+                {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
+                </div>
+            </div>
+            <HomeFeedSidebar/>
+        </div>
       </div>
     </div>);
 }
