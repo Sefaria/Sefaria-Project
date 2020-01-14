@@ -19,10 +19,10 @@ class GroupPage extends Component {
   constructor(props) {
     super(props);
 
-    this.showTagsByDefault = this.props.group == "גיליונות נחמה";
+    var data = Sefaria.groups(this.props.group);
 
     this.state = {
-      showTags: this.showTagsByDefault,
+      showTags: data && !!data.showTagsByDefault,
       sheetFilterTag: this.props.tag,
       sheetSort: "date",
       tab: "sheets"
@@ -48,6 +48,9 @@ class GroupPage extends Component {
     }
   }
   onDataLoad(data) {
+    if (data.showTagsByDefault) {
+      this.setState(showTags: true);
+    }
     this.forceUpdate();
   }
   ensureData() {

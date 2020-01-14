@@ -38,6 +38,7 @@ class Group(abst.AbstractMongoRecord):
         "listed",           # Bool, whether to list group publicly
         "moderationStatus", # string status code for moderator-set statuses
         "tag_order",        # list of strings, display order for sheet tags
+        "showTagsByDefault", # Bool, whether to default to opening tags list
         "toc",              # object signaling inclusion in TOC with fields
                                 # `catogories` - list
                                 # `title` - string
