@@ -1,10 +1,14 @@
-# Django settings for sefaria project.
 
 import os.path
 from django.utils.translation import ugettext_lazy as _
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
+
+# ------------
+# Locale Options
+# ------------
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -35,6 +39,17 @@ USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
+
+LOCALE_PATHS = (relative_to_abs_path('../locale'),)
+
+DOMAIN_LANGUAGES = {
+    "https://www.sefaria.org": "english",
+    "https://www.sefaria.org.il": "hebrew",
+}
+
+# ------------
+# Media & Assets
+# ------------
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -67,9 +82,9 @@ STATICFILES_DIRS = [
     relative_to_abs_path('../static/'),
 ]
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
-
+# ------------
+# Templating
+# ------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -99,13 +114,22 @@ TEMPLATES = [
                     "sefaria.system.context_processors.footer_html",
             ],
             'loaders': [
-                #'django_mobile.loader.Loader',
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
             ]
         },
     },
 ]
+
+# ------------
+# Django Internals
+# ------------
+# SEFARIA__APP_ADMINS
+WSGI_APPLICATION = 'sefaria.wsgi.application'
+ROOT_URLCONF = 'sefaria.urls'
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+SITE_PACKAGE = "sites.sefaria"
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -121,15 +145,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
-    #'easy_timezones.middleware.EasyTimezoneMiddleware',
-    #'django.middleware.cache.UpdateCacheMiddleware',
-    #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
-
-ROOT_URLCONF = 'sefaria.urls'
-
-# Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'sefaria.wsgi.application'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -154,16 +170,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
-LOGIN_URL = 'login'
-
-LOGIN_REDIRECT_URL = 'table_of_contents'
-
-LOGOUT_REDIRECT_URL = 'table_of_contents'
-
-AUTHENTICATION_BACKENDS = (
-    'emailusernames.backends.EmailAuthBackend',
-)
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -171,10 +177,22 @@ REST_FRAMEWORK = {
     )
 }
 
-LOCALE_PATHS = (
-    relative_to_abs_path('../locale'),
-)
+# ------------
+# Login & Authentication
+# ------------
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = LOGOUT_REDIRECT_URL = 'table_of_contents'
+AUTHENTICATION_BACKENDS = ('emailusernames.backends.EmailAuthBackend')
 
+# OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
+GOOGLE_OAUTH2_CLIENT_ID = ""
+GOOGLE_OAUTH2_CLIENT_SECRET = ""
+# This is the field that is actually used
+GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
+
+# ------------
+# Logging
+# ------------
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -204,7 +222,7 @@ LOGGING = {
             'format': '%(asctime)s - %(levelname)s %(name)s: %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s [%(name)s] %(message)s'
         },
         'verbose': {
             'format': '%(asctime)s - %(levelname)s: [%(name)s] %(process)d %(thread)d %(message)s'
@@ -214,9 +232,6 @@ LOGGING = {
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
-        },
-        'require_debug_true': {
-            '()': 'sefaria.utils.log.RequireDebugTrue'
         },
         'exclude_errors' : {
             '()': 'sefaria.utils.log.ErrorTypeFilter',
@@ -234,16 +249,30 @@ LOGGING = {
             'level':'WARNING',
             'filters': ['exclude_errors'],
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/sefaria.log'),
+            'filename': '/log/sefaria.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'verbose',
+        },
+        'request_handler': {
+            'level':'WARNING',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': '/log/django_request.log',
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 20,
+            'formatter':'standard',
+        },
+        'console': {
+            'level':'INFO',
+            'filters': ['exclude_errors'],
+            'class': 'logging.StreamHandler',
+            'formatter':'simple',
         },
         'book_name_errors': {
             'level':'ERROR',
             'filters': ['filter_book_name_errors'],
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/sefaria_book_errors.log'),
+            'filename': '/log/sefaria_book_errors.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'verbose',
@@ -258,10 +287,19 @@ LOGGING = {
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
         },
-        'request_handler': {
-            'level':'WARNING',
+	    'slack_error': {
+            'level':'ERROR',
+            'class':'sefaria.utils.log.SlackLogHandler',
+            'logging_url':'https://hooks.slack.com/services/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',
+            'channel': "#error-logs",
+            'stack_trace':True,
+            'filters': ['require_debug_false', 'exclude_errors'],
+            'formatter': 'verbose'
+        },
+        'cloudflare_response_handler': {
+            'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/django_request.log'),
+            'filename': '/log/cloudflare.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 20,
             'formatter':'standard',
@@ -269,7 +307,12 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['default', 'book_name_errors'],
+            'handlers': ['slack_error', 'default', 'console', 'book_name_errors'],
+            'level': 'INFO',
+            'propagate': True
+        },
+        'cloudflare':{
+            'handlers': ['cloudflare_response_handler'],
             'level': 'INFO',
             'propagate': True
         },
@@ -279,27 +322,91 @@ LOGGING = {
             'level': 'INFO',
         },
         'django.request': {
-            'handlers': ['mail_admins', 'request_handler'],
+            'handlers': ['slack_error', 'request_handler', 'console', 'mail_admins'],
             'level': 'INFO',
             'propagate': True,
         },
     }
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-    }
-}
+# ------------
+# GeoIP
+# ------------
+GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
+GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
+# ------------
+# MultiServer
+# ------------
+# SEFARIA__MULTISERVER_ENABLED
+# SEFARIA__MULTISERVER_REDIS_HOST
+MULTISERVER_REDIS_PORT = 6379
+MULTISERVER_REDIS_DB = 0
+MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
+MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 
-# Grab enviornment specific settings from a file which
-# is left out of the repo.
-try:
-    from sefaria.local_settings import *
-except ImportError:
-    from sefaria.local_settings_example import *
+# ------------
+# Data Export
+# ------------
+SEFARIA_DATA_PATH = '/export' # used for exporting texts
+SEFARIA_EXPORT_PATH = '/export'
+
+# ------------
+# Google
+# ------------
+# SEFARIA__GOOGLE_TAG_MANAGER_CODE
+# SEFARIA__GOOGLE_ANALYTICS_CODE
+# SEFARIA__GOOGLE_MAPS_API_KEY
+GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
+
+# ------------
+# Database - MongoDB
+# ------------
+# SEFARIA__MONGO_HOST
+# SEFARIA__MONGO_DB
+# SEFARIA__MONGO_USER
+# SEFARIA__MONGO_PASSWORD
+MONGO_PORT = 27017
+DISABLE_INDEX_SAVE = False
+
+# ------------
+# ElasticSearch Search
+# ------------
+# SEFARIA__SEARCH_HOST
+# SEFARIA__SEARCH_USER
+# SEFARIA__SEARCH_PASSWORD
+SEARCH_HOST = "/api/search"
+SEARCH_INDEX_ON_SAVE = True
+SEARCH_INDEX_NAME = "sefaria"
+SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
+SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_MERGED = 'merged'
+
+# ------------
+# NodeJS
+# ------------
+NODE_TIMEOUT_MONITOR = "/log/forever-timeouts.log"
+
+# ------------
+# Partners
+# ------------
+PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = "/school-lookup-data/schools.tsv"
+
+# ------------
+# Varnish
+# ------------
+# SEFARIA__VARNISH_ENABLED
+# SEFARIA__VARNISH_FRONTEND_URL
+# SEFARIA__VARNISH_HOST
+# SEFARIA__VARNISH_ESI_ENABLED
+VARNISH_FRNT_PORT = 8040
+VARNISH_SECRET = "/varnish-secret/varnish-secret"
+
+# ------------
+# Epilogue
+# ------------
+from sefaria.envvar_settings import *
+from sefaria.message_settings import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {
@@ -320,5 +427,4 @@ WEBPACK_LOADER = {
 
 }
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
-
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
