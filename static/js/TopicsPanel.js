@@ -112,7 +112,7 @@ class TopicsPanel extends Component {
                 <div className="trendingTopics">
                   <h3>
                     <span className="int-en">Trending</span>
-                    <span className="int-he">פופולרי</span>
+                    <span className="int-he">עדכני</span>
                   </h3>
                   <TwoOrThreeBox content={trendingList} width={this.props.width} />
                 </div>

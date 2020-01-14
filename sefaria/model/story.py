@@ -1003,7 +1003,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
         # todo: handle possibility of Hebrew terms trending.
         return {
             "topics": [{"en": topic, "he": hebrew_term(topic)} for topic in normal_topics],
-            "title": kwargs.get("title", {"en": "Trending Recently", "he": u"פופולרי"}),
+            "title": kwargs.get("title", {"en": "Trending Recently", "he": u"נושאים עדכניים"}),
             "lead": kwargs.get("lead", {"en": "Topics", "he": u"נושאים"})
         }
 
