@@ -30,11 +30,11 @@ function HomeFeedSidebar({showLibrary}) {
                     <div className="textBox">
                         <h2>
                             <span className="int-en">Start Learning</span>
-                            <span className="int-he">למידה</span>
+                            <span className="int-he">התחילו בלמידה</span>
                         </h2>
                         <div className="description systemText">
                             <span className="int-en">Explore commentaries, connections and translations across our free, ever-growing library of texts.</span>
-                            <span className="int-he">למידה בספריא היא תהליך פשוט, יפיפה ורב עוצמה. מצאו פרשנויות, יחסים אינטרטקסטואליים ותרגומים ברחבי ספריית הטקסטים החינמית והמתרחבת שלנו.</span>
+                            <span className="int-he">עיינו בפרשנים, קישורים ותרגומים בספריה הדיגטלית של ספריא.</span>
                         </div>
                     </div>
                     <div className="imageBox">
@@ -47,7 +47,7 @@ function HomeFeedSidebar({showLibrary}) {
                     <a href="/texts" className="button white fillWidth control-elem" onClick={showLibrary}>
                         <i class="fa fa-bars"></i>
                         <span className="int-en">Browse the Library</span>
-                        <span className="int-he"></span>
+                        <span className="int-he">עיינו בספריה הוירטואלית</span>
                     </a>
                 </div>
             </div>
@@ -57,16 +57,16 @@ function HomeFeedSidebar({showLibrary}) {
                     <div className="textBox">
                         <h2>
                             <span className="int-en">Make a Sheet</span>
-                            <span className="int-he">דפי מקורות</span>
+                            <span className="int-he">צרו דף מקורות</span>
                         </h2>
                         <div className="description systemText">
                             <span className="int-en">Mix and match sources from our library, as well as outside sources, comments, images and videos.</span>
-                            <span className="int-he">אתם יכולים לשלב מקורות מהספריה שלנו, יחד עם מקורות חיצוניים, ולהוסיף הערות, תמונות וסרטונים.</span>
+                            <span className="int-he">כאן תוכלו לערוך את הכל יחד: מקורות מספריא, מקורות חיצוניים, הערות שלכם, תמונות, קטעי וידאו ועוד.</span>
                         </div>
                         <a href="/sheets/new" className="button fillWidth control-elem">
                             <img src="/static/img/sheet.svg" />
                             <span className="int-en">Start a Sheet</span>
-                            <span className="int-he">צור דף מקורות</span>
+                            <span className="int-he">צרו דף מקורות</span>
                         </a>
                     </div>
                 </div>
@@ -77,7 +77,7 @@ function HomeFeedSidebar({showLibrary}) {
                 <div className="sectionInner">
                     <h2>
                         <span className="int-en">Stay Connected</span>
-                        <span className="int-he">השארו מחוברים</span>
+                        <span className="int-he">השארו מעודכנים</span>
                     </h2>
                     <NewsletterSignUpForm contextName="Home Page Sidebar" />
                     <div id="homeSocialButtons">
@@ -93,17 +93,17 @@ function HomeFeedSidebar({showLibrary}) {
                 <div className="sectionInner">
                     <h2>
                         <span className="int-en">Support Sefaria</span>
-                        <span className="int-he">אנו זקוקים לעזרתכם</span>
+                        <span className="int-he">תמכו בספריא</span>
                     </h2>
                     <div className="description systemText">
                         <span className="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</span>
-                        <span className="int-he">פרויקט ספריא פתוח לקהל הרחב (open source) ללא מטרות רווח. תמכו בנו באמצעות תרומה פטורה ממס.</span>
+                        <span className="int-he">ספריא הינה פלטפורמה חינמית, הפתוחה לקהל הרחב- ללא מטרות רווח. תמכו בנו.</span>
                     </div>
                     <a href="/donate">
                         <div className="button white fillWidth control-elem">
                             <img src="/static/img/heart.png" />
                             <span className="int-en">Make a Donation</span>
-                            <span className="int-he">תרמו לנו</span>
+                            <span className="int-he">תרמו לספריא</span>
                         </div>
                     </a>
                 </div>
@@ -114,16 +114,16 @@ function HomeFeedSidebar({showLibrary}) {
                     <div className="textBox">
                          <h2>
                             <span className="int-en">Teach with Sefaria</span>
-                            <span className="int-he">מחנכים</span>
+                            <span className="int-he">מלמדים עם ספריא</span>
                         </h2>
                         <div className="description systemText">
                             <span className="int-en">Discover Sefaria’s potential in the classroom, connect with other educators and learn to integrate Sefaria into your teaching.</span>
-                            <span className="int-he">קרא עוד על יתרונות השימוש בספריא בכיתת הלימוד, צור קשר עם אנשי חינוך אחרים בתחום ולמד כיצד לשלב את ספריא בהוראה.</span>
+                            <span className="int-he">באמצעות ספריא תוכלו להעצים את חווית הלימוד בכיתה, להתחבר למורים אחרים ולהעמיק את שיטות ההוראה שלכם.</span>
                         </div>
                         <a href="/educators">
                             <div className="button white fillWidth control-elem">
                                 <span className="int-en">Learn More</span>
-                                <span className="int-he">קרא עוד</span>
+                                <span className="int-he">למדו עוד</span>
                             </div>
                         </a>
                     </div>
@@ -134,18 +134,15 @@ function HomeFeedSidebar({showLibrary}) {
                 <div className="sectionInner">
                     <div className="textBox">
                         <h2>
-                            <span className="int-en">Sefaria Mobile</span>
-                            <span className="int-he">ספריא בנייד</span>
+                            <span className="int-en">Mobile Apps</span>
+                            <span className="int-he">אפליקציות בנייד</span>
                         </h2>
                         <div className="description systemText">
                             <span className="int-en">
                                 Enjoy Sefaria's entire library and all of its links and interconnections on-the-go.
                                 Sefaria’s apps for Android and iOS available to download for free.
                             </span>
-                            <span className="int-he">
-                                הספריה המלאה של ספריא, הכוללת את כל הלינקים והקשרים, זמינה גם בנייד.
-                                האפליקציות של ספריא לאנדרואיד ולאייפון זמינות עכשיו להורדה בחינם.
-                            </span>
+                            <span className="int-he">השתמשו במאגר ובקישורים של ספריא בנייד. האפליקציה זמינה להורדה בחינם.</span>
 
                         </div>
                         <div className="inlineButtonBox">
