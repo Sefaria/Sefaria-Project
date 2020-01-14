@@ -61,9 +61,6 @@ class GroupPage extends Component {
   getData() {
       var groupData = Sefaria.groups(this.props.group);
       this.sortSheetData(groupData);
-      if (groupData.pinnedSheets && groupData.pinnedSheets.length > 0) {
-        this.pinSheetsToSheetList(groupData);
-      }
       return(groupData);
   }
   sortSheetData(group) {
@@ -81,6 +78,13 @@ class GroupPage extends Component {
       }
     };
     group.sheets.sort(sorters[this.state.sheetSort]);
+
+    if (group.pinnedSheets && group.pinnedSheets.length > 0) {
+      this.pinSheetsToSheetList(group);
+    }
+    if (group.pinnedTags && group.pinnedTags.length > 0) {
+      this.sortTags(group);
+    }
   }
   pinSheetsToSheetList(group){
     var sortPinned = function(a, b) {
@@ -92,6 +96,17 @@ class GroupPage extends Component {
       return  ai < bi ? -1 : 1;
     };
     group.sheets.sort(sortPinned);
+  }
+  sortTags(group) {
+     var sortTags = function(a, b) {
+      var ai = group.pinnedTags.indexOf(a.tag);
+      var bi = group.pinnedTags.indexOf(b.tag);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.tags.sort(sortTags);
   }
   setTab(tab) {
     this.setState({tab: tab});
