@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, tfidf_related_sheet_topics, new_edge_type_research
+from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, tfidf_related_sheet_topics, new_edge_type_research, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
@@ -397,28 +397,28 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
         edge_inverses.add(edge_type['Edge Inverse'])
 
     # IS A links first so that validation will work on second pass
-    # for t in tqdm(topics, desc="intraTopic links is-a"):
-    #     topic = Topic().load({"alt_ids._temp_id": t['id']})
-    #     if topic is None:
-    #         print("Intra topic link topic is None: {}".format(t['id']))
-    #         continue
-    #     for edge_type, to_topic_list in t.get('edges', {}).items():
-    #         if edge_type in edge_inverses or edge_type != 'is a':
-    #             continue
-    #         linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
-    #         for to_topic_id in to_topic_list:
-    #             to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
-    #             if to_topic is None:
-    #                 # print(to_topic_id)
-    #                 continue
-    #             tl = IntraTopicLink({
-    #                 "class": "intraTopic",
-    #                 "fromTopic": topic.slug,
-    #                 "toTopic": to_topic.slug,
-    #                 "linkType": linkType.slug,
-    #                 "dataSource": "aspaklaria-edited-by-sefaria"
-    #             })
-    #             tl.save()
+    for t in tqdm(topics, desc="intraTopic links is-a"):
+        topic = Topic().load({"alt_ids._temp_id": t['id']})
+        if topic is None:
+            print("Intra topic link topic is None: {}".format(t['id']))
+            continue
+        for edge_type, to_topic_list in t.get('edges', {}).items():
+            if edge_type in edge_inverses or edge_type != 'is a':
+                continue
+            linkType = TopicLinkType().load({"slug": edge_type.replace(' ', '-')})
+            for to_topic_id in to_topic_list:
+                to_topic = Topic().load({"alt_ids._temp_id": to_topic_id})
+                if to_topic is None:
+                    # print(to_topic_id)
+                    continue
+                tl = IntraTopicLink({
+                    "class": "intraTopic",
+                    "fromTopic": topic.slug,
+                    "toTopic": to_topic.slug,
+                    "linkType": linkType.slug,
+                    "dataSource": "aspaklaria-edited-by-sefaria"
+                })
+                tl.save()
     num_invalid_links = 0
     for t in tqdm(topics, desc="intraTopic links is-not-a"):
         topic = Topic().load({"alt_ids._temp_id": t['id']})
@@ -699,6 +699,203 @@ def import_term_descriptions():
             set_term_descriptions(row[0], row[1], row[2], itls)
 
 
+def pre_dedup_topics():
+    """
+    Needs way more validation
+    a:
+        b
+        c
+    c:
+        b
+    :return:
+    """
+    def get_all_paths(start, path=None):
+        is_init = path is None
+        path = path or []
+        path += [start]
+        isa_set = inv_dedup_map[start]
+        paths = [path]
+        for isa_slug in isa_set:
+            if isa_slug not in path:
+                newpaths = get_all_paths(isa_slug, [p for p in path])
+                for newpath in newpaths:
+                    if newpath not in paths:
+                        paths += [newpath]
+        if is_init:
+            paths.sort(key=lambda x: len(x), reverse=True)
+            final_paths = []
+            for p in paths:
+                is_subset = False
+                for p2 in final_paths:
+                    if len(p2) > len(p) and p == p2[:len(p)]:
+                        is_subset = True
+                        break
+                if is_subset:
+                    continue
+                final_paths += [p]
+            paths = final_paths
+        return paths
+
+    with open("data/dup_topics - dup_topics.csv", 'r') as fin:
+        cin = csv.DictReader(fin)
+        dup_hard = list(cin)
+    with open("data/dup_topics - dup_topics easy.csv", 'r') as fin:
+        cin = csv.DictReader(fin)
+        dup_easy = list(cin)
+    dup_full = dup_easy + dup_hard
+    dedup_map = defaultdict(set)
+    inv_dedup_map = defaultdict(set)
+    curr_block = []
+    curr_key = None
+    for irow, row in enumerate(dup_full):
+        curr_block += [row]
+        if irow == len(dup_full) - 1 or len(dup_full[irow + 1]['Key']) > 0:
+            num_ps = len(list(filter(lambda x: x['Should Merge'] == 'p', curr_block)))
+            num_ys = len(list(filter(lambda x: x['Should Merge'] == 'y', curr_block)))
+            if num_ps > 1 or (num_ys == 0 and num_ps > 0) or (num_ys > 0 and num_ps == 0):
+                print("Issue with block with key {} has issues. Row # {}".format(curr_key, irow))
+            elif num_ps == 1:
+                p = list(filter(lambda x: x['Should Merge'] == 'p', curr_block))[0]
+                dedup_map[p['Slug']] |= {x['Slug'] for x in filter(lambda x: x['Should Merge'] == 'y', curr_block)}
+            curr_block = []
+            if irow < len(dup_full) - 1:
+                curr_key = dup_full[irow + 1]['Key']
+    for k, v in dedup_map.items():
+        for slug in v:
+            inv_dedup_map[slug].add(k)
+    final_dedup_map = defaultdict(set)
+    for k, v in dedup_map.items():
+        for slug in v:
+            all_paths = get_all_paths(slug)
+            parent_nodes = [p[-1] for p in all_paths]
+            if parent_nodes[1:] != parent_nodes[:-1]:
+                print('----')
+                for p in all_paths:
+                    print(p)
+            for p in all_paths:
+                for inner_slug in p[:-1]:
+                    final_dedup_map[p[-1]].add(inner_slug)
+    for k, v in final_dedup_map.items():
+        final_dedup_map[k] = list(v)
+    with open('data/final_dedup_map.json', 'w') as fout:
+        json.dump(final_dedup_map, fout, ensure_ascii=False, indent=2)
+
+
+def dedup_topics():
+    db.sheets.create_index('topics.slug')
+    with open("data/final_dedup_map.json", 'r') as fin:
+        dedup_map = json.load(fin)
+    for k, v in tqdm(dedup_map.items()):
+        main_topic = Topic().load({"slug": k})
+        for slug in v:
+            minor_topic = Topic().load({"slug": slug})
+            if main_topic is None:
+                print(main_topic, 'main')
+                continue
+            if minor_topic is None:
+                print(minor_topic, 'minor')
+                continue
+            main_topic.merge(minor_topic)
+
+
+def recat_toc():
+    TOC_MAP = {
+        'art': 'art',
+        'group-of-people': 'authors',
+        'people': 'authors',
+        'tanakh-people': 'tanakh',
+        "biblical-event": 'tanakh',
+        'biblical-source': 'tanakh',
+        "specific-biblical-person-relationship": 'tanakh',
+        'magic': 'aggadah',
+        'sustenance': 'food',
+        'place': 'geographic-locations',
+        'history': 'history',
+        'holiday': 'holidays1',
+        'language-entity': 'language',
+        'preposition': 'language',
+        'law': 'law',
+        'halachic-process1': 'law',
+        'halachic-role': 'law',
+        'philosophy': 'philosophy',
+        'freedom': 'philosophy',
+        'knowledge3': 'philosophy',
+        'prayer': 'prayer',
+        'brachah': 'prayer',
+        'theology': 'theology',
+        'theological-tenets': 'theology',
+        'divine-names1': 'theology',
+        'theological-process': 'theology',
+        'ethics': 'theology',
+        'halachic-role-of-inanimate-object': 'ritual-objects',
+        'science': 'science',
+        'group-of-animals': 'science',
+        'animals': 'science',
+        'plants': 'science',
+        'weather': 'science',
+        'middot': 'society',
+        'emotions1': 'society',
+        'role-of-person': 'society',
+        'specific-person-relationship': 'society',
+        'source': 'source'
+    }
+    cat_prefs = {
+        ('history', 'tanakh'): 'tanakh',
+        ('philosophy', 'theology'): 'theology',
+        ('history', 'theology'): 'theology',
+        ('law', 'ritual-objects'): 'ritual-objects',
+        ('society', 'tanakh'): 'tanakh',
+        ('authors', 'tanakh'): 'tanakh',
+        ('law', 'society'): 'law',
+        ('art', 'society'): 'art',
+        ('food', 'science'): 'food',
+        ('prayer', 'source', 'theology'): 'prayer'
+    }
+
+    display_links = IntraTopicLinkSet({'linkType': 'displays-under'})
+    display_map = {}
+    top_level = {t.slug: t.get_primary_title('en') for t in TopicSet({'isTopLevelDisplay': True})}
+    for l in display_links:
+        if l.fromTopic in display_map:
+            print("WARNING:", l.fromTopic, 'has value', display_map[l.fromTopic], 'not', l.toTopic)
+        display_map[l.fromTopic] = l.toTopic
+    ts = TopicSet({'numSources': {"$gte": 10}})
+    rows = []
+    for t in tqdm(ts, total=ts.count()):
+        row = {
+            "En": t.get_primary_title('en'),
+            "He": t.get_primary_title('he'),
+            "Num Sources": t.numSources,
+            "Slug": t.slug,
+            "Description": getattr(t, 'description', {}).get('en', '')
+        }
+        if t.slug in display_map:
+            row['Cat'] = top_level[display_map[t.slug]]
+            row['Cat Source'] = 'Old Mapping'
+        else:
+            types = t.get_types()
+            auto_matches = TOC_MAP.keys() & types
+            if len(auto_matches) == 0:
+                pass
+            else:
+                cats = set()
+                for match in auto_matches:
+                    cats.add(TOC_MAP[match])
+                cat_key = tuple(sorted(list(cats), key=lambda x: x))
+                if cat_key in cat_prefs:
+                    cats = [cat_prefs[cat_key]]
+                elif len(cats) > 1:
+                    print(row['En'], "CATS:", ', '.join(cats))
+                row['Cat'] = top_level[list(cats)[0]]
+                row['Cat Source'] = 'Auto-match'
+        rows += [row]
+
+    with open('recat.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Slug', 'Description'])
+        c.writeheader()
+        c.writerows(rows)
+
+
 if __name__ == '__main__':
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_data_source()
@@ -712,11 +909,12 @@ if __name__ == '__main__':
     do_ref_topic_link(slug_to_sheet_map)
     do_sheet_refactor(tag_to_slug_map)
     generate_topic_links_from_sheets()
+    dedup_topics()
     update_link_orders()
     import_term_descriptions()
     tfidf_related_sheet_topics()
     new_edge_type_research()
-
+    add_num_sources_to_topics()
 
     # clean_up_time()
 

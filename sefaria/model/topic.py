@@ -19,6 +19,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'description',
         'isTopLevelDisplay',
         'displayOrder',
+        'numSources'
     ]
     uncategorized_topic = 'uncategorized0000'
 
@@ -68,6 +69,55 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         """
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
+
+
+    def merge(self, other):
+        """
+        Merge all data associated with `other` into `self`.
+            Rewrite all links of `other`
+            Merge `alt_ids`
+            Merge `titles`
+            Merge `properties`
+            etc.
+        :param other: Topic
+        :return: None
+        """
+        from sefaria.system.database import db
+        if other is None:
+            return
+
+        # links
+        getattr(db, TopicLinkHelper.collection).update_many({'fromTopic': other.slug}, {"$set": {'fromTopic': self.slug}})
+        getattr(db, TopicLinkHelper.collection).update_many({'toTopic': other.slug}, {"$set": {'toTopic': self.slug}})
+
+        # source sheets
+        db.sheets.update_many({'topics.slug': other.slug}, {"$set": {'topics.$.slug': self.slug}})
+
+        # titles
+        for title in other.titles:
+            if title.get('primary', False):
+                del title['primary']
+        self.titles += other.titles
+
+        # dictionary attributes
+        for dict_attr in ['alt_ids', 'properties']:
+            temp_dict = getattr(self, dict_attr, {})
+            for k, v in getattr(other, dict_attr, {}).items():
+                if k in temp_dict:
+                    logger.warning('Key {} with value {} already exists in {} for topic {}. Current value is {}'.format(k, v, dict_attr, self.slug, temp_dict[k]))
+                    continue
+                temp_dict[k] = v
+            if len(temp_dict) > 0:
+                setattr(self, dict_attr, temp_dict)
+        setattr(self, 'numSources', getattr(self, 'numSources', 0) + getattr(other, 'numSources', 0))
+
+        # everything else
+        already_merged = ['slug', 'titles', 'alt_ids', 'properties', 'numSources']
+        for attr in filter(lambda x: x not in already_merged, self.required_attrs + self.optional_attrs):
+            if not getattr(self, attr, False) and getattr(other, attr, False):
+                setattr(self, attr, getattr(other, attr))
+        self.save()
+        other.delete()
 
 
 class TopicSet(abst.AbstractMongoSet):

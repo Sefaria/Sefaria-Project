@@ -51,9 +51,7 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
             # for related sheet links
             if link.get('order', {}).get('fromTfidf', None) is not None:
                 tfidf = link['order']['fromTfidf'] if is_inverse else link['order']['toTfidf']
-                numSources = link['order']['fromNumSources'] if is_inverse else link['order']['toNumSources']
                 link['order']['tfidf'] = tfidf
-                link['order']['numSources'] = numSources
                 del link['order']['fromTfidf']
                 del link['order']['toTfidf']
             if annotate_links:
@@ -71,6 +69,8 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
                     'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
                     'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
                 }
+                link['order'] = link.get('order', None) or {}
+                link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
             if link_type_slug in response['links']:
                 response['links'][link_type_slug]['links'] += [link]
             else:
@@ -83,17 +83,7 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
                     response['links'][link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
     if with_refs:
         # sort by relevance and group similar refs
-        def compare(a, b):
-            aord = a.get('order', {})
-            bord = b.get('order', {})
-            if not aord and not bord:
-                return 0
-            if bool(aord) != bool(bord):
-                return len(bord) - len(aord)
-            if aord.get('pr', 0) != bord.get('pr', 0):
-                return bord.get('pr', 0) - aord.get('pr', 0)
-            return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
-        response['refs'].sort(key=cmp_to_key(compare))
+        response['refs'].sort(key=cmp_to_key(sort_refs_by_relevance))
         subset_ref_map = defaultdict(list)
         new_refs = []
         for link in response['refs']:
@@ -111,6 +101,18 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
 
         response['refs'] = new_refs
     return response
+
+
+def sort_refs_by_relevance(a, b):
+    aord = a.get('order', {})
+    bord = b.get('order', {})
+    if not aord and not bord:
+        return 0
+    if bool(aord) != bool(bord):
+        return len(bord) - len(aord)
+    if aord.get('pr', 0) != bord.get('pr', 0):
+        return bord.get('pr', 0) - aord.get('pr', 0)
+    return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
 
 
 def generate_topic_links_from_sheets():
@@ -348,8 +350,8 @@ def calculate_other_ref_scores(ref_topic_map):
             except InputError:
                 continue
             tref_range_lists[tref] = [seg_ref.normal() for seg_ref in oref.range_list()]
-            tp = oref.index.best_time_period()
             try:
+                tp = oref.index.best_time_period()
                 year = int(tp.start) if tp else 3000
             except ValueError:
                 year = 3000
@@ -410,11 +412,8 @@ def tfidf_related_sheet_topics():
             doc_len[temp_slug] += counts['count']
 
     idf_dict = {}
-    num_sources = {}
     for slug, count in doc_topic_counts.items():
         idf_dict[slug] = math.log2(len(docs)/count)
-        all_refs = RefTopicLinkSet({"toTopic": topic})
-        num_sources[slug] = all_refs.count()
 
     # tf-idf
     id_score_map = defaultdict(dict)
@@ -422,16 +421,13 @@ def tfidf_related_sheet_topics():
         for temp_slug, counts in topic_counts.items():
             id_score_map[counts['id']][counts['dir']] = {
                 "tfidf": (counts['count'] * idf_dict[temp_slug]) / doc_len[slug],
-                "num_sources": num_sources[temp_slug]
             }
-
 
     # save
     for l in tqdm(itls, total=itls.count(), desc='save'):
         score_dict = id_score_map[str(l._id)]
         for dir, inner_score_dict in score_dict.items():
             l.order[dir + 'Tfidf'] = inner_score_dict['tfidf']
-            l.order[dir + 'NumSources'] = inner_score_dict['num_sources']
         l.save()
 
 
@@ -451,3 +447,19 @@ def new_edge_type_research():
         if ft.has_types({'people'}) and tt.has_types({'history'}):
             l.linkType = 'person-participates-in-event'
             l.save()
+    itls = IntraTopicLinkSet({"linkType": "member-of"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'people'}) and tt.has_types({'a-people'}):
+            l.linkType = 'leader-of'
+            l.save()
+
+
+def add_num_sources_to_topics():
+    from tqdm import tqdm
+    ts = TopicSet()
+    for t in tqdm(ts, total=ts.count()):
+        num_sources = RefTopicLinkSet({"toTopic": t.slug}).count()
+        setattr(t, 'numSources', num_sources)
+        t.save()
