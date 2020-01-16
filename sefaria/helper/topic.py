@@ -69,6 +69,8 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
                     'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
                     'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
                 }
+                if not getattr(other_topic, 'shouldDisplay', True):
+                    link['shouldDisplay'] = other_topic.shouldDisplay
                 link['order'] = link.get('order', None) or {}
                 link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
             if link_type_slug in response['links']:

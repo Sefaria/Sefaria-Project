@@ -19,7 +19,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'description',
         'isTopLevelDisplay',
         'displayOrder',
-        'numSources'
+        'numSources',
+        'shouldDisplay'
     ]
     uncategorized_topic = 'uncategorized0000'
 

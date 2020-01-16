@@ -328,6 +328,7 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => (
         <div className="sideList">
           {
             links
+            .filter(l => l.shouldDisplay === false)
             .sort((a, b) => {
               const aVotes = !!a.order && a.order.tfidf;
               const bVotes = !!b.order && b.order.tfidf;

@@ -4402,6 +4402,8 @@ class Library(object):
             kids = defaultdict(list)
             for link in topic_links:
                 from_topic = Topic().load({'slug': link.fromTopic})
+                if not getattr(from_topic, 'shouldDisplay', True):
+                    continue
                 kids[link.toTopic] += [{
                     "slug": from_topic.slug,
                     "en": from_topic.get_primary_title("en"),
