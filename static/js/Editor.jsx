@@ -147,7 +147,7 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text}${tagStringObj.postTags}`)
+        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br/>')}${tagStringObj.postTags}`)
     }
 
     if (content.type == "link") {
@@ -280,7 +280,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml.replace(/[\n\r\t]/gm, "")), 'text/html');
+    const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml), 'text/html');
     const fragment = deserialize(parsed.body);
     return fragment.length > 0 ? fragment : [{text: ''}];
 }
@@ -422,7 +422,7 @@ const Element = ({attributes, children, element}) => {
 
         case 'SheetOutsideBiText':
             return (
-                <div {...attributes}>
+                <div className="SheetOutsideBiText" {...attributes}>
                     {children}
                 </div>
             );
@@ -564,10 +564,8 @@ const getFirstSefRefInSheetItem = (editor) => {
 };
 
 
-
 const withSefariaSheet = editor => {
-    const {isVoid} = editor;
-
+    const {isVoid, normalizeNode} = editor;
 
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
@@ -595,6 +593,95 @@ const withSefariaSheet = editor => {
         editor.insertText("\n");
 
     };
+
+
+    editor.normalizeNode = entry => {
+      const [node, path] = entry
+
+      // if (node.type == "en" || node.type == "he") {
+      //   console.log(node, path)
+      //   for (const [child, childPath] of Node.children(editor, path)) {
+      //       console.log(child.type)
+      //   }
+      // }
+
+      let sheetElementTypes = Object.values(sheet_item_els);
+
+      if (sheetElementTypes.includes(node.type) || ["en", "he"].includes(node.type)) {
+        for (const [child, childPath] of Node.children(editor, path)) {
+          if ("text" in child) {
+            Transforms.wrapNodes(editor,{ type: 'paragraph', children: [] },{at: childPath,})
+            return
+          }
+        }
+      }
+
+
+      if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
+        for (const [child, childPath] of Node.children(editor, path)) {
+          if (sheetElementTypes.includes(child.type) || child.type == "SheetItem") {
+            Transforms.unwrapNodes(editor, { at: childPath })
+            return
+          }
+        }
+
+      }
+
+
+
+    //
+    //   if (["en", "he"].includes(node.type) && Node.parent(editor, path).type == "SheetSource") {
+    //     for (const [child, childPath] of Node.children(editor, path)) {
+    //     if ("text" in child) {
+    //       Transforms.wrapNodes(editor,{ type: 'paragraph', children: [] },{at: childPath,})
+    //       return
+    //     }
+    //
+    //     if (sheetElementTypes.includes(child.type) || child.type == "SheetItem") {
+    //       Transforms.unwrapNodes(editor, { at: childPath })
+    //       return
+    //     }
+    //
+    //   }
+    // }
+
+
+
+      if (node.type == "SheetSource") {
+          console.log(node.children.length)
+          if (node.children.length > 4) {
+          for (const [child, childPath] of Node.children(editor, path)) {
+              if (!["en", "he", "TextRef"].includes(child.type)) {
+                [prev, prevPath] = Editor.previous(editor, { at: childPath });
+                console.log(child)
+                console.log(prev)
+                console.log("-------------------")
+                Transforms.mergeNodes(editor, { at: childPath})
+                return
+              }
+              console.log(child)
+            }
+          }
+      }
+
+
+      // if (node.type == "SheetSource") {
+      //   if (node.children.length > 4) {
+      //     for (const [child, childPath] of Node.children(editor, path)) {
+      //       if (childPath.pop() >= 4) {
+      //         childPath.push(4)
+      //         console.log(childPath)
+      //         Transforms.mergeNodes(editor, { at: childPath })
+      //         return
+      //       }
+      //     }
+      //   }
+      // }
+      //
+
+      // Fall back to the original `normalizeNode` to enforce other constraints.
+      normalizeNode(entry)
+    }
 
     return editor
 };
@@ -673,170 +760,6 @@ const insertSource = (editor, ref) => {
 
     });
 };
-//
-// const withSheetData2 = editor => {
-//     const {exec, isVoid, normalizeNode} = editor;
-//
-//     editor.normalizeNode = ([node, path]) => {
-//       // const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
-//       //
-//       // const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
-//       const sheet = editor.children[0]
-//       const emptyOutsideText = {type: "SheetItem", children: [{type: "SheetOutsideText",node: 1, children: [{type: "paragraph", children: [{text: ""}]}],}]}
-//       const defaultSheetTitle = {type: 'SheetTitle', title: sheet.title, children: [{text: sheet.title}]}
-//       const defaultSheetAuthorStatement = {type: 'SheetAuthorStatement', authorUrl: sheet.authorUrl, authorStatement: sheet.authorStatement, children: [{type: 'ProfilePic', authorImage: sheet.authorImage, authorStatement: sheet.authorStatement, children: [{text: ''}]}, {text: ''}]}
-//       const defaultGroupStatement = {type: 'GroupStatement', group: sheet.group, groupLogo: sheet.groupLogo, children: [{text: sheet.group}]}
-//       const defaultMetaDataBox = {type: 'SheetMetaDataBox', children: [defaultSheetTitle, defaultSheetAuthorStatement, defaultGroupStatement]}
-//
-//       if (node.type === 'Sheet') {
-//         if(node.children[1].type != "SheetContent") {
-//             const fragment = {type: "SheetContent", children: [emptyOutsideText]}
-//             Editor.insertNodes(editor, fragment, { at: path.concat(1)})
-//         }
-//         if(node.children[0].type != "SheetMetaDataBox") {
-//             Editor.insertNodes(editor, defaultMetaDataBox, { at: path.concat(0)})
-//         }
-//         if (node.children.length > 2) {
-//             Editor.removeNodes(editor, {at: [0,2]})
-//         }
-//       }
-//
-//       if (node.type === 'SheetMetaDataBox') {
-//         if (node.children[0].type !== 'SheetTitle' || node.children[1].type !== 'SheetAuthorStatement' || node.children[2].type !== 'GroupStatement') {
-//           Editor.insertNodes(editor, defaultMetaDataBox, { at: path})
-//         }
-//       }
-//
-//       if (node.type === 'SheetContent') {
-//         if (node.children.length ==0) {
-//           const fragment = emptyOutsideText
-//           Editor.insertNodes(editor, fragment, { at: path.concat(0)})
-//         }
-//       }
-//
-//
-//       // if (path.length === 0) { //start at editor level -- one above sheet
-//       //   if (editor.children.length > 1) {
-//       //     console.log("need to deal with extra nodes beyond sheet")
-//       //   }
-//       //
-//       //   if (editor.children.length < 2) {
-//       //     const paragraph = { type: 'paragraph', children: [{ text: '' }] }
-//       //     // Editor.insertNodes(editor, paragraph, { at: path.concat(1) })
-//       //   }
-//       //
-//       //   for (const [child, childPath] of Node.children(editor, path)) {
-//       //     const type = childPath[0] === 0 ? 'title' : 'paragraph'
-//       //
-//       //     if (child.type !== type) {
-//       //       // Editor.setNodes(editor, { type }, { at: childPath })
-//       //     }
-//       //   }
-//       // }
-//
-//       return normalizeNode([node, path])
-//     }
-//
-//
-//
-//
-//
-//     editor.exec = command => {
-//       // console.log(command)
-//         switch (command.type) {
-//
-//
-//                 case 'SheetSource': {
-//                   Sefaria.getText(command.sefRef).then(text => {
-//                       const enText =  Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
-//                       const heText =  Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
-//
-//                       const fragment = {
-//                           type: "SheetItem",
-//                           children: [{
-//                               type: "SheetSource",
-//                               node: editor.children[0].nextNode,
-//                               ref: text.ref,
-//                               heRef: text.heRef,
-//                               title: null,
-//                               children: [
-//                                   {
-//                                       type: "TextRef",
-//                                       ref: text.ref,
-//                                       refText: text.heRef,
-//                                       lang: "he",
-//                                       children: [{text: text.heRef}]
-//                                   },
-//                                   {
-//                                       type: "he",
-//                                       children: parseSheetItemHTML(heText)
-//                                   },
-//                                   {
-//                                       type: "TextRef",
-//                                       ref: text.ref,
-//                                       refText: text.ref,
-//                                       lang: "en",
-//                                       children: [{text: text.ref}]
-//                                   },
-//                                   {
-//                                       type: "en",
-//                                       children: parseSheetItemHTML(enText)
-//                                   }
-//                               ]
-//
-//                           }]
-//                       };
-//
-//                       Editor.setNodes(editor, { nextNode: editor.children[0].nextNode + 1 }, { at: [0] })
-//                       Editor.insertNodes(editor, fragment, {at: command.activeSheetItem})
-//                       editor.exec({ type: 'delete_backward', unit: 'line'})
-//                       editor.exec({ type: 'delete_backward', unit: 'character'})
-//                       // Editor.removeNodes(editor, { at: getNextSheetItemPath(command.activeSheetItem) })
-//                   });
-//                   break
-//                 }
-//
-//                 default: {
-//                     break
-//                 }
-//
-//
-//               }
-//               break
-//             }
-//
-//             case 'insert_break': {
-//
-//
-//                 if(isSelectionFocusAtEndOfSheetItem(editor)) {
-//                   const activeSheetItem = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1]
-//
-//                   const matchingRef = getFirstSefRefInRange(editor, activeSheetItem)
-//
-//                   if (matchingRef && matchingRef[0] == matchingRef.input) {
-//                     editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetSource', activeSheetItem: activeSheetItem, sefRef: matchingRef[0]})
-//                     break
-//                 }
-//
-//
-//                   editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetOutsideText', activeSheetItem: activeSheetItem})
-//                   break
-//                 }
-//                 exec(command)
-//                 break
-//             }
-//
-//             default: {
-//                 exec(command);
-//                 break
-//             }
-//         }
-//     }
-//
-//
-//     return editor
-// }
-
 
 const withLinks = editor => {
   const { insertData, insertText, isInline } = editor

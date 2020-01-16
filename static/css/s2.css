@@ -6367,6 +6367,14 @@ span.purim-emoji img{
   padding-left: 34px;
 }
 
+.sheetItem .SheetOutsideBiText {
+  border-left: 4px solid;
+  margin-left: -34px;
+  padding-left: 34px;
+  border-color: #073570;
+}
+
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
