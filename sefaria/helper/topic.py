@@ -126,8 +126,8 @@ def generate_topic_links_from_sheets():
     from tqdm import tqdm
 
     RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+    IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
     all_topics = {}
-    results = []
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
     projection = {"topics": 1, "includedRefs": 1, "owner": 1}
     # ignore sheets that are copies or were assignments
@@ -154,6 +154,7 @@ def generate_topic_links_from_sheets():
                     all_topics[slug]["related_topics_dict"][related_topic_dict['slug']].add(sheet['owner'])
 
     already_created_related_links = {}
+    related_links = []
     for slug, blob in tqdm(all_topics.items(), desc="creating sheet topic links"):
         # filter related topics with less than 2 users who voted for it
         related_topics = [related_topic for related_topic in blob['related_topics_dict'].items() if len(related_topic[1]) >= 2]
@@ -164,16 +165,21 @@ def generate_topic_links_from_sheets():
             if already_created_related_links.get(key, False):
                 continue
             already_created_related_links[key] = True
-            tl = IntraTopicLink({
-                "class": "intraTopic",
-                "fromTopic": related_topic,
-                "toTopic": slug,
-                "linkType": "sheets-related-to",
-                "dataSource": "sefaria-users",
-                "generatedBy": "sheet-topic-aggregator",
-                "order": {"user_votes": len(user_votes)}
-            })
-            tl.save()
+            related_links += [{
+                'a': related_topic,
+                'b': slug,
+                'user_votes': len(user_votes)
+            }]
+            # tl = IntraTopicLink({
+            #     "class": "intraTopic",
+            #     "fromTopic": related_topic,
+            #     "toTopic": slug,
+            #     "linkType": "sheets-related-to",
+            #     "dataSource": "sefaria-users",
+            #     "generatedBy": "sheet-topic-aggregator",
+            #     "order": {"user_votes": len(user_votes)}
+            # })
+            # tl.save()
         # filter sources with less than 2 users who added it
         sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 2]
 
@@ -196,8 +202,6 @@ def generate_topic_links_from_sheets():
             max_count = max(counts)
             if max_count >= 3:
                 temp_sources += [(ranged_ref.normal(), [r.normal() for r in ranged_ref.range_list()], avg_count)]
-            # else:
-            #     print("Rejected!", max_count, slug, ranged_ref.normal())
         sources = temp_sources
 
         # create links
@@ -214,8 +218,58 @@ def generate_topic_links_from_sheets():
                 "order": {"user_votes": source[2]}
             })
             rtl.save()
-        # related_topics = sorted(iter(related_topics_dict.items()), key=lambda k_v1: k_v1[1], reverse=True)
-        # related_topics = [topic for topic in related_topics if topic[0] in topics]
+    tfidf_related_sheet_topics(related_links)
+
+
+def tfidf_related_sheet_topics(related_links):
+    import math
+    from tqdm import tqdm
+    from sefaria.system.database import db
+
+    MIN_SCORE_THRESH = 0.1  # min tfidf score that will be saved in db
+
+    docs = defaultdict(dict)
+    for l in tqdm(related_links, desc='init'):
+        docs[l['a']][l['b']] = {"dir": 'to', 'count': l['user_votes'], 'id': '{}|{}'.format(l['a'], l['b'])}
+        docs[l['b']][l['a']] = {"dir": 'from', 'count': l['user_votes'], 'id': '{}|{}'.format(l['a'], l['b'])}
+
+    # idf
+    doc_topic_counts = defaultdict(int)
+    doc_len = defaultdict(int)
+    for slug, topic_counts in docs.items():
+        for temp_slug, counts in topic_counts.items():
+            doc_topic_counts[temp_slug] += 1
+            doc_len[temp_slug] += counts['count']
+    idf_dict = {slug: math.log2(len(docs)/count) for slug, count in doc_topic_counts.items()}
+
+    # tf-idf
+    id_score_map = defaultdict(dict)
+    for slug, topic_counts in docs.items():
+        for temp_slug, counts in topic_counts.items():
+            id_score_map[counts['id']][counts['dir']] = {
+                "tfidf": (counts['count'] * idf_dict[temp_slug]) / doc_len[slug],
+            }
+
+    # filter
+    final_related_links = []
+    for l in tqdm(related_links, desc='save'):
+        score_dict = id_score_map[str(l._id)]
+        for dir, inner_score_dict in score_dict.items():
+            if inner_score_dict['tfidf'] >= MIN_SCORE_THRESH:
+                is_inverse = dir == 'from'
+                final_related_links += [{
+                    "class": "intraTopic",
+                    'fromTopic': l['b'] if is_inverse else l['a'],
+                    'toTopic': l['a'] if is_inverse else l['b'],
+                    "linkType": "sheets-related-to",
+                    "dataSource": "sefaria-users",
+                    "generatedBy": "sheet-topic-aggregator",
+                    "order": {"tfidf": inner_score_dict['tfidf']}
+                }]
+
+    # save
+    db.topic_links.insert_many(final_related_links, ordered=False)
+
 
 
 def tokenize_words_for_tfidf(text, stopwords):
@@ -393,43 +447,6 @@ def update_link_orders():
                 setattr(l, 'order', order)
             except KeyError:
                 print("KeyError", key)
-        l.save()
-
-
-def tfidf_related_sheet_topics():
-    import math
-    from tqdm import tqdm
-    itls = IntraTopicLinkSet({"linkType": "sheets-related-to"})
-    docs = defaultdict(dict)
-    for l in tqdm(itls, total=itls.count(), desc='init'):
-        docs[l.fromTopic][l.toTopic] = {"dir": 'to', 'count': l.order['user_votes'], 'id': str(l._id)}
-        docs[l.toTopic][l.fromTopic] = {"dir": 'from', 'count': l.order['user_votes'], 'id': str(l._id)}
-
-    # idf
-    doc_topic_counts = defaultdict(int)
-    doc_len = defaultdict(int)
-    for slug, topic_counts in docs.items():
-        for temp_slug, counts in topic_counts.items():
-            doc_topic_counts[temp_slug] += 1
-            doc_len[temp_slug] += counts['count']
-
-    idf_dict = {}
-    for slug, count in doc_topic_counts.items():
-        idf_dict[slug] = math.log2(len(docs)/count)
-
-    # tf-idf
-    id_score_map = defaultdict(dict)
-    for slug, topic_counts in docs.items():
-        for temp_slug, counts in topic_counts.items():
-            id_score_map[counts['id']][counts['dir']] = {
-                "tfidf": (counts['count'] * idf_dict[temp_slug]) / doc_len[slug],
-            }
-
-    # save
-    for l in tqdm(itls, total=itls.count(), desc='save'):
-        score_dict = id_score_map[str(l._id)]
-        for dir, inner_score_dict in score_dict.items():
-            l.order[dir + 'Tfidf'] = inner_score_dict['tfidf']
         l.save()
 
 

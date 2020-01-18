@@ -346,11 +346,12 @@ def do_topic_link_types():
             "he": "Related By Sheets"
         },
         "inverseDisplayName": {
-            "en": "Related By Sheets",
-            "he": "Related By Sheets"
+            "en": "Has Related By Sheets",
+            "he": "Has Related By Sheets"
         },
         "shouldDisplay": True,
-        "inverseShouldDisplay": True
+        "groupRelated": True,
+        "inverseShouldDisplay": False
     })
     tlt.save()
 
