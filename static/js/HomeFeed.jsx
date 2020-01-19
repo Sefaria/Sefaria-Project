@@ -62,7 +62,7 @@ function HomeFeed(props) {
                         </h2>
                         <div className="description systemText">
                             <span className="int-en">Explore commentaries, connections and translations across our free, ever-growing library of texts.</span>
-                            <span className="int-he">למידה בספריא היא תהליך פשוט, יפיפה ורב עוצמה. מצאו פרשנויות, יחסים אינטרטקסטואליים ותרגומים ברחבי ספריית הטקסטים החינמית והמתרחבת שלנו.</span>
+                            <span className="int-he">למידה בספריא היא תהליך פשוט, יפהפה ורב עוצמה. מצאו פרשנויות, יחסים אינטרטקסטואליים ותרגומים ברחבי ספריית הטקסטים החינמית והמתרחבת שלנו.</span>
                         </div>
                     </div>
                     <div className="imageBox">
