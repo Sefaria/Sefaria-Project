@@ -170,6 +170,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     valid_links = []
 
     def _pre_save(self):
+        # check for duplicates
         if getattr(self, "_id", None) is None:
             # check for duplicates
             duplicate = IntraTopicLink().load(
@@ -195,6 +196,11 @@ class IntraTopicLink(abst.AbstractMongoRecord):
             assert from_topic.has_types(set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+
+        # assert this link doesn't create circular paths (is_a)
+        to_topic = Topic().load({"slug":self.toTopic})
+        ancestors = to_topic.get_types()
+        assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
 
 
 
