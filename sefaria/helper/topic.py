@@ -271,7 +271,6 @@ def tfidf_related_sheet_topics(related_links):
     db.topic_links.insert_many(final_related_links, ordered=False)
 
 
-
 def tokenize_words_for_tfidf(text, stopwords):
     from sefaria.utils.hebrew import strip_cantillation
 
@@ -396,7 +395,8 @@ def calculate_other_ref_scores(ref_topic_map):
     LANGS_CHECKED = ['en', 'he']
     num_datasource_map = {}
     langs_available = {}
-    ref_order_map = {}
+    comp_date_map = {}
+    order_id_map = {}
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate other ref scores'):
         seg_ref_counter = defaultdict(int)
         tref_range_lists = {}
@@ -411,24 +411,27 @@ def calculate_other_ref_scores(ref_topic_map):
                 year = int(tp.start) if tp else 3000
             except ValueError:
                 year = 3000
-            ref_order_map[(topic, tref)] = year
+            comp_date_map[(topic, tref)] = year
+            order_id_map[(topic, tref)] = oref.order_id()
             langs_available[(topic, tref)] = [lang for lang in LANGS_CHECKED if oref.is_text_fully_available(lang)]
             for seg_ref in tref_range_lists[tref]:
                 seg_ref_counter[seg_ref] += 1
         for tref in ref_list:
             range_list = tref_range_lists.get(tref, None)
             num_datasource_map[(topic, tref)] = 0 if range_list is None else max(seg_ref_counter[seg_ref] for seg_ref in range_list)
-    return num_datasource_map, langs_available, ref_order_map
+    return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
 def update_link_orders():
     from tqdm import tqdm
     from sefaria.system.database import db
+    from pymongo import UpdateOne
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
-    num_datasource_map, langs_available, ref_order_map = calculate_other_ref_scores(ref_topic_map)
+    num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
     pr_map = calculate_pagerank_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
+    updates = []
     for l in tqdm(ref_topic_links, total=total, desc='update link orders'):
         if l.is_sheet:
             sheet = db.sheets.find_one({"id": int(l.ref.replace("Sheet ", ""))}, {"views": 1})
@@ -441,13 +444,18 @@ def update_link_orders():
                     'tfidf': topic_tref_score_map[key],
                     'numDatasource': num_datasource_map[key],
                     'availableLangs': langs_available[key],
-                    'ref': ref_order_map[key],
+                    'comp_date': comp_date_map[key],
+                    'order_id': order_id_map[key],
                     'pr': pr_map[key]
                 })
                 setattr(l, 'order', order)
             except KeyError:
                 print("KeyError", key)
-        l.save()
+                continue
+        updates += [{'order': l.order, '_id': l._id}]
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l['_id']}, {"$set": {"order": l['order']}}) for l in updates
+    ])
 
 
 def new_edge_type_research():

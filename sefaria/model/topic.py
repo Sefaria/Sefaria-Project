@@ -88,8 +88,24 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return
 
         # links
-        getattr(db, TopicLinkHelper.collection).update_many({'fromTopic': other.slug}, {"$set": {'fromTopic': self.slug}})
-        getattr(db, TopicLinkHelper.collection).update_many({'toTopic': other.slug}, {"$set": {'toTopic': self.slug}})
+        for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other.slug}, {"fromTopic": other.slug}]}):
+            if link.linkType == TopicLinkType.isa_type and link.toTopic == Topic.uncategorized_topic :
+                # no need to merge uncategorized is-a links
+                link.delete()
+                continue
+            attr = 'toTopic' if link.toTopic == other.slug else 'fromTopic'
+            setattr(link, attr, self.slug)
+            if getattr(link, 'fromTopic', None) == link.toTopic:
+                # self-link
+                link.delete()
+                continue
+            try:
+                link.save()
+            except DuplicateRecordError:
+                link.delete()
+            except AssertionError as e:
+                link.delete()
+                logger.warning('While merging {} into {}, link assertion failed with message "{}"'.format(other.slug, self.slug, str(e)))
 
         # source sheets
         db.sheets.update_many({'topics.slug': other.slug}, {"$set": {'topics.$.slug': self.slug}})
@@ -156,14 +172,6 @@ class TopicLinkHelper(object):
 
 
 class IntraTopicLink(abst.AbstractMongoRecord):
-    """
-    How to validate:
-        <person link type>: make sure both sides are people (exceptions are has-role and member-of)
-        has-role: target is role, source is independent continuant
-        member-of: target is group, source is independent continuant
-        has-cause: both sides are processes
-
-    """
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
@@ -207,7 +215,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
-    optional_attrs = TopicLinkHelper.optional_attrs
+    optional_attrs = TopicLinkHelper.optional_attrs + ['text']
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:

@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, tfidf_related_sheet_topics, new_edge_type_research, add_num_sources_to_topics
+from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, new_edge_type_research, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
@@ -909,11 +909,10 @@ if __name__ == '__main__':
     do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
     do_ref_topic_link(slug_to_sheet_map)
     do_sheet_refactor(tag_to_slug_map)
-    generate_topic_links_from_sheets()
     dedup_topics()
+    generate_topic_links_from_sheets()
     update_link_orders()
     import_term_descriptions()
-    tfidf_related_sheet_topics()
     new_edge_type_research()
     add_num_sources_to_topics()
 
