@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Daf Yomi | Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Learn the Talmud each day with Daf Yomi on Sefaria." %}{% endblock %}
+
+{% block css %}
+
+{% endblock %}
+
+{% block content %}
+<div id="dafyomiPage" class="static">
+  <div id="dafyomiPageHeader">
+    <div class="sectionInner sectionRegular flexContainer flexReverse">
+      <div id="dafyomiPageHeaderText" class="">
+        <h1>
+          <img src="/static/img/logo.svg" class="svg-white" alt="Sefaria Logo" />
+        </h1>
+        <div id="dafyomiPageSubHeaderText">
+          <h2>
+            <span class="int-en">Where Daf Yomi Comes to Life</span>
+            <span class="int-he">לימוד הדף היומי</span>
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dafyomiDescription" class="center">
+    <div class="sectionInner sectionRegular">
+      <p>
+        <span class="int-en">
+          Learning Daf Yomi is now easier than ever. Sefaria’s library includes complete English and modern Hebrew translations of Talmud. Learn with connections to Torah, Midrash, Halakhah, and more — anywhere, anytime. </span>
+        <span class="int-he">
+          לימוד הדף היומי נעשה קל ונגיש. הספרייה של ספריא כוללת תרגומים מלאים של התלמוד לעברית מודרנית ולאנגלית. תוכלו ללמוד את התלמוד עם קישורים לתורה, מדרש, הלכה, ועוד - בכל מקום ובכל זמן.
+        </span>
+
+        <div tabindex="0" role="button" class="button">
+          <a href="/todays-daf-yomi">
+            <span class="int-en">Learn Daf Yomi Today</span>
+            <span class="int-he">למדו את הדף היומי- היום</span>
+          </a>
+        </div>
+      </p>
+
+    </div>
+  </div>
+
+  <div id="dafyomiWhatIs">
+    <div class="sectionInner flexContainer sectionRegular">
+      <div class="dafyomiWhatIsText">
+        <h3 class="dafyomiWhatIsTitle">
+          <span class="int-en">What is Daf Yomi?</span>
+          <span class="int-he">מהו הדף היומי?</span>
+        </h3>
+        <p class="dafyomiWhatIsDescription">
+          <span class="int-en">
+            Daf Yomi (Hebrew: דף יומי Daf Yomi, "page of the day") is a daily regimen of learning Talmud. All 2,711 pages of the Babylonian Talmud are covered in sequence, in a cycle of seven and a half years. The first cycle of Daf Yomi began on
+            Rosh Hashanah in 1923 across Europe, America, and Israel with the first page of the first tractate of the Talmud, Berakhot. The 14th Daf Yomi cycle starts in January 2020.
+          </span>
+          <span class="int-he">
+            פרוייקט הדף היומי הוא חלוקה של התלמוד הבבלי למקטעי לימוד יומיים. מידי יום לומדים קטע אחד עד להשלמת לימוד התלמוד כולו. 2,711 עמודי התלמוד נלמדים ברצף ע"י חלוקה זו, וכך מחזור אחד של לימוד התלמוד אורך שבע וחצי שנים. המחזור הראשון של הדף
+            היומי החל בראש השנה של שנת 1923 ברחבי אירופה, אמריקה וישראל, בלימוד העמוד הראשון של המסכת הראשונה של התלמוד, מסכת ברכות. מחזור הדף היומי הבא, ה -14 במספר, יתחיל בחודש טבת תש"פ, ינואר 2020.
+          </span>
+        </p>
+      </div>
+      <div id="dafyomiWhatIsImage">
+        <img class="button-icon" src="/static/img/daf-yomi-landing-page/oldtalmud.png" alt="image of a printed Talmud">
+      </div>
+
+    </div>
+  </div>
+
+  <div id="dafyomiExamples">
+    <div class="dafyomiExamplesHeader">
+      <h3 class="headerText">
+        <span class="int-en">Sefaria and Daf Yomi Go Hand-In-Hand</span>
+        <span class="int-he">ספריא והדף היומי הולכים יד ביד</span>
+      </h3>
+    </div>
+    <div class="sectionInner sectionRegular">
+      <div id="dafyomiExampleMobileApp" class="example flexContainer">
+        <div class="dafyomiExampleText">
+          <div class="dafyomiExampleHeader">
+            <h3>
+              <span class="int-en">Mobile App</span>
+              <span class="int-he">אפליקציה לנייד</span>
+            </h3>
+          </div>
+          <p class="int-en">
+            Learn a page of Gemara a day on-the-go with Sefaria’s mobile apps for iOS and Android. </p>
+          <p class="int-he">
+            למדו את הדף היומי תוך כדי תנועה, בעזרת האפליקציה לנייד של ספריא – קיימות גרסאות לאייפון ולאנדרואיד.
+          </p>
+        </div>
+        <div class="dafyomiExampleImage">
+          <span class="int-en"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/dafyomi_mobileapp.png" %}" alt="screenshot of Sefaria Mobile app"></span>
+          <span class="int-he"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/DafYomi_mobileapp_Hebrew.png" %}" alt="screenshot of Sefaria Mobile app"></span>
+        </div>
+      </div>
+      <div id="dafyomiExampleCalendar" class="example flexContainer">
+        <div class="dafyomiExampleText">
+          <div class="dafyomiExampleHeader">
+            <h3>
+              <span class="int-en">Calendar</span>
+              <span class="int-he">לוח שנה</span>
+            </h3>
+          </div>
+          <p class="int-en">
+            Access today’s page by using the Calendar link in the table of contents. </p>
+          <p class="int-he">
+            היכנסו לדף היומי ע"י שימוש בקישור ליומן- בתוכן העניינים.
+          </p>
+        </div>
+        <div class="dafyomiExampleImage">
+          <span class="int-en"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/dafyomi_cal 1.png" %}" alt="screenshot of calendar on Sefaria app"></span>
+          <span class="int-he"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/dafyomi_cal_Hebrew.png" %}" alt="screenshot of calendar on Sefaria app"></span>
+        </div>
+      </div>
+      <div id="dafyomiExampleTranslations" class="example flexContainer">
+        <div class="dafyomiExampleText">
+          <div class="dafyomiExampleHeader">
+            <h3>
+              <span class="int-en">Translations</span>
+              <span class="int-he">תרגומים</span>
+            </h3>
+          </div>
+          <p class="int-en">
+            Sefaria is home to a free, fully translated online Talmud — The William Davidson Talmud is
+            complete with English and modern Hebrew translations </p>
+          <p class="int-he">
+            בספריא תוכלו למצוא את כל התלמוד בצורה מקוונת וחינמית במהדורת ויליאם דוידסון- הכוללת תרגום לעברית מודרנית ולאנגלית.
+          </p>
+        </div>
+        <div class="dafyomiExampleImage">
+          <span class="int-en"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/dafyomi_translations 1.png" %}" alt="screenshot of multiple translations on Sefaria app"></span>
+          <span class="int-he"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/dafyomi_translations 1.png" %}" alt="screenshot of multiple translations on Sefaria app"></span>
+        </div>
+      </div>
+      <div id="dafyomiExampleConnections" class="example flexContainer">
+        <div class="dafyomiExampleText">
+          <div class="dafyomiExampleHeader">
+            <h3>
+              <span class="int-en">Connections</span>
+              <span class="int-he">קישורים</span>
+            </h3>
+          </div>
+          <p class="int-en">
+            Easily navigate to all the major commentaries and discover how the text connects to Tanakh,
+            Halakhah, Midrash, and more. </p>
+          <p class="int-he">
+            תוכלו לנווט בקלות אל כל הפרשנים המרכזיים ולגלות כיצד הטקסט מתקשר לתנ"ך, להלכה, למדרש ועוד.
+          </p>
+        </div>
+        <div class="dafyomiExampleImage">
+          <span class="int-en"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/dafyomi_connections 1.png" %}" alt="screenshot of commentaries on app"></span>
+          <span class="int-he"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/dafyomi_connections_hebrew.png" %}" alt="screenshot of commentaries on app"></span>
+        </div>
+      </div>
+
+      <div id="dafyomiMoreToExplore" class="example flexContainer">
+        <div class="dafyomiExampleText">
+          <div class="dafyomiExampleHeader">
+            <h3>
+              <span class="int-en">More to Explore</span>
+              <span class="int-he">קישורים</span>
+            </h3>
+          </div>
+            <ul class="int-en">
+              <li>Built-in Jastrow dictionary</li>
+              <li>Take notes without leaving the page while on desktop</li>
+              <li>Learn with commentaries not included in Vilna Shas</li>
+              <li>Bookmark <a href="/todays-daf-yomi">sefaria.org/todays-daf-yomi</a> for the daily page at the click of a button</li>
+            </ul>
+            <ul class="int-he">
+              <li>אפשרות לרישום הערות על הדף</li>
+              <li>לימוד גמרא עם פרשנים שלא כלולים בש"ס וילנה</li>
+              <li>הוסיפו את הסימניה של הדף היומי של ספריא <a href="/todays-daf-yomi">sefaria.org/todays-daf-yomi</a> למועדפים שלכם ותוכלו לקבל את הדף היומי בכל עת בלחיצת כפתור.</li>
+            </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dafyomiWhatsNew">
+    <div class="sectionInner flexContainer sectionRegular">
+      <div class="dafyomiWhatsNewText">
+        <span class="dafyomiWhatsNewNew">
+          <span class="int-en">New</span>
+          <span class="int-he">חדש</span>
+        </span>
+        <h3 class="dafyomiWhatsNewTitle">
+          <span class="int-en">Introducing:</span>
+          <span class="int-en">Vowels in Talmud</span>
+          <span class="int-he">הכירו את אפשרויות</span>
+          <span class="int-he">הניקוד של התלמוד:</span>
+        </h3>
+        <p class="dafyomiWhatsNewDescription">
+          <span class="int-en">Learn with or without nekkudot (vowels) and punctuation thanks to <a href="https://dicta.org.il/">Dicta</a> -- complete in Berakhot with more coming soon.</span>
+          <span class="int-he">קיימת אפשרות לבחור גירסה עם או בלי ניקוד וסימני פיסוק בזכות תוכנת <a href="https://dicta.org.il/index-he.html">דיקטה</a> – מסכת ברכות קיימת בשלמותה בגירסה זו, מסכתות נוספות יושלמו בקרוב.</span>
+        </p>
+      </div>
+      <div id="dafyomiWhatsNewImage">
+        <span class="int-en"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/wdt-nekkudot-toggle.png" %}" alt="screenshot of nekkudot toggle for talmud"></span>
+        <span class="int-he"><img class="button-icon" src="{% static "img/daf-yomi-landing-page/wdt-nekkudot-toggle Hebrew.png" %}" alt="screenshot of nekkudot toggle for talmud"></span>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="center">
+    <div class="sectionInner sectionRegular">
+      <h3 class="headerText additionalMargin">
+        <span class="int-en">Learn Daf Yomi On-The-Go</span>
+        <span class="int-he">לימדו את הדף היומי תוך כדי תנועה עם אפליקציית ספריא</span>
+      </h3>
+        <div tabindex="1" role="button" class="button">
+          <a href="/app">
+            <span class="int-en">Download the App</span>
+            <span class="int-he">להורדה כעת</span>
+          </a>
+        </div>
+
+      <hr>
+    </div>
+  </div>
+
+  <div>
+    <div class="sectionInner sectionRegular finalContent">
+
+      <div class="center">
+        <h3 class="headerText">
+          <span class="int-en">What Sefaria Users Are Saying</span>
+          <span class="int-he">מה אומרים משתמשי ספריא</span>
+        </h3>
+      </div>
+      <div class="testimonial int-en">
+        I learn Daf Yomi with a split-screen: Gemara (English and Hebrew) at the top, and Steinsaltz at the
+        bottom. As I move down to the next passage in the text, Steinsaltz refreshes to match. <strong>What a
+          graceful and brilliant way to study</strong>. Thank you!”
+      </div>
+
+      <div class="testimonial int-en">
+        When I’m out and about, standing in line at the post office or the grocery store, or riding on
+        public transit, <strong>I can keep up with the current daf on my phone</strong>. I enjoy posting about my study using
+        the #dafyomi hashtag. Thank you so much for this fantastic tool.”
+      </div>
+
+      <div class="testimonial int-en">
+        When I started looking into Daf Yomi, I realized that translations of the Talmud are not so easy to
+        come by, they're huge, and they're quite pricey. My rabbi suggested Sefaria, and not only did the
+        app make my daily Talmud study so much easier to accomplish, but it also opened up a new world for
+        me. <strong>I can look up ANYTHING in an easy format, with plenty of English translation to help me out</strong>.
+        It's all sitting there on my phone or laptop. Thank you for the great work you've done and continue
+        to do.”
+      </div>
+
+      <div class="testimonial int-he">
+
+        "אני לומד דף יומי במסך מפוצל: גמרא בחלק העליון, ושטיינזלץ בחלק התחתון. כשאני יורד לפיסקה הבאה בטקסט, גם הטקסט של שטיינזלץ מתרענן בהתאמה.
+        <strong>
+        דרך כל כך נחמדה ומבריקה ללמוד.
+        </strong>
+         תודה לכם!"
+
+
+      </div>
+
+      <div class="testimonial int-he">
+        "כשאני בחוץ בסידורים, עומד בתור בסניף הדואר או בסופר, או נוסע בתחבורה ציבורית,
+        <strong>
+        אני יכול להתעדכן בדף הנוכחי בטלפון שלי.
+        </strong>
+         אני נהנה לפרסם פוסטים על הלימוד שלי באמצעות ההאשטאג  #dafyomi. תודה רבה לכם על הכלי הפנטסטי הזה. "
+      </div>
+
+
+      <hr>
+      <div class="center">
+        <div tabindex="2" role="button" class="button">
+          <a href="/todays-daf-yomi">
+            <span class="int-en">Learn Daf Yomi Today</span>
+            <span class="int-he">ללימוד הדף היומי היום</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+</div>
+
+{% endblock %}

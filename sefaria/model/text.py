@@ -491,20 +491,23 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not getattr(self, date_field, None):
             return None
 
-        errorMargin = int(getattr(self, margin_field, 0)) if margin_field else 0
-        startIsApprox = endIsApprox = errorMargin > 0
+        try:
+            error_margin = int(getattr(self, margin_field, 0)) if margin_field else 0
+        except ValueError:
+            error_margin = 0
+        startIsApprox = endIsApprox = error_margin > 0
 
         try:
             year = int(getattr(self, date_field))
-            start = year - errorMargin
-            end = year + errorMargin
+            start = year - error_margin
+            end = year + error_margin
         except ValueError as e:
             years = getattr(self, date_field).split("-")
             if years[0] == "" and len(years) == 3:  #Fix for first value being negative
                 years[0] = -int(years[1])
                 years[1] = int(years[2])
-            start = int(years[0]) - errorMargin
-            end = int(years[1]) + errorMargin
+            start = int(years[0]) - error_margin
+            end = int(years[1]) + error_margin
         return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
@@ -1028,14 +1031,14 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '')[0] == 'footnote'
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup(u"<div>{}</div>".format(s), 'xml')
+        soup = BeautifulSoup(u"<div>{}</div>".format(s), 'html.parser')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
