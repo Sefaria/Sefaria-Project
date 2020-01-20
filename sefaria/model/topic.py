@@ -178,15 +178,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     valid_links = []
 
     def _pre_save(self):
-        # check for duplicates
-        if getattr(self, "_id", None) is None:
-            # check for duplicates
-            duplicate = IntraTopicLink().load(
-                {"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
-                 "class": getattr(self, 'class')})
-            if duplicate is not None:
-                raise DuplicateRecordError("Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
-                self.linkType, self.fromTopic, self.toTopic))
+        pass
 
     def _validate(self):
         super(IntraTopicLink, self)._validate()
@@ -199,13 +191,31 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         to_topic = Topic().load({"slug": self.toTopic})
         assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
 
+        # check for duplicates
+        if getattr(self, "_id", None) is None:
+            duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
+                     "class": getattr(self, 'class')})
+            if duplicate is not None:
+                raise DuplicateRecordError(
+                    "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
+                        self.linkType, self.fromTopic, self.toTopic))
+
+            if link_type.slug == link_type.inverseSlug:
+                duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
+                 "class": getattr(self, 'class')})
+                if duplicate_inverse is not None:
+                    raise DuplicateRecordError(
+                        "Duplicate intra topic link in the inverse direction of the symmetric linkType '{}', fromTopic '{}', toTopic '{}' exists".format(
+                            duplicate_inverse.linkType, duplicate_inverse.fromTopic, duplicate_inverse.toTopic))
+
         # check types of topics are valid according to validFrom/To
         if getattr(link_type, 'validFrom', False):
             assert from_topic.has_types(set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
 
-        # assert this link doesn't create circular paths (is_a)
+        # assert this link doesn't create circular paths (in is_a link type)
+        # should consider this test also for other non-symmetric link types such as child-of
         if self.linkType == TopicLinkType.isa_type:
             to_topic = Topic().load({"slug":self.toTopic})
             ancestors = to_topic.get_types()
