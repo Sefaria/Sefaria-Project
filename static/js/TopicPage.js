@@ -185,9 +185,12 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                                 if (!a.order && !b.order) { return 0; }
                                 if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
                                 if (currSortOption === 'Chronological') {
-                                  if (a.order.ref < b.order.ref) { return -1; };
-                                  if (b.order.ref < a.order.ref) { return 1; };
-                                  return 0;
+                                  if (a.order.comp_date === a.order.comp_date) {
+                                    if (a.order.order_id < b.order.order_id) { return -1; }
+                                    if (b.order.order_id < a.order.order_id) { return 1; }
+                                    return 0;
+                                  }
+                                  return a.order.comp_date - b.order.comp_date;
                                 }
                                 else {
                                   if (interfaceLang === 'english' && a.order.availableLangs.length !== b.order.availableLangs.length) {

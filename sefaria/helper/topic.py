@@ -48,12 +48,6 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
             else:
                 link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
-            # for related sheet links
-            if link.get('order', {}).get('fromTfidf', None) is not None:
-                tfidf = link['order']['fromTfidf'] if is_inverse else link['order']['toTfidf']
-                link['order']['tfidf'] = tfidf
-                del link['order']['fromTfidf']
-                del link['order']['toTfidf']
             if annotate_links:
                 # add display information
                 # TODO load all-at-once with TopicSet
