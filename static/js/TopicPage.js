@@ -156,8 +156,8 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
       }
     }, [topic]);
     const tabs = [];
-    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
+    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -169,29 +169,6 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                           tabs={tabs}
                           renderTab={t => <div className="tab">{t.text}</div>}
                         >
-                          { !!topicSheets.length ? (
-                            <TopicPageTab
-                              data={sheetData}
-                              classes={"storySheetList"}
-                              sortOptions={['Views']}
-                              filterFunc={(currFilter, sheet) => {
-                                const n = text => !!text ? text.toLowerCase() : '';
-                                currFilter = n(currFilter);
-                                for (let field of ['sheet_title', 'publisher_name', 'publisher_position', 'publisher_organization']) {
-                                  if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
-                                }
-                              }}
-                              sortFunc={(currSortOption, a, b) => {
-                                if (!a.order && !b.order) { return 0; }
-                                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                                return b.order.views - b.order.views;
-                              }}
-                              renderItem={item=>(
-                                <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
-                              )}
-                              />
-                            ) : null
-                          }
                           { !!topicRefs.length ? (
                             <TopicPageTab
                               data={textData}
@@ -224,6 +201,29 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                               }}
                               renderItem={item=>(
                                 <TextPassage key={item[0]} text={item[1]} toggleSignUpModal={toggleSignUpModal}/>
+                              )}
+                              />
+                            ) : null
+                          }
+                          { !!topicSheets.length ? (
+                            <TopicPageTab
+                              data={sheetData}
+                              classes={"storySheetList"}
+                              sortOptions={['Views']}
+                              filterFunc={(currFilter, sheet) => {
+                                const n = text => !!text ? text.toLowerCase() : '';
+                                currFilter = n(currFilter);
+                                for (let field of ['sheet_title', 'publisher_name', 'publisher_position', 'publisher_organization']) {
+                                  if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
+                                }
+                              }}
+                              sortFunc={(currSortOption, a, b) => {
+                                if (!a.order && !b.order) { return 0; }
+                                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+                                return b.order.views - b.order.views;
+                              }}
+                              renderItem={item=>(
+                                <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
                               )}
                               />
                             ) : null
@@ -328,7 +328,7 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => (
         <div className="sideList">
           {
             links
-            .filter(l => l.shouldDisplay === false)
+            .filter(l => l.shouldDisplay !== false)
             .sort((a, b) => {
               const aVotes = !!a.order && a.order.tfidf;
               const bVotes = !!b.order && b.order.tfidf;
