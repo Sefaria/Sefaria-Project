@@ -152,9 +152,10 @@ class TopicLinkHelper(object):
         'toTopic',
         'linkType',
         'class',  # can be 'intraTopic' or 'refTopic'
+        'dataSource',
+
     ]
     optional_attrs = [
-        'dataSource',
         'generatedBy',
         'order'
     ]
@@ -190,6 +191,8 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
         to_topic = Topic().load({"slug": self.toTopic})
         assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
+        data_source = TopicDataSource().load({"slug": self.dataSource})
+        assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
 
         # check for duplicates
         if getattr(self, "_id", None) is None:
