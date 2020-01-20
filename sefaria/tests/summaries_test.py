@@ -61,12 +61,12 @@ class Test_Toc(object):
                 assert isinstance(node['contents'], list)
             else:
                 assert {'category', 'heCategory'} <= set(node.keys())
-            assert isinstance(node['category'], basestring)
-            assert isinstance(node['heCategory'], basestring)
+            assert isinstance(node['category'], str)
+            assert isinstance(node['heCategory'], str)
 
         except AssertionError as e:
-            print u"Bad category:"
-            print node
+            print("Bad category:")
+            print(node)
             raise
 
     def verify_text_node_integrity(self, node):
@@ -86,7 +86,7 @@ class Test_Toc(object):
     def test_new_index_title_change(self):
         new_index = model.Index({
             "title": "New Toc Title Test",
-            "heTitle": u"פםעעפם",
+            "heTitle": "פםעעפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Philosophy"]
@@ -110,7 +110,7 @@ class Test_Toc(object):
         #test that the index
         new_index = model.Index({
             "title": "New Toc Test",
-            "heTitle": u"פםפם",
+            "heTitle": "פםפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Philosophy"]
@@ -139,7 +139,7 @@ class Test_Toc(object):
 
         new_commentary_index = model.Index({
             "title": "Harchev Davar on Joshua",
-            "heTitle": u"הרחב דבר על יהושוע",
+            "heTitle": "הרחב דבר על יהושוע",
             "dependence": "Commentary",
             "base_text_titles": ["Joshua"],
             "collective_title": "Harchev Davar",

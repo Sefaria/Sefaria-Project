@@ -4,60 +4,56 @@ import SefariaD3  from "./sefaria-d3/sefaria-d3";
 import $  from "./sefaria/sefariaJquery";
 
 /*****          Layout              *****/
-var margin = [30, 40, 20, 40];
-var w; // value determined in buildScreen()
-var h = 730 - margin[0] - margin[2];
+const margin = [30, 40, 20, 40];
+let w; // value determined in buildScreen()
+let h = 730 - margin[0] - margin[2];
 
-var topOffsetY = 80;
-var bottomOffsetY = 580;
+const topOffsetY = 80;
+const bottomOffsetY = 580;
 
-var bookSpacer = 3;
-var bookHeight = 10;
+const bookSpacer = 3;
+const bookHeight = 10;
 
-var focusedCurtainWidth = 100;
+const focusedCurtainWidth = 100;
 
-var svg;
-var links; //the book links svg group
-var plinks; //the precise links svg group
-var tooltip;
-var bookTooltip;
-var brushes = {};
+let svg, links, plinks, tooltip, bookTooltip;
+const brushes = {};
 
 
 /*****    Book Collection Data      *****/
 
-var booksJson;  // Initial setup book link info
-var booksFocused = 0; //State of number of books opened
+let booksJson;  // Initial setup book link info
+let booksFocused = 0; //State of number of books opened
 
-var categories = GLOBALS.categories;
+const categories = GLOBALS.categories;
 
-var twelve = ["Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi"];
+const twelve = ["Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi"];
 function isTwelve(el) { return twelve.indexOf(el["book"]) > -1; }
 function isNotTwelve(el) { return !isTwelve(el); }
 
-var pLinkCache = {}; //Cache for precise link queries
+const pLinkCache = {}; //Cache for precise link queries
 
 /*****          Colors              *****/
 
-var colors = d3.scale.category10()
+const colors = d3.scale.category10()
 	.domain(["Torah","Prophets","Writings","Seder-Zeraim","Seder-Moed","Seder-Nashim","Seder-Nezikin","Seder-Kodashim","Seder-Tahorot"]);
 
-var currentScheme = "Top";
-var toggleColor = (function(){
+let currentScheme = "Top";
+const toggleColor = (function(){
     return function(d){
-        var switchedTo = d.collection == topCat ? "Top" : "Bottom";
-        if (switchedTo == currentScheme)
+        var switchedTo = d.collection === topCat ? "Top" : "Bottom";
+        if (switchedTo === currentScheme)
             return;
-        currentScheme = currentScheme == "Top" ? "Bottom" : "Top";
+        currentScheme = currentScheme === "Top" ? "Bottom" : "Top";
         svg.selectAll(".link") //.transition().duration(250)
-        	.attr("stroke", function(d) { return currentScheme == "Bottom" ? selectBook(d.book2).attr("color") : selectBook(d.book1).attr("color")  });
-		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? "underline" : null);
-		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme == "Top" ? null : "underline");
+        	.attr("stroke", function(d) { return currentScheme === "Bottom" ? selectBook(d.book2).attr("color") : selectBook(d.book1).attr("color")  });
+		svg.select("#switch1-1").transition().duration(1000).style("text-decoration", currentScheme === "Top" ? "underline" : null);
+		svg.select("#switch1-2").transition().duration(1000).style("text-decoration", currentScheme === "Top" ? null : "underline");
     }
 })();
 
 /*****          Hebrew / English Handling              *****/
-var lang;
+let lang;
 
 function isHebrew() { return lang == "he"; }
 function isEnglish() { return lang == "en"; }
@@ -74,14 +70,14 @@ function switchToHebrew() { lang = "he"; }
 
 (GLOBALS.interfaceLang == "hebrew") ? switchToHebrew() : switchToEnglish();
 
-var topBooks = [];
-var bottomBooks = [];
+let topBooks = [];
+let bottomBooks = [];
 
-var topCat = GLOBALS.topCat;
-var bottomCat = GLOBALS.bottomCat;
+const topCat = GLOBALS.topCat;
+const bottomCat = GLOBALS.bottomCat;
 
-var t = Sefaria.shape(categories[topCat].shapeParam, d => topBooks = d);
-var b = Sefaria.shape(categories[bottomCat].shapeParam, d => bottomBooks = d);
+const t = Sefaria.getShape(categories[topCat].shapeParam).then(d => topBooks = d);
+const b = Sefaria.getShape(categories[bottomCat].shapeParam).then(d => bottomBooks = d);
 
 $.when(b, t).then(function() {
     buildScreen(GLOBALS.books, "Top");

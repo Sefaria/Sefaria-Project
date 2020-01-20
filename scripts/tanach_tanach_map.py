@@ -53,7 +53,7 @@ for title in sorted_base_titles:
 with open("../static/files/tanach_rashi_tanach.json", 'wb+') as out:
     json.dump(flat_results, out)
 
-print sum_edges
+print(sum_edges)
 
 #afters - order links by book and then internal book order
 

@@ -18,7 +18,7 @@ for calendar_item in calendar_items:
 pprint.pprint(sorted(missing_names))
 
 for missing_name in missing_names:
-    heb_term = unicode(raw_input("Add a hebrew primary variant for '{}'\n".format(missing_name)), "utf-8")
+    heb_term = str(input("Add a hebrew primary variant for '{}'\n".format(missing_name)), "utf-8")
     term = Term({
         "name": missing_name,
         "titles": [

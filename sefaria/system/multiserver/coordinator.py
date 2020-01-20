@@ -3,9 +3,9 @@ import uuid
 
 from django.core.exceptions import MiddlewareNotUsed
 
-from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
+from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
-from messaging import MessagingNode
+from .messaging import MessagingNode
 
 import logging
 logger = logging.getLogger("multiserver")
@@ -35,7 +35,7 @@ class ServerCoordinator(MessagingNode):
             "obj": obj,
             "method": method,
             "args": args or [],
-            "id": uuid.uuid4().get_hex()
+            "id": uuid.uuid4().hex
         }
         msg_data = json.dumps(payload)
 
@@ -51,7 +51,7 @@ class ServerCoordinator(MessagingNode):
         popped_msg = self.pubsub.get_message()
         while popped_msg:
             if popped_msg["data"] != msg_data:
-                logger.warning(u"Multiserver Message collision!")
+                logger.warning("Multiserver Message collision!")
                 self._process_message(popped_msg)
             popped_msg = self.pubsub.get_message()
 
@@ -62,7 +62,7 @@ class ServerCoordinator(MessagingNode):
             return
 
         if msg["type"] != "message":
-            logger.error(u"Surprising redis message type: {}".format(msg["type"]))
+            logger.error("Surprising redis message type: {}".format(msg["type"]))
 
         self._process_message(msg)
         self.sync()  # While there are still live messages, keep processing them.
@@ -76,7 +76,7 @@ class ServerCoordinator(MessagingNode):
             "obj": obj,
             "method": method,
             "args": args or [],
-            "id": uuid.uuid4().get_hex()
+            "id": uuid.uuid4().hex
           }
           'pattern': None,
           'type': 'message',
@@ -114,14 +114,14 @@ class ServerCoordinator(MessagingNode):
             }
 
         except Exception as e:
-            logger.error(u"Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, e.message))
+            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, str(e)))
 
             confirm_msg = {
                 'event_id': data["id"],
                 'host': host,
                 'pid': pid,
                 'status': 'error',
-                'error': e.message
+                'error': str(e)
             }
 
         # Send confirmation

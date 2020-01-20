@@ -11,7 +11,7 @@ VersionState().load({'title': 'Rambam on Mishnah Beitzah'}).delete()
 VersionState().load({'title': 'Rambam on Mishnah Nedarim'}).delete()
 
 for tractate in tractates:
-    print "Working on {}".format(tractate.title)
+    print("Working on {}".format(tractate.title))
     try:
         r = library.get_index("Rambam {}".format(tractate.title))
         assert isinstance(r, Index)
@@ -30,8 +30,8 @@ for tractate in tractates:
     assert tractate.title in rambam_index.base_text_titles
 
     if rambam_index.base_text_mapping is None:
-        rambam_index.base_text_mapping = u'many_to_one'
-    assert rambam_index.base_text_mapping == u'many_to_one'
+        rambam_index.base_text_mapping = 'many_to_one'
+    assert rambam_index.base_text_mapping == 'many_to_one'
 
     rambam_index.save()
 

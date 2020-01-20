@@ -17,18 +17,18 @@ for x in ["titleVariants", "titleVariants_1"]:
 
 #Covert Indexes to new format
 for indx in IndexSet():
-    print indx.title
+    print(indx.title)
     try:
         indx.save()
     except Exception as e:
-        print u"Caught exception: {}".format(e)
+        print("Caught exception: {}".format(e))
 
 #Convert all existing Version counts to VersionState objects
 for c in CountSet({"title": {"$exists": 1}}):
-    print c.title
+    print(c.title)
     try:
         vs = VersionState(c.title)
         vs.flags = getattr(c, "flags", {})
         vs.save()
     except Exception as e:
-        print "Couldn't modify version state {}: {}".format(c.title, e)
+        print("Couldn't modify version state {}: {}".format(c.title, e))

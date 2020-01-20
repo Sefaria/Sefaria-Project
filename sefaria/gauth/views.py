@@ -8,7 +8,7 @@ from oauth2client.contrib import xsrfutil
 from oauth2client.contrib.django_util.storage import DjangoORMStorage
 from oauth2client.client import flow_from_clientsecrets
 
-from models import (CredentialsModel,
+from .models import (CredentialsModel,
                     FlowModel)
 from sefaria import settings
 

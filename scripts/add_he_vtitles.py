@@ -17,8 +17,8 @@ with open(filename) as infile:
                 try:
                     v.save()
                 except exceptions.BookNameError as e:
-                    print u"{} has no Index".format(v.versionTitle)
-                    print e.message
+                    print("{} has no Index".format(v.versionTitle))
+                    print(e.message)
 
 
 

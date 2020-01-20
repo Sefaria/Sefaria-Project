@@ -22,7 +22,7 @@ def import_from_csv(filename, action="status", category="all"):
 	existing_titles = []
 	with open(filename, 'rb') as csvfile:
 		rows = csv.reader(csvfile)
-		header = rows.next()
+		header = next(rows)
 		for text in rows:
 			if not len(text[2]) or not len(text[9]): 
 				# Require a primary titl and something set in "ready to upload" field
@@ -50,23 +50,23 @@ def import_from_csv(filename, action="status", category="all"):
 			if action == "status":
 				# Print information about texts listed
 				if not existing:
-					print "NEW - " + new_index["title"]
+					print("NEW - " + new_index["title"])
 				if existing:
 					if new_index["title"] == existing["title"]:
-						print "EXISTING - " + new_index["title"]
+						print("EXISTING - " + new_index["title"])
 					else:
-						print "EXISTING (title change) - " + new_index["title"]
+						print("EXISTING (title change) - " + new_index["title"])
 					existing_titles.append(existing["title"])
 
 				validation = texts.validate_index(new_index)
 				if "error" in validation:
-					print "*** %s" % validation["error"]
+					print("*** %s" % validation["error"])
 
 
 			# Add texts if their category is specified in command line
 			if action in ("post", "update") and category:
 				if category == "all" or category in new_index["categories"][:2]:
-					print "Saving %s" % new_index["title"]
+					print("Saving %s" % new_index["title"])
 
 					if action == "update":
 						# TOOD remove any fields that have empty values like []
@@ -78,7 +78,7 @@ def import_from_csv(filename, action="status", category="all"):
 
 			if action == "hebrew" and existing:
 				if "heTitle" not in existing:
-					print "Missing Hebrew: %s" % (existing["title"])
+					print("Missing Hebrew: %s" % (existing["title"]))
 					existing_titles.append(existing["title"])
 
 
@@ -86,13 +86,13 @@ def import_from_csv(filename, action="status", category="all"):
 		indexes = db.index.find()
 		for i in indexes:
 			if i["title"] not in existing_titles:
-				print "NOT ON SHEET - %s" % i["title"]
+				print("NOT ON SHEET - %s" % i["title"])
 
 	if action == "hebrew":
 		indexes = db.index.find()
 		for i in indexes:
 			if "heTitle" not in i and i["title"] not in existing_titles:
-				print "Still no Hebrew:  %s" % i["title"]
+				print("Still no Hebrew:  %s" % i["title"])
 
 	if action in ("post", "update"):
 		from sefaria.model import library

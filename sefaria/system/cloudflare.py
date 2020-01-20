@@ -58,7 +58,7 @@ class SefariaCloudflareManager(object):
     def purge_multiple_cloudflare_urls(self, files, preprocessed=False):
         """ Calls the Cloudflare API to invalidate cache for the given files"""
         if len(files) > self.max_cloudflare_payload_size:
-            logger.error(u"Too many files to purge {}".format(files))
+            logger.error("Too many files to purge {}".format(files))
             raise ValueError("Too many files passed to purge.")
         if not preprocessed:
             current_site = Site.objects.get_current()

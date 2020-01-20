@@ -7,6 +7,6 @@ for r in all_refs:
         if len(tc.text) > 0:
             tc.text_index_map()
     except ValueError:
-        print str(r)
+        print(str(r))
     except AssertionError:
-        print "Assertion Error {}".format(r)
+        print("Assertion Error {}".format(r))

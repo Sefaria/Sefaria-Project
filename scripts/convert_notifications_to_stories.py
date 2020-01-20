@@ -13,11 +13,11 @@ db.drop_collection("user_story")
 
 pns = NotificationSet({"type": "sheet publish"}, sort=[("_id", -1)])
 total = len(pns)
-print "Converting {} sheet publish notifications.".format(total)
+print("Converting {} sheet publish notifications.".format(total))
 
 for count, pn in enumerate(pns):
     if count % 1000 == 0:
-        print "{}/{}".format(count, total)
+        print("{}/{}".format(count, total))
 
     UserStory.from_sheet_publish_notification(pn).save()
 
@@ -26,10 +26,10 @@ for count, pn in enumerate(pns):
 
 gns = GlobalNotificationSet(sort=[("_id", -1)])
 total = len(gns)
-print "Converting {} global notifications.".format(total)
+print("Converting {} global notifications.".format(total))
 for count, gn in enumerate(gns):
     if count % 10 == 0:
-        print "{}/{}".format(count, total)
+        print("{}/{}".format(count, total))
 
     # write to shared story
     assert isinstance(gn, GlobalNotification)

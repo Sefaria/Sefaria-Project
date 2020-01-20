@@ -29,14 +29,14 @@ for text in texts:
     if text['title'] not in text_total:
         text_total[text["title"]] = 0
         text_order.append(text["title"])
-    print text["title"]
+    print(text["title"])
     try:
         index = txt.library.get_index(text["title"])
     except Exception as e:
-        print "Error loading: {} index : {}".format(text["title"] , e)
+        print("Error loading: {} index : {}".format(text["title"] , e))
         continue
     if not index or not getattr(index, "categories", None):
-        print "No index found for " + text.title
+        print("No index found for " + text.title)
         continue
     if "Tanach" in index.categories and "Commentary" not in index.categories:
         continue
@@ -50,13 +50,13 @@ for text in texts:
         else:
             chap = i + 1
         ref = text['title'] + " " + str(chap)
-        print ref
+        print(ref)
         try:
             result = add_links_from_text(txt.Ref(ref), text['language'], text['chapter'][i], text['_id'], user)
             if result:
                 text_total[text["title"]] += len(result)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
 total = 0
 for text in text_order:
@@ -64,11 +64,11 @@ for text in text_order:
     try:
         index = txt.library.get_index(text)
     except Exception as e:
-        print "Error loading: {} index : {}".format(text, e)
+        print("Error loading: {} index : {}".format(text, e))
         continue
     if getattr(index, "categories", None):
-        print text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories)
+        print(text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories))
     else:
-        print text.replace(",",";") + "," + str(num)
+        print(text.replace(",",";") + "," + str(num))
     total += num
-print "Total " + str(total)
+print("Total " + str(total))

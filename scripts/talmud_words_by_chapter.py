@@ -9,4 +9,4 @@ for title in titles:
         text = Ref(ref).text(lang="he")
         words = text.word_count()
         chapter  = "%s chapter %d" % (title, i+1)
-        print "%s, %d" % (chapter, words)
+        print("%s, %d" % (chapter, words))

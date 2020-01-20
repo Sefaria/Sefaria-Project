@@ -9,7 +9,7 @@ commentary_texts = library.get_commentary_versions()
 
 def find_blanks_at_start(vlist):
     if isinstance(vlist, list) and len(vlist) >1:
-        index = next(i for i, j in enumerate(vlist) if (isinstance(j,(basestring)) and j.strip() != ''))
+        index = next(i for i, j in enumerate(vlist) if (isinstance(j,(str)) and j.strip() != ''))
         return index > 0
     return 0
 
@@ -26,13 +26,13 @@ def fix_blank_lines_in_commentary(fix=False):
                         offset = find_blanks_at_start(verse)
                         if offset > 0:
                             str = "%s [%s]: %s.%s\n" % (commentary.title, commentary.versionTitle, ch, vs)
-                            print str
+                            print(str)
                             #out.write(str.encode('utf-8'))
                             if fix:
                                 if commentary.versionTitle == 'On Your Way':
                                     if commentary.title not in distinct_titles:
                                         distinct_titles.append(commentary.title)
-                                    print "Slicing verse (has %d comments) from %d" %(len(verse), offset)
+                                    print("Slicing verse (has %d comments) from %d" %(len(verse), offset))
                                     commentary.chapter[ch-1][vs-1][:] = verse[offset:]
                                     commentary.save()
                                 deleted_segment = "%s %s:%s:%s" % (commentary.title, ch, vs, len(verse))
@@ -42,12 +42,12 @@ def fix_blank_lines_in_commentary(fix=False):
                                 links = LinkSet({'refs': deleted_segment})
                                 if links.count() > 1:
                                     for link in links:
-                                        print link.refs
-                                print "----------------------------------------------------------------------------"
+                                        print(link.refs)
+                                print("----------------------------------------------------------------------------")
                     #except Exception, e:
                         #print "ERROR at %s [%s] %s.%s (%s)" % (commentary.title.encode('utf-8'), commentary.versionTitle.encode('utf-8'), ch, vs, e)
     for title in distinct_titles:
-        print "rebuilding %s" % title
+        print("rebuilding %s" % title)
         rebuild_commentary_links(title, 8646)
 
 
@@ -60,5 +60,5 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--fix", help="Also fix detected blank lines",
                     action="store_true")
     args = parser.parse_args()
-    print "fix: %s" % args.fix
+    print("fix: %s" % args.fix)
     fix_blank_lines_in_commentary(args.fix)

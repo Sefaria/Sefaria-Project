@@ -6,8 +6,8 @@ from sefaria.helper.schema import *
 def change_title(title):
     vol1 = library.get_index(title).nodes.children[0]
     vol2 = library.get_index(title).nodes.children[1]
-    positive_he = u"עשין"
-    negative_he = u"לאוין"
+    positive_he = "עשין"
+    negative_he = "לאוין"
     change_node_title(vol1, vol1.primary_title("en"), "en", "Negative Commandments")
     change_node_title(vol2, vol2.primary_title("en"), "en", "Positive Commandments")
     change_node_title(vol1, vol1.primary_title("he"), "he", negative_he)
@@ -19,7 +19,7 @@ def add_rabbinic(title):
     root = index.nodes
     rabbinic_nodes = index.nodes.children[1].children[1:]
     rabbinic_vol = SchemaNode()
-    rabbinic_vol.add_primary_titles("Rabbinic Commandments",  u"עשין דרבנן")
+    rabbinic_vol.add_primary_titles("Rabbinic Commandments",  "עשין דרבנן")
     for r_count in range(len(rabbinic_nodes)):
         en_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "en"][0]
         he_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "he"][0]
@@ -51,8 +51,8 @@ def add_intro(title):
         intro = JaggedArrayNode()
         remazim = JaggedArrayNode()
 
-        intro.add_primary_titles("Introduction", u"הקדמה")
-        remazim.add_primary_titles("Remazim", u"רמזים")
+        intro.add_primary_titles("Introduction", "הקדמה")
+        remazim.add_primary_titles("Remazim", "רמזים")
         intro.add_structure(["Paragraph"])
         remazim.add_structure(["Paragraph"])
 
@@ -67,7 +67,7 @@ def remove_nodes(title):
     index = library.get_index(title)
     rabbinic_nodes = index.nodes.children[1].children[1:]
     for node in rabbinic_nodes:
-        print node
+        print(node)
         remove_branch(node)
 
 

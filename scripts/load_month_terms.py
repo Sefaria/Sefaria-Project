@@ -3,10 +3,10 @@
 from sefaria import model
 
 
-months = [u'Tishrei', u'Cheshvan', u'Kislev', u'Tevet', u'Shevat', u'Adar', u'Nisan', u'Iyar',
-          u'Sivan', u'Tammuz', u'Av', u'Elul']
+months = ['Tishrei', 'Cheshvan', 'Kislev', 'Tevet', 'Shevat', 'Adar', 'Nisan', 'Iyar',
+          'Sivan', 'Tammuz', 'Av', 'Elul']
 
-he_months = [u'תשרי', u'חשון', u'כסלו', u'טבת', u'שבט', u'אדר', u'ניסן', u'אייר', u'סיוון', u'תמוז', u'אב', u'אלול']
+he_months = ['תשרי', 'חשון', 'כסלו', 'טבת', 'שבט', 'אדר', 'ניסן', 'אייר', 'סיוון', 'תמוז', 'אב', 'אלול']
 
 ts = model.TermScheme()
 if not ts.load({"name": "he-month"}):
@@ -16,7 +16,7 @@ if not ts.load({"name": "he-month"}):
 for index, month in enumerate(months):
 
     en, he = month, he_months[index]
-    print en
+    print(en)
     term = model.Term()
     term.name = en
     term.scheme = ts.name

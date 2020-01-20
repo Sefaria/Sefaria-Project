@@ -10,30 +10,30 @@ from collections import OrderedDict
 c1 = Category().load({'path':  ["Halakhah", "Shulchan Arukh", "Commentary", "Beit Shmuel"]})
 c2 = Category().load({'path':  ["Halakhah", "Shulchan Arukh", "Commentary", "Chelkat Mechokek"]})
 if c1 is None or c2 is None:
-    print "Missing Categories"
+    print("Missing Categories")
     sys.exit(1)
 
 #  Ensure indices have the index set up properly
-baer = library.get_index(u"Ba'er Hetev on Shulchan Arukh, Even HaEzer")
-baer.collective_title = u"Ba'er Hetev"
-baer.dependence = u"Commentary"
-baer.base_text_titles = [u"Shulchan Arukh, Even HaEzer"]
+baer = library.get_index("Ba'er Hetev on Shulchan Arukh, Even HaEzer")
+baer.collective_title = "Ba'er Hetev"
+baer.dependence = "Commentary"
+baer.base_text_titles = ["Shulchan Arukh, Even HaEzer"]
 baer.save()
 
-beit = library.get_index(u"Beit Shmuel")
-beit.collective_title = u"Beit Shmuel"
-beit.dependence = u"Commentary"
-beit.base_text_titles = [u"Shulchan Arukh, Even HaEzer"]
+beit = library.get_index("Beit Shmuel")
+beit.collective_title = "Beit Shmuel"
+beit.dependence = "Commentary"
+beit.base_text_titles = ["Shulchan Arukh, Even HaEzer"]
 if len(beit.categories) == 2:
-    beit.categories.extend([u"Commentary", u"Beit Shmuel"])
+    beit.categories.extend(["Commentary", "Beit Shmuel"])
 beit.save()
 
-chelk = library.get_index(u"Chelkat Mechokek")
-chelk. collective_title = u"Chelkat Mechokek"
-chelk.dependence = u"Commentary"
-chelk.base_text_titles = [u"Shulchan Arukh, Even HaEzer"]
+chelk = library.get_index("Chelkat Mechokek")
+chelk. collective_title = "Chelkat Mechokek"
+chelk.dependence = "Commentary"
+chelk.base_text_titles = ["Shulchan Arukh, Even HaEzer"]
 if len(chelk.categories) == 2:
-    chelk.categories.extend([u"Commentary", u"Chelkat Mechokek"])
+    chelk.categories.extend(["Commentary", "Chelkat Mechokek"])
 chelk.save()
 
 
@@ -46,7 +46,7 @@ def itag_finder(commentator):
 def is_sorted(x, key=None):
     if key is not None:
         x = [key(i) for i in x]
-    return all(x[i] < x[i+1] for i in xrange(len(x)-1))
+    return all(x[i] < x[i+1] for i in range(len(x)-1))
 
 
 def add_inline_ref(link, itag):
@@ -72,30 +72,30 @@ def fix_links(commentator):
     for r in (orach_ref.all_segment_refs() + halitza_ref.all_segment_refs()):
         try:
             if r.sections[0] % 20 == 1 and r.sections[1] == 1:
-                print r.sections[0],
+                print(r.sections[0], end=' ')
         except IndexError:
             pass
-        t = r.text('he', u'Apei Ravrevei: Shulchan Aruch Even HaEzer, Lemberg, 1886')
+        t = r.text('he', 'Apei Ravrevei: Shulchan Aruch Even HaEzer, Lemberg, 1886')
         total_links = [l[0] for l in LinkSet(r).refs_from(Ref(commentator), as_link=True)]
         total_links = sorted(total_links, key=link_sort_key)
-        soup = BeautifulSoup(u'<root>{}</root>'.format(t.text), 'xml')
+        soup = BeautifulSoup('<root>{}</root>'.format(t.text), 'xml')
         total_itags = soup.find_all(itag_finder(collective_title))
 
         if len(total_links) != len(total_itags):
             total_itags = list(OrderedDict.fromkeys(total_itags))
             if len(total_links) != len(total_itags):
-                print "\nProblem with {} at {}. Skipping".format(collective_title, r.normal())
+                print("\nProblem with {} at {}. Skipping".format(collective_title, r.normal()))
                 continue
 
         if not is_sorted(total_links, key=link_sort_key):
-            print "Links not in order at {} Skipping".format(r.normal())
+            print("Links not in order at {} Skipping".format(r.normal()))
             continue
 
         if is_sorted(total_itags, key=lambda x: int(x['data-order'])):
             for l, itag in zip(total_links, total_itags):
                 add_inline_ref(l, itag)
         else:
-            print "\nOut of order at {}".format(r.normal())
+            print("\nOut of order at {}".format(r.normal()))
 
 
 fix_links("Ba'er Hetev on Shulchan Arukh, Even HaEzer")

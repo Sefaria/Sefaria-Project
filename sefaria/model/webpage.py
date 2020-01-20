@@ -1,6 +1,6 @@
 # coding=utf-8
+from urllib.parse import urlparse
 import regex as re
-from urlparse import urlparse
 from datetime import datetime
 from collections import defaultdict
 
@@ -28,7 +28,7 @@ class WebPage(abst.AbstractMongoRecord):
     ]
 
     def load(self, url_or_query):
-        query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, basestring) else url_or_query
+        query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
         return super(WebPage, self).load(query)
         
     def _set_derived_attributes(self):
@@ -136,18 +136,18 @@ class WebPage(abst.AbstractMongoRecord):
     def clean_title(self):
         if not self._site_data:
             return self.title
-        title = unicode(self.title)
+        title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [u"-", u"|", u"—", u"»"]
+        separators = ["-", "|", "—", "»"]
         for separator in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
-                    brand_str = u"{} {} ".format(brand, separator)
+                    brand_str = "{} {} ".format(brand, separator)
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]                   
                 else:    
-                    brand_str = u" {} {}".format(separator, brand)
+                    brand_str = " {} {}".format(separator, brand)
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
@@ -193,11 +193,12 @@ def test_normalization():
     for page in pages:
         norm = WebPage.normalize_url(page.url)
         if page.url != norm:
-            print page.url.encode("utf-8")
-            print norm.encode("utf-8")
-            print "\n"
+            print(page.url.encode("utf-8"))
+            print(norm.encode("utf-8"))
+            print("\n")
             count += 1
-    print "{} pages normalized".format(count)
+
+    print("{} pages normalized".format(count))
 
 
 def dedupe_webpages(test=True):
@@ -211,10 +212,10 @@ def dedupe_webpages(test=True):
             if normpage:
                 dedupe_count += 1
                 if test:
-                    print "DEDUPE"
-                    print webpage.url.encode("utf-8")
-                    print norm.encode("utf-8")
-                    print "\n"
+                    print("DEDUPE")
+                    print(webpage.url.encode("utf-8"))
+                    print(norm.encode("utf-8"))
+                    print("\n")
                 else:
                     normpage.linkerHits += webpage.linkerHits
                     if normpage.lastUpdated < webpage.lastUpdated:
@@ -226,14 +227,14 @@ def dedupe_webpages(test=True):
             else:
                 norm_count += 1
                 if test:
-                    print "NORM"
-                    print webpage.url.encode("utf-8")
-                    print norm.encode("utf-8")
-                    print "\n"        
+                    print("NORM")
+                    print(webpage.url.encode("utf-8"))
+                    print(norm.encode("utf-8"))
+                    print("\n")
                 else:
                     webpage.save()
-    print "{} pages removed as duplicates".format(dedupe_count)
-    print "{} pages normalized".format(norm_count)
+    print("{} pages removed as duplicates".format(dedupe_count))
+    print("{} pages normalized".format(norm_count))
 
     dedupe_identical_urls(test=test)
 
@@ -265,10 +266,10 @@ def dedupe_identical_urls(test=True):
             "url": dupe["_id"], "linkerHits": 0, "lastUpdated": datetime.min
         }
         if test:
-            print "\nReplacing: "
+            print("\nReplacing: ")
         for page in pages:
             if test:
-                print page.contents()
+                print(page.contents())
             merged_page_data["linkerHits"] += page.linkerHits
             if merged_page_data["lastUpdated"] < page.lastUpdated:
                 merged_page_data["refs"]  = page.refs
@@ -279,13 +280,13 @@ def dedupe_identical_urls(test=True):
 
         merged_page = WebPage(merged_page_data)
         if test:
-            print "with"
-            print merged_page.contents()           
+            print("with")
+            print(merged_page.contents())
         else:
             pages.delete()
             merged_page.save()
 
-    print "\n{} pages with identical urls removed from {} url groups.".format(removed_count, url_count)
+    print("\n{} pages with identical urls removed from {} url groups.".format(removed_count, url_count))
 
 
 def clean_webpages(delete=False):
@@ -297,11 +298,11 @@ def clean_webpages(delete=False):
 
     if delete:
         pages.delete()
-        print "Deleted {} pages.".format(pages.count())
+        print("Deleted {} pages.".format(pages.count()))
     else:
         for page in pages:
-            print page.url
-        print "\n {} pages would be deleted".format(pages.count())
+            print(page.url)
+        print("\n {} pages would be deleted".format(pages.count()))
 
 
 def webpages_stats():
@@ -325,33 +326,29 @@ def webpages_stats():
             [covered_refs[oref.index.title].add(ref.normal()) for ref in oref.all_segment_refs()]
 
     # Totals
-    print "{} total pages.\n".format(total_pages)
-    print "{} total connections.\n".format(total_links)
-
+    print("{} total pages.\n".format(total_pages))
+    print("{} total connections.\n".format(total_links))
 
     # Count by Site
-    print "\nSITES"
+    print("\nSITES")
     sites = sorted(sites.iteritems(), key=lambda x: -x[1])
     for site in sites:
-        print "{}: {}".format(site[0], site[1])
-
+        print("{}: {}".format(site[0], site[1]))
 
     # Count / Percentage by Category
-    print "\nCATEGORIES"
+    print("\nCATEGORIES")
     categories = sorted(categories.iteritems(), key=lambda x: -x[1])
     for category in categories:
-        print "{}: {} ({}%)".format(category[0], category[1], round(category[1]*100.0/total_links, 2))
-
+        print("{}: {} ({}%)".format(category[0], category[1], round(category[1] * 100.0 / total_links, 2)))
 
     # Count / Percentage by Book
-    print "\nBOOKS"
+    print("\nBOOKS")
     books = sorted(books.iteritems(), key=lambda x: -x[1])
     for book in books:
-        print "{}: {} ({}%)".format(book[0], book[1], round(book[1]*100.0/total_links, 2))
-
+        print("{}: {} ({}%)".format(book[0], book[1], round(book[1] * 100.0 / total_links, 2)))
 
     # Coverage Percentage / Average pages per ref for Torah, Tanakh, Mishnah, Talmud
-    print "\nCOVERAGE"
+    print("\nCOVERAGE")
     coverage_cats = ["Torah", "Tanakh", "Bavli", "Mishnah"]
     for cat in coverage_cats:
         cat_books = text.library.get_indexes_in_category(cat)
@@ -372,7 +369,7 @@ def webpages_stats():
             covered += len(covered_in_book)
             total += len(total_in_book)
 
-        print "{}: {}%".format(cat, round(covered*100.0/total, 2))
+        print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
 
 
 sites_data = [
@@ -404,9 +401,9 @@ sites_data = [
         "domains":        ["opensiddur.org"],
     },
     {
-        "name":           u"בית הלל",
+        "name":           "בית הלל",
         "domains":        ["beithillel.org.il"],
-        "title_branding": [u"בית הלל - הנהגה תורנית קשובה"],
+        "title_branding": ["בית הלל - הנהגה תורנית קשובה"]
     },
     {
         "name":                   "ParshaNut",

@@ -5,8 +5,8 @@ django.setup()
 import argparse
 import os
 import json
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import requests
 
 from sefaria.model import *
@@ -42,11 +42,11 @@ class ServerTextCopier(object):
 
         possible_terms = retrieve_terms(self._index_obj.nodes)
         possible_terms.update(self._index_obj.categories)
-        if hasattr(self._index_obj, u'collective_title'):
+        if hasattr(self._index_obj, 'collective_title'):
             possible_terms.add(self._index_obj.collective_title)
         necessary_terms = []
         for t in possible_terms:
-            response = requests.get(u'{}/api/terms/{}'.format(self._dest_server, t))
+            response = requests.get('{}/api/terms/{}'.format(self._dest_server, t))
             if response.json().get('error', '') == "Term does not exist.":
                 necessary_terms.append(t)
         for t in necessary_terms:
@@ -66,7 +66,7 @@ class ServerTextCopier(object):
                     version['title'] = self._title_to_retrieve
                     vs = Version().load(version)
                     if not vs:
-                        print "Warning: No version object found for  lang: {} version title: {}. Skipping.".format(version['language'], version['versionTitle'])
+                        print("Warning: No version object found for  lang: {} version title: {}. Skipping.".format(version['language'], version['versionTitle']))
                     else:
                         self._version_objs.append(vs)
         if self._post_links:
@@ -88,13 +88,13 @@ class ServerTextCopier(object):
         content_nodes = self._index_obj.nodes.get_leaf_nodes()
         for ver in self._version_objs:
             found_non_empty_content = False
-            print ver.versionTitle.encode('utf-8')
+            print(ver.versionTitle.encode('utf-8'))
             flags = {}
             for flag in ver.optional_attrs:
                 if hasattr(ver, flag):
                     flags[flag] = getattr(ver, flag, None)
             for node_num, node in enumerate(content_nodes,1):
-                print node.full_title(force_update=True)
+                print(node.full_title(force_update=True))
                 text = JaggedTextArray(ver.content_node(node)).array()
                 version_payload = {
                         "versionTitle": ver.versionTitle,
@@ -134,11 +134,11 @@ class ServerTextCopier(object):
             return
         categories = self._index_obj.categories
         try:
-            dest_category = requests.get(u'{}/api/category/{}'.format(self._dest_server, u'/'.join(categories))).json()
+            dest_category = requests.get('{}/api/category/{}'.format(self._dest_server, '/'.join(categories))).json()
         except ValueError:
             return
 
-        if dest_category.get('error') == u'Category not found':
+        if dest_category.get('error') == 'Category not found':
             if dest_category.get('closest_parent'):
                 cat_index = len(dest_category['closest_parent']['path'])
             else:
@@ -158,16 +158,16 @@ class ServerTextCopier(object):
         t = Term().load({'name': name})
         if t is None:
             raise AttributeError("Necessary Term {} not Present on this Environment".format(name))
-        self._make_post_request_to_server('api/terms/{}'.format(urllib.quote(name)), t.contents())
+        self._make_post_request_to_server('api/terms/{}'.format(urllib.parse.quote(name)), t.contents())
 
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
     def _prepare_text_api_call(self, terminal_ref, count_after=False):
-        return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.quote(terminal_ref.replace(" ", "_").encode('utf-8')), int(count_after))
+        return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.parse.quote(terminal_ref.replace(" ", "_").encode('utf-8')), int(count_after))
 
     def _prepare_version_attrs_api_call(self, title, lang, vtitle):
-        return "api/version/flags/{}/{}/{}".format(urllib.quote(title), urllib.quote(lang), urllib.quote(vtitle))
+        return "api/version/flags/{}/{}/{}".format(urllib.parse.quote(title), urllib.parse.quote(lang), urllib.parse.quote(vtitle))
 
     def _prepare_links_api_call(self):
         return "api/links/"
@@ -176,20 +176,20 @@ class ServerTextCopier(object):
         full_url = "{}/{}".format(self._dest_server, url)
         jpayload = json.dumps(payload)
         values = {'json': jpayload, 'apikey': self._apikey}
-        data = urllib.urlencode(values)
-        req = urllib2.Request(full_url, data)
+        data = urllib.parse.urlencode(values)
+        req = urllib.request.Request(full_url, data)
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             if 'prof' in full_url:
                 filename = '/var/tmp/prof_mdt_{}_{}.txt'.format(payload['versionTitle'][:5], payload['language'])
                 with open(filename, 'wb+') as filep:
                     filep.write(response.read())
-                print "{}. Profiling Saved at: {}".format(response.read(), filename)
+                print("{}. Profiling Saved at: {}".format(response.read(), filename))
             else:
-                print response.read()
-        except urllib2.HTTPError, e:
-            print 'Error code: ', e.code
-            print e.read()
+                print(response.read())
+        except urllib.error.HTTPError as e:
+            print('Error code: ', e.code)
+            print(e.read())
 
 
 if __name__ == '__main__':
@@ -202,7 +202,7 @@ if __name__ == '__main__':
     parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")
 
     args = parser.parse_args()
-    print args
+    print(args)
     if not args.apikey:
         raise argparse.ArgumentTypeError( 'The API key must be supplied or be present by default on the server' )
     if args.versionlist:
@@ -218,8 +218,8 @@ if __name__ == '__main__':
     try:
         url = os.environ["SLACK_URL"]
         message = json.dumps({'text': 'Upload Complete'})
-        request = urllib2.Request(url, message)
-        urllib2.urlopen(request)
+        request = urllib.request.Request(url, message)
+        urllib.request.urlopen(request)
 
     except KeyError:
         pass

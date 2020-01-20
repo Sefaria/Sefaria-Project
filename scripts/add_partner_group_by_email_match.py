@@ -23,11 +23,11 @@ with open('/school-lookup-data/schools.tsv') as tsvfile:
         user_count = 0
 
         print("-----------------------------------------------------------------")
-        print("Searching for users from: %s with query '%s'" % (row[0], row[1]))
+        print(("Searching for users from: %s with query '%s'" % (row[0], row[1])))
         users = User.objects.filter(email__contains=row[1])
         for user in users:
             user_count = user_count + 1
-            print "Marking {} as {}".format(user.email, row[0])
+            print("Marking {} as {}".format(user.email, row[0]))
             profile = UserProfile(id=user.id)
             profile.partner_group = row[0]
             profile.save()

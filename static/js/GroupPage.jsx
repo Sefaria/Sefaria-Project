@@ -25,11 +25,19 @@ class GroupPage extends Component {
       showTags: data && !!data.showTagsByDefault,
       sheetFilterTag: this.props.tag,
       sheetSort: "date",
-      tab: "sheets"
+      tab: "sheets",
+      groupData: null,
     };
   }
   componentDidMount() {
-    this.ensureData();
+    Sefaria.getGroup(this.props.group)
+        .then(groupData => {
+          this.sortSheetData(groupData);
+          if (groupData.pinnedSheets && groupData.pinnedSheets.length > 0) {
+            this.pinSheetsToSheetList(groupData);
+          }
+          this.setState({groupData})
+        });
   }
   componentDidUpdate(prevProps, prevState) {
     if (!this.state.showTags && prevState.showTags && $(".content").scrollTop() > 570) {
@@ -64,6 +72,7 @@ class GroupPage extends Component {
       return(groupData);
   }
   sortSheetData(group) {
+    // Warning: This sorts the sheets within the cached group item in sefaria.js
     if (!group.sheets) { return; }
 
     var sorters = {
@@ -152,7 +161,7 @@ class GroupPage extends Component {
     }
   }
   memberList() {
-    var group = this.getData();
+    var group = this.state.groupData;
     if (!group) { return null; }
     var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
     var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
@@ -178,7 +187,7 @@ class GroupPage extends Component {
     this.pinning = true;
   }
   render() {
-    var group        = this.getData();
+    var group        = this.state.groupData;
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members      = this.memberList();
