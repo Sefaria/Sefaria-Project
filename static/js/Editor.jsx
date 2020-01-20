@@ -282,7 +282,8 @@ function renderSheetItem(source) {
 function parseSheetItemHTML(rawhtml) {
     const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml), 'text/html');
     const fragment = deserialize(parsed.body);
-    return fragment.length > 0 ? fragment : [{text: ''}];
+    const slateJSON = fragment.length > 0 ? fragment : [{text: ''}]
+    return slateJSON[0].type == 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
 
 
@@ -598,24 +599,7 @@ const withSefariaSheet = editor => {
     editor.normalizeNode = entry => {
       const [node, path] = entry
 
-      // if (node.type == "en" || node.type == "he") {
-      //   console.log(node, path)
-      //   for (const [child, childPath] of Node.children(editor, path)) {
-      //       console.log(child.type)
-      //   }
-      // }
-
       let sheetElementTypes = Object.values(sheet_item_els);
-
-      if (sheetElementTypes.includes(node.type) || ["en", "he"].includes(node.type)) {
-        for (const [child, childPath] of Node.children(editor, path)) {
-          if ("text" in child) {
-            Transforms.wrapNodes(editor,{ type: 'paragraph', children: [] },{at: childPath,})
-            return
-          }
-        }
-      }
-
 
       if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -627,28 +611,7 @@ const withSefariaSheet = editor => {
 
       }
 
-
-
-    //
-    //   if (["en", "he"].includes(node.type) && Node.parent(editor, path).type == "SheetSource") {
-    //     for (const [child, childPath] of Node.children(editor, path)) {
-    //     if ("text" in child) {
-    //       Transforms.wrapNodes(editor,{ type: 'paragraph', children: [] },{at: childPath,})
-    //       return
-    //     }
-    //
-    //     if (sheetElementTypes.includes(child.type) || child.type == "SheetItem") {
-    //       Transforms.unwrapNodes(editor, { at: childPath })
-    //       return
-    //     }
-    //
-    //   }
-    // }
-
-
-
       if (node.type == "SheetSource") {
-          console.log(node.children.length)
           if (node.children.length > 4) {
           for (const [child, childPath] of Node.children(editor, path)) {
               if (!["en", "he", "TextRef"].includes(child.type)) {
@@ -664,20 +627,6 @@ const withSefariaSheet = editor => {
           }
       }
 
-
-      // if (node.type == "SheetSource") {
-      //   if (node.children.length > 4) {
-      //     for (const [child, childPath] of Node.children(editor, path)) {
-      //       if (childPath.pop() >= 4) {
-      //         childPath.push(4)
-      //         console.log(childPath)
-      //         Transforms.mergeNodes(editor, { at: childPath })
-      //         return
-      //       }
-      //     }
-      //   }
-      // }
-      //
 
       // Fall back to the original `normalizeNode` to enforce other constraints.
       normalizeNode(entry)
@@ -1064,19 +1013,20 @@ const SefariaEditor = (props) => {
         }
     };
 
+    const onPaste = event => {
+      console.log(event)
+    };
+
     const onKeyDown = event => {
-      if (event.key == " ") {
-      if(isSelectionFocusAtEndOfSheetItem(editor)) {
-        const activeSheetItem = Node.closest(editor, editor.selection.focus.path, ([e]) => e.type == "SheetItem")[1]
-        const matchingRef = getFirstSefRefInRange(editor, activeSheetItem)
-
-        if (matchingRef && matchingRef[0] == matchingRef.input) {
-          editor.exec({type: 'insert_sheetItem', sheetItemType: 'SheetSource', activeSheetItem: activeSheetItem, sefRef: matchingRef[0]})
-      }
-    }
-
-    }
-  };
+        // add ref on space if end of line
+        if (event.key == " ") {
+            const refInNode = getFirstSefRefInSheetItem(editor);
+            if (refInNode) {
+                insertSource(editor, refInNode)
+                return
+            }
+        }
+    };
 
 
     const editor = useMemo(
@@ -1094,6 +1044,7 @@ const SefariaEditor = (props) => {
                 renderElement={renderElement}
                 placeholder="Enter a title…"
                 spellCheck
+                onKeyDown={onKeyDown}
                 onDOMBeforeInput={beforeInput}
             />
         </Slate>
