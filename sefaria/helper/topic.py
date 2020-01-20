@@ -478,9 +478,9 @@ def new_edge_type_research():
 
 
 def add_num_sources_to_topics():
-    from tqdm import tqdm
-    ts = TopicSet()
-    for t in tqdm(ts, total=ts.count()):
-        num_sources = RefTopicLinkSet({"toTopic": t.slug}).count()
-        setattr(t, 'numSources', num_sources)
-        t.save()
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
+    updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
+    ])
