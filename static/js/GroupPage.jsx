@@ -49,7 +49,7 @@ class GroupPage extends Component {
   }
   onDataLoad(data) {
     if (data.showTagsByDefault) {
-      this.setState(showTags: true);
+      this.setState({showTags: true});
     }
     this.forceUpdate();
   }
