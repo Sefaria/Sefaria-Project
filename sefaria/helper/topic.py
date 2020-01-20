@@ -253,7 +253,7 @@ def tfidf_related_sheet_topics(related_links):
     # filter
     final_related_links = []
     for l in tqdm(related_links, desc='save'):
-        score_dict = id_score_map[str(l._id)]
+        score_dict = id_score_map['{}|{}'.format(l['a'], l['b'])]
         for dir, inner_score_dict in score_dict.items():
             if inner_score_dict['tfidf'] >= MIN_SCORE_THRESH:
                 is_inverse = dir == 'from'

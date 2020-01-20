@@ -206,9 +206,10 @@ class IntraTopicLink(abst.AbstractMongoRecord):
             assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
 
         # assert this link doesn't create circular paths (is_a)
-        to_topic = Topic().load({"slug":self.toTopic})
-        ancestors = to_topic.get_types()
-        assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
+        if self.linkType == TopicLinkType.isa_type:
+            to_topic = Topic().load({"slug":self.toTopic})
+            ancestors = to_topic.get_types()
+            assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
 
 
 
