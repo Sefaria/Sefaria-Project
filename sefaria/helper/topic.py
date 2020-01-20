@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_topics(topic, with_links, annotate_links, with_refs, group_related):
+def get_topic(topic, with_links, annotate_links, with_refs, group_related):
     topic_obj = Topic().load({"slug": topic})
     response = topic_obj.contents()
     response['primaryTitle'] = {
@@ -97,6 +97,10 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
 
         response['refs'] = new_refs
     return response
+
+
+def get_all_topics(limit=1000):
+    return TopicSet({}, limit=limit, sort=[('numSources', -1)]).array()
 
 
 def sort_refs_by_relevance(a, b):
@@ -448,7 +452,7 @@ def update_link_orders():
             if len(ref_range) == 0:
                 continue
             total_pr += sum([pr_map.get((topic, ref), 0) for ref in ref_range]) / len(ref_range)
-        relevance = total_pr / len(sheet['includedRefs'])
+        relevance = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
         return {
             'views': sheet.get('views', 0),
             'dateCreated': sheet['dateCreated'],

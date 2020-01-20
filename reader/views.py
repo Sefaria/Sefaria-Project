@@ -52,7 +52,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topics
+from sefaria.helper.topic import get_topic, get_all_topics
 from django.utils.html import strip_tags
 
 if USE_VARNISH:
@@ -2867,15 +2867,14 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
 @sanitize_get_params
 def topics_page(request):
     """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
+    Page of all
     """
-    topics = get_topics()
+    topics = get_all_topics()
     props = base_props(request)
     props.update({
         "initialMenu":  "topics",
         "initialTopic": None,
-        "topicList": topics.list(sort_by="count"),
+        "topicList": [t.contents() for t in topics],
         "trendingTags": trending_tags(ntags=12),
     })
 
@@ -2921,8 +2920,9 @@ def topics_list_api(request):
     """
     API to get data for a particular topic.
     """
-    topics = get_topics()
-    response = topics.list(sort_by="count")
+    limit = int(request.GET.get("limit", 1000))
+    topics = get_all_topics(limit)
+    response = [t.contents() for t in topics]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -2937,12 +2937,12 @@ def topics_api(request, topic):
     annotate_links = bool(int(request.GET.get("annotate_links", False)))
     group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
-    response = get_topics(topic, with_links, annotate_links, with_refs, group_related)
+    response = get_topic(topic, with_links, annotate_links, with_refs, group_related)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 def _topic_data(topic):
-    response = get_topics(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
+    response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
     return response
 
 
