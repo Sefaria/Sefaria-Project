@@ -575,7 +575,8 @@ def do_sheet_refactor(tag_to_slug_map):
                         "fromTopic": topic_slug,
                         "toTopic": Topic.uncategorized_topic,
                         "linkType": "is-a",
-                        "class": "intraTopic"
+                        "class": "intraTopic",
+                        "dataSource": "sefaria"
                     })
                     try:
                         itl.save()
