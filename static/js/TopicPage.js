@@ -198,7 +198,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                                     if (b.order.availableLangs.indexOf('en') > -1) { return 1; }
                                     return 0;
                                   }
-                                  else if (a.order.pr !== b.order.pr) { return (b.order.pr ) - (a.order.pr ); }
+                                  else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
                                   else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
                                 }
                               }}
@@ -212,7 +212,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                             <TopicPageTab
                               data={sheetData}
                               classes={"storySheetList"}
-                              sortOptions={['Views']}
+                              sortOptions={['Relevance', 'Views', 'Newest']}
                               filterFunc={(currFilter, sheet) => {
                                 const n = text => !!text ? text.toLowerCase() : '';
                                 currFilter = n(currFilter);
@@ -223,7 +223,20 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                               sortFunc={(currSortOption, a, b) => {
                                 if (!a.order && !b.order) { return 0; }
                                 if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                                return b.order.views - b.order.views;
+                                if (interfaceLang === 'hebrew' && a.order.language !== b.order.language) {
+                                  if (a.order.language === 'hebrew') { return -1; }
+                                  if (b.order.language === 'hebrew') { return 1; }
+                                  return 0;
+                                }
+                                if (currSortOption === 'Views') {
+                                  return b.order.views - b.order.views;
+                                } else if (currSortOption === 'Newest') {
+                                  if (b.order.dateCreated < a.order.dateCreated) { return -1; }
+                                  if (a.order.dateCreated < b.order.dateCreated) { return 1; }
+                                } else {
+                                  // relevance
+                                  return b.order.relevance - a.order.relevance;
+                                }
                               }}
                               renderItem={item=>(
                                 <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>

@@ -419,17 +419,47 @@ def calculate_other_ref_scores(ref_topic_map):
 def update_link_orders():
     from tqdm import tqdm
     from sefaria.system.database import db
+    from sefaria.system.exceptions import InputError
     from pymongo import UpdateOne
+
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
     pr_map = calculate_pagerank_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
+    sheet_cache = {}
+
+    def get_sheet_order(topic, sheet_id):
+        if sheet_id in sheet_cache:
+            sheet = sheet_cache[sheet_id]
+        else:
+            sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1})
+            includedRefs = []
+            for tref in sheet['includedRefs']:
+                try:
+                    oref = Ref(tref)
+                    includedRefs += [oref.all_segment_refs()]
+                except InputError:
+                    continue
+            sheet['includedRefs'] = includedRefs
+            sheet_cache[sheet_id] = sheet
+        total_pr = 0
+        for ref_range in sheet['includedRefs']:
+            if len(ref_range) == 0:
+                continue
+            total_pr += sum([pr_map.get((topic, ref), 0) for ref in ref_range]) / len(ref_range)
+        relevance = total_pr / len(sheet['includedRefs'])
+        return {
+            'views': sheet.get('views', 0),
+            'dateCreated': sheet['dateCreated'],
+            'relevance': relevance,
+            'language': sheet.get('options', {}).get('language', 'bilingual')
+        }
+
     updates = []
     for l in tqdm(ref_topic_links, total=total, desc='update link orders'):
         if l.is_sheet:
-            sheet = db.sheets.find_one({"id": int(l.ref.replace("Sheet ", ""))}, {"views": 1})
-            setattr(l, 'order', {'views': sheet.get('views', 0)})
+            setattr(l, 'order', get_sheet_order(l.toTopic, int(l.ref.replace("Sheet ", ""))))
         else:
             key = (l.toTopic, l.ref)
             try:
