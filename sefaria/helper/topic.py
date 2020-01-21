@@ -88,9 +88,9 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
             for seg_ref in temp_subset_refs:
                 for index in subset_ref_map[seg_ref]:
-                    new_refs[index]['subsetRefs'] += [link]
+                    new_refs[index]['similarRefs'] += [link]
             if len(temp_subset_refs) == 0:
-                link['subsetRefs'] = []
+                link['similarRefs'] = []
                 new_refs += [link]
                 for seg_ref in link.get('expandedRefs', []):
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
@@ -442,8 +442,11 @@ def update_link_orders():
             for tref in sheet['includedRefs']:
                 try:
                     oref = Ref(tref)
-                    includedRefs += [oref.all_segment_refs()]
+                    includedRefs += [[sub_oref.normal() for sub_oref in oref.all_segment_refs()]]
                 except InputError:
+                    continue
+                except AssertionError:
+                    print("Assertion Error", tref)
                     continue
             sheet['includedRefs'] = includedRefs
             sheet_cache[sheet_id] = sheet
