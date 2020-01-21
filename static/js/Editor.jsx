@@ -81,12 +81,12 @@ const format_tag_pairs = [
 const TEXT_TAGS = format_tag_pairs.reduce((obj, item) => {
      obj[item.tag] = () => ({[item.format]: true })
      return obj
-   }, {})
+   }, {});
 
 const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
      obj[item.format] = item.tag;
      return obj
-   }, {})
+   }, {});
 
 
 export const deserialize = el => {
@@ -98,8 +98,8 @@ export const deserialize = el => {
         return '\n'
     }
 
-    const {nodeName} = el
-    let parent = el
+    const {nodeName} = el;
+    let parent = el;
 
     if (
         el.nodeNode === 'PRE' &&
@@ -109,7 +109,7 @@ export const deserialize = el => {
         parent = el.childNodes[0]
     }
 
-    const children = Array.from(parent.childNodes).map(deserialize)
+    const children = Array.from(parent.childNodes).map(deserialize);
 
 
     if (el.nodeName === 'BODY') {
@@ -117,12 +117,12 @@ export const deserialize = el => {
     }
 
     if (ELEMENT_TAGS[nodeName]) {
-        const attrs = ELEMENT_TAGS[nodeName](el)
+        const attrs = ELEMENT_TAGS[nodeName](el);
         return jsx('element', attrs, children)
     }
 
     if (TEXT_TAGS[nodeName]) {
-        const attrs = TEXT_TAGS[nodeName](el)
+        const attrs = TEXT_TAGS[nodeName](el);
         return children.map(child => jsx('text', attrs, child))
     }
 
@@ -139,7 +139,7 @@ export const serialize = (content) => {
     if (content.text) {
         const tagStringObj = Object.keys(content).reduce((tagString, key) => {
             if (content[key] == true) {
-                const htmlTag = format_to_html_lookup[key]
+                const htmlTag = format_to_html_lookup[key];
                 const preTag = (tagString.preTags + "<" + htmlTag + ">");
                 const postTag = ("</" + htmlTag + ">" + tagString.postTags);
                 return {preTags: preTag.toLowerCase(), postTags: postTag.toLowerCase()}
@@ -171,7 +171,7 @@ export const serialize = (content) => {
     const children = content.children ? content.children.map(serialize) : [];
 
     return children.join('')
-}
+};
 
 
 function renderSheetItem(source) {
@@ -212,7 +212,7 @@ function renderSheetItem(source) {
                         }
                     ]
                 }
-            )
+            );
             return content
         }
         case 'comment': {
@@ -222,7 +222,7 @@ function renderSheetItem(source) {
                     children: parseSheetItemHTML(source.comment),
                     node: source.node
                 }
-            )
+            );
             return content
         }
         case 'outsideText': {
@@ -232,7 +232,7 @@ function renderSheetItem(source) {
                     children: parseSheetItemHTML(source.outsideText),
                     node: source.node
                 }
-            )
+            );
             return content
         }
         case 'outsideBiText': {
@@ -251,7 +251,7 @@ function renderSheetItem(source) {
                     ],
                     node: source.node
                 }
-            )
+            );
             return content
         }
         case 'media': {
@@ -266,7 +266,7 @@ function renderSheetItem(source) {
                         }
                     ]
                 }
-            )
+            );
             return content
         }
         default: {
@@ -282,7 +282,7 @@ function renderSheetItem(source) {
 function parseSheetItemHTML(rawhtml) {
     const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml), 'text/html');
     const fragment = deserialize(parsed.body);
-    const slateJSON = fragment.length > 0 ? fragment : [{text: ''}]
+    const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
     return slateJSON[0].type == 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
 
@@ -297,17 +297,16 @@ function transformSheetJsonToDraft(sheet) {
             }
         )
     );
-
     let initValue = [
         {
             type: 'Sheet',
             status: sheet.status,
-            group: sheet.group,
+            group: sheet.group || "",
             views: sheet.views,
-            tags: sheet.tags,
+            tags: sheet.tags || [],
             includedRefs: sheet.includedRefs,
             owner: sheet.owner,
-            summary: sheet.summary,
+            summary: sheet.summary || "",
             id: sheet.id,
             dateModified: sheet.dateModified,
             datePublished: sheet.datePublished,
@@ -319,8 +318,8 @@ function transformSheetJsonToDraft(sheet) {
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
             title: sheetTitle,
-            group: sheet.group,
-            groupLogo: sheet.groupLogo,
+            groupLogo: sheet.groupLogo || "",
+            likes: sheet.likes || [],
 
             children: [
                 {
@@ -369,11 +368,11 @@ function transformSheetJsonToDraft(sheet) {
                         },
                         {
                             type: 'GroupStatement',
-                            group: sheet.group,
-                            groupLogo: sheet.groupLogo,
+                            group: sheet.group || "",
+                            groupLogo: sheet.groupLogo || "",
                             children: [
                                 {
-                                    text: sheet.group,
+                                    text: sheet.group || "",
                                 }
 
                             ]
@@ -538,14 +537,14 @@ const isSelectionFocusAtEndOfSheetItem = (editor) => {
     }
   }
   return false
-}
+};
 
 const getNextSheetItemPath = (SheetItemPath) => {
     let path = SheetItemPath;
     const newLastNode = path.pop() + 1
     path.push(newLastNode);
     return path
-}
+};
 
 
 
@@ -630,7 +629,7 @@ const withSefariaSheet = editor => {
 
       // Fall back to the original `normalizeNode` to enforce other constraints.
       normalizeNode(entry)
-    }
+    };
 
     return editor
 };
@@ -658,7 +657,7 @@ const insertOutsideText = editor => {
     };
     addItemToSheet(editor, fragment);
     Transforms.move(editor);
-}
+};
 
 const insertSource = (editor, ref) => {
     console.log(ref)
@@ -715,7 +714,7 @@ const withLinks = editor => {
 
   editor.isInline = element => {
     return element.type === 'link' ? true : isInline(element)
-  }
+  };
 
   editor.insertText = text => {
     if (text && Sefaria.util.isUrl(text)) {
@@ -723,7 +722,7 @@ const withLinks = editor => {
     } else {
       insertText(text)
     }
-  }
+  };
 
   editor.insertData = data => {
     const text = data.getData('text/plain')
@@ -733,15 +732,15 @@ const withLinks = editor => {
     } else {
       insertData(data)
     }
-  }
+  };
 
   return editor
-}
+};
 
 const isLinkActive = editor => {
   const [link] = Editor.nodes(editor, { match: n => n.type === 'link' })
   return !!link
-}
+};
 
 const wrapLink = (editor, url) => {
   if (isLinkActive(editor)) {
@@ -754,7 +753,7 @@ const wrapLink = (editor, url) => {
     type: 'link',
     url,
     children: isCollapsed ? [{ text: url }] : [],
-  }
+  };
 
   if (isCollapsed) {
     Transforms.insertNodes(editor, link)
@@ -762,7 +761,7 @@ const wrapLink = (editor, url) => {
     Transforms.wrapNodes(editor, link, { split: true })
     Transforms.collapse(editor, { edge: 'end' })
   }
-}
+};
 
 const toggleFormat = (editor, format) => {
   const isActive = isFormatActive(editor, format)
@@ -778,7 +777,7 @@ const isFormatActive = (editor, format) => {
   const [match] = Editor.nodes(editor, {
     match: n => n[format] === true,
     mode: 'all',
-  })
+  });
   return !!match
 };
 
@@ -802,7 +801,7 @@ const Leaf = ({attributes, children, leaf}) => {
     }
 
     return <span {...attributes}>{children}</span>
-}
+};
 
 const HoverMenu = () => {
     const ref = useRef();
@@ -870,7 +869,7 @@ const FormatButton = ({format}) => {
     )
 
 
-}
+};
 
 function saveSheetContent(doc, lastModified) {
 
@@ -1038,7 +1037,6 @@ const SefariaEditor = (props) => {
         // Add the editable component inside the context.
         <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
             <HoverMenu/>
-
             <Editable
                 renderLeaf={props => <Leaf {...props} />}
                 renderElement={renderElement}

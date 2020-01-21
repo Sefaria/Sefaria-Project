@@ -3,7 +3,6 @@ import {
   LoadingMessage,
   SinglePanelNavHeader,
 } from './Misc';
-import React  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Footer  from './Footer';
