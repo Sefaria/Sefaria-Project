@@ -470,6 +470,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
             tl = IntraTopicLink().load({
                 "class": "intraTopic",
                 "fromTopic": from_slug,
+                "linkType": "displays-under",
                 "toTopic": top_topic.slug
             })
             if tl is None:
@@ -481,6 +482,9 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                     "dataSource": "sefaria"
                 })
                 tl.save()
+            else:
+                print("TL good", from_slug, "->", top_topic.slug)
+
     for invalid_term, from_slug in tqdm(invalid_term_to_slug_map.items(), desc="invalid intraTopic terms"):
         top_topic = Topic().load({"alt_ids._temp_toc_id": fallback_sheet_cat_map[invalid_term]})
         if top_topic is None:
@@ -488,6 +492,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
             continue
         tl = IntraTopicLink().load({
             "class": "intraTopic",
+            "linkType": "displays-under",
             "fromTopic": from_slug,
             "toTopic": top_topic.slug
         })
@@ -500,6 +505,8 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                 "dataSource": "sefaria"
             })
             tl.save()
+        else:
+            print("TL", from_slug, "->", top_topic.slug)
 
 
 def do_ref_topic_link(slug_to_sheet_map):
