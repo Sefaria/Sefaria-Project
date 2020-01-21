@@ -276,7 +276,7 @@ class FilterableList extends Component {
     return this.props.filterFunc(this.state.currFilter, item);
   }
   sortFunc(itemA, itemB) {
-    return this.props.sortFunc(this.state.currSortOption, itemA, itemB);
+    return this.props.sortFunc(this.state.currSortOption, itemA, itemB, this.props.extraData);
   }
   onFilterChange(e) {
     this.setState({currFilter: e.target.value});
@@ -349,6 +349,7 @@ FilterableList.propTypes = {
   renderEmptyList: PropTypes.func,
   renderHeader: PropTypes.func,
   renderFooter: PropTypes.func,
+  extraData: PropTypes.object,  // extraData to pass to sort function
 };
 
 class TabView extends Component {

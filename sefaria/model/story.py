@@ -40,7 +40,8 @@ class Story(abst.AbstractMongoRecord):
         d = {
             "sheet_title": strip_tags(metadata["title"]),
             "sheet_summary": strip_tags(metadata["summary"]) if "summary" in metadata else "",
-            "publisher_id": metadata["owner"]
+            "publisher_id": metadata["owner"],
+            "sheet_via": metadata.get("via", None)
         }
         if return_id:
             d["sheet_id"] = sheet_id

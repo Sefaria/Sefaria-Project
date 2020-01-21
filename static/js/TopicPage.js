@@ -22,7 +22,49 @@ const {
 }                         = require('./Misc');
 const Footer     = require('./Footer');
 
+const refSort = (currSortOption, a, b, { interfaceLang }) => {
+  a = a[1]; b = b[1];
+  if (!a.order && !b.order) { return 0; }
+  if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+  if (currSortOption === 'Chronological') {
+    if (a.order.comp_date === a.order.comp_date) {
+      if (a.order.order_id < b.order.order_id) { return -1; }
+      if (b.order.order_id < a.order.order_id) { return 1; }
+      return 0;
+    }
+    return a.order.comp_date - b.order.comp_date;
+  }
+  else {
+    if (interfaceLang === 'english' && a.order.availableLangs.length !== b.order.availableLangs.length) {
+      if (a.order.availableLangs.indexOf('en') > -1) { return -1; }
+      if (b.order.availableLangs.indexOf('en') > -1) { return 1; }
+      return 0;
+    }
+    else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
+    else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
+  }
+};
 
+const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
+  if (!a.order && !b.order) { return 0; }
+  if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+  if (interfaceLang === 'hebrew' && a.order.language !== b.order.language) {
+    if (a.order.language === 'hebrew') { return -1; }
+    if (b.order.language === 'hebrew') { return 1; }
+    return 0;
+  }
+  if (currSortOption === 'Views') {
+    return b.order.views - a.order.views;
+  } else if (currSortOption === 'Newest') {
+    if (b.order.dateCreated < a.order.dateCreated) { return -1; }
+    if (a.order.dateCreated < b.order.dateCreated) { return 1; }
+  } else {
+    // relevance
+    const relDiff = b.order.relevance - a.order.relevance;
+    if (relDiff == 0) { return b.order.views - a.order.views; }
+    return relDiff;
+  }
+};
 
 const TopicCategory = ({topic, setTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
@@ -139,11 +181,24 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
               }
               return Object.values(outSheets)
             }),
-            sheets, 100, setSheetData, newCancel => { sheetCancel = newCancel; }
+            sheets, 100, (allSheets) => {
+              // TODO SORT
+              const newAllSheets = [];
+              const sheetIdMap = {};  // map id -> index in newAllSheets
+              for (let tempSheet of allSheets.sort((a, b) => sheetSort('Relevance', a, b, {}))) {
+                const ind = sheetIdMap[tempSheet.sheet_via];
+                if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
+                else {
+                  tempSheet.copies = [];
+                  newAllSheets.push(tempSheet);
+                  sheetIdMap[tempSheet.sheet_id] = newAllSheets.length - 1;
+                }
+              }
+              setSheetData(newAllSheets);
+            }, newCancel => { sheetCancel = newCancel; }
           ),
         ]);
       })());
-      ;
       return () => {
         cancel();
         if (textCancel) { textCancel(); }
@@ -180,28 +235,8 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                                   if (n(ref[1][field]).indexOf(currFilter) > -1) { return true; }
                                 }
                               }}
-                              sortFunc={(currSortOption, a, b) => {
-                                a = a[1]; b = b[1];
-                                if (!a.order && !b.order) { return 0; }
-                                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                                if (currSortOption === 'Chronological') {
-                                  if (a.order.comp_date === a.order.comp_date) {
-                                    if (a.order.order_id < b.order.order_id) { return -1; }
-                                    if (b.order.order_id < a.order.order_id) { return 1; }
-                                    return 0;
-                                  }
-                                  return a.order.comp_date - b.order.comp_date;
-                                }
-                                else {
-                                  if (interfaceLang === 'english' && a.order.availableLangs.length !== b.order.availableLangs.length) {
-                                    if (a.order.availableLangs.indexOf('en') > -1) { return -1; }
-                                    if (b.order.availableLangs.indexOf('en') > -1) { return 1; }
-                                    return 0;
-                                  }
-                                  else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
-                                  else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
-                                }
-                              }}
+                              sortFunc={refSort}
+                              extraData={{ interfaceLang }}
                               renderItem={item=>(
                                 <TextPassage key={item[0]} text={item[1]} toggleSignUpModal={toggleSignUpModal}/>
                               )}
@@ -220,24 +255,8 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                                   if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
                                 }
                               }}
-                              sortFunc={(currSortOption, a, b) => {
-                                if (!a.order && !b.order) { return 0; }
-                                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                                if (interfaceLang === 'hebrew' && a.order.language !== b.order.language) {
-                                  if (a.order.language === 'hebrew') { return -1; }
-                                  if (b.order.language === 'hebrew') { return 1; }
-                                  return 0;
-                                }
-                                if (currSortOption === 'Views') {
-                                  return b.order.views - b.order.views;
-                                } else if (currSortOption === 'Newest') {
-                                  if (b.order.dateCreated < a.order.dateCreated) { return -1; }
-                                  if (a.order.dateCreated < b.order.dateCreated) { return 1; }
-                                } else {
-                                  // relevance
-                                  return b.order.relevance - a.order.relevance;
-                                }
-                              }}
+                              sortFunc={sheetSort}
+                              extraData={{ interfaceLang }}
                               renderItem={item=>(
                                 <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
                               )}
@@ -268,7 +287,7 @@ TopicPage.propTypes = {
   toggleSignUpModal:   PropTypes.func,
 };
 
-const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc }) => (
+const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData }) => (
   <div className="story topicTabContents">
     {!!data ?
       <div className={classes}>
@@ -279,6 +298,7 @@ const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filter
           renderEmptyList={()=>null}
           renderHeader={()=>null}
           sortOptions={sortOptions}
+          extraData={extraData}
           getData={()=> Promise.resolve(data)}
         />
       </div> : <LoadingMessage />

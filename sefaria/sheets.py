@@ -58,12 +58,12 @@ def get_sheet(id=None):
 
 def get_sheet_metadata(id = None):
 	assert id
-	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
+	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
 	return s
 
 
 def get_sheet_metadata_bulk(id_list):
-	return db.sheets.find({"id": {"$in": id_list}}, {"id": 1, "title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
+	return db.sheets.find({"id": {"$in": id_list}}, {"id": 1, "title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
 
 
 def get_sheet_node(sheet_id=None, node_id=None):
