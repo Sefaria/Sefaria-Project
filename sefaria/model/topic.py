@@ -74,26 +74,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def merge(self, other):
         """
-        Merge all data associated with `other` into `self`.
-            Rewrite all links of `other`
-            Merge `alt_ids`
-            Merge `titles`
-            Merge `properties`
-            etc.
-        :param other: Topic
+        :param other: Topic or old slug to migrate from
         :return: None
         """
         from sefaria.system.database import db
         if other is None:
             return
+        other_slug = other if isinstance(other, str) else other.slug
 
         # links
-        for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other.slug}, {"fromTopic": other.slug}]}):
+        for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
             if link.linkType == TopicLinkType.isa_type and link.toTopic == Topic.uncategorized_topic :
                 # no need to merge uncategorized is-a links
                 link.delete()
                 continue
-            attr = 'toTopic' if link.toTopic == other.slug else 'fromTopic'
+            attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
             setattr(link, attr, self.slug)
             if getattr(link, 'fromTopic', None) == link.toTopic:
                 # self-link
@@ -105,36 +100,37 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 link.delete()
             except AssertionError as e:
                 link.delete()
-                logger.warning('While merging {} into {}, link assertion failed with message "{}"'.format(other.slug, self.slug, str(e)))
+                logger.warning('While merging {} into {}, link assertion failed with message "{}"'.format(other_slug, self.slug, str(e)))
 
         # source sheets
-        db.sheets.update_many({'topics.slug': other.slug}, {"$set": {'topics.$.slug': self.slug}})
+        db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$.slug': self.slug}})
 
-        # titles
-        for title in other.titles:
-            if title.get('primary', False):
-                del title['primary']
-        self.titles += other.titles
+        if isinstance(other, Topic):
+            # titles
+            for title in other.titles:
+                if title.get('primary', False):
+                    del title['primary']
+            self.titles += other.titles
 
-        # dictionary attributes
-        for dict_attr in ['alt_ids', 'properties']:
-            temp_dict = getattr(self, dict_attr, {})
-            for k, v in getattr(other, dict_attr, {}).items():
-                if k in temp_dict:
-                    logger.warning('Key {} with value {} already exists in {} for topic {}. Current value is {}'.format(k, v, dict_attr, self.slug, temp_dict[k]))
-                    continue
-                temp_dict[k] = v
-            if len(temp_dict) > 0:
-                setattr(self, dict_attr, temp_dict)
-        setattr(self, 'numSources', getattr(self, 'numSources', 0) + getattr(other, 'numSources', 0))
+            # dictionary attributes
+            for dict_attr in ['alt_ids', 'properties']:
+                temp_dict = getattr(self, dict_attr, {})
+                for k, v in getattr(other, dict_attr, {}).items():
+                    if k in temp_dict:
+                        logger.warning('Key {} with value {} already exists in {} for topic {}. Current value is {}'.format(k, v, dict_attr, self.slug, temp_dict[k]))
+                        continue
+                    temp_dict[k] = v
+                if len(temp_dict) > 0:
+                    setattr(self, dict_attr, temp_dict)
+            setattr(self, 'numSources', getattr(self, 'numSources', 0) + getattr(other, 'numSources', 0))
 
-        # everything else
-        already_merged = ['slug', 'titles', 'alt_ids', 'properties', 'numSources']
-        for attr in filter(lambda x: x not in already_merged, self.required_attrs + self.optional_attrs):
-            if not getattr(self, attr, False) and getattr(other, attr, False):
-                setattr(self, attr, getattr(other, attr))
-        self.save()
-        other.delete()
+            # everything else
+            already_merged = ['slug', 'titles', 'alt_ids', 'properties', 'numSources']
+            for attr in filter(lambda x: x not in already_merged, self.required_attrs + self.optional_attrs):
+                if not getattr(self, attr, False) and getattr(other, attr, False):
+                    setattr(self, attr, getattr(other, attr))
+            self.save()
+            other.delete()
 
 
 class TopicSet(abst.AbstractMongoSet):

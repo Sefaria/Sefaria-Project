@@ -904,6 +904,43 @@ def recat_toc():
         c.writeheader()
         c.writerows(rows)
 
+    def renormalize_slugs():
+        ts = TopicSet()
+        def temp_norm_slug(en):
+            slug = re.sub(r"[ /]", "-", en.lower().strip())
+            return re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+
+        def normalize_slug(self, slug_field):
+            """
+            Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
+            """
+            slug = getattr(self, slug_field).lower()
+            slug = re.sub(r"[ /]", "-", slug.strip())
+            slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+            dupe_count = 0
+            _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
+            temp_slug = slug
+            while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
+                dupe_count += 1
+                temp_slug = "{}{}".format(slug, dupe_count)
+            return temp_slug
+
+        for t in ts:
+            title = t.get_primary_title('en') if len(t.get_primary_title('en')) > 0 else t.get_primary_title('he')
+            if re.search(r'\d+$', t.slug) and temp_norm_slug(title) != t.slug:
+                old_slug = t.slug
+                new_alt_ids = getattr(t, 'alt_ids', {})
+                new_alt_ids['_old_slug'] = old_slug
+                setattr(t, 'alt_ids', new_alt_ids)
+                t.slug = title
+                new_slug = normalize_slug(t, 'slug')
+                t.slug = new_slug
+                print('---')
+                print('En', t.get_primary_title('en'))
+                print('He', t.get_primary_title('he'))
+                print('Old', old_slug)
+                print('New', new_slug)
+                t.merge(old_slug)
 
 if __name__ == '__main__':
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
