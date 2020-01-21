@@ -1685,17 +1685,10 @@ Sefaria = extend(Sefaria, {
   },
   _topicList: null,
   topicList: function(callback) {
-    // Returns data for `topic`.
-    if (this._topicList) {
-      if (callback) { callback(this._topicList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/topics?limit=0"; // TODO separate topic list API
-       Sefaria._api(url, function(data) {
-          this._topicList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._topicList;
+    // Returns promise for all topics list.
+    if (this._topicList) { return Promise.resolve(this._topicList); }
+    return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
+        .then(d => { this._topicList = d; return d; });
   },
   _tableOfContentsDedications: {},
   _topics: {},

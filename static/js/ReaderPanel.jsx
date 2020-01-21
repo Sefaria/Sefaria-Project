@@ -16,7 +16,7 @@ const SearchPage                = require('./SearchPage');
 const SheetsNav                 = require('./SheetsNav');
 const Sheet                     = require('./Sheet');
 const SheetMetadata             = require('./SheetMetadata');
-const TopicsPanel               = require('./TopicsPanel');
+const TopicPageAll              = require('./TopicPageAll');
 const {TopicPage}               = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
@@ -922,7 +922,7 @@ class ReaderPanel extends Component {
                   key={"TopicPage"}
                 />);
       } else {
-        menu = (<TopicsPanel
+        menu = (<TopicPageAll
                   interfaceLang={this.props.interfaceLang}
                   width={this.state.width}
                   setTopic={this.setTopic}
@@ -933,7 +933,7 @@ class ReaderPanel extends Component {
                   toggleLanguage={this.toggleLanguage}
                   navHome={this.openMenu.bind(null, "navigation")}
                   openDisplaySettings={this.openDisplaySettings}
-                  key={"TopicsPanel"}
+                  key={"TopicPageAll"}
                 />);
       }
 

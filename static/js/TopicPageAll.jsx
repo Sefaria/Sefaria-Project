@@ -18,62 +18,68 @@ const Footer              = require('./Footer');
 import Component          from 'react-class';
 
 
-class TopicsPanel extends Component {
+class TopicPageAll extends Component {
   constructor(props) {
     super(props);
-    this.state = {"filter": ""};
+    this.state = {
+      filter: '',
+      loading: true,
+      topicList: null,
+    };
   }
   componentDidMount() {
-    this.loadData();
+    Sefaria.topicList().then(topicList => {
+      for (let topic of topicList) {
+        topic.normTitles = topic.titles.map(title => this.normalizeFilter(title.text))
+      }
+      this.setState({ loading: false, topicList });
+    });
   }
-  loadData() {
-    var data = Sefaria.topicList();
-    if (!data) {
-      Sefaria.topicList(this.rerender);
-    }
-
-    var trending = Sefaria.sheets.trendingTags();
-    if (!trending) {
-      Sefaria.sheets.trendingTags(this.rerender);
-    }
-  }
+  normalizeFilter(filter) { return filter.toLowerCase(); }
   handleFilterChange(e) {
-    this.setState({filter: e.currentTarget.value.toLowerCase()});
+    this.setState({filter: this.normalizeFilter(e.currentTarget.value)});
   }
   resetFilter() {
-    this.setState({"filter": ""});
+    this.setState({filter: ''});
     $(".topicFilterInput").val("");
   }
-  rerender() {
-    this.forceUpdate();
+  getPrimaryTitle(topic, lang) {
+    for (let title of topic.titles) {
+      if (title.lang == lang && title.primary) {
+        return title.text;
+      }
+    }
+    return '';
   }
+
+  renderButton(item)  {
+    return (
+      <Link
+        className={classNames({navButton: 1, sheetButton: 1 })}
+        href={"/topics/" + item.slug}
+        onClick={this.props.setTopic.bind(null, item.slug)}
+        title={"Explore sources related to '" + item.slug + "'"}
+        key={item.slug}
+      >
+        <span className="int-en">{this.getPrimaryTitle(item, 'en')}</span>
+        <span className="int-he">{this.getPrimaryTitle(item, 'he')}</span>
+      </Link>
+    );
+  }
+
   render() {
-    var topics = Sefaria.topicList();
-    var trending = Sefaria.sheets.trendingTags();
-    var makeTopicButton = function(item, i) {
-      var classes = classNames({navButton: 1, sheetButton: 1 });
-      return (<Link 
-                className={classes}
-                href={"/topics/" + item.tag}
-                onClick={this.props.setTopic.bind(null, item.tag)}
-                title={"Explore sources related to '" + item.tag + "'"}
-                key={item.tag}>
-                <span className="int-en">{item.tag} ({item.count})</span>
-                <span className="int-he">{Sefaria.hebrewTerm(item.tag)} ({item.count})</span>
-              </Link>);
-    }.bind(this);
+    const hasFilter = this.state.filter.length > 0;
+    const topicList = this.state.topicList ? this.state.topicList.slice(0, hasFilter ? undefined : 500).filter(item => {
+      if (!hasFilter) { return true }
+      for (let title of item.normTitles) {
+        if (title.indexOf(this.state.filter) !== -1) { return true; }
+      }
+      return false;
+    }).map(this.renderButton) : null;
 
-    var trendingList = this.state.filter.length ? [] : trending ? trending.map(makeTopicButton) : null;
-
-    var topicList = topics ? topics.filter(function(item, i) {
-      if (!this.state.filter.length) { return true }
-      var tag = Sefaria.interfaceLang == "hebrew" ? Sefaria.hebrewTerm(item.tag) : item.tag.toLowerCase();
-      return tag.indexOf(this.state.filter) !== -1;
-    }.bind(this)).map(makeTopicButton) : null;
-
-    var classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
-    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
-    var contentClasses = classNames({content: 1, hasFooter: 1});
+    const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
+    const contentClasses = classNames({content: 1, hasFooter: 1});
 
     return (
       <div className={classStr}>
@@ -99,34 +105,25 @@ class TopicsPanel extends Component {
             <div className="topicFilterBox">
               <i className="topicFilterIcon fa fa-search"></i>
               <input className="topicFilterInput" placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש נושאים" : "Search Topics"} onChange={this.handleFilterChange} />
-              { this.state.filter.length ? 
+              { this.state.filter.length ?
               <div className="topicsFilterReset" onClick={this.resetFilter}>
                 <span className="int-en">Reset</span>
                 <span className="int-he">לאתחל</span>
-                <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />       
+                <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />
               </div>
               : null }
             </div>
             <div className="topicList">
-              {trendingList && trendingList.length ?
-                <div className="trendingTopics">
-                  <h3>
-                    <span className="int-en">Trending</span>
-                    <span className="int-he">פופולרי</span>
-                  </h3>
-                  <TwoOrThreeBox content={trendingList} width={this.props.width} />
-                </div>
-                : null }
-              { topics ?
-                  (topics.length ?
+              { topicList ?
+                  (topicList.length ?
                       <div>
                         { this.state.filter.length ? null :
                           <h3>
                             <span className="int-en">Most Used</span>
                             <span className="int-he">הכי בשימוש</span>
                           </h3>
-                        }                      
-                        <TwoOrThreeBox content={topicList} width={this.props.width} /> 
+                        }
+                        <TwoOrThreeBox content={topicList} width={this.props.width} />
                       </div>
                     : <LoadingMessage message="There are no topics here." heMessage="" />)
                   : <LoadingMessage />
@@ -139,7 +136,7 @@ class TopicsPanel extends Component {
       </div>);
   }
 }
-TopicsPanel.propTypes = {
+TopicPageAll.propTypes = {
   interfaceLang:       PropTypes.string,
   width:               PropTypes.number,
   mutliPanel:          PropTypes.bool,
@@ -148,9 +145,9 @@ TopicsPanel.propTypes = {
   toggleLanguage:      PropTypes.func,
   openDisplaySettings: PropTypes.func,
 };
-TopicsPanel.defaultProps = {
+TopicPageAll.defaultProps = {
   width:               1000,
 };
 
 
-module.exports = TopicsPanel;
+module.exports = TopicPageAll;

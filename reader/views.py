@@ -2869,13 +2869,11 @@ def topics_page(request):
     """
     Page of all
     """
-    topics = get_all_topics(limit=0)
     props = base_props(request)
     props.update({
         "initialMenu":  "topics",
         "initialTopic": None,
-        "topicList": [t.contents() for t in topics],
-        "trendingTags": trending_tags(ntags=12),
+        # "trendingTags": trending_tags(ntags=12),
     })
 
     propsJSON = json.dumps(props)
