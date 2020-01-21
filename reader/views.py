@@ -2869,7 +2869,7 @@ def topics_page(request):
     """
     Page of all
     """
-    topics = get_all_topics()
+    topics = get_all_topics(limit=0)
     props = base_props(request)
     props.update({
         "initialMenu":  "topics",

@@ -1689,7 +1689,7 @@ Sefaria = extend(Sefaria, {
     if (this._topicList) {
       if (callback) { callback(this._topicList); }
     } else if (callback) {
-      var url = Sefaria.apiHost + "/api/topics"; // TODO separate topic list API
+      var url = Sefaria.apiHost + "/api/topics?limit=0"; // TODO separate topic list API
        Sefaria._api(url, function(data) {
           this._topicList = data;
            if (callback) { callback(data); }
