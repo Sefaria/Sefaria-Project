@@ -2120,8 +2120,8 @@ Sefaria = extend(Sefaria, {
       "Sign Up": "הרשמו לספריא",
       "Already have an account?": "כבר יש לכם חשבון?",
       "Sign\u00A0in": "התחברו",
-      "Save": "שמירת",
-      "Remove": "הסרת",
+      "Save": "שמירה",
+      "Remove": "הסרה",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",

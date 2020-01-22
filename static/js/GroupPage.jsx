@@ -19,10 +19,8 @@ class GroupPage extends Component {
   constructor(props) {
     super(props);
 
-    this.showTagsByDefault = this.props.group == "גיליונות נחמה";
-
     this.state = {
-      showTags: this.showTagsByDefault,
+      showTags: false,
       sheetFilterTag: this.props.tag,
       sheetSort: "date",
       tab: "sheets",
@@ -33,10 +31,7 @@ class GroupPage extends Component {
     Sefaria.getGroup(this.props.group)
         .then(groupData => {
           this.sortSheetData(groupData);
-          if (groupData.pinnedSheets && groupData.pinnedSheets.length > 0) {
-            this.pinSheetsToSheetList(groupData);
-          }
-          this.setState({groupData})
+          this.setState({groupData, showTags: !!groupData.showTagsByDefault})
         });
   }
   componentDidUpdate(prevProps, prevState) {
@@ -60,7 +55,7 @@ class GroupPage extends Component {
     // Warning: This sorts the sheets within the cached group item in sefaria.js
     if (!group.sheets) { return; }
 
-    var sorters = {
+    const sorters = {
       date: function(a, b) {
         return Date.parse(b.modified) - Date.parse(a.modified);
       },
@@ -72,6 +67,21 @@ class GroupPage extends Component {
       }
     };
     group.sheets.sort(sorters[this.state.sheetSort]);
+
+    if (this.props.group == "גיליונות נחמה"){
+      let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
+      if (this.props.interfaceLang == "english") {
+        parshaOrder = ["English"] + parshaOrder;
+      }
+      group.pinnedTags = parshaOrder;
+    }
+
+    if (group.pinnedSheets && group.pinnedSheets.length > 0) {
+      this.pinSheetsToSheetList(group);
+    }
+    if (group.pinnedTags && group.pinnedTags.length > 0) {
+      this.sortTags(group);
+    }
   }
   pinSheetsToSheetList(group){
     var sortPinned = function(a, b) {
@@ -83,6 +93,17 @@ class GroupPage extends Component {
       return  ai < bi ? -1 : 1;
     };
     group.sheets.sort(sortPinned);
+  }
+  sortTags(group) {
+     var sortTags = function(a, b) {
+      var ai = group.pinnedTags.indexOf(a.tag);
+      var bi = group.pinnedTags.indexOf(b.tag);
+      if (ai == -1 && bi == -1) { return 0; }
+      if (ai == -1) { return 1; }
+      if (bi == -1) { return -1; }
+      return  ai < bi ? -1 : 1;
+    };
+    group.tags.sort(sortTags);
   }
   setTab(tab) {
     this.setState({tab: tab});
@@ -173,21 +194,6 @@ class GroupPage extends Component {
             <span className={"int-he" + (enTagOnly ? " enOnly" : '')}>{heTag} (<span className="enInHe">{tag.count}</span>)</span>
         </div>);
       }.bind(this)) : null;
-
-    if (this.props.group == "גיליונות נחמה"){
-      var parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
-      if (this.props.interfaceLang == "english") {
-        parshaOrder = ["English"] + parshaOrder;
-      }
-      groupTagList.sort( function (a, b) {
-        var A = a["key"], B = b["key"];
-        var orderA = parshaOrder.indexOf(A), orderB = parshaOrder.indexOf(B);
-
-        if (orderA == -1) { return 1; }
-        if (orderB == -1) { return -1; }
-        return orderA > orderB ? 1 : -1;
-      });
-    }
 
     sheets = sheets && this.state.sheetFilterTag ? sheets.filter(function(sheet) {
       return Sefaria.util.inArray(this.state.sheetFilterTag, sheet.tags) >= 0;
