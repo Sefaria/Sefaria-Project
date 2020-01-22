@@ -124,8 +124,8 @@ class TopicPageAll extends Component {
                   <TwoOrThreeBox content={trendingList} width={this.props.width} />
                 </div>
                 : null */}
-              { topics ?
-                  (topics.length ?
+              { topicList ?
+                  (topicList.length ?
                       <div>
                         { this.state.filter.length ? null :
                           <h3>
