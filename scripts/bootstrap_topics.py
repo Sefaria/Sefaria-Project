@@ -944,6 +944,26 @@ def renormalize_slugs():
             print('New', new_slug)
             t.merge(old_slug)
 
+
+def set_should_display():
+    with open('data/upper_level_nodes.csv', 'r') as fin:
+        c = csv.DictReader(fin)
+        for row in c:
+            if row['display'] == 'No':
+                slug = row['Node'].lower()
+                slug = re.sub(r"[ /]", "-", slug.strip())
+                slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+                topic = Topic().load({"slug": slug})
+                if topic is None:
+                    print("BAD", row['Node'])
+                    continue
+                if getattr(topic, 'numSources', 0) > 0:
+                    print("Has Sources", slug, topic.get_primary_title('en'))
+                    continue
+                print("GOOD", slug, topic.get_primary_title('en'))
+                setattr(topic, 'shouldDisplay', False)
+                topic.save()
+
 if __name__ == '__main__':
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_data_source()
