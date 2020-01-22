@@ -635,7 +635,13 @@ class ReaderPanel extends Component {
     let contentLangOverride = null;
 
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
-      items.push(<Sheet
+      if (this.state.sheet.editor) {
+        let newSheet = this.state.sheet;
+        delete newSheet.editor
+        this.conditionalSetState({ sheet: newSheet});
+        this.toggleSheetEditMode(false)
+      }
+        items.push(<Sheet
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
           editor={this.state.editSheet}

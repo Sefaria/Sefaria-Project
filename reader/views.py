@@ -288,6 +288,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     if panelDisplayLanguage:
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
 
+    referer = kwargs.get("referer")
+    if referer == "/sheets/new":
+        panel["sheet"]["editor"] = True
+
     panels = []
     panels.append(panel)
 
@@ -388,7 +392,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi")})
+        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi"), "referer": request.path})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2

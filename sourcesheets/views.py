@@ -62,6 +62,37 @@ def annotate_user_links(sources):
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
+
+	editor = request.GET.get('editor', '1')
+
+	if editor == '0':
+		sheet = {
+				'status': 'unlisted',
+				'title': 'New Source Sheet',
+				'sources': [
+					{
+						"outsideText": "",
+						"node": 1,
+					}
+				],
+				'nextNode': 2,
+				'options': {
+					'layout':    "stacked",
+					'boxed':  0,
+					'language':    "bilingual",
+					'numbered':    0,
+					'assignable':    0,
+					'divineNames':    "noSub",
+					'collaboration':    "none",
+					'highlightMode':    0,
+					'langLayout':    "heRight",
+					'bsd':    0,
+				}
+		}
+
+		responseSheet = save_sheet(sheet, request.user.id)
+		return catchall(request, str(responseSheet["id"]), True)
+
 	"""
 	View an new, empty source sheet.
 	"""
