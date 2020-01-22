@@ -37,7 +37,9 @@ class TitleGroup(object):
     ]
     optional_attrs = [
         "primary",
-        "presentation"
+        "presentation",
+        "transliteration",  # bool flag to indicate if title is transliteration
+        "fromTerm"  # bool flag to indicate if title originated from term (used in topics)
     ]
 
     def __init__(self, serial=None):
