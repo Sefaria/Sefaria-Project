@@ -2329,19 +2329,15 @@ Sefaria = extend(Sefaria, {
     setCancel - function that saves cancel function so it can be called in outside scope
     */
     let allResponses = [];
-    let lastTempData = [];
-    while (allResponses.length < data.length) {
-      const tempData = data.slice(allResponses.length, allResponses.length + increment);
-      if (tempData.compare(lastTempData)) {
-        // end early if you're loading the same items twice in a row
-        break;
-      }
+    let lastEndIndex = 0;
+    while (lastEndIndex <= data.length) {
+      const tempData = data.slice(lastEndIndex, lastEndIndex + increment);
       const { promise, cancel } = Sefaria.makeCancelable(fetchResponse(tempData));
       setCancel(cancel);
       const tempResponses = await promise;
       allResponses = allResponses.concat(tempResponses);
       setResponse(allResponses);
-      lastTempData = tempData;
+      lastEndIndex = lastEndIndex + increment;
     }
   }
 });

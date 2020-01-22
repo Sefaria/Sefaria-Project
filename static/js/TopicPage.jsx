@@ -60,9 +60,8 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
     if (a.order.dateCreated < b.order.dateCreated) { return 1; }
   } else {
     // relevance
-    const relDiff = b.order.relevance - a.order.relevance;
-    if (relDiff == 0) { return b.order.views - a.order.views; }
-    return relDiff;
+    if (b.order.relevance == a.order.relevance) { return b.order.views - a.order.views; }
+    return (Math.log(b.order.views) * b.order.relevance) - (Math.log(a.order.views) * a.order.relevance);
   }
 };
 
@@ -182,18 +181,23 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
               return Object.values(outSheets)
             }),
             sheets, 100, (allSheets) => {
-              // TODO SORT
               const newAllSheets = [];
               const sheetIdMap = {};  // map id -> index in newAllSheets
-              for (let tempSheet of allSheets.sort((a, b) => sheetSort('Relevance', a, b, {}))) {
-                const ind = sheetIdMap[tempSheet.sheet_via];
-                if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
-                else {
+              const allSheetsSorted = allSheets.sort((a, b) => sheetSort('Relevance', a, b, {}));
+              // add all non-copied sheets
+              for (let tempSheet of allSheetsSorted) {
+                if (!tempSheet.sheet_via) {
                   tempSheet.copies = [];
                   newAllSheets.push(tempSheet);
                   sheetIdMap[tempSheet.sheet_id] = newAllSheets.length - 1;
                 }
               }
+              // aggregate copies to their parents
+              for (let tempSheet of allSheetsSorted) {
+                const ind = sheetIdMap[tempSheet.sheet_via];
+                if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
+              }
+              console.log('sheets', newAllSheets);
               setSheetData(newAllSheets);
             }, newCancel => { sheetCancel = newCancel; }
           ),
