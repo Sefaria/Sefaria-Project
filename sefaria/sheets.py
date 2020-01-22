@@ -62,8 +62,11 @@ def get_sheet_metadata(id = None):
 	return s
 
 
-def get_sheet_metadata_bulk(id_list):
-	return db.sheets.find({"id": {"$in": id_list}}, {"id": 1, "title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
+def get_sheet_metadata_bulk(id_list, public=True):
+	query = {"id": {"$in": id_list}}
+	if public:
+		query['status'] = 'public'
+	return db.sheets.find(query, {"id": 1, "title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
 
 
 def get_sheet_node(sheet_id=None, node_id=None):

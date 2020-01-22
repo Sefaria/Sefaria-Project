@@ -63,9 +63,9 @@ class Story(abst.AbstractMongoRecord):
         return d
 
     @staticmethod
-    def sheet_metadata_bulk(sid_list, return_id=False):
+    def sheet_metadata_bulk(sid_list, return_id=False, public=True):
         from sefaria.sheets import get_sheet_metadata_bulk
-        metadata_list = get_sheet_metadata_bulk(sid_list)
+        metadata_list = get_sheet_metadata_bulk(sid_list, public=public)
         return [Story.build_sheet_metadata_dict(metadata, metadata['id'], return_id) for metadata in metadata_list]
 
     def contents(self, **kwargs):

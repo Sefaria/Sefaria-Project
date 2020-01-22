@@ -652,8 +652,9 @@ def save_sheet_api(request):
 def bulksheet_api(request, sheet_id_list):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
+        only_public = bool(int(request.GET.get("public", True)))
         sheet_id_list = [int(sheet_id) for sheet_id in set(sheet_id_list.split("|"))]
-        response = jsonResponse({s['sheet_id']: s for s in sheet_list_to_story_list(request, sheet_id_list)}, cb)
+        response = jsonResponse({s['sheet_id']: s for s in sheet_list_to_story_list(request, sheet_id_list, only_public)}, cb)
         return response
 
 
@@ -951,9 +952,16 @@ def sheet_to_story_dict(request, sid):
     return d
 
 
-def sheet_list_to_story_list(request, sid_list):
+def sheet_list_to_story_list(request, sid_list, public=True):
+    """
+
+    :param request:
+    :param sid_list: list of sheet ids
+    :param public: if True, return only public sheets
+    :return:
+    """
     from sefaria.model.story import Story
-    dict_list = Story.sheet_metadata_bulk(sid_list, return_id=True)
+    dict_list = Story.sheet_metadata_bulk(sid_list, return_id=True, public=public)
     followees_set = following.FolloweesSet(request.user.id).uids
     for d in dict_list:
         d.update(Story.publisher_metadata(d["publisher_id"]))
