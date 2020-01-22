@@ -114,8 +114,18 @@ class TopicPageAll extends Component {
               : null }
             </div>
             <div className="topicList">
-              { topicList ?
-                  (topicList.length ?
+              {/* Is this relevant?  Came in from a merge.
+              trendingList && trendingList.length ?
+                <div className="trendingTopics">
+                  <h3>
+                    <span className="int-en">Trending</span>
+                    <span className="int-he">עדכני</span>
+                  </h3>
+                  <TwoOrThreeBox content={trendingList} width={this.props.width} />
+                </div>
+                : null */}
+              { topics ?
+                  (topics.length ?
                       <div>
                         { this.state.filter.length ? null :
                           <h3>

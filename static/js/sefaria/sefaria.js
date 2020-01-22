@@ -569,7 +569,6 @@ Sefaria = extend(Sefaria, {
     return data;
   }, */
   _index: {}, // Cache for text index records
-  _translateTerms: {},
    index: function(text, index) {
     if (!index) {
       return this._index[text];
@@ -600,45 +599,18 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
-  _cacheHebrewTerms: function(terms) {
-      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
-  },
   _indexDetails: {},
-  /* hasIndexDetails: title => {title in this._indexDetails}, */
   getIndexDetails: function(title) {
-    return new Promise((resolve, reject) => {
-        var details = title in this._indexDetails ? this._indexDetails[title] : null;
-        if (details) {
-          resolve(details);
-        } else {
-            var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
-            this._api(url, data => {
-                Sefaria._indexDetails[title] = data;
-                resolve(data);
-            });
-        }
+    return this._cachedApiPromise({
+        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1",
+        key:   title,
+        store: this._indexDetails
     });
   },
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
   },
-  _titleVariants: {},
-    /*  Unused?
-  normalizeTitle: function(title, callback) {
-    if (title in this._titleVariants) {
-        callback(this._titleVariants[title]);
-    }
-    else {
-        this._api("/api/v2/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i++) {
-            Sefaria._titleVariants[data.titleVariants[i]] = data.title;
-          }
-          callback(data.title);
-        });
-    }
-  },
-     */
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
     this.getName(ref, true)
@@ -698,7 +670,6 @@ Sefaria = extend(Sefaria, {
   },
   _lookups: {},
   _ref_lookups: {},
-
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly) {
     const trimmed_name = name.trim();
@@ -756,11 +727,6 @@ Sefaria = extend(Sefaria, {
     }
   },
   _links: {},
-  /*
-  hasLinks: function(ref) {
-      return ref in this._links;
-  },
-  */
   getLinks: function(ref) {
     // When there is an error in the returned data, this calls `reject` rather than returning empty.
     return new Promise((resolve, reject) => {
@@ -783,31 +749,6 @@ Sefaria = extend(Sefaria, {
     ref = Sefaria.humanRef(ref);
     return ref in this._links ? this._links[ref] : [];
   },
-  /*
-  links: function(ref, cb) {
-    // Returns a list of links known for `ref`.
-    // WARNING: calling this function with spanning refs can cause bad state in cache.
-    // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
-    // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
-    // Fixing this generally on the client side requires more understanding of ref logic.
-    console.log("Method Sefaria.links() is deprecated in favor of Sefaria.getLinks()");
-    ref = Sefaria.humanRef(ref);
-    if (!cb) {
-      return this._links[ref] || [];
-    }
-    if (ref in this._links) {
-      cb(this._links[ref]);
-    } else {
-       const url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
-       this._api(url, function(data) {
-          if ("error" in data) {
-            return;
-          }
-          this._saveLinkData(ref, data);
-          cb(data);
-        }.bind(this));
-    }
-  }, */
   _saveLinkData: function(ref, data) {
     ref = Sefaria.humanRef(ref);
     const l = this._saveLinksByRef(data);
@@ -1033,20 +974,6 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  /*
-  flatLinkSummary: function(ref) {
-    // Returns an array containing texts and categories with counts for ref
-    var summary = Sefaria.linkSummary(ref);
-    var booksByCat = summary.map(function(cat) {
-      return cat.books.map(function(book) {
-        return book;
-      });
-    });
-    var books = [];
-    books = books.concat.apply(books, booksByCat);
-    return books;
-  },
-  */
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
@@ -1966,33 +1893,21 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, sortBy, callback) {
-    // Returns data for an individual group
-    var groupObj = this._groups[group];
-    if (groupObj) {
-      if (callback) { callback(groupObj); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups/" + group;
-       Sefaria._api(url, function(data) {
-           this._groups[group] = data;
-           callback(data);
-        }.bind(this));
-      }
-    return groupObj;
+  getGroup: function(key) {
+      const url = Sefaria.apiHost + "/api/groups/" + key;
+      const store = this._groups;
+      return this._cachedApiPromise({url, key, store});
   },
   _groupsList: null,
-  groupsList: function(callback) {
-    // Returns list of public and private groups
-    if (this._groupsList) {
-      if (callback) { callback(this._groupsList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups";
-       Sefaria._api(url, function(data) {
-          this._groupsList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._groupsList;
+  getGroupsList: function() {
+      // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
+      return (this._groupsList) ?
+          Promise.resolve(this._groupsList) :
+          Sefaria._promiseAPI(Sefaria.apiHost + "/api/groups")
+              .then(data => {
+                  this._groupsList = data;
+                  return data;
+              })
   },
   userGroups: function(uid) {
     return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/groups/user-groups/${uid}`);
@@ -2000,6 +1915,10 @@ Sefaria = extend(Sefaria, {
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
+  },
+  _translateTerms: {},
+  _cacheHebrewTerms: function(terms) {
+      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
@@ -2204,8 +2123,8 @@ Sefaria = extend(Sefaria, {
       "Sign Up": "הרשמו לספריא",
       "Already have an account?": "כבר יש לכם חשבון?",
       "Sign\u00A0in": "התחברו",
-      "Save": "שמירת",
-      "Remove": "הסרת",
+      "Save": "שמירה",
+      "Remove": "הסרה",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
@@ -2295,7 +2214,7 @@ Sefaria = extend(Sefaria, {
   },
   _cachedApiPromise: function({url, key, store}) {
       // Checks store[key].  Resolves to this value, if present.
-      // Otherwise, calls Promise(url), caches, and returns
+      // Otherwise, calls Promise(url), caches in store[key], and returns
       return (key in store) ?
           Promise.resolve(store[key]) :
           Sefaria._ApiPromise(url)
