@@ -42,6 +42,8 @@ USE_TZ = True
 
 LOCALE_PATHS = (relative_to_abs_path('../locale'),)
 
+# This needs to be handled better -- hostnames can be arbitrary
+# Can we base the default language on the TLD (e.g. `org` or `org.il`)
 DOMAIN_LANGUAGES = {
     "https://www.sefaria.org": "english",
     "https://www.sefaria.org.il": "hebrew",

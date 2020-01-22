@@ -7,7 +7,7 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.search import index_all
-from sefaria.local_settings import SEFARIA_BOT_API_KEY
+from sefaria.settings import SEFARIA_BOT_API_KEY, WEB_SERVICE_NAME
 from sefaria.pagesheetrank import update_pagesheetrank
 
 """
@@ -17,13 +17,13 @@ running against a production database, last_sheet_timestamp will be the time thi
 value will need to be set to the time at which the last mongo dump was created (assuming the database is using the most
 up-to-date mongo dump).
 """
-# last_sheet_timestamp = datetime.fromtimestamp(os.path.getmtime("/var/data/sefaria_public/dump/sefaria")).isoformat()
+# last_sheet_timestamp = datetime.fromtimestamp(os.path.getmtkc get ime("/var/data/sefaria_public/dump/sefaria")).isoformat()
 try:
     last_sheet_timestamp = datetime.now().isoformat()
     update_pagesheetrank()
-    index_all(merged=False)
+    index_all(merged=False)  
     index_all(merged=True)
-    r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+    r = requests.post("http://{}/admin/index-sheets-by-timestamp".format(WEB_SERVICE_NAME), data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
     if "error" in r.text:
         raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
     else:

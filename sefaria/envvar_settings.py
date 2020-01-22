@@ -31,6 +31,7 @@ DEBUG = getEnvVarBinary("SEFARIA__APP_DEBUG")
 OFFLINE = getEnvVarBinary("SEFARIA__APP_OFFLINE")
 ALLOWED_HOSTS = getEnvVarString("SEFARIA__APP_ALLOWED_HOSTS").split(";") 
 ALLOWED_HOSTS += ["web", gethostname(), gethostbyname(gethostname()), "localhost", "127.0.0.1", "::1"]
+WEB_SERVICE_NAME = getEnvVarString("SEFARIA__K8S_SERVICE_NAME_WEB")
 
 # ------------
 # Django Internals
