@@ -11,9 +11,8 @@ const {
     LoadingMessage 
 }                              = require('./Misc');
 
-
 function CategoryLink({category, showLibrary}) {
-    return ( <a className="refLink inAppLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
+    return ( <a className="sideCatLink refLink inAppLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
                 <span className="int-en">{category}</span>
                 <span className="int-he">{Sefaria.hebrewTerm(category)}</span>
             </a>);
@@ -96,14 +95,21 @@ function HomeFeedSidebar({showLibrary}) {
                         <span className="int-he">תמכו בספריא</span>
                     </h2>
                     <div className="description systemText">
-                        <span className="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</span>
-                        <span className="int-he">ספריא הינה פלטפורמה חינמית, הפתוחה לקהל הרחב- ללא מטרות רווח. תמכו בנו.</span>
+                        <span className="int-en">Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation or shopping at the Sefaria store.</span>
+                        <span className="int-he">ספריא היא ספריה דיגיטלית פתוחה הפועלת ללא מטרות רווח. תמכו בנו ע"י תרומה פטורה ממס או בקנייה בחנות הווירטואלית של ספריא</span>
                     </div>
                     <a href="/donate">
                         <div className="button white fillWidth control-elem">
                             <img src="/static/img/heart.png" />
                             <span className="int-en">Make a Donation</span>
                             <span className="int-he">תרמו לספריא</span>
+                        </div>
+                    </a>
+                    <a href="https://store.sefaria.org/">
+                        <div className="button white fillWidth control-elem">
+                            <img src="/static/img/shopping-bag.png" />
+                            <span className="int-en">Sefaria Store</span>
+                            <span className="int-he">החנות של ספריא</span>
                         </div>
                     </a>
                 </div>
