@@ -7040,13 +7040,13 @@ body .homeFeedWrapper .content {
   font-family: "adobe-garamond-pro", Georgia, serif;
   text-transform: uppercase;
 }
-.homeFeedSidebar .button {
+.sideColumn .button {
   letter-spacing: 0;
 }
-.homeFeedSidebar h2 {
+.sideColumn h2 {
   font-weight: 400;
 }
-.homeFeedSidebar .sideCatLink .int-he {
+.sideColumn .sideCatLink .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 22px;
   font-weight: normal;
@@ -7055,10 +7055,10 @@ body .homeFeedWrapper .content {
   color: #333;
 }
 
-.homeFeedSidebar .newsletterInput {
+.sideColumn .newsletterInput {
   height: 53px;
 }
-.homeFeedSidebar .newsletterSignUpBox img {
+.sideColumn .newsletterSignUpBox img {
     height: 23px;
     width: 23px;
     opacity: 0.35;
@@ -7066,12 +7066,12 @@ body .homeFeedWrapper .content {
     top: 15px;
     right: 17px;
 }
-.interface-hebrew .homeFeedSidebar .newsletterSignUpBox img {
+.interface-hebrew .sideColumn .newsletterSignUpBox img {
   right: auto;
   left: 17px;
   transform: scale(-1, 1);
 }
-.homeFeedSidebar .newsletterInput, .homeFeedSidebar .newsletterInput::placeholder {
+.sideColumn .newsletterInput, .sideColumn .newsletterInput::placeholder {
   width: 100%;
   box-sizing: border-box;
   font-size: 16px;
@@ -7079,15 +7079,15 @@ body .homeFeedWrapper .content {
   font-style: normal;
   color: #000;
 }
-.interface-english .homeFeedSidebar .newsletterInput, .interface-english .homeFeedSidebar .newsletterInput::placeholder  {
+.interface-english .sideColumn .newsletterInput, .interface-english .sideColumn .newsletterInput::placeholder  {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
-.interface-hebrew .homeFeedSidebar .newsletterInput, .interface-hebrew .homeFeedSidebar .newsletterInput::placeholder   {
+.interface-hebrew .sideColumn .newsletterInput, .interface-hebrew .sideColumn .newsletterInput::placeholder   {
   font-family: "Heebo", sans-serif;
 }
 
-.homeFeedSidebar #homeSocialButtons {
+.sideColumn #homeSocialButtons {
   margin-top: 15px;
 }
 .sideColumn #homeSocialButtons .fa {
