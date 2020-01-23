@@ -183,6 +183,9 @@ class StrongsDictionaryEntry(DictionaryEntry):
 class RashiDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "orig_word", "orig_ref", "catane_number"]
 
+class BDBDictionaryEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content"]
+
 
 class JastrowDictionaryEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["rid"]
@@ -230,9 +233,9 @@ class LexiconEntrySubClassMapping(object):
         'BDB Augmented Strong': StrongsDictionaryEntry,
         'Rashi Foreign Lexicon': RashiDictionaryEntry,
         'Jastrow Dictionary': JastrowDictionaryEntry,
-        "Jastrow Unabbreviated" : JastrowDictionaryEntry,
+        "Jastrow Unabbreviated": JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
-
+        "BDB Dictionary": BDBDictionaryEntry
     }
 
     @classmethod
