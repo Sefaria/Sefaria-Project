@@ -408,14 +408,14 @@ const Element = ({attributes, children, element}) => {
 
         case 'SheetComment':
             return (
-                <div {...attributes}>
+                <div className="SheetComment" {...attributes}>
                     {children}
                 </div>
             );
 
         case 'SheetOutsideText':
             return (
-                <div {...attributes}>
+                <div className="SheetOutsideText" {...attributes}>
                     {children}
                 </div>
             );
@@ -429,7 +429,7 @@ const Element = ({attributes, children, element}) => {
 
         case 'SheetMedia':
             return (
-                <div {...attributes}>
+                <div className="SheetMetaDataBox" {...attributes}>
                     {children}
                 </div>
             );
@@ -600,6 +600,38 @@ const withSefariaSheet = editor => {
 
       let sheetElementTypes = Object.values(sheet_item_els);
 
+      if (node.type == "SheetContent") {
+        for (const [child, childPath] of Node.children(editor, path)) {
+          if (sheetElementTypes.includes(child.type)) {
+            Transforms.wrapNodes(editor,
+              {
+                  type: "SheetItem",
+                  children: [child],
+                  }
+                            ,{ at: childPath })
+            return
+          }
+        }
+      }
+
+
+
+      if (node.type == "SheetItem") {
+        for (const [child, childPath] of Node.children(editor, path)) {
+          console.log(child.node)
+          if (!sheetElementTypes.includes(child.type)) {
+            Transforms.unwrapNodes(editor, { at: childPath })
+            return
+          }
+          else if (node.children.length > 1) {
+            Transforms.liftNodes(editor, { at: childPath })
+            return
+          }
+        }
+      }
+
+
+      //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
       if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
         for (const [child, childPath] of Node.children(editor, path)) {
           if (sheetElementTypes.includes(child.type) || child.type == "SheetItem") {
@@ -610,18 +642,31 @@ const withSefariaSheet = editor => {
 
       }
 
+      //anything pasted into an he or en will be treated as text content
+      if (node.type == "he" || node.type == "en") {
+        for (const [child, childPath] of Node.children(editor, path)) {
+          if (child.type != "paragraph") {
+            Transforms.unwrapNodes(editor, { at: childPath })
+            return
+          }
+        }
+      }
+
+      //if a sheetitem is stuck somewhere it shouldnt be raise it up to proper doc level
+      if (node.type == "SheetItem" && (Node.parent(editor, path)).type != "SheetContent") {
+          Transforms.liftNodes(editor, { at: path })
+      }
+
+
+      // if extra content is in sheet source -- merge it with the previous element
       if (node.type == "SheetSource") {
           if (node.children.length > 4) {
           for (const [child, childPath] of Node.children(editor, path)) {
               if (!["en", "he", "TextRef"].includes(child.type)) {
                 [prev, prevPath] = Editor.previous(editor, { at: childPath });
-                console.log(child)
-                console.log(prev)
-                console.log("-------------------")
                 Transforms.mergeNodes(editor, { at: childPath})
                 return
               }
-              console.log(child)
             }
           }
       }
