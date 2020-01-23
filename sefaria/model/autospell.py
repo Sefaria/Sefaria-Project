@@ -31,6 +31,7 @@ def normalizer(lang):
         return hebrew.normalize_final_letters_in_str
     return str.lower
 
+
 splitter = re.compile(r"[\s,]+")
 
 
@@ -40,7 +41,7 @@ class AutoCompleter(object):
     It instantiates objects that provide string completion according to different algorithms.
     """
     def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
-                 include_parasha=False, include_lexicons=False, include_groups=False, *args, **kwargs):
+                 include_parasha=False, include_lexicons=False, include_groups=False, include_topics=False, *args, **kwargs):
         """
 
         :param lang:
@@ -83,6 +84,13 @@ class AutoCompleter(object):
             self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name")
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
+        if include_topics:
+            ts = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}})
+            tnames = [name for t in ts for name in t.get_titles(lang)]
+            normal_topics_names = [self.normalizer(n) for n in tnames]
+            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug")
+            self.spell_checker.train_phrases(tnames)
+            self.ngram_matcher.train_phrases(tnames, normal_topics_names)
         if include_people:
             eras = ["GN", "RI", "AH", "CO"]
             ps = PersonSet({"era": {"$in": eras}})

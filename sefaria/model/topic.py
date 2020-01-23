@@ -5,6 +5,7 @@ from sefaria.system.exceptions import DuplicateRecordError
 import logging
 logger = logging.getLogger(__name__)
 
+
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
     slug_fields = ['slug']
