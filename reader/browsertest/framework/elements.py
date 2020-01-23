@@ -1188,6 +1188,40 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
 
+    # Editor
+    def new_sheet_in_editor(self):
+        self.driver.get(self.base_url + "/sheets/new?editor=0")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        return self
+
+    def nav_to_end_of_editor(self):
+        elem = self.driver.find_element_by_css_selector(".sheetContent")
+        elem.click()
+        self.driver.switch_to.active_element.send_keys(Keys.CONTROL, Keys.END)
+        return self
+
+    def generate_text(self, language):
+        paragraph = {
+            "en": "Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.",
+            "he": " לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף סחטיר בלובק. תצטנפל בלינדו למרקל אס לכימפו, דול, צוט ומעיוט - לפתיעם ברשג - ולתיעם גדדיש. קוויז דומור ליאמום בלינך רוגצה. לפמעט מוסן מנת. קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף גולר מונפרר סוברט לורם שבצק יהול, לכנוץ בעריר גק ליץ, ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס."
+        }
+        elem = self.driver.switch_to.active_element
+        elem.send_keys(paragraph[language])
+        elem.send_keys(Keys.RETURN)
+        time.sleep(3) #sheet won't save until there's a brief pause
+        return self
+
+    def add_source(self):
+        elem = self.driver.switch_to.active_element
+        elem.send_keys("Genesis 1:1")
+        elem.send_keys(Keys.RETURN)
+        time.sleep(3) #sheet won't save until there's a brief pause
+        return self
+
+
+
+
+
 
 class TestSuite(AbstractTest):
     def __init__(self, driver, url, cap, seed=None, mode=None, root_test=True, **kwargs):
@@ -1817,6 +1851,8 @@ def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
 
 
+
+
 # The following util method highlights (blinks) a Webdriver on the page, helpful for figuring out what a code line does.
 # A relevant use case would be to recognize an element on browser-1 when it can't be found on browser-2. Just switch locally to
 # the other browser (by changing the value of default_local_driver above), run up to the point of failure (using a breakpoint), and from the Evaluate Expression
@@ -1831,6 +1867,7 @@ def highlight(element):
     apply_style("background: yellow; border: 2px solid red;")
     time.sleep(.3)
     apply_style(original_style)
+
 
 
 class one_of_these_texts_present_in_element(object):

@@ -60,6 +60,35 @@ class SheetSuite(TestSuite):
         pass
 '''
 
+class EditorSuite(TestSuite):
+    """
+    Tests that do editor things
+    """
+    every_build = False
+
+    def setup(self):
+        # try:
+        #    self.driver.set_window_size(900, 1100)
+        #except WebDriverException:
+        #    pass
+        self.load_toc(my_temper=60)
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
+
+
+class CreateNewSheet(AtomicTest):
+    suite_class = EditorSuite
+    every_build = False
+    single_panel = False  # No source sheets on mobile
+
+    def body(self):
+        self.login_user()
+        self.new_sheet_in_editor()
+        self.nav_to_end_of_editor()
+        self.generate_text("he")
+        self.generate_text("en")
+        self.add_source()
 
 class SinglePanelOnMobile(AtomicTest):
     suite_class = ReaderSuite
@@ -188,8 +217,8 @@ class GoThroughHomeLinksAndButtons(AtomicTest):
 '''
 
 '''
-todo: Test the results of these clicks. 
-As it stands, it's not terribly useful.  It's only testing the existence of the links. 
+todo: Test the results of these clicks.
+As it stands, it's not terribly useful.  It's only testing the existence of the links.
 
 class GoThroughFooterObjects(AtomicTest):
     suite_class = PageloadSuite
@@ -509,7 +538,7 @@ class SideBarEntries(AtomicTest):
 
         '''
         Buggy.  Doesn't work on Safari. Mobile?
-        
+
         self.click_sidebar_facebook_link()
         url1 = self.get_newly_opened_tab_url()
         assert 'facebook.com' in url1, u"'{}' not in '{}'".format('facebook.com', url1)
@@ -924,19 +953,19 @@ class BrowserBackAndForward(AtomicTest):
     def body(self):
         # Sidebar
         self.browse_to_ref("Genesis 2").click_segment("Genesis 2:2").click_category_filter("Commentary")
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
-        assert "with=Commentary" in self.driver.current_url, self.driver.current_url        
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
+        assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         self.driver.back()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
-        assert "with=all" in self.driver.current_url, self.driver.current_url        
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
         self.driver.back()
         assert "Genesis.2" in self.driver.current_url, self.driver.current_url
-        assert "with=" not in self.driver.current_url, self.driver.current_url        
+        assert "with=" not in self.driver.current_url, self.driver.current_url
         self.driver.forward()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
-        assert "with=all" in self.driver.current_url, self.driver.current_url  
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
         self.driver.forward()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
+        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
         assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         # Todo - infinite scroll, nav pages, display options, ref normalization
 
@@ -1070,7 +1099,7 @@ class InfiniteScrollUp(AtomicTest):
         self.test_up("Job 32", "Job 31:40")
         # Complex Text
         self.test_up("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Story of the Five Rabbis 2")
-  
+
 
 class InfiniteScrollDown(AtomicTest):
     suite_class = ReaderSuite
@@ -1078,7 +1107,7 @@ class InfiniteScrollDown(AtomicTest):
 
     def test_down(self, start_ref, next_segment_ref):
         self.browse_to_ref(start_ref).scroll_reader_panel_to_bottom()
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))        
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))
 
     def body(self):
         # Simple Text
