@@ -42,11 +42,10 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             del link['class']
             link['topic'] = other_topic_slug
             link_type = library.get_link_type(link['linkType'])
-            del link['linkType']
             if group_related and link_type.get('groupRelated', is_inverse, False):
-                link_type_slug = TopicLinkType.related_type
-            else:
-                link_type_slug = link_type.get('slug', is_inverse)
+                link_type = library.get_link_type(TopicLinkType.related_type)
+            del link['linkType']
+            link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
             if annotate_links:
                 # add display information
@@ -420,7 +419,7 @@ def calculate_other_ref_scores(ref_topic_map):
     return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
-def update_link_orders():
+def update_ref_topic_link_orders():
     from tqdm import tqdm
     from sefaria.system.database import db
     from sefaria.system.exceptions import InputError
@@ -437,7 +436,7 @@ def update_link_orders():
         if sheet_id in sheet_cache:
             sheet = sheet_cache[sheet_id]
         else:
-            sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1})
+            sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1})
             includedRefs = []
             for tref in sheet['includedRefs']:
                 try:
@@ -456,11 +455,13 @@ def update_link_orders():
                 continue
             total_pr += sum([pr_map.get((topic, ref), 0) for ref in ref_range]) / len(ref_range)
         relevance = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
+        title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet.get('title', 'a'))) is not None else 'hebrew'
         return {
             'views': sheet.get('views', 0),
             'dateCreated': sheet['dateCreated'],
             'relevance': relevance,
-            'language': sheet.get('options', {}).get('language', 'bilingual')
+            'language': sheet.get('options', {}).get('language', 'bilingual'),
+            'titleLanguage': title_lang
         }
 
     updates = []
@@ -489,29 +490,43 @@ def update_link_orders():
     ])
 
 
-def new_edge_type_research():
+def update_intra_topic_link_orders():
+    """
+    add relevance order to intra topic links in sidebar
+    :return:
+    """
     from tqdm import tqdm
-    itls = IntraTopicLinkSet({"linkType": "specifically-dependent-on"})
-    for l in tqdm(itls, total=itls.count()):
-        ft = Topic().load({'slug': l.fromTopic})
-        tt = Topic().load({'slug': l.toTopic})
-        if ft.has_types({'specific-person-relationship'}) and tt.has_types({'people'}):
-            l.linkType = 'relationship-of'
-            l.save()
-    itls = IntraTopicLinkSet({"linkType": "participates-in"})
-    for l in tqdm(itls, total=itls.count()):
-        ft = Topic().load({'slug': l.fromTopic})
-        tt = Topic().load({'slug': l.toTopic})
-        if ft.has_types({'people'}) and tt.has_types({'history'}):
-            l.linkType = 'person-participates-in-event'
-            l.save()
-    itls = IntraTopicLinkSet({"linkType": "member-of"})
-    for l in tqdm(itls, total=itls.count()):
-        ft = Topic().load({'slug': l.fromTopic})
-        tt = Topic().load({'slug': l.toTopic})
-        if ft.has_types({'people'}) and tt.has_types({'a-people'}):
-            l.linkType = 'leader-of'
-            l.save()
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
+
+    uncats = {l.fromTopic for l in IntraTopicLinkSet({"linkType": "is-a", "toTopic": Topic.uncategorized_topic})}
+    ts = TopicSet()
+    topic_link_dict = {}
+    for topic in tqdm(ts, total=ts.count(), desc="update intra orders"):
+        if topic.slug in uncats:
+            continue
+        topic_links = IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]})
+        topic_links_by_slug = defaultdict(list)
+        for link in topic_links:
+            is_inverse = link.toTopic == topic.slug
+            topic_links_by_slug[link.fromTopic if is_inverse else link.toTopic] += [link]
+        topic_link_dict[topic.slug] = topic_links_by_slug
+    update_dict = {}
+    for topic_slug, topic_links in topic_link_dict.items():
+        for other_topic_slug, link_list in topic_links.items():
+            other_topic_links = topic_link_dict.get(other_topic_slug, None)
+            if other_topic_links is None:
+                continue
+            in_common = len(topic_links.keys() & other_topic_links.keys())
+            for link in link_list:
+                new_order = getattr(link, 'order', {})
+                new_order['linksInCommon'] = in_common
+                update_dict[link._id] = {"order": new_order}
+
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l[0]}, {"$set": l[1]}) for l in update_dict.items()
+    ])
+
 
 
 def add_num_sources_to_topics():
@@ -520,4 +535,28 @@ def add_num_sources_to_topics():
     updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
     db.topic_links.bulk_write([
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
+    ])
+
+def yo():
+    import re
+    from tqdm import tqdm
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
+
+    rtls = RefTopicLinkSet({"is_sheet": True})
+    sheet_cache = {}
+    updates = {}
+    for  l in tqdm(rtls, total=rtls.count()):
+        sid = int(l.ref.replace("Sheet ", ""))
+        sheet = sheet_cache.get(sid, db.sheets.find_one({"id": sid}, {"title": 1}))
+        sheet_cache[sid] = sheet
+        try:
+            title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet.get('title', 'a'))) is not None else 'hebrew'
+        except TypeError:
+            continue
+        new_order = getattr(l, 'order', {})
+        new_order['titleLanguage'] = title_lang
+        updates[l._id] = new_order
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l[0]}, {"$set": {"order": l[1]}}) for l in updates.items()
     ])

@@ -48,10 +48,13 @@ const refSort = (currSortOption, a, b, { interfaceLang }) => {
 const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   if (!a.order && !b.order) { return 0; }
   if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-  if (interfaceLang === 'hebrew' && a.order.language !== b.order.language) {
-    if (a.order.language === 'hebrew') { return -1; }
-    if (b.order.language === 'hebrew') { return 1; }
-    return 0;
+  const aTLangHe = 0 + (a.order.titleLanguage === 'hebrew');
+  const bTLangHe = 0 + (b.order.titleLanguage === 'hebrew');
+  const aLangHe  = 0 + (a.order.language      === 'hebrew');
+  const bLangHe  = 0 + (b.order.language      === 'hebrew');
+  if (interfaceLang === 'hebrew' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
+    if (aTLangHe ^ bTLangHe && aLangHe ^ bLangHe) { return bTLangHe - aTLangHe; }  // title lang takes precedence over content lang
+    return (bTLangHe + bLangHe) - (aTLangHe + aLangHe);
   }
   if (currSortOption === 'Views') {
     return b.order.views - a.order.views;
@@ -197,7 +200,6 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                 const ind = sheetIdMap[tempSheet.sheet_via];
                 if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
               }
-              console.log('sheets', newAllSheets);
               setSheetData(newAllSheets);
             }, newCancel => { sheetCancel = newCancel; }
           ),
@@ -271,7 +273,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                    :""}
                 </div>
                 <div className="sideColumn">
-                    <TopicSideColumn links={topicData.links} clearAndSetTopic={clearAndSetTopic} />
+                    <TopicSideColumn key={topic} links={topicData.links} clearAndSetTopic={clearAndSetTopic} />
                 </div>
             </div>
           </div>
@@ -328,13 +330,13 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-const TopicLink = ({topic, topicTitle, clearAndSetTopic, userVotes, tfidf, isTransliteration}) => {
+const TopicLink = ({topic, topicTitle, clearAndSetTopic, isTransliteration}) => {
 
   return (
     <Link className="relatedTopic" href={"/topics/" + topic} onClick={clearAndSetTopic.bind(null, topic)} key={topic} title={topicTitle.en}>
       <InterfaceTextWithFallback
-        en={topicTitle.en + (!!tfidf ? ` (${tfidf.toFixed(2)}) ` : '') + (!!userVotes ? ` (+${userVotes})` : '')}
-        he={topicTitle.he + (!!tfidf ? ` (${tfidf.toFixed(2)}) ` : '') + (!!userVotes ? ` (+${userVotes})` : '')}
+        en={topicTitle.en}
+        he={topicTitle.he}
         isItalics={isTransliteration}
       />
     </Link>
@@ -346,47 +348,60 @@ TopicLink.propTypes = {
   isTransliteration: PropTypes.object,
 };
 
-const TopicSideColumn = ({ links, clearAndSetTopic }) => (
-  links ?
-    Object.values(links)
-    .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.length > 0)
-    .sort((a, b) => {
-      const aInd = a.title.en.indexOf('Related');
-      const bInd = b.title.en.indexOf('Related');
-      if (aInd > -1 && bInd > -1) { return 0; }
-      if (aInd > -1) { return 1; }
-      if (bInd > -1) { return -1; }
-      //alphabetical by en just to keep order consistent
-      return a.title.en.localeCompare(b.title.en);
-    })
-    .map(({ title, pluralTitle, links }) => (
-      <div key={title.en}>
-        <h2>
-          <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
-          <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he :title.he}</span>
-        </h2>
-        <div className="sideList">
-          {
-            links
-            .filter(l => l.shouldDisplay !== false)
-            .sort((a, b) => {
-              const aVotes = !!a.order && a.order.tfidf;
-              const bVotes = !!b.order && b.order.tfidf;
-              if (aVotes >= 0 && bVotes >= 0) { return bVotes - aVotes; }
-              return a.title.en.localeCompare(b.title.en);
-            })
-            .map(l =>
-              TopicLink({
-                topic:l.topic, topicTitle: l.title, clearAndSetTopic,
-                userVotes: l.order && l.order.user_votes, tfidf: l.order && l.order.tfidf, isTransliteration: l.titleIsTransliteration
+const TopicSideColumn = ({ links, clearAndSetTopic }) => {
+  const [showMoreMap, setShowMoreMap] = useState({});
+  return (
+    links ?
+      Object.values(links)
+      .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.length > 0)
+      .sort((a, b) => {
+        const aInd = a.title.en.indexOf('Related');
+        const bInd = b.title.en.indexOf('Related');
+        if (aInd > -1 && bInd > -1) { return 0; }
+        if (aInd > -1) { return 1; }
+        if (bInd > -1) { return -1; }
+        //alphabetical by en just to keep order consistent
+        return a.title.en.localeCompare(b.title.en);
+      })
+      .map(({ title, pluralTitle, links }) => (
+        <div key={title.en}>
+          <h2>
+            <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
+            <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he :title.he}</span>
+          </h2>
+          <div className="sideList">
+            {
+              links
+              .filter(l => l.shouldDisplay !== false)
+              .sort((a, b) => {
+                if (!a.order && !b.order) { return 0; }
+                if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+                if (a.order.linksInCommon == b.order.linksInCommon) { return b.order.numSources - a.order.numSources; }
+                return b.order.linksInCommon - a.order.linksInCommon;
               })
-            )
+              .slice(0, showMoreMap[title.en] ? undefined : 10)
+              .map(l =>
+                TopicLink({
+                  topic:l.topic, topicTitle: l.title, clearAndSetTopic, isTransliteration: l.titleIsTransliteration
+                })
+              )
+            }
+          </div>
+          {
+            links.filter(l=>l.shouldDisplay !== false).length > 10 ?
+              (<div className="sideColumnMore" onClick={() => {
+                setShowMoreMap({...showMoreMap, [title.en]: !showMoreMap[title.en]});
+              }}>
+                <span className='int-en'>{ showMoreMap[title.en] ? "Less" : "More" }</span>
+                <span className='int-he'>{ showMoreMap[title.en] ? "פחות" : "עוד" }</span>
+              </div>)
+            : null
           }
         </div>
-      </div>
-    ))
-  : ""
-);
+      ))
+    : ""
+  );
+}
 TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
   clearAndSetTopic: PropTypes.func.isRequired,
