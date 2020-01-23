@@ -1107,6 +1107,9 @@ input.noselect {
   text-align: unset;
   border-bottom: 1px solid #888;
   padding-bottom: 30px;
+  margin-top: 60px;
+}
+.topicPanel .sideColumn div:first-child h2 {
   margin-top: 0;
 }
 .topicPanel h2 span {
@@ -1131,7 +1134,6 @@ input.noselect {
     padding: 0 0 40px 0;
 }
 .topicPanel .sideColumn .sideList {
-  margin-bottom: 60px;
   font-size: 20px;
 }
 .topicPanel .sideColumn .sideList a {
@@ -5499,8 +5501,12 @@ h2.splitHeader .he {
   color: #8E8E8E;
 }
 
-.topicPanel .relatedTopic {
-
+.topicPanel .sideColumnMore {
+  cursor: pointer;
+}
+.topicPanel .sideColumnMore:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .topicPanel .sourceList {
