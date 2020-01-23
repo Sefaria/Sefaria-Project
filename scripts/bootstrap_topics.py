@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, new_edge_type_research, add_num_sources_to_topics
+from sefaria.helper.topic import generate_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
@@ -820,20 +820,20 @@ def recat_toc():
         'sustenance': 'food',
         'place': 'geographic-locations',
         'history': 'history',
-        'holiday': 'holidays1',
+        'holiday': 'holidays',
         'language-entity': 'language',
         'preposition': 'language',
         'law': 'law',
-        'halachic-process1': 'law',
+        'halachic-process': 'law',
         'halachic-role': 'law',
         'philosophy': 'philosophy',
         'freedom': 'philosophy',
-        'knowledge3': 'philosophy',
+        'knowledge1': 'philosophy',
         'prayer': 'prayer',
         'brachah': 'prayer',
         'theology': 'theology',
         'theological-tenets': 'theology',
-        'divine-names1': 'theology',
+        'divine-names': 'theology',
         'theological-process': 'theology',
         'ethics': 'theology',
         'halachic-role-of-inanimate-object': 'ritual-objects',
@@ -843,7 +843,7 @@ def recat_toc():
         'plants': 'science',
         'weather': 'science',
         'middot': 'society',
-        'emotions1': 'society',
+        'emotions': 'society',
         'role-of-person': 'society',
         'specific-person-relationship': 'society',
         'source': 'source'
@@ -878,6 +878,9 @@ def recat_toc():
             "Slug": t.slug,
             "Description": getattr(t, 'description', {}).get('en', '')
         }
+        old_slug = getattr(t, 'alt_ids', {}).get('_old_slug', None)
+        if old_slug:
+            row['Old Slug'] = old_slug
         if t.slug in display_map:
             row['Cat'] = top_level[display_map[t.slug]]
             row['Cat Source'] = 'Old Mapping'
@@ -900,7 +903,7 @@ def recat_toc():
         rows += [row]
 
     with open('recat.csv', 'w') as fout:
-        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Slug', 'Description'])
+        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Slug', 'Description', 'Old Slug'])
         c.writeheader()
         c.writerows(rows)
 
@@ -964,6 +967,50 @@ def set_should_display():
                 setattr(topic, 'shouldDisplay', False)
                 topic.save()
 
+
+def new_edge_type_research():
+    from tqdm import tqdm
+    itls = IntraTopicLinkSet({"linkType": "specifically-dependent-on"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'specific-person-relationship'}) and tt.has_types({'people'}):
+            l.linkType = 'relationship-of'
+            l.save()
+    itls = IntraTopicLinkSet({"linkType": "participates-in"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'people'}) and tt.has_types({'history'}):
+            l.linkType = 'person-participates-in-event'
+            l.save()
+    itls = IntraTopicLinkSet({"linkType": "member-of"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'people'}) and tt.has_types({'a-people'}):
+            l.linkType = 'leader-of'
+            l.save()
+
+
+def fix_recat_toc():
+    with open("data/Recategorize Topics - TOC Mapping.csv", 'r') as fin:
+        c = csv.DictReader(fin)
+        rows = list(c)
+    for row in rows:
+        t = Topic().load({"alt_ids._old_slug": row["Slug"]})
+        if t:
+            row["Slug"] = t.slug
+        if not Topic().load({"slug": row["Slug"]}):
+            print("No Topic for", row["Slug"])
+        else:
+            row["Link"] = "topics-dev.sandbox.sefaria.org/topics/{}".format(row["Slug"])
+
+    with open("data/fixed_recat_toc.csv", "w") as fout:
+        c = csv.DictWriter(fout, c.fieldnames)
+        c.writeheader()
+        c.writerows(rows)
+
 if __name__ == '__main__':
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_data_source()
@@ -978,38 +1025,9 @@ if __name__ == '__main__':
     do_sheet_refactor(tag_to_slug_map)
     dedup_topics()
     generate_topic_links_from_sheets()
-    update_link_orders()
+    update_ref_topic_link_orders()
     import_term_descriptions()
     new_edge_type_research()
     add_num_sources_to_topics()
-
     # clean_up_time()
-
-# TODO Halacha is not Halakha
-# TODO refactor sheets to hold topics
-# TODO add class automattically to intratopiclinks
-# TODO is `is category` being applied from Aspaklaria sheet?
-
-"""
-potential things we should fix
-- make transliterations in italics
-- figure out how to disambiguate topic names (Food, Food)
-- make "more" button for link types that have many items
-- decide which topics are invisible from side bar
-- translate link types. Both en and he. En needs to decide what will make sense to users. could be some link types will be collapsed for users
-- translate all topics that dont have he (mostly top level topics that won't be invisible)
-- decide sort order for sheets and sources (sources can simply be ref order)
-- pagination!
-- change TOC
-  - Authors -> People
-  - Religion -> Theology
-  - Folklore -> maybe something with less of a strong connotation. I feel like this implies it's not true
-
-why is {toTopic: "stingy", class: "refTopic", ref: /^Pesik/} the highest?
-how does it have such a high mean tfidf?
-
-why does /insistence-or-exactitude not have any sources? there are sources in aspaklaria
-
-Rename 'intention' to 'purpose'/'תכלית'
-"""
 
