@@ -436,14 +436,20 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width: 600px;
 	display: none;
 }
-#inlineTextPreview .en {
-	font-family: "adobe-garamond-pro", Georgia, serif
+
+#sheet #inlineTextPreview .en {
+	font-family: "adobe-garamond-pro", Georgia, serif;
+	font-size: 16px;
 }
 
-#inlineTextPreview .he {
-	font-family: "Taamey Frank", "Times New Roman", serif
+#sheet #inlineTextPreview .he {
+	font-family: "Taamey Frank", "Times New Roman", serif;
+	font-size: 18px;
 }
 
+#sheet.english #inlineTextPreview .he {
+	display: block;
+}
 
 #textPreview .previewLine, #inlineTextPreview .previewLine {
 	display: inline;
@@ -1702,6 +1708,9 @@ line-height: normal;
 	margin-top:10px;
 	width: 300px;
 }
+.interface-hebrew #addmediaDiv .buttonContainer {
+	width: 440px;
+}
 .optionItem a, .optionLink a, .languageToggleOption div a, .layoutToggleOption div a, .sideBySideToggleOption div a {
  color: inherit;
 }
@@ -1985,6 +1994,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 }
 .inlineAddSourceByttons .button {
 	padding: 16px 20px;
+	margin-bottom: 0;
 }
 .sheetsEditNavTop .button {
 	background-color: #212e50;
@@ -2023,8 +2033,8 @@ body.hasBannerMessage .sheetsEditNavTop {
 .blockContainer {
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
 	width:100%;
-
 }
 
 .interface-hebrew .blockContainer{

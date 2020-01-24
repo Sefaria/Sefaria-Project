@@ -1311,7 +1311,7 @@ function NewsletterSignUpForm(props) {
       <span className="int-he">
         <input
           className="newsletterInput"
-          placeholder="הצטרפו לרשימת התפוצה"
+          placeholder="הרשמו לניוזלטר"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />

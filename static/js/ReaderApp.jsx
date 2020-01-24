@@ -664,7 +664,8 @@ class ReaderApp extends Component {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
         if (window.location.search != ""){
-          hist.url += window.location.search;
+          // Replace initial ? of query string with & which logic below expects
+          hist.url += "&" + window.location.search.slice(1);
         }
         hist.mode   = "Header"
 

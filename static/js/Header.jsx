@@ -19,7 +19,7 @@ class Header extends Component {
     super(props);
 
     this.state = props.initialState;
-    this._searchOverridePre = 'Search for: "';
+    this._searchOverridePre = Sefaria._('Search for') +': "';
     this._searchOverridePost = '"';
   }
   componentDidMount() {
@@ -51,8 +51,9 @@ class Header extends Component {
           .appendTo( ul );
       }.bind(this)
     });
+    var anchorSide = this.props.interfaceLang == "hebrew" ? "right+" : "left-";
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
-      position: {my: "left-12 top+17", at: "left bottom"},
+      position: {my: anchorSide + "12 top+17", at: anchorSide + "0 bottom"},
       minLength: 3,
       select: ( event, ui ) => {
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
@@ -268,6 +269,7 @@ class Header extends Component {
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
                           openProfile={this.props.openProfile}
+                          showLibrary={this.showLibrary}
                         />) : null;
 
 

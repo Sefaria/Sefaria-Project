@@ -12,7 +12,7 @@
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
     {% if not is_public %}
-        <meta name="robots" content="noindex">
+        <meta name="robots" content="noindex, nofollow">
     {% endif %}
     {% if EMBED %}
         <link rel="canonical" href="{{ canonical_url }}">
@@ -105,9 +105,9 @@
                             {% endif %}
                         {% endif %}
 
-                        {% endif %}
-
                         <div class="line"></div>
+
+                        {% endif %}
 
                         <div class="optionItem" id="print" role="menuitem" tabindex="0">
                             <img src="{% static 'img/print.png' %}" alt="Print Icon">
@@ -116,6 +116,7 @@
                                 <span class="int-he">הדפסה</span>
                             </span>
                         </div>
+                        {% if not new_sheet %}
                         <div class="optionItem" id="visualize" role="menuitem" tabindex="0">
                             <i class="fa fa-picture-o"></i>
                             <span class="optionItemText">
@@ -125,7 +126,6 @@
                                 </a>
                             </span>
                         </div>
-                        {% if not new_sheet %}
                         <div class="optionItem" id="highlightToggle" role="menuitem" tabindex="0">
                             <i class="fa fa-pencil"></i>
                             <span class="optionItemText">
@@ -429,7 +429,7 @@
                 {% if can_edit or can_add %}
                 <div class="sheetsMenuBarItem" id="insertMenu">
                     <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">Insert</span>
-                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">הכנסה</span>
+                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">הוספה</span>
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
                             <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
@@ -724,7 +724,7 @@
          --><div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
                 <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
                 <span class="int-en">Text</span>
-                <span class="int-he">טקסט</span>
+                <span class="int-he">טקסט חופשי</span>
             </div><!--
          --><div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
                 <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
@@ -938,6 +938,7 @@
     </div>
 </div>
 
+<div id='inlineTextPreview'></div>
 
 </div>
 
@@ -1435,7 +1436,6 @@
 	</div>
 </div>
 
-<div id='inlineTextPreview'></div>
 
 {% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 

@@ -727,6 +727,10 @@ input.noselect {
 .ui-helper-hidden-accessible {
   display: none;
 }
+.interface-hebrew .ui-autocomplete .ui-menu-item a {
+  direction: rtl;
+  text-align: right;
+}
 #globalWarningMessage {
   position: fixed;
   width: 100%;
@@ -6048,16 +6052,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  color: #ccc;
-  border: solid 1px #eee;
-  padding: 3px 8px;
+  color: #000;
+  box-shadow: 0 1px 2px #999;
+  padding: 5px 8px;
   text-transform: uppercase;
   background-color: white;
   border-radius: 4px;
   line-height: 24px;
 }
 .versionsBox a.selectButton.currSelectButton {
-  color: #666;
+  color: #fff;
+  background-color: #212E50;
   text-decoration: none;
   cursor: default;
 }
@@ -6998,11 +7003,53 @@ body .homeFeedWrapper .content {
 }
 .homeFeedSidebar #homeLearn .refLink .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
+  text-transform: uppercase;
+}
+.homeFeedSidebar .button {
+  letter-spacing: 0;
+}
+.homeFeedSidebar h2 {
+  font-weight: 400;
+}
+.homeFeedSidebar .sideCatLink .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
 }
 .homeFeedSidebar .newsletterInput {
+  height: 53px;
+}
+.homeFeedSidebar .newsletterSignUpBox img {
+    height: 23px;
+    width: 23px;
+    opacity: 0.35;
+    position: absolute;
+    top: 15px;
+    right: 17px;
+}
+.interface-hebrew .homeFeedSidebar .newsletterSignUpBox img {
+  right: auto;
+  left: 17px;
+  transform: scale(-1, 1);
+}
+.homeFeedSidebar .newsletterInput, .homeFeedSidebar .newsletterInput::placeholder {
   width: 100%;
   box-sizing: border-box;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  color: #000;
 }
+.interface-english .homeFeedSidebar .newsletterInput, .interface-english .homeFeedSidebar .newsletterInput::placeholder  {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-hebrew .homeFeedSidebar .newsletterInput, .interface-hebrew .homeFeedSidebar .newsletterInput::placeholder   {
+  font-family: "Heebo", sans-serif;
+}
+
 .homeFeedSidebar #homeSocialButtons {
   margin-top: 15px;
 }

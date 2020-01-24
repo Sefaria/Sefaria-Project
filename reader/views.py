@@ -383,8 +383,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
-    if sheet == None:
+    noindex = False
 
+    if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
         if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
@@ -417,7 +418,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             sheet_id = request.GET.get("s{}".format(i))
             panelDisplayLanguage = request.GET.get("lang", "bi")
             panels += make_sheet_panel_dict(sheet_id, None, **{"panelDisplayLanguage": panelDisplayLanguage})
-
 
         else:
             try:
@@ -504,7 +504,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
         breadcrumb = sheet_crumbs(request, sheet)
         desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
-
+        noindex = sheet["status"] != "public"
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -513,7 +513,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  breadcrumb
+        "ldBreadcrumbs":  breadcrumb,
+        "noindex":        noindex,
     })
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
@@ -673,6 +674,7 @@ def get_group_page(request, group, authenticated):
         "html": html,
         "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
+        "noindex": not getattr(group[0], "listed", False)
     })
 
 
@@ -1170,8 +1172,6 @@ def terms_editor(request, term=None):
                               'dataJSON': dataJSON,
                               'is_update': "true" if existing_term else "false"
                              })
-
-
 
 
 def interface_language_redirect(request, language):
@@ -3107,6 +3107,8 @@ def user_profile(request, username):
     """
     User's profile page.
     """
+    user = None
+
     try:
         profile = UserProfile(slug=username)
     except Exception, e:
@@ -3117,6 +3119,11 @@ def user_profile(request, username):
         profile = UserProfile(id=user.id)
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
+
+    if user is None:
+        user = User.objects.get(id=profile.id)
+    if not user.is_active:
+        raise Http404('Profile is inactive.')
 
     props = base_props(request)
     profileJSON = profile.to_api_dict()
@@ -3263,7 +3270,7 @@ def profile_sync_api(request):
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
             last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
             ret["settings"] = profile.settings
