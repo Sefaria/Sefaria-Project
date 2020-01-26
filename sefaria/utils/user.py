@@ -98,7 +98,6 @@ def generate_api_key(uid):
                            random.choice([b'rA', b'aZ', b'gQ', b'hH', b'hG', b'aR', b'DD'])).rstrip(b'==').decode('utf-8')
     db.apikeys.remove({"uid": uid})
     db.apikeys.save({"uid": uid, "key": key})
-    print(key)
 
     print("API Key for %s (uid: %d, email: %s): %s" % (user.full_name, uid, user.email, key))
 
