@@ -88,17 +88,19 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
 
 def generate_api_key(uid):
     """ Save a new random API key for `uid` """
-    user = model.UserProfile(id=uid)
-    if not user._id:
-        print("User %d does not exist." % uid)
-        return
+    # user = model.UserProfile(id=uid)
+    # if not user._id:
+    #     print("User %d does not exist." % uid)
+    #     return
 
     import base64, hashlib, random
-    key = base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(), random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')
+    key = base64.b64encode(hashlib.sha256(bytes(str(random.getrandbits(256)), encoding='utf-8')).digest(),
+                           random.choice([b'rA', b'aZ', b'gQ', b'hH', b'hG', b'aR', b'DD'])).rstrip(b'==').decode('utf-8')
     db.apikeys.remove({"uid": uid})
     db.apikeys.save({"uid": uid, "key": key})
+    print(key)
 
-    print("API Key for %s (uid: %d, email: %s): %s" % (user.full_name, uid, user.email, key))
+    # print("API Key for %s (uid: %d, email: %s): %s" % (user.full_name, uid, user.email, key))
 
 
 def reset_all_api_keys():
