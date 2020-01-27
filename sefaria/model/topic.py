@@ -62,6 +62,20 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
+    def get_leaf_nodes(self, linkType):
+        leaves = []
+        children = [l.fromTopic for l in IntraTopicLinkSet({"toTopic": self.slug, "linkType": linkType})]
+        if len(children) == 0:
+            return [self]
+        else:
+            for slug in children:
+                child_topic = Topic().load({"slug": slug})
+                if child_topic is None:
+                    logger.warning("{} is None")
+                    continue
+                leaves += child_topic.get_leaf_nodes(linkType)
+        return leaves
+
     def has_types(self, search_slug_set):
         """
         WARNING: Expensive, lots of database calls

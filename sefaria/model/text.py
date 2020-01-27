@@ -4396,29 +4396,37 @@ class Library(object):
 
     def get_topic_toc_json(self):
         if not self._topic_toc_json:
-            ts = TopicSet({"isTopLevelDisplay": True})
-            slugs = [t.slug for t in ts]
-            topic_links = IntraTopicLinkSet({"linkType": "displays-under", "toTopic": {"$in": slugs}})
-            kids = defaultdict(list)
-            for link in topic_links:
-                from_topic = Topic().load({'slug': link.fromTopic})
-                if not getattr(from_topic, 'shouldDisplay', True):
-                    continue
-                kids[link.toTopic] += [{
-                    "slug": from_topic.slug,
-                    "en": from_topic.get_primary_title("en"),
-                    "he": from_topic.get_primary_title("he"),
-                }]
-            topics = [{
-                "slug": t.slug,
-                "en": t.get_primary_title("en"),
-                "he": t.get_primary_title("he"),
-                "children": kids[t.slug]
-            } for t in ts]
-
-
-            self._topic_toc_json = json.dumps(topics)
+            self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
         return self._topic_toc_json
+
+    def get_topic_toc_json_recursive(self, topic=None, explored=None):
+        explored = explored or set()
+        if topic is None:
+            ts = TopicSet({"isTopLevelDisplay": True})
+            children = [t.slug for t in ts]
+            topic_json = {}
+        else:
+            children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
+            topic_json = {
+                "slug": topic.slug,
+                "en": topic.get_primary_title("en"),
+                "he": topic.get_primary_title("he"),
+                "displayOrder": getattr(topic, "displayOrder", 10000)
+            }
+            explored.add(topic.slug)
+        if len(children) > 0:
+            topic_json['children'] = []
+        for child in children:
+            child_topic = Topic().load({'slug': child})
+            if child_topic is None:
+                logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
+                continue
+            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored)]
+        if len(children) > 0:
+            topic_json['children'].sort(key=lambda x: x['displayOrder'])
+        if topic is None:
+            return topic_json['children']
+        return topic_json
 
     def get_link_type(self, link_type):
         if not self._topic_link_types:

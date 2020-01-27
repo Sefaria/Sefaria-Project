@@ -289,11 +289,12 @@ class FilterableList extends Component {
     this.closeSort();
   }
   render() {
-    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter } = this.props;
+    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter, showFilterHeader } = this.props;
     const { loading, currFilter, displaySort, currSortOption, data } = this.state;
+    const oldDesign = typeof showFilterHeader == 'undefined';
     return (
       <div className="filterable-list">
-        <div className="filter-bar">
+        {oldDesign ? <div className="filter-bar">
           <div>
             <ReaderNavigationMenuSearchButton />
             <input
@@ -323,7 +324,33 @@ class FilterableList extends Component {
               : null
             }
           </div>
-        </div>
+        </div> : null }
+        { !oldDesign && showFilterHeader ? (
+          <div className="filter-bar-new">
+            <div className="filter-input">
+              <ReaderNavigationMenuSearchButton />
+              <input
+                type="text"
+                placeholder={Sefaria._("Search")}
+                name="filterableListInput"
+                value={currFilter}
+                onChange={this.onFilterChange}
+              />
+            </div>
+            <div>
+              { sortOptions.map(option =>(
+                <span
+                  key={option}
+                  className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
+                  onClick={() => { this.onSortChange(option); }}
+                >
+                  <span className="int-en">{ option }</span>
+                  <span className="int-he">{ Sefaria._(option) }</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
         {
           loading ? <LoadingMessage /> :
           ( data.length ?
@@ -349,6 +376,7 @@ FilterableList.propTypes = {
   renderEmptyList: PropTypes.func,
   renderHeader: PropTypes.func,
   renderFooter: PropTypes.func,
+  showFilterHeader: PropTypes.bool,
   extraData: PropTypes.object,  // extraData to pass to sort function
 };
 
@@ -365,12 +393,16 @@ class TabView extends Component {
   onClickTab(e) {
     let target = $(event.target);
     while (!target.attr("data-tab-index")) { target = target.parent(); }
-    const tabIndex = target.attr("data-tab-index");
-    this.openTab(parseInt(tabIndex));
+    const tabIndex = parseInt(target.attr("data-tab-index"));
+    if (this.props.onClickArray[tabIndex]) {
+      this.props.onClickArray[tabIndex]();
+    } else {
+      this.openTab(tabIndex);
+    }
   }
   renderTab(tab, index) {
     return (
-      <div className={classNames({active: this.state.openTabIndex === index, applink: tab.applink})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: this.state.openTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );

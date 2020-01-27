@@ -68,7 +68,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   }
 };
 
-const TopicCategory = ({topic, setTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
+const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
     const [subtopics, setSubtopics] = useState([]);
 
@@ -82,8 +82,11 @@ const TopicCategory = ({topic, setTopic, interfaceLang, width, multiPanel, compa
 
 
     let topicBlocks = subtopics.map((t,i) => {
-      const openTopic = e => { e.preventDefault(); setTopic(t.slug) };
-      return <a href={"/topics/" + t.slug}
+      const openTopic = e => {
+        e.preventDefault();
+        t.children ? setNavTopic(t.slug) : setTopic(t.slug);
+      };
+      return <a href={`/topics/${t.children ? 'category/' : ''}${t.slug}`}
          onClick={openTopic}
          className="blockLink"
          key={i}>
@@ -141,6 +144,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const [topicSheets, setTopicSheets] = useState(false);
     const [sheetData, setSheetData] = useState(null);
     const [textData, setTextData] = useState(null);
+    const [showFilterHeader, setShowFilterHeader] = useState(false);
     let textCancel, sheetCancel;
     const clearAndSetTopic = (topic) => {setTopicData(false); setTopic(topic)};
     useEffect(() => {
@@ -219,6 +223,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const tabs = [];
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
+    if (!!topicRefs.length || !!topicSheets.length) { tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true }); }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -228,10 +233,17 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                    {!!topicData?
                        <TabView
                           tabs={tabs}
-                          renderTab={t => <div className="tab">{t.text}</div>}
+                          renderTab={t => (
+                            <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright})}>
+                              {t.text}
+                              { t.icon ? <img src={t.icon} alt={`${t.text} icon`} /> : null }
+                            </div>
+                          )}
+                          onClickArray={{2: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
                           { !!topicRefs.length ? (
                             <TopicPageTab
+                              showFilterHeader={showFilterHeader}
                               data={textData}
                               sortOptions={['Relevance', 'Chronological']}
                               filterFunc={(currFilter, ref) => {
@@ -251,6 +263,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                           }
                           { !!topicSheets.length ? (
                             <TopicPageTab
+                              showFilterHeader={showFilterHeader}
                               data={sheetData}
                               classes={"storySheetList"}
                               sortOptions={['Relevance', 'Views', 'Newest']}
@@ -293,11 +306,12 @@ TopicPage.propTypes = {
   toggleSignUpModal:   PropTypes.func,
 };
 
-const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData }) => (
+const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData, showFilterHeader }) => (
   <div className="story topicTabContents">
     {!!data ?
       <div className={classes}>
         <FilterableList
+          showFilterHeader={showFilterHeader}
           filterFunc={filterFunc}
           sortFunc={sortFunc}
           renderItem={renderItem}
