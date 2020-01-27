@@ -188,41 +188,40 @@ class Header extends Component {
         this.clearSearchBox();
         this.handleRefClick(key);
       }
-
   }
+
   submitSearch(query) {
-
     Sefaria.getName(query)
-        .then(d => {
-      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-      if (Sefaria.isACaseVariant(query, d)) {
-        this.submitSearch(Sefaria.repairCaseVariant(query, d));
-        return;
-      }
+      .then(d => {
+        // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+        if (Sefaria.isACaseVariant(query, d)) {
+          this.submitSearch(Sefaria.repairCaseVariant(query, d));
+          return;
+        }
 
-      if (d["is_ref"]) {
-        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-        Sefaria.track.event("Search", action, query);
-        this.clearSearchBox();
-        this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-      } else if (d["type"] === "Person") {
-        Sefaria.track.event("Search", "Search Box Navigation - Person", query);
-        this.closeSearchAutocomplete();
-        this.showPerson(d["key"]);
-      } else if (d["type"] === "Group") {
-        Sefaria.track.event("Search", "Search Box Navigation - Group", query);
-        this.closeSearchAutocomplete();
-        this.showGroup(d["key"]);
-      } else if (d["type"] === "TocCategory") {
-        Sefaria.track.event("Search", "Search Box Navigation - Category", query);
-        this.closeSearchAutocomplete();
-        this.showLibrary(d["key"]);  // "key" holds the category path
-      } else {
-        Sefaria.track.event("Search", "Search Box Search", query);
-        this.closeSearchAutocomplete();
-        this.showSearch(query);
-      }
-    });
+        if (d["is_ref"]) {
+          var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+          Sefaria.track.event("Search", action, query);
+          this.clearSearchBox();
+          this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+        } else if (d["type"] === "Person") {
+          Sefaria.track.event("Search", "Search Box Navigation - Person", query);
+          this.closeSearchAutocomplete();
+          this.showPerson(d["key"]);
+        } else if (d["type"] === "Group") {
+          Sefaria.track.event("Search", "Search Box Navigation - Group", query);
+          this.closeSearchAutocomplete();
+          this.showGroup(d["key"]);
+        } else if (d["type"] === "TocCategory") {
+          Sefaria.track.event("Search", "Search Box Navigation - Category", query);
+          this.closeSearchAutocomplete();
+          this.showLibrary(d["key"]);  // "key" holds the category path
+        } else {
+          Sefaria.track.event("Search", "Search Box Search", query);
+          this.closeSearchAutocomplete();
+          this.showSearch(query);
+        }
+      });
   }
   closeSearchAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");

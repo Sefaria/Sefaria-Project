@@ -234,14 +234,14 @@ class Completions(object):
         :return:
         """
         # Match titles that begin exactly this way
-        self.add_new_continuations_from_string(self.normal_string)
+        self.completions += self.get_new_continuations_from_string(self.normal_string)
         if self.limit and len(self.completions) >= self.limit:
             return self.completions[:self.limit or None]
 
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
-            self.add_new_continuations_from_string(edit)
+            self.completions += self.get_new_continuations_from_string(edit)
             if self.limit and len(self.completions) >= self.limit:
                 return self.completions[:self.limit or None]
 
@@ -266,7 +266,7 @@ class Completions(object):
 
         return self.completions[:self.limit or None]
 
-    def add_new_continuations_from_string(self, str):
+    def get_new_continuations_from_string(self, str):
         """
         Find titles beginning with this string.
         Adds titles to self.completions, noting covered nodes in self.nodes_covered
@@ -283,14 +283,15 @@ class Completions(object):
         # Use one title for each book before any duplicate match titles
         # Prefer primary titles
         # todo: don't list all subtree titles, if string doesn't cover base title
+        completions = []
         non_primary_matches = []
         for k, all_v in all_continuations:
             for v in all_v:
                 if v["is_primary"] and (v["type"], v["key"]) not in self.keys_covered:
                     if v["type"] == "ref" or v["type"] == "word_form":
-                        self.completions += [v["title"]]
+                        completions += [v["title"]]
                     else:
-                        self.completions.insert(0, v["title"])
+                        completions.insert(0, v["title"])
                     self.keys_covered.add((v["type"], v["key"]))
                 else:
                     non_primary_matches += [(k, v)]
@@ -298,11 +299,13 @@ class Completions(object):
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
             if (v["type"], v["key"]) not in self.keys_covered:
-                self.completions += [v["title"]]
+                completions += [v["title"]]
                 self.keys_covered.add((v["type"], v["key"]))
             else:
                 # todo: Check if this is in there already?
                 self.duplicate_matches += [(k, v)]
+
+        return completions
 
 
 class LexiconTrie(datrie.Trie):
@@ -339,6 +342,7 @@ class TitleTrie(datrie.Trie):
         try:
             item = self[key]
             assert isinstance(item, list)
+
             super(TitleTrie, self).__setitem__(key, item + [value])
         except KeyError:
             super(TitleTrie, self).__setitem__(key, [value])
