@@ -20,7 +20,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'isTopLevelDisplay',
         'displayOrder',
         'numSources',
-        'shouldDisplay'
+        'shouldDisplay',
+        'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
     ]
     uncategorized_topic = 'uncategorized0000'
 
