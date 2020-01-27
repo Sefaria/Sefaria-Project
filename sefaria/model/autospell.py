@@ -365,16 +365,32 @@ class TitleTrie(datrie.Trie):
         :param keyattr: Name of attribute that will give key to object
         :return:
         """
+        done = set()
         for obj in recordset:
-            titles = getattr(obj, all_names_method)(self.lang)
             key = getattr(obj, keyattr)
-            for title in titles:
+
+            title = getattr(obj, primary_name_method)(self.lang)
+            if title:
                 norm_title = self.normalizer(title)
+                done.add(norm_title)
                 self[norm_title] = {
                     "title": title,
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
-                    "is_primary": title == getattr(obj, primary_name_method)(self.lang)
+                    "is_primary": True
+                }
+
+            titles = getattr(obj, all_names_method)(self.lang)
+            for title in titles:
+                norm_title = self.normalizer(title)
+                if norm_title in done:
+                    continue
+                done.add(norm_title)
+                self[norm_title] = {
+                    "title": title,
+                    "type": obj.__class__.__name__,
+                    "key": tuple(key) if isinstance(key, list) else key,
+                    "is_primary": False
                 }
 
 
