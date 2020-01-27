@@ -146,6 +146,19 @@ class AutoCompleter(object):
                     cats += [grandchild]
         return cats
 
+    def get_object(self, instring):
+        """
+        If there is a string matching instring in the title trie, return the data for default object stored for that string.
+        Otherwise, return None
+        :param instring:
+        :return:
+        """
+        normal = self.normalizer(instring)
+        try:
+            return self.title_trie[normal][0]
+        except KeyError:
+            return None
+
     def get_data(self, instring):
         """
         If there is a string matching instring in the title trie, return the data stored for that string.
@@ -189,7 +202,7 @@ class AutoCompleter(object):
         # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
         normal_string = self.normalizer(instring)
         try:
-            ret = [v["title"] for k, v in self.title_trie.items(normal_string + ",")].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
+            ret = [v["title"] for k, all_v in self.title_trie.items(normal_string + ",") for v in all_v].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
             return ret or []
         except KeyError:
             return []
@@ -271,21 +284,22 @@ class Completions(object):
         # Prefer primary titles
         # todo: don't list all subtree titles, if string doesn't cover base title
         non_primary_matches = []
-        for k, v in all_continuations:
-            if v["is_primary"] and v["key"] not in self.keys_covered:
-                if v["type"] == "ref" or v["type"] == "word_form":
-                    self.completions += [v["title"]]
+        for k, all_v in all_continuations:
+            for v in all_v:
+                if v["is_primary"] and (v["type"], v["key"]) not in self.keys_covered:
+                    if v["type"] == "ref" or v["type"] == "word_form":
+                        self.completions += [v["title"]]
+                    else:
+                        self.completions.insert(0, v["title"])
+                    self.keys_covered.add((v["type"], v["key"]))
                 else:
-                    self.completions.insert(0, v["title"])
-                self.keys_covered.add(v["key"])
-            else:
-                non_primary_matches += [(k, v)]
+                    non_primary_matches += [(k, v)]
 
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
-            if v["key"] not in self.keys_covered:
+            if (v["type"], v["key"]) not in self.keys_covered:
                 self.completions += [v["title"]]
-                self.keys_covered.add(v["key"])
+                self.keys_covered.add((v["type"], v["key"]))
             else:
                 # todo: Check if this is in there already?
                 self.duplicate_matches += [(k, v)]
@@ -305,7 +319,14 @@ class LexiconTrie(datrie.Trie):
 
 class TitleTrie(datrie.Trie):
     """
-    Character Trie built up of the titles in the library
+    Character Trie built up of the titles in the library.
+    Stored items are lists of dicts, each dict having details about one system object.
+    {
+        "title": string
+        "key": string
+        "type": string
+        "is_primary": bool
+    }
     """
 
     def __init__(self, lang, *args, **kwargs):
@@ -313,6 +334,14 @@ class TitleTrie(datrie.Trie):
         super(TitleTrie, self).__init__(letter_scope)
         self.lang = lang
         self.normalizer = normalizer(lang)
+
+    def __setitem__(self, key, value):
+        try:
+            item = self[key]
+            assert isinstance(item, list)
+            super(TitleTrie, self).__setitem__(key, item + [value])
+        except KeyError:
+            super(TitleTrie, self).__setitem__(key, [value])
 
     def add_titles_from_title_node_dict(self, tnd_items, normal_titles):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):

@@ -21,11 +21,20 @@ class Header extends Component {
     this.state = props.initialState;
     this._searchOverridePre = Sefaria._('Search for') +': "';
     this._searchOverridePost = '"';
+    this._type_icon_map = {
+      "Group": "iconmonstr-share-6.svg",
+      "Person": "iconmonstr-pen-17.svg",
+      "TocCategory": "iconmonstr-view-6.svg",
+      "Topic": "iconmonstr-hashtag-1.svg",
+      "ref": "iconmonstr-book-15.svg",
+      "search": "iconmonstr-magnifier-2.svg"
+      //book, parsha
+    }
   }
   componentDidMount() {
     this.initAutocomplete();
     window.addEventListener('keydown', this.handleFirstTab);
-    if (this.state.menuOpen == "search" && this.state.searchQuery === null) {
+    if (this.state.menuOpen === "search" && this.state.searchQuery === null) {
       // If this is an empty search page, comically, lazily make it full
       this.props.showSearch("Search");
     }
@@ -39,25 +48,37 @@ class Header extends Component {
   _searchOverrideRegex() {
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
   }
+
   initAutocomplete() {
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
-      _renderItem: function( ul, item) {
-        var override = item.label.match(this._searchOverrideRegex());
+      _renderItem: function(ul, item) {
+        const override = item.label.match(this._searchOverrideRegex());
         return $( "<li></li>" )
           .addClass('ui-menu-item')
           .data( "item.autocomplete", item )
           .toggleClass("search-override", !!override)
+          .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
           .append( $( "<a role='option' data-value='" + item.value + "'></a>" ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
     });
-    var anchorSide = this.props.interfaceLang == "hebrew" ? "right+" : "left-";
+    const anchorSide = this.props.interfaceLang === "hebrew" ? "right+" : "left-";
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
       position: {my: anchorSide + "12 top+17", at: anchorSide + "0 bottom"},
       minLength: 3,
       select: ( event, ui ) => {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
-        this.submitSearch(ui.item.value);
+        debugger;
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear, but the eye can sometimes catch it.
+
+        const override = ui.item.label.match(this._searchOverrideRegex());
+        if (override) {
+          if (Sefaria.site) { Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
+          this.closeSearchAutocomplete();
+          this.showSearch(override[1]);
+          return false;
+        }
+
+        this.redirectToObject(ui.item.type, ui.item.key);
         return false;
       },
       focus: function( event, ui ) {
@@ -66,8 +87,10 @@ class Header extends Component {
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          if (d["completions"].length > 0) {
-            response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+          const comps = d["completion_objects"].map(o => ({value: o["title"], label: o["title"], key: o["key"], type: o["type"]}));
+          if (comps.length > 0) {
+            const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
+            response(comps.concat([{value: q, label: q, type: "search"}]));
           } else {
             response([])
           }
@@ -78,13 +101,13 @@ class Header extends Component {
       if(document.getElementById('keyboardInputMaster')){//if keyboard is open, ignore.
         return; //this prevents the icon from flashing on every key stroke.
       }
-      if(this.props.interfaceLang == 'english'){
+      if(this.props.interfaceLang === 'english'){
           var opacity = show ? 0.4 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }
   showDesktop() {
-    if (this.props.panelsOpen == 0) {
+    if (this.props.panelsOpen === 0) {
       const { last_place } = Sefaria;
       if (last_place && last_place.length) {
         this.handleRefClick(last_place[0].ref, last_place[0].versions);
@@ -142,14 +165,32 @@ class Header extends Component {
   hideTestMessage() {
     this.props.setCentralState({showTestMessage: false});
   }
+  redirectToObject(type, key) {
+      if (type === "Person") {
+        Sefaria.track.event("Search", "Search Box Navigation - Person", key);
+        this.closeSearchAutocomplete();
+        this.showPerson(key);
+      } else if (type === "Group") {
+        Sefaria.track.event("Search", "Search Box Navigation - Group", key);
+        this.closeSearchAutocomplete();
+        this.showGroup(key);
+      } else if (type === "TocCategory") {
+        Sefaria.track.event("Search", "Search Box Navigation - Category", key);
+        this.closeSearchAutocomplete();
+        this.showLibrary(key);  // "key" holds the category path
+      } else if (type === "Topic") {
+        Sefaria.track.event("Search", "Search Box Navigation - Topic", key);
+        this.closeSearchAutocomplete();
+        this.showTopic(key);
+      } else if (type === "ref") {
+        Sefaria.track.event("Search", "Search Box Navigation - Book", key);
+        this.closeSearchAutocomplete();
+        this.clearSearchBox();
+        this.handleRefClick(key);
+      }
+
+  }
   submitSearch(query) {
-    var override = query.match(this._searchOverrideRegex());
-    if (override) {
-      if (Sefaria.site) { Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
-      this.closeSearchAutocomplete();
-      this.showSearch(override[1]);
-      return;
-    }
 
     Sefaria.getName(query)
         .then(d => {
@@ -188,6 +229,10 @@ class Header extends Component {
   }
   clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
+  }
+  showTopic(slug) {
+    //todo: This could be done in React
+    window.location = "/topics/" + slug;
   }
   showPerson(key) {
     //todo: move people into React

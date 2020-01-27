@@ -2277,12 +2277,13 @@ def get_name_completions(name, limit, ref_only):
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + ", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
-    except InputError:
+    except InputError:  # Not a Ref
         completions = completer.complete(name, limit)
-        object_data = completer.get_data(name)
+        object_data = completer.get_object(name)
 
     return {
         "completions": completions,
+        "completion_objects": [o for n in completions for o in completer.get_data(n)],
         "lang": lang,
         "object_data": object_data,
         "ref": ref
@@ -2321,6 +2322,7 @@ def name_api(request, name):
             # "number_follows": inode.has_numeric_continuation(),
             # "titles_follow": titles_follow,
             "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
+            "completion_objects": completions_dict["completion_objects"],
             # todo: ADD textual completions as well
             "examples": []
         }
@@ -2336,7 +2338,8 @@ def name_api(request, name):
         d = {
             "lang": completions_dict["lang"],
             "is_ref": False,
-            "completions": completions_dict["completions"]
+            "completions": completions_dict["completions"],
+            "completion_objects": completions_dict["completion_objects"],
         }
 
         # let's see if it's a known name of another sort
