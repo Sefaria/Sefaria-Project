@@ -68,7 +68,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   }
 };
 
-const TopicCategory = ({topic, setTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
+const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
     const [subtopics, setSubtopics] = useState([]);
 
@@ -82,8 +82,11 @@ const TopicCategory = ({topic, setTopic, interfaceLang, width, multiPanel, compa
 
 
     let topicBlocks = subtopics.map((t,i) => {
-      const openTopic = e => { e.preventDefault(); setTopic(t.slug) };
-      return <a href={"/topics/" + t.slug}
+      const openTopic = e => {
+        e.preventDefault();
+        t.children ? setNavTopic(t.slug) : setTopic(t.slug);
+      };
+      return <a href={`/topics/${t.children ? 'category/' : ''}${t.slug}`}
          onClick={openTopic}
          className="blockLink"
          key={i}>

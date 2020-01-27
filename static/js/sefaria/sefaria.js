@@ -1642,16 +1642,24 @@ Sefaria = extend(Sefaria, {
           store: this._topics
     });
   },
-  _topicTocPages: {},
+  _topicTocPages: null,
   _initTopicTocPages: function() {
-    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this._topicTocPageKey(c.slug)] = c.children; return a;}, {});
+    this._topicTocPages = this.topic_toc.reduce(this._initTopicTocReducer, {});
     this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
+  },
+  _initTopicTocReducer: function(a,c) {
+    if (!c.children) { return a; }
+    a[Sefaria._topicTocPageKey(c.slug)] = c.children;
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocReducer(a, sub_c);
+    }
+    return a;
   },
   _topicTocPageKey: slug => "_" + slug,
 
   topicTocPage: function(parent) {
     const key = this._topicTocPageKey(parent);
-    if (!this._topicTocPages[key]) {
+    if (!this._topicTocPages) {
         this._initTopicTocPages()
     }
     return this._topicTocPages[key]

@@ -99,6 +99,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             <TopicCategory
               topic={topic}
               setTopic={setTopic}
+              setNavTopic={setNavTopic}
               toggleLanguage={toggleLanguage}
               contentLang={settings.language}
               interfaceLang={interfaceLang}
