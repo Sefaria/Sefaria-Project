@@ -27,8 +27,8 @@ class Header extends Component {
       "TocCategory": "iconmonstr-view-6.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
       "ref": "iconmonstr-book-15.svg",
-      "search": "iconmonstr-magnifier-2.svg"
-      //book, parsha
+      "search": "iconmonstr-magnifier-2.svg",
+      "Term": "iconmonstr-script-2.svg",
     }
   }
   componentDidMount() {

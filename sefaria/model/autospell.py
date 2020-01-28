@@ -100,7 +100,7 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
         if include_groups:
-            gs = GroupSet({"listed": True})
+            gs = GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
             gnames = [name for g in gs for name in g.all_names(lang)]
             normal_group_names = [self.normalizer(n) for n in gnames]
             self.title_trie.add_titles_from_set(gs, "all_names", "primary_name", "name")
@@ -293,6 +293,7 @@ class Completions(object):
                     else:
                         completions.insert(0, v["title"])
                     self.keys_covered.add((v["type"], v["key"]))
+                    break
                 else:
                     non_primary_matches += [(k, v)]
 
