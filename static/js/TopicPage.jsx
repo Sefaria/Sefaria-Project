@@ -233,7 +233,11 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const tabs = [];
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
-    if (!!topicRefs.length || !!topicSheets.length) { tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true }); }
+    let onClickFilterIndex = 2;
+    if (!!topicRefs.length || !!topicSheets.length) {
+      tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true });
+      onClickFilterIndex = tabs.length - 1;
+    }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -249,7 +253,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                               { t.icon ? <img src={t.icon} alt={`${t.text} icon`} /> : null }
                             </div>
                           )}
-                          onClickArray={{2: ()=>setShowFilterHeader(!showFilterHeader)}}
+                          onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
                           { !!topicRefs.length ? (
                             <TopicPageTab
