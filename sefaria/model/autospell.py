@@ -288,7 +288,7 @@ class Completions(object):
         for k, all_v in all_continuations:
             for v in all_v:
                 if v["is_primary"] and (v["type"], v["key"]) not in self.keys_covered:
-                    if v["type"] == "ref" or v["type"] == "word_form":
+                    if v["type"] == "ref" or v["type"] == "word_form" or v["type"] == "Topic":
                         completions += [v["title"]]
                     else:
                         completions.insert(0, v["title"])
@@ -352,7 +352,7 @@ class TitleTrie(datrie.Trie):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
-                "key": title,
+                "key": snode.primary_title(self.lang),
                 "type": "ref",
                 "is_primary": title == snode.primary_title(self.lang)
             }
