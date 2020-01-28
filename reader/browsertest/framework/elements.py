@@ -1194,6 +1194,11 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
         return self
 
+    def load_existing_sheet(self, sheetID):
+        self.driver.get(self.base_url + "/sheets/"+sheetID)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        return self
+
     def nav_to_end_of_editor(self):
         elem = self.driver.find_element_by_css_selector(".sheetContent")
         elem.click()
@@ -1217,6 +1222,20 @@ class AbstractTest(object):
         elem.send_keys(Keys.RETURN)
         time.sleep(3) #sheet won't save until there's a brief pause
         return self
+
+    def toggle_sheet_edit_view(self):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "div.rightButtons button")))
+        button = self.driver.find_element_by_css_selector("div.rightButtons button")
+        button.click()
+        return self
+
+    def get_sheet_html(self):
+        sheet_selector = '.sheetContent'
+        sheet = self.driver.find_element_by_css_selector(sheet_selector)
+        sheet_html = sheet.get_attribute('innerHTML')
+        return sheet_html
+
+
 
 
 

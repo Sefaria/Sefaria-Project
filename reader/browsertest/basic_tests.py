@@ -89,6 +89,11 @@ class CreateNewSheet(AtomicTest):
         self.generate_text("he")
         self.generate_text("en")
         self.add_source()
+        edited_sheet = self.get_sheet_html()
+        self.driver.get(self.get_current_url())
+        self.toggle_sheet_edit_view()
+        loaded_sheet = self.get_sheet_html()
+        assert edited_sheet == loaded_sheet
 
 class SinglePanelOnMobile(AtomicTest):
     suite_class = ReaderSuite
