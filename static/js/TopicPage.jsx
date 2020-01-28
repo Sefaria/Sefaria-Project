@@ -22,12 +22,14 @@ const {
 }                         = require('./Misc');
 const Footer     = require('./Footer');
 
+const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
+
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
   if (!a.order && !b.order) { return 0; }
   if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
   if (currSortOption === 'Chronological') {
-    if (a.order.comp_date === a.order.comp_date) {
+    if (a.order.comp_date === b.order.comp_date) {
       if (a.order.order_id < b.order.order_id) { return -1; }
       if (b.order.order_id < a.order.order_id) { return 1; }
       return 0;
@@ -134,6 +136,13 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
               <span className="int-en">{topicData.description.en}</span>
               <span className="int-he">{topicData.description.he}</span>
             </div>
+       :""}
+       {topicData.ref?
+         <a href={`/${topicData.ref.url}`} className="resourcesLink blue">
+           <img src="/static/img/book-icon-black.svg" alt="Book Icon" />
+           <span className="int-en">{ topicData.ref.en }</span>
+           <span className="int-he">{ norm_hebrew_ref(topicData.ref.he) }</span>
+         </a>
        :""}
     </div>
 );}
@@ -331,7 +340,7 @@ const TextPassage = ({text, toggleSignUpModal}) => {
     const url = "/" + Sefaria.normRef(text.ref);
     return <StoryFrame cls="textPassageStory">
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}>
-            <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
+            <StoryTitleBlock en={text.ref} he={norm_hebrew_ref(text.heRef)} url={url}/>
         </SaveLine>
         <ColorBarBox tref={text.ref}>
             <StoryBodyBlock en={text.en} he={text.he}/>
