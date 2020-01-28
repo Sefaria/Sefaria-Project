@@ -1099,7 +1099,7 @@ input.noselect {
 }
 .topicPanel h1 {
   text-align: unset;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   height: unset;
 }
 .topicPanel h1 span {
@@ -1108,15 +1108,15 @@ input.noselect {
 
 .topicPanel .sideColumn h2 {
   text-align: unset;
-  border-bottom: 1px solid #888;
-  padding-bottom: 30px;
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 10px;
   margin-top: 60px;
 }
 .topicPanel .sideColumn div:first-child h2 {
   margin-top: 0;
 }
 .topicPanel h2 span {
-  font-size: 30px;
+  font-size: 22px;
   font-weight: normal;
   color: #888;
   text-align: unset;
@@ -1137,7 +1137,7 @@ input.noselect {
     padding: 0 0 40px 0;
 }
 .topicPanel .sideColumn .sideList {
-  font-size: 20px;
+  font-size: 16px;
 }
 .topicPanel .sideColumn .sideList a {
   display: block;
@@ -1152,6 +1152,16 @@ input.noselect {
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
 }
+.topicPanel .story .storySheetList .pageTitle span {
+  font-size: 24px;
+}
+.topicPanel .authorOrganizationsystemText {
+  font-size: 16px;
+  color: #666;
+}
+.topicPanel .pageTitle span {
+  font-size: 24px;
+}
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
   font-size: 20px;
@@ -1163,22 +1173,19 @@ input.noselect {
   margin: 0 0 30px 0;
 }
 .topicPanel .topicDescription span {
-    font-size: 20px;
-    color: #333;
-    font-weight: 200;
 }
 .topicPanel .tab-view .tab-list {
-    border-bottom: 1px solid #999;
+    border-bottom: 1px solid #CCC;
     margin-bottom: 16px;
 }
 .topicPanel .tab-view .filter-bar {
   margin-bottom: 30px;
 }
 .topicPanel .tab-view .tab-list .tab {
-  font-size: 30px;
+  font-size: 22px;
 }
 .topicPanel .tab-view .tab-list .active .tab {
-  border-bottom: 6px solid #CCC;
+  border-bottom: 4px solid #999;
 }
 .topicPanel .resourcesLink.blue {
   padding: 8px 16px;
@@ -1400,12 +1407,13 @@ a.readerNavCategory {
   }
 }
 .readerNavMenu .readerNavMore span {
-  opacity: 0.43;
+  color: #666;
   text-transform: none;
 }
 .readerNavMenu .readerNavMore img {
   height: 10px;
   width: 10px;
+  opacity: 0.6;
 }
 .bilingual .readerNavCategory .he {
   display: none;
@@ -7365,6 +7373,7 @@ img.smallProfileImage {
 }
 .story .saveLine .saveButton {
   align-self: center;
+  padding-bottom: 10px;
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
