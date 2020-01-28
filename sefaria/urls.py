@@ -421,6 +421,9 @@ urlpatterns += [
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
 ]
 
+# add static files to urls
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+urlpatterns += staticfiles_urlpatterns()
 
 if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible

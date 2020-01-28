@@ -22,12 +22,14 @@ const {
 }                         = require('./Misc');
 const Footer     = require('./Footer');
 
+const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
+
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
   if (!a.order && !b.order) { return 0; }
   if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
   if (currSortOption === 'Chronological') {
-    if (a.order.comp_date === a.order.comp_date) {
+    if (a.order.comp_date === b.order.comp_date) {
       if (a.order.order_id < b.order.order_id) { return -1; }
       if (b.order.order_id < a.order.order_id) { return 1; }
       return 0;
@@ -113,6 +115,7 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
 const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
   const { en, he } = !!topicData ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
+  const category = Sefaria.topicTocCategory(topicData.slug);
   return (
     <div>
         <div className="topicTitle pageTitle">
@@ -123,10 +126,10 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
           </h1>
         </div>
        {!topicData?<LoadingMessage/>:""}
-       {topicData.category?
+       {category?
            <div className="topicCategory sectionTitleText">
-              <span className="int-en">{topicData.category}</span>
-              <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
+              <span className="int-en">{category.en}</span>
+              <span className="int-he">{category.he}</span>
             </div>
        :""}
        {topicData.description?
@@ -134,6 +137,13 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
               <span className="int-en">{topicData.description.en}</span>
               <span className="int-he">{topicData.description.he}</span>
             </div>
+       :""}
+       {topicData.ref?
+         <a href={`/${topicData.ref.url}`} className="resourcesLink blue">
+           <img src="/static/img/book-icon-black.svg" alt="Book Icon" />
+           <span className="int-en">{ topicData.ref.en }</span>
+           <span className="int-he">{ norm_hebrew_ref(topicData.ref.he) }</span>
+         </a>
        :""}
     </div>
 );}
@@ -167,7 +177,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
 
         return Promise.all([
           Sefaria.incrementalPromise(
-            inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true).then(outRefs => {
+            inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true, 500, 600).then(outRefs => {
               for (let tempRef of inRefs) {
                 if (outRefs[tempRef.ref]) {
                   outRefs[tempRef.ref].order = tempRef.order;
@@ -223,12 +233,16 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     const tabs = [];
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
-    if (!!topicRefs.length || !!topicSheets.length) { tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true }); }
+    let onClickFilterIndex = 2;
+    if (!!topicRefs.length || !!topicSheets.length) {
+      tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true });
+      onClickFilterIndex = tabs.length - 1;
+    }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
-               <div className="mainColumn">
+               <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang}/>
                    {!!topicData?
                        <TabView
@@ -239,7 +253,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                               { t.icon ? <img src={t.icon} alt={`${t.text} icon`} /> : null }
                             </div>
                           )}
-                          onClickArray={{2: ()=>setShowFilterHeader(!showFilterHeader)}}
+                          onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
                           { !!topicRefs.length ? (
                             <TopicPageTab
@@ -331,7 +345,7 @@ const TextPassage = ({text, toggleSignUpModal}) => {
     const url = "/" + Sefaria.normRef(text.ref);
     return <StoryFrame cls="textPassageStory">
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}>
-            <StoryTitleBlock en={text.ref} he={text.heRef} url={url}/>
+            <StoryTitleBlock en={text.ref} he={norm_hebrew_ref(text.heRef)} url={url}/>
         </SaveLine>
         <ColorBarBox tref={text.ref}>
             <StoryBodyBlock en={text.en} he={text.he}/>
