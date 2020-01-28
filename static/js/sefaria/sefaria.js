@@ -1911,7 +1911,7 @@ Sefaria = extend(Sefaria, {
       // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
       return (this._groupsList) ?
           Promise.resolve(this._groupsList) :
-          Sefaria._promiseAPI(Sefaria.apiHost + "/api/groups")
+          Sefaria._ApiPromise(Sefaria.apiHost + "/api/groups")
               .then(data => {
                   this._groupsList = data;
                   return data;
