@@ -392,10 +392,10 @@ class ReaderPanel extends Component {
 
   }
   closePanelSearch() {
-    // Assumption: Search in a panel is always within a "compare" panel
+    // Assumption: Search in a panel in multiPanel is always within a "compare" panel
     var state = {
       // If there's no content to show, return to home
-      menuOpen: this.state.refs.slice(-1)[0] ? null: "compare",
+      menuOpen: this.state.refs.slice(-1)[0] ? null : (this.props.multiPanel ? "compare" : "navigation"),
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
@@ -1002,6 +1002,8 @@ class ReaderPanel extends Component {
           handleInAppLinkClick={this.props.handleInAppLinkClick}
           openProfile={this.props.openProfile}
           toggleSignUpModal={this.props.toggleSignUpModal}
+          multiPanel={this.props.multiPanel}
+          navHome={this.openMenu.bind(null, "navigation")}
         />
       );
     }

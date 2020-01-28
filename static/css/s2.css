@@ -1052,6 +1052,7 @@ input.noselect {
   text-align: right;
   display: flex;
   align-items: center;
+  width:27px;
 }
 .sefariaLogo img {
   width: 110px;
@@ -5109,6 +5110,9 @@ h2.splitHeader .he {
   height: 60px;
   float: left;
   margin-right: 20px;
+}
+.interface-hebrew .groupListingImageBox {
+  margin: 0 0 0 20px;
 }
 .sheetMetaDataBox .groupListingImageBox,
 .tocTop .groupListingImageBox {

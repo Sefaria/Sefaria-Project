@@ -81,7 +81,8 @@ class PublicGroupsPanel extends Component {
       <div className={classStr}>
         {this.props.multiPanel ? null :
           <SinglePanelNavHeader
-            enTitle="Public Groups"
+            enTitle="Groups"
+            heTitle={Sefaria._("Groups")}
             navHome={this.props.navHome}
             showDisplaySettings={false}/>
         }
