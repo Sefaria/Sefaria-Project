@@ -115,6 +115,7 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
 const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
   const { en, he } = !!topicData ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
+  const category = Sefaria.topicTocCategory(topicData.slug);
   return (
     <div>
         <div className="topicTitle pageTitle">
@@ -125,10 +126,10 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
           </h1>
         </div>
        {!topicData?<LoadingMessage/>:""}
-       {topicData.category?
+       {category?
            <div className="topicCategory sectionTitleText">
-              <span className="int-en">{topicData.category}</span>
-              <span className="int-he">{Sefaria.hebrewTerm(topicData.category)}</span>
+              <span className="int-en">{category.en}</span>
+              <span className="int-he">{category.he}</span>
             </div>
        :""}
        {topicData.description?
@@ -176,7 +177,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
 
         return Promise.all([
           Sefaria.incrementalPromise(
-            inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true).then(outRefs => {
+            inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true, 500, 600).then(outRefs => {
               for (let tempRef of inRefs) {
                 if (outRefs[tempRef.ref]) {
                   outRefs[tempRef.ref].order = tempRef.order;
@@ -237,7 +238,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
-               <div className="mainColumn">
+               <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang}/>
                    {!!topicData?
                        <TabView

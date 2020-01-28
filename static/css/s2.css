@@ -1089,7 +1089,10 @@ input.noselect {
   margin: 0 0 10px 0;
 }
 .topicPanel .mainColumn {
-  margin-left: 70px;
+  padding: 0 0 0 50px;
+}
+.interface-hebrew .topicPanel .mainColumn {
+  padding: 0 50px 0 0;
 }
 .topicPanel .sideColumn {
   padding: 0 50px;
@@ -1153,8 +1156,11 @@ input.noselect {
   color: #888;
   font-size: 20px;
 }
+.topicPanel .topicCategory {
+  margin: 0 0 30px 0;
+}
 .topicPanel .topicDescription {
-  margin: 30px 0;
+  margin: 0 0 30px 0;
 }
 .topicPanel .topicDescription span {
     font-size: 20px;
@@ -6686,6 +6692,7 @@ span.purim-emoji img{
   border-radius: 5px;
   padding: 5px;
   color: black;
+  width: 250px;
 }
 .filterable-list .filter-bar-new .filter-input ::placeholder {
   color: #999;
@@ -7221,7 +7228,8 @@ body .homeFeedWrapper .content {
 .interface-hebrew .mainColumn {
   margin: 0 30px 0 45px;
 }
-.storyFeedInner {
+.storyFeedInner,
+.interface-hebrew .storyFeedInner {
   max-width: 700px;
   margin: 0 auto;
   padding-top: 60px;

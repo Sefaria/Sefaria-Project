@@ -1643,15 +1643,30 @@ Sefaria = extend(Sefaria, {
     });
   },
   _topicTocPages: null,
+  _topicTocCategory: null,
   _initTopicTocPages: function() {
     this._topicTocPages = this.topic_toc.reduce(this._initTopicTocReducer, {});
     this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
+  },
+  _initTopicTocCategory: function() {
+    this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
   },
   _initTopicTocReducer: function(a,c) {
     if (!c.children) { return a; }
     a[Sefaria._topicTocPageKey(c.slug)] = c.children;
     for (let sub_c of c.children) {
       Sefaria._initTopicTocReducer(a, sub_c);
+    }
+    return a;
+  },
+  _initTopicTocCategoryReducer: function(a,c) {
+    if (!c.children) {
+      a[c.slug] = c.parent;
+      return a;
+    }
+    for (let sub_c of c.children) {
+      sub_c.parent = { en: c.en, he: c.he };
+      Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;
   },
@@ -1663,6 +1678,11 @@ Sefaria = extend(Sefaria, {
         this._initTopicTocPages()
     }
     return this._topicTocPages[key]
+  },
+  topicTocCategory: function(slug) {
+    // return category english and hebrew for slug
+    if (!this._topicTocCategory) { this._initTopicTocCategory(); }
+    return this._topicTocCategory[slug];
   },
   sheets: {
     _loadSheetByID: {},
@@ -2134,6 +2154,9 @@ Sefaria = extend(Sefaria, {
       "Save": "שמירה",
       "Remove": "הסרה",
       "Filter": "סינון",
+      "Relevance": 'רלוונטיות',
+      "Chronological": 'כרונולוגי',
+      "Newest": "הכי חדש",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
