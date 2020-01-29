@@ -1,6 +1,6 @@
 html5lib==0.9999999
 selenium
-django==1.11.*
+django>=1.11.27
 pymongo>=3.7
 py2-py3-django-email-as-username
 diff_match_patch
