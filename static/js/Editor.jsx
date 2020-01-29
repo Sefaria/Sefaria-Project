@@ -286,6 +286,77 @@ function parseSheetItemHTML(rawhtml) {
     return slateJSON[0].type == 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
 
+const defaultSheetTitle = (title) => {
+    return {
+        type: 'SheetTitle',
+        title: title ? title : "New Source Sheet",
+        children: [
+            {
+                text: title ? title : "New Source Sheet",
+            }
+
+        ]
+    }
+};
+
+const defaultSheetAuthorStatement = (ownerProfileUrl, ownerName, ownerImageUrl) => {
+    return {
+        type: 'SheetAuthorStatement',
+        authorUrl: ownerProfileUrl,
+        authorStatement: ownerName,
+        children: [
+        {
+            type: 'ProfilePic',
+            authorImage: ownerImageUrl,
+            authorStatement: ownerName,
+            children: [
+                {
+                    text: '',
+                },
+            ]
+        },
+        {
+            type: "paragraph",
+            children: [
+                {
+                    text: "by "
+                },
+                {
+                    type: "link",
+                    url: ownerProfileUrl,
+                    children: [
+                        {text: ownerName}
+                    ]
+                },
+            ]
+        },
+    ]
+}
+};
+
+const defaultSheetGroupStatement = (group, groupLogo) => {
+    return {
+        type: 'GroupStatement',
+        group: group || "",
+        groupLogo: groupLogo || "",
+        children: [
+            {
+                text: group || "",
+            }
+
+        ]
+
+    };
+}
+
+
+const defaultsheetMetaDataBox = (sheetTitle, authorStatement, groupStatement) => {
+    return {
+        type: 'SheetMetaDataBox',
+        children: [sheetTitle, authorStatement, groupStatement]
+    }
+}
+
 
 function transformSheetJsonToDraft(sheet) {
     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
@@ -549,8 +620,9 @@ const getNextSheetItemPath = (SheetItemPath) => {
 
 
 const getFirstSefRefInSheetItem = (editor) => {
-
-  const textContent = Node.string(getClosestSheetItem(editor, editor.selection.focus.path)[0]);
+  const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
+  if (!closestSheetItem) {return null}
+  const textContent = Node.string(closestSheetItem[0]);
   const titles = Sefaria.titlesInText(textContent);
   if (titles.length == 0) {return null}
   const refRe = Sefaria.makeRefRe(titles)
@@ -594,11 +666,31 @@ const withSefariaSheet = editor => {
 
     };
 
-
     editor.normalizeNode = entry => {
-      const [node, path] = entry
+      const [node, path] = entry;
 
       let sheetElementTypes = Object.values(sheet_item_els);
+      console.log(editor)
+
+      if (node.type == "Sheet") {
+          if (node.children) {
+              console.log(`Sheet has ${node.children.length} children`)
+          }
+      }
+
+      if (node.type == "SheetMetaDataBox") {
+          if (node.children.length < 3) {
+              const editorSheetMeta = editor.children[0];
+              const newMetaBox = defaultsheetMetaDataBox(
+                  defaultSheetTitle("New Sheet Title"),
+                  defaultSheetAuthorStatement(editorSheetMeta['authorUrl'], editorSheetMeta['authorStatement'], editorSheetMeta['authorImage']),
+                  defaultSheetGroupStatement(editorSheetMeta['group'], editorSheetMeta['groupLogo'])
+              );
+              Transforms.delete(editor, {at: path});
+              Transforms.insertNodes(editor, newMetaBox, { at: path });
+          }
+      }
+
 
       if (node.type == "SheetContent") {
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -618,12 +710,11 @@ const withSefariaSheet = editor => {
 
       if (node.type == "SheetItem") {
         for (const [child, childPath] of Node.children(editor, path)) {
-          console.log(child.node)
           if (!sheetElementTypes.includes(child.type)) {
             Transforms.unwrapNodes(editor, { at: childPath })
             return
           }
-          else if (node.children.length > 1) {
+          else if (node.children && node.children.length > 1) {
             Transforms.liftNodes(editor, { at: childPath })
             return
           }
@@ -660,7 +751,7 @@ const withSefariaSheet = editor => {
 
       // if extra content is in sheet source -- merge it with the previous element
       if (node.type == "SheetSource") {
-          if (node.children.length > 4) {
+          if (node.children && node.children.length > 4) {
           for (const [child, childPath] of Node.children(editor, path)) {
               if (!["en", "he", "TextRef"].includes(child.type)) {
                 [prev, prevPath] = Editor.previous(editor, { at: childPath });
