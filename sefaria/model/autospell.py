@@ -182,16 +182,20 @@ class AutoCompleter(object):
         :return:
         """
         instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
-        completions = Completions(self, self.lang, instring, limit).process()
+        completion_manager = Completions(self, self.lang, instring, limit)
+        completion_manager.process()
+        completions = completion_manager.completions
+        completion_objects = completion_manager.completion_objects
+
         if len(completions):
-            return completions
+            return completions, completion_objects
 
         # No results. Try letter swap
         if not redirected and self.other_lang_ac:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
             return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
 
-        return []
+        return [], []
 
     def next_steps_from_node(self, instring):
         """
@@ -202,8 +206,9 @@ class AutoCompleter(object):
         # Assume that instring is the name of a node.  Extend with a comma, and get next nodes in the Trie
         normal_string = self.normalizer(instring)
         try:
-            ret = [v["title"] for k, all_v in self.title_trie.items(normal_string + ",") for v in all_v].sort(key=len)  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
-            return ret or []
+            titles_and_objects = [(v["title"], v) for k, all_v in self.title_trie.items(normal_string + ",") for v in all_v]
+            titles_and_objects.sort(key=lambda vt,v: len(v))  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
+            return [t for t,o in titles_and_objects], [o for t,o in titles_and_objects]
         except KeyError:
             return []
 
@@ -226,6 +231,7 @@ class Completions(object):
         self.limit = limit
         self.keys_covered = set()
         self.completions = []  # titles to return
+        self.completion_objects = []
         self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
 
     def process(self):
@@ -234,14 +240,18 @@ class Completions(object):
         :return:
         """
         # Match titles that begin exactly this way
-        self.completions += self.get_new_continuations_from_string(self.normal_string)
+        [completions, completion_objects] = self.get_new_continuations_from_string(self.normal_string)
+        self.completions += completions
+        self.completion_objects += completion_objects
         if self.limit and len(self.completions) >= self.limit:
             return self.completions[:self.limit or None]
 
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
-            self.completions += self.get_new_continuations_from_string(edit)
+            [completions, completion_objects] = self.get_new_continuations_from_string(edit)
+            self.completions += completions
+            self.completion_objects += completion_objects
             if self.limit and len(self.completions) >= self.limit:
                 return self.completions[:self.limit or None]
 
@@ -261,6 +271,7 @@ class Completions(object):
                 completion_set = set(self.completions)
                 if suggestion not in completion_set:
                     self.completions += [suggestion]
+                    self.completion_objects += self.auto_completer.title_trie[normalizer(self.lang)(suggestion)]
         except ValueError:
             pass
 
@@ -284,29 +295,38 @@ class Completions(object):
         # Prefer primary titles
         # todo: don't list all subtree titles, if string doesn't cover base title
         completions = []
+        completion_objects = []
         non_primary_matches = []
         for k, all_v in all_continuations:
+            added_to_completions = False
             for v in all_v:
                 if v["is_primary"] and (v["type"], v["key"]) not in self.keys_covered:
                     if v["type"] == "ref" or v["type"] == "word_form" or v["type"] == "Topic":
-                        completions += [v["title"]]
+                        completion_objects += [v]
+                        if not added_to_completions:
+                            completions += [v["title"]]
+                            added_to_completions = True
                     else:
-                        completions.insert(0, v["title"])
+                        completion_objects.insert(0, v)
+                        if not added_to_completions:
+                            completions.insert(0, v["title"])
+                            added_to_completions = True
                     self.keys_covered.add((v["type"], v["key"]))
-                    break
                 else:
                     non_primary_matches += [(k, v)]
+
 
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
             if (v["type"], v["key"]) not in self.keys_covered:
                 completions += [v["title"]]
+                completion_objects += [v]
                 self.keys_covered.add((v["type"], v["key"]))
             else:
                 # todo: Check if this is in there already?
                 self.duplicate_matches += [(k, v)]
 
-        return completions
+        return [completions, completion_objects]
 
 
 class LexiconTrie(datrie.Trie):
@@ -352,9 +372,9 @@ class TitleTrie(datrie.Trie):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
-                "key": snode.primary_title(self.lang),
+                "key": snode.full_title(self.lang),
                 "type": "ref",
-                "is_primary": title == snode.primary_title(self.lang)
+                "is_primary": title == snode.full_title(self.lang)
             }
 
     def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr):

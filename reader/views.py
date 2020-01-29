@@ -2263,27 +2263,32 @@ def get_name_completions(name, limit, ref_only):
             lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
             t = [base_title + ", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
             completions = list(OrderedDict.fromkeys(t))  # filter out dupes
+            completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
         else:
-            completions = [name.capitalize()] + completer.next_steps_from_node(name)
+            [completions, completion_objects] = completer.next_steps_from_node(name)
+            completions = [name.capitalize()] + completions
+            completion_objects = completer.get_data(name.capitalize()) + completion_objects
 
         if limit == 0 or len(completions) < limit:
             current = {t: 1 for t in completions}
-            additional_results = completer.complete(name, limit)
+            additional_results, _ = completer.complete(name, limit)
             for res in additional_results:
                 if res not in current:
                     completions += [res]
+                    completion_objects += completer.get_data(res)
     except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + ", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
+        completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
     except InputError:  # Not a Ref
-        completions = completer.complete(name, limit)
+        completions, completion_objects = completer.complete(name, limit)
         object_data = completer.get_object(name)
 
     return {
-        "completions": completions,
-        "completion_objects": [o for n in completions for o in completer.get_data(n)],
+        "completions": completions[:limit or None],
+        "completion_objects": completion_objects[:limit or None],
         "lang": lang,
         "object_data": object_data,
         "ref": ref
