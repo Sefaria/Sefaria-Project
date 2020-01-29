@@ -974,7 +974,9 @@ class ReaderPanel extends Component {
       }
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
-                    toggleSignUpModal={this.props.toggleSignUpModal} />);
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                    showLibrary={this.props.showLibrary}
+      />);
 
     } else if (this.state.menuOpen === "story_editor") {
       if (Sefaria.interfaceLang === "hebrew") {
@@ -1161,6 +1163,7 @@ ReaderPanel.propTypes = {
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
   openProfile:                 PropTypes.func,
+  showLibrary:                 PropTypes.func,
 };
 
 
