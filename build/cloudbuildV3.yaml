@@ -86,6 +86,9 @@ steps:
   # Purge CloudFlare -- Helm Post-Deploy Hook
   # Prime Webserver Cache -- Helm Post-Deploy Hook or import into application (do on application startup)
   # Send Slack Notification -- Probably via Pub/Sub message sent to Slack
+  # Messy piece: flushed caches should be repopulating from outmodded servers
+    # 'wait_for' script didn't work
+  # Todo: Read-only
     
 images:
   - "gcr.io/production-deployment/sefaria-asset:$SHORT_SHA"
