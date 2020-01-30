@@ -204,18 +204,8 @@ class Header extends Component {
           Sefaria.track.event("Search", action, query);
           this.clearSearchBox();
           this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-        } else if (d["type"] === "Person") {
-          Sefaria.track.event("Search", "Search Box Navigation - Person", query);
-          this.closeSearchAutocomplete();
-          this.showPerson(d["key"]);
-        } else if (d["type"] === "Group") {
-          Sefaria.track.event("Search", "Search Box Navigation - Group", query);
-          this.closeSearchAutocomplete();
-          this.showGroup(d["key"]);
-        } else if (d["type"] === "TocCategory") {
-          Sefaria.track.event("Search", "Search Box Navigation - Category", query);
-          this.closeSearchAutocomplete();
-          this.showLibrary(d["key"]);  // "key" holds the category path
+        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory" || d["type"] === "Topic") {
+          this.redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
           this.closeSearchAutocomplete();
