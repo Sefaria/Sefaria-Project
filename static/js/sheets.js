@@ -31,7 +31,7 @@ sjs.openRequests = 0;
 sjs.current.nextNode = sjs.current.nextNode || 1;
 
 // Track last edits, in case they need to be reapplied after
-// another user updates the currently loaded sheet. 
+// another user updates the currently loaded sheet.
 sjs.lastEdit = null;
 
 // Make sure that we're using the s2 Sefaria utils, and not the s1/utils
@@ -51,7 +51,7 @@ $(window).on("beforeunload", function() {
 	}
 });
 
-//hide 
+//hide
 $(window).scroll(function() {
   var fixedBottom = $("#fileControls");
   if ($('body').height() <= ($(window).height() + $(window).scrollTop())) {
@@ -76,8 +76,8 @@ window.onerror = function (errorMsg, url, lineNumber) {
 $(function() {
 
 	// ------------- Top Controls -------------------
-	
-	
+
+
 		$( ".circleButton" ).hover(
 	  function() {
 		$('.cke_editable').each(function() {
@@ -85,7 +85,7 @@ $(function() {
 	  });
 	  },
 	  function() {
-	  
+
 	  }
 	);
 
@@ -279,20 +279,20 @@ $(function() {
 
     // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
-    var validator = new Sefaria.util.RefValidator($("#inlineAdd"), 
-    	$("#inlineAddDialogTitle"), 
-    	$("#inlineAddSourceOK"), 
+    var validator = new Sefaria.util.RefValidator($("#inlineAdd"),
+    	$("#inlineAddDialogTitle"),
+    	$("#inlineAddSourceOK"),
     	$("#inlineTextPreview"),
     	{interfaceLang: sjs.interfaceLang});
 
 	// Printing
 	$("#print").click(function(){
 		Sefaria.track.sheets("Print Sheet");
-		window.print() 
+		window.print()
 	});
 
 
-	// General Options 
+	// General Options
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
 		if($(this).parent().hasClass('languageToggleOption')||
 			$(this).parent().hasClass('layoutToggleOption') ||
@@ -305,7 +305,7 @@ $(function() {
 			$check.removeClass("hidden");
 		} else {
 			$("#sheet").removeClass($(this).attr("id"));
-			$check.addClass("hidden");			
+			$check.addClass("hidden");
 		}
 		if (sjs.can_edit) {
 			autoSave(); // Don't bother sending options changes from adders
@@ -509,17 +509,17 @@ $(function() {
 		if (sjs.can_edit) {
 			autoSave(); // Don't bother sending options changes from adders
 		}
-	});	
-	
+	});
+
 	// Divine Names substitution Options
 	$(".divineNamesOption").unbind("click").click(function() {
 		$(".divineNamesOption .fa-check").addClass("hidden");
 		$(".fa-check", $(this)).removeClass("hidden");
 
 		if (sjs.current.options.divineNames !== this.id) {
-			sjs.current.options.divineNames = this.id;			
+			sjs.current.options.divineNames = this.id;
 			substituteAllExistingDivineNames();
-			autoSave();			
+			autoSave();
 		}
 
 	});
@@ -638,27 +638,27 @@ $(function() {
 
 			var modified = editor.checkDirty();
 			var text = $el.text();
-			
+
 			// always check when text is empty, to be sure we aren't stuck with empty fields
 			if (!text.length) { modified = true; }
 			// always check custom title, so we don't get stuck with init value of "Source Title"
-			if ($el.hasClass("customTitle")) { modified = true; } 
-			
+			if ($el.hasClass("customTitle")) { modified = true; }
+
 			if (modified) {
-				
+
 				// Special cases for fields left empty
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
 						$el.text(_("Untitled Source Sheet"));
-					
+
 					// Comment
 					} else if ($el.hasClass("comment")) {
 						if ($el.find("img").length == 0) {
 							// Don't remove a comment that just has an image
 							$el.parent().remove();
 						}
-					
+
 					// Outside (monolingual)
 					} else if ($el.hasClass("outside")) {
 						$el.parent().remove();
@@ -683,7 +683,7 @@ $(function() {
 				if ($el.hasClass("he") || $el.hasClass("outside")) {
 					if (sjs.current.options.divineNames !== "noSub") {
 						substituteDivineNamesInNode($el[0]);
-					}					
+					}
 				}
 				// Mark author as customized
 				if ($el.attr("id") === "author") {
@@ -742,7 +742,7 @@ $(function() {
 				$(this).on('key', function(e) {
 					if (e.data.keyCode == 13) {
 						sjs.removeCKEditor(e);
-						e.cancel();						
+						e.cancel();
 					}
 
 				});
@@ -764,7 +764,7 @@ $(function() {
 				e.stopPropagation();
 			 });
 
-		// Destroy editor on outside clicks 
+		// Destroy editor on outside clicks
 		// Without this, CKEeditor was not consistently closing itself
 		$("html").on("mousedown", function(e) {
 			if ($(e.target).closest(".cke_editable").length || $(e.target).closest(".cke").length || $(e.target).closest(".cke_dialog").length || $(e.target).closest(".cke_dialog_background_cover").length) {
@@ -857,7 +857,7 @@ $(function() {
 	$("#likeButton").click(function(e) {
 		e.preventDefault();
 		if (!sjs._uid) { return sjs.loginPrompt(); }
-		
+
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
 			$(this).removeClass("liked").text(_("Like"));
@@ -875,7 +875,7 @@ $(function() {
 	});
 	$(".likes").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
-			if (data.likers.length == 0) { 
+			if (data.likers.length == 0) {
 				var title = _("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
 				var title = _("1 Person Likes This Sheet");
@@ -918,7 +918,7 @@ $(function() {
 
 
 	// ----------- Sorting ---------------
-		
+
 	if (sjs.can_edit || sjs.can_add) {
 
 		sjs.sortStart = function(e, ui) {
@@ -1440,9 +1440,9 @@ $(function() {
   }
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
-	
+
 	if ($(".cke_editable").length) { return; }
-		
+
 		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
 		if (isOwner||sjs.can_edit) {
@@ -1590,7 +1590,7 @@ $(function() {
 	});
 
 
-	// Reset Source Text 
+	// Reset Source Text
 	$(".resetSource").on("click", function() {
 		var options = {
 			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
@@ -1598,12 +1598,12 @@ $(function() {
 		};
 		var $target = $(this).closest(".source");
 		var resetSource = function(option) {
-			var loadClosure = function(data) { 
+			var loadClosure = function(data) {
 				loadSource(data, $target, option);
         		Sefaria.track.sheets("Reset Source", data.ref);
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
-			$.getJSON(getStr, loadClosure);	
+			$.getJSON(getStr, loadClosure);
 			sjs.openRequests += 1;
 		};
 
@@ -1660,7 +1660,7 @@ $(function() {
 
 		var curTagsHTML = "";
     for (var i = 0; i < sjs.sheetTagger.tags().length; i++) {
-    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
+    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/topics/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
     }
 		$("#sheetTags").html(curTagsHTML);
 
@@ -1712,7 +1712,7 @@ $(function() {
 		$("#tags .addTagMsg").hide()
 		$(this).hide();
 	});
-	
+
 
 	$("#highlightMenu .optionsMenu").on('click', '.resetHighlighter', function() {
 		var curHighlighter = $(".activeSource").find(".highlighter");
@@ -1899,7 +1899,7 @@ $(function() {
 
 
 	$("#overrideLayoutModal .ok").click(function(){
-		
+
 		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
 		if (
 		$("#sheetLayoutToggle").find(".active").attr("id") == $("#sheetLayoutToggleSource").find(".active").attr("id").replace("Source","")
@@ -1909,16 +1909,16 @@ $(function() {
 			var $target = $("#overrideLayoutModal").data("target");
 			$target.removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
 		}
-		
+
 		$("#overrideLayoutModal, #overlay").hide();
 		autoSave();
 	});
- 
- 
- 
+
+
+
 
 	// Change Source Layout via modal
-	
+
 	$("#sideBySideSource, #stackedSource").click(function(){
 		var $target = $("#overrideLayoutModal").data("target");
 		$("#sheetLayoutToggleSource .toggleOption").removeClass("active");
@@ -1941,7 +1941,7 @@ $(function() {
 		var $target = $("#overrideLayoutModal").data("target");
 		$target.removeClass("english bilingual hebrew")
 			.addClass($(this).attr("id").replace("Source",""));
-		$("#languageToggleSource .toggleOption").removeClass("active");			
+		$("#languageToggleSource .toggleOption").removeClass("active");
 		$(this).addClass("active");
 		if ($(this).attr("id") != "bilingualSource") {
 			$("#stackedSource").click();
@@ -1955,19 +1955,19 @@ $(function() {
 		}
 		Sefaria.track.sheets("Change Source Language Button");
 	});
-	
+
 	// Change Language Layout via modal
 		$("#hebLeftSource, #hebRightSource").click(function(){
 		var $target = $("#overrideLayoutModal").data("target");
-		$("#biLayoutToggleSource .toggleOption").removeClass("active");			
+		$("#biLayoutToggleSource .toggleOption").removeClass("active");
 		$(this).addClass("active");
 		$target.removeClass("heLeft heRight")
 			.addClass($(this).attr("id").replace("Source",""));
 		Sefaria.track.sheets("Change Source Language Layout Button");
 	});
 
-	
-	
+
+
 
 	// Remove all custom source language/layout overrides:
 	$("#resetToDefaults").on("click", function() {
@@ -1980,7 +1980,7 @@ $(function() {
 
 
 
-	// Add All Connections 
+	// Add All Connections
     function SortBySourceRef(x,y) {
 		  if (x.collectiveTitle['en'] < y.collectiveTitle['en']) return -1;
 		  if (x.collectiveTitle['en'] > y.collectiveTitle['en']) return 1;
@@ -2324,7 +2324,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 }
 
 function loadSource(data, $target, optionStr) {
-	
+
 	sjs.openRequests -= 1;
 
 	if (data.error) {
@@ -2333,8 +2333,8 @@ function loadSource(data, $target, optionStr) {
 		return;
 	}
 
-	$target.attr("data-ref", data.ref);	
-	$target.attr("data-heRef", data.heRef);	
+	$target.attr("data-ref", data.ref);
+	$target.attr("data-heRef", data.heRef);
 	var $enTitle = $target.find(".en .title a").eq(0);
 	var $heTitle = $target.find(".he .title a").eq(0);
 	$enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/,"$1") ).attr("href", "/" + normRef(data.ref));
@@ -2363,7 +2363,7 @@ function loadSource(data, $target, optionStr) {
 	}
 	if (optionStr !== "English") {
 		heStr = substituteDivineNames(heStr);
-		$target.find(".text .he").first().html(heStr);		
+		$target.find(".text .he").first().html(heStr);
 	}
 
 	if (sjs.openRequests == 0) {
@@ -2387,7 +2387,7 @@ function setSourceNumbers() {
 
 function readSheet() {
 	// Create a JS Object representing the sheet as it stands in the DOM
-	// One day I will get my truth out of the DOM. 
+	// One day I will get my truth out of the DOM.
 	var sheet = {};
 	if (sjs.current.id) {
 		sheet.id = sjs.current.id;
@@ -2445,7 +2445,7 @@ function readSheet() {
 				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
 				break;
 		}
-		
+
 		if ($(".sheetHighlighterTags").first().children()) {
 			sheet.highlighterTags = [];
 			$(".sheetHighlighterTags").first().children().each(function( i ) {
@@ -2502,7 +2502,7 @@ function readSource($target) {
 	if ($target.hasClass("source")) {
 		source["ref"] = $target.attr("data-ref");
 		source["heRef"] = $target.attr("data-heRef");
-		source["text"] = {en: $target.find(".text").find(".en").html(), 
+		source["text"] = {en: $target.find(".text").find(".en").html(),
 						  he: $target.find(".text").find(".he").html()};
 
 		if ($target.find(".highlighter").find(".en").html() != "" || $target.find(".highlighter").find(".he").html() != "") {
@@ -2534,9 +2534,9 @@ function readSource($target) {
 		} else {
 			var sourceLayout = ""
 		}
-		
-		
-		//Set source language layout		
+
+
+		//Set source language layout
 		if ($target.hasClass("heLeft")) {
 			var sourceLangLayout = "heLeft"
 		} else if ($target.hasClass("heRight")) {
@@ -2545,7 +2545,7 @@ function readSource($target) {
 			var sourceLangLayout = ""
 		}
 
-		
+
 		//Set source language
 		if ($target.hasClass("bilingual")) {
 			var sourceLanguage = "bilingual"
@@ -2577,11 +2577,11 @@ function readSource($target) {
 							 PrependRefWithHe: $target.attr("data-prependrefwithhe") ? $target.attr("data-prependrefwithhe") : "",
 							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
-		
-		
+
+
 		var title = $(".customTitle", $target).eq(0).html();
-		if (title) { 
-			source["title"] = title; 
+		if (title) {
+			source["title"] = title;
 		}
 	} else if ($target.hasClass("commentWrapper")) {
 		source["comment"] = $target.find(".comment").html();
@@ -2642,7 +2642,7 @@ function readSource($target) {
 		};
 
 	}
-	
+
 	 else if ($target.hasClass("mediaWrapper")) {
 		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
 
@@ -2669,7 +2669,7 @@ function readSource($target) {
 			}
 		}
 	}
-	
+
 
 	// Add attributions info if present
 	var addedBy = $target.attr("data-added-by");
@@ -2682,14 +2682,14 @@ function readSource($target) {
 
 
 function validateSheet(sheet) {
-	// Srsly!	
+	// Srsly!
 }
 
 
 function handleSave() {
 	if (!sjs._uid) {
 		Sefaria.track.sheets("Logged out Save Attempt");
-		return alert("Sorry I can't save what you've got here: you need to be signed in to save."); 
+		return alert("Sorry I can't save what you've got here: you need to be signed in to save.");
 	}
 	sjs.loading = false;
 	$("#save").data("mode", "saving").find("#inSave").show().siblings().hide();
@@ -2726,7 +2726,7 @@ function saveSheet(sheet, reload) {
 			promptToPublish();      // If conditions are right, prompt to publish
 			var $lastSaved = $("#lastSaved");
 			$lastSaved.find(".lastSavedConfirmed").show().siblings().hide();
-		} 
+		}
 
 		if ("error" in data) {
 			sjs.alert.flash(data.error);
@@ -2759,9 +2759,9 @@ function buildSheet(data){
 	// Set options with binary value
 	$("#sheet").removeClass("numbered bsd boxed assignable");
 	$("#numbered, #bsd, #boxed, #assignable").find(".fa-check").addClass("hidden");
-	if (data.options.numbered) { $("#numbered").trigger("click"); } 
-	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
-	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
+	if (data.options.numbered) { $("#numbered").trigger("click"); }
+	if (data.options.bsd)      { $("#bsd").trigger("click"); }
+	if (data.options.boxed)    { $("#boxed").trigger("click"); }
 	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
 	if (data.options.assignable)    { $("#makeSheetAssignableButton").trigger("click"); }
 	else {$("#StopCollectingAssignmentsButton").trigger("click");}
@@ -2795,7 +2795,7 @@ function buildSheet(data){
 	if (data.group) {
 		$("#sourceSheetGroupSelect").val(data.group);
 		var $el = $("#sourceSheetGroupSelect option:selected");
-		var groupImage = $el.attr("data-image"); 
+		var groupImage = $el.attr("data-image");
 		$("#groupLogo").attr("src", groupImage);
 		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
@@ -2809,7 +2809,7 @@ function buildSheet(data){
 
 	if (sjs.is_owner) {
 		$("#sourceSheetGroupOptions").show();
-	} else {		
+	} else {
 		$("#sourceSheetGroupOptions").hide();
 	}
 
@@ -2841,7 +2841,7 @@ function buildSheet(data){
 	}
 
 }
-	
+
 
 function buildSources($target, sources) {
 	// Recursive function to build sources into target
@@ -2854,26 +2854,26 @@ function buildSource($target, source, appendOrInsert) {
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
-		
+
 	if (!("node" in source)) {
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;
 	}
-	
+
 	else if (source.node == null) {
 		source.node = sjs.current.nextNode;
-		sjs.current.nextNode++;	
+		sjs.current.nextNode++;
 	}
 
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		addSource(q, source, appendOrInsert, $target);
-		
+
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
 		}
 
-		
+
 		if (source.title) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');
 			$(".sheetItem").last().addClass("hasCustom");
@@ -2941,10 +2941,10 @@ function buildSource($target, source, appendOrInsert) {
 		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
-								"<div class='he'>" + source.outsideBiText.he + "</div>" + 
-								"<div class='en'>" + source.outsideBiText.en + "</div>" + 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" +
+								"<div class='he'>" + source.outsideBiText.he + "</div>" +
+								"<div class='en'>" + source.outsideBiText.en + "</div>" +
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -2966,7 +2966,7 @@ function buildSource($target, source, appendOrInsert) {
 		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 							appendInlineAddButton() +
@@ -3013,14 +3013,14 @@ function buildSource($target, source, appendOrInsert) {
 			var cls = source.caption.en && source.caption.he ? "" :
 						source.caption.en ? "enOnly" : "heOnly";
 			var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
-								"<div class='en'>" + (source.caption.en || "") + "</div>" + 
-								"<div class='he'>" + (source.caption.he || "") + "</div>" + 
+								"<div class='en'>" + (source.caption.en || "") + "</div>" +
+								"<div class='he'>" + (source.caption.he || "") + "</div>" +
 							   "</div></div>";
 		}
 
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
 		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
 							"<div class='" + mediaClass + (sjs.loading ? "" : " new") + "'>" + mediaLink + mediaCaption + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 							appendInlineAddButton() +
@@ -3036,15 +3036,15 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	}
-	
+
 	else if ("text" in source) {
 
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
-								"<div class='he'>" + source.text.he + "</div>" + 
-								"<div class='en'>" + source.text.en + "</div>" + 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" +
+								"<div class='he'>" + source.text.he + "</div>" +
+								"<div class='en'>" + source.text.en + "</div>" +
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3088,19 +3088,19 @@ function attributionDataString(uid, newItem, classStr) {
 	// e.g., 'class="source addedByMe" data-added-by="54"'
 	var addedBy = null;
 	var addedByMe = false;
-	
+
 	if (newItem && sjs.can_add) {
 		addedByMe = true;
 		addedBy = sjs._uid;
 	} else if (!newItem && uid) {
 		addedBy = uid;
-		addedByMe = (uid == sjs._uid && !sjs.can_edit); 
+		addedByMe = (uid == sjs._uid && !sjs.can_edit);
 	}
 
 	var str = "class='" + classStr + " sheetItem" +
-		      (addedByMe ? " addedByMe" : "") + "'" + 
+		      (addedByMe ? " addedByMe" : "") + "'" +
 		      (addedBy ? " data-added-by='" + addedBy + "'" : "");
- 
+
 	return str;
 }
 
@@ -3131,7 +3131,7 @@ sjs.saveLastEdit = function($el) {
 	}
 
 	$el.removeClass("new");
-	
+
 
 };
 
@@ -3141,7 +3141,7 @@ sjs.replayLastEdit = function() {
 	// remotely and needed to be reloaded before applying edits.
 	if (!sjs.lastEdit) { return; }
 
-	var $target = sjs.lastEdit.parent ? 
+	var $target = sjs.lastEdit.parent ?
 					$($(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
 					$("#sources");
 
@@ -3179,9 +3179,9 @@ sjs.replayLastEdit = function() {
 			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 	}
-	
 
-	
+
+
 	if (source) {
 		if (sjs.can_add) {
 			source.userLink = sjs._userLink;
@@ -3237,7 +3237,7 @@ function stopPolling(){
 	sjs.pollingStopped = true;
 	if (sjs.pollTimer) {
 		clearTimeout(sjs.pollTimer);
-	}	
+	}
 }
 
 
@@ -3251,11 +3251,11 @@ function startPollingIfNeeded() {
 		if (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-add") {
 			needed = true;
 		}
-		// Poll if sheet is in a group 
+		// Poll if sheet is in a group
 		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}
-	}	
+	}
 	if (needed) {
 		startPolling();
 	} else {
@@ -3266,7 +3266,7 @@ function startPollingIfNeeded() {
 
 function rebuildUpdatedSheet(data) {
 	// When data is returned from the save API indicating an update has occurred
-	// Rebuild the current sheet and 
+	// Rebuild the current sheet and
 	if (data.dateModified < sjs.current.dateModified) {
 		// If the update is older than the timestamp on the current sheet, ignore it
 		Sefaria.track.event("Sheets", "Error", "Out of sequence update request.");
@@ -3336,7 +3336,7 @@ function rebuildUpdatedSheet(data) {
 function copyToSheet(source) {
 	if (!sjs._uid) { return sjs.loginPrompt(); }
 	sjs.copySource = source;
-	
+
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
 		$("#sheetList").html(Sefaria._("Loading..."));
@@ -3356,7 +3356,7 @@ function copyToSheet(source) {
 				$(this).addClass("selected");
 				return false;
 			})
-		})			
+		})
 	}
 	var name = source.ref ? source.ref :
 				(source.comment ? Sefaria._("this comment") : Sefaria._("this source"));
@@ -3364,7 +3364,7 @@ function copyToSheet(source) {
 	$("#addToSheetModal .sourceName").text(name);
 
 	$("#overlay").show();
-	$("#addToSheetModal").show().position({ of: $(window) });	
+	$("#addToSheetModal").show().position({ of: $(window) });
 }
 
 $("#addToSheetModal .cancel").click(function() {
@@ -3399,7 +3399,7 @@ $("#addToSheetModal .ok").click(function(){
 		var title = selected.html();
 		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
 		sjs.flags.saving = true;
-		$.post(url, {source: JSON.stringify(sjs.copySource)}, addToSheetCallback);	
+		$.post(url, {source: JSON.stringify(sjs.copySource)}, addToSheetCallback);
 	}
 
 	function addToSheetCallback(data) {
@@ -3417,7 +3417,7 @@ $("#addToSheetModal .ok").click(function(){
 		if ("error" in data) {
 			sjs.alert.message(data.error)
 		} else {
-			var name = data.ref ? data.ref : 
+			var name = data.ref ? data.ref :
 				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
 			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
 			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
