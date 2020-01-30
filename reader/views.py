@@ -734,10 +734,8 @@ def sheets_by_tag(request, tag):
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
-        props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
-        tag   = Term.normalize(tag, lang=request.LANGUAGE_CODE)
-        title = tag + _(" | Sefaria")
-        desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
+        # redirect to topics
+        return redirect("/topics/{}".format(tag), permanent=True)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
