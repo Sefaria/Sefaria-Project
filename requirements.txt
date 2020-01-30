@@ -2,7 +2,7 @@ html5lib==0.9999999
 selenium
 django==1.11.*
 pymongo>=3.7
-py2-py3-django-email-as-username
+py2-py3-django-email-as-username==1.7.1
 diff_match_patch
 dateutils
 bs4
@@ -18,7 +18,7 @@ django-redis
 django_mobile
 roman
 p929
-git+https://github.com/ByteInternet/python-varnishadm.git@python3
+git+https://github.com/ByteInternet/python-varnishadm.git@74555895719f7db4c03298a5e54c689db334a903
 geojson
 django-recaptcha
 unicodecsv

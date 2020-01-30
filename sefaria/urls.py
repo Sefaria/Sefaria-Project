@@ -6,8 +6,6 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 
-from emailusernames.forms import EmailAuthenticationForm
-
 from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
