@@ -440,12 +440,13 @@ def update_ref_topic_link_orders():
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
     sheet_cache = {}
+    intra_topic_link_cache = {}
 
-    def get_sheet_order(topic, sheet_id):
+    def get_sheet_order(topic_slug, sheet_id):
         if sheet_id in sheet_cache:
             sheet = sheet_cache[sheet_id]
         else:
-            sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1})
+            sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1, "topics": 1})
             includedRefs = []
             for tref in sheet['includedRefs']:
                 try:
@@ -458,12 +459,27 @@ def update_ref_topic_link_orders():
                     continue
             sheet['includedRefs'] = includedRefs
             sheet_cache[sheet_id] = sheet
+
+        # relevance based on average pagerank personalized to this topic
         total_pr = 0
         for ref_range in sheet['includedRefs']:
             if len(ref_range) == 0:
                 continue
-            total_pr += sum([pr_map.get((topic, ref), 0) for ref in ref_range]) / len(ref_range)
-        relevance = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
+            total_pr += sum([pr_map.get((topic_slug, ref), 0) for ref in ref_range]) / len(ref_range)
+        avg_pr = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
+
+        # relevance based on other topics on this sheet
+        other_topic_slug_set = {t['slug'] for t in sheet.get('topics', []) if t['slug'] != topic_slug}
+        total_links_in_common = 0
+        for other_topic_slug in other_topic_slug_set:
+            intra_topic_link = IntraTopicLink().load({'$or': [
+                {'fromTopic': topic_slug, 'toTopic': other_topic_slug},
+                {'fromTopic': other_topic_slug, 'toTopic': topic_slug}]})
+            if intra_topic_link:
+                total_links_in_common += getattr(intra_topic_link, 'order', {}).get('linksInCommon', 0)
+        avg_in_common = 1 if len(other_topic_slug_set) == 0 else (total_links_in_common / len(other_topic_slug_set)) + 1
+
+        relevance = 0 if avg_pr == 0 else 500*avg_pr + avg_in_common  # this weighting seems to work based on spot checking
         title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet.get('title', 'a'))) is not None else 'hebrew'
         return {
             'views': sheet.get('views', 0),
@@ -546,26 +562,9 @@ def add_num_sources_to_topics():
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
     ])
 
-def yo():
-    import re
-    from tqdm import tqdm
-    from sefaria.system.database import db
-    from pymongo import UpdateOne
 
-    rtls = RefTopicLinkSet({"is_sheet": True})
-    sheet_cache = {}
-    updates = {}
-    for  l in tqdm(rtls, total=rtls.count()):
-        sid = int(l.ref.replace("Sheet ", ""))
-        sheet = sheet_cache.get(sid, db.sheets.find_one({"id": sid}, {"title": 1}))
-        sheet_cache[sid] = sheet
-        try:
-            title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet.get('title', 'a'))) is not None else 'hebrew'
-        except TypeError:
-            continue
-        new_order = getattr(l, 'order', {})
-        new_order['titleLanguage'] = title_lang
-        updates[l._id] = new_order
-    db.topic_links.bulk_write([
-        UpdateOne({"_id": l[0]}, {"$set": {"order": l[1]}}) for l in updates.items()
-    ])
+def recalculate_secondary_topic_data():
+    add_num_sources_to_topics()
+    generate_topic_links_from_sheets()
+    update_intra_topic_link_orders()
+    update_ref_topic_link_orders()
