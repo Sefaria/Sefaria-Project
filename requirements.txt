@@ -2,7 +2,7 @@ html5lib==0.9999999
 selenium
 django==1.11.*
 pymongo>=3.7
-py2-py3-django-email-as-username
+py2-py3-django-email-as-username==1.7.1
 diff_match_patch
 dateutils
 bs4
