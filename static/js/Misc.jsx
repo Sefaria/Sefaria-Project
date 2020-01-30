@@ -971,13 +971,10 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
 
   return (
-      <div aria-label={altText} tabIndex="0"
-        className={classes} role="button"
-        style={style} onClick={onClick}
-        onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+      <ToolTipped {...{ altText, classes, style, onClick }}>
         { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
           <img src="/static/img/star.png" alt={altText}/> }
-      </div>
+      </ToolTipped>
     );
 }
 SaveButton.propTypes = {
@@ -989,6 +986,16 @@ SaveButton.propTypes = {
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
+
+const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+  <div aria-label={altText} tabIndex="0"
+    className={classes} role="button"
+    style={style} onClick={onClick}
+    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+    { children }
+  </div>
+);
 
 
 class FollowButton extends Component {
@@ -1963,5 +1970,6 @@ module.exports.TextBlockLink                             = TextBlockLink;
 module.exports.TestMessage                               = TestMessage;
 module.exports.ThreeBox                                  = ThreeBox;
 module.exports.ToggleSet                                 = ToggleSet;
+module.exports.ToolTipped                                = ToolTipped;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;

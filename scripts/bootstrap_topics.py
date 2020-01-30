@@ -1165,6 +1165,47 @@ def apply_recat_toc():
     db.topic_links.insert_many(links, ordered=False)
 
 
+def find_ambiguous_topics():
+    ts = TopicSet()
+    ambig = defaultdict(list)
+    for t in ts:
+        norm_en = t.get_primary_title('en').lower()
+        norm_he = t.get_primary_title('he').lower()
+        if len(norm_en) > 0:
+            ambig[norm_en] += [t]
+        if len(norm_he) > 0:
+            ambig[norm_he] += [t]
+
+    rows = []
+    max_titles = 0
+    max_isa = 0
+    for k, v in tqdm(ambig.items()):
+        if len(v) <= 1:
+            continue
+        for i, t in enumerate(v):
+            row = {
+                "Ambiguous": k,
+                "Slug": t.slug
+            }
+            if len(t.titles) > max_titles:
+                max_titles = len(t.titles)
+            for ititle, title in enumerate(t.titles):
+                row["T{}".format(ititle)] = title['text']
+                if title.get('transliteration', False):
+                    row["T{}".format(ititle)] += ' (t)'
+                if title.get('primary', False):
+                    row["T{}".format(ititle)] += ' (p)'
+                row["T{}".format(ititle)] += ' ({})'.format(title['lang'])
+            isas = IntraTopicLinkSet({"fromTopic": t.slug, "linkType": 'is-a'})
+            if isas.count() > max_isa:
+                max_isa = isas.count()
+            for iisa, isa in enumerate(isas):
+                row["I{}".format(iisa)] = isa.toTopic
+            rows += [row]
+    with open('data/ambig_topics.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Ambiguous', 'Slug'] + ['T{}'.format(i) for i in range(0, max_titles)] + ['I{}'.format(i) for i in range(0, max_isa)])
+        c.writeheader()
+        c.writerows(rows)
 
 
 
@@ -1187,4 +1228,5 @@ if __name__ == '__main__':
     # new_edge_type_research()
     # add_num_sources_to_topics()
     # clean_up_time()
-    apply_recat_toc()
+    # apply_recat_toc()
+    find_ambiguous_topics()

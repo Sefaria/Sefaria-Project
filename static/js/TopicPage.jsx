@@ -19,6 +19,7 @@ const {
   TwoOrThreeBox,
   InterfaceTextWithFallback,
   FilterableList,
+  ToolTipped,
 }                         = require('./Misc');
 const Footer     = require('./Footer');
 
@@ -104,7 +105,8 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
         <div className={navMenuClasses}>
             <div className={contentClasses}>
                 <div className="contentInner">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang}/>
+                    <TopicHeader topic={topic} topicData={topicData}
+                      multiPanel={multiPanel} interfaceLang={interfaceLang} isCat />
                     <TwoOrThreeBox content={topicBlocks} width={width} />
                 </div>
             </div>
@@ -112,7 +114,7 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
     );
 };
 
-const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
+const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic }) => {
   const { en, he } = !!topicData ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = Sefaria.topicTocCategory(topicData.slug);
@@ -126,11 +128,13 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
           </h1>
         </div>
        {!topicData?<LoadingMessage/>:""}
-       {category?
+       {!isCat && category?
            <div className="topicCategory sectionTitleText">
+             <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug); }}>
               <span className="int-en">{category.en}</span>
               <span className="int-he">{category.he}</span>
-            </div>
+             </a>
+           </div>
        :""}
        {topicData.description?
            <div className="topicDescription systemText">
@@ -148,7 +152,7 @@ const TopicHeader = ({topic, topicData, multiPanel, interfaceLang}) => {
     </div>
 );}
 
-const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings}) => {
+const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings}) => {
     const [topicData, setTopicData] = useState(false);
     const [topicRefs, setTopicRefs] = useState(false);
     const [topicSheets, setTopicSheets] = useState(false);
@@ -163,7 +167,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
         setTopicData(d);
         let refMap = {};
         for (let refObj of d.refs.filter(s => !s.is_sheet)) {
-          refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSource: refObj.dataSource};
+          refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
         }
         const refs = Object.values(refMap);
         let sheetMap = {};
@@ -181,7 +185,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
               for (let tempRef of inRefs) {
                 if (outRefs[tempRef.ref]) {
                   outRefs[tempRef.ref].order = tempRef.order;
-                  outRefs[tempRef.ref].dataSource = tempRef.dataSource;
+                  outRefs[tempRef.ref].dataSources = tempRef.dataSources;
                 }
               }
               return Object.entries(outRefs);
@@ -243,7 +247,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang}/>
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic}/>
                    {!!topicData?
                        <TabView
                           tabs={tabs}
@@ -270,7 +274,13 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
                               sortFunc={refSort}
                               extraData={{ interfaceLang }}
                               renderItem={item=>(
-                                <TextPassage key={item[0]} text={item[1]} toggleSignUpModal={toggleSignUpModal}/>
+                                <TextPassage
+                                  key={item[0]}
+                                  text={item[1]}
+                                  toggleSignUpModal={toggleSignUpModal}
+                                  topicTitle={topicData && topicData.primaryTitle}
+                                  interfaceLang={interfaceLang}
+                                />
                               )}
                               />
                             ) : null
@@ -310,6 +320,7 @@ const TopicPage = ({topic, setTopic, openTopics, interfaceLang, multiPanel, hide
 TopicPage.propTypes = {
   topic:               PropTypes.string.isRequired,
   setTopic:            PropTypes.func.isRequired,
+  setNavTopic:         PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
   interfaceLang:       PropTypes.string,
   multiPanel:          PropTypes.bool,
@@ -340,17 +351,27 @@ const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filter
   </div>
 );
 
-const TextPassage = ({text, toggleSignUpModal}) => {
+const TextPassage = ({text, toggleSignUpModal, topicTitle, interfaceLang}) => {
     if (!text.ref) { return null; }
     const url = "/" + Sefaria.normRef(text.ref);
+    let dataSourceText = '';
+    const langKey = interfaceLang === 'english' ? 'en' : 'he';
+    if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
+      dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}`;
+    }
     return <StoryFrame cls="textPassageStory">
-        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}>
+        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}
+          afterChildren={(
+            <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
+              <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
+            </ToolTipped>
+          )}
+        >
             <StoryTitleBlock en={text.ref} he={norm_hebrew_ref(text.heRef)} url={url}/>
         </SaveLine>
         <ColorBarBox tref={text.ref}>
             <StoryBodyBlock en={text.en} he={text.he}/>
         </ColorBarBox>
-        <div>{text.dataSource}</div>
     </StoryFrame>;
 };
 TextPassage.propTypes = {

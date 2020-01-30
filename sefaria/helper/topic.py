@@ -41,9 +41,9 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             del link['fromTopic']
             del link['class']
             link['topic'] = other_topic_slug
-            link_type = library.get_link_type(link['linkType'])
+            link_type = library.get_topic_link_type(link['linkType'])
             if group_related and link_type.get('groupRelated', is_inverse, False):
-                link_type = library.get_link_type(TopicLinkType.related_type)
+                link_type = library.get_topic_link_type(TopicLinkType.related_type)
             del link['linkType']
             link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
@@ -88,8 +88,17 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             for seg_ref in temp_subset_refs:
                 for index in subset_ref_map[seg_ref]:
                     new_refs[index]['similarRefs'] += [link]
+                    if link.get('dataSource', None):
+                        data_source = library.get_topic_data_source(link['dataSource'])
+                        new_refs[index]['dataSources'][link['dataSource']] = data_source.displayName
+                        del link['dataSource']
             if len(temp_subset_refs) == 0:
                 link['similarRefs'] = []
+                link['dataSources'] = {}
+                if link.get('dataSource', None):
+                    data_source = library.get_topic_data_source(link['dataSource'])
+                    link['dataSources'][link['dataSource']] = data_source.displayName
+                    del link['dataSource']
                 new_refs += [link]
                 for seg_ref in link.get('expandedRefs', []):
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]

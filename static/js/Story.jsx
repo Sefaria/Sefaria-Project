@@ -529,6 +529,7 @@ const SaveLine = (props) => (
             historyObject={props.historyObject || {ref: props.dref, versions: props.versions || {}}}
             toggleSignUpModal={props.toggleSignUpModal}
         />
+      { props.afterChildren ? props.afterChildren : null }
     </div>
 );
 
@@ -538,6 +539,7 @@ SaveLine.propTypes = {
   toggleSignUpModal:    PropTypes.func,
   versions:             PropTypes.object,
   classes:              PropTypes.string,
+  afterChildren:        PropTypes.object,
 };
 
 const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;

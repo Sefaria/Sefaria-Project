@@ -316,3 +316,7 @@ class TopicDataSource(abst.AbstractMongoRecord):
         'url',
         'description',
     ]
+
+
+class TopicDataSourceSet(abst.AbstractMongoSet):
+    recordClass = TopicDataSource
