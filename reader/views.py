@@ -734,10 +734,8 @@ def sheets_by_tag(request, tag):
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
-        props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
-        tag   = Term.normalize(tag, lang=request.LANGUAGE_CODE)
-        title = tag + _(" | Sefaria")
-        desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
+        # redirect to topics
+        return redirect("/topics/{}".format(tag), permanent=True)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -2899,18 +2897,25 @@ def topic_page(request, topic):
     """
     """
 
-    props = base_props(request)
-    try:
-        props.update({
-            "initialMenu":  "topics",
-            "initialTopic": topic,
-            "topicData": _topic_data(topic),
-        })
-    except AttributeError:
-        raise Http404
+    topic_obj = Topic().load({'slug': topic})
+    if topic_obj is None:
+        # try to normalize
+        norm_topic = re.sub(r"[ /]", "-", topic.lower().strip())
+        norm_topic = re.sub(r"[^a-z0-9\-]", "", norm_topic)
+        topic_obj = Topic().load({'slug': norm_topic})
+        if topic_obj is None:
+            raise Http404
+        topic = norm_topic
 
-    title = "%(topic)s | Sefaria" % {"topic": topic}
-    desc  = 'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
+    props = base_props(request)
+    props.update({
+        "initialMenu": "topics",
+        "initialTopic": topic,
+        "topicData": _topic_data(topic),
+    })
+
+    title = '{} | Sefaria'.format(topic_obj.get_primary_title('en'))
+    desc = 'Explore {} on Sefaria, drawing from our library of Jewish texts. {}'.format(topic_obj.get_primary_title('en'), getattr(topic_obj, 'description', {}).get('en', ''))
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)

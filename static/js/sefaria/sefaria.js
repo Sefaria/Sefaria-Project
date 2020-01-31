@@ -1665,7 +1665,7 @@ Sefaria = extend(Sefaria, {
       return a;
     }
     for (let sub_c of c.children) {
-      sub_c.parent = { en: c.en, he: c.he };
+      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
       Sefaria._initTopicTocCategoryReducer(a, sub_c);
     }
     return a;
@@ -2157,6 +2157,8 @@ Sefaria = extend(Sefaria, {
       "Relevance": 'רלוונטיות',
       "Chronological": 'כרונולוגי',
       "Newest": "הכי חדש",
+      "This source is connected to ": "מקור הזה קשור ל-",
+      "by": "על ידי",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",

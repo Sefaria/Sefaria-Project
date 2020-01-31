@@ -394,8 +394,9 @@ class TabView extends Component {
     let target = $(event.target);
     while (!target.attr("data-tab-index")) { target = target.parent(); }
     const tabIndex = parseInt(target.attr("data-tab-index"));
-    if (this.props.onClickArray[tabIndex]) {
-      this.props.onClickArray[tabIndex]();
+    const { onClickArray } = this.props;
+    if (onClickArray && onClickArray[tabIndex]) {
+      onClickArray[tabIndex]();
     } else {
       this.openTab(tabIndex);
     }
@@ -971,13 +972,10 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
 
   return (
-      <div aria-label={altText} tabIndex="0"
-        className={classes} role="button"
-        style={style} onClick={onClick}
-        onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+      <ToolTipped {...{ altText, classes, style, onClick }}>
         { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
           <img src="/static/img/star.png" alt={altText}/> }
-      </div>
+      </ToolTipped>
     );
 }
 SaveButton.propTypes = {
@@ -989,6 +987,16 @@ SaveButton.propTypes = {
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
+
+const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+  <div aria-label={altText} tabIndex="0"
+    className={classes} role="button"
+    style={style} onClick={onClick}
+    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+    { children }
+  </div>
+);
 
 
 class FollowButton extends Component {
@@ -1157,8 +1165,8 @@ class SheetListing extends Component {
     const slug = !!slugMatch ? slugMatch[1] : '';
     this.props.openProfile(slug, this.props.sheet.ownerName);
   }
-  handleSheetTagClick(tag) {
-    Sefaria.track.event("Tools", "Sheet Tag Click", tag);
+  handleTopicClick(topic) {
+    Sefaria.track.event("Tools", "Topic Click", topic);
   }
   handleSheetDelete() {
     if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
@@ -1187,13 +1195,13 @@ class SheetListing extends Component {
           {viewsIcon}
         </div>
 
-    const sheetTags = sheet.tags.map((tag, i) => {
-      const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-      return (<a href={`/sheets/tags/${tag}`}
+    const topics = sheet.topics.map((topic, i) => {
+      const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+      return (<a href={`/topics/${topic.slug}`}
                   target="_blank"
                   className="sheetTag"
-                  key={tag}
-                  onClick={this.handleSheetTagClick.bind(null, tag)}>{Sefaria._v(tag)}{separator}</a>)
+                  key={topic.slug}
+                  onClick={this.handleTopicClick.bind(null, topic.slug)}>{topic.asTyped}{separator}</a>)
     });
     const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
     const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -1202,9 +1210,9 @@ class SheetListing extends Component {
         sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
         `${sheet.views} ${Sefaria._('Views')}`,
         created,
-        sheet.tags.length ? sheetTags : undefined,
+        sheet.topics.length ? topics : undefined,
         !!sheet.group ? (<a href={`/groups/${sheet.group}`} target="_blank">{sheet.group}</a>) : undefined,
-      ].filter(x => x !== undefined) : [sheetTags];
+      ].filter(x => x !== undefined) : [topics];
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
@@ -1963,5 +1971,6 @@ module.exports.TextBlockLink                             = TextBlockLink;
 module.exports.TestMessage                               = TestMessage;
 module.exports.ThreeBox                                  = ThreeBox;
 module.exports.ToggleSet                                 = ToggleSet;
+module.exports.ToolTipped                                = ToolTipped;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;

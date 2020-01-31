@@ -422,7 +422,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({navigationCategories: categories});
   }
   setNavigationTopic(topic) {
-    this.conditionalSetState({navigationTopicCategory: topic});
+    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopic: null});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -910,6 +910,7 @@ class ReaderPanel extends Component {
                   topic={this.state.navigationTopic}
                   interfaceLang={this.props.interfaceLang}
                   setTopic={this.setTopic}
+                  setNavTopic={this.setNavigationTopic}
                   openTopics={this.openMenu.bind(null, "topics")}
                   showBaseText={this.props.onNavTextClick || this.showBaseText}
                   openNav={this.openMenu.bind(null, "navigation")}

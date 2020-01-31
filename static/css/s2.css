@@ -3034,6 +3034,30 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: auto;
   right: -50px;
 }
+.mainColumn .saveButton.tooltip-toggle.three-dots-button {
+  background-color: #ededec;
+  margin-bottom: 10px;
+  padding: 0;
+  width: 22px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.three-dots-button img {
+  width: 10px;
+  height: 10px;
+  margin-top: 0;
+}
+.topicPanel .three-dots-button {
+  margin-left: 10px;
+  margin-right: 0;
+}
+.interface-hebrew .topicPanel .three-dots-button {
+  margin-left: 0px;
+  margin-right: 10px;
+}
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
 .leftButtons .readerNavMenuCloseButton,
@@ -6932,6 +6956,17 @@ span.purim-emoji img{
   width: 18px;
 }
 /*Tooltip text container*/
+.three-dots-button.tooltip-toggle::before {
+  /* make the tooltip appear on right. % is an estimate that works most of the time */
+  top: 0;
+  transform: translateY(-35%);
+  left: 30px;
+  color: #999;
+}
+.interface-hebrew .three-dots-button.tooltip-toggle::before {
+  left: unset;
+  right: 30px;
+}
 .tooltip-toggle::before {
   color: #000;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;

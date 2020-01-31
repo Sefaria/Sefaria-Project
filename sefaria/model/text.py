@@ -24,7 +24,7 @@ except ImportError:
 
 from . import abstract as abst
 from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
-from .topic import Topic, TopicSet, TopicLinkTypeSet, IntraTopicLinkSet
+from .topic import Topic, TopicSet, TopicLinkTypeSet, IntraTopicLinkSet, TopicDataSourceSet
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -4277,6 +4277,7 @@ class Library(object):
         self._toc_tree = None
         self._topic_toc_json = None
         self._topic_link_types = None
+        self._topic_data_sources = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -4428,13 +4429,21 @@ class Library(object):
             return topic_json['children']
         return topic_json
 
-    def get_link_type(self, link_type):
+    def get_topic_link_type(self, link_type):
         if not self._topic_link_types:
             # pre-populate topic link types
             self._topic_link_types = {
                 link_type.slug: link_type for link_type in TopicLinkTypeSet()
             }
         return self._topic_link_types.get(link_type, None)
+
+    def get_topic_data_source(self, data_source):
+        if not self._topic_data_sources:
+            # pre-populate topic data sources
+            self._topic_data_sources = {
+                data_source.slug: data_source for data_source in TopicDataSourceSet()
+            }
+        return self._topic_data_sources.get(data_source, None)
 
     def get_groups_in_library(self):
         return self._toc_tree.get_groups_in_library()
