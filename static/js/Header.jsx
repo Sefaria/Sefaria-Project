@@ -98,13 +98,21 @@ class Header extends Component {
     });
   }
   showVirtualKeyboardIcon(show){
-      if(document.getElementById('keyboardInputMaster')){//if keyboard is open, ignore.
+      if(document.getElementById('keyboardInputMaster')){ //if keyboard is open, ignore.
         return; //this prevents the icon from flashing on every key stroke.
       }
       if(this.props.interfaceLang === 'english'){
           var opacity = show ? 0.4 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
+  }
+  focusSearch() {
+    this.setState({searchFocused: true});
+    this.showVirtualKeyboardIcon(true);
+  }
+  blurSearch() {
+    this.setState({searchFocused: false});
+    this.showVirtualKeyboardIcon(false);
   }
   showDesktop() {
     if (this.props.panelsOpen === 0) {
@@ -327,22 +335,23 @@ class Header extends Component {
                            </a>
                          </div>);
     // Header should not show box-shadow over panels that have color line
-    var hasColorLine = ["sheets", "sheets meta"];
-    var hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) == -1);
-    var headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
-    var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == "english", hebrewSearch: this.props.interfaceLang == "hebrew"});
+    const hasColorLine = ["sheets", "sheets meta"];
+    const hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) === -1);
+    const headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
+    const inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
+    const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
                 <div className="headerNavSection">
                     <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
-                    <div  className="searchBox">
+                    <div  className={searchBoxClasses}>
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={inputClasses}
                              id="searchInput"
                              placeholder={Sefaria._("Search")}
                              onKeyUp={this.handleSearchKeyUp}
-                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                             onFocus={this.focusSearch}
+                             onBlur={this.blurSearch}
                              maxLength={75}
                       title={Sefaria._("Search for Texts or Keywords Here")}/>
                     </div>

@@ -36,20 +36,20 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   direction: rtl;
 }
 .featureTitle .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 50px;
   font-weight: normal;
   color: #000;
 }
 .pageTitle .int-en,
 .pageTitle .int-he.but-text-is-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   font-weight: normal;
   color: #000;
 }
 .chapterText .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   font-weight: normal;
   text-transform: uppercase;
@@ -84,7 +84,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 .contentText .int-en,
 .contentText .en,
 .contentText.en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
@@ -374,10 +374,20 @@ input.noselect {
   padding: 0;
   text-align: inherit;
   margin: 0 17px 0 17px;
+  background: #EDEDEC;
+  border-radius: 250px;
+  width: 140px;
+  height: 30px;
+}
+.header .searchBox.searchFocused {
+  width: 240px;
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
-  margin-top: 1px;
+  margin-top: 2px;
+}
+.header .searchBox input::placeholder {
+  font-style: normal;
 }
 .header .search {
   outline: none;
@@ -386,8 +396,12 @@ input.noselect {
   color: black;
   font-size:  18px;
   font-family: "adobe-garamond-pro", Georgia, serif;
-  vertical-align: 1px;
+  vertical-align: 6px;
   margin: 0;
+  width: 60px;
+}
+.header .searchFocused .search {
+  width: 160px;
 }
 .header .search.hebrewSearch {
   font-family: "Heebo", sans-serif;
@@ -690,8 +704,8 @@ input.noselect {
 }
 .readerNavMenuSearchButton {
   position: relative;
-  margin: 0 10px 0 6px;
-  top: -3px;
+  margin: 0 10px 0 10px;
+  top: -2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
@@ -700,9 +714,9 @@ input.noselect {
   margin: 0 6px 0 10px;
 }
 .readerNavMenuSearchButton img {
-  height: 19px;
+  height: 18px;
+  width: 18px;
   opacity: 0.4;
-  vertical-align: middle;
 }
 .header .headerNavContent {
   position: absolute;
@@ -5720,11 +5734,8 @@ h2.splitHeader .he {
     width: 16px;
     height: 16px;
     padding: 4px 7px;
-    background-color: #fff;
-    border-radius: 3px;
-    border: 1px solid #aaa;
     position: initial;
-    vertical-align: -7px;
+    vertical-align: 0px;
 }
 body #keyboardInputMaster {
     opacity: 1;
