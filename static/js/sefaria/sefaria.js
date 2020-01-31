@@ -2087,7 +2087,7 @@ Sefaria = extend(Sefaria, {
       "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
       "Pinned Sheet" : "דף מקורות נעוץ",
       "Pin Sheet" : "נעיצת דף מקורות",
-      "Created with": "נוצר עם",
+      "Created with": 'נוצר עבורך ע"י',
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
