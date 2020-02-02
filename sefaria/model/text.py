@@ -2893,6 +2893,18 @@ class Ref(object, metaclass=RefCacheType):
             return False
         return len(self.sections) == self.index_node.depth
 
+    def is_sheet(self):
+        """
+        Is this Ref a Sheet Ref?
+        ::
+            >>> Ref("Leviticus 15:3").is_sheet()
+            False
+            >>> Ref("Sheet 15").is_sheet()
+            True
+        :return bool:
+        """
+        return True if re.search('Sheet', self.index.title) else False
+
     """ Methods to generate new Refs based on this Ref """
     def _core_dict(self):
         return {

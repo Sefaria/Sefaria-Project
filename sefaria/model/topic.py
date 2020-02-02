@@ -1,7 +1,7 @@
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from sefaria.system.exceptions import DuplicateRecordError
-
+import regex as re
 import logging
 logger = logging.getLogger(__name__)
 
@@ -228,10 +228,11 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
+    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs']  #, 'is_sheet']
     optional_attrs = TopicLinkHelper.optional_attrs + ['text']
 
     def _pre_save(self):
+        self.is_sheet = self.ref.is_sheet
         if getattr(self, "_id", None) is None:
             # check for duplicates
             duplicate = RefTopicLink().load(
