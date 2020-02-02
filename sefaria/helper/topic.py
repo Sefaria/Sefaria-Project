@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_topics(topic, with_links, annotate_links, with_refs, group_related):
+def get_topic(topic, with_links, annotate_links, with_refs, group_related):
     topic_obj = Topic().load({"slug": topic})
     response = topic_obj.contents()
     response['primaryTitle'] = {
@@ -41,19 +41,12 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
             del link['fromTopic']
             del link['class']
             link['topic'] = other_topic_slug
-            link_type = library.get_link_type(link['linkType'])
-            del link['linkType']
+            link_type = library.get_topic_link_type(link['linkType'])
             if group_related and link_type.get('groupRelated', is_inverse, False):
-                link_type_slug = TopicLinkType.related_type
-            else:
-                link_type_slug = link_type.get('slug', is_inverse)
+                link_type = library.get_topic_link_type(TopicLinkType.related_type)
+            del link['linkType']
+            link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
-            # for related sheet links
-            if link.get('order', {}).get('fromTfidf', None) is not None:
-                tfidf = link['order']['fromTfidf'] if is_inverse else link['order']['toTfidf']
-                link['order']['tfidf'] = tfidf
-                del link['order']['fromTfidf']
-                del link['order']['toTfidf']
             if annotate_links:
                 # add display information
                 # TODO load all-at-once with TopicSet
@@ -94,15 +87,28 @@ def get_topics(topic, with_links, annotate_links, with_refs, group_related):
             temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
             for seg_ref in temp_subset_refs:
                 for index in subset_ref_map[seg_ref]:
-                    new_refs[index]['subsetRefs'] += [link]
+                    new_refs[index]['similarRefs'] += [link]
+                    if link.get('dataSource', None):
+                        data_source = library.get_topic_data_source(link['dataSource'])
+                        new_refs[index]['dataSources'][link['dataSource']] = data_source.displayName
+                        del link['dataSource']
             if len(temp_subset_refs) == 0:
-                link['subsetRefs'] = []
+                link['similarRefs'] = []
+                link['dataSources'] = {}
+                if link.get('dataSource', None):
+                    data_source = library.get_topic_data_source(link['dataSource'])
+                    link['dataSources'][link['dataSource']] = data_source.displayName
+                    del link['dataSource']
                 new_refs += [link]
                 for seg_ref in link.get('expandedRefs', []):
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
 
         response['refs'] = new_refs
     return response
+
+
+def get_all_topics(limit=1000):
+    return TopicSet({}, limit=limit, sort=[('numSources', -1)]).array()
 
 
 def sort_refs_by_relevance(a, b):
@@ -422,20 +428,71 @@ def calculate_other_ref_scores(ref_topic_map):
     return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
-def update_link_orders():
+def update_ref_topic_link_orders():
     from tqdm import tqdm
     from sefaria.system.database import db
+    from sefaria.system.exceptions import InputError
     from pymongo import UpdateOne
+
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
     pr_map = calculate_pagerank_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
+    sheet_cache = {}
+    intra_topic_link_cache = {}
+
+    def get_sheet_order(topic_slug, sheet_id):
+        if sheet_id in sheet_cache:
+            sheet = sheet_cache[sheet_id]
+        else:
+            sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1, "topics": 1})
+            includedRefs = []
+            for tref in sheet['includedRefs']:
+                try:
+                    oref = Ref(tref)
+                    includedRefs += [[sub_oref.normal() for sub_oref in oref.all_segment_refs()]]
+                except InputError:
+                    continue
+                except AssertionError:
+                    print("Assertion Error", tref)
+                    continue
+            sheet['includedRefs'] = includedRefs
+            sheet_cache[sheet_id] = sheet
+
+        # relevance based on average pagerank personalized to this topic
+        total_pr = 0
+        for ref_range in sheet['includedRefs']:
+            if len(ref_range) == 0:
+                continue
+            total_pr += sum([pr_map.get((topic_slug, ref), 0) for ref in ref_range]) / len(ref_range)
+        avg_pr = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
+
+        # relevance based on other topics on this sheet
+        other_topic_slug_set = {t['slug'] for t in sheet.get('topics', []) if t['slug'] != topic_slug}
+        total_links_in_common = 0
+        for other_topic_slug in other_topic_slug_set:
+            intra_topic_link = IntraTopicLink().load({'$or': [
+                {'fromTopic': topic_slug, 'toTopic': other_topic_slug},
+                {'fromTopic': other_topic_slug, 'toTopic': topic_slug}]})
+            if intra_topic_link:
+                total_links_in_common += getattr(intra_topic_link, 'order', {}).get('linksInCommon', 0)
+        avg_in_common = 1 if len(other_topic_slug_set) == 0 else (total_links_in_common / len(other_topic_slug_set)) + 1
+
+        relevance = 0 if avg_pr == 0 else 500*avg_pr + avg_in_common  # this weighting seems to work based on spot checking
+        title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet.get('title', 'a'))) is not None else 'hebrew'
+        return {
+            'views': sheet.get('views', 0),
+            'dateCreated': sheet['dateCreated'],
+            'relevance': relevance,
+            'language': sheet.get('options', {}).get('language', 'bilingual'),
+            'titleLanguage': title_lang
+        }
+
     updates = []
     for l in tqdm(ref_topic_links, total=total, desc='update link orders'):
         if l.is_sheet:
-            sheet = db.sheets.find_one({"id": int(l.ref.replace("Sheet ", ""))}, {"views": 1})
-            setattr(l, 'order', {'views': sheet.get('views', 0)})
+            setattr(l, 'order', get_sheet_order(l.toTopic, int(l.ref.replace("Sheet ", ""))))
         else:
             key = (l.toTopic, l.ref)
             try:
@@ -458,35 +515,56 @@ def update_link_orders():
     ])
 
 
-def new_edge_type_research():
+def update_intra_topic_link_orders():
+    """
+    add relevance order to intra topic links in sidebar
+    :return:
+    """
     from tqdm import tqdm
-    itls = IntraTopicLinkSet({"linkType": "specifically-dependent-on"})
-    for l in tqdm(itls, total=itls.count()):
-        ft = Topic().load({'slug': l.fromTopic})
-        tt = Topic().load({'slug': l.toTopic})
-        if ft.has_types({'specific-person-relationship'}) and tt.has_types({'people'}):
-            l.linkType = 'relationship-of'
-            l.save()
-    itls = IntraTopicLinkSet({"linkType": "participates-in"})
-    for l in tqdm(itls, total=itls.count()):
-        ft = Topic().load({'slug': l.fromTopic})
-        tt = Topic().load({'slug': l.toTopic})
-        if ft.has_types({'people'}) and tt.has_types({'history'}):
-            l.linkType = 'person-participates-in-event'
-            l.save()
-    itls = IntraTopicLinkSet({"linkType": "member-of"})
-    for l in tqdm(itls, total=itls.count()):
-        ft = Topic().load({'slug': l.fromTopic})
-        tt = Topic().load({'slug': l.toTopic})
-        if ft.has_types({'people'}) and tt.has_types({'a-people'}):
-            l.linkType = 'leader-of'
-            l.save()
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
+
+    uncats = {l.fromTopic for l in IntraTopicLinkSet({"linkType": "is-a", "toTopic": Topic.uncategorized_topic})}
+    ts = TopicSet()
+    topic_link_dict = {}
+    for topic in tqdm(ts, total=ts.count(), desc="update intra orders"):
+        if topic.slug in uncats:
+            continue
+        topic_links = IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]})
+        topic_links_by_slug = defaultdict(list)
+        for link in topic_links:
+            is_inverse = link.toTopic == topic.slug
+            topic_links_by_slug[link.fromTopic if is_inverse else link.toTopic] += [link]
+        topic_link_dict[topic.slug] = topic_links_by_slug
+    update_dict = {}
+    for topic_slug, topic_links in topic_link_dict.items():
+        for other_topic_slug, link_list in topic_links.items():
+            other_topic_links = topic_link_dict.get(other_topic_slug, None)
+            if other_topic_links is None:
+                continue
+            in_common = len(topic_links.keys() & other_topic_links.keys())
+            for link in link_list:
+                new_order = getattr(link, 'order', {})
+                new_order['linksInCommon'] = in_common
+                update_dict[link._id] = {"order": new_order}
+
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l[0]}, {"$set": l[1]}) for l in update_dict.items()
+    ])
+
 
 
 def add_num_sources_to_topics():
-    from tqdm import tqdm
-    ts = TopicSet()
-    for t in tqdm(ts, total=ts.count()):
-        num_sources = RefTopicLinkSet({"toTopic": t.slug}).count()
-        setattr(t, 'numSources', num_sources)
-        t.save()
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
+    updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
+    ])
+
+
+def recalculate_secondary_topic_data():
+    add_num_sources_to_topics()
+    generate_topic_links_from_sheets()
+    update_intra_topic_link_orders()
+    update_ref_topic_link_orders()

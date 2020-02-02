@@ -6,8 +6,6 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 
-from emailusernames.forms import EmailAuthenticationForm
-
 from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
@@ -421,6 +419,9 @@ urlpatterns += [
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
 ]
 
+# add static files to urls
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+urlpatterns += staticfiles_urlpatterns()
 
 if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible

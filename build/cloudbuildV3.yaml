@@ -1,0 +1,97 @@
+# This CloudBuild file will build and deploy the application based on 
+
+# This will stop the need to push commits to the k8s-admin repo to deploy the application 
+
+---
+# substitition variables can be defined in the trigger definition
+substitutions:
+  _GCLOUD_PROJECT: production-deployment
+  _HELM_RELEASE_NAME_SLUG: preprod
+  _HELM_RELEASE_NAME: sefaria-preprod
+  _IMAGE__NGINX: sefaria-asset-test  
+  _IMAGE__NODEJS: sefaria-node-test
+  _IMAGE__WEB: sefaria-web-test
+  _TARGET_CLUSTER: preproduction-cluster
+  _TARGET_NAMESPACE: default
+  _TARGET_REGION: us-central1-a
+
+options:
+  machineType: N1_HIGHCPU_8
+
+steps:  
+
+  #
+  # Build artifacts
+  #
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-web:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
+    id: web_container
+    wait_for: [ "-" ]
+  
+  # TODO: Find a better way of passing in SRC_IMG
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-asset:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web:$SHORT_SHA", "."]
+    id: nginx_container
+    wait_for:
+      - web_container
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node:$SHORT_SHA", "-f", "build/node/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web:$SHORT_SHA", "."]
+    id: nodejs_container
+    wait_for:
+      - web_container
+
+  #
+  # Deploy to Kubernetes
+  #
+
+  # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'master', '--single-branch']
+    id: k8s-admin_clone
+    wait_for: [ "-" ]
+
+  # Copy local_settings.py into the chart directory. There is no way to inject this with `helm`
+  # https://github.com/helm/helm/issues/3276
+  # This can also be resolved by parameterizing all setting variables and passing them in
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+    dir: k8s-admin/v2
+    id: copy_local_settings_file
+    entrypoint: cp
+    args: ["-f", "./app_settings/local_settings.${_HELM_RELEASE_NAME_SLUG}.py", "./charts/sefaria/local_settings.py"]
+    wait_for:
+      - k8s-admin_clone
+  
+  # Idempotently Install/Upgrade the Helm Release
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+    id: install_chart
+    dir: k8s-admin/v2
+    args: ["upgrade", "-i", "${_HELM_RELEASE_NAME}", "./charts/sefaria", "--namespace", "${_TARGET_NAMESPACE}", "--set-string", "releaseSlug=${_HELM_RELEASE_NAME_SLUG},releaseImageTag=$SHORT_SHA", "--debug"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_TARGET_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_TARGET_CLUSTER}'
+      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - copy_local_settings_file
+      - k8s-admin_clone
+      - nginx_container
+      - nodejs_container
+      - web_container
+
+  #
+  # Post-Deploy Tasks
+  #
+  # Flush Varnish -- Helm Post-Deploy Hook
+  # Purge CloudFlare -- Helm Post-Deploy Hook
+  # Prime Webserver Cache -- Helm Post-Deploy Hook or import into application (do on application startup)
+  # Send Slack Notification -- Probably via Pub/Sub message sent to Slack
+  # Messy piece: flushed caches should be repopulating from outmodded servers
+    # 'wait_for' script didn't work
+  # Todo: Read-only
+    
+images:
+  - "gcr.io/production-deployment/sefaria-asset:$SHORT_SHA"
+  - "gcr.io/production-deployment/sefaria-web:$SHORT_SHA"
+  - "gcr.io/production-deployment/sefaria-node:$SHORT_SHA"
+...

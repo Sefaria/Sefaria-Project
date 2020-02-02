@@ -276,7 +276,7 @@ class FilterableList extends Component {
     return this.props.filterFunc(this.state.currFilter, item);
   }
   sortFunc(itemA, itemB) {
-    return this.props.sortFunc(this.state.currSortOption, itemA, itemB);
+    return this.props.sortFunc(this.state.currSortOption, itemA, itemB, this.props.extraData);
   }
   onFilterChange(e) {
     this.setState({currFilter: e.target.value});
@@ -289,11 +289,12 @@ class FilterableList extends Component {
     this.closeSort();
   }
   render() {
-    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter } = this.props;
+    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter, showFilterHeader } = this.props;
     const { loading, currFilter, displaySort, currSortOption, data } = this.state;
+    const oldDesign = typeof showFilterHeader == 'undefined';
     return (
       <div className="filterable-list">
-        <div className="filter-bar">
+        {oldDesign ? <div className="filter-bar">
           <div>
             <ReaderNavigationMenuSearchButton />
             <input
@@ -323,7 +324,33 @@ class FilterableList extends Component {
               : null
             }
           </div>
-        </div>
+        </div> : null }
+        { !oldDesign && showFilterHeader ? (
+          <div className="filter-bar-new">
+            <div className="filter-input">
+              <ReaderNavigationMenuSearchButton />
+              <input
+                type="text"
+                placeholder={Sefaria._("Search")}
+                name="filterableListInput"
+                value={currFilter}
+                onChange={this.onFilterChange}
+              />
+            </div>
+            <div>
+              { sortOptions.map(option =>(
+                <span
+                  key={option}
+                  className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
+                  onClick={() => { this.onSortChange(option); }}
+                >
+                  <span className="int-en">{ option }</span>
+                  <span className="int-he">{ Sefaria._(option) }</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
         {
           loading ? <LoadingMessage /> :
           ( data.length ?
@@ -349,6 +376,8 @@ FilterableList.propTypes = {
   renderEmptyList: PropTypes.func,
   renderHeader: PropTypes.func,
   renderFooter: PropTypes.func,
+  showFilterHeader: PropTypes.bool,
+  extraData: PropTypes.object,  // extraData to pass to sort function
 };
 
 class TabView extends Component {
@@ -364,12 +393,17 @@ class TabView extends Component {
   onClickTab(e) {
     let target = $(event.target);
     while (!target.attr("data-tab-index")) { target = target.parent(); }
-    const tabIndex = target.attr("data-tab-index");
-    this.openTab(parseInt(tabIndex));
+    const tabIndex = parseInt(target.attr("data-tab-index"));
+    const { onClickArray } = this.props;
+    if (onClickArray && onClickArray[tabIndex]) {
+      onClickArray[tabIndex]();
+    } else {
+      this.openTab(tabIndex);
+    }
   }
   renderTab(tab, index) {
     return (
-      <div className={classNames({active: this.state.openTabIndex === index, applink: tab.applink})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: this.state.openTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
@@ -938,13 +972,10 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
 
   return (
-      <div aria-label={altText} tabIndex="0"
-        className={classes} role="button"
-        style={style} onClick={onClick}
-        onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+      <ToolTipped {...{ altText, classes, style, onClick }}>
         { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
           <img src="/static/img/star.png" alt={altText}/> }
-      </div>
+      </ToolTipped>
     );
 }
 SaveButton.propTypes = {
@@ -956,6 +987,16 @@ SaveButton.propTypes = {
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
+
+const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+  <div aria-label={altText} tabIndex="0"
+    className={classes} role="button"
+    style={style} onClick={onClick}
+    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+    { children }
+  </div>
+);
 
 
 class FollowButton extends Component {
@@ -1124,8 +1165,8 @@ class SheetListing extends Component {
     const slug = !!slugMatch ? slugMatch[1] : '';
     this.props.openProfile(slug, this.props.sheet.ownerName);
   }
-  handleSheetTagClick(tag) {
-    Sefaria.track.event("Tools", "Sheet Tag Click", tag);
+  handleTopicClick(topic) {
+    Sefaria.track.event("Tools", "Topic Click", topic);
   }
   handleSheetDelete() {
     if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
@@ -1154,13 +1195,13 @@ class SheetListing extends Component {
           {viewsIcon}
         </div>
 
-    const sheetTags = sheet.tags.map((tag, i) => {
-      const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-      return (<a href={`/sheets/tags/${tag}`}
+    const topics = sheet.topics.map((topic, i) => {
+      const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+      return (<a href={`/topics/${topic.slug}`}
                   target="_blank"
                   className="sheetTag"
-                  key={tag}
-                  onClick={this.handleSheetTagClick.bind(null, tag)}>{Sefaria._v(tag)}{separator}</a>)
+                  key={topic.slug}
+                  onClick={this.handleTopicClick.bind(null, topic.slug)}>{topic.asTyped}{separator}</a>)
     });
     const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
     const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -1169,9 +1210,9 @@ class SheetListing extends Component {
         sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
         `${sheet.views} ${Sefaria._('Views')}`,
         created,
-        sheet.tags.length ? sheetTags : undefined,
+        sheet.topics.length ? topics : undefined,
         !!sheet.group ? (<a href={`/groups/${sheet.group}`} target="_blank">{sheet.group}</a>) : undefined,
-      ].filter(x => x !== undefined) : [sheetTags];
+      ].filter(x => x !== undefined) : [topics];
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
@@ -1308,7 +1349,7 @@ function NewsletterSignUpForm(props) {
       <span className="int-he">
         <input
           className="newsletterInput"
-          placeholder="הצטרפו לרשימת התפוצה"
+          placeholder="הרשמו לניוזלטר"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
@@ -1930,5 +1971,6 @@ module.exports.TextBlockLink                             = TextBlockLink;
 module.exports.TestMessage                               = TestMessage;
 module.exports.ThreeBox                                  = ThreeBox;
 module.exports.ToggleSet                                 = ToggleSet;
+module.exports.ToolTipped                                = ToolTipped;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;

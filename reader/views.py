@@ -52,7 +52,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topics
+from sefaria.helper.topic import get_topic, get_all_topics
 from django.utils.html import strip_tags
 
 if USE_VARNISH:
@@ -734,10 +734,8 @@ def sheets_by_tag(request, tag):
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
-        props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
-        tag   = Term.normalize(tag, lang=request.LANGUAGE_CODE)
-        title = tag + _(" | Sefaria")
-        desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
+        # redirect to topics
+        return redirect("/topics/{}".format(tag), permanent=True)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -2867,16 +2865,13 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
 @sanitize_get_params
 def topics_page(request):
     """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
+    Page of all
     """
-    topics = get_topics()
     props = base_props(request)
     props.update({
         "initialMenu":  "topics",
         "initialTopic": None,
-        "topicList": topics.list(sort_by="count"),
-        "trendingTags": trending_tags(ntags=12),
+        # "trendingTags": trending_tags(ntags=12),
     })
 
     propsJSON = json.dumps(props)
@@ -2894,18 +2889,25 @@ def topic_page(request, topic):
     """
     """
 
-    props = base_props(request)
-    try:
-        props.update({
-            "initialMenu":  "topics",
-            "initialTopic": topic,
-            "topicData": _topic_data(topic),
-        })
-    except AttributeError:
-        raise Http404
+    topic_obj = Topic().load({'slug': topic})
+    if topic_obj is None:
+        # try to normalize
+        norm_topic = re.sub(r"[ /]", "-", topic.lower().strip())
+        norm_topic = re.sub(r"[^a-z0-9\-]", "", norm_topic)
+        topic_obj = Topic().load({'slug': norm_topic})
+        if topic_obj is None:
+            raise Http404
+        topic = norm_topic
 
-    title = "%(topic)s | Sefaria" % {"topic": topic}
-    desc  = 'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
+    props = base_props(request)
+    props.update({
+        "initialMenu": "topics",
+        "initialTopic": topic,
+        "topicData": _topic_data(topic),
+    })
+
+    title = '{} | Sefaria'.format(topic_obj.get_primary_title('en'))
+    desc = 'Explore {} on Sefaria, drawing from our library of Jewish texts. {}'.format(topic_obj.get_primary_title('en'), getattr(topic_obj, 'description', {}).get('en', ''))
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -2921,8 +2923,9 @@ def topics_list_api(request):
     """
     API to get data for a particular topic.
     """
-    topics = get_topics()
-    response = topics.list(sort_by="count")
+    limit = int(request.GET.get("limit", 1000))
+    topics = get_all_topics(limit)
+    response = [t.contents() for t in topics]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -2937,12 +2940,12 @@ def topics_api(request, topic):
     annotate_links = bool(int(request.GET.get("annotate_links", False)))
     group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
-    response = get_topics(topic, with_links, annotate_links, with_refs, group_related)
+    response = get_topic(topic, with_links, annotate_links, with_refs, group_related)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 def _topic_data(topic):
-    response = get_topics(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
+    response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
     return response
 
 

@@ -40,7 +40,8 @@ class Story(abst.AbstractMongoRecord):
         d = {
             "sheet_title": strip_tags(metadata["title"]),
             "sheet_summary": strip_tags(metadata["summary"]) if "summary" in metadata else "",
-            "publisher_id": metadata["owner"]
+            "publisher_id": metadata["owner"],
+            "sheet_via": metadata.get("via", None)
         }
         if return_id:
             d["sheet_id"] = sheet_id
@@ -62,9 +63,9 @@ class Story(abst.AbstractMongoRecord):
         return d
 
     @staticmethod
-    def sheet_metadata_bulk(sid_list, return_id=False):
+    def sheet_metadata_bulk(sid_list, return_id=False, public=True):
         from sefaria.sheets import get_sheet_metadata_bulk
-        metadata_list = get_sheet_metadata_bulk(sid_list)
+        metadata_list = get_sheet_metadata_bulk(sid_list, public=public)
         return [Story.build_sheet_metadata_dict(metadata, metadata['id'], return_id) for metadata in metadata_list]
 
     def contents(self, **kwargs):
@@ -1012,7 +1013,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
         # todo: handle possibility of Hebrew terms trending.
         return {
             "topics": [{"en": topic, "he": hebrew_term(topic)} for topic in normal_topics],
-            "title": kwargs.get("title", {"en": "Trending Recently", "he": "פופולרי"}),
+            "title": kwargs.get("title", {"en": "Trending Recently", "he": "נושאים עדכניים"}),
             "lead": kwargs.get("lead", {"en": "Topics", "he": "נושאים"})
         }
 

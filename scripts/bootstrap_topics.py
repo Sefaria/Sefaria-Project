@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets, update_link_orders, new_edge_type_research, add_num_sources_to_topics
+from sefaria.helper.topic import generate_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
 
 with open("data/final_ref_topic_links.csv", 'r') as fin:
@@ -470,6 +470,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
             tl = IntraTopicLink().load({
                 "class": "intraTopic",
                 "fromTopic": from_slug,
+                "linkType": "displays-under",
                 "toTopic": top_topic.slug
             })
             if tl is None:
@@ -481,6 +482,9 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                     "dataSource": "sefaria"
                 })
                 tl.save()
+            else:
+                print("TL good", from_slug, "->", top_topic.slug)
+
     for invalid_term, from_slug in tqdm(invalid_term_to_slug_map.items(), desc="invalid intraTopic terms"):
         top_topic = Topic().load({"alt_ids._temp_toc_id": fallback_sheet_cat_map[invalid_term]})
         if top_topic is None:
@@ -488,6 +492,7 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
             continue
         tl = IntraTopicLink().load({
             "class": "intraTopic",
+            "linkType": "displays-under",
             "fromTopic": from_slug,
             "toTopic": top_topic.slug
         })
@@ -500,6 +505,8 @@ def do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map):
                 "dataSource": "sefaria"
             })
             tl.save()
+        else:
+            print("TL", from_slug, "->", top_topic.slug)
 
 
 def do_ref_topic_link(slug_to_sheet_map):
@@ -575,7 +582,8 @@ def do_sheet_refactor(tag_to_slug_map):
                         "fromTopic": topic_slug,
                         "toTopic": Topic.uncategorized_topic,
                         "linkType": "is-a",
-                        "class": "intraTopic"
+                        "class": "intraTopic",
+                        "dataSource": "sefaria"
                     })
                     try:
                         itl.save()
@@ -812,20 +820,20 @@ def recat_toc():
         'sustenance': 'food',
         'place': 'geographic-locations',
         'history': 'history',
-        'holiday': 'holidays1',
+        'holiday': 'holidays',
         'language-entity': 'language',
         'preposition': 'language',
         'law': 'law',
-        'halachic-process1': 'law',
+        'halachic-process': 'law',
         'halachic-role': 'law',
         'philosophy': 'philosophy',
         'freedom': 'philosophy',
-        'knowledge3': 'philosophy',
+        'knowledge1': 'philosophy',
         'prayer': 'prayer',
         'brachah': 'prayer',
         'theology': 'theology',
         'theological-tenets': 'theology',
-        'divine-names1': 'theology',
+        'divine-names': 'theology',
         'theological-process': 'theology',
         'ethics': 'theology',
         'halachic-role-of-inanimate-object': 'ritual-objects',
@@ -835,7 +843,7 @@ def recat_toc():
         'plants': 'science',
         'weather': 'science',
         'middot': 'society',
-        'emotions1': 'society',
+        'emotions': 'society',
         'role-of-person': 'society',
         'specific-person-relationship': 'society',
         'source': 'source'
@@ -870,6 +878,9 @@ def recat_toc():
             "Slug": t.slug,
             "Description": getattr(t, 'description', {}).get('en', '')
         }
+        old_slug = getattr(t, 'alt_ids', {}).get('_old_slug', None)
+        if old_slug:
+            row['Old Slug'] = old_slug
         if t.slug in display_map:
             row['Cat'] = top_level[display_map[t.slug]]
             row['Cat Source'] = 'Old Mapping'
@@ -892,9 +903,310 @@ def recat_toc():
         rows += [row]
 
     with open('recat.csv', 'w') as fout:
-        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Slug', 'Description'])
+        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Slug', 'Description', 'Old Slug'])
         c.writeheader()
         c.writerows(rows)
+
+
+def renormalize_slugs():
+    ts = TopicSet()
+    def temp_norm_slug(en):
+        slug = re.sub(r"[ /]", "-", en.lower().strip())
+        return re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+
+    def normalize_slug(self, slug_field):
+        """
+        Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
+        """
+        slug = getattr(self, slug_field).lower()
+        slug = re.sub(r"[ /]", "-", slug.strip())
+        slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+        dupe_count = 0
+        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
+        temp_slug = slug
+        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
+            dupe_count += 1
+            temp_slug = "{}{}".format(slug, dupe_count)
+        return temp_slug
+
+    for t in ts:
+        title = t.get_primary_title('en') if len(t.get_primary_title('en')) > 0 else t.get_primary_title('he')
+        if re.search(r'\d+$', t.slug) and temp_norm_slug(title) != t.slug:
+            old_slug = t.slug
+            new_alt_ids = getattr(t, 'alt_ids', {})
+            new_alt_ids['_old_slug'] = old_slug
+            setattr(t, 'alt_ids', new_alt_ids)
+            t.slug = title
+            new_slug = normalize_slug(t, 'slug')
+            t.slug = new_slug
+            t.save()
+            print('---')
+            print('En', t.get_primary_title('en'))
+            print('He', t.get_primary_title('he'))
+            print('Old', old_slug)
+            print('New', new_slug)
+            t.merge(old_slug)
+
+
+def set_should_display():
+    with open('data/upper_level_nodes.csv', 'r') as fin:
+        c = csv.DictReader(fin)
+        for row in c:
+            if row['display'] == 'No':
+                slug = row['Node'].lower()
+                slug = re.sub(r"[ /]", "-", slug.strip())
+                slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+                topic = Topic().load({"slug": slug})
+                if topic is None:
+                    print("BAD", row['Node'])
+                    continue
+                if getattr(topic, 'numSources', 0) > 0:
+                    print("Has Sources", slug, topic.get_primary_title('en'))
+                    continue
+                print("GOOD", slug, topic.get_primary_title('en'))
+                setattr(topic, 'shouldDisplay', False)
+                topic.save()
+
+
+def new_edge_type_research():
+    from tqdm import tqdm
+    itls = IntraTopicLinkSet({"linkType": "specifically-dependent-on"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'specific-person-relationship'}) and tt.has_types({'people'}):
+            l.linkType = 'relationship-of'
+            l.save()
+    itls = IntraTopicLinkSet({"linkType": "participates-in"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'people'}) and tt.has_types({'history'}):
+            l.linkType = 'person-participates-in-event'
+            l.save()
+    itls = IntraTopicLinkSet({"linkType": "member-of"})
+    for l in tqdm(itls, total=itls.count()):
+        ft = Topic().load({'slug': l.fromTopic})
+        tt = Topic().load({'slug': l.toTopic})
+        if ft.has_types({'people'}) and tt.has_types({'a-people'}):
+            l.linkType = 'leader-of'
+            l.save()
+
+
+def fix_recat_toc():
+    with open("data/Recategorize Topics - TOC Mapping.csv", 'r') as fin:
+        c = csv.DictReader(fin)
+        rows = list(c)
+    for row in rows:
+        t = Topic().load({"alt_ids._old_slug": row["Slug"]})
+        if t:
+            row["Slug"] = t.slug
+        if not Topic().load({"slug": row["Slug"]}):
+            print("No Topic for", row["Slug"])
+        else:
+            row["Link"] = "topics-dev.sandbox.sefaria.org/topics/{}".format(row["Slug"])
+
+    with open("data/fixed_recat_toc.csv", "w") as fout:
+        c = csv.DictWriter(fout, c.fieldnames)
+        c.writeheader()
+        c.writerows(rows)
+
+
+def recat_law():
+    top_law = [l.fromTopic for l in IntraTopicLinkSet({"linkType": TopicLinkType.isa_type, "toTopic": "halakhah"})]
+    name_map = {}
+    with open("/Users/nss/Documents/Sefaria-Data/research/knowledge_graph/bootstrapper/final_topic_names.csv", "r") as fin:
+        c = csv.DictReader(fin)
+        for i, row in enumerate(c):
+            if i >= 4727 and i < 5039:
+                name = row["Final English Translation"].strip()
+                if name in name_map:
+                    print("DUP", name, i)
+                    continue
+                name_map[name] = i-4727
+    out_rows = []
+    for slug in top_law:
+        children = Topic().load({"slug": slug}).get_leaf_nodes(TopicLinkType.isa_type)
+        children.sort(key=lambda t: name_map.get(t.get_primary_title("en"), 9999))
+        for i, c in enumerate(children):
+            out_rows += [{
+                "Cat Source": "Is A",
+                "Cat": slug,
+                "En": c.get_primary_title("en"),
+                "He": c.get_primary_title("he"),
+                "Num Sources": c.numSources,
+                "Order": i,
+                "Slug": c.slug,
+                "Link": "topics-dev.sandbox.sefaria.org/topics/" + c.slug,
+                "Description": getattr(c, 'description', {}).get('en', '')
+            }]
+    with open('data/recat_law.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Order', 'Slug', 'Link', 'Description'])
+        c.writeheader()
+        c.writerows(out_rows)
+
+
+def apply_recat_toc():
+    IntraTopicLinkSet({"linkType": "displays-under"}).delete()
+    file_prefix = "data/Recategorize Topics - "
+    with open(file_prefix + "Categories.csv", "r") as fin:
+        c = csv.DictReader(fin)
+        categories = list(c)
+    with open(file_prefix + "Law Categories.csv", "r") as fin:
+        c = csv.DictReader(fin)
+        law_categories = list(c)
+    with open(file_prefix + "TOC Mapping.csv", "r") as fin:
+        c = csv.DictReader(fin)
+        toc_mapping = list(c)
+    with open(file_prefix + "Law TOC Mapping.csv", "r") as fin:
+        c = csv.DictReader(fin)
+        law_toc_mapping = list(c)
+        law_slugs = {row['Slug'] for row in law_toc_mapping if len(row['Cat']) > 0}
+
+    top_level = TopicSet({"isTopLevelDisplay": True})
+    name_topic_map = {t.get_primary_title('en'): t for t in top_level}
+    name_slug_map = {}
+    for cat in categories:
+        if cat["Status"] == "New category":
+            # if len(cat["New Slug"]) > 0:
+            t = Topic().load({"slug": cat["New Slug"]})
+            # else:
+            #     t = Topic({"slug": cat["En"], "titles": [{"primary": True, "lang": "en", "text": cat["En"]}, {"primary": True, "lang": "he", "text": cat["He"]}]})
+            if t is None:
+                print("NONE!", cat["New Slug"])
+            name_slug_map[cat["En"]] = t.slug
+            setattr(t, "isTopLevelDisplay", True)
+            setattr(t, "displayOrder", int(cat["Order"]))
+            for title in t.titles:
+                if title.get('primary', False) and title['lang'] == 'en':
+                    title['text'] = cat["En"]
+            t.save()
+        elif cat["Status"] == "Deleted":
+            t = name_topic_map[cat["En"]]
+            delattr(t, "isTopLevelDisplay")
+            delattr(t, "displayOrder")
+            t.save()
+        elif cat["Status"] == "Fully Deleted":
+            t = name_topic_map[cat["En"]]
+            t.delete()
+        else:
+            if cat["En"] == "NA":
+                continue
+            t = name_topic_map[cat["En"]]
+            setattr(t, "isTopLevelDisplay", True)
+            setattr(t, "displayOrder", int(cat["Order"]))
+            t.save()
+            name_slug_map[cat["En"]] = t.slug
+
+    links = []
+    for row in toc_mapping:
+        if row['Slug'] in law_slugs or len(row['Cat']) == 0:
+            continue
+
+        try:
+            link = {
+                "fromTopic": row['Slug'],
+                "toTopic": name_slug_map[row['Cat']],
+                "linkType": "displays-under",
+                "dataSource": "sefaria",
+                "class": "intraTopic",
+            }
+        except KeyError:
+            print("KEY ERROR", row['Cat'], row['Slug'])
+        t = Topic().load({"slug": row["Slug"]})
+        if t is None:
+            print("TOC MAPPING NONE", row["Slug"])
+            continue
+        if row["Order"] != "10000":
+            setattr(t, 'displayOrder', int(row["Order"]))
+            t.save()
+        links += [link]
+
+    for cat in law_categories:
+        link = {
+            "fromTopic": cat['ID'],
+            "toTopic": 'law',
+            "linkType": "displays-under",
+            "dataSource": "sefaria",
+            "class": "intraTopic",
+        }
+        t = Topic().load({"slug": cat["ID"]})
+        if t is None:
+            print("LAW CAT NONE", cat["ID"])
+            continue
+        if cat["Order"] != "10000":
+            setattr(t, 'displayOrder', int(cat["Order"]))
+            t.save()
+        links += [link]
+
+    for row in law_toc_mapping:
+        link = {
+            "fromTopic": row['Slug'],
+            "toTopic": row['Cat'],
+            "linkType": "displays-under",
+            "dataSource": "sefaria",
+            "class": "intraTopic",
+        }
+        t = Topic().load({"slug": row["Slug"]})
+        if t is None:
+            print("TOC MAPPING NONE", row["Slug"])
+            continue
+        if row["Order"] != "10000":
+            setattr(t, 'displayOrder', int(row["Order"]))
+            t.save()
+        links += [link]
+
+    deduper = {}
+    for link in links:
+        deduper[(link['fromTopic'], link['toTopic'])] = link
+    links = list(deduper.values())
+
+    from sefaria.system.database import db
+    db.topic_links.insert_many(links, ordered=False)
+
+
+def find_ambiguous_topics():
+    ts = TopicSet()
+    ambig = defaultdict(list)
+    for t in ts:
+        norm_en = t.get_primary_title('en').lower()
+        norm_he = t.get_primary_title('he').lower()
+        if len(norm_en) > 0:
+            ambig[norm_en] += [t]
+        if len(norm_he) > 0:
+            ambig[norm_he] += [t]
+
+    rows = []
+    max_titles = 0
+    max_isa = 0
+    for k, v in tqdm(ambig.items()):
+        if len(v) <= 1:
+            continue
+        for i, t in enumerate(v):
+            row = {
+                "Ambiguous": k,
+                "Slug": t.slug
+            }
+            if len(t.titles) > max_titles:
+                max_titles = len(t.titles)
+            for ititle, title in enumerate(t.titles):
+                row["T{}".format(ititle)] = title['text']
+                if title.get('transliteration', False):
+                    row["T{}".format(ititle)] += ' (t)'
+                if title.get('primary', False):
+                    row["T{}".format(ititle)] += ' (p)'
+                row["T{}".format(ititle)] += ' ({})'.format(title['lang'])
+            isas = IntraTopicLinkSet({"fromTopic": t.slug, "linkType": 'is-a'})
+            if isas.count() > max_isa:
+                max_isa = isas.count()
+            for iisa, isa in enumerate(isas):
+                row["I{}".format(iisa)] = isa.toTopic
+            rows += [row]
+    with open('data/ambig_topics.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Ambiguous', 'Slug'] + ['T{}'.format(i) for i in range(0, max_titles)] + ['I{}'.format(i) for i in range(0, max_isa)])
+        c.writeheader()
+        c.writerows(rows)
+
 
 
 if __name__ == '__main__':
@@ -911,38 +1223,8 @@ if __name__ == '__main__':
     do_sheet_refactor(tag_to_slug_map)
     dedup_topics()
     generate_topic_links_from_sheets()
-    update_link_orders()
+    update_ref_topic_link_orders()
     import_term_descriptions()
     new_edge_type_research()
     add_num_sources_to_topics()
-
     # clean_up_time()
-
-# TODO Halacha is not Halakha
-# TODO refactor sheets to hold topics
-# TODO add class automattically to intratopiclinks
-# TODO is `is category` being applied from Aspaklaria sheet?
-
-"""
-potential things we should fix
-- make transliterations in italics
-- figure out how to disambiguate topic names (Food, Food)
-- make "more" button for link types that have many items
-- decide which topics are invisible from side bar
-- translate link types. Both en and he. En needs to decide what will make sense to users. could be some link types will be collapsed for users
-- translate all topics that dont have he (mostly top level topics that won't be invisible)
-- decide sort order for sheets and sources (sources can simply be ref order)
-- pagination!
-- change TOC
-  - Authors -> People
-  - Religion -> Theology
-  - Folklore -> maybe something with less of a strong connotation. I feel like this implies it's not true
-
-why is {toTopic: "stingy", class: "refTopic", ref: /^Pesik/} the highest?
-how does it have such a high mean tfidf?
-
-why does /insistence-or-exactitude not have any sources? there are sources in aspaklaria
-
-Rename 'intention' to 'purpose'/'תכלית'
-"""
-

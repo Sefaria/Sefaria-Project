@@ -58,12 +58,15 @@ def get_sheet(id=None):
 
 def get_sheet_metadata(id = None):
 	assert id
-	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
+	s = db.sheets.find_one({"id": int(id)}, {"title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
 	return s
 
 
-def get_sheet_metadata_bulk(id_list):
-	return db.sheets.find({"id": {"$in": id_list}}, {"id": 1, "title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1})
+def get_sheet_metadata_bulk(id_list, public=True):
+	query = {"id": {"$in": id_list}}
+	if public:
+		query['status'] = 'public'
+	return db.sheets.find(query, {"id": 1, "title": 1, "owner": 1, "summary": 1, "ownerImageUrl": 1, "via": 1})
 
 
 def get_sheet_node(sheet_id=None, node_id=None):
@@ -159,7 +162,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		"views": 1,
 		"dateModified": 1,
 		"dateCreated": 1,
-		"tags": 1,
+		"topics": 1,
 		"group": 1,
 	}
 	if not query:
@@ -197,7 +200,7 @@ def sheet_to_dict(sheet):
 		"group": sheet.get("group", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"created": sheet.get("dateCreated", None),
-		"tags": sheet["tags"] if "tags" in sheet else [],
+		"topics": sheet["topics"] if "topics" in sheet else [],
 		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
@@ -617,7 +620,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	if in_group:
 		query["group"] = {"$in": in_group}
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "tags": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
 	sheets = list((s for s in sheetsObj))
 	user_ids = list(set([s["owner"] for s in sheets]))
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -685,7 +688,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
-				"tags":            sheet.get("tags", []),
+				"topics":          sheet.get("topics", []),
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),

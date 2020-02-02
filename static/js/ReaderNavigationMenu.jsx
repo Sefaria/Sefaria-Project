@@ -99,6 +99,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             <TopicCategory
               topic={topic}
               setTopic={setTopic}
+              setNavTopic={setNavTopic}
               toggleLanguage={toggleLanguage}
               contentLang={settings.language}
               interfaceLang={interfaceLang}
@@ -121,8 +122,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             );
   });
   const more = (<a href="#" className="readerNavCategory readerNavMore" onClick={enableShowMore}>
-                  <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
-                  <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+                  <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
+                  <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
   const nCats  = width < 500 ? 9 : 8;
   categoriesBlock = showMore ? categoriesBlock : categoriesBlock.slice(0, nCats).concat(more);
@@ -221,8 +222,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
   topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={width} /></div>);
 
   let donation  = [
-      <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
-      <TocLink en="Sponsor a day" he="תרום יום לימוד" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
+      <TocLink en="Make a Donation" he="תרומות" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
+      <TocLink en="Sponsor a day" he="תנו חסות ליום לימוד" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
   ];
 
   donation = (<div className="readerTocResources"><TwoBox content={donation} width={width} /></div>);
@@ -239,10 +240,18 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
       </a>
   });
   const moreTopics = (<a href="#" className="blockLink readerNavMore" onClick={enableShowMoreTopics}>
-                  <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
-                  <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+                  <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
+                  <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
-  const azButton = <TocLink en="All Topics A-Z" he="כל הנושאים" href="/topics" resourcesLink={true} onClick={openMenu.bind(null, "topics")} />;
+  const azButton = (
+    <a href={"/topics"}
+       onClick={openMenu.bind(null, "topics")}
+       className="blockLink readerNavMore"
+    >
+        <span className='en'>All Topics A-Z</span>
+        <span className='he'>כל הנושאים</span>
+    </a>
+  );
   topicBlocks = showMoreTopics ? topicBlocks.concat(azButton) : topicBlocks.slice(0, nCats).concat(moreTopics);
   const topicsBlock = (<div className="readerTocTopics"><TwoOrThreeBox content={topicBlocks} width={width} /></div>);
 

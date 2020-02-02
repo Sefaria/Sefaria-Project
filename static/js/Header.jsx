@@ -206,7 +206,7 @@ class Header extends Component {
     }
     if (this.state.menuOpen === "home") {
       return;
-    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0) {
+    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 && !this.state.navigationTopicCategory) {
       this.showDesktop();
     } else {
       this.showLibrary();
@@ -269,6 +269,7 @@ class Header extends Component {
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
                           openProfile={this.props.openProfile}
+                          showLibrary={this.showLibrary}
                         />) : null;
 
 

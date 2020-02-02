@@ -16,7 +16,7 @@ const SearchPage                = require('./SearchPage');
 const SheetsNav                 = require('./SheetsNav');
 const Sheet                     = require('./Sheet');
 const SheetMetadata             = require('./SheetMetadata');
-const TopicsPanel               = require('./TopicsPanel');
+const TopicPageAll              = require('./TopicPageAll');
 const {TopicPage}               = require('./TopicPage');
 const AccountPanel              = require('./AccountPanel');
 const NotificationsPanel        = require('./NotificationsPanel');
@@ -422,7 +422,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({navigationCategories: categories});
   }
   setNavigationTopic(topic) {
-    this.conditionalSetState({navigationTopicCategory: topic});
+    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopic: null});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -910,6 +910,7 @@ class ReaderPanel extends Component {
                   topic={this.state.navigationTopic}
                   interfaceLang={this.props.interfaceLang}
                   setTopic={this.setTopic}
+                  setNavTopic={this.setNavigationTopic}
                   openTopics={this.openMenu.bind(null, "topics")}
                   showBaseText={this.props.onNavTextClick || this.showBaseText}
                   openNav={this.openMenu.bind(null, "navigation")}
@@ -922,7 +923,7 @@ class ReaderPanel extends Component {
                   key={"TopicPage"}
                 />);
       } else {
-        menu = (<TopicsPanel
+        menu = (<TopicPageAll
                   interfaceLang={this.props.interfaceLang}
                   width={this.state.width}
                   setTopic={this.setTopic}
@@ -933,7 +934,7 @@ class ReaderPanel extends Component {
                   toggleLanguage={this.toggleLanguage}
                   navHome={this.openMenu.bind(null, "navigation")}
                   openDisplaySettings={this.openDisplaySettings}
-                  key={"TopicsPanel"}
+                  key={"TopicPageAll"}
                 />);
       }
 
@@ -974,7 +975,9 @@ class ReaderPanel extends Component {
       }
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
-                    toggleSignUpModal={this.props.toggleSignUpModal} />);
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                    showLibrary={this.props.showLibrary}
+      />);
 
     } else if (this.state.menuOpen === "story_editor") {
       if (Sefaria.interfaceLang === "hebrew") {
@@ -1159,6 +1162,7 @@ ReaderPanel.propTypes = {
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
   openProfile:                 PropTypes.func,
+  showLibrary:                 PropTypes.func,
 };
 
 
