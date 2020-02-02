@@ -2903,7 +2903,7 @@ class Ref(object, metaclass=RefCacheType):
             True
         :return bool:
         """
-        return True if re.search('Sheet', self.index.title) else False
+        return self.index.title == 'Sheet'
 
     """ Methods to generate new Refs based on this Ref """
     def _core_dict(self):
