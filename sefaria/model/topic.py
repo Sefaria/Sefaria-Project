@@ -2,6 +2,7 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from sefaria.system.exceptions import DuplicateRecordError
 import logging
+import regex as re
 logger = logging.getLogger(__name__)
 
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
@@ -243,7 +244,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
-        self.is_sheet = self.ref.is_sheet()
+        self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
