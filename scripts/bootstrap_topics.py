@@ -1291,3 +1291,34 @@ def yoyo():
     db.topic_links.bulk_write([
         UpdateOne({"_id": l[0]}, {"$set": {"order": l[1]}}) for l in updates.items()
     ])
+
+
+def sup():
+    from tqdm import tqdm
+    import re, json
+    from sefaria.system.database import db
+    is_hebrew = re.compile('[א-ת]')
+    query = {"topics.asTyped": is_hebrew}
+    bad = list(db.sheets.find(query, {'topics': True, 'id': True}))
+    ambig_set = defaultdict(list)
+    good_set = defaultdict(list)
+    for b in tqdm(bad):
+        for tag in b['topics']:
+            if not re.search(is_hebrew, tag['asTyped']):
+                continue
+            t = Topic().load({'slug': tag['slug']})
+            if t is None or tag['asTyped'] not in {tit['text'] for tit in t.titles}:
+                ts = TopicSet({"titles.text": tag['asTyped']})
+                if ts.count() == 0:
+                    print('No topics for {}'.format(tag['asTyped']))
+                elif ts.count() > 1:
+                    ambig_set[tag['asTyped']] += [b['id']]
+                    # print('AMBIG {}'.format(tag['asTyped']))
+                else:
+                    t = ts.array()[0]
+                    good_set[tag['asTyped']] += [[t.slug, b['id']]]
+                    # print('PERFECT {} {}'.format(tag['asTyped'], t.slug))
+    with open('data/sheet_ambig_tags.json', 'w') as fout:
+        json.dump(ambig_set, fout, ensure_ascii=False, indent=2)
+    with open('data/sheet_good_tags.json', 'w') as fout:
+        json.dump(good_set, fout, ensure_ascii=False, indent=2)

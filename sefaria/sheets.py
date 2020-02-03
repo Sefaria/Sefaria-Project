@@ -8,6 +8,7 @@ import regex
 import dateutil.parser
 import bleach
 from datetime import datetime, timedelta
+from functools import wraps
 from bson.son import SON
 from collections import defaultdict
 
@@ -19,7 +20,9 @@ from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.model.group import Group
 from sefaria.model.story import UserStory, UserStorySet
+from sefaria.model.topic import TopicSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
+from sefaria.utils.hebrew import is_hebrew
 from sefaria.system.exceptions import InputError
 from sefaria.system.cache import django_cache
 from .history import record_sheet_publication, delete_sheet_publication
@@ -41,6 +44,33 @@ logger = logging.getLogger(__name__)
 
 # Simple cache of the last updated time for sheets
 # last_updated = {}
+
+
+def add_langs_to_topics(topic_list: list, use_as_typed=True) -> list:
+	"""
+	adds primary en and he to each topic in topic_list and returns new topic_list
+	:param list topic_list: list of topics where each item is dict of form {'slug': required, 'asTyped': optional}
+	:param bool use_as_typed:
+	"""
+	new_topic_list = []
+	if len(topic_list) > 0:
+		topic_set = {topic.slug: topic for topic in TopicSet({'$or': [{'slug': topic['slug']} for topic in topic_list]})}
+		for topic in topic_list:
+			topic_obj = topic_set.get(topic['slug'], None)
+			if topic_obj is None:
+				continue
+			new_topic = topic.copy()
+			tag_lang = 'en'
+			if use_as_typed:
+				tag_lang = 'he' if is_hebrew(new_topic['asTyped']) else 'en'
+				new_topic[tag_lang] = new_topic['asTyped']
+			if not use_as_typed or tag_lang == 'en':
+				new_topic['he'] = topic_obj.get_primary_title('he')
+			elif not use_as_typed:
+				new_topic['en'] = topic_obj.get_primary_title('en')
+			new_topic_list += [new_topic]
+
+	return new_topic_list
 
 
 def get_sheet(id=None):
@@ -106,6 +136,7 @@ def get_sheet_for_panel(id=None):
 	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 	sheet["sources"] = annotate_user_links(sheet["sources"])
+	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
 	if "group" in sheet:
 		group = Group().load({"name": sheet["group"]})
 		try:
@@ -113,6 +144,7 @@ def get_sheet_for_panel(id=None):
 		except:
 			sheet["groupLogo"] = None
 	return sheet
+
 
 def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	query = {"owner": int(user_id)}
@@ -183,6 +215,7 @@ def annotate_user_links(sources):
 			source["userLink"] = user_link(source["addedBy"])
 	return sources
 
+
 def sheet_to_dict(sheet):
 	"""
 	Returns a JSON serializable dictionary of Mongo document `sheet`.
@@ -200,7 +233,7 @@ def sheet_to_dict(sheet):
 		"group": sheet.get("group", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"created": sheet.get("dateCreated", None),
-		"topics": sheet["topics"] if "topics" in sheet else [],
+		"topics": add_langs_to_topics(sheet.get("topics", [])),
 		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
@@ -210,14 +243,14 @@ def user_tags(uid):
 	"""
 	Returns a list of tags that `uid` has, ordered by tag order in user profile (if existing)
 	"""
-	user_tags = sheet_tag_counts({"owner": uid})
+	user_tags = sheet_topics_counts({"owner": uid})
 	user_tags = order_tags_for_user(user_tags, uid)
 	return user_tags
 
 
-def sheet_tag_counts(query, sort_by="count"):
+def sheet_topics_counts(query, sort_by="count"):
 	"""
-	Returns tags ordered by count for sheets matching `query`.
+	Returns topics ordered by count for sheets matching `query`.
 	"""
 	if sort_by == "count":
 		sort_query = SON([("count", -1), ("_id", -1)])
@@ -226,14 +259,13 @@ def sheet_tag_counts(query, sort_by="count"):
 	else:
 		return []
 
-	tags = db.sheets.aggregate([
-			{"$match": query },
-			{"$unwind": "$tags"},
-			{"$group": {"_id": "$tags", "count": {"$sum": 1}}},
-			{"$sort": sort_query },
-			{"$project": { "_id": 0, "tag": "$_id", "count": "$count"}}], cursor={})
-	tags = list(tags)
-	return tags
+	topics = db.sheets.aggregate([
+		{"$match": query},
+		{"$unwind": "$topics"},
+		{"$group": {"_id": "$topics.slug", "count": {"$sum": 1}, "asTyped": {"$first": "$topics.asTyped"}}},
+		{"$sort": sort_query},
+		{"$project": {"_id": 0, "topic": "$_id", "count": "$count", "asTyped": "$asTyped"}}], cursor={})
+	return add_langs_to_topics(list(topics))
 
 
 def order_tags_for_user(tag_counts, uid):
@@ -258,40 +290,29 @@ def order_tags_for_user(tag_counts, uid):
 	return tag_counts
 
 
-def trending_tags(days=7, ntags=14):
+def trending_topics(days=7, ntags=14):
 	"""
-	Returns a list of trending tags plus sheet count and author count modified in the last `days`.
+	Returns a list of trending topics plus sheet count and author count modified in the last `days`.
 	"""
 	cutoff = datetime.now() - timedelta(days=days)
-	query  = {
+	query = {
 		"status": "public",
-		"dateModified": { "$gt": cutoff.isoformat() },
+		"dateModified": {"$gt": cutoff.isoformat()},
 		"viaOwner": {"$exists": 0},
 		"assignment_id": {"$exists": 0}
 	}
 
-	tags = db.sheets.aggregate([
-			{"$match": query },
-			{"$unwind": "$tags"},
-			{"$group": {"_id": "$tags", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
-			{"$project": { "_id": 0, "tag": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
+	topics = db.sheets.aggregate([
+			{"$match": query},
+			{"$unwind": "$topics"},
+			{"$group": {"_id": "$topics.slug", "sheet_count": {"$sum": 1}, "authors": {"$addToSet": "$owner"}}},
+			{"$project": {"_id": 0, "slug": "$_id", "sheet_count": "$sheet_count", "authors": "$authors"}}], cursor={})
 
-	unnormalized_tags = list(tags)
-	tags = defaultdict(lambda: {"sheet_count": 0, "authors": set()})
-	results = []
-
-	for tag in unnormalized_tags:
-		norm_term = model.Term.normalize(tag["tag"])
-		tags[norm_term]["sheet_count"] += tag["sheet_count"]
-		tags[norm_term]["authors"].update(set(tag["authors"]))
-
-	for tag in list(tags.items()):
-		if len(tag[0]) and len(tag[1]["authors"]) > 1:  # A trend needs to include at least 2 people
-			results.append({"tag": tag[0],
-							"count": tag[1]["sheet_count"],
-							"author_count": len(tag[1]["authors"]),
-							"he_tag": model.Term.normalize(tag[0], "he")})
-
+	results = add_langs_to_topics([{
+		"slug": topic['slug'],
+		"count": topic['sheet_count'],
+		"author_count": len(topic['authors']),
+	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False)
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 	return results[:ntags]
@@ -484,7 +505,7 @@ def add_source_to_sheet(id, source, note=None):
 		'ref' (indicating a source)
 		'outsideText' (indicating a single language outside text)
 		'outsideBiText' (indicating a bilingual outside text)
-	    'comment' (indicating a comment)
+		'comment' (indicating a comment)
 		'media' (indicating a media object)
 	if string `note` is present, add it as a coment immediately after the source.
 		pass
@@ -678,7 +699,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
 				"groupTOC":        sheet.get("groupTOC", None),
-			    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
 				"assignerName":	   sheet.get("assignerName", None),
@@ -744,7 +765,7 @@ def public_tag_list(sort_by="alpha"):
 	tags = defaultdict(int)
 	results = []
 
-	unnormalized_tags = sheet_tag_counts({"status": "public"})
+	unnormalized_tags = sheet_topics_counts({"status": "public"})
 	lang = "he" if sort_by == "alpha-hebrew" else "en"
 	for tag in unnormalized_tags:
 		tags[model.Term.normalize(tag["tag"], lang)] += tag["count"]
