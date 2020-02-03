@@ -321,6 +321,19 @@ class TopicLinkType(abst.AbstractMongoRecord):
     related_type = 'related-to'
     isa_type = 'is-a'
 
+    def _validate(self):
+        super(TopicLinkType, self)._validate()
+        # Check that validFrom and validTo contain valid topic slugs if exist
+
+        validToList = self.validTo
+        for validToTopic in validToList:
+            assert Topic().load({"slug": validToTopic}) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
+
+        validFromList = self.validFrom
+        for validFromTopic in validFromList:
+            assert Topic().load({"slug": validFromTopic}) is not None, "ValidTo topic '{}' does not exist".format(
+                self.validFrom)
+
     def get(self, attr, is_inverse, default=None):
         attr = 'inverse{}{}'.format(attr[0].upper(), attr[1:]) if is_inverse else attr
         return getattr(self, attr, default)
