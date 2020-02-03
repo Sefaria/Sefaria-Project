@@ -1,8 +1,8 @@
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from sefaria.system.exceptions import DuplicateRecordError
-
 import logging
+import regex as re
 logger = logging.getLogger(__name__)
 
 
@@ -164,9 +164,10 @@ class TopicLinkHelper(object):
         'toTopic',
         'linkType',
         'class',  # can be 'intraTopic' or 'refTopic'
+        'dataSource',
+
     ]
     optional_attrs = [
-        'dataSource',
         'generatedBy',
         'order'
     ]
@@ -190,15 +191,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     valid_links = []
 
     def _pre_save(self):
-        # check for duplicates
-        if getattr(self, "_id", None) is None:
-            # check for duplicates
-            duplicate = IntraTopicLink().load(
-                {"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
-                 "class": getattr(self, 'class')})
-            if duplicate is not None:
-                raise DuplicateRecordError("Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
-                self.linkType, self.fromTopic, self.toTopic))
+        pass
 
     def _validate(self):
         super(IntraTopicLink, self)._validate()
@@ -210,6 +203,25 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
         to_topic = Topic().load({"slug": self.toTopic})
         assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
+        data_source = TopicDataSource().load({"slug": self.dataSource})
+        assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
+
+        # check for duplicates
+        if getattr(self, "_id", None) is None:
+            duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
+                     "class": getattr(self, 'class')})
+            if duplicate is not None:
+                raise DuplicateRecordError(
+                    "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
+                        self.linkType, self.fromTopic, self.toTopic))
+
+            if link_type.slug == link_type.inverseSlug:
+                duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
+                 "class": getattr(self, 'class')})
+                if duplicate_inverse is not None:
+                    raise DuplicateRecordError(
+                        "Duplicate intra topic link in the inverse direction of the symmetric linkType '{}', fromTopic '{}', toTopic '{}' exists".format(
+                            duplicate_inverse.linkType, duplicate_inverse.fromTopic, duplicate_inverse.toTopic))
 
         # check types of topics are valid according to validFrom/To
         if getattr(link_type, 'validFrom', False):
@@ -217,7 +229,8 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
 
-        # assert this link doesn't create circular paths (is_a)
+        # assert this link doesn't create circular paths (in is_a link type)
+        # should consider this test also for other non-symmetric link types such as child-of
         if self.linkType == TopicLinkType.isa_type:
             to_topic = Topic().load({"slug":self.toTopic})
             ancestors = to_topic.get_types()
@@ -227,8 +240,12 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
+    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet attr is added automatically
     optional_attrs = TopicLinkHelper.optional_attrs + ['text']
+
+    def _normalize(self):
+        super(RefTopicLink, self)._normalize()
+        self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
