@@ -252,7 +252,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         if self.is_sheet:
             self.expandedRefs = [self.ref]
         else:  # Ref is a regular Sefaria Ref
-            self.expandedRefs = Ref(self.ref).all_segment_refs()
+            self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
