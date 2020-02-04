@@ -359,6 +359,7 @@ class TreeNode(object):
         self.children = []  # Is this enough?  Do we need a dict for addressing?
         self.parent = None
         self._leaf_nodes = []
+        self.depth = 0
 
     def validate(self):
         for k in self.required_param_keys:
