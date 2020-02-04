@@ -264,7 +264,7 @@ def sheet_topics_counts(query, sort_by="count"):
 		{"$unwind": "$topics"},
 		{"$group": {"_id": "$topics.slug", "count": {"$sum": 1}, "asTyped": {"$first": "$topics.asTyped"}}},
 		{"$sort": sort_query},
-		{"$project": {"_id": 0, "topic": "$_id", "count": "$count", "asTyped": "$asTyped"}}], cursor={})
+		{"$project": {"_id": 0, "slug": "$_id", "count": "$count", "asTyped": "$asTyped"}}], cursor={})
 	return add_langs_to_topics(list(topics))
 
 
