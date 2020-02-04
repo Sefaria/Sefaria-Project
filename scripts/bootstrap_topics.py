@@ -1208,7 +1208,6 @@ def find_ambiguous_topics():
         c.writerows(rows)
 
 
-
 if __name__ == '__main__':
     slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     do_data_source()
@@ -1228,3 +1227,98 @@ if __name__ == '__main__':
     new_edge_type_research()
     add_num_sources_to_topics()
     # clean_up_time()
+
+    
+def yo():
+    import re
+    from tqdm import tqdm
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
+
+    rtls = RefTopicLinkSet({"is_sheet": True})
+    sheet_cache = {}
+    updates = {}
+    for  l in tqdm(rtls, total=rtls.count()):
+        sid = int(l.ref.replace("Sheet ", ""))
+        sheet = sheet_cache.get(sid, db.sheets.find_one({"id": sid}, {"title": 1}))
+        sheet_cache[sid] = sheet
+        try:
+            title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet.get('title', 'a'))) is not None else 'hebrew'
+        except TypeError:
+            continue
+        new_order = getattr(l, 'order', {})
+        new_order['titleLanguage'] = title_lang
+        updates[l._id] = new_order
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l[0]}, {"$set": {"order": l[1]}}) for l in updates.items()
+    ])
+
+
+def yoyo():
+    from sefaria.system.database import db
+    from tqdm import tqdm
+    from pymongo import UpdateOne
+
+    ts = TopicSet()
+    updates = {}
+    for topic in tqdm(ts, total=ts.count()):
+        topic_slug = topic.slug
+        sheets = RefTopicLinkSet({'toTopic': topic_slug, 'is_sheet': True})
+        if sheets.count() == 0:
+            continue
+        for sheet_link in sheets:
+            sheet_id = int(sheet_link.ref.replace('Sheet ', ''))
+            avg_pr = sheet_link.order['relevance']
+
+            sheet = db.sheets.find_one({"id": sheet_id},
+                                       {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1, "topics": 1})
+
+            # relevance based on other topics on this sheet
+            other_topic_slug_set = {t['slug'] for t in sheet.get('topics', []) if t['slug'] != topic_slug}
+            total_links_in_common = 0
+            for other_topic_slug in other_topic_slug_set:
+                intra_topic_link = IntraTopicLink().load({'$or': [
+                    {'fromTopic': topic_slug, 'toTopic': other_topic_slug},
+                    {'fromTopic': other_topic_slug, 'toTopic': topic_slug}]})
+                if intra_topic_link:
+                    total_links_in_common += getattr(intra_topic_link, 'order', {}).get('linksInCommon', 0)
+            avg_in_common = 1 if len(other_topic_slug_set) == 0 else (total_links_in_common / len(other_topic_slug_set)) + 1
+
+            relevance = 0 if avg_pr == 0 else 500*avg_pr + avg_in_common
+            new_order = getattr(sheet_link, 'order', {})
+            new_order['relevance'] = relevance
+            updates[sheet_link._id] = new_order
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l[0]}, {"$set": {"order": l[1]}}) for l in updates.items()
+    ])
+
+
+def sup():
+    from tqdm import tqdm
+    import re, json
+    from sefaria.system.database import db
+    is_hebrew = re.compile('[א-ת]')
+    query = {"topics.asTyped": is_hebrew}
+    bad = list(db.sheets.find(query, {'topics': True, 'id': True}))
+    ambig_set = defaultdict(list)
+    good_set = defaultdict(list)
+    for b in tqdm(bad):
+        for tag in b['topics']:
+            if not re.search(is_hebrew, tag['asTyped']):
+                continue
+            t = Topic().load({'slug': tag['slug']})
+            if t is None or tag['asTyped'] not in {tit['text'] for tit in t.titles}:
+                ts = TopicSet({"titles.text": tag['asTyped']})
+                if ts.count() == 0:
+                    print('No topics for {}'.format(tag['asTyped']))
+                elif ts.count() > 1:
+                    ambig_set[tag['asTyped']] += [b['id']]
+                    # print('AMBIG {}'.format(tag['asTyped']))
+                else:
+                    t = ts.array()[0]
+                    good_set[tag['asTyped']] += [[t.slug, b['id']]]
+                    # print('PERFECT {} {}'.format(tag['asTyped'], t.slug))
+    with open('data/sheet_ambig_tags.json', 'w') as fout:
+        json.dump(ambig_set, fout, ensure_ascii=False, indent=2)
+    with open('data/sheet_good_tags.json', 'w') as fout:
+        json.dump(good_set, fout, ensure_ascii=False, indent=2)

@@ -1025,7 +1025,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
     def create_trending_story(cls, **kwargs):
         days = kwargs.get("days", 7)
         from sefaria import sheets
-        topics = [t["tag"] for t in sheets.trending_tags(days=days, ntags=6)]
+        topics = [t["tag"] for t in sheets.trending_topics(days=days, ntags=6)]
         cls.create_shared_story(topics=topics)
 
     @classmethod

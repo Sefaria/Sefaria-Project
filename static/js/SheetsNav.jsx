@@ -1,5 +1,5 @@
 const {
-  SheetTagLink,
+  SheetTopicLink,
   SheetAccessIcon,
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
@@ -593,10 +593,8 @@ class PrivateSheetListing extends Component {
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
-    if (sheet.tags === undefined) sheet.tags = [];
-      var tagString = sheet.tags.map(function (tag) {
-          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
-    }, this);
+    if (sheet.topics === undefined) sheet.topics = [];
+    const topicString = sheet.topics.map(topic => (<SheetTopicLink setSheetTag={this.props.setSheetTag} topic={topic} key={topic.slug} />));
 
    return (<div className="sheet userSheet" href={url} key={url}>
               <div className="userSheetTitle">
@@ -605,7 +603,7 @@ class PrivateSheetListing extends Component {
                 <a className="button white mini" href={url+"?editor=1"}><span className="int-en">Edit Sheet</span><span className="int-he">ערוך</span></a>
               </div>
               <div className="userSheetInfo">
-                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>
+                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{topicString}</span>
               </div>
           </div>);
   }

@@ -905,7 +905,7 @@ def user_tag_list_api(request, user_id):
     """
     #if int(user_id) != request.user.id:
         #return jsonResponse({"error": "You are not authorized to view that."})
-    response = sheet_tag_counts({ "owner": int(user_id) })
+    response = sheet_topics_counts({"owner": int(user_id)})
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -916,7 +916,7 @@ def group_tag_list_api(request, group):
     API to retrieve the list of public tags ordered by count.
     """
     group = group.replace("-", " ").replace("_", " ")
-    response = sheet_tag_counts({ "group": group })
+    response = sheet_topics_counts({"group": group})
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -926,7 +926,7 @@ def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
     """
-    response = trending_tags(ntags=18)
+    response = trending_topics(ntags=18)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
