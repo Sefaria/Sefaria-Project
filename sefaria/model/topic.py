@@ -248,7 +248,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
         self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
-        self["class"] = "refTopic"
+        setattr(self, "class", "refTopic")
         if self.is_sheet:
             self.expandedRefs = [self.ref]
         # else:  # Ref is a regular Sefaria Ref
