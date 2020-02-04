@@ -1,5 +1,6 @@
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
+from .text import Ref
 from sefaria.system.exceptions import DuplicateRecordError
 import logging
 import regex as re
@@ -189,6 +190,9 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
 
+    def _normalize(self):
+        setattr(self, "class", "intraTopic")
+
     def _pre_save(self):
         pass
 
@@ -238,12 +242,17 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet attr is added automatically
+    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
     optional_attrs = TopicLinkHelper.optional_attrs + ['text']
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
         self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
+        setattr(self, "class", "refTopic")
+        if self.is_sheet:
+            self.expandedRefs = [self.ref]
+        else:  # Ref is a regular Sefaria Ref
+            self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
@@ -311,6 +320,17 @@ class TopicLinkType(abst.AbstractMongoRecord):
     ]
     related_type = 'related-to'
     isa_type = 'is-a'
+
+    def _validate(self):
+        super(TopicLinkType, self)._validate()
+        # Check that validFrom and validTo contain valid topic slugs if exist
+
+        for validToTopic in self.validTo:
+            assert Topic().load({"slug": validToTopic}) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
+
+        for validFromTopic in self.validFrom:
+            assert Topic().load({"slug": validFromTopic}) is not None, "ValidTo topic '{}' does not exist".format(
+                self.validFrom)
 
     def get(self, attr, is_inverse, default=None):
         attr = 'inverse{}{}'.format(attr[0].upper(), attr[1:]) if is_inverse else attr
