@@ -1,5 +1,6 @@
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
+from .text import Ref
 from sefaria.system.exceptions import DuplicateRecordError
 import logging
 import regex as re
@@ -190,7 +191,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     valid_links = []
 
     def _normalize(self):
-        self["class"] = "intraTopic"
+        setattr(self, "class", "intraTopic")
 
     def _pre_save(self):
         pass
@@ -248,11 +249,11 @@ class RefTopicLink(abst.AbstractMongoRecord):
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
         self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
-        self["class"] = "refTopic"
+        setattr(self, "class", "refTopic")
         if self.is_sheet:
             self.expandedRefs = [self.ref]
-        # else:  # Ref is a regular Sefaria Ref
-        #     self.expandedRefs = Ref(self.ref).all_segment_refs()
+        else:  # Ref is a regular Sefaria Ref
+            self.expandedRefs = Ref(self.ref).all_segment_refs()
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
@@ -325,12 +326,10 @@ class TopicLinkType(abst.AbstractMongoRecord):
         super(TopicLinkType, self)._validate()
         # Check that validFrom and validTo contain valid topic slugs if exist
 
-        validToList = self.validTo
-        for validToTopic in validToList:
+        for validToTopic in self.validTo:
             assert Topic().load({"slug": validToTopic}) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
 
-        validFromList = self.validFrom
-        for validFromTopic in validFromList:
+        for validFromTopic in self.validFrom:
             assert Topic().load({"slug": validFromTopic}) is not None, "ValidTo topic '{}' does not exist".format(
                 self.validFrom)
 
