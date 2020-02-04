@@ -2921,6 +2921,7 @@ class Ref(object, metaclass=RefCacheType):
     def default_child_ref(self):
         """
         Return ref to the default node underneath this node
+        If there is no default node, return self
         :return:
         """
         if not self.has_default_child():
@@ -3502,10 +3503,10 @@ class Ref(object, metaclass=RefCacheType):
             try:
                 if len(self.sections) >= self.index_node.depth - 1:
                     return self
-            except AttributeError: # This is a schema node, try to get a default child
-                try:
+            except AttributeError:  # This is a schema node, try to get a default child
+                if self.has_default_child():
                     return self.default_child_ref().padded_ref()
-                except Exception:
+                else:
                     raise InputError("Can not pad a schema node ref")
 
             d = self._core_dict()
