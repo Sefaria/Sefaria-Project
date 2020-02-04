@@ -10,10 +10,10 @@ import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
 
 // interface text that can fallback to alternate langauge if current language doesn't have content
-const InterfaceTextWithFallback = ({ en, he, isItalics }) => (
+const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
   <span>
-    <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics.en })}>{en || he}</span>
-    <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics.he })}>{he || en}</span>
+    <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
+    <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
   </span>
 );
 
@@ -1727,20 +1727,26 @@ CategoryAttribution.defaultProps = {
 };
 
 
-class SheetTagLink extends Component {
+class SheetTopicLink extends Component {
   handleTagClick(e) {
     e.preventDefault();
-    this.props.setSheetTag(this.props.tag);
+    this.props.setSheetTag(this.props.topic.slug);
   }
   render() {
-    return (<a href={`/sheets/tags/${this.props.tag}`} onClick={this.handleTagClick}>
-        <span className="int-en">{this.props.tag}</span>
-        <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)}</span>
-        </a>);
+    const { slug, en, he } = this.props.topic;
+    return (
+      <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
+        <InterfaceTextWithFallback en={en} he={he} />
+      </a>
+    );
   }
 }
-SheetTagLink.propTypes = {
-  tag:   PropTypes.string.isRequired,
+SheetTopicLink.propTypes = {
+  topic:       PropTypes.shape({
+                 en: PropTypes.string.isRequired,
+                 he: PropTypes.string.isRequired,
+                 slug: PropTypes.string.isRequired,
+               }).isRequired,
   setSheetTag: PropTypes.func.isRequired
 };
 
@@ -1965,7 +1971,7 @@ module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
 module.exports.SignUpModal                               = SignUpModal;
 module.exports.SheetListing                              = SheetListing;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;
-module.exports.SheetTagLink                              = SheetTagLink;
+module.exports.SheetTopicLink                            = SheetTopicLink;
 module.exports.TabView                                   = TabView;
 module.exports.TextBlockLink                             = TextBlockLink;
 module.exports.TestMessage                               = TestMessage;

@@ -480,7 +480,11 @@ def update_ref_topic_link_orders():
         avg_in_common = 1 if len(other_topic_slug_set) == 0 else (total_links_in_common / len(other_topic_slug_set)) + 1
 
         relevance = 0 if avg_pr == 0 else 500*avg_pr + avg_in_common  # this weighting seems to work based on spot checking
-        title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet.get('title', 'a'))) is not None else 'hebrew'
+        sheet_title = sheet.get('title', 'a')
+        if not isinstance(sheet_title, str):
+            title_lang = 'english'
+        else:
+            title_lang = 'english' if re.search(r'[a-zA-Z]', re.sub(r'<[^>]+>', '', sheet_title)) is not None else 'hebrew'
         return {
             'views': sheet.get('views', 0),
             'dateCreated': sheet['dateCreated'],
