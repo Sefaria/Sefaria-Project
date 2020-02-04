@@ -118,7 +118,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 logger.warning('While merging {} into {}, link assertion failed with message "{}"'.format(other_slug, self.slug, str(e)))
 
         # source sheets
-        db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$.slug': self.slug}})
+        db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}}, array_filters=[{"element.slug": other_slug}])
 
         if isinstance(other, Topic):
             # titles
@@ -206,21 +206,20 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
 
         # check for duplicates
-        if getattr(self, "_id", None) is None:
-            duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
-                     "class": getattr(self, 'class')})
-            if duplicate is not None:
-                raise DuplicateRecordError(
-                    "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
-                        self.linkType, self.fromTopic, self.toTopic))
+        duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
+                 "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
+        if duplicate is not None:
+            raise DuplicateRecordError(
+                "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
+                    self.linkType, self.fromTopic, self.toTopic))
 
-            if link_type.slug == link_type.inverseSlug:
-                duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
-                 "class": getattr(self, 'class')})
-                if duplicate_inverse is not None:
-                    raise DuplicateRecordError(
-                        "Duplicate intra topic link in the inverse direction of the symmetric linkType '{}', fromTopic '{}', toTopic '{}' exists".format(
-                            duplicate_inverse.linkType, duplicate_inverse.fromTopic, duplicate_inverse.toTopic))
+        if link_type.slug == link_type.inverseSlug:
+            duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
+             "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
+            if duplicate_inverse is not None:
+                raise DuplicateRecordError(
+                    "Duplicate intra topic link in the inverse direction of the symmetric linkType '{}', fromTopic '{}', toTopic '{}' exists".format(
+                        duplicate_inverse.linkType, duplicate_inverse.fromTopic, duplicate_inverse.toTopic))
 
         # check types of topics are valid according to validFrom/To
         if getattr(link_type, 'validFrom', False):
