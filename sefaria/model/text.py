@@ -24,7 +24,6 @@ except ImportError:
 
 from . import abstract as abst
 from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
-from .topic import Topic, TopicSet, TopicLinkTypeSet, IntraTopicLinkSet, TopicDataSourceSet
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
@@ -4413,6 +4412,7 @@ class Library(object):
         return self._topic_toc_json
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None):
+        from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
         if topic is None:
             ts = TopicSet({"isTopLevelDisplay": True})
@@ -4442,6 +4442,7 @@ class Library(object):
         return topic_json
 
     def get_topic_link_type(self, link_type):
+        from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
             # pre-populate topic link types
             self._topic_link_types = {
@@ -4450,6 +4451,7 @@ class Library(object):
         return self._topic_link_types.get(link_type, None)
 
     def get_topic_data_source(self, data_source):
+        from .topic import TopicDataSourceSet
         if not self._topic_data_sources:
             # pre-populate topic data sources
             self._topic_data_sources = {
