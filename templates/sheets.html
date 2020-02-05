@@ -692,9 +692,13 @@
             <div id="sheetSummary">{{ sheet.summary|linebreaks }}</div>
 
             <div id="sheetTags">
-                {% for tag in sheet.tags %}
-                    <a class="button" role="button" href="/sheets/tags/{{ tag }}">
-                        {{ tag }}
+                {% for topic in sheet.topics %}
+                    <a class="button" role="button" href="/topics/{{ topic.slug }}">
+                      {% if request.interfaceLang == 'english' %}
+                          {{ topic.en }}
+                      {% else %}
+                          {{ topic.he }}
+                      {% endif %}
                     </a>
                 {% endfor %}
 

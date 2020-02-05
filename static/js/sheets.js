@@ -2164,16 +2164,16 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 
 sjs.sheetTagger = {
-	init: function(id, tags, callback) {
+	init: function(id, topics, callback) {
 		this.id       = id;
-		this.initTags = tags;
+		this.initTags = topics;
 		this.callback = callback;
 
 
 		// Init with tagit and with its tags
 		$("#tags").tagit({ allowSpaces: true });
-		this.setTags(tags);
-		if (tags && tags.length>0) {
+		this.setTags(topics);
+		if (topics && topics.length>0) {
 			$("#tags .addTagMsg").hide();
 		}
 
@@ -2181,11 +2181,11 @@ sjs.sheetTagger = {
 	tags: function() {
 		return sjs.tagitTags("#tags");
 	},
-	setTags: function(tags) {
+	setTags: function(topics) {
 		$("#tags").tagit("removeAll");
-		if (tags && tags.length) {
-			for (var i=0; i < tags.length; i++) {
-				$("#tags").tagit("createTag", tags[i]);
+		if (topics && topics.length) {
+			for (var i=0; i < topics.length; i++) {
+				$("#tags").tagit("createTag", topics[i].slug);
 			}
 		}
 	},
@@ -2813,7 +2813,7 @@ function buildSheet(data){
 		$("#sourceSheetGroupOptions").hide();
 	}
 
-	sjs.sheetTagger.init(data.id, data.tags);
+	sjs.sheetTagger.init(data.id, data.topics);
 
 	buildSources($("#sources"), data.sources);
 	setSourceNumbers();
