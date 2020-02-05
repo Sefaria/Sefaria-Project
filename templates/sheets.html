@@ -695,9 +695,17 @@
                 {% for topic in sheet.topics %}
                     <a class="button" role="button" href="/topics/{{ topic.slug }}">
                       {% if request.interfaceLang == 'english' %}
+                        {% if topic.en %}
                           {{ topic.en }}
-                      {% else %}
+                        {% else %}
                           {{ topic.he }}
+                        {% endif %}
+                      {% elif request.interfaceLang == 'hebrew' %}
+                        {% if topic.he %}
+                          {{ topic.he }}
+                        {% else %}
+                          {{ topic.en }}
+                        {% endif %}
                       {% endif %}
                     </a>
                 {% endfor %}
