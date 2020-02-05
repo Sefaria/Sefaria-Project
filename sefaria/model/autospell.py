@@ -179,7 +179,7 @@ class AutoCompleter(object):
         :param instring:
         :param limit: Number of results.  0 is unlimited.
         :param redirected: Is this request redirected from the other language?  Prevents infinite loops.
-        :return:
+        :return: completions list, completion objects list
         """
         instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
         completion_manager = Completions(self, self.lang, instring, limit)
@@ -207,7 +207,7 @@ class AutoCompleter(object):
         normal_string = self.normalizer(instring)
         try:
             titles_and_objects = [(v["title"], v) for k, all_v in self.title_trie.items(normal_string + ",") for v in all_v]
-            titles_and_objects.sort(key=lambda vt,v: len(v))  # better than sort would be the shallow option of pygtrie, but datrie doesn't have
+            titles_and_objects.sort(key=lambda v: len(v[0]))   # better than sort would be the shallow option of pygtrie, but datrie doesn't have
             return [t for t,o in titles_and_objects], [o for t,o in titles_and_objects]
         except KeyError:
             return []

@@ -2370,8 +2370,8 @@ def dictionary_completion_api(request, word, lexicon=None):
 
     if lexicon is None:
         ac = library.cross_lexicon_auto_completer()
-        rs = ac.complete(word, LIMIT)
-        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+        rs, _ = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)][0]["key"]] for r in rs]
     else:
         result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
