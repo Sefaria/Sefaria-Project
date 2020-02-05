@@ -127,7 +127,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
 
           </h1>
         </div>
-       {!topicData?<LoadingMessage/>:""}
+       {!topicData && !isCat ?<LoadingMessage/>:""}
        {!isCat && category?
            <div className="topicCategory sectionTitleText">
              <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug); }}>

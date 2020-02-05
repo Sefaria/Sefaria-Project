@@ -1110,7 +1110,8 @@ input.noselect {
   text-align: unset;
   border-bottom: 1px solid #CCC;
   padding-bottom: 10px;
-  margin-top: 60px;
+  margin-top: 30px;
+  margin-bottom: 10px;
 }
 .topicPanel .sideColumn div:first-child h2 {
   margin-top: 0;
@@ -1132,9 +1133,11 @@ input.noselect {
 .topicPanel h2 .int-he {
   font-family: "Heebo", sans-serif;
 }
-.topicPanel .mainColumn .story,
+.topicPanel .mainColumn .story {
+    padding: 0 0 20px 0;
+}
 .topicPanel .mainColumn .storySheetListItem {
-    padding: 0 0 40px 0;
+  padding: 0 0 30px 0;
 }
 .topicPanel .sideColumn .sideList {
   font-size: 16px;
@@ -1170,16 +1173,19 @@ input.noselect {
   font-size: 20px;
 }
 .topicPanel .topicCategory {
+  margin: 0 0 15px 0;
+}
+.readerTocTopics .topicDescription {
   margin: 0 0 30px 0;
 }
 .topicPanel .topicDescription {
-  margin: 0 0 30px 0;
+  margin: 0 0 15px 0;
 }
 .topicPanel .topicDescription span {
 }
 .topicPanel .tab-view .tab-list {
     border-bottom: 1px solid #CCC;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 .topicPanel .tab-view .filter-bar {
   margin-bottom: 30px;
@@ -6538,7 +6544,7 @@ span.purim-emoji img{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: black;
   text-align: center;
-  padding: 14px 0;
+  padding: 10px 0;
   margin: 0 30px 0 0;
   cursor: pointer;
 }
@@ -6549,8 +6555,8 @@ span.purim-emoji img{
   margin: 0 0 0 30px;
 }
 .tab-view .tab-list .tab img {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   opacity: 0.4;
   margin: 0 10px 0 0;
   top: 2px;
@@ -6560,11 +6566,12 @@ span.purim-emoji img{
   margin: 0 0 0 10px;
 }
 .tab-view .tab-list .justifyright {
-  margin: 0 0 0 auto;
-  align-self: center;
+  margin: 0 0 4px auto;
+  display: flex;
+  align-items: center;
 }
 .tab-view .tab-list .tab.filter {
-  font-size: 20px;
+  font-size: 16px;
   margin: 0;
 }
 .tab-view .tab-list .tab.filter img {
@@ -6711,7 +6718,7 @@ span.purim-emoji img{
   justify-content: space-between;
 }
 .filterable-list .filter-bar-new {
-  padding: 0 0 16px 0;
+  padding: 0 0 20px 0;
   justify-content: space-between;
   align-items: center;
   display: flex;
@@ -6730,27 +6737,26 @@ span.purim-emoji img{
 .filterable-list .filter-bar-new .sort-option {
   padding: 7px;
   color: #999;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   margin: 0 0 0 7px;
+  background-color: #EDEDED;
+  border-radius: 5px;
 }
 .interface-hebrew .filterable-list .filter-bar-new .sort-option {
   margin: 0 7px 0 0;
 }
-.filterable-list .filter-bar-new .sort-option:hover {
-  background-color: #EDEDED;
-  border-radius: 5px;
-}
 .filterable-list .filter-bar-new .sort-option.active {
-  background-color: #EDEDED;
-  border-radius: 5px;
   color: black;
 }
+.filterable-list .filter-bar-new .systemText span {
+  color: #999;
+}
 .filterable-list .readerNavMenuSearchButton {
-  margin: 0 10px 0 0;
+  margin: 0 10px 0 5px;
 }
 .interface-hebrew .filterable-list .readerNavMenuSearchButton {
-  margin: 0 0 0 10px;
+  margin: 0 5px 0 10px;
 }
 .filterable-list input {
   border: 0;
@@ -6864,6 +6870,10 @@ span.purim-emoji img{
   color: white;
   background-color: #18345d;
 }
+.resourcesLink.blue img {
+  filter: invert(1);
+  opacity: 1;
+}
 .profile-page .authorByLine {
   margin: 20px 0;
 }
@@ -6950,10 +6960,12 @@ span.purim-emoji img{
   transform: translateY(-35%);
   left: 30px;
   color: #999;
+  text-align: left;
 }
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
   left: unset;
   right: 30px;
+  text-align: right;
 }
 .tooltip-toggle::before {
   color: #000;

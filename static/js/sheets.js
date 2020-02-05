@@ -2813,7 +2813,6 @@ function buildSheet(data){
 		$("#sourceSheetGroupOptions").hide();
 	}
 
-
 	sjs.sheetTagger.init(data.id, data.tags);
 
 	buildSources($("#sources"), data.sources);

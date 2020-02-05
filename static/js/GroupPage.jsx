@@ -117,9 +117,9 @@ class GroupPage extends Component {
       this.props.setGroupTag(null);
     }
   }
-  setSheetTag(tag) {
-    this.setState({sheetFilterTopic: tag, showTopics: false});
-    this.props.setGroupTag(tag);
+  setSheetTag(topic) {
+    this.setState({sheetFilterTopic: topic, showTopics: false});
+    this.props.setGroupTag(topic);
   }
   handleTagButtonClick (topic) {
     if (topic == this.state.sheetFilterTopic) {
