@@ -82,6 +82,7 @@ def get_sheet(id=None):
 	s = db.sheets.find_one({"id": int(id)})
 	if not s:
 		return {"error": "Couldn't find sheet with id: %s" % (id)}
+	s["topics"] = add_langs_to_topics(s.get("topics", []))
 	s["_id"] = str(s["_id"])
 	return s
 
