@@ -6,6 +6,7 @@ const {
   LoadingMessage,
   TwoBox,
   LoginPrompt,
+  InterfaceTextWithFallback,
 }                = require('./Misc');
 const React      = require('react');
 const ReactDOM   = require('react-dom');
@@ -269,28 +270,19 @@ class SheetMetadata extends Component {
                     {this.props.sheet.topics && this.props.sheet.topics.length > 0 ?
                     <div className="tagsSection">
                         <h2 className="tagsTitle int-en">Tags</h2>
-                        <div className="sheetTags int-en">
-                          {this.props.sheet.topics.map(function(topic, i) {
-                            return (
-                                <a href={"/topics/" + topic.slug}
-                                        target="_blank"
-                                        className="sheetTag button"
-                                        key={topic.slug}
-                                        >{topic.asTyped}</a>
-                            )
-                          }.bind(this))}
-                        </div>
-                       <h2 className="tagsTitle int-he">תוית</h2>
-                       <div className="sheetTags int-he">
-                          {this.props.sheet.topics.map(function(topic, i) {
-                            return (
-                                <a href={"/topics/" + topic.slug}
-                                        target="_blank"
-                                        className="int-he sheetTag button"
-                                        key={topic.slug}
-                                        >{topic.asTyped}</a>
-                            )
-                          }.bind(this))}
+                        <h2 className="tagsTitle int-he">תוית</h2>
+
+                        <div className="sheetTags">
+                          {this.props.sheet.topics.map(topic => (
+                              <a href={"/topics/" + topic.slug}
+                                target="_blank"
+                                className="sheetTag button"
+                                key={topic.slug}
+                              >
+                                <InterfaceTextWithFallback en={topic.en} he={topic.he} />
+                              </a>
+                            ))
+                          }
                         </div>
                     </div> : null }
 

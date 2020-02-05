@@ -178,7 +178,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
 
   let resources = [
       <TocLink en="Create a Sheet" he="צור דף חדש" href="/sheets/new" resourcesLink={true} outOfAppLink={true}
-            img="/static/img/new-sheet.svg"  alt="new source sheet icon"/>,
+            img="/static/img/new-sheet.svg"  alt="new source sheet icon" classes="blue"/>,
       <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true} outOfAppLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
       <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true} outOfAppLink={true}
@@ -248,7 +248,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
        onClick={openMenu.bind(null, "topics")}
        className="blockLink readerNavMore"
     >
-        <span className='en'>All Topics A-Z</span>
+        <span className='en'>All Topics</span>
         <span className='he'>כל הנושאים</span>
     </a>
   );
@@ -274,7 +274,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
               { compare ? null : title }
               { compare ? null : <Dedication /> }
               { topUserData }
-              <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categoriesBlock} />
+              <ReaderNavigationMenuSection title="Texts" heTitle="טקסטים" content={categoriesBlock} />
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
               <ReaderNavigationMenuSection title="Topics" heTitle="נושאים" content={topicsBlock} />
               { !compare ? (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) : null }

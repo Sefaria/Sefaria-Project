@@ -76,11 +76,11 @@ class TopicPageAll extends Component {
       }
       return false;
     }).map(this.renderButton) : null;
-
+    const isHeInt = Sefaria.interfaceLang == "hebrew";
     const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     const contentClasses = classNames({content: 1, hasFooter: 1});
-
+    const inputClasses = classNames({topicFilterInput: 1, contentText: 1, en: !isHeInt, he: isHeInt});
     return (
       <div className={classStr}>
         {this.props.hideNavHeader ? null :
@@ -104,7 +104,7 @@ class TopicPageAll extends Component {
 
             <div className="topicFilterBox">
               <i className="topicFilterIcon fa fa-search"></i>
-              <input className="topicFilterInput" placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש נושאים" : "Search Topics"} onChange={this.handleFilterChange} />
+              <input className={inputClasses} placeholder={isHeInt ? "חפש נושאים" : "Search Topics"} onChange={this.handleFilterChange} />
               { this.state.filter.length ?
               <div className="topicsFilterReset" onClick={this.resetFilter}>
                 <span className="int-en">Reset</span>

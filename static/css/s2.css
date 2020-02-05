@@ -395,7 +395,7 @@ input.noselect {
   box-shadow: none;
   color: black;
   font-size:  18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   vertical-align: 6px;
   margin: 0;
   width: 60px;
@@ -597,7 +597,7 @@ input.noselect {
 }
 .sefariaModalContent h2 {
   font-weight: normal;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   margin-bottom: 0px;
 }
@@ -735,7 +735,7 @@ input.noselect {
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
   z-index: 1000000 !important;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .ui-autocomplete .ui-menu-item {
   display: block;
@@ -932,7 +932,7 @@ input.noselect {
 }
 .interface-english .systemPanel .content h1 .int-en {
   display: inline;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .interface-hebrew .systemPanel .content .int-he {
   display: inline;
@@ -1042,7 +1042,7 @@ input.noselect {
   border: none;
   background-color: inherit;
   font-size: 18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   height: 48px;
 }
 .readerNavMenu .readerSearch:focus {
@@ -1134,7 +1134,8 @@ input.noselect {
   text-align: unset;
   border-bottom: 1px solid #CCC;
   padding-bottom: 10px;
-  margin-top: 60px;
+  margin-top: 30px;
+  margin-bottom: 10px;
 }
 .topicPanel .sideColumn div:first-child h2 {
   margin-top: 0;
@@ -1156,9 +1157,11 @@ input.noselect {
 .topicPanel h2 .int-he {
   font-family: "Heebo", sans-serif;
 }
-.topicPanel .mainColumn .story,
+.topicPanel .mainColumn .story {
+    padding: 0 0 20px 0;
+}
 .topicPanel .mainColumn .storySheetListItem {
-    padding: 0 0 40px 0;
+  padding: 0 0 30px 0;
 }
 .topicPanel .sideColumn .sideList {
   font-size: 16px;
@@ -1186,21 +1189,27 @@ input.noselect {
 .topicPanel .pageTitle span {
   font-size: 24px;
 }
+.topicPanel .pageTitle h1 span {
+  font-size: 30px;
+}
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
   font-size: 20px;
 }
 .topicPanel .topicCategory {
+  margin: 0 0 15px 0;
+}
+.readerTocTopics .topicDescription {
   margin: 0 0 30px 0;
 }
 .topicPanel .topicDescription {
-  margin: 0 0 30px 0;
+  margin: 0 0 15px 0;
 }
 .topicPanel .topicDescription span {
 }
 .topicPanel .tab-view .tab-list {
     border-bottom: 1px solid #CCC;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 .topicPanel .tab-view .filter-bar {
   margin-bottom: 30px;
@@ -1231,7 +1240,7 @@ input.noselect {
   margin: 0 0 5px 8px;
 }
 .topicPanel .resourcesLink.blue .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .resourcesLink.blue .int-he {
   font-family: "Heebo", sans-serif;
@@ -1254,11 +1263,11 @@ h1 div.languageToggle .en {
   font-weight: normal;
 }
 h1 .languageToggle .he {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -1406,7 +1415,7 @@ input.resourcesLink {
 .readerNavCategory {
   background-color: white;
   text-transform: uppercase;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-align: center;
   font-size: 18px;
   padding: 16px 10px 17px;
@@ -1800,7 +1809,7 @@ a.readerNavCategory {
   margin-bottom: 4px;
 }
 .readerTextTableOfContents .tocDetail .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetail .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -1932,16 +1941,11 @@ a.readerNavCategory {
   text-align: center;
   height: 100%;
 }
-.readerTextTableOfContents .content .sheetTags.int-en {
-  clear: both;
+.readerTextTableOfContents .content .sheetTags {
+  display: flex;
+  flex-direction: row;
   padding-top: 30px;
   border-top: 1px solid #ccc;
-}
-.readerTextTableOfContents .content .sheetTags.int-en {
-  text-align: left;
-}
-.readerTextTableOfContents .content .sheetTags.int-he {
-  text-align: right;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -2725,7 +2729,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .text_result .result-title .int-en,
 .searchContent .sheet_result .result-title .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .searchContent .sheet_result .result-title {
@@ -2893,7 +2897,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
 }
 .readerSheetsNav .tagsList .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerSheetsNav .tagsList .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -4585,7 +4589,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   margin-bottom: 10px
 }
 .connectionsPanel .noteSharingToggle {
@@ -5016,17 +5020,17 @@ a .button:hover {
 }
 ::-webkit-input-placeholder {
    font-style: italic;
-   font-family: "adobe-garamond-pro", Georgia, serif;
+   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #000;
 }
 ::-moz-placeholder {
    font-style: italic;
-   font-family: "adobe-garamond-pro", Georgia, serif;
+   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #000;
 }
 :-ms-input-placeholder {
    font-style: italic;
-   font-family: "adobe-garamond-pro", Georgia, serif;
+   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #000;
 }
 .interface-hebrew ::-webkit-input-placeholder {
@@ -5172,7 +5176,7 @@ h2.splitHeader .he {
   color: inherit;
 }
 .sheet.userSheet .sheetTitle  {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 20px;
   color:#333;
   margin-bottom: 6px;
@@ -5364,7 +5368,7 @@ h2.splitHeader .he {
   font-size: 16px;
 }
 .groupPage .groupDescription .en .dedication {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-size: 18px;
 }
@@ -5570,7 +5574,7 @@ h2.splitHeader .he {
   min-height: 500px;
 }
 .topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicsPanel .content .topicList .navButton .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -6561,7 +6565,7 @@ span.purim-emoji img{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: black;
   text-align: center;
-  padding: 14px 0;
+  padding: 10px 0;
   margin: 0 30px 0 0;
   cursor: pointer;
 }
@@ -6572,8 +6576,8 @@ span.purim-emoji img{
   margin: 0 0 0 30px;
 }
 .tab-view .tab-list .tab img {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   opacity: 0.4;
   margin: 0 10px 0 0;
   top: 2px;
@@ -6583,11 +6587,12 @@ span.purim-emoji img{
   margin: 0 0 0 10px;
 }
 .tab-view .tab-list .justifyright {
-  margin: 0 0 0 auto;
-  align-self: center;
+  margin: 0 0 4px auto;
+  display: flex;
+  align-items: center;
 }
 .tab-view .tab-list .tab.filter {
-  font-size: 20px;
+  font-size: 16px;
   margin: 0;
 }
 .tab-view .tab-list .tab.filter img {
@@ -6734,7 +6739,7 @@ span.purim-emoji img{
   justify-content: space-between;
 }
 .filterable-list .filter-bar-new {
-  padding: 0 0 16px 0;
+  padding: 0 0 20px 0;
   justify-content: space-between;
   align-items: center;
   display: flex;
@@ -6753,32 +6758,31 @@ span.purim-emoji img{
 .filterable-list .filter-bar-new .sort-option {
   padding: 7px;
   color: #999;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   margin: 0 0 0 7px;
+  background-color: #EDEDED;
+  border-radius: 5px;
 }
 .interface-hebrew .filterable-list .filter-bar-new .sort-option {
   margin: 0 7px 0 0;
 }
-.filterable-list .filter-bar-new .sort-option:hover {
-  background-color: #EDEDED;
-  border-radius: 5px;
-}
 .filterable-list .filter-bar-new .sort-option.active {
-  background-color: #EDEDED;
-  border-radius: 5px;
   color: black;
 }
+.filterable-list .filter-bar-new .systemText span {
+  color: #999;
+}
 .filterable-list .readerNavMenuSearchButton {
-  margin: 0 10px 0 0;
+  margin: 0 10px 0 5px;
 }
 .interface-hebrew .filterable-list .readerNavMenuSearchButton {
-  margin: 0 0 0 10px;
+  margin: 0 5px 0 10px;
 }
 .filterable-list input {
   border: 0;
   font-size: 18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   background-color: transparent;
 }
 .filterable-list .loadingMessage {
@@ -6887,6 +6891,10 @@ span.purim-emoji img{
   color: white;
   background-color: #18345d;
 }
+.resourcesLink.blue img {
+  filter: invert(1);
+  opacity: 1;
+}
 .profile-page .authorByLine {
   margin: 20px 0;
 }
@@ -6973,10 +6981,12 @@ span.purim-emoji img{
   transform: translateY(-35%);
   left: 30px;
   color: #999;
+  text-align: left;
 }
 .interface-hebrew .three-dots-button.tooltip-toggle::before {
   left: unset;
   right: 30px;
+  text-align: right;
 }
 .tooltip-toggle::before {
   color: #000;
@@ -7185,7 +7195,7 @@ body .homeFeedWrapper .content {
   font-size: 20px;
 }
 .sideColumn #homeLearn .refLink .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-transform: uppercase;
 }
 .sideColumn .button {
@@ -7500,7 +7510,7 @@ body .homeFeedWrapper.userStats {
 .userStats h1 {
   text-align: center;
   font-weight: normal;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   padding: 60px 0 30px;
   margin: 0;
@@ -7579,7 +7589,7 @@ body .homeFeedWrapper.userStats {
 }
 .bilingual .userStats .blockLink .en,
 .english .userStats .blockLink .en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .userStats .blockLink .he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;

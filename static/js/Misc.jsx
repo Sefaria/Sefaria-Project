@@ -338,6 +338,10 @@ class FilterableList extends Component {
               />
             </div>
             <div>
+              <span className="systemText">
+                <span className="int-en">Sort by</span>
+                <span className="int-he">מיון לפי</span>
+              </span>
               { sortOptions.map(option =>(
                 <span
                   key={option}
