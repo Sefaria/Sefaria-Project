@@ -300,7 +300,7 @@ def rebuild_sheet_nodes(sheet):
 
 	try:
 		sheet_id = sheet["id"]
-	except KeyError:
+	except KeyError:  # this will occur on new sheets, as we won't know the id until the sheet is succesfully saved
 		sheet_id = 'New Sheet'
 	next_node, checked_sources, nodes_used = 0, [], set()
 
@@ -432,7 +432,6 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				db.sheets.insert_one(sheet)
 				break
 			except DuplicateKeyError:
-				print('encountered duplicate')
 				pass
 
 	else:
