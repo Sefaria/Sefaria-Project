@@ -594,19 +594,26 @@ const getClosestSheetItem = (editor, path) => {
     return(null);
 };
 
-const isSelectionFocusAtEndOfSheetItem = (editor) => {
+const isSelectionFocusAtEdgeOfSheetItem = (editor) => {
   const focus = editor.selection.focus;
   const currentSheetItem = (getClosestSheetItem(editor, focus.path));
 
   if (!currentSheetItem) return false;
 
-  const lastNodeInSheetItem = Node.last(currentSheetItem[0],[])
+  const lastNodeInSheetItem = Node.last(currentSheetItem[0],[]);
+  const firstNodeInSheetItem = Node.first(currentSheetItem[0],[]);
 
   if (Path.compare(currentSheetItem[1].concat(lastNodeInSheetItem[1]), focus.path) == 0) {
     if (lastNodeInSheetItem[0].text.length == focus.offset) {
-      return true
+      return "bottom"
     }
   }
+  else if  (Path.compare(currentSheetItem[1].concat(firstNodeInSheetItem[1]), focus.path) == 0) {
+    if (0 == focus.offset) {
+      return "top"
+    }
+  }
+
   return false
 };
 
@@ -653,12 +660,13 @@ const withSefariaSheet = editor => {
 
         const refInNode = getFirstSefRefInSheetItem(editor);
         if (refInNode) {
-            insertSource(editor, refInNode)
+            insertSource(editor, refInNode);
             return
         }
 
-        if (isSelectionFocusAtEndOfSheetItem(editor)) {
-            insertOutsideText(editor)
+        const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
+        if (selectionAtEdge) {
+            insertOutsideText(editor, selectionAtEdge);
             return
         }
 
@@ -770,13 +778,14 @@ const withSefariaSheet = editor => {
     return editor
 };
 
-const addItemToSheet = (editor, fragment) => {
-    const nextSheetItemPath = getNextSheetItemPath(getClosestSheetItem(editor, editor.selection.focus.path)[1]);
+const addItemToSheet = (editor, fragment, position) => {
+    const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)[1];
+    const nextSheetItemPath = position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
     Transforms.setNodes(editor, {nextNode: editor.children[0].nextNode + 1}, {at: [0]});
     Transforms.insertNodes(editor, fragment, {at: nextSheetItemPath});
 };
 
-const insertOutsideText = editor => {
+const insertOutsideText = (editor, position) => {
     const fragment = {
         type: "SheetItem",
         children: [{
@@ -791,7 +800,7 @@ const insertOutsideText = editor => {
 
         }]
     };
-    addItemToSheet(editor, fragment);
+    addItemToSheet(editor, fragment, position);
     Transforms.move(editor);
 };
 
@@ -837,7 +846,7 @@ const insertSource = (editor, ref) => {
 
             }]
         };
-        addItemToSheet(editor, fragment);
+        addItemToSheet(editor, fragment, "bottom");
         Editor.deleteBackward(editor, { unit: 'line' })
         Editor.deleteBackward(editor, { unit: 'character' })
         Transforms.move(editor, { unit: 'block', distance: 8 })

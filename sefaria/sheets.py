@@ -621,8 +621,15 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1,"profile_pic_url_small":1}))
 	mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
 	for profile in user_profiles:
-		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
-		user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
+		try:
+			user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
+		except:
+			user_profiles[profile]["slug"] = "/"
+
+		try:
+			user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
+		except:
+			user_profiles[profile]["profile_pic_url_small"] = ""
 
 	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
