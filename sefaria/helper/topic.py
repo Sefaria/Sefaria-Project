@@ -123,18 +123,22 @@ def sort_refs_by_relevance(a, b):
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
 
 
-def generate_topic_links_from_sheets():
+def generate_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
     """
     from sefaria.system.database import db
     from sefaria.recommendation_engine import RecommendationEngine
     from tqdm import tqdm
+    from statistics import mean, stdev
 
-    RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
-    IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+    if not topic:
+        RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+        IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
     all_topics = {}
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
+    if topic:
+        query['topics.slug'] = topic
     projection = {"topics": 1, "includedRefs": 1, "owner": 1}
     # ignore sheets that are copies or were assignments
     sheet_list = db.sheets.find(query, projection)
@@ -162,6 +166,9 @@ def generate_topic_links_from_sheets():
     already_created_related_links = {}
     related_links = []
     for slug, blob in tqdm(all_topics.items(), desc="creating sheet topic links"):
+        if topic is not None and slug != topic:
+            continue
+
         # filter related topics with less than 2 users who voted for it
         related_topics = [related_topic for related_topic in blob['related_topics_dict'].items() if len(related_topic[1]) >= 2]
         for related_topic, user_votes in related_topics:
@@ -176,18 +183,8 @@ def generate_topic_links_from_sheets():
                 'b': slug,
                 'user_votes': len(user_votes)
             }]
-            # tl = IntraTopicLink({
-            #     "class": "intraTopic",
-            #     "fromTopic": related_topic,
-            #     "toTopic": slug,
-            #     "linkType": "sheets-related-to",
-            #     "dataSource": "sefaria-users",
-            #     "generatedBy": "sheet-topic-aggregator",
-            #     "order": {"user_votes": len(user_votes)}
-            # })
-            # tl.save()
         # filter sources with less than 2 users who added it
-        sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 2]
+        sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 3]
 
         # transform data to more convenient format
         temp_sources = []
@@ -195,36 +192,49 @@ def generate_topic_links_from_sheets():
             temp_sources += [(Ref(source[0]), len(source[1]))]
         sources = temp_sources
 
-        # cluster refs that are close to each other
+        # cluster refs that are close to each other and break up clusters where counts differ by more than 2 standard deviations
         temp_sources = []
         if len(sources) == 0:
             continue
         refs, counts = zip(*sources)
         clustered = RecommendationEngine.cluster_close_refs(refs, counts, 2)
         for cluster in clustered:
-            ranged_ref = cluster[0]['ref'].to(cluster[-1]['ref'])
-            counts = [x['data'] for x in cluster]
-            avg_count = sum(counts) / len(cluster)
-            max_count = max(counts)
-            if max_count >= 3:
-                temp_sources += [(ranged_ref.normal(), [r.normal() for r in ranged_ref.range_list()], avg_count)]
+            counts = [(x['ref'], x['data']) for x in cluster]
+            curr_range_start = 0
+            for icount, (temp_ref, temp_count) in enumerate(counts):
+                temp_counts = [x[1] for x in counts[curr_range_start:icount]]
+                if len(temp_counts) < 2:
+                    # variance requires two data points
+                    continue
+                count_xbar = mean(temp_counts)
+                count_std = max(0.5, stdev(temp_counts, count_xbar))
+                if temp_count > (2*count_std + count_xbar) or temp_count < (count_xbar - 2*count_std):
+                    temp_range = counts[curr_range_start][0].to(counts[icount-1][0])
+                    temp_sources += [(temp_range, [r.normal() for r in temp_range.range_list()], count_xbar)]
+                    curr_range_start = icount
+            temp_counts = [x[1] for x in counts[curr_range_start:]]
+            count_xbar = mean(temp_counts)
+            temp_range = counts[curr_range_start][0].to(counts[-1][0])
+            temp_sources += [(temp_range, [r.normal() for r in temp_range.range_list()], count_xbar)]
         sources = temp_sources
 
         # create links
-        for source in sources:
-            rtl = RefTopicLink({
-                "class": "refTopic",
-                "toTopic": slug,
-                "ref": source[0],
-                "expandedRefs": source[1],
-                "linkType": "about",
-                "is_sheet": False,
-                "dataSource": "sefaria-users",
-                "generatedBy": "sheet-topic-aggregator",
-                "order": {"user_votes": source[2]}
-            })
-            rtl.save()
-    tfidf_related_sheet_topics(related_links)
+        if not topic:
+            for source in sources:
+                rtl = RefTopicLink({
+                    "class": "refTopic",
+                    "toTopic": slug,
+                    "ref": source[0],
+                    "expandedRefs": source[1],
+                    "linkType": "about",
+                    "is_sheet": False,
+                    "dataSource": "sefaria-users",
+                    "generatedBy": "sheet-topic-aggregator",
+                    "order": {"user_votes": source[2]}
+                })
+                rtl.save()
+    if not topic:
+        tfidf_related_sheet_topics(related_links)
 
 
 def tfidf_related_sheet_topics(related_links):
@@ -381,6 +391,7 @@ def calculate_pagerank_scores(ref_topic_map):
     from sefaria.pagesheetrank import pagerank_rank_ref_list
     from tqdm import tqdm
     pr_map = {}
+    pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
         oref_list = []
         for tref in ref_list:
@@ -391,7 +402,9 @@ def calculate_pagerank_scores(ref_topic_map):
         oref_pr_list = pagerank_rank_ref_list(oref_list)
         for oref, pr in oref_pr_list:
             pr_map[(topic, oref.normal())] = pr
-    return pr_map
+            for seg_oref in oref.all_segment_refs():
+                pr_seg_map[(topic, seg_oref.normal())] = pr
+    return pr_map, pr_seg_map
 
 
 def calculate_other_ref_scores(ref_topic_map):
@@ -436,7 +449,7 @@ def update_ref_topic_link_orders():
 
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
-    pr_map = calculate_pagerank_scores(ref_topic_map)
+    pr_map, pr_seg_map = calculate_pagerank_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
     sheet_cache = {}
@@ -465,7 +478,7 @@ def update_ref_topic_link_orders():
         for ref_range in sheet['includedRefs']:
             if len(ref_range) == 0:
                 continue
-            total_pr += sum([pr_map.get((topic_slug, ref), 0) for ref in ref_range]) / len(ref_range)
+            total_pr += sum([pr_seg_map.get((topic_slug, ref), 0) for ref in ref_range]) / len(ref_range)
         avg_pr = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
 
         # relevance based on other topics on this sheet

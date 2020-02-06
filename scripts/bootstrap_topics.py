@@ -9,21 +9,21 @@ from sefaria.system.database import db
 from sefaria.helper.topic import generate_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
 
-with open("data/final_ref_topic_links.csv", 'r') as fin:
-    cin = csv.DictReader(fin)
-    ref_topic_links = list(cin)
-with open("data/edge_types.csv", 'r') as fin:
-    cin = csv.DictReader(fin)
-    edge_types = list(cin)
-with open("data/final_topics.json", 'r') as fin:
-    topics = json.load(fin)
-with open("data/source_sheet_cats.csv", 'r') as fin:
-    cin = csv.DictReader(fin)
-    cat_replacer = {"Bible": "Tanakh"}
-    fallback_sheet_cat_map = {}
-    for row in cin:
-        cat = cat_replacer.get(row['Cat'], row['Cat'])
-        fallback_sheet_cat_map[row['Tag']] = cat
+# with open("data/final_ref_topic_links.csv", 'r') as fin:
+#     cin = csv.DictReader(fin)
+#     ref_topic_links = list(cin)
+# with open("data/edge_types.csv", 'r') as fin:
+#     cin = csv.DictReader(fin)
+#     edge_types = list(cin)
+# with open("data/final_topics.json", 'r') as fin:
+#     topics = json.load(fin)
+# with open("data/source_sheet_cats.csv", 'r') as fin:
+#     cin = csv.DictReader(fin)
+#     cat_replacer = {"Bible": "Tanakh"}
+#     fallback_sheet_cat_map = {}
+#     for row in cin:
+#         cat = cat_replacer.get(row['Cat'], row['Cat'])
+#         fallback_sheet_cat_map[row['Tag']] = cat
 
 
 def autoreconnect_query(collection=None, query=None, proj=None, tries=0):
@@ -1209,23 +1209,24 @@ def find_ambiguous_topics():
 
 
 if __name__ == '__main__':
-    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
-    do_data_source()
-    do_topic_link_types()
-    db.topic_links.drop()
-    db.topic_links.create_index('class')
-    db.topic_links.create_index('expandedRefs')
-    db.topic_links.create_index('toTopic')
-    db.topic_links.create_index('fromTopic')
-    do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
-    do_ref_topic_link(slug_to_sheet_map)
-    do_sheet_refactor(tag_to_slug_map)
-    dedup_topics()
-    generate_topic_links_from_sheets()
-    update_ref_topic_link_orders()
-    import_term_descriptions()
-    new_edge_type_research()
-    add_num_sources_to_topics()
+    # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
+    # do_data_source()
+    # do_topic_link_types()
+    # db.topic_links.drop()
+    # db.topic_links.create_index('class')
+    # db.topic_links.create_index('expandedRefs')
+    # db.topic_links.create_index('toTopic')
+    # db.topic_links.create_index('fromTopic')
+    # do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
+    # do_ref_topic_link(slug_to_sheet_map)
+    # do_sheet_refactor(tag_to_slug_map)
+    # dedup_topics()
+    # generate_topic_links_from_sheets()
+    # update_ref_topic_link_orders()
+    # import_term_descriptions()
+    # new_edge_type_research()
+    # add_num_sources_to_topics()
+    generate_topic_links_from_sheets(topic='esther')
     # clean_up_time()
 
     
