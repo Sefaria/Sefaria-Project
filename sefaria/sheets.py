@@ -435,7 +435,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				pass
 
 	else:
-		db.sheets.update({"id": sheet["id"]}, sheet, False, False)
+		db.sheets.update_one({"id": sheet["id"]}, sheet)
 
 	if "tags" in sheet:
 		update_sheet_tags(sheet["id"], sheet["tags"])
