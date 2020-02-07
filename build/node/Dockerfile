@@ -9,7 +9,7 @@ ENV DEBUG       false
 COPY . /app/
 WORKDIR /app/
 
-RUN npm ci && npm run build-prod
+RUN npm install && npm run build-prod
 
 RUN npm install forever -g \
  && mkdir -p /app/log \
