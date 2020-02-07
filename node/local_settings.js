@@ -1,5 +1,5 @@
 
-local_settings = {
+const local_settings = {
   DJANGO_HOST: function(){
     if ('DJANGO_HOST' in process.env) {
       return process.env.DJANGO_HOST;

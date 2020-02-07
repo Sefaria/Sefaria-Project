@@ -1,11 +1,15 @@
-# SRC_IMG will be the `web` container, with the assets collected in /app/static-collected
-ARG SRC_IMG
+FROM node:13
 
-FROM ${SRC_IMG} AS static_source
+# These environment variables can be overwritten at run-time
+ENV DJANGO_HOST web
+ENV DJANGO_PORT 80
+ENV NODEJS_PORT 3000
+ENV DEBUG       false
 
 COPY . /app/
-COPY ./build/node/local_settings.json /app/node/local_settings.json
 WORKDIR /app/
+
+RUN npm ci && npm run build-prod
 
 RUN npm install forever -g \
  && mkdir -p /app/log \
