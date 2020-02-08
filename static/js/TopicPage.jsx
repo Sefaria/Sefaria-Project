@@ -407,8 +407,8 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => {
         const aInd = a.title.en.indexOf('Related');
         const bInd = b.title.en.indexOf('Related');
         if (aInd > -1 && bInd > -1) { return 0; }
-        if (aInd > -1) { return 1; }
-        if (bInd > -1) { return -1; }
+        if (aInd > -1) { return -1; }
+        if (bInd > -1) { return 1; }
         //alphabetical by en just to keep order consistent
         return a.title.en.localeCompare(b.title.en);
       })
@@ -425,8 +425,7 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => {
               .sort((a, b) => {
                 if (!a.order && !b.order) { return 0; }
                 if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                if (a.order.linksInCommon == b.order.linksInCommon) { return b.order.numSources - a.order.numSources; }
-                return b.order.linksInCommon - a.order.linksInCommon;
+                return b.order.tfidf - a.order.tfidf;
               })
               .slice(0, showMoreMap[title.en] ? undefined : 10)
               .map(l =>

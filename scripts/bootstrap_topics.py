@@ -1226,7 +1226,7 @@ if __name__ == '__main__':
     # import_term_descriptions()
     # new_edge_type_research()
     # add_num_sources_to_topics()
-    generate_topic_links_from_sheets(topic='esther')
+    update_intra_topic_link_orders()
     # clean_up_time()
 
     
@@ -1323,3 +1323,21 @@ def sup():
         json.dump(ambig_set, fout, ensure_ascii=False, indent=2)
     with open('data/sheet_good_tags.json', 'w') as fout:
         json.dump(good_set, fout, ensure_ascii=False, indent=2)
+
+
+def supyo():
+    from tqdm import tqdm
+    from sefaria.system.database import db
+    from pymongo import DeleteOne
+
+    deletes = set()
+    sheet_links = RefTopicLinkSet({"is_sheet": True})
+    for l in tqdm(sheet_links, total=sheet_links.count()):
+        sid = int(l.ref.replace("Sheet ", ''))
+        sheet = db.sheets.find_one({"id": sid}, {"status": 1})
+        if sheet['status'] != 'public':
+            deletes.add(l._id)
+    db.topic_links.bulk_write([
+        DeleteOne({"_id": _id} for _id in deletes)
+    ])
+

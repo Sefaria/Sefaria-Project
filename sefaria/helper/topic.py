@@ -47,6 +47,11 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             del link['linkType']
             link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
+            if link.get('order', {}).get('fromTfidf', None) is not None:
+                link['order']['tfidf'] = link['order']['fromTfidf'] if is_inverse else link['order']['toTfidf']
+                del link['order']['toTfidf']
+                del link['order']['fromTfidf']
+
             if annotate_links:
                 # add display information
                 # TODO load all-at-once with TopicSet
@@ -210,12 +215,12 @@ def generate_topic_links_from_sheets(topic=None):
                 count_std = max(0.5, stdev(temp_counts, count_xbar))
                 if temp_count > (2*count_std + count_xbar) or temp_count < (count_xbar - 2*count_std):
                     temp_range = counts[curr_range_start][0].to(counts[icount-1][0])
-                    temp_sources += [(temp_range, [r.normal() for r in temp_range.range_list()], count_xbar)]
+                    temp_sources += [(temp_range.normal(), [r.normal() for r in temp_range.range_list()], count_xbar)]
                     curr_range_start = icount
             temp_counts = [x[1] for x in counts[curr_range_start:]]
             count_xbar = mean(temp_counts)
             temp_range = counts[curr_range_start][0].to(counts[-1][0])
-            temp_sources += [(temp_range, [r.normal() for r in temp_range.range_list()], count_xbar)]
+            temp_sources += [(temp_range.normal(), [r.normal() for r in temp_range.range_list()], count_xbar)]
         sources = temp_sources
 
         # create links
@@ -483,16 +488,18 @@ def update_ref_topic_link_orders():
 
         # relevance based on other topics on this sheet
         other_topic_slug_set = {t['slug'] for t in sheet.get('topics', []) if t['slug'] != topic_slug}
-        total_links_in_common = 0
+        total_tfidf = 0
         for other_topic_slug in other_topic_slug_set:
             intra_topic_link = IntraTopicLink().load({'$or': [
                 {'fromTopic': topic_slug, 'toTopic': other_topic_slug},
                 {'fromTopic': other_topic_slug, 'toTopic': topic_slug}]})
             if intra_topic_link:
-                total_links_in_common += getattr(intra_topic_link, 'order', {}).get('linksInCommon', 0)
-        avg_in_common = 1 if len(other_topic_slug_set) == 0 else (total_links_in_common / len(other_topic_slug_set)) + 1
+                is_inverse = intra_topic_link.toTopic == topic_slug
+                tfidfDir = 'fromTfidf' if is_inverse else 'toTfidf'
+                total_tfidf += getattr(intra_topic_link, 'order', {}).get(tfidfDir, 0)
+        avg_tfidf = 1 if len(other_topic_slug_set) == 0 else (total_tfidf / len(other_topic_slug_set)) + 1
 
-        relevance = 0 if avg_pr == 0 else 500*avg_pr + avg_in_common  # this weighting seems to work based on spot checking
+        relevance = 0 if avg_pr == 0 else 1000*avg_pr + avg_tfidf
         sheet_title = sheet.get('title', 'a')
         if not isinstance(sheet_title, str):
             title_lang = 'english'
@@ -537,6 +544,7 @@ def update_intra_topic_link_orders():
     add relevance order to intra topic links in sidebar
     :return:
     """
+    import math
     from tqdm import tqdm
     from sefaria.system.database import db
     from pymongo import UpdateOne
@@ -551,19 +559,27 @@ def update_intra_topic_link_orders():
         topic_links_by_slug = defaultdict(list)
         for link in topic_links:
             is_inverse = link.toTopic == topic.slug
-            topic_links_by_slug[link.fromTopic if is_inverse else link.toTopic] += [link]
+            topic_links_by_slug[link.fromTopic if is_inverse else link.toTopic] += [{'link': link, 'dir': 'from' if is_inverse else 'to'}]
         topic_link_dict[topic.slug] = topic_links_by_slug
-    update_dict = {}
+
+    # idf
+    idf_dict = {}
+    N = len(topic_link_dict)  # total num documents
+    for topic_slug, topic_links in topic_link_dict.items():
+        idf_dict[topic_slug] = 0 if len(topic_links) == 0 else math.log2(N/len(topic_links))
+
+    update_dict = defaultdict(lambda: {'order': {}})
     for topic_slug, topic_links in topic_link_dict.items():
         for other_topic_slug, link_list in topic_links.items():
             other_topic_links = topic_link_dict.get(other_topic_slug, None)
             if other_topic_links is None:
                 continue
             in_common = len(topic_links.keys() & other_topic_links.keys())
-            for link in link_list:
-                new_order = getattr(link, 'order', {})
-                new_order['linksInCommon'] = in_common
-                update_dict[link._id] = {"order": new_order}
+            for link_dict in link_list:
+                new_order = getattr(link_dict['link'], 'order', {})
+                update_dict[link_dict['link']._id]['order'].update(new_order)
+                tfidf = in_common * idf_dict[other_topic_slug]
+                update_dict[link_dict['link']._id]['order'][link_dict['dir'] + 'Tfidf'] = tfidf
 
     db.topic_links.bulk_write([
         UpdateOne({"_id": l[0]}, {"$set": l[1]}) for l in update_dict.items()
