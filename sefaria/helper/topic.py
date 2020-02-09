@@ -48,9 +48,9 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             link_type_slug = link_type.get('slug', is_inverse)
             link['isInverse'] = is_inverse
             if link.get('order', {}).get('fromTfidf', None) is not None:
-                link['order']['tfidf'] = link['order']['fromTfidf'] if is_inverse else link['order']['toTfidf']
-                del link['order']['toTfidf']
-                del link['order']['fromTfidf']
+                link['order']['tfidf'] = link['order'].get('fromTfidf', 0) if is_inverse else link['order'].get('toTfidf', 0)
+                link['order'].pop('toTfidf', None)
+                link['order'].pop('fromTfidf', None)
 
             if annotate_links:
                 # add display information
@@ -67,8 +67,8 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
                     'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
                     'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
                 }
-                if not getattr(other_topic, 'shouldDisplay', True):
-                    link['shouldDisplay'] = other_topic.shouldDisplay
+                if not other_topic.should_display():
+                    link['shouldDisplay'] = False
                 link['order'] = link.get('order', None) or {}
                 link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
             if link_type_slug in response['links']:
@@ -188,7 +188,7 @@ def generate_topic_links_from_sheets(topic=None):
                 'b': slug,
                 'user_votes': len(user_votes)
             }]
-        # filter sources with less than 2 users who added it
+        # filter sources with less than 3 users who added it
         sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 3]
 
         # transform data to more convenient format
@@ -198,6 +198,7 @@ def generate_topic_links_from_sheets(topic=None):
         sources = temp_sources
 
         # cluster refs that are close to each other and break up clusters where counts differ by more than 2 standard deviations
+        STD_DEV_CUTOFF = 2
         temp_sources = []
         if len(sources) == 0:
             continue
@@ -206,14 +207,14 @@ def generate_topic_links_from_sheets(topic=None):
         for cluster in clustered:
             counts = [(x['ref'], x['data']) for x in cluster]
             curr_range_start = 0
-            for icount, (temp_ref, temp_count) in enumerate(counts):
+            for icount, (_, temp_count) in enumerate(counts):
                 temp_counts = [x[1] for x in counts[curr_range_start:icount]]
                 if len(temp_counts) < 2:
                     # variance requires two data points
                     continue
                 count_xbar = mean(temp_counts)
-                count_std = max(0.5, stdev(temp_counts, count_xbar))
-                if temp_count > (2*count_std + count_xbar) or temp_count < (count_xbar - 2*count_std):
+                count_std = max(1/STD_DEV_CUTOFF, stdev(temp_counts, count_xbar))
+                if temp_count > (STD_DEV_CUTOFF*count_std + count_xbar) or temp_count < (count_xbar - STD_DEV_CUTOFF*count_std):
                     temp_range = counts[curr_range_start][0].to(counts[icount-1][0])
                     temp_sources += [(temp_range.normal(), [r.normal() for r in temp_range.range_list()], count_xbar)]
                     curr_range_start = icount
@@ -591,13 +592,14 @@ def add_num_sources_to_topics():
     from sefaria.system.database import db
     from pymongo import UpdateOne
     updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
-    db.topic_links.bulk_write([
+    db.topics.bulk_write([
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
     ])
 
 
 def recalculate_secondary_topic_data():
-    add_num_sources_to_topics()
     generate_topic_links_from_sheets()
     update_intra_topic_link_orders()
     update_ref_topic_link_orders()
+    add_num_sources_to_topics()
+
