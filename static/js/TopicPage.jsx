@@ -155,7 +155,11 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
     </div>
 );}
 
-const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings}) => {
+const TopicPage = ({
+  tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
+  hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
+  updateTopicsTab
+}) => {
     const [topicData, setTopicData] = useState(false);
     const [topicRefs, setTopicRefs] = useState(false);
     const [topicSheets, setTopicSheets] = useState(false);
@@ -238,8 +242,8 @@ const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, mul
       }
     }, [topic]);
     const tabs = [];
-    if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
-    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
+    if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
+    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
     let onClickFilterIndex = 2;
     if (!!topicRefs.length || !!topicSheets.length) {
       tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true });
@@ -253,6 +257,8 @@ const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, mul
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic}/>
                    {!!topicData?
                        <TabView
+                          currTabIndex={tabs.findIndex(t => t.id === tab)}
+                          setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
                           tabs={tabs}
                           renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright})}>
@@ -321,10 +327,12 @@ const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, mul
 };
 
 TopicPage.propTypes = {
+  tab:                 PropTypes.string.isRequired,
   topic:               PropTypes.string.isRequired,
   setTopic:            PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
+  updateTopicsTab:     PropTypes.func.isRequired,
   interfaceLang:       PropTypes.string,
   multiPanel:          PropTypes.bool,
   hideNavHeader:       PropTypes.bool,

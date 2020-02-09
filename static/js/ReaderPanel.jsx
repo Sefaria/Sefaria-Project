@@ -89,6 +89,7 @@ class ReaderPanel extends Component {
       sheetID:              null,
       searchQuery:          props.initialQuery || null,
       searchTab:            props.initialSearchTab || "text",
+      topicsTab:            props.initialTopicsTab || "sources",
       textSearchState: new SearchState({
         type:               'text',
         field:              props.initialTextSearchField,
@@ -907,6 +908,7 @@ class ReaderPanel extends Component {
       }
       if (this.state.navigationTopic) {
         menu = (<TopicPage
+                  tab={this.state.topicsTab}
                   topic={this.state.navigationTopic}
                   interfaceLang={this.props.interfaceLang}
                   setTopic={this.setTopic}
@@ -920,6 +922,7 @@ class ReaderPanel extends Component {
                   navHome={this.openMenu.bind(null, "navigation")}
                   openDisplaySettings={this.openDisplaySettings}
                   toggleSignUpModal={this.props.toggleSignUpModal}
+                  updateTopicsTab={this.props.updateTopicsTab}
                   key={"TopicPage"}
                 />);
       } else {
@@ -1134,6 +1137,7 @@ ReaderPanel.propTypes = {
   unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
   updateSearchTab:             PropTypes.func,
+  updateTopicsTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,

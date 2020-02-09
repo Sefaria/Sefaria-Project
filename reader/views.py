@@ -2898,11 +2898,11 @@ def topic_page(request, topic):
         if topic_obj is None:
             raise Http404
         topic = norm_topic
-
     props = base_props(request)
     props.update({
         "initialMenu": "topics",
         "initialTopic": topic,
+        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
         "topicData": _topic_data(topic),
     })
 

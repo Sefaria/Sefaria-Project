@@ -387,38 +387,42 @@ FilterableList.propTypes = {
 class TabView extends Component {
   constructor(props) {
     super(props);
+    const { currTabIndex } = props;
     this.state = {
-      openTabIndex: 0,
+      currTabIndex: (typeof currTabIndex == 'undefined' || currTabIndex == -1) ? 0 : currTabIndex,
     };
   }
   openTab(index) {
-    this.setState({openTabIndex: index});
+    this.setState({currTabIndex: index});
   }
   onClickTab(e) {
     let target = $(event.target);
     while (!target.attr("data-tab-index")) { target = target.parent(); }
     const tabIndex = parseInt(target.attr("data-tab-index"));
-    const { onClickArray } = this.props;
+    const { onClickArray, setTab, tabs } = this.props;
     if (onClickArray && onClickArray[tabIndex]) {
       onClickArray[tabIndex]();
     } else {
       this.openTab(tabIndex);
+      setTab && setTab(tabIndex, tabs);
     }
   }
   renderTab(tab, index) {
+    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className={classNames({active: this.state.openTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
   }
   render() {
+    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
       <div className="tab-view">
         <div className="tab-list">
           {this.props.tabs.map(this.renderTab)}
         </div>
-        { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
+        { React.Children.toArray(this.props.children)[currTabIndex] }
       </div>
     );
   }
@@ -426,6 +430,8 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs: PropTypes.array.isRequired,
   renderTab: PropTypes.func.isRequired,
+  currTabIndex: PropTypes.number,  // not required. If passed, TabView will be controlled from outside
+  setTab: PropTypes.func,          // not required. If passed, TabView will be controlled from outside
 };
 
 class DropdownOptionList extends Component {
@@ -457,6 +463,8 @@ class DropdownOptionList extends Component {
   }
 }
 DropdownOptionList.propTypes = {
+  initialTabIndex: PropTypes.number,
+  setTab: PropTypes.func,
   isOpen: PropTypes.bool.isRequired,
   options: PropTypes.array.isRequired,
   currOptionSelected: PropTypes.string.isRequired,

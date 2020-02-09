@@ -63,6 +63,7 @@ class ReaderApp extends Component {
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
           searchTab: props.initialSearchTab || "text",
+          topicsTab: props.initialTopicsTab || "sources",
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
@@ -105,6 +106,7 @@ class ReaderApp extends Component {
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
           searchTab: props.initialSearchTab || "text",
+          topicsTab: props.initialTopicsTab || "sources",
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
@@ -142,6 +144,7 @@ class ReaderApp extends Component {
         menuOpen: props.initialMenu,
         searchQuery: props.initialQuery,
         searchTab: props.initialSearchTab || "text",
+        topicsTab: props.initialTopicsTab || "sources",
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters: props.initialTextSearchFilters,
@@ -414,6 +417,7 @@ class ReaderApp extends Component {
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
+          (prev.topicsTab != next.topicsTab) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
@@ -550,7 +554,7 @@ class ReaderApp extends Component {
             break;
           case "topics":
             if (states[i].navigationTopic) {
-              hist.url   = "topics/" + state.navigationTopic;
+              hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
               hist.title = state.navigationTopic + " | " + Sefaria._(siteName);
               hist.mode  = "topic";
             } else {
@@ -865,6 +869,7 @@ class ReaderApp extends Component {
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
+      topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
@@ -1111,6 +1116,9 @@ class ReaderApp extends Component {
     tempSetState({
       [searchStateName]: searchState.update({ sortType })
     });
+  }
+  updateTopicsTab(tab) {
+    this.setHeaderState({ topicsTab: tab });
   }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -1699,6 +1707,7 @@ class ReaderApp extends Component {
                     searchInGroup={this.searchInGroup}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchTab={this.updateSearchTabInHeader}
+                    updateTopicsTab={this.updateTopicsTab}
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     updateSearchOptionField={this.updateSearchOptionFieldInHeader}
                     updateSearchOptionSort={this.updateSearchOptionSortInHeader}
