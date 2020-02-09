@@ -931,7 +931,7 @@ def renormalize_slugs():
 
     for t in ts:
         title = t.get_primary_title('en') if len(t.get_primary_title('en')) > 0 else t.get_primary_title('he')
-        if re.search(r'\d+$', t.slug) and temp_norm_slug(title) != t.slug:
+        if temp_norm_slug(title) != t.slug:  # re.search(r'\d+$', t.slug) and
             old_slug = t.slug
             new_alt_ids = getattr(t, 'alt_ids', {})
             new_alt_ids['_old_slug'] = old_slug
@@ -1332,9 +1332,11 @@ def supyo():
 
     deletes = set()
     sheet_links = RefTopicLinkSet({"is_sheet": True})
+    sheet_cache = {}
     for l in tqdm(sheet_links, total=sheet_links.count()):
         sid = int(l.ref.replace("Sheet ", ''))
-        sheet = db.sheets.find_one({"id": sid}, {"status": 1})
+        sheet = sheet_cache.get(sid, db.sheets.find_one({"id": sid}, {"status": 1}))
+        sheet_cache[sid] = sheet
         if sheet['status'] != 'public':
             deletes.add(l._id)
     db.topic_links.bulk_write([
