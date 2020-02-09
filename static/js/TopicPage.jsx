@@ -87,7 +87,7 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
     }, [topic]);
 
 
-    let topicBlocks = subtopics.map((t,i) => {
+    let topicBlocks = subtopics.filter(t => t.shouldDisplay !== false).map((t,i) => {
       const openTopic = e => {
         e.preventDefault();
         t.children ? setNavTopic(t.slug) : setTopic(t.slug);
