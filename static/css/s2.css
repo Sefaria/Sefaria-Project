@@ -1178,6 +1178,10 @@ input.noselect {
 .readerTocTopics .topicDescription {
   margin: 0 0 30px 0;
 }
+.readerTocTopics .topicDescription.systemText .int-en,
+.readerTocTopics .topicDescription.systemText .int-he {
+  color: #666;
+}
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
 }
@@ -1185,7 +1189,7 @@ input.noselect {
 }
 .topicPanel .tab-view .tab-list {
     border-bottom: 1px solid #CCC;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 .topicPanel .tab-view .filter-bar {
   margin-bottom: 30px;
@@ -1204,6 +1208,7 @@ input.noselect {
   align-items: center;
   width: unset;
   margin-bottom: 40px;
+  margin-top: 5px;
 }
 .topicPanel .resourcesLink.blue img {
   opacity: 1;
@@ -7347,6 +7352,9 @@ body .homeFeedWrapper .content {
 .mainColumn .story .storyTitle {
   padding: 5px 0 15px;
 }
+.topicPanel .mainColumn .story:first-child .storyTitle {
+  padding: 0 0 15px;
+}
 .mainColumn .story .storySubTitle {
   padding-bottom: 10px;
 }
@@ -7389,6 +7397,9 @@ img.smallProfileImage {
   margin: 10px 0;
   text-align: justify;
 }
+.interface-hebrew .story .contentText .he {
+  font-size: 22px;
+}
 .story .storySheetList {
   clear: both;
 }
@@ -7406,6 +7417,7 @@ img.smallProfileImage {
 }
 .story .saveLine {
   display: flex;
+  align-items: center;
   clear: both;
 }
 .story .saveLine .beforeSave {
