@@ -262,7 +262,7 @@ class RecommendationEngine:
         :param ref_list: list of orefs
         :param data_list: list of data to associate w/ refs (same length as ref_list)
         :param dist_threshold: max distance where you want two refs clustered
-        :return: List of lists where each internal list is a cluster
+        :return: List of lists where each internal list is a cluster of segment refs
         '''
 
         clusters = []
