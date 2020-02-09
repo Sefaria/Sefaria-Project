@@ -58,6 +58,9 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   if (interfaceLang === 'hebrew' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
     if (aTLangHe ^ bTLangHe && aLangHe ^ bLangHe) { return bTLangHe - aTLangHe; }  // title lang takes precedence over content lang
     return (bTLangHe + bLangHe) - (aTLangHe + aLangHe);
+  } else if (interfaceLang === 'english' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
+    if (aTLangHe ^ bTLangHe && aLangHe ^ bLangHe) { return aTLangHe - bTLangHe; }  // title lang takes precedence over content lang
+    return (aTLangHe + aLangHe) - (bTLangHe + bLangHe);
   }
   if (currSortOption === 'Views') {
     return b.order.views - a.order.views;
