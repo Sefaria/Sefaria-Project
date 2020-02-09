@@ -87,6 +87,15 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
+    def should_display(self):
+        return getattr(self, 'shouldDisplay', True) and getattr(self, 'numSources', 0) > 0
+
+    def set_slug(self, new_slug):
+        slug_field = self.slug_fields[0]
+        old_slug = getattr(self, slug_field)
+        setattr(self, slug_field, new_slug)
+        setattr(self, slug_field, self.normalize_slug(slug_field))
+        self.merge(old_slug)
 
     def merge(self, other):
         """
