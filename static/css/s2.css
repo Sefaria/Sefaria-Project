@@ -1920,6 +1920,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .sheetTags {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   padding-top: 30px;
   border-top: 1px solid #ccc;
 }
