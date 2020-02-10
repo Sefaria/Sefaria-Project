@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-09 16:08-0400\n"
+"POT-Creation-Date: 2020-02-10 06:56-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,7 @@ msgstr ""
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr ""
 
-#: reader/views.py:538 reader/views.py:2910
+#: reader/views.py:538 reader/views.py:2914
 msgid " | Sefaria"
 msgstr ""
 
@@ -193,21 +193,21 @@ msgstr ""
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr ""
 
-#: reader/views.py:2911
+#: reader/views.py:2915
 #, python-format
 msgid ""
 "Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. "
 msgstr ""
 
-#: reader/views.py:3168 reader/views.py:3254
+#: reader/views.py:3172 reader/views.py:3258
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3209
+#: reader/views.py:3213
 msgid "You must be logged in to update your profile photo."
 msgstr ""
 
-#: reader/views.py:4145 reader/views.py:4148
+#: reader/views.py:4149 reader/views.py:4152
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""

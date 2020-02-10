@@ -2909,7 +2909,7 @@ def topic_page(request, topic):
         },
         "topicData": _topic_data(topic),
     })
-    
+
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
     desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. ') % {'topic': topic_obj.get_primary_title(short_lang)}

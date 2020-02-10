@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-09 16:08-0400\n"
+"POT-Creation-Date: 2020-02-10 06:56-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,7 +39,7 @@ msgstr "%(book)s מקוון בליווי מפרשים וקשרים לטקסטי�
 msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr "צאו למסע בעקבות 3000 שנה של טקסטים יהודיים, בעברית ובתרגום לאנגלית"
 
-#: reader/views.py:538 reader/views.py:2910
+#: reader/views.py:538 reader/views.py:2914
 msgid " | Sefaria"
 msgstr " | ספריא"
 
@@ -204,26 +204,23 @@ msgstr "ספריא"
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "מקורות לפי נושא בספריא"
 
-#: reader/views.py:2911
-#, fuzzy, python-format
-#| msgid ""
-#| "Explore thousands of public Source Sheets drawing on Sefaria's library of "
-#| "Jewish texts."
+#: reader/views.py:2915
+#, python-format
 msgid ""
 "Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. "
 msgstr "סיירו %(topic)s בספריא, שמבוסס על הספרייה שלנו של טקסטים יהודיים. "
 
-#: reader/views.py:3168 reader/views.py:3254
+#: reader/views.py:3172 reader/views.py:3258
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
-#: reader/views.py:3209
+#: reader/views.py:3213
 #, fuzzy
 #| msgid "You must be logged in to update your profile."
 msgid "You must be logged in to update your profile photo."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
-#: reader/views.py:4145 reader/views.py:4148
+#: reader/views.py:4149 reader/views.py:4152
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאריכים ועוד"
