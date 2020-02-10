@@ -88,16 +88,17 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
 
 
     let topicBlocks = subtopics.filter(t => t.shouldDisplay !== false).map((t,i) => {
+      const { slug, children, en, he } = t;
       const openTopic = e => {
         e.preventDefault();
-        t.children ? setNavTopic(t.slug) : setTopic(t.slug);
+        t.children ? setNavTopic(slug) : setTopic(slug, {en, he});
       };
-      return <a href={`/topics/${t.children ? 'category/' : ''}${t.slug}`}
+      return <a href={`/topics/${children ? 'category/' : ''}${slug}`}
          onClick={openTopic}
          className="blockLink"
          key={i}>
-          <span className='en'>{t.en}</span>
-          <span className='he'>{t.he}</span>
+          <span className='en'>{en}</span>
+          <span className='he'>{he}</span>
       </a>
     });
 
@@ -167,7 +168,7 @@ const TopicPage = ({
     const [textData, setTextData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     let textCancel, sheetCancel;
-    const clearAndSetTopic = (topic) => {setTopicData(false); setTopic(topic)};
+    const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
     useEffect(() => {
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
         const d = await Sefaria.getTopic(topic);
@@ -390,18 +391,18 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-const TopicLink = ({topic, topicTitle, clearAndSetTopic, isTransliteration}) => {
-
-  return (
-    <Link className="relatedTopic" href={"/topics/" + topic} onClick={clearAndSetTopic.bind(null, topic)} key={topic} title={topicTitle.en}>
-      <InterfaceTextWithFallback
-        en={topicTitle.en}
-        he={topicTitle.he}
-        isItalics={isTransliteration}
-      />
-    </Link>
-  );
-};
+const TopicLink = ({topic, topicTitle, clearAndSetTopic, isTransliteration}) => (
+  <Link className="relatedTopic" href={`/topics/${topic}`}
+    onClick={clearAndSetTopic.bind(null, topic, topicTitle)} key={topic}
+    title={topicTitle.en}
+  >
+    <InterfaceTextWithFallback
+      en={topicTitle.en}
+      he={topicTitle.he}
+      isItalics={isTransliteration}
+    />
+  </Link>
+);
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
   clearAndSetTopic: PropTypes.func.isRequired,

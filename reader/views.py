@@ -2903,12 +2903,17 @@ def topic_page(request, topic):
         "initialMenu": "topics",
         "initialTopic": topic,
         "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTopicTitle": {
+            "en": topic_obj.get_primary_title('en'),
+            "he": topic_obj.get_primary_title('he')
+        },
         "topicData": _topic_data(topic),
     })
-
-    title = '{} | Sefaria'.format(topic_obj.get_primary_title('en'))
-    desc = 'Explore {} on Sefaria, drawing from our library of Jewish texts. {}'.format(topic_obj.get_primary_title('en'), getattr(topic_obj, 'description', {}).get('en', ''))
-
+    
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
+    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. ') % {'topic': topic_obj.get_primary_title(short_lang)}
+    desc += getattr(topic_obj, 'description', {}).get(short_lang, '')
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {

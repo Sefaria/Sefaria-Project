@@ -2215,7 +2215,7 @@ Sefaria = extend(Sefaria, {
     // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];
+      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {

@@ -84,6 +84,7 @@ class ReaderPanel extends Component {
       navigationTopicCategory:     props.initialNavigationTopicCategory || "",
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
+      topicTitle:           props.initialTopicTitle || null,
       sheetsGroup:          props.initialGroup || null,
       sheet:                props.sheet || null,
       sheetID:              null,
@@ -417,13 +418,14 @@ class ReaderPanel extends Component {
       // appliedSearchFilters: [],
       navigationSheetTag: null,
       navigationTopic: null,
+      topicTitle: null,
     });
   }
   setNavigationCategories(categories) {
     this.conditionalSetState({navigationCategories: categories});
   }
   setNavigationTopic(topic) {
-    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopic: null});
+    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopic: null, topicTitle: null});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -463,10 +465,11 @@ class ReaderPanel extends Component {
   setWebPagesFilter(filter) {
     this.conditionalSetState({webPagesFilter: filter, connectionsMode: "WebPagesList"});
   }
-  setTopic(topic) {
+  setTopic(navigationTopic, topicTitle) {
     this.conditionalSetState({
         menuOpen: "topics",
-        navigationTopic: topic
+        navigationTopic,
+        topicTitle
     });
   }
   toggleLanguage() {

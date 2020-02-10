@@ -80,6 +80,7 @@ class ReaderApp extends Component {
           navigationCategories: props.initialNavigationCategories,
           navigationTopicCategory: props.initialNavigationTopicCategory,
           navigationTopic: props.initialTopic,
+          topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
@@ -123,6 +124,7 @@ class ReaderApp extends Component {
           navigationCategories: props.initialNavigationCategories,
           navigationTopicCategory: props.initialNavigationTopicCategory,
           navigationTopic: props.initialTopic,
+          topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
@@ -161,6 +163,7 @@ class ReaderApp extends Component {
         navigationCategories: props.initialNavigationCategories,
         navigationTopicCategory: props.initialNavigationTopicCategory,
         navigationTopic: props.initialTopic,
+        topicTitle: props.initialTopicTitle,
         profile: props.initialProfile,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
@@ -554,8 +557,9 @@ class ReaderApp extends Component {
             break;
           case "topics":
             if (states[i].navigationTopic) {
+              const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
               hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
-              hist.title = state.navigationTopic + " | " + Sefaria._(siteName);
+              hist.title = `${state.topicTitle[shortLang]} | ${Sefaria._(siteName)}`;
               hist.mode  = "topic";
             } else {
               hist.url   = "topics";
@@ -866,6 +870,7 @@ class ReaderApp extends Component {
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
+      topicTitle:              state.topicTitle              || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
