@@ -73,13 +73,13 @@ class TopicPageAll extends Component {
 
   render() {
     const hasFilter = this.state.filter.length > 0;
-    const topicList = this.state.topicList ? this.state.topicList.slice(0, hasFilter ? undefined : 500).filter(item => {
+    const topicList = this.state.topicList ? this.state.topicList.filter(item => {
       if (!hasFilter) { return true }
       for (let title of item.normTitles) {
         if (title.indexOf(this.state.filter) !== -1) { return true; }
       }
       return false;
-    }).map(this.renderButton) : null;
+    }).slice(0, 500).map(this.renderButton) : null;
     const isHeInt = Sefaria.interfaceLang == "hebrew";
     const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
