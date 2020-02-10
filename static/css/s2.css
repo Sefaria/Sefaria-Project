@@ -1091,6 +1091,14 @@ input.noselect {
 .topicPanel .mainColumn {
   padding: 0 0 0 50px;
 }
+@media (max-width: 450px) {
+  .topicPanel .mainColumn {
+    padding: 0 50px;
+  }
+  .topicPanel .filterable-list .filter-sort-wrapper {
+    margin-top: 20px;
+  }
+}
 .interface-hebrew .topicPanel .mainColumn {
   padding: 0 50px 0 0;
 }
@@ -6742,6 +6750,7 @@ span.purim-emoji img{
   justify-content: space-between;
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: row;
 }
 .filterable-list .filter-bar-new .filter-input {

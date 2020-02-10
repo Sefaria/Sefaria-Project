@@ -337,7 +337,7 @@ class FilterableList extends Component {
                 onChange={this.onFilterChange}
               />
             </div>
-            <div>
+            <div className="filter-sort-wrapper">
               <span className="systemText">
                 <span className="int-en">Sort by</span>
                 <span className="int-he">מיון לפי</span>
