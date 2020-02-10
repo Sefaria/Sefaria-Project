@@ -97,8 +97,8 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
          onClick={openTopic}
          className="blockLink"
          key={i}>
-          <span className='en'>{en}</span>
-          <span className='he'>{he}</span>
+          <span className='en'>{en || he}</span>
+          <span className='he'>{he || en}</span>
       </a>
     });
 
