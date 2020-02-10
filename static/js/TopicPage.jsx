@@ -126,7 +126,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
     <div>
         <div className="topicTitle pageTitle">
           <h1>
-            <InterfaceTextWithFallback en={en} he={he} isItalics={isTransliteration} />
+            <InterfaceTextWithFallback en={en} he={he} isItalics={false} />
             { !! he ? <span className="topicTitleInHe"><span className="int-en but-text-is-he">{` (${he})`}</span></span> : null}
 
           </h1>
@@ -399,7 +399,7 @@ const TopicLink = ({topic, topicTitle, clearAndSetTopic, isTransliteration}) => 
     <InterfaceTextWithFallback
       en={topicTitle.en}
       he={topicTitle.he}
-      isItalics={isTransliteration}
+      isItalics={false}
     />
   </Link>
 );

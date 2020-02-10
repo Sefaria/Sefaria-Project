@@ -1147,16 +1147,19 @@ input.noselect {
   color: #888;
 }
 .topicPanel .sideColumn .sideList a .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .sideColumn .sideList a .int-he {
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
 }
 .topicPanel .story .storySheetList .pageTitle span {
   font-size: 24px;
+}
+.topicPanel .story .storySheetList .pageTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
@@ -1165,18 +1168,28 @@ input.noselect {
 .topicPanel .pageTitle span {
   font-size: 24px;
 }
+.story .storyTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
 .topicPanel .pageTitle h1 span {
   font-size: 30px;
+}
+.topicPanel .pageTitle h1 .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
   font-size: 20px;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .topicCategory {
   margin: 0 0 15px 0;
 }
 .readerTocTopics .topicDescription {
   margin: 0 0 30px 0;
+}
+.readerTocTopics .topicTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
@@ -1224,7 +1237,8 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .resourcesLink.blue .int-he {
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  margin-bottom: -3px;
 }
 h1 .languageToggle {
   text-align: center;
@@ -7352,8 +7366,8 @@ body .homeFeedWrapper .content {
 .mainColumn .story .storyTitle {
   padding: 5px 0 15px;
 }
-.topicPanel .mainColumn .story:first-child .storyTitle {
-  padding: 0 0 15px;
+.topicPanel .mainColumn .story .storyTitle {
+  padding: 0;
 }
 .mainColumn .story .storySubTitle {
   padding-bottom: 10px;
@@ -7397,8 +7411,8 @@ img.smallProfileImage {
   margin: 10px 0;
   text-align: justify;
 }
-.interface-hebrew .story .contentText .he {
-  font-size: 22px;
+.story .contentText .he {
+  font-size: 21.6px;
 }
 .story .storySheetList {
   clear: both;
