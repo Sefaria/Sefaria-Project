@@ -53,16 +53,20 @@ class TopicPageAll extends Component {
   }
 
   renderButton(item)  {
+    const topicTitle = {
+      en: this.getPrimaryTitle(item, 'en'),
+      he: this.getPrimaryTitle(item, 'he'),
+    };
     return (
       <Link
         className={classNames({navButton: 1, sheetButton: 1 })}
         href={"/topics/" + item.slug}
-        onClick={this.props.setTopic.bind(null, item.slug)}
+        onClick={this.props.setTopic.bind(null, item.slug, topicTitle)}
         title={"Explore sources related to '" + item.slug + "'"}
         key={item.slug}
       >
-        <span className="int-en">{this.getPrimaryTitle(item, 'en')}</span>
-        <span className="int-he">{this.getPrimaryTitle(item, 'he')}</span>
+        <span className="int-en">{topicTitle.en}</span>
+        <span className="int-he">{topicTitle.he}</span>
       </Link>
     );
   }
