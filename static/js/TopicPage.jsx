@@ -250,6 +250,13 @@ const TopicPage = ({
       tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true });
       onClickFilterIndex = tabs.length - 1;
     }
+    let tabIndex = tabs.findIndex(t => t.id === tab);
+    if (tabIndex == -1 && tabs.length > 0) { tabIndex = 0; }
+    useEffect(() => {
+      if (!!tabs[tabIndex]) {
+        updateTopicsTab(tabs[tabIndex].id);
+      }
+    }, [tabIndex]);
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -258,7 +265,7 @@ const TopicPage = ({
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic}/>
                    {!!topicData?
                        <TabView
-                          currTabIndex={tabs.findIndex(t => t.id === tab)}
+                          currTabIndex={tabIndex}
                           setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
                           tabs={tabs}
                           renderTab={t => (

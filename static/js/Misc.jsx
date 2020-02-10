@@ -389,7 +389,7 @@ class TabView extends Component {
     super(props);
     const { currTabIndex } = props;
     this.state = {
-      currTabIndex: (typeof currTabIndex == 'undefined' || currTabIndex == -1) ? 0 : currTabIndex,
+      currTabIndex: (typeof currTabIndex == 'undefined') ? 0 : currTabIndex,
     };
   }
   openTab(index) {
