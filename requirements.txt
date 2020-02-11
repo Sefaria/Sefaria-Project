@@ -8,7 +8,7 @@ dateutils==0.6.6
 datrie==0.8
 deepdiff==3.3.0
 diff-match-patch==20181111
-Django==1.11.24
+Django==1.11.28
 django-anymail==7.0.0
 django-easy-timezones==0.8.0
 django-mobile==0.7.0
