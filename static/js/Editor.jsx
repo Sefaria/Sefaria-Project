@@ -28,6 +28,7 @@ const sheet_item_els = {
 
 const voidElements = [
     "ProfilePic",
+    "GroupStatement"
 ];
 
 const ELEMENT_TAGS = {
@@ -540,7 +541,7 @@ const Element = ({attributes, children, element}) => {
                     len={30}
                     name={element.authorStatement}
                     outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-                />
+                >{children}</ProfilePic>
             );
 
         case 'GroupStatement':
@@ -670,7 +671,6 @@ const withSefariaSheet = editor => {
       const [node, path] = entry;
 
       let sheetElementTypes = Object.values(sheet_item_els);
-      console.log(editor)
 
       if (node.type == "Sheet") {
           if (node.children) {
@@ -704,6 +704,10 @@ const withSefariaSheet = editor => {
             return
           }
         }
+        if (node.children.length == 1) {
+          console.log(node.children[0])
+        }
+
       }
 
 
