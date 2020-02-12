@@ -252,6 +252,7 @@ const TopicPage = ({
     }
     let tabIndex = tabs.findIndex(t => t.id === tab);
     if (Array.isArray(topicSheets) && Array.isArray(topicSheets) && tabIndex == -1 && tabs.length > 0) {
+      // check topicSheets isArray which means setTopicSheets() has run
       tabIndex = 0;
     }
     useEffect(() => {
