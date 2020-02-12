@@ -166,6 +166,7 @@ class ProfilePic extends Component {
             onError={this.setShowDefault}
           /> : null
         }
+        {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
@@ -1915,7 +1916,7 @@ const GroupStatement = (props) => (
             </a>
           </div>
           <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
-        </div> : null
+        </div> : <span>{props.children ? props.children : null /*required for slate.js*/}</span>
 )
 
 GroupStatement.propTypes = {
