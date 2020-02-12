@@ -87,7 +87,10 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
     }, [topic]);
 
 
-    let topicBlocks = subtopics.filter(t => t.shouldDisplay !== false).map((t,i) => {
+    let topicBlocks = subtopics
+      .filter(t => t.shouldDisplay !== false)
+      .sort((a, b) => (0+(a.slug === topic)) - (0+(b.slug === topic)))
+      .map((t,i) => {
       const { slug, children, en, he } = t;
       const openTopic = e => {
         e.preventDefault();
