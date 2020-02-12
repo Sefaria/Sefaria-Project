@@ -251,7 +251,7 @@ const TopicPage = ({
       onClickFilterIndex = tabs.length - 1;
     }
     let tabIndex = tabs.findIndex(t => t.id === tab);
-    if (Array.isArray(topicSheets) && tabIndex == -1 && tabs.length > 0) {
+    if (Array.isArray(topicSheets) && Array.isArray(topicSheets) && tabIndex == -1 && tabs.length > 0) {
       tabIndex = 0;
     }
     useEffect(() => {
