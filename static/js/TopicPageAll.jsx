@@ -6,6 +6,7 @@ const {
   LoadingMessage,
   TwoOrThreeBox,
   Link,
+  InterfaceTextWithFallback,
 }                         = require('./Misc');
 const React               = require('react');
 const PropTypes           = require('prop-types');
@@ -65,8 +66,7 @@ class TopicPageAll extends Component {
         title={"Explore sources related to '" + item.slug + "'"}
         key={item.slug}
       >
-        <span className="int-en">{topicTitle.en}</span>
-        <span className="int-he">{topicTitle.he}</span>
+        <InterfaceTextWithFallback en={topicTitle.en} he={topicTitle.he} />
       </Link>
     );
   }
