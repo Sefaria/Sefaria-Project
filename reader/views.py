@@ -44,7 +44,7 @@ from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag,
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.talmud import daf_to_section
-from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
@@ -1345,7 +1345,7 @@ def old_recent_redirect(request):
 @catch_error_as_json
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
-    p = this_weeks_parasha(datetime.now(), request.diaspora)
+    p = get_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
     #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
@@ -2182,6 +2182,21 @@ def calendars_api(request):
                                  "timezone" : timezone.get_current_timezone_name(),
                                  "calendar_items": calendars},
                                 callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
+def parasha_next_read_api(request, parasha):
+    """
+    Get info on when `parasha` is next read.
+    Returns JSON with Haftarahs read and date of when this parasha is next read
+    :param request:
+    :return:
+    """
+    from sefaria.utils.calendars import parashat_hashavua_and_haftara
+    if request.method == "GET":
+        datetimeobj = timezone.localtime(timezone.now())
+        return jsonResponse(parashat_hashavua_and_haftara(datetimeobj, request.diaspora, parasha=parasha, ret_type='dict'))
 
 
 @catch_error_as_json

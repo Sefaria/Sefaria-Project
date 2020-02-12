@@ -1165,10 +1165,10 @@ def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
     :return:
     """
     from django.utils import timezone
-    from sefaria.utils.calendars import this_weeks_parasha
+    from sefaria.utils.calendars import get_parasha
     now = timezone.localtime(timezone.now())
-    il = this_weeks_parasha(now, diaspora=False)
-    da = this_weeks_parasha(now, diaspora=True)
+    il = get_parasha(now, diaspora=False)
+    da = get_parasha(now, diaspora=True)
 
     if da["ref"] == il["ref"]:
         create_story_fn(il, **kwargs)

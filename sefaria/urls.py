@@ -153,6 +153,7 @@ urlpatterns += [
     url(r'^api/shape/(?P<title>.+)$', reader_views.shape_api),
     url(r'^api/preview/(?P<title>.+)$', reader_views.text_preview_api),
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
+    url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
