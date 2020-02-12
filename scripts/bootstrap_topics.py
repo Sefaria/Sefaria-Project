@@ -1343,3 +1343,18 @@ def supyo():
         DeleteOne({"_id": _id} for _id in deletes)
     ])
 
+
+def modify_parashot():
+    pars = IntraTopicLinkSet({"toTopic": "parasha", "linkType": "displays-under"})
+    pars = [Topic().load({'slug': l.fromTopic}) for l in pars]
+    pars = list(filter(lambda x: getattr(x, 'ref', False), pars))
+    for p in pars:
+        sans_par_en = p.get_primary_title('en')
+        sans_par_en.replace('Parashat ', '')
+        sans_par_he = p.get_primary_title('he')
+        sans_par_en.replace('פרשת ', '')
+        p.add_title('Parashat {}'.format(sans_par_en), 'en', True, True)
+        p.add_title('פרשת {}'.format(sans_par_he), 'he', True, True)
+        p.save()
+
+

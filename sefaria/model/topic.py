@@ -22,6 +22,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'displayOrder',
         'numSources',
         'shouldDisplay',
+        'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
     ]
     uncategorized_topic = 'uncategorized0000'
@@ -156,6 +157,12 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                     setattr(self, attr, getattr(other, attr))
             self.save()
             other.delete()
+
+    def __str__(self):
+        return self.get_primary_title("en")
+
+    def __repr__(self):
+        return "{}().load({{'slug': '{}'}}".format(self.__class__.__name__, self.slug)
 
 
 class TopicSet(abst.AbstractMongoSet):
