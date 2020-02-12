@@ -1093,7 +1093,7 @@ input.noselect {
 }
 @media (max-width: 450px) {
   .topicPanel .mainColumn {
-    padding: 0 50px;
+    padding: 0 25px;
   }
   .topicPanel .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
@@ -1127,7 +1127,7 @@ input.noselect {
 .topicPanel h2 span {
   font-size: 22px;
   font-weight: normal;
-  color: #888;
+  color: #666;
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
@@ -1152,7 +1152,7 @@ input.noselect {
 }
 .topicPanel .sideColumn .sideList a {
   display: block;
-  color: #888;
+  color: #000;
 }
 .topicPanel .sideColumn .sideList a .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -1168,6 +1168,7 @@ input.noselect {
 }
 .topicPanel .story .storySheetList .pageTitle .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 29px;
 }
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
@@ -1178,12 +1179,14 @@ input.noselect {
 }
 .story .storyTitle .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 29px;
 }
 .topicPanel .pageTitle h1 span {
   font-size: 30px;
 }
 .topicPanel .pageTitle h1 .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 36px;
 }
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
@@ -7420,8 +7423,12 @@ img.smallProfileImage {
   margin: 10px 0;
   text-align: justify;
 }
+.story .contentText .en {
+  line-height: 1.6;
+}
 .story .contentText .he {
-  font-size: 21.6px;
+  font-size: 22px;
+  line-height: 1.6;
 }
 .story .storySheetList {
   clear: both;
