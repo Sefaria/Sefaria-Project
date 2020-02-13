@@ -1215,9 +1215,7 @@ class SheetListing extends Component {
                   key={topic.slug}
                   onClick={this.handleTopicClick.bind(null, topic.slug)}>{topic.asTyped}{separator}</a>)
     });
-    const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
-    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    const created = (new Date(sheet.created)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+    const created = Sefaria.util.localeDate(sheet.created);
     const underInfo = this.props.infoUnderneath ? [
         sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
         `${sheet.views} ${Sefaria._('Views')}`,

@@ -1088,6 +1088,21 @@ input.noselect {
   letter-spacing: 1px;
   margin: 0 0 10px 0;
 }
+.topicPanel .readings {
+  margin-bottom: 40px;
+}
+.topicPanel .readings .parasha-date {
+}
+.topicPanel .readings .sectionTitleText {
+  margin-top: 20px;
+}
+.topicPanel .readings .haftarot {
+  display: flex;
+  flex-direction: column;
+}
+.topicPanel .readings .sectionTitleText:first-child {
+  margin-top: 20px;
+}
 .topicPanel .mainColumn {
   padding: 0 0 0 50px;
 }
@@ -1121,7 +1136,7 @@ input.noselect {
   margin-top: 30px;
   margin-bottom: 10px;
 }
-.topicPanel .sideColumn div:first-child h2 {
+.topicPanel .sideColumn .link-section:first-child h2 {
   margin-top: 0;
 }
 .topicPanel h2 span {
@@ -5544,6 +5559,11 @@ h2.splitHeader .he {
 }
 .groupMemberListingActionsMenu .role.current {
   color: #666;
+}
+.topicPanel .smallText .separator {
+  color: #999;
+  font-size: 20px;
+  margin: 0 3px;
 }
 .topicsPanel .loadingMessage {
   text-align: center;

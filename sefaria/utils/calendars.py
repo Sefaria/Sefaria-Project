@@ -262,10 +262,16 @@ def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, para
     if ret_type == 'list':
         parasha_items = parasha_item + haftarah_item
     elif ret_type == 'dict':
+        from sefaria.utils.util import get_hebrew_date
+        he_date_in_english, he_date_in_hebrew = get_hebrew_date(db_parasha.get('date', None))
         parasha_items = {
-            'parasha': parasha_item,
+            'parasha': parasha_item[0],
             'haftarah': haftarah_item,
-            'date': db_parasha.get('date', None)
+            'date': db_parasha.get('date', None),
+            'he_date': {
+                "en": he_date_in_english,
+                "he": he_date_in_hebrew
+            }
         }
     return parasha_items
 

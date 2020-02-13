@@ -169,12 +169,14 @@ const TopicPage = ({
     const [topicSheets, setTopicSheets] = useState(false);
     const [sheetData, setSheetData] = useState(null);
     const [textData, setTextData] = useState(null);
+    const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     let textCancel, sheetCancel;
     const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
     useEffect(() => {
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
         const d = await Sefaria.getTopic(topic);
+        if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         let refMap = {};
         for (let refObj of d.refs.filter(s => !s.is_sheet)) {
@@ -333,7 +335,8 @@ const TopicPage = ({
                    :""}
                 </div>
                 <div className="sideColumn">
-                    <TopicSideColumn key={topic} links={topicData.links} clearAndSetTopic={clearAndSetTopic} />
+                    <TopicSideColumn key={topic} links={topicData.links}
+                      clearAndSetTopic={clearAndSetTopic} parashaData={parashaData} tref={topicData.ref}/>
                 </div>
             </div>
           </div>
@@ -422,9 +425,12 @@ TopicLink.propTypes = {
   isTransliteration: PropTypes.object,
 };
 
-const TopicSideColumn = ({ links, clearAndSetTopic }) => {
+const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref }) => {
   const [showMoreMap, setShowMoreMap] = useState({});
-  return (
+  const readingsComponent = (parashaData && tref) ? (
+    <ReadingsComponent parashaData={parashaData} tref={tref} />
+  ) : null;
+  const linksComponent = (
     links ?
       Object.values(links)
       .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.length > 0)
@@ -438,7 +444,7 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => {
         return a.title.en.localeCompare(b.title.en);
       })
       .map(({ title, pluralTitle, links }) => (
-        <div key={title.en}>
+        <div key={title.en} className="link-section">
           <h2>
             <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
             <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he :title.he}</span>
@@ -474,11 +480,43 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => {
       ))
     : ""
   );
+  return (
+    <div>
+      { readingsComponent }
+      { linksComponent }
+    </div>
+  )
 }
 TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
   clearAndSetTopic: PropTypes.func.isRequired,
 };
+
+const ReadingsComponent = ({ parashaData, tref }) => (
+  <div className="readings link-section">
+    <h2>
+      <InterfaceTextWithFallback en={"Readings"} he={"Readings (HE)"} />
+    </h2>
+    <span className="smallText parasha-date">
+      <InterfaceTextWithFallback en={Sefaria.util.localeDate(parashaData.date)} he={Sefaria.util.localeDate(parashaData.date)} />
+      <span className="separator">·</span>
+      <InterfaceTextWithFallback {...parashaData.he_date} />
+    </span>
+
+    <div className="sectionTitleText"><InterfaceTextWithFallback en={"Torah"} he={"תורה"} /></div>
+    <a href={'/' + tref.url} className="contentText"><InterfaceTextWithFallback en={tref.en} he={norm_hebrew_ref(tref.he)} /></a>
+    <div className="sectionTitleText"><InterfaceTextWithFallback en={"Haftarah"} he={"הפטרה"} /></div>
+    <div className="haftarot">
+    {
+      parashaData.haftarah.map(h => (
+        <a href={'/' + h.url} className="contentText" key={h.url}>
+          <InterfaceTextWithFallback en={h.displayValue.en} he={norm_hebrew_ref(h.displayValue.he)} />
+        </a>
+      ))
+    }
+    </div>
+  </div>
+);
 
 
 module.exports.TopicPage = TopicPage;
