@@ -72,7 +72,7 @@ class TopicPageAll extends Component {
   }
 
   render() {
-    const hasFilter = this.state.filter.length > 0;
+    const hasFilter = this.state.filter.length > 1;  // dont filter by one letter. not useful
     const topicList = this.state.topicList ? this.state.topicList.filter(item => {
       if (!hasFilter) { return true }
       for (let title of item.normTitles) {
