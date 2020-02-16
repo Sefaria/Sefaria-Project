@@ -1088,6 +1088,9 @@ input.noselect {
   letter-spacing: 1px;
   margin: 0 0 10px 0;
 }
+.readerNavMenu.topicPanel {
+  background-color: white;
+}
 .topicPanel .readings {
   margin-bottom: 40px;
 }
@@ -1119,6 +1122,7 @@ input.noselect {
 }
 .topicPanel .sideColumn {
   padding: 0 50px;
+  background-color: white;
 }
 .topicPanel h1 {
   text-align: unset;
