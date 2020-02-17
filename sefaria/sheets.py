@@ -21,6 +21,7 @@ from sefaria.model.group import Group
 from sefaria.model.story import UserStory, UserStorySet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.system.exceptions import InputError
+from pymongo.errors import DuplicateKeyError
 from sefaria.system.cache import django_cache
 from history import record_sheet_publication, delete_sheet_publication
 from settings import SEARCH_INDEX_ON_SAVE
@@ -297,7 +298,10 @@ def rebuild_sheet_nodes(sheet):
 			if node_number not in used_nodes:
 				return node_number
 
-	sheet_id = sheet["id"]
+	try:
+		sheet_id = sheet["id"]
+	except KeyError:  # this will occur on new sheets, as we won't know the id until the sheet is succesfully saved
+		sheet_id = 'New Sheet'
 	next_node, checked_sources, nodes_used = 0, [], set()
 
 	for source in sheet.get("sources", []):
@@ -313,7 +317,7 @@ def rebuild_sheet_nodes(sheet):
 			nodes_used.add(next_node)
 
 		elif source["node"] in nodes_used:
-			print "found repeating node in sheet " + str(sheet["id"])
+			print "found repeating node in sheet " + str(sheet_id)
 			next_node = find_next_unused_node(next_node, nodes_used)
 			source["node"] = next_node
 
@@ -347,9 +351,18 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	"""
 	Saves sheet to the db, with user_id as owner.
 	"""
+	def next_sheet_id():
+		last_id = db.sheets.find().sort([['id', -1]]).limit(1)
+		if last_id.count():
+			sheet_id = last_id.next()["id"] + 1
+		else:
+			sheet_id = 1
+		return sheet_id
+
 	sheet["dateModified"] = datetime.now().isoformat()
 	status_changed = False
 	if "id" in sheet:
+		new_sheet = False
 		existing = db.sheets.find_one({"id": sheet["id"]})
 
 		if sheet["lastModified"] != existing["dateModified"]:
@@ -370,12 +383,8 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		sheet = existing
 
 	else:
+		new_sheet = True
 		sheet["dateCreated"] = datetime.now().isoformat()
-		lastId = db.sheets.find().sort([['id', -1]]).limit(1)
-		if lastId.count():
-			sheet["id"] = lastId.next()["id"] + 1
-		else:
-			sheet["id"] = 1
 		if "status" not in sheet:
 			sheet["status"] = "unlisted"
 		sheet["owner"] = user_id
@@ -392,7 +401,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			checked_sources.append(source)
 		sheet["sources"] = checked_sources
 
-	if status_changed:
+	if status_changed and not new_sheet:
 		if sheet["status"] == "public" and "datePublished" not in sheet:
 			# PUBLISH
 			sheet["datePublished"] = datetime.now().isoformat()
@@ -414,7 +423,19 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 
 	if rebuild_nodes:
 		sheet = rebuild_sheet_nodes(sheet)
-	db.sheets.update({"id": sheet["id"]}, sheet, True, False)
+
+	if new_sheet:
+		# mongo enforces a unique sheet id, get a new id until a unique one has been found
+		while True:
+			try:
+				sheet["id"] = next_sheet_id()
+				db.sheets.insert_one(sheet)
+				break
+			except DuplicateKeyError:
+				pass
+
+	else:
+		db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
 
 	if "tags" in sheet:
 		update_sheet_tags(sheet["id"], sheet["tags"])
@@ -477,7 +498,7 @@ def add_source_to_sheet(id, source, note=None):
 		'ref' (indicating a source)
 		'outsideText' (indicating a single language outside text)
 		'outsideBiText' (indicating a bilingual outside text)
-	    'comment' (indicating a comment)
+		'comment' (indicating a comment)
 		'media' (indicating a media object)
 	if string `note` is present, add it as a coment immediately after the source.
 		pass
@@ -669,7 +690,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
 				"groupTOC":        sheet.get("groupTOC", None),
-			    "ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
 				"assignerName":	   sheet.get("assignerName", None),

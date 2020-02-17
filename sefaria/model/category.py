@@ -186,7 +186,9 @@ class TocTree(object):
                 logger.warning(u"Failed to find category for {}".format(i.categories))
                 continue
             cat.append(node)
-            vs = self._vs_lookup[i.title]
+            vs = self._vs_lookup.get(i.title, None)
+            if not vs:
+                continue
             # If any text in this category is incomplete, the category itself and its parents are incomplete
             for field in ("enComplete", "heComplete"):
                 for acat in [cat] + list(reversed(cat.ancestors())):
