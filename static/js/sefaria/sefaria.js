@@ -697,7 +697,18 @@ Sefaria = extend(Sefaria, {
       });
   },
   _lexiconLookups: {},
+  getLexiconWords: function(words, ref) {
+    // Returns Promise which resolve to a list of lexicon entries for the given words
+    ref = typeof ref !== "undefined" ? ref : null;
+    words = typeof words !== "undefined" ? words : "";
+    if (words.length <= 0) { return Promise.resolve([]); }
+
+    const key = ref ? words + "|" + ref : words;
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
+    return this._cachedApiPromise({url, key, store: this._lexiconLookups});
+  },
   lexicon: function(words, ref, cb){
+    // Deprecated in favor of getLexiconWords, which returns a Promise.
     // Returns a list of lexicon entries for the given words
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
