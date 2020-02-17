@@ -43,6 +43,11 @@ class InterruptingMessage(object):
       if self.request.LANGUAGE_CODE != "en":
         return False
 
+    # Filter logged out users
+    if self.condition.get("logged_in_only", True):
+      if not self.request.user.is_authenticated:
+        return False
+
     return True
 
   def json(self):
