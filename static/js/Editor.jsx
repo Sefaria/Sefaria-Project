@@ -625,6 +625,28 @@ const getNextSheetItemPath = (SheetItemPath) => {
     return path
 };
 
+async function getRefInText(editor) {
+  const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
+  if (!closestSheetItem) {return null}
+  const query = Node.string(closestSheetItem[0]);
+
+  const ref = await Sefaria.getName(query)
+      .then(d => {
+    // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+    if (Sefaria.isACaseVariant(query, d)) {
+      this.submitSearch(Sefaria.repairCaseVariant(query, d));
+      return;
+    }
+
+    if (d["is_ref"] && (d["is_segment"] || d["is_section"]) ) {
+      return(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+    }
+    else {
+      return null;
+    }
+  });
+  return ref
+}
 
 
 const getFirstSefRefInSheetItem = (editor) => {
@@ -659,19 +681,20 @@ const withSefariaSheet = editor => {
             return
         }
 
-        const refInNode = getFirstSefRefInSheetItem(editor);
-        if (refInNode) {
-            insertSource(editor, refInNode);
-            return
-        }
+        getRefInText(editor).then(refInNode =>{
+          if (refInNode) {
+              insertSource(editor, refInNode)
+              return
+          }
 
-        const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
-        if (selectionAtEdge) {
-            insertOutsideText(editor, selectionAtEdge);
-            return
-        }
+          const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
+          if (selectionAtEdge) {
+              insertOutsideText(editor, selectionAtEdge);
+              return
+          }
 
-        editor.insertText("\n");
+          editor.insertText("\n");
+        })
 
     };
 
@@ -682,7 +705,7 @@ const withSefariaSheet = editor => {
 
       if (node.type == "Sheet") {
           if (node.children) {
-              console.log(`Sheet has ${node.children.length} children`)
+              // console.log(`Sheet has ${node.children.length} children`)
           }
       }
 
@@ -713,7 +736,7 @@ const withSefariaSheet = editor => {
           }
         }
         if (node.children.length == 1) {
-          console.log(node.children[0])
+          // console.log(node.children[0])
         }
 
       }
@@ -1133,11 +1156,11 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
-        console.log('saving...')
+        // console.log('saving...')
 
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
-            console.log("saved at: "+ res.dateModified);
+            // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
         });
     }
@@ -1168,11 +1191,13 @@ const SefariaEditor = (props) => {
     const onKeyDown = event => {
         // add ref on space if end of line
         if (event.key == " ") {
-            const refInNode = getFirstSefRefInSheetItem(editor);
-            if (refInNode) {
-                insertSource(editor, refInNode)
-                return
-            }
+
+            getRefInText(editor).then(refInNode =>{
+              if (refInNode) {
+                  insertSource(editor, refInNode)
+                  return
+              }
+            })
         }
     };
 
