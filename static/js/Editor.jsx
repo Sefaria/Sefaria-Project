@@ -28,7 +28,8 @@ const sheet_item_els = {
 
 const voidElements = [
     "ProfilePic",
-    "GroupStatement"
+    "GroupStatement",
+    "SheetMedia"
 ];
 
 const ELEMENT_TAGS = {
@@ -500,6 +501,25 @@ const Element = ({attributes, children, element}) => {
             );
 
         case 'SheetMedia':
+
+            if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
+              return <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
+            }
+            else if (element.mediaUrl.toLowerCase().indexOf('youtube') > 0) {
+              return <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameborder="0" allowfullscreen></iframe>{children}</div></div>
+            }
+            else if (element.mediaUrl.toLowerCase().indexOf('soundcloud') > 0) {
+              return <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameborder="no" src={element.mediaUrl}></iframe>{children}</div>
+            }
+
+            else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
+              return <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
+            }
+
+            else {
+              return <div className="SheetMedia media fullWidth">{children}</div>
+            }
+
             return (
                 <div className="SheetMetaDataBox" {...attributes}>
                     {children}
