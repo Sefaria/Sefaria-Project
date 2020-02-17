@@ -80,12 +80,16 @@ steps:
   #
   # Post-Deploy Tasks
   #
-  # Flush Varnish -- Helm Post-Deploy Hook
-  # Purge CloudFlare -- Helm Post-Deploy Hook
-  # Prime Webserver Cache -- Helm Post-Deploy Hook or import into application (do on application startup)
-  # Send Slack Notification -- Probably via Pub/Sub message sent to Slack
-  # Messy piece: flushed caches should be repopulating from outmodded servers
-    # 'wait_for' script didn't work
+  # NB: Move these into Helm post-deploy hooks or into the application
+  # Post Deploy
+  - name: 'gcr.io/cloud-builders/kubectl'
+    entrypoint: "bash"
+    dir: "k8s-admin/scripts"
+    args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $SHORT_SHA"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=${_TARGET_REGION}'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=${_TARGET_CLUSTER}'
+
   # Todo: 
   # * Share /node_modules while having Dockerfiles that call `npm install`
   #   * I want Dockerfiles to be agnostic about their location -- the old
