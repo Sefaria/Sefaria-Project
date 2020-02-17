@@ -446,6 +446,14 @@ sites_data = [
     {
         "name": "Tradition Online",
         "domains": ["traditiononline.org"]
+    },
+    {
+        "name": "Partners in Torah",
+        "domains": ["partnersintorah.org"]
+    },
+    {
+        "name": "The Lehrhaus",
+        "domains": ["thelehrhaus.com"]
     }
 
 ]
