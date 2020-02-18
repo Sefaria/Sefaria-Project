@@ -17,7 +17,7 @@ const local_settings = {
   }(),
 
   NODEJS_PORT: function(){
-    if ('NDOEJS_PORT' in process.env) {
+    if ('NODEJS_PORT' in process.env) {
       return process.env.NODEJS_PORT;
     } else {
       return 3000; // default;
