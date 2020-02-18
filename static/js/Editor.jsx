@@ -650,6 +650,8 @@ async function getRefInText(editor) {
   if (!closestSheetItem) {return null}
   const query = Node.string(closestSheetItem[0]);
 
+  if (query.length > 100) {return null} //if query length is too long, 413 errors can occur
+
   const ref = await Sefaria.getName(query)
       .then(d => {
     // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
