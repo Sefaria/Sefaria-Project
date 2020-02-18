@@ -121,7 +121,7 @@ class TopicPageAll extends Component {
               { topicList ?
                   (topicList.length ?
                       <div>
-                        { this.state.filter.length ? null :
+                        { hasFilter ? null :
                           <h3>
                             <span className="int-en">Most Used</span>
                             <span className="int-he">הכי בשימוש</span>
