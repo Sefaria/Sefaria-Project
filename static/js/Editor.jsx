@@ -506,10 +506,10 @@ const Element = ({attributes, children, element}) => {
               return <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
             else if (element.mediaUrl.toLowerCase().indexOf('youtube') > 0) {
-              return <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameborder="0" allowfullscreen></iframe>{children}</div></div>
+              return <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
             else if (element.mediaUrl.toLowerCase().indexOf('soundcloud') > 0) {
-              return <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameborder="no" src={element.mediaUrl}></iframe>{children}</div>
+              return <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
 
             else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
@@ -825,6 +825,31 @@ const withSefariaSheet = editor => {
     return editor
 };
 
+const parseMediaLink = (url) => {
+
+  if (url.match(/^https?/i) == null) {
+    return null;
+  }
+  const youtube_re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+  let m;
+  if ((m = youtube_re.exec(url)) !== null) {
+    if (m.index === youtube_re.lastIndex) {
+      youtube_re.lastIndex++;
+    }
+      if (m.length>0) {
+        return ('https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0')
+      }
+  } else if (url.match(/^https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null) {
+    return url;
+  } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
+    return url;
+  } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
+    return "soundcloud";
+  } else {
+    return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false'
+  }
+}
+
 const addItemToSheet = (editor, fragment, position) => {
     const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)[1];
     const nextSheetItemPath = position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
@@ -850,6 +875,23 @@ const insertOutsideText = (editor, position) => {
     addItemToSheet(editor, fragment, position);
     Transforms.move(editor);
 };
+
+
+const insertMedia = (editor, mediaUrl) => {
+  const fragment = {
+      type: "SheetItem",
+      children: [{
+          type: "SheetMedia",
+          mediaUrl: mediaUrl,
+          node: editor.children[0].nextNode,
+          children: [{
+                  text: ""
+              }]
+      }]
+  };
+  addItemToSheet(editor, fragment, "bottom");
+  Transforms.move(editor);
+}
 
 const insertSource = (editor, ref) => {
     console.log(ref)
@@ -1205,9 +1247,26 @@ const SefariaEditor = (props) => {
     };
 
     const onPaste = event => {
-      console.log(event)
-    };
+      const mediaUrl = event.clipboardData.getData('Text');
+      const pastedMediaLink = parseMediaLink(mediaUrl);
 
+      if (pastedMediaLink) {
+        event.preventDefault();
+        insertMedia(editor, pastedMediaLink)
+
+      }
+
+      console.log(pastedMediaLink)
+
+
+
+
+      // const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
+      // if (!closestSheetItem) {return null}
+      // const potentialMedia = Node.string(closestSheetItem[0]);
+
+
+    };
     const onKeyDown = event => {
         // add ref on space if end of line
         if (event.key == " ") {
@@ -1237,6 +1296,7 @@ const SefariaEditor = (props) => {
                 placeholder="Enter a title…"
                 spellCheck
                 onKeyDown={onKeyDown}
+                onPaste={onPaste}
                 onDOMBeforeInput={beforeInput}
             />
         </Slate>
