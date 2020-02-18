@@ -1,8 +1,25 @@
 body {
   overflow: scroll;
 }
-.header, .leftButtons, .rightButtons, .loadingMessage, .fa, .linkCountDot, details {
-  display: none;
+.header,
+.leftButtons,
+.rightButtons,
+.loadingMessage,
+.fa,
+.linkCount,
+.linkCountDot,
+.categoryColorLine,
+.readerControls .sectionString,
+.sheetReaderControls,
+.connectionsPanel,
+.connectionsHeader,
+.groupListingImageBox,
+.bookMetaDataBox,
+.cookieNotification,
+#bannerMessage,
+#interruptingMessageBox
+details {
+  display: none !important;
 }
 #s2 {
   position: static;
@@ -13,6 +30,9 @@ body {
 .readerApp {
   position: static;
   height: auto;
+}
+.multiPanel #panelWrapBox {
+  top: 0;
 }
 #panelWrapBox {
   height: auto;
@@ -30,17 +50,41 @@ body {
   float: none !important;
   margin-bottom: 20px;
 }
+.readerControls {
+  unicode-bidi: plaintext;
+  box-shadow: none;
+  background-color: white;
+}
+.readerControls .readerTextToc {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 28px;
+  line-height: 1.3;
+}
 .readerContent {
   height: auto;
 }
-.textColumn {
+.readerPanel.bilingual.heLeft, .readerPanel.bilingual.heRight {
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+.textColumn, 
+.sheetContent,
+.textRange.basetext,
+.sheetsInPanel {
   overflow: visible;
   height: auto;
   padding: 0 !important;
-}
-.textRange.basetext {
+  margin: 0 !important;
   max-width: none;
-  padding: 0;
+}
+.sheetMetaDataBox {
+  margin: 0;
+}
+.sheetsInPanel .sheetMetaDataBox .authorStatement,
+.sheetsInPanel .sheetMetaDataBox .groupStatement {
+  margin-top: 4px;
 }
 .basetext .segment {
   position: relative;
@@ -48,7 +92,26 @@ body {
 .segment .segmentNumber {
   top: 0px !important;
 }
+#printFooter {
+  display: block !important;
+  margin: 50px 0 0;
+  padding-top: 20px;
+  text-align: center;
+  border-top: 1px solid #ddd;
+  page-break-inside: avoid;
+  font-size: 10px;
+}
+#printFooter img {
+  height: 20px;
+  vertical-align: -5px;
+  margin-left: 4px ;
+}
+.interface-hebrew #printFooter img {
+  margin: 0 auto;
+  display: block;
+
+}
 @page {
   size: auto;
-  margin: 18mm 20mm;
+  margin: 0.7in 0.5in;
 } 

@@ -176,13 +176,11 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   width: 100%;
   height: 100%;
 }
-
 .nochrome #s2 .headerNavSection,
 .nochrome #s2 .headerLinksSection,
 .nochrome #footerContainer {
   display: none;
 }
-
 #bannerMessage {
   color: white;
   background-color: #4871bf;
@@ -967,13 +965,11 @@ input.noselect {
   margin: 0 auto;
 }
 .readerNavTop {
-  /*position: absolute;*/
   width: 100%;
   background-color: #FBFBFA;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   height: 58px;
-  /*direction: ltr;*/
   z-index: 1;
   padding: 5px 30px 0 30px;
   vertical-align: middle;
@@ -1000,6 +996,12 @@ input.noselect {
   font-weight: 400;
   color: black;
 }
+.readerNavTop .readerNavTopCategory .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.readerNavTop .readerNavTopCategory .he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
 .readerNavTop.search {
 }
 .readerNavMenu .readerSearch {
@@ -1015,7 +1017,6 @@ input.noselect {
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
@@ -1051,6 +1052,7 @@ input.noselect {
   text-align: right;
   display: flex;
   align-items: center;
+  width:27px;
 }
 .sefariaLogo img {
   width: 110px;
@@ -1064,7 +1066,10 @@ input.noselect {
   justify-content: flex-start;
 }
 .readerNavTop .searchBox .readerNavMenuSearchButton {
-  margin: 0 10px;
+  margin: 0 5px 0 10px;
+}
+.interface-hebrew .readerNavTop .searchBox .readerNavMenuSearchButton {
+  margin: 0 10px 0 5px;
 }
 .readerNavTop .searchBox .readerSearch {
   flex: 1;
@@ -1268,7 +1273,6 @@ a.readerNavCategory {
 }
 @media (max-width: 450px) {
   .readerNavCategory {
-    margin: 2px;
     font-size: 13px;
   }
 }
@@ -1409,6 +1413,9 @@ a.readerNavCategory {
 }
 .multiPanel .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
+}
+.singlePanel .readerNavCategoryMenu .content {
+  padding-top: 0;
 }
 .readerNavCategoryMenu .content .category,
 .readerNavCategoryMenu .content .gridBox {
@@ -3445,7 +3452,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment .segmentNumber,
 .segment .linkCount {
   display: none;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 .sheetContent .segment .linkCount {
   display: inline-block;
@@ -3747,7 +3754,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 @media (max-width: 450px) {
   .gridBox td {
-    border: 2px solid transparent;
+    border: solid transparent;
+    border-width: 2px 4px;
   }
 }
 .twoBox td {
@@ -5062,6 +5070,9 @@ h2.splitHeader .he {
 .groupsList {
   margin-top: 30px;
 }
+.singlePanel .groupsList {
+  margin-top: 0;
+}
 .groupsList .loadingMessage {
   text-align: center;
 }
@@ -5099,6 +5110,9 @@ h2.splitHeader .he {
   height: 60px;
   float: left;
   margin-right: 20px;
+}
+.interface-hebrew .groupListingImageBox {
+  margin: 0 0 0 20px;
 }
 .sheetMetaDataBox .groupListingImageBox,
 .tocTop .groupListingImageBox {

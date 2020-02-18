@@ -330,6 +330,10 @@ class SheetContent extends Component {
         <div className="text">
             <div className="textInner">{sources}</div>
         </div>
+        <div id="printFooter" style={{display:"none"}}>
+          <span className="int-en">Created with <img src="/static/img/logo.svg" /></span>
+          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
+        </div>
       </div>
     )
   }
