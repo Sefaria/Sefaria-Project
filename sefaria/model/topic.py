@@ -158,6 +158,22 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             self.save()
             other.delete()
 
+    def link_set(self, _class='intraTopic', **kwargs):
+        """
+        :param str _class: could be 'intraTopic' or 'refTopic' or `None` (see `TopicLinkHelper`)
+        :return: link set of topic links to `self`
+        """
+        intra_link_query = {"$or": [{"fromTopic": self.slug}, {"toTopic": self.slug}]}
+        if _class == 'intraTopic':
+            kwargs['record_kwargs'] = {'context_slug': self.slug}
+            return IntraTopicLinkSet(intra_link_query, **kwargs)
+        elif _class == 'refTopic':
+            return RefTopicLinkSet({'toTopic': self.slug}, **kwargs)
+        elif _class is None:
+            kwargs['record_kwargs'] = {'context_slug': self.slug}
+            return TopicLinkSetHelper.find(intra_link_query, **kwargs)
+
+
     def __str__(self):
         return self.get_primary_title("en")
 
@@ -189,15 +205,15 @@ class TopicLinkHelper(object):
     ]
 
     @staticmethod
-    def init_by_class(topic_link):
+    def init_by_class(topic_link, context_slug=None):
         """
         :param topic_link: dict from `topic_links` collection
         :return: either instance of IntraTopicLink or RefTopicLink based on 'class' field of `topic_link`
         """
         if topic_link['class'] == 'intraTopic':
-            return IntraTopicLink().load_from_dict(topic_link, is_init=True)
+            return IntraTopicLink(topic_link, context_slug=context_slug)
         if topic_link['class'] == 'refTopic':
-            return RefTopicLink().load_from_dict(topic_link, is_init=True)
+            return RefTopicLink(topic_link)
 
 
 class IntraTopicLink(abst.AbstractMongoRecord):
@@ -205,6 +221,15 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
+
+    def __init__(self, attrs=None, context_slug=None):
+        """
+
+        :param attrs:
+        :param str context_slug: if this link is being used in a specific context, give the topic slug which represents the context. used to set if the link should be considered inverted
+        """
+        super(IntraTopicLink, self).__init__(attrs=attrs)
+        self.context_slug = context_slug == self.toTopic
 
     def _normalize(self):
         setattr(self, "class", "intraTopic")
@@ -254,6 +279,34 @@ class IntraTopicLink(abst.AbstractMongoRecord):
             ancestors = to_topic.get_types()
             assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
 
+    def contents(self, **kwargs):
+        d = super(IntraTopicLink, self).contents(**kwargs)
+        if self.context_slug is not None:
+            d['isInverse'] = self.is_inverse
+            d['topic'] = self.topic
+            del d['toTopic']
+            del d['fromTopic']
+            if d.get('order', None) is not None:
+                d['order']['tfidf'] = self.tfidf
+                d['order'].pop('toTfidf', None)
+                d['order'].pop('fromTfidf', None)
+        return d
+
+    # PROPERTIES
+
+    def get_is_inverse(self):
+        return self.context_slug == self.toTopic
+
+    def get_topic(self):
+        return self.fromTopic if self.is_inverse else self.toTopic
+
+    def get_tfidf(self):
+        order = getattr(self, 'order', {})
+        return order.get('fromTfidf' if self.is_inverse else 'toTfidf', 0)
+
+    topic = property(get_topic)
+    tfidf = property(get_tfidf)
+    is_inverse = property(get_is_inverse)
 
 
 class RefTopicLink(abst.AbstractMongoRecord):
@@ -290,10 +343,11 @@ class TopicLinkSetHelper(object):
         return query
 
     @staticmethod
-    def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None):
+    def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, record_kwargs=None):
         from sefaria.system.database import db
+        record_kwargs = record_kwargs or {}
         raw_records = getattr(db, TopicLinkHelper.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
-        return [TopicLinkHelper.init_by_class(r) for r in raw_records]
+        return [TopicLinkHelper.init_by_class(r, **record_kwargs) for r in raw_records]
 
 
 class IntraTopicLinkSet(abst.AbstractMongoSet):
